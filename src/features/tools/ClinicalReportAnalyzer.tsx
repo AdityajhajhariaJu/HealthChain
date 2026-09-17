@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
-import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, setActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
+import { addEvidenceToCase, updateCaseDifferentials, getActiveCase, setActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
 import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
 import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
@@ -152,6 +152,8 @@ export default function ClinicalReportAnalyzer() {
         }
         const mimeType = selectedFile.type || 'image/jpeg';
 
+      const targetCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+      const targetCaseId = targetCase?.id;
       const profile = getProfile() || {};
       const data = await analyzeLabReport(base64Data, mimeType, profile);
 
@@ -168,17 +170,16 @@ export default function ClinicalReportAnalyzer() {
           updateVitals(data.biomarkers, 'report_analyzer');
         }
 
-        const savedEvidence = addEvidenceToActiveCase({
+        const savedEvidence = targetCaseId ? addEvidenceToCase(targetCaseId, {
           filename: selectedFile.name,
           findings: `${data.testName}: ${data.keyFindings || data.interpretation || 'Lab report analysed.'}`,
           source: 'clinical_report_analyzer',
           type: 'clinical_report',
-        });
+        }) : null;
 
-        const currentCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+        const currentCase = targetCaseId ? getUnifiedCaseScope(targetCaseId).caseItem : null;
         if (savedEvidence) {
           setSavedRecordId(savedEvidence.id);
-          const targetCaseId = caseIdParam || currentCase?.id;
           if (targetCaseId) {
             try {
               await saveOriginalCaseFile(targetCaseId, savedEvidence.id, selectedFile);
@@ -201,7 +202,7 @@ export default function ClinicalReportAnalyzer() {
               keyFindings: data.keyFindings,
               interpretation: data.interpretation,
               nextSteps: data.recommendations,
-              abnormalitiesNoted: data.abnormalities?.map((a: any) => `${a.marker}: ${a.value}`) || [],
+              abnormalitiesNoted: data.abnormalities?.map((a: any) => typeof a === 'string' ? a : `${a?.marker || 'Finding'}: ${a?.value ?? 'Not specified'}`) || [],
               medicalTerms: data.extraTerms || []
             },
             specialists: ['Lab AI'],
@@ -274,6 +275,8 @@ export default function ClinicalReportAnalyzer() {
 
       const base64Data = photo.base64String;
       const mimeType = `image/${photo.format}`;
+      const targetCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+      const targetCaseId = targetCase?.id;
       const profile = getProfile() || {};
       const data = await analyzeLabReport(base64Data, mimeType, profile);
 
@@ -286,17 +289,16 @@ export default function ClinicalReportAnalyzer() {
           updateVitals(data.biomarkers, 'report_analyzer');
         }
 
-        const savedEvidence = addEvidenceToActiveCase({
+        const savedEvidence = targetCaseId ? addEvidenceToCase(targetCaseId, {
           filename: 'Captured_Image.' + photo.format,
           findings: `${data.testName}: ${data.keyFindings || data.interpretation || 'Lab report analysed.'}`,
           source: 'clinical_report_analyzer',
           type: 'clinical_report',
-        });
+        }) : null;
 
-        const currentCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+        const currentCase = targetCaseId ? getUnifiedCaseScope(targetCaseId).caseItem : null;
         if (savedEvidence) {
           setSavedRecordId(savedEvidence.id);
-          const targetCaseId = caseIdParam || currentCase?.id;
           if (targetCaseId) {
             try {
               const byteCharacters = atob(base64Data);

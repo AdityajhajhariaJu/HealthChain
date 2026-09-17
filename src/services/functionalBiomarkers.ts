@@ -116,7 +116,11 @@ export const FUNCTIONAL_BIOMARKER_RULES: FunctionalBiomarkerRule[] = [
   }
 ];
 
-export function evaluateBiomarkerFunctionally(rawName: string, numericVal: number): FunctionalEvaluationResult | null {
+function normalizeUnit(unit?: string): string {
+  return String(unit || '').toLowerCase().replace(/\s+/g, '').replace(/μ/g, 'u').replace(/µ/g, 'u');
+}
+
+export function evaluateBiomarkerFunctionally(rawName: string, numericVal: number, reportedUnit?: string): FunctionalEvaluationResult | null {
   if (!rawName || isNaN(numericVal)) return null;
 
   const normalized = rawName.toLowerCase().trim();
@@ -127,6 +131,10 @@ export function evaluateBiomarkerFunctionally(rawName: string, numericVal: numbe
   );
 
   if (!rule) return null;
+
+  // Thresholds are valid only in their declared unit. Never silently relabel
+  // or interpret a measurement whose unit is absent or different.
+  if (!reportedUnit || normalizeUnit(reportedUnit) !== normalizeUnit(rule.unit)) return null;
 
   let status: FunctionalEvaluationResult['status'] = 'NORMAL';
   let clinicalInsight = '';

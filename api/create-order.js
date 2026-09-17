@@ -61,11 +61,11 @@ export default async function handler(req, res) {
   try {
     const authHeader = req.headers.authorization;
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!authHeader?.startsWith('Bearer ') || !supabaseUrl || !supabaseKey) {
       return res.status(401).json({ error: 'Authentication required to create an order.' });
     }
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
     const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
     if (!user) return res.status(401).json({ error: 'Invalid authentication session.' });
     const { planId, plan_id } = req.body || {};

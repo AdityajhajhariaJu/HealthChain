@@ -32,6 +32,15 @@ begin
   if to_regclass('public.analytics_events') is not null then
     execute 'delete from public.analytics_events where user_id = $1' using p_user_id;
   end if;
+  if to_regclass('public.user_quotas') is not null then
+    execute 'delete from public.user_quotas where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.case_tombstones') is not null then
+    execute 'delete from public.case_tombstones where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.payment_refunds') is not null and to_regclass('public.payments') is not null then
+    execute 'delete from public.payment_refunds r using public.payments p where r.razorpay_payment_id = p.razorpay_payment_id and p.user_id = $1' using p_user_id;
+  end if;
   if to_regclass('public.payments') is not null then
     execute 'delete from public.payments where user_id = $1' using p_user_id;
   end if;

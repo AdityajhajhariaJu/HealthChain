@@ -11,7 +11,7 @@ export const DoctorSummaryView: React.FC = () => {
   const handleCopyNote = () => {
     triggerHapticLight();
     const formattedText = `CLINICAL METABOLIC & FOOD SENSITIVITY REPORT
-Patient: ${report.patientName} (Age: ${report.age || 26})
+Patient: ${report.patientName} (Age: ${report.age ?? 'Not recorded'})
 Generated: ${report.generatedAt}
 Platform: HealthChain 360
 

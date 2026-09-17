@@ -255,13 +255,9 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       }
     });
 
-    // Merge benchmark list with user verification if applicable
-    return BENCHMARK_INSIGHTS.map((item) => {
-      let matchedCount = item.matchingDays;
-      let totalExposures = item.totalDays;
-      let isVerified = false;
-
-      // Search if user ate this food
+    // Benchmarks provide vocabulary and explanatory copy only. Cards become
+    // personal insights only after at least two dated user exposures.
+    return BENCHMARK_INSIGHTS.flatMap((item) => {
       const foodWords = item.foodName.toLowerCase().split(/[\s/]+/);
       let userExposures = 0;
       let userMatches = 0;
@@ -279,19 +275,14 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         }
       });
 
-      if (userExposures >= 2) {
-        matchedCount = userMatches || matchedCount;
-        totalExposures = userExposures;
-        isVerified = true;
-      }
-
-      return {
+      if (userExposures < 2) return [];
+      return [{
         ...item,
-        matchingDays: matchedCount,
-        totalDays: totalExposures,
-        correlationPercent: Math.round((matchedCount / (totalExposures || 1)) * 100),
-        isUserVerified: isVerified,
-      };
+        matchingDays: userMatches,
+        totalDays: userExposures,
+        correlationPercent: Math.round((userMatches / userExposures) * 100),
+        isUserVerified: true,
+      }];
     });
   }, []);
 

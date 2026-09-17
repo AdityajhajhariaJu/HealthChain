@@ -47,8 +47,16 @@ declare
   v_curr_data jsonb;
   v_next_rev bigint;
 begin
-  if auth.uid() is not null and auth.uid() <> p_user_id then
+  if auth.uid() is null or auth.uid() <> p_user_id then
     raise exception 'Unauthorized case sync operation';
+  end if;
+
+  if exists (select 1 from public.cases where id = p_case_id and user_id <> p_user_id) then
+    raise exception 'Case identifier belongs to another account';
+  end if;
+
+  if exists (select 1 from public.case_tombstones where id = p_case_id and user_id = p_user_id) then
+    return jsonb_build_object('success', false, 'conflict', true, 'deleted', true);
   end if;
 
   -- Lock the target case row for update
@@ -104,7 +112,8 @@ begin
         mode = excluded.mode,
         revision = v_next_rev,
         data = excluded.data,
-        updated_at = now();
+        updated_at = now()
+    where public.cases.user_id = p_user_id;
 
   return jsonb_build_object(
     'success', true,

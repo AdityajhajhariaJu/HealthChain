@@ -1,4 +1,4 @@
-import { getProfile } from './ProfileEngine';
+import { getProfile, getProfileEngineState, getProfileKey } from './ProfileEngine';
 import { getItemSync, setItemSync, removeItemSync } from './storage';
 
 export interface SensitivityProfile {
@@ -103,10 +103,11 @@ export interface ActiveTrialState {
   totalDays: number;
   completedDays: number;
   adherencePercentage: number;
-  symptomScores: { day: number; severity: number; adhered: boolean; note?: string }[];
-  baselineSeverity: number; // 0 - 10
-  currentSeverity: number;
-  reductionPercent: number; // e.g. 44 for 44% drop
+  symptomScores: { day: number; date?: string; severity: number; adhered: boolean; note?: string }[];
+  baselineSeverity: number | null; // null until the user records it
+  currentSeverity: number | null;
+  reductionPercent: number | null;
+  exposures?: { date: string; day: number; trigger: string; note?: string }[];
 }
 
 export interface GardenState {
@@ -599,10 +600,11 @@ export const FOOD_DATABASE: FoodItem[] = [
 // 3. SUSPECT FOODS CLINICAL LEADERBOARD & CORRELATION ENGINE
 // ─────────────────────────────────────────────────────────────
 const CONFIRMED_TRIGGERS_KEY = 'hc_confirmed_food_triggers';
+const confirmedTriggersStorageKey = () => `${CONFIRMED_TRIGGERS_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
 
 export function recordConfirmedTrigger(trigger: { food: string; symptom: string; date?: string; sensitivity?: string }): void {
   try {
-    const raw = getItemSync(CONFIRMED_TRIGGERS_KEY);
+    const raw = getItemSync(confirmedTriggersStorageKey());
     const list: any[] = raw ? JSON.parse(raw) : [];
     const date = trigger.date || new Date().toISOString().split('T')[0];
     const existingIndex = list.findIndex(
@@ -622,7 +624,7 @@ export function recordConfirmedTrigger(trigger: { food: string; symptom: string;
         lastConfirmedAt: date
       });
     }
-    setItemSync(CONFIRMED_TRIGGERS_KEY, JSON.stringify(list));
+    setItemSync(confirmedTriggersStorageKey(), JSON.stringify(list));
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('hc_trigger_recorded', { detail: trigger }));
     }
@@ -633,7 +635,7 @@ export function recordConfirmedTrigger(trigger: { food: string; symptom: string;
 
 export function getConfirmedTriggers(): any[] {
   try {
-    const raw = getItemSync(CONFIRMED_TRIGGERS_KEY);
+    const raw = getItemSync(confirmedTriggersStorageKey());
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -643,7 +645,11 @@ export function getConfirmedTriggers(): any[] {
 export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
   const profile = getProfile();
   const checkins: any[] = profile?.dailyCheckins || [];
-  const daysObserved = Math.max(14, checkins.length);
+  const observationDates = new Set<string>();
+  checkins.forEach((entry: any) => {
+    const rawDate = entry?.date || entry?.createdAt || entry?.loggedAt;
+    if (rawDate) observationDates.add(String(rawDate).slice(0, 10));
+  });
   const confirmed = getConfirmedTriggers();
 
   // Determine dietary preferences
@@ -668,18 +674,23 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
     });
   }
   const allLoggedFoods = [...recentLogs, ...dieticianLogs];
+  allLoggedFoods.forEach((entry: any) => {
+    const rawDate = entry?.date || entry?.loggedAt || entry?.createdAt;
+    if (rawDate) observationDates.add(String(rawDate).slice(0, 10));
+  });
+  const daysObserved = observationDates.size;
 
   // Count high-severity flares (Moderate = 2, Severe = 3)
   const flareCheckins = checkins.filter((c: any) => c?.score >= 2 || c?.severity === 'Moderate' || c?.severity === 'Severe');
-  const totalFlares = Math.max(1, flareCheckins.length);
+  const totalFlares = flareCheckins.length;
 
   // If user has confirmed triggers, map them to top items
   const dynamicItems: SuspectFoodItem[] = [];
 
   confirmed.forEach((conf: any) => {
     const foodName = conf.food || 'Logged Food';
-    const flaresTracked = Math.max(conf.count || 1, 2);
-    const correlationPercent = Math.min(85, Math.max(25, Math.round((flaresTracked / totalFlares) * 75) + 20));
+    const flaresTracked = Math.max(0, Number(conf.count) || 0);
+    const correlationPercent = 0;
 
     dynamicItems.push({
       id: 'conf_' + foodName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
@@ -690,14 +701,14 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
              foodName.toLowerCase().includes('tomato') ? '🍅' :
              foodName.toLowerCase().includes('avocado') ? '🥑' :
              foodName.toLowerCase().includes('dal') ? '🍲' : '🍽️',
-      category: 'User-Logged Dietary Culprit',
-      primarySensitivity: conf.sensitivity || 'Mast Cell & Enteric Reactive',
+      category: 'User-reported food observation',
+      primarySensitivity: conf.sensitivity || 'Sensitivity not established',
       correlationPercent,
-      reactionWindow: 'within 2 - 6 hours',
+      reactionWindow: 'Timing not established',
       flaresTracked,
       daysObserved,
-      safeSwap: `Lower-glycemic, gut-calming alternative to ${foodName}`,
-      mechanism: `Reported post-consumption correlation with ${conf.symptom || 'symptom flares'}.`
+      safeSwap: 'No substitution recommended from this observation alone',
+      mechanism: `The user linked ${foodName} with ${conf.symptom || 'a symptom'}; causation has not been established.`
     });
   });
 
@@ -844,14 +855,6 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
 
   // Combine dynamic user confirmed items with baseline profiles up to 5 items
   const combined = [...dynamicItems];
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test' && !getItemSync('hc_force_zero_state')) {
-    baselineItems.forEach(b => {
-      if (combined.length < 5 && !combined.some(c => c.id === b.id || c.name.toLowerCase() === b.name.toLowerCase())) {
-        combined.push(b);
-      }
-    });
-  }
-
   return combined.slice(0, 5);
 }
 
@@ -1118,23 +1121,22 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
   // Dynamic user confirmed items
   if (confirmed && confirmed.length > 0) {
     confirmed.forEach((c: any, idx: number) => {
-      const totalExp = (c.count || 1) + 1;
-      const flares = c.count || 1;
+      const observations = Math.max(1, Number(c.count) || 1);
       results.push({
         id: `emp_user_${idx}`,
         foodName: c.food,
         foodIcon: '⚡',
-        category: c.sensitivity || 'Biochemical Reactive',
-        symptomName: c.symptom || 'Reaction Flare',
+        category: c.sensitivity || 'Reported observation',
+        symptomName: c.symptom || 'Reported symptom',
         symptomIcon: '⚠️',
-        flaresCount: flares,
-        exposuresCount: totalExp,
-        matchRatioText: `${flares}/${totalExp} day match`,
-        correlationPercent: Math.round((flares / totalExp) * 100),
-        latencyWindow: 'within 1.5 – 2 hours',
-        pathophysiologicalMechanism: `Patient-confirmed exposure trigger provoking ${c.symptom || 'discomfort'}.`,
-        targetedSwap: `Substitute ${c.food} with lower reactive alternative.`,
-        recommendedAction: `Add to active elimination trial or challenge protocol.`,
+        flaresCount: observations,
+        exposuresCount: observations,
+        matchRatioText: `${observations} recorded observation${observations === 1 ? '' : 's'}`,
+        correlationPercent: 0,
+        latencyWindow: 'Timing not established',
+        pathophysiologicalMechanism: `${c.food} and ${c.symptom || 'a symptom'} were manually linked by the user. This does not establish causation.`,
+        targetedSwap: 'No substitution is recommended from this observation alone.',
+        recommendedAction: 'Collect dated exposure and symptom records, then review recurring patterns with a clinician.',
       });
     });
   }
@@ -1207,23 +1209,17 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
     },
   ];
 
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test' && !getItemSync('hc_force_zero_state')) {
-    baselines.forEach((b) => {
-      if (results.length < 5 && !results.some((r) => r.foodName.toLowerCase() === b.foodName.toLowerCase())) {
-        results.push(b);
-      }
-    });
-  }
-
   return results;
 }
 
 
 const TRIAL_STORAGE_KEY = 'hc_active_elimination_trial';
+const trialStorageKey = () => `${TRIAL_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+const localDateString = () => new Date().toLocaleDateString('en-CA');
 
 export function getActiveTrial(): ActiveTrialState | null {
   try {
-    const raw = getItemSync(TRIAL_STORAGE_KEY);
+    const raw = getItemSync(trialStorageKey());
     if (!raw) {
       return null;
     }
@@ -1234,7 +1230,7 @@ export function getActiveTrial(): ActiveTrialState | null {
       (!parsed.userInitiated && parsed.trialId === 'low_histamine' && parsed.completedDays === 0)
     )) {
       try {
-        removeItemSync(TRIAL_STORAGE_KEY);
+        removeItemSync(trialStorageKey());
       } catch {}
       return null;
     }
@@ -1246,7 +1242,7 @@ export function getActiveTrial(): ActiveTrialState | null {
 
 export function startTrial(trialId: string, initialSeverity?: number): ActiveTrialState {
   const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === trialId) || ELIMINATION_PROTOCOLS[0];
-  const baseline = typeof initialSeverity === 'number' ? initialSeverity : 0;
+  const baseline = typeof initialSeverity === 'number' ? initialSeverity : null;
   const newState: ActiveTrialState = {
     trialId: protocol.id,
     startDate: new Date().toISOString(),
@@ -1254,13 +1250,13 @@ export function startTrial(trialId: string, initialSeverity?: number): ActiveTri
     totalDays: protocol.durationDays,
     completedDays: 0,
     adherencePercentage: 100,
-    symptomScores: baseline > 0 ? [{ day: 1, severity: baseline, adhered: true, note: 'Trial commenced.' }] : [],
+    symptomScores: baseline !== null ? [{ day: 1, date: localDateString(), severity: baseline, adhered: true, note: 'Baseline recorded.' }] : [],
     baselineSeverity: baseline,
     currentSeverity: baseline,
     reductionPercent: 0,
     userInitiated: true,
   } as any;
-  setItemSync(TRIAL_STORAGE_KEY, JSON.stringify(newState));
+  setItemSync(trialStorageKey(), JSON.stringify(newState));
   window.dispatchEvent(new Event('hc_trial_updated'));
   return newState;
 }
@@ -1269,27 +1265,47 @@ export function logTrialDay(severityScore: number, adhered: boolean, note?: stri
   let state = getActiveTrial();
   if (!state) state = startTrial('low_histamine');
 
-  const nextDay = Math.min(state.totalDays, state.currentDay + 1);
-  const updatedScores = [
-    ...state.symptomScores,
-    { day: nextDay, severity: severityScore, adhered, note: note || 'Daily checkin recorded.' },
-  ];
+  const today = localDateString();
+  const elapsedDay = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
+  const priorScores = state.symptomScores || [];
+  const existingIndex = priorScores.findIndex((score) => score.date === today || (!score.date && score.day === elapsedDay));
+  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered, note: note || 'Daily check-in recorded.' };
+  const updatedScores = existingIndex >= 0
+    ? priorScores.map((score, index) => index === existingIndex ? nextScore : score)
+    : [...priorScores, nextScore];
 
   const totalAdhered = updatedScores.filter((s) => s.adhered).length;
   const adherencePercentage = Math.round((totalAdhered / updatedScores.length) * 100);
-  const reduction = Math.max(0, Math.round(((state.baselineSeverity - severityScore) / state.baselineSeverity) * 100));
+  const baseline = state.baselineSeverity ?? severityScore;
+  const reduction = baseline > 0 ? Math.round(((baseline - severityScore) / baseline) * 100) : 0;
 
   const updatedState: ActiveTrialState = {
     ...state,
-    currentDay: nextDay,
+    currentDay: elapsedDay,
     completedDays: updatedScores.length,
     adherencePercentage,
     symptomScores: updatedScores,
+    baselineSeverity: baseline,
     currentSeverity: severityScore,
     reductionPercent: reduction,
   };
 
-  setItemSync(TRIAL_STORAGE_KEY, JSON.stringify(updatedState));
+  setItemSync(trialStorageKey(), JSON.stringify(updatedState));
+  return updatedState;
+}
+
+export function logTrialExposure(trigger: string, note?: string): ActiveTrialState {
+  let state = getActiveTrial();
+  if (!state) state = startTrial('low_histamine');
+  const date = localDateString();
+  const day = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
+  const withoutTodayDuplicate = (state.exposures || []).filter((entry) => !(entry.date === date && entry.trigger === trigger));
+  const updatedState: ActiveTrialState = {
+    ...state,
+    currentDay: day,
+    exposures: [...withoutTodayDuplicate, { date, day, trigger, note }],
+  };
+  setItemSync(trialStorageKey(), JSON.stringify(updatedState));
   return updatedState;
 }
 
@@ -1298,14 +1314,18 @@ export function logTrialDay(severityScore: number, adhered: boolean, note?: stri
 // ─────────────────────────────────────────────────────────────
 const GARDEN_STORAGE_KEY = 'hc_wellness_zen_garden';
 
+function gardenStorageKey(): string {
+  return `${GARDEN_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+}
+
 export function getGardenState(): GardenState {
   try {
-    const raw = getItemSync(GARDEN_STORAGE_KEY);
+    const raw = getItemSync(gardenStorageKey());
     if (raw) {
       const parsed = JSON.parse(raw);
       // Self-healing: clear legacy mock seed (waterCount 22, breathworkMinutes 45, level 3)
       if (parsed && (parsed.waterCount === 22 && parsed.breathworkMinutes === 45 && parsed.cleanMealsCount === 18)) {
-        removeItemSync(GARDEN_STORAGE_KEY);
+        removeItemSync(gardenStorageKey());
       } else {
         return parsed;
       }
@@ -1321,7 +1341,7 @@ export function getGardenState(): GardenState {
       lastWateredDate: '',
       gardenStage: 'sprout',
     };
-    setItemSync(GARDEN_STORAGE_KEY, JSON.stringify(initial));
+    setItemSync(gardenStorageKey(), JSON.stringify(initial));
     return initial;
   } catch {
     return {
@@ -1343,9 +1363,13 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
   const updated = { ...current };
 
   if (action === 'water') {
-    updated.waterCount += 1;
-    updated.vitalityScore = Math.min(100, updated.vitalityScore + 4);
-    updated.bloomCount += 1;
+    const today = new Date().toLocaleDateString('en-CA');
+    if (updated.lastWateredDate !== today) {
+      updated.waterCount += 1;
+      updated.vitalityScore = Math.min(100, updated.vitalityScore + 4);
+      updated.bloomCount += 1;
+      updated.lastWateredDate = today;
+    }
   } else if (action === 'breathwork') {
     updated.breathworkMinutes += 5;
     updated.vitalityScore = Math.min(100, updated.vitalityScore + 6);
@@ -1372,7 +1396,7 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
     updated.level = 2;
   }
 
-  setItemSync(GARDEN_STORAGE_KEY, JSON.stringify(updated));
+  setItemSync(gardenStorageKey(), JSON.stringify(updated));
   return updated;
 }
 
@@ -1395,8 +1419,8 @@ export function generateDoctorSummary(): DoctorSummaryReport {
   });
   const topSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
   const chiefComplaint = topSymptom
-    ? `Recurrent ${topSymptom.toLowerCase()} flares, postprandial gut distension, and suspected dietary sensitivity.`
-    : (profile?.conditions?.[0] ? `Evaluation of ${profile.conditions[0]} and postprandial metabolic triggers.` : 'Routine dietary intake evaluation and symptom correlation assessment.');
+    ? `Recurring ${topSymptom.toLowerCase()} recorded in daily check-ins.`
+    : (profile?.conditions?.[0] ? `Review of the recorded condition: ${profile.conditions[0]}.` : 'No primary concern recorded.');
 
   // Generate dynamic 7-day symptom trend summary
   const weeklyData = getWeeklySymptomSeverity();
@@ -1415,21 +1439,18 @@ export function generateDoctorSummary(): DoctorSummaryReport {
     chiefComplaint,
     symptomTrends,
     topCulpritFoods: culprits,
-    biochemicalSensitivities: culprits.length > 0 ? [
-      { name: primarySensitivity1, percentage: culprits[0]?.correlationPercent || 38, window: culprits[0]?.reactionWindow || 'within 1 day' },
-      ...(culprits.length > 1 ? [{ name: primarySensitivity2, percentage: culprits[1]?.correlationPercent || 32, window: culprits[1]?.reactionWindow || '2 - 8 hours' }] : []),
+    biochemicalSensitivities: culprits.some((culprit) => culprit.correlationPercent > 0) ? [
+      { name: primarySensitivity1, percentage: culprits[0]?.correlationPercent || 0, window: culprits[0]?.reactionWindow || 'Timing not established' },
+      ...(culprits[1]?.correlationPercent > 0 ? [{ name: primarySensitivity2, percentage: culprits[1].correlationPercent, window: culprits[1]?.reactionWindow || 'Timing not established' }] : []),
     ] : [],
     activeTrials: activeTrial
-      ? `${trialProtocol?.name || 'Dietary Trial'} (Day ${activeTrial.currentDay} of ${activeTrial.totalDays}, Adherence: ${activeTrial.adherencePercentage}%, Flare Reduction: -${activeTrial.reductionPercent}%)`
+      ? `${trialProtocol?.name || 'Dietary Trial'} (Calendar day ${activeTrial.currentDay} of ${activeTrial.totalDays}, ${activeTrial.completedDays} dated check-in${activeTrial.completedDays === 1 ? '' : 's'}${activeTrial.reductionPercent === null ? ', baseline not recorded' : `, recorded symptom change ${activeTrial.reductionPercent}%`})`
       : 'No active elimination trial; baseline food logging active.',
     clinicalRecommendations: culprits.length > 0 ? [
-      `Maintain enzymatic clearance support by restricting identified high-risk culprits (${culprits.slice(0, 2).map(c => c.name).join(', ')}).`,
-      'Incorporate 4-7-8 parasympathetic breathwork prior to main meals to enhance cephalic vagal tone and digestive motility.',
-      'Separate reactive supplements and chronotherapy dosing by at least 4 hours to avoid chelation.',
-      'Consider DAO activity serum testing and urinary organic acid panel if flares persist beyond 14 days.',
+      `Review the recorded observations involving ${culprits.slice(0, 2).map(c => c.name).join(', ')} with a qualified clinician.`,
+      'Continue dated meal and symptom observations before inferring a cause.',
     ] : [
-      'Log recurring meals and postprandial physical symptoms to establish statistically significant trigger patterns.',
-      'Incorporate structured mindful pacing and autonomic relaxation around main meals.',
+      'Log dated meals and symptoms before assessing recurring timing patterns.',
     ],
     sbarSummary: {
       situation: `${patientName}${age ? ` (${age}y)` : ''} presents with ${chiefComplaint.toLowerCase()}`,
@@ -1437,11 +1458,11 @@ export function generateDoctorSummary(): DoctorSummaryReport {
         ? `Patient has tracked ${checkins.length} daily check-in cycles alongside time-stamped meal entries, hydration, and onset latencies.`
         : 'Patient has initialized baseline health profile; awaiting longitudinal check-in records.',
       assessment: culprits.length > 0
-        ? `Clinical correlation indicates suspect reactivity to ${culprits.slice(0, 2).map(c => `${c.name} (+${c.correlationPercent}%)`).join(' and ')}, predominantly mediated by ${primarySensitivity1}. ${activeTrial ? `Active protocol demonstrates a ${activeTrial.reductionPercent}% reduction in symptom flares.` : ''}`
+        ? `Recorded observations mention ${culprits.slice(0, 2).map(c => c.name).join(' and ')}. These observations do not establish causation.${activeTrial && activeTrial.reductionPercent !== null ? ` The recorded symptom-score change from baseline is ${activeTrial.reductionPercent}%.` : ''}`
         : 'No recurring food culprits or high-confidence sensitivities identified from current logs.',
       recommendation: culprits.length > 0
-        ? `1. Continue targeted exclusion of identified suspect culprits (${culprits.slice(0, 2).map(c => c.name).join(', ')}). 2. Complete active ${trialProtocol?.name || 'dietary reset'} phase with structured single-food challenge reintroductions. 3. Correlate with specialist multi-system evaluation.`
-        : '1. Continue logging daily meals and symptom onset. 2. Begin targeted elimination trial if symptoms recur postprandially.',
+        ? `1. Review the observations with a qualified clinician. 2. Continue dated logging. 3. Do not start or extend restriction based on this summary alone.`
+        : 'Continue dated logging and discuss persistent or concerning symptoms with a qualified clinician.',
     },
   };
 }
@@ -1449,7 +1470,72 @@ export function generateDoctorSummary(): DoctorSummaryReport {
 // ─────────────────────────────────────────────────────────────
 // 7. SYMPTOM TRIGGER & EXPOSURE ENGINE
 // ─────────────────────────────────────────────────────────────
+// Computes personal associations only from repeated, dated records.
 export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTriggerReport {
+  const profile = getProfile();
+  const symptomTokens = symptomName.trim().toLowerCase().split(/\s+/).filter((token) => token.length > 2);
+  const checkins: any[] = profile?.dailyCheckins || [];
+  const recentLogs: any[] = profile?.nutrition?.recentLogs || [];
+  const dieticianLogs: any[] = [];
+  const foodLogMap = profile?.dietician?.foodLogs || profile?.dietFoodLogs || {};
+  Object.values(foodLogMap).forEach((entries: any) => {
+    if (Array.isArray(entries)) dieticianLogs.push(...entries);
+  });
+  const logs = [...recentLogs, ...dieticianLogs];
+  const dateOf = (entry: any): string => String(entry?.date || entry?.loggedAt || entry?.createdAt || '').slice(0, 10);
+  const symptomDates = new Set(
+    checkins
+      .filter((entry: any) => {
+        const reported = String(entry?.symptom || entry?.symptoms || entry?.note || '').toLowerCase();
+        return dateOf(entry) && symptomTokens.some((token) => reported.includes(token));
+      })
+      .map(dateOf)
+  );
+
+  const aggregate = (values: { key: string; label: string; date: string }[], type: 'sensitivity' | 'ingredient'): TriggerItem[] => {
+    const groups = new Map<string, { label: string; dates: Set<string>; matches: Set<string> }>();
+    values.forEach(({ key, label, date }) => {
+      if (!date || !key) return;
+      const current = groups.get(key) || { label, dates: new Set<string>(), matches: new Set<string>() };
+      current.dates.add(date);
+      if (symptomDates.has(date)) current.matches.add(date);
+      groups.set(key, current);
+    });
+    return Array.from(groups.entries())
+      .filter(([, group]) => group.dates.size >= 2)
+      .map(([key, group]) => ({
+        id: `observed_${type}_${key.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}`,
+        name: group.label,
+        type,
+        icon: type === 'ingredient' ? '🍽️' : 'flask',
+        daysTracked: group.dates.size,
+        correlationPercent: Math.round((group.matches.size / group.dates.size) * 100),
+        reactionWindow: 'same-day association',
+      }))
+      .sort((a, b) => b.daysTracked - a.daysTracked)
+      .slice(0, 4);
+  };
+
+  const ingredientValues = logs
+    .map((log: any) => ({ key: String(log?.name || '').trim().toLowerCase(), label: String(log?.name || '').trim(), date: dateOf(log) }))
+    .filter((entry) => entry.key);
+  const sensitivityValues = logs.flatMap((log: any) =>
+    (Array.isArray(log?.sensitivities) ? log.sensitivities : []).map((sensitivity: any) => ({
+      key: String(sensitivity).trim().toLowerCase(),
+      label: String(sensitivity).trim(),
+      date: dateOf(log),
+    }))
+  );
+
+  return {
+    symptom: symptomName,
+    reactionWindow: 'Same-day timing only; causation is not established.',
+    sensitivities: aggregate(sensitivityValues, 'sensitivity'),
+    ingredients: aggregate(ingredientValues, 'ingredient'),
+  };
+}
+
+export function getEducationalTriggerReference(symptomName = 'Bloating'): SymptomTriggerReport {
   const normSymptom = symptomName.trim().toLowerCase();
   const profile = getProfile();
   const checkins = profile?.dailyCheckins || [];
@@ -1578,8 +1664,8 @@ export function getExposureTrends(): { id: string; name: string; icon: string; b
       id: 'histamine',
       name: 'Histamine',
       icon: '⚗️',
-      bites: Math.max(histamineCount, 3),
-      changePercent: histamineCount > 0 ? -Math.min(65, Math.round(100 / (histamineCount + 1))) : -48,
+      bites: histamineCount,
+      changePercent: 0,
       trend: 'down',
       path: 'M 0,18 Q 30,5 60,25 T 120,28',
     },
@@ -1587,8 +1673,8 @@ export function getExposureTrends(): { id: string; name: string; icon: string; b
       id: 'fructans',
       name: 'FODMAPs',
       icon: '🌾',
-      bites: Math.max(fodmapCount, 2),
-      changePercent: fodmapCount > 0 ? -Math.min(50, Math.round(80 / (fodmapCount + 1))) : -32,
+      bites: fodmapCount,
+      changePercent: 0,
       trend: 'down',
       path: 'M 0,22 Q 40,8 80,24 T 120,26',
     },
@@ -1596,8 +1682,8 @@ export function getExposureTrends(): { id: string; name: string; icon: string; b
       id: 'caffeine',
       name: 'Caffeine',
       icon: '☕',
-      bites: Math.max(caffeineCount, 1),
-      changePercent: caffeineCount > 1 ? 15 : -20,
+      bites: caffeineCount,
+      changePercent: 0,
       trend: caffeineCount > 1 ? 'up' : 'down',
       path: 'M 0,25 Q 30,20 60,15 T 120,12',
     },

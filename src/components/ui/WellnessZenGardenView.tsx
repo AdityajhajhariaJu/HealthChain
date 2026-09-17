@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Wind, Sparkles, Sun, Heart, Flame, RefreshCw, Award } from 'lucide-react';
+import { Droplet, Info, Sparkles } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
 
-interface WellnessZenGardenViewProps {
-  onOpenMindfulness?: () => void;
-}
+interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }
 
-export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ onOpenMindfulness }) => {
+export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () => {
   const [garden, setGarden] = useState<GardenState>(getGardenState());
   const [isWatering, setIsWatering] = useState(false);
-  const [isBreathingInGarden, setIsBreathingInGarden] = useState(false);
-  const [breathPhase, setBreathPhase] = useState<'Inhale (4s)' | 'Hold (7s)' | 'Exhale (8s)'>('Inhale (4s)');
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleWater = () => {
     triggerHapticLight();
@@ -20,26 +17,6 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
     const updated = recordGardenAction('water');
     setGarden(updated);
     setTimeout(() => setIsWatering(false), 1200);
-  };
-
-  const toggleGardenBreathing = () => {
-    triggerHapticLight();
-    if (isBreathingInGarden) {
-      setIsBreathingInGarden(false);
-      return;
-    }
-    setIsBreathingInGarden(true);
-    const updated = recordGardenAction('breathwork');
-    setGarden(updated);
-
-    // Simple 4-7-8 breathing loop demo
-    setBreathPhase('Inhale (4s)');
-    setTimeout(() => {
-      setBreathPhase('Hold (7s)');
-      setTimeout(() => {
-        setBreathPhase('Exhale (8s)');
-      }, 7000);
-    }, 4000);
   };
 
   return (
@@ -76,13 +53,13 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
         </div>
         <div>
           <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            RELAXATION & MINDFULNESS
+            YOUR ZEN GARDEN
           </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            Calm Body & Mind, Grow the Garden
+            A quiet record of consistency
           </div>
           <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
-            Clean meals, breathing exercises, and calm days help grow the garden.
+            Tend it once each day. The garden is a gentle visual ritual—not a health score.
           </div>
         </div>
       </div>
@@ -140,13 +117,11 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
           {/* Animated Mascot Ava in Zen Meditation */}
           <motion.div
             animate={
-              isBreathingInGarden
-                ? { scale: [1, 1.22, 1], y: [0, -10, 0] }
-                : { y: [0, -6, 0] }
+              { y: [0, -6, 0] }
             }
             transition={{
               repeat: Infinity,
-              duration: isBreathingInGarden ? 6 : 3,
+              duration: 3,
               ease: 'easeInOut',
             }}
             style={{
@@ -233,8 +208,8 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
           </AnimatePresence>
         </div>
 
-        {/* Breathing Guide Banner during active breathwork */}
-        {isBreathingInGarden && (
+        {/* Purpose is available on demand, keeping the garden visually quiet. */}
+        {showGuide && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -249,10 +224,10 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
             }}
           >
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', textTransform: 'uppercase' }}>
-              Vagus Nerve Pacing
+              How this garden works
             </div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>
-              {breathPhase}
+              One daily tending action grows one bloom. It does not judge symptoms, meals, or rest days.
             </div>
           </motion.div>
         )}
@@ -285,7 +260,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
 
           <button
             type="button"
-            onClick={toggleGardenBreathing}
+            onClick={() => setShowGuide((value) => !value)}
             style={{
               flex: 1,
               display: 'flex',
@@ -303,7 +278,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
               boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
             }}
           >
-            <Wind size={16} /> {isBreathingInGarden ? 'Stop Reset' : '4-7-8 Breath'}
+            <Info size={16} /> {showGuide ? 'Hide Guide' : 'How It Grows'}
           </button>
         </div>
       </div>
@@ -356,8 +331,8 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
           />
         </div>
 
-        {/* 4-Column Garden Milestones */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        {/* Garden milestones only reflect interactions recorded here. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
           <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
             <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Blooms</div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
@@ -366,23 +341,9 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
           </div>
 
           <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Streak</div>
+            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Days Tended</div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
-              🔥 {garden.streakDays}d
-            </div>
-          </div>
-
-          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Calm Min</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#2563EB', marginTop: '2px' }}>
-              🍃 {garden.breathworkMinutes}m
-            </div>
-          </div>
-
-          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Clean Meals</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
-              🥗 {garden.cleanMealsCount}
+              💧 {garden.waterCount}
             </div>
           </div>
         </div>

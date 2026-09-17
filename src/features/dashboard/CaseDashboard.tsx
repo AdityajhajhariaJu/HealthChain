@@ -46,7 +46,7 @@ import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileData
 import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
 import { getVitaminSchedule, VitaminItem } from '../../services/VitaminScheduleService';
 import { HydrationTrackerModal } from '../../components/ui/HydrationTrackerModal';
-import { getHydrationData, addWaterLog, HydrationDayData } from '../../services/HydrationService';
+import { getHydrationData, addWaterLog, HydrationDayData, getTodayDateString } from '../../services/HydrationService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
@@ -54,6 +54,7 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { VitalityNav } from '../../components/ui/FitnessNav';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { getHabitStorageKey } from '../../services/profileScope';
 
 import { getProfile } from '../../services/ProfileEngine';
 
@@ -61,7 +62,6 @@ import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
-import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
@@ -107,7 +107,7 @@ export default function CaseDashboard() {
   }, []);
 
   // Daily Habit & Protocol tracking
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = getTodayDateString();
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [showVitaminModal, setShowVitaminModal] = useState(false);
   const [vitaminSchedule, setVitaminSchedule] = useState<VitaminItem[]>(() => getVitaminSchedule());
@@ -115,7 +115,7 @@ export default function CaseDashboard() {
   const [hydrationData, setHydrationData] = useState<HydrationDayData>(() => getHydrationData());
   const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
     try {
-      const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+      const stored = getItemSync(getHabitStorageKey(todayDateStr));
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -125,7 +125,7 @@ export default function CaseDashboard() {
   useEffect(() => {
     const handleHabitsUpdated = () => {
       try {
-        const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+        const stored = getItemSync(getHabitStorageKey(todayDateStr));
         if (stored) setCompletedHabits(JSON.parse(stored));
       } catch {
         // ignore
@@ -148,7 +148,7 @@ export default function CaseDashboard() {
     addWaterLog(ml, 'water');
     setHydrationData(getHydrationData());
     try {
-      const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+      const stored = getItemSync(getHabitStorageKey(todayDateStr));
       if (stored) setCompletedHabits(JSON.parse(stored));
     } catch {}
   };
@@ -163,7 +163,7 @@ export default function CaseDashboard() {
     const isNowDone = !completedHabits[habitId];
     const next = { ...completedHabits, [habitId]: isNowDone };
     setCompletedHabits(next);
-    setItemSync(`healthchain_habits_${todayDateStr}`, JSON.stringify(next));
+    setItemSync(getHabitStorageKey(todayDateStr), JSON.stringify(next));
 
     if (isNowDone) {
       triggerHapticSuccess();
@@ -983,7 +983,7 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <div ref={calmSpaceRef} id="calm-space" style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}>
+        <div ref={calmSpaceRef} id="calm-space" aria-hidden="true" style={{ display: 'none' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -1286,8 +1286,6 @@ export default function CaseDashboard() {
         </div>
       </div>
 
-      <ClinicalArticleSection />
-
       <CompleteProfileModal
         isOpen={showCompleteProfileModal}
         onClose={() => setShowCompleteProfileModal(false)}
@@ -1300,7 +1298,7 @@ export default function CaseDashboard() {
         onUpdated={() => {
           setVitaminSchedule(getVitaminSchedule());
           try {
-            const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+            const stored = getItemSync(getHabitStorageKey(todayDateStr));
             if (stored) setCompletedHabits(JSON.parse(stored));
           } catch {
             // ignore
@@ -1314,7 +1312,7 @@ export default function CaseDashboard() {
         onUpdated={() => {
           setHydrationData(getHydrationData());
           try {
-            const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+            const stored = getItemSync(getHabitStorageKey(todayDateStr));
             if (stored) setCompletedHabits(JSON.parse(stored));
           } catch {
             // ignore

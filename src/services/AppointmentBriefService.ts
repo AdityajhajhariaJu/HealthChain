@@ -23,13 +23,31 @@ function hashString(str: string): string {
 }
 
 function computeFingerprint(caseItem: CaseItem, profile: any): string {
-  const dataString = 
-    (caseItem.updatedAt || '') + 
-    (caseItem.reviews?.length || 0) + 
-    (caseItem.medicalRecords?.length || 0) + 
-    (caseItem.intakeData?.chiefComplaint || '') +
-    (profile?.updatedAt || '') +
-    (caseItem.questions?.map(q => `${q.id}:${q.status}:${q.outcomeNote || ''}`).join('|') || '');
+  // Include only substantive source material. Saving a brief updates the case
+  // timestamp and question preparation status; neither should stale that brief.
+  const dataString = JSON.stringify({
+    intake: caseItem.intakeData || {},
+    records: (caseItem.medicalRecords || []).map((record) => ({
+      id: record.id,
+      findings: record.findings,
+      addedAt: record.addedAt,
+    })),
+    reviews: (caseItem.reviews || []).map((review) => ({ id: review.id, createdAt: review.createdAt, report: review.report })),
+    observations: (caseItem.events || [])
+      .filter((event) => !/^Appointment brief v\d+ prepared$/i.test(event.label || ''))
+      .map((event) => ({ id: event.id, date: event.date, label: event.label, note: event.note })),
+    questionOutcomes: (caseItem.questions || []).map((question) => ({
+      id: question.id,
+      text: question.questionText,
+      outcome: question.outcomeNote,
+      outcomeDate: question.outcomeDate,
+    })),
+    profileClinicalContext: {
+      conditions: profile?.conditions || [],
+      medications: profile?.medications || [],
+      allergies: profile?.allergies || [],
+    },
+  });
   return hashString(dataString + '_v6');
 }
 
@@ -75,7 +93,8 @@ export function generateDeterministicBrief(
     userEvents.slice(0, 5).forEach(e => {
       const d = new Date(e?.date || Date.now());
       const dateStr = isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
-      timeline.push({ date: dateStr, event: e.label || 'Health event', sourceIds: [e.id || 'event'] });
+      const eventText = e.note ? `${e.label || 'Health event'}: ${e.note}` : (e.label || 'Health event');
+      timeline.push({ date: dateStr, event: eventText.slice(0, 500), sourceIds: [e.id || 'event'] });
     });
   }
 
@@ -224,11 +243,9 @@ export function generateDeterministicBrief(
 
   // Prioritize selected questions if provided
   let finalQuestions = questionsForClinician;
-  if (options?.selectedQuestionIds && options.selectedQuestionIds.length > 0) {
+  if (options?.selectedQuestionIds) {
     const selectedSet = new Set(options.selectedQuestionIds);
-    const selected = questionsForClinician.filter(q => q.id && selectedSet.has(q.id));
-    const remaining = questionsForClinician.filter(q => !q.id || !selectedSet.has(q.id));
-    finalQuestions = [...selected, ...remaining];
+    finalQuestions = questionsForClinician.filter(q => q.id && selectedSet.has(q.id));
   }
 
   // 7. Previous Outcomes Reviewed

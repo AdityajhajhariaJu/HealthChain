@@ -28,6 +28,7 @@ import {
 import {
   getActiveTrial,
   logTrialDay,
+  logTrialExposure,
   startTrial,
   ActiveTrialState,
   ELIMINATION_PROTOCOLS,
@@ -178,12 +179,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     triggerHapticSuccess();
     setSelectedExposure(triggerName);
     setSosApplied(true);
-    // Extend trial by logging an exposure day note
-    const updated = logTrialDay(
-      Math.min(10, trial.currentSeverity + 2),
-      false,
-      `Accidental exposure to ${triggerName}. 24h baseline extension initiated.`
-    );
+    const updated = logTrialExposure(triggerName, `Accidental exposure recorded. Add a symptom score separately if symptoms change.`);
     setTrial(updated);
     onTrialUpdated?.(updated);
   };
@@ -191,10 +187,12 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const handleCopyDossier = () => {
     if (!trial) return;
     triggerHapticLight();
-    const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ');
-    const toleratedText = activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ');
+    const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : 'Not established from recorded observations';
     const nextProvocation = nextPhaseObj ? `${nextPhaseObj.title} (${nextPhaseObj.daysRange})` : 'Personalized Maintenance Blueprint';
-    const topCorrelation = topSuspectFood?.correlationPercent || 78;
+    const topCorrelation = topSuspectFood?.correlationPercent || null;
+    const baselineText = trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`;
+    const currentText = trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`;
+    const reductionText = trial.reductionPercent === null ? 'Not calculable' : `${trial.reductionPercent}%`;
 
     const text = `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
 Protocol: ${activeProtocolDef.name}
@@ -204,10 +202,10 @@ S (Situation):
 Patient tracking chronic symptom reactivity and postprandial flares. Enrolled in structured ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
 
 B (Background):
-Baseline severity recorded at ${trial.baselineSeverity}/10 prior to intervention. Habitual intake involved uncalibrated exposure to ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
+Baseline symptom severity: ${baselineText}. Protocol foods selected for observation: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}. Selection does not establish prior exposure or causation.
 
 A (Assessment):
-Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${primarySuspectText} (+${topCorrelation}% flare correlation). Confirmed tolerated baseline: ${toleratedText}.
+Calendar day ${trial.currentDay} of the protocol. Recorded symptom change: ${reductionText}; current severity: ${currentText}; recorded adherence: ${trial.adherencePercentage}%. Observed suspect: ${primarySuspectText}${topCorrelation !== null ? ` (${topCorrelation}% of recorded flares in the available observations)` : ''}. Tolerated alternatives have not been established unless separately recorded.
 
 R (Recommendation):
 1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}
@@ -215,7 +213,10 @@ R (Recommendation):
 3. Formulate customized reintroduction blueprint without blanket restriction.
 
 Trajectory Log:
-${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhered ? 'Adherent' : 'Exposure'}) - ${s.note || 'Recorded'}`).join('\n')}`;
+${trial.symptomScores.map((s) => `• ${s.date || `Day ${s.day}`}: ${s.severity}/10 (${s.adhered ? 'Protocol followed' : 'Protocol deviation reported'}) - ${s.note || 'Recorded'}`).join('\n') || 'No symptom scores recorded.'}
+
+Recorded Exposures:
+${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - ${entry.note || 'Exposure recorded'}`).join('\n') || 'No exposures recorded.'}`;
 
     navigator.clipboard.writeText(text);
     setIsCopied(true);
@@ -891,13 +892,13 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                 >
                   <div>
                     <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                      QUANTIFIED FLARE REDUCTION
+                      RECORDED SYMPTOM CHANGE
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 900, color: '#34D399', lineHeight: 1.1 }}>
-                      -{trial.reductionPercent}% SYMPTOM DROP
+                      {trial.reductionPercent === null ? 'BASELINE NEEDED' : `${trial.reductionPercent > 0 ? '-' : ''}${Math.abs(trial.reductionPercent)}% CHANGE`}
                     </div>
                     <div style={{ fontSize: '12px', color: '#CBD5E1', marginTop: '4px' }}>
-                      Baseline: {trial.baselineSeverity}/10 ➔ Current: <strong style={{ color: '#34D399' }}>{trial.currentSeverity}/10</strong>
+                      Baseline: {trial.baselineSeverity ?? 'Not recorded'}{trial.baselineSeverity !== null ? '/10' : ''} ➔ Current: <strong style={{ color: '#34D399' }}>{trial.currentSeverity ?? 'Not recorded'}{trial.currentSeverity !== null ? '/10' : ''}</strong>
                     </div>
                   </div>
 
@@ -992,24 +993,24 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                         Repeated observation to review
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', marginTop: '2px' }}>
-                        {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : (activeProtocolDef.eliminatedFoods[0] || 'Primary Culprit')}
+                        {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : 'No repeated observation established'}
                       </div>
                       <div style={{ fontSize: '11px', color: '#B91C1C', marginTop: '2px' }}>
                         {topSuspectFood
-                          ? `+${topSuspectFood.correlationPercent}% correlation across ${topSuspectFood.daysObserved || 14} days observed.`
-                          : `Identified trigger under current ${activeProtocolDef.name} protocol.`}
+                          ? `${topSuspectFood.correlationPercent > 0 ? `${topSuspectFood.correlationPercent}% of recorded flares; ` : ''}${topSuspectFood.daysObserved} recorded day${topSuspectFood.daysObserved === 1 ? '' : 's'}.`
+                          : 'Add dated meal and symptom observations before drawing a connection.'}
                       </div>
                     </div>
 
                     <div style={{ background: '#F0FDF4', padding: '12px', borderRadius: '12px', border: '1px solid #BBF7D0' }}>
                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase' }}>
-                        🛡️ Confirmed Tolerated
+                        Alternatives in this protocol
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#065F46', marginTop: '2px' }}>
                         {activeProtocolDef.allowedAlternatives.slice(0, 3).join(', ')}
                       </div>
                       <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
-                        0 flares tracked across {trial.currentDay > 1 ? trial.currentDay : 14} exposures.
+                        Suggestions only. Tolerance has not been confirmed unless you recorded a challenge.
                       </div>
                     </div>
                   </div>
@@ -1047,15 +1048,15 @@ S (Situation):
 Patient tracking chronic symptom reactivity and postprandial flares. Enrolled in structured ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
 
 B (Background):
-Baseline severity recorded at ${trial.baselineSeverity}/10 prior to intervention. Habitual intake involved uncalibrated exposure to ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
+Baseline symptom severity: ${trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`}. Protocol foods selected for observation: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}. Selection does not establish prior exposure or causation.
 
 A (Assessment):
-Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')}${topSuspectFood?.correlationPercent ? ` (+${topSuspectFood.correlationPercent}% flare correlation)` : ''}. Confirmed tolerated baseline: ${activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ')}.
+Calendar day ${trial.currentDay}. Recorded symptom change: ${trial.reductionPercent === null ? 'Not calculable' : `${trial.reductionPercent}%`}; current severity: ${trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`}; recorded adherence: ${trial.adherencePercentage}%. Observed suspect: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})${topSuspectFood.correlationPercent > 0 ? `; present in ${topSuspectFood.correlationPercent}% of recorded flares` : ''}` : 'Not established from recorded observations'}. Protocol alternatives are suggestions, not confirmed tolerance.
 
 R (Recommendation):
-1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}
-2. Advance to ${nextPhaseObj ? nextPhaseObj.title : 'systematic single-food rechallenge'} once clinical baseline stabilizes.
-3. Formulate customized reintroduction blueprint without blanket restriction.`}
+1. Review the recorded observations and missing baseline information with a qualified clinician.
+2. Discuss whether and when to advance to ${nextPhaseObj ? nextPhaseObj.title : 'a systematic single-food rechallenge'}.
+3. Do not infer causation or confirmed tolerance from this protocol alone.`}
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

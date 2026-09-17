@@ -25,6 +25,7 @@ vi.mock('razorpay', () => {
             order_id: 'order_recovery_123',
             amount: 9900,
             currency: 'INR',
+            status: 'captured',
           })),
         },
         orders: {
@@ -87,9 +88,9 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
             })),
           })),
           update: vi.fn((data: any) => ({
-            eq: vi.fn(async () => {
+            eq: vi.fn(() => {
               updatedPaymentRow = data;
-              return { error: null };
+              return { error: null, eq: vi.fn(async () => ({ error: null })) };
             }),
           })),
         };
@@ -102,6 +103,9 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
                 data: { is_pro: true },
               })),
             })),
+          })),
+          update: vi.fn(() => ({
+            eq: vi.fn(() => ({ error: null, eq: vi.fn(async () => ({ error: null })) })),
           })),
         };
       }
@@ -169,6 +173,9 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
                 },
               })),
             })),
+          })),
+          update: vi.fn(() => ({
+            eq: vi.fn(() => ({ error: null, eq: vi.fn(async () => ({ error: null })) })),
           })),
         };
       }

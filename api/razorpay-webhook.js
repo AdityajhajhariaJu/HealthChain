@@ -91,6 +91,9 @@ export default async function handler(req, res) {
       };
       
       const targetPlan = ALLOWED_PLANS[resolvedPlanId] || ALLOWED_PLANS.pro_30_days;
+      if (!ALLOWED_PLANS[resolvedPlanId] || amount !== targetPlan.amount) {
+        return res.status(400).json({ error: 'Payment does not match a supported product.' });
+      }
 
       // Fast-path Idempotent check: return ok if payment was already processed and fulfilled
       const { data: existingPayment } = await supabase
@@ -100,6 +103,9 @@ export default async function handler(req, res) {
         .maybeSingle();
 
       const isFulfilled = existingPayment?.fulfillment_status === 'fulfilled' || (existingPayment?.status === 'paid' && existingPayment?.entitlement_expires_at);
+      if (existingPayment?.status === 'refunded' || existingPayment?.status === 'partially_refunded') {
+        return res.status(200).json({ status: 'ignored', reason: 'Refunded payment cannot be reactivated' });
+      }
       if (existingPayment?.status === 'paid' && isFulfilled) {
         return res.status(200).json({ status: 'ok', message: 'Already processed' });
       }
@@ -122,39 +128,20 @@ export default async function handler(req, res) {
         });
 
         if (!error) {
+          const { error: metadataError } = await supabase.from('payments').update({
+            plan_id: resolvedPlanId, product_type: targetPlan.type, feature_name: null, quantity: null,
+          }).eq('razorpay_payment_id', paymentId).eq('user_id', userId);
+          if (metadataError) return res.status(500).json({ error: 'Payment reconciliation pending' });
           return res.status(200).json({ status: 'ok', message: rpcResult?.already_processed ? 'Already processed' : 'Activated' });
-        } else if (error.code === '42883' || error.message?.includes('does not exist')) {
-          // Fallback for legacy database environments
-          const { error: legacyError } = await supabase.rpc('activate_payment_entitlement', {
-            p_user_id: userId,
-            p_order_id: orderId,
-            p_payment_id: paymentId,
-            p_amount: amount,
-            p_expires_at: finalExpiry,
-          });
-          if (!legacyError) {
-            await supabase.rpc('provision_base_quota', {
-              p_user_id: userId,
-              p_plan_id: resolvedPlanId,
-              p_expires_at: finalExpiry
-            });
-            return res.status(200).json({ status: 'ok', message: 'Activated' });
-          } else if (legacyError.code === '23505') {
-            return res.status(200).json({ status: 'ok', message: 'Already processed' });
-          } else {
-            console.error('Webhook entitlement error:', legacyError);
-            return res.status(500).json({ error: 'Failed to activate entitlement' });
-          }
         } else if (error.code === '23505') {
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
           console.error('Webhook entitlement error:', error);
-          try {
-            await supabase.from('payments').update({
-              fulfillment_status: 'failed',
-              fulfillment_error: error.message || 'Webhook subscription activation failed',
-            }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          const { error: statusError } = await supabase.from('payments').update({
+            fulfillment_status: 'failed',
+            fulfillment_error: error.message || 'Webhook subscription activation failed',
+          }).eq('razorpay_payment_id', paymentId);
+          if (statusError) console.error('Unable to record fulfillment failure:', statusError);
           return res.status(500).json({ error: 'Failed to activate entitlement' });
         }
       } else if (targetPlan.type === 'topup') {
@@ -169,78 +156,38 @@ export default async function handler(req, res) {
         });
 
         if (!topupError) {
+          const { error: metadataError } = await supabase.from('payments').update({
+            plan_id: resolvedPlanId,
+            product_type: targetPlan.type,
+            feature_name: targetPlan.feature,
+            quantity: targetPlan.quantity,
+          }).eq('razorpay_payment_id', paymentId).eq('user_id', userId);
+          if (metadataError) return res.status(500).json({ error: 'Payment reconciliation pending' });
           return res.status(200).json({ status: 'ok', message: rpcResult?.already_processed ? 'Already processed' : 'Topup processed' });
-        } else if (topupError.code === '42883' || topupError.message?.includes('does not exist')) {
-          const { error: insertError } = await supabase.from('payments').insert({
-            user_id: userId,
-            razorpay_order_id: orderId,
-            razorpay_payment_id: paymentId,
-            amount: amount,
-            status: 'paid'
-          });
-          if (!insertError) {
-            await supabase.rpc('provision_topup', {
-              p_user_id: userId,
-              p_feature_name: targetPlan.feature,
-              p_amount: targetPlan.quantity
-            });
-            return res.status(200).json({ status: 'ok', message: 'Topup processed' });
-          } else if (insertError.code === '23505') {
-            return res.status(200).json({ status: 'ok', message: 'Already processed' });
-          } else {
-            console.error('Webhook topup error:', insertError);
-            return res.status(500).json({ error: 'Failed to record topup' });
-          }
         } else if (topupError.code === '23505') {
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
           console.error('Webhook topup error:', topupError);
-          try {
-            await supabase.from('payments').update({
-              fulfillment_status: 'failed',
-              fulfillment_error: topupError.message || 'Webhook top-up activation failed',
-            }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          const { error: statusError } = await supabase.from('payments').update({
+            fulfillment_status: 'failed',
+            fulfillment_error: topupError.message || 'Webhook top-up activation failed',
+          }).eq('razorpay_payment_id', paymentId);
+          if (statusError) console.error('Unable to record fulfillment failure:', statusError);
           return res.status(500).json({ error: 'Failed to record topup' });
         }
       }
 
-    } else if (event === 'refund.created' || event === 'refund.processed') {
+    } else if (event === 'refund.processed') {
       const refund = payload.payload.refund.entity;
       const paymentId = refund.payment_id;
-      const notes = refund.notes || payload.payload.payment?.entity?.notes || {};
-      
-      // Update payment status to refunded
-      const { data: paymentRecord } = await supabase
-        .from('payments')
-        .update({ status: 'refunded', entitlement_expires_at: null })
-        .eq('razorpay_payment_id', paymentId)
-        .select('user_id')
-        .maybeSingle();
-        
-      const userId = notes.user_id || paymentRecord?.user_id;
-      if (userId) {
-        // Recalculate Pro status instead of blindly revoking (handles stacked payments)
-        const { data: validPayments } = await supabase
-          .from('payments')
-          .select('entitlement_expires_at')
-          .eq('user_id', userId)
-          .eq('status', 'paid')
-          .gt('entitlement_expires_at', new Date().toISOString())
-          .order('entitlement_expires_at', { ascending: false })
-          .limit(1);
-          
-        if (validPayments && validPayments.length > 0) {
-          await supabase
-            .from('profiles')
-            .update({ is_pro: true, pro_expires_at: validPayments[0].entitlement_expires_at, updated_at: new Date().toISOString() })
-            .eq('id', userId);
-        } else {
-          await supabase
-            .from('profiles')
-            .update({ is_pro: false, pro_expires_at: null, updated_at: new Date().toISOString() })
-            .eq('id', userId);
-        }
+      const { error: refundError } = await supabase.rpc('process_payment_refund', {
+        p_refund_id: refund.id,
+        p_payment_id: paymentId,
+        p_refund_amount: refund.amount,
+      });
+      if (refundError) {
+        console.error('Refund reconciliation failed:', refundError);
+        return res.status(500).json({ error: 'Refund reconciliation failed' });
       }
     } else if (event === 'payment.failed') {
       const payment = payload.payload.payment.entity;

@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { trackButtonClick, trackEvent } from './services/analytics';
-import { registerPushNotifications, setupPushListeners } from './services/PushService';
+import { registerPushNotifications, setupPushListeners, unregisterPushDevice } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
 import { initGlobalHaptics } from './services/haptics';
@@ -280,6 +280,7 @@ export default function App() {
           pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
         if (theme) localStorage.setItem('hc_theme', theme);
         if (consent) localStorage.setItem('hc_consent', consent);
+        await unregisterPushDevice();
         await supabase.auth.signOut();
       } catch (e) {}
       
@@ -719,7 +720,6 @@ export default function App() {
     </SafeRoute>
   );
 }
-
 
 
 

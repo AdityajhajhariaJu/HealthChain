@@ -297,6 +297,8 @@ export default function CasePrep() {
         awardPoints(10, 'AI Refined Appointment Brief', 'consult', 'brief_refined_' + selectedCase.id);
         triggerHapticSuccess();
         toast.success('Brief Refined', 'AI refined the appointment brief.');
+      } else {
+        toast.error('Refinement Failed', 'The brief was not changed. Please try again.');
       }
     } catch (e) {
       console.error('Failed to refine appointment brief:', e);

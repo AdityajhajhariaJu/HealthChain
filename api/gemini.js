@@ -72,6 +72,9 @@ export default async function handler(req, res) {
   // Development and production allow guest access up to 5 messages, enforced by local storage on frontend.
 
   if (!checkRateLimit(req, 40, 60000)) return res.status(429).json({ error: 'Too many requests' });
+  if (!userId && !checkRateLimit(req, 5, 24 * 60 * 60 * 1000, `guest:${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`)) {
+    return res.status(429).json({ error: 'Guest AI limit reached. Sign in to continue securely.' });
+  }
   if (userId && !checkRateLimit(req, 15, 60000, userId)) {
     return res.status(429).json({ error: 'Too many AI requests for this account. Please try again shortly.' });
   }
@@ -144,9 +147,7 @@ export default async function handler(req, res) {
       return res.status(503).json({ error: 'AI quota service unavailable' });
     }
 
-    // --- GHOST MODE METERED QUOTAS ---
-    // Track usage natively in the new user_quotas table. Paywall enforcement 
-    // is disabled (Ghost Mode) until explicitly toggled on by admin.
+    // Enforce feature-specific quotas for authenticated requests.
     let featureCode = null;
     const opLow = operation.toLowerCase();
     const contentsCount = Array.isArray(bodyPayload.contents) ? bodyPayload.contents.length : 0;
@@ -164,18 +165,23 @@ export default async function handler(req, res) {
 
     if (featureCode) {
       try {
-        await adminClient.rpc('consume_feature_quota', {
+        const { data: quotaResult, error: featureQuotaError } = await adminClient.rpc('consume_feature_quota', {
           p_user_id: userId,
           p_feature_name: featureCode
         });
-        
-        // const ENFORCE_PAYWALLS = false;
-        // if (ENFORCE_PAYWALLS) {
-        //   if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
-        //   if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
+        if (featureQuotaError) {
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'feature_quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(503).json({ error: 'Feature quota service is unavailable.' });
+        }
+        if (!quotaResult?.allowed) {
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: quotaResult?.reason || 'feature_quota_exceeded', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(402).json({ error: 'Feature quota exceeded', reason: quotaResult?.reason || 'quota_exceeded' });
+        }
         // }
-      } catch {
-        // Ghost mode ignores tracking failures to prevent service disruption
+      } catch (error) {
+        console.error('Feature quota enforcement failed:', error);
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'feature_quota_error', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(503).json({ error: 'Feature quota service is unavailable.' });
       }
     }
   }

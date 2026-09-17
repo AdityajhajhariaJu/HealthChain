@@ -26,6 +26,7 @@ vi.mock('razorpay', () => {
             order_id: 'order_concurrent_123',
             amount: 49900,
             currency: 'INR',
+            status: 'captured',
           })),
         },
         orders: {
@@ -117,6 +118,9 @@ describe('P1 Finding 5: Concurrent Payment Entitlement & Single Quota Allocation
                 error: null,
               })),
             })),
+          })),
+          update: vi.fn(() => ({
+            eq: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
           })),
         };
       }

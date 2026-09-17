@@ -3,7 +3,7 @@
 create or replace function public.protect_entitlement_columns()
 returns trigger
 language plpgsql
-as $body
+as $body$
 begin
   -- If the update is coming from the client (authenticated user)
   if auth.role() = 'authenticated' then
@@ -13,7 +13,7 @@ begin
   end if;
   return new;
 end;
-$body;
+$body$;
 
 drop trigger if exists protect_entitlement_columns_trigger on public.profiles;
 create trigger protect_entitlement_columns_trigger

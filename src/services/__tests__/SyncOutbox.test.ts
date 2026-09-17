@@ -40,11 +40,13 @@ describe('SyncOutbox', () => {
   });
 
   it('bounds a queue instead of allowing unbounded browser growth', async () => {
+    let accepted = true;
     for (let i = 0; i < 505; i += 1) {
-      await enqueueSync('health_memory_upsert', 'user-2', { id: `memory-${i}` });
+      accepted = await enqueueSync('health_memory_upsert', 'user-2', { id: `memory-${i}` });
     }
 
     expect(await getPendingSyncCount('user-2')).toBe(500);
+    expect(accepted).toBe(false);
   });
 
   it('keeps account queues isolated', async () => {
@@ -141,4 +143,3 @@ describe('SyncOutbox', () => {
     }
   });
 });
-

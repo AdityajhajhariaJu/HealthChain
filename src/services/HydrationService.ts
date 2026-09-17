@@ -4,6 +4,7 @@ import { getItemSync, setItemSync } from './storage';
 import { triggerHapticLight, triggerHapticSuccess } from './haptics';
 import { awardPoints } from './VitalityPointsEngine';
 import { requestNotificationPermission } from './DailyCheckinNotificationService';
+import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
 
 export interface HydrationLogItem {
   id: string;
@@ -26,8 +27,11 @@ const STORAGE_KEY_TARGET = 'healthchain_hydration_target_ml';
 const STORAGE_KEY_REMINDERS = 'healthchain_hydration_reminders_enabled';
 const NOTIFICATION_BASE_ID = 3000;
 
+const scopedKey = getScopedStorageKey;
+
 export function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 export function formatTimeAmPm(date: Date = new Date()): string {
@@ -44,8 +48,8 @@ export function formatTimeAmPm(date: Date = new Date()): string {
  * Retrieve current hydration state for a date, auto-syncing with Dietician storage if present.
  */
 export function getHydrationData(date: string = getTodayDateString()): HydrationDayData {
-  const targetMl = parseInt(getItemSync(STORAGE_KEY_TARGET) || '2000', 10);
-  const remindersEnabled = getItemSync(STORAGE_KEY_REMINDERS) !== 'false';
+  const targetMl = parseInt(getItemSync(scopedKey(STORAGE_KEY_TARGET)) || '2000', 10);
+  const remindersEnabled = getItemSync(scopedKey(STORAGE_KEY_REMINDERS)) !== 'false';
 
   let currentData: HydrationDayData = {
     date,
@@ -57,27 +61,9 @@ export function getHydrationData(date: string = getTodayDateString()): Hydration
   };
 
   try {
-    const raw = getItemSync(`${STORAGE_PREFIX}${date}`);
+    const raw = getItemSync(scopedKey(`${STORAGE_PREFIX}${date}`));
     if (raw) {
       currentData = { ...currentData, ...JSON.parse(raw) };
-    } else {
-      // Check Dietician legacy sync key if available
-      const dieticianRaw = getItemSync('hc_hydration');
-      if (dieticianRaw) {
-        const dietObj = JSON.parse(dieticianRaw);
-        if (dietObj && dietObj[date]) {
-          const glasses = Number(dietObj[date]) || 0;
-          currentData.currentMl = glasses * 250;
-          if (glasses > 0) {
-            currentData.logs = [{
-              id: `diet_sync_${Date.now()}`,
-              amountMl: currentData.currentMl,
-              timestamp: 'Synchronized',
-              type: 'water'
-            }];
-          }
-        }
-      }
     }
   } catch (err) {
     // fallback to default
@@ -91,25 +77,18 @@ export function getHydrationData(date: string = getTodayDateString()): Hydration
  */
 export function saveHydrationData(data: HydrationDayData): void {
   try {
-    setItemSync(`${STORAGE_PREFIX}${data.date}`, JSON.stringify(data));
-
-    // Bidirectional sync with Dietician storage
-    try {
-      const dieticianRaw = getItemSync('hc_hydration');
-      const dietObj = dieticianRaw ? JSON.parse(dieticianRaw) : {};
-      dietObj[data.date] = Math.max(0, Math.round(data.currentMl / 250));
-      setItemSync('hc_hydration', JSON.stringify(dietObj));
-    } catch {}
+    setItemSync(scopedKey(`${STORAGE_PREFIX}${data.date}`), JSON.stringify(data));
 
     // Habit sync: if currentMl >= 500ml, habit is achieved for today
-    const habitRaw = getItemSync(`healthchain_habits_${data.date}`);
+    const habitKey = getHabitStorageKey(data.date);
+    const habitRaw = getItemSync(habitKey);
     const habits = habitRaw ? JSON.parse(habitRaw) : {};
     const wasHabitDone = !!habits['hydration'];
     const isNowDone = data.currentMl >= 500;
     
     if (wasHabitDone !== isNowDone) {
       habits['hydration'] = isNowDone;
-      setItemSync(`healthchain_habits_${data.date}`, JSON.stringify(habits));
+      setItemSync(habitKey, JSON.stringify(habits));
     }
 
     // Dispatch update events for reactive UI
@@ -185,11 +164,36 @@ export function removeWaterLog(logId: string, date: string = getTodayDateString(
   return updatedData;
 }
 
+/** Adjust hydration without manufacturing negative drink entries. */
+export function adjustWaterAmount(
+  deltaMl: number,
+  type: HydrationLogItem['type'] = 'water',
+  date: string = getTodayDateString()
+): HydrationDayData {
+  if (deltaMl >= 0) return addWaterLog(deltaMl, type, date);
+
+  const current = getHydrationData(date);
+  let remaining = Math.min(Math.abs(deltaMl), current.currentMl);
+  const logs = current.logs.map((log) => ({ ...log }));
+  for (let index = 0; index < logs.length && remaining > 0;) {
+    const reducible = Math.min(logs[index].amountMl, remaining);
+    logs[index].amountMl -= reducible;
+    remaining -= reducible;
+    if (logs[index].amountMl <= 0) logs.splice(index, 1);
+    else index += 1;
+  }
+
+  const updated = { ...current, currentMl: Math.max(0, current.currentMl - Math.abs(deltaMl)), logs };
+  saveHydrationData(updated);
+  triggerHapticLight();
+  return updated;
+}
+
 /**
  * Update daily hydration target (e.g. 2000ml, 2500ml, 3000ml)
  */
 export function setHydrationTarget(targetMl: number): void {
-  setItemSync(STORAGE_KEY_TARGET, targetMl.toString());
+  setItemSync(scopedKey(STORAGE_KEY_TARGET), targetMl.toString());
   const today = getTodayDateString();
   const current = getHydrationData(today);
   const updated: HydrationDayData = { ...current, targetMl };
@@ -200,7 +204,7 @@ export function setHydrationTarget(targetMl: number): void {
  * Schedule recurring hydration reminders throughout daytime hours (09:00 - 21:00)
  */
 export async function setHydrationReminders(enabled: boolean, intervalHours: number = 2): Promise<boolean> {
-  setItemSync(STORAGE_KEY_REMINDERS, enabled ? 'true' : 'false');
+  setItemSync(scopedKey(STORAGE_KEY_REMINDERS), enabled ? 'true' : 'false');
   const today = getTodayDateString();
   const current = getHydrationData(today);
   saveHydrationData({ ...current, remindersEnabled: enabled, reminderIntervalHours: intervalHours });
@@ -250,4 +254,18 @@ export async function setHydrationReminders(enabled: boolean, intervalHours: num
     console.warn('[HydrationService] Failed to schedule notifications:', err);
     return false;
   }
+}
+
+export async function cancelHydrationNotifications(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  const notifications = Array.from({ length: 7 }, (_, index) => ({ id: NOTIFICATION_BASE_ID + index }));
+  try {
+    await LocalNotifications.cancel({ notifications });
+  } catch (error) {
+    console.warn('[HydrationService] Failed to cancel scheduled reminders:', error);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_logout', () => { void cancelHydrationNotifications(); });
 }

@@ -12,27 +12,9 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
     window.localStorage.clear();
   });
 
-  it('calculates empirical frequency matches with match ratio text and correlation percentage', () => {
+  it('does not manufacture empirical matches when no observations exist', () => {
     const matches = getEmpiricalFrequencyMatches();
-    expect(matches.length).toBeGreaterThanOrEqual(4);
-
-    const besan = matches.find((m) => m.foodName.includes('Besan'));
-    expect(besan).toBeDefined();
-    expect(besan?.matchRatioText).toBe('4/4 day match');
-    expect(besan?.correlationPercent).toBe(100);
-    expect(besan?.targetedSwap).toContain('Yellow Moong');
-    expect(besan?.pathophysiologicalMechanism).toContain('Galacto-oligosaccharides');
-
-    const achaar = matches.find((m) => m.foodName.includes('Achaar'));
-    expect(achaar).toBeDefined();
-    expect(achaar?.matchRatioText).toBe('4/5 day match');
-    expect(achaar?.correlationPercent).toBe(80);
-    expect(achaar?.symptomName).toContain('Palpitations');
-
-    const chai = matches.find((m) => m.foodName.includes('Chai'));
-    expect(chai).toBeDefined();
-    expect(chai?.matchRatioText).toBe('5/6 day match');
-    expect(chai?.symptomName).toContain('Occipital');
+    expect(matches).toEqual([]);
   });
 
   it('includes patient-confirmed triggers into empirical frequency matches', () => {
@@ -49,6 +31,8 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
     const userMatch = matches.find((m) => m.foodName === 'Spicy Samosa');
     expect(userMatch).toBeDefined();
     expect(userMatch?.symptomName).toBe('Acid Surge');
+    expect(userMatch?.matchRatioText).toBe('1 recorded observation');
+    expect(userMatch?.correlationPercent).toBe(0);
   });
 
   it('provides 5 structured 28-day clinical symptom hunts with 4-phase protocols', () => {

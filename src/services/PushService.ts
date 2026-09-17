@@ -24,6 +24,28 @@ export const registerPushNotifications = async () => {
 };
 
 let pushListenersSetUp = false;
+let registeredToken: string | null = null;
+let registeredUserId: string | null = null;
+
+export const unregisterPushDevice = async () => {
+  if (Capacitor.getPlatform() === 'web') return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id || registeredUserId;
+    if (userId) {
+      let query = supabase.from('user_devices').delete().eq('user_id', userId);
+      if (registeredToken) query = query.eq('push_token', registeredToken);
+      const { error } = await query;
+      if (error) console.warn('Failed to remove push device registration:', error);
+    }
+    await PushNotifications.unregister();
+  } catch (error) {
+    console.warn('Failed to unregister push notifications:', error);
+  } finally {
+    registeredToken = null;
+    registeredUserId = null;
+  }
+};
 
 export const setupPushListeners = () => {
   if (Capacitor.getPlatform() === 'web') return;
@@ -37,6 +59,8 @@ export const setupPushListeners = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        registeredToken = token.value;
+        registeredUserId = session.user.id;
         await supabase
           .from('user_devices')
           .upsert(

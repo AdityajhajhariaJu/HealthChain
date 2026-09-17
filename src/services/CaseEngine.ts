@@ -822,6 +822,21 @@ export function addEvidenceToActiveCase({
 }): MedicalRecord | null {
   const activeCaseId = getActiveCaseId();
   if (!activeCaseId) return null;
+  return addEvidenceToCase(activeCaseId, { filename, findings, source, type });
+}
+
+export function addEvidenceToCase(caseId: string, {
+  filename,
+  findings,
+  source = 'healthchain',
+  type = 'report',
+}: {
+  filename: string;
+  findings: string;
+  source?: string;
+  type?: string;
+}): MedicalRecord | null {
+  if (!getCase(caseId)) return null;
   const evidence: MedicalRecord = ensureRecordPassages({
     id: id(),
     filename,
@@ -831,7 +846,7 @@ export function addEvidenceToActiveCase({
     addedAt: new Date().toISOString(),
   });
   const cases = getCases().map((item) =>
-    item.id !== activeCaseId
+    item.id !== caseId
       ? item
       : {
           ...item,

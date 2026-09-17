@@ -1348,11 +1348,6 @@ export default function AvaHealthBuddy() {
       try {
         const stored = sessionStorage.getItem(`hc_study_${studyIdParam}`);
         if (stored) return JSON.parse(stored);
-        const savedTrials = getItemSync('hc_saved_trials');
-        if (savedTrials) {
-          const parsed = JSON.parse(savedTrials);
-          if (parsed[studyIdParam]) return { nctId: studyIdParam, title: `Study ${studyIdParam}` };
-        }
       } catch {}
       return { nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` };
     }
@@ -1388,42 +1383,6 @@ export default function AvaHealthBuddy() {
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showContextModal, setShowContextModal] = useState(false);
 
-  // Promise 5: Semantic Relevance Retrieval & Context Accounting
-  const memoryContext = useMemo(() => {
-    const allMemories = getHealthMemory() || [];
-    const prof = getProfile() || {};
-    const logs = prof?.nutrition?.recentLogs || [];
-    const vitals = prof?.vitals || {};
-    
-    const totalRecords = allMemories.length + logs.length + (vitals.bloodPressure ? 1 : 0) + (vitals.restingHeartRate ? 1 : 0);
-    
-    const relevantMemories = allMemories.slice(0, 5);
-    const relevantLogs = logs.slice(-2);
-    
-    const includedItems = [
-      ...relevantMemories.map(m => ({
-        type: 'Clinical Memory',
-        title: m.title,
-        time: m.occurredAt ? new Date(m.occurredAt).toLocaleDateString() : 'Recent',
-        source: m.source || 'Timeline'
-      })),
-      ...relevantLogs.map(l => ({
-        type: 'Food / Intake Log',
-        title: l.name || (l.tags && l.tags.join(', ')) || 'Meal entry',
-        time: l.loggedAt ? new Date(l.loggedAt).toLocaleDateString() : 'Today',
-        source: 'Nutrition Diary'
-      }))
-    ];
-    
-    const evaluatedCount = Math.max(totalRecords, includedItems.length);
-    const omittedCount = Math.max(0, evaluatedCount - includedItems.length);
-
-    return {
-      evaluatedCount,
-      omittedCount,
-      includedItems,
-    };
-  }, [messages.length]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -1469,6 +1428,36 @@ export default function AvaHealthBuddy() {
   });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
+  const memoryContext = useMemo(() => {
+    const allMemories = getHealthMemory() || [];
+    const prof = getProfile() || {};
+    const logs = prof?.nutrition?.recentLogs || [];
+    const vitals = prof?.vitals || {};
+    const relevantMemories = allMemories
+      .filter((memory) => selectedCaseId ? memory.caseId === selectedCaseId : !memory.caseId)
+      .slice(0, 5);
+    const relevantLogs = selectedCaseId ? [] : logs.slice(-2);
+    const totalRecords = relevantMemories.length + relevantLogs.length + (selectedCaseId ? 0 : ((vitals.bloodPressure ? 1 : 0) + (vitals.restingHeartRate ? 1 : 0)));
+    const includedItems = [
+      ...relevantMemories.map(m => ({
+        type: 'Clinical Memory',
+        title: m.title,
+        time: m.occurredAt ? new Date(m.occurredAt).toLocaleDateString() : 'Recent',
+        source: m.source || 'Timeline'
+      })),
+      ...relevantLogs.map(l => ({
+        type: 'Food / Intake Log',
+        title: l.name || (l.tags && l.tags.join(', ')) || 'Meal entry',
+        time: l.loggedAt ? new Date(l.loggedAt).toLocaleDateString() : 'Today',
+        source: 'Nutrition Diary'
+      }))
+    ];
+    return {
+      evaluatedCount: Math.max(totalRecords, includedItems.length),
+      omittedCount: Math.max(0, totalRecords - includedItems.length),
+      includedItems,
+    };
+  }, [messages.length, selectedCaseId]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
   const [isCaseSelectorOpen, setIsCaseSelectorOpen] = useState(false);
@@ -1862,9 +1851,9 @@ export default function AvaHealthBuddy() {
     const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
     const baseCaseContext = contextCase ? buildCaseContext(contextCase) : '';
 
-    // Order 6: Inject explicit documented answers from case records so Ava NEVER asks the patient to repeat them
+    // Keep user-reported context available without promoting it to verified fact.
     const documentedSnippet = documentedAnswers.length > 0
-      ? `\n\n[ALREADY DOCUMENTED IN CASE RECORDS — STRICT CLINICAL INSTRUCTION: DO NOT RE-ASK THE PATIENT ABOUT ANY OF THESE TOPICS. TREAT THEM AS KNOWN ESTABLISHED FACTS]:\n` +
+      ? `\n\n[CASE-SCOPED REPORTED OR DOCUMENTED CONTEXT — do not present these items as independently verified. Do not ask the patient to repeat them unless clarification is necessary because the record is ambiguous, conflicting, or outdated]:\n` +
         documentedAnswers.map(a => `- ${a.topic}: "${a.value}" (Source: ${a.source})`).join('\n')
       : '';
 
@@ -1875,7 +1864,7 @@ export default function AvaHealthBuddy() {
     
     // Promise 5: Inject semantic memory context so user never repeats their story
     const memorySnippet = memoryContext.includedItems.length > 0
-      ? `\n\n[RELEVANT PATIENT HISTORY & MEMORIES (Do not ask patient to repeat these)]:\n` +
+      ? `\n\n[CASE-SCOPED HISTORY & MEMORIES — preserve provenance and do not treat AI-generated memory as a confirmed clinical fact]:\n` +
         memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}`).join('\n')
       : '';
     const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();

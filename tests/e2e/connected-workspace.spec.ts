@@ -52,15 +52,14 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await page.screenshot({ path: 'test-results/connected-ava-mobile.png', fullPage: true });
 });
 
-test('Connection Detective keeps empty domains clear and preserves every workspace', async ({ page }) => {
+test('Connection Detective keeps empty domains clear without duplicating engine or dossier workspaces', async ({ page }) => {
   await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
-  await page.getByLabel('Connection Detective - Cross-system root-cause map').click();
+  await page.getByLabel('Connection Detective - Gut, food and biomarker connections').click();
   const detective = page.getByRole('dialog', { name: 'Clinical Connections' });
   await expect(detective.getByRole('heading', { name: 'Connection Detective' })).toBeVisible();
   await expect(page.getByText('Gut & Food', { exact: true })).toBeVisible();
   await expect(page.getByText('Labs & Body', { exact: true })).toBeVisible();
-  await expect(page.getByText('Root Cause', { exact: true })).toBeVisible();
-  await expect(page.getByText('Doctor Dossier', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Go to Case Prep/i })).toBeVisible();
   await page.getByText('Gut & Food', { exact: true }).click();
   await expect(page.getByText('No Dietary Triggers Logged Yet')).toBeVisible();
   await expect(page.getByText('Evidence Connection Graph')).toHaveCount(0);

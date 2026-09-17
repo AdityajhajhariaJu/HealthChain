@@ -98,12 +98,12 @@ export default async function handler(req, res) {
     if (checkOrderId) {
       const { data: payment } = await supabase
         .from('payments')
-        .select('id, status, entitlement_expires_at, razorpay_payment_id')
+      .select('id, status, fulfillment_status, entitlement_expires_at, razorpay_payment_id')
         .eq('razorpay_order_id', checkOrderId)
         .eq('user_id', effectiveUserId)
         .maybeSingle();
 
-      if (payment && payment.status === 'paid' && payment.entitlement_expires_at) {
+      if (payment && payment.status === 'paid' && payment.fulfillment_status === 'fulfilled') {
         return res.status(200).json({
           success: true,
           recovered: true,
@@ -157,6 +157,9 @@ export default async function handler(req, res) {
           expires_at: existingPayment.entitlement_expires_at
         });
       }
+      if (existingPayment.status === 'refunded' || existingPayment.status === 'partially_refunded') {
+        return res.status(409).json({ error: 'This payment has been refunded and cannot be reactivated.' });
+      }
       // If payment exists with pending/failed fulfillment, proceed to fulfill missing entitlements
     }
 
@@ -174,6 +177,9 @@ export default async function handler(req, res) {
     
     let verifiedAmount = targetPlan.amount;
 
+    if (!process.env.RAZORPAY_KEY_ID) {
+      return res.status(503).json({ error: 'Payment provider verification is not fully configured.' });
+    }
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
       try {
         const instance = new Razorpay({
@@ -182,6 +188,10 @@ export default async function handler(req, res) {
         });
 
         const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
+
+        if (paymentDetails.status !== 'captured') {
+          return res.status(409).json({ error: 'Payment has not been captured yet. Please wait and retry.' });
+        }
         
         if (paymentDetails.order_id !== razorpay_order_id || paymentDetails.amount !== targetPlan.amount || paymentDetails.currency !== 'INR') {
           return res.status(400).json({ error: 'Payment amount does not match required plan amount.' });
@@ -228,39 +238,18 @@ export default async function handler(req, res) {
       });
 
       if (rpcError) {
-        // Fallback for legacy database environments
-        if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
-          const { error: legacyError } = await supabase.rpc('activate_payment_entitlement', {
-            p_user_id: effectiveUserId,
-            p_order_id: razorpay_order_id,
-            p_payment_id: razorpay_payment_id,
-            p_amount: verifiedAmount,
-            p_expires_at: finalExpiry,
-          });
-          if (legacyError) {
-            entitlementError = legacyError;
-          } else {
-            await supabase.rpc('provision_base_quota', {
-              p_user_id: effectiveUserId,
-              p_plan_id: resolvedPlanId,
-              p_expires_at: finalExpiry
-            });
-          }
-        } else {
-          entitlementError = rpcError;
-          try {
-            await supabase.from('payments').update({
-              fulfillment_status: 'failed',
-              fulfillment_error: rpcError.message || 'Subscription activation failed',
-            }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
-        }
+        entitlementError = rpcError;
+        const { error: statusError } = await supabase.from('payments').update({
+          fulfillment_status: 'failed',
+          fulfillment_error: rpcError.message || 'Subscription activation failed',
+        }).eq('razorpay_payment_id', razorpay_payment_id);
+        if (statusError) console.error('Unable to record fulfillment failure:', statusError);
       } else if (rpcResult?.expires_at) {
         finalExpiry = rpcResult.expires_at;
       }
     } else if (targetPlan.type === 'topup') {
       // Unified atomic top-up activation and quota allocation
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('activate_and_provision_topup', {
+      const { error: rpcError } = await supabase.rpc('activate_and_provision_topup', {
         p_user_id: effectiveUserId,
         p_order_id: razorpay_order_id,
         p_payment_id: razorpay_payment_id,
@@ -270,39 +259,29 @@ export default async function handler(req, res) {
       });
 
       if (rpcError) {
-        if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
-          // Fallback for environments where atomic topup RPC is not deployed yet
-          const { error: insertError } = await supabase.from('payments').insert({
-            user_id: effectiveUserId,
-            razorpay_order_id: razorpay_order_id,
-            razorpay_payment_id: razorpay_payment_id,
-            amount: verifiedAmount,
-            status: 'paid'
-          });
-          if (insertError && insertError.code !== '23505') {
-            entitlementError = insertError;
-          } else if (!insertError) {
-            await supabase.rpc('provision_topup', {
-              p_user_id: effectiveUserId,
-              p_feature_name: targetPlan.feature,
-              p_amount: targetPlan.quantity
-            });
-          }
-        } else {
-          entitlementError = rpcError;
-          try {
-            await supabase.from('payments').update({
-              fulfillment_status: 'failed',
-              fulfillment_error: rpcError.message || 'Top-up provisioning failed',
-            }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
-        }
+        entitlementError = rpcError;
+        const { error: statusError } = await supabase.from('payments').update({
+          fulfillment_status: 'failed',
+          fulfillment_error: rpcError.message || 'Top-up provisioning failed',
+        }).eq('razorpay_payment_id', razorpay_payment_id);
+        if (statusError) console.error('Unable to record fulfillment failure:', statusError);
       }
     }
 
     if (entitlementError) {
       console.error('Payment entitlement transaction failed:', entitlementError);
       return res.status(503).json({ error: 'Payment verified, but entitlement activation is temporarily unavailable. Please contact support before retrying.' });
+    }
+
+    const { error: metadataError } = await supabase.from('payments').update({
+      plan_id: resolvedPlanId,
+      product_type: targetPlan.type,
+      feature_name: targetPlan.feature || null,
+      quantity: targetPlan.quantity || null,
+    }).eq('razorpay_payment_id', razorpay_payment_id).eq('user_id', effectiveUserId);
+    if (metadataError) {
+      console.error('Payment fulfilled but metadata recording failed:', metadataError);
+      return res.status(503).json({ error: 'Payment was fulfilled, but final reconciliation is pending. Do not pay again; contact support.' });
     }
 
     return res.status(200).json({ 

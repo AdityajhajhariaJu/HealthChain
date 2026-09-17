@@ -32,6 +32,7 @@ let flushInFlight: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let lastSyncError: string | null = null;
 let lastSyncedAt: string | null = null;
+const MAX_OUTBOX_ENTRIES = 500;
 
 function currentUserKey(userId: string) { return `hc_sync_outbox_${userId}`; }
 
@@ -66,17 +67,14 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
   return indexedDbQueue || [];
 }
 
-const MAX_QUEUE_SIZE = 500;
-
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
   const key = currentUserKey(userId);
-  const bounded = queue.slice(-MAX_QUEUE_SIZE);
   try {
-    await set(key, bounded);
+    await set(key, queue);
     try { window.localStorage.removeItem(key); } catch {}
     return;
   } catch {}
-  try { setItemSync(key, JSON.stringify(bounded)); } catch {}
+  try { setItemSync(key, JSON.stringify(queue)); } catch {}
 }
 
 function entryId() {
@@ -84,7 +82,7 @@ function entryId() {
 }
 
 export async function enqueueSync(kind: OutboxKind, userId: string, payload: any) {
-  if (!userId) return;
+  if (!userId) return false;
   const queue = await readQueue(userId);
   const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
   const existing = queue.findIndex((entry) => entry.kind === kind &&
@@ -100,11 +98,20 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
     scopeKey: currentScope,
   };
   if (existing >= 0) queue[existing] = entry;
-  else queue.push(entry);
+  else if (queue.length >= MAX_OUTBOX_ENTRIES) {
+    const detail = { count: queue.length, reason: 'outbox_full', kind };
+    lastSyncError = 'Offline changes are waiting to sync. Reconnect before adding more records.';
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('hc_sync_backpressure', { detail }));
+      window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail }));
+    }
+    return false;
+  } else queue.push(entry);
   await writeQueue(userId, queue);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: queue.length } }));
   }
+  return true;
 }
 
 async function send(entry: OutboxEntry, expectedScope?: string) {
@@ -471,23 +478,34 @@ export async function flushSyncOutbox(userId?: string) {
           }
         } else if (isNetworkError) {
           remaining.push({ ...entry, lastError: error?.message || 'Network unavailable' });
-        } else if (entry.attempts + 1 <= 25) {
-          remaining.push({ ...entry, attempts: entry.attempts + 1, lastError: error?.message || 'Sync failed' });
         } else {
-          console.error(`[SyncOutbox] Dropping unrecoverable outbox entry after 25 attempts: ${entry.id} (${entry.kind})`, error);
+          // Preserve unsynced clinical data until the underlying schema or
+          // service problem is repaired. Never discard it after retries.
+          remaining.push({ ...entry, attempts: Math.min(entry.attempts + 1, 25), lastError: error?.message || 'Sync failed' });
         }
       }
     }
 
-    // Save remaining queue (unprocessed/deferred operations stay safely queued)
-    await writeQueue(accountId, remaining);
+    // Enqueues can occur while network requests are in flight. Re-read and
+    // merge new or updated entries instead of replacing them with the stale
+    // snapshot captured at the beginning of this flush.
+    const latestQueue = await readQueue(accountId);
+    const initialById = new Map(queue.map((entry) => [entry.id, entry]));
+    const concurrentEntries = latestQueue.filter((entry) => {
+      const initial = initialById.get(entry.id);
+      return !initial || JSON.stringify(initial.payload) !== JSON.stringify(entry.payload);
+    });
+    const merged = new Map(remaining.map((entry) => [entry.id, entry]));
+    concurrentEntries.forEach((entry) => merged.set(entry.id, entry));
+    const persistedRemaining = Array.from(merged.values());
+    await writeQueue(accountId, persistedRemaining);
 
-    if (remaining.length) {
+    if (persistedRemaining.length) {
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
+        window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: persistedRemaining.length } }));
       }
       if (typeof navigator === 'undefined' || navigator.onLine) {
-        const attempts = Math.min(...remaining.map((entry) => entry.attempts));
+        const attempts = Math.min(...persistedRemaining.map((entry) => entry.attempts));
         const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
         if (!retryTimer) {
           retryTimer = setTimeout(() => {

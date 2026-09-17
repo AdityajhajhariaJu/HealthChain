@@ -13,6 +13,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { getScopedStorageKey } from '../../services/profileScope';
 
 
 
@@ -518,9 +519,11 @@ export default function ClinicalTrialsMatcher() {
 
   const [customQuery, setCustomQuery] = useState('');
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
+  const savedTrialsKey = getScopedStorageKey('hc_saved_trials');
+  const savedItemKey = (itemId: string) => `${activeCase?.id || 'no_case'}:${itemId}`;
   const [savedItems, setSavedItems] = useState<Record<string, boolean>>(() => {
     try {
-      const stored = getItemSync('hc_saved_trials');
+      const stored = getItemSync(savedTrialsKey);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -529,10 +532,14 @@ export default function ClinicalTrialsMatcher() {
 
   const handleSaveToDossier = (item: any) => {
     if (!item) return;
+    if (!activeCase?.id) {
+      toast.error('Select a case first', 'Research is saved as evidence in a specific case dossier.');
+      return;
+    }
     triggerHapticSuccess();
-    const newSaved = { ...savedItems, [item.id]: true };
+    const newSaved = { ...savedItems, [savedItemKey(item.id)]: true };
     setSavedItems(newSaved);
-    setItemSync('hc_saved_trials', JSON.stringify(newSaved));
+    setItemSync(savedTrialsKey, JSON.stringify(newSaved));
 
     recordHealthMemory({
       kind: 'research',
@@ -541,11 +548,11 @@ export default function ClinicalTrialsMatcher() {
       occurredAt: new Date().toISOString(),
       caseId: activeCase?.id,
       payload: item,
-      dedupeKey: `saved_trial:${item.id}`
+      dedupeKey: `saved_trial:${activeCase.id}:${item.id}`
     });
 
     awardPoints(10, `Saved Research to Dossier: ${item.title.slice(0, 24)}...`, 'research', `trial_save_${item.id}`);
-    toast.success('Saved to Dossier (+10 pts)', 'Study added to your medical case evidence memory.');
+    toast.success('Saved to this case (+10 pts)', `Added to “${activeCase.title || 'Active case'}” as research evidence.`);
   };
 
 
@@ -1099,13 +1106,13 @@ export default function ClinicalTrialsMatcher() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        color: savedItems[selectedItem.id] ? '#059669' : '#0F172A',
-                        borderColor: savedItems[selectedItem.id] ? '#A7F3D0' : '#CBD5E1',
-                        background: savedItems[selectedItem.id] ? '#ECFDF5' : 'transparent',
+                        color: savedItems[savedItemKey(selectedItem.id)] ? '#059669' : '#0F172A',
+                        borderColor: savedItems[savedItemKey(selectedItem.id)] ? '#A7F3D0' : '#CBD5E1',
+                        background: savedItems[savedItemKey(selectedItem.id)] ? '#ECFDF5' : 'transparent',
                       }}
                     >
-                      {savedItems[selectedItem.id] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
-                      {savedItems[selectedItem.id] ? 'Saved to Dossier' : 'Save to Dossier (+10 pts)'}
+                      {savedItems[savedItemKey(selectedItem.id)] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
+                      {savedItems[savedItemKey(selectedItem.id)] ? 'Saved to this case' : 'Save to case (+10 pts)'}
                     </button>
                     <button
                       type="button"

@@ -116,6 +116,7 @@ import {
   DietarySwap,
 } from '../../services/clinicalDietarySwaps';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
+import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -640,6 +641,16 @@ export default function Dietician() {
 
   const waterGlasses = hydration[currentDate] || 0;
 
+  useEffect(() => {
+    const refreshHydration = () => {
+      const shared = getHydrationData(currentDate);
+      setHydration((previous: any) => ({ ...previous, [currentDate]: Math.round(shared.currentMl / 250) }));
+    };
+    refreshHydration();
+    window.addEventListener('hc_hydration_updated', refreshHydration);
+    return () => window.removeEventListener('hc_hydration_updated', refreshHydration);
+  }, [currentDate]);
+
   const syncToUnifiedNutritionLogs = (mealItem: any) => {
     try {
       const text = (mealItem.name || '').toLowerCase();
@@ -746,17 +757,13 @@ export default function Dietician() {
 
   const handleUpdateHydration = (delta: number) => {
     triggerHapticLight();
-    const current = hydration[currentDate] || 0;
-    const next = Math.max(0, current + delta);
+    const shared = adjustWaterAmount(delta * 250, 'water', currentDate);
+    const next = Math.round(shared.currentMl / 250);
     const updated = { ...hydration, [currentDate]: next };
     setHydration(updated);
     updateProfileFeatureData('dietHydration', updated);
     updateProfileFeatureData('dietician', { hydration: updated });
-    if (next >= 8 && current < 8) {
-      awardPoints(2, 'Daily Optimal Hydration Target (2L)', 'lifestyle', `hydration_target_${currentDate}`);
-      toast.success('Hydration Target Met! 💧', 'You reached your 2,000ml daily hydration goal (+2 PTS)');
-      triggerHapticSuccess();
-    } else if (delta > 0) {
+    if (delta > 0) {
       toast.info('Hydration Logged', `${next * 250}ml logged for today (${next}/8 glasses).`);
     }
   };
@@ -931,16 +938,20 @@ export default function Dietician() {
   };
 
   const handleExportToCasePrep = () => {
-    triggerHapticSuccess();
     const summary = generateDietObservationsSummary(mealPlan, foodLogs, activeCaseScope.caseItem);
-    if (activeCaseScope.caseId) {
-      exportDietObservationsToCase(activeCaseScope.caseId, summary);
+    if (!activeCaseScope.caseId) {
+      toast.info('Select a case', 'Choose the case that should receive these dietary observations.');
+      navigate('/app/case-prep');
+      return;
     }
+    const exported = exportDietObservationsToCase(activeCaseScope.caseId, summary);
+    if (!exported) {
+      toast.error('Export Failed', 'The dietary observations were not saved. Please try again.');
+      return;
+    }
+    triggerHapticSuccess();
     toast.success('Exported to Case Prep', 'Factual dietary observations added to your appointment visit brief.');
-    const targetUrl = activeCaseScope.caseId
-      ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`
-      : '/app/case-prep';
-    navigate(targetUrl, { state: { initialBriefNote: summary.summary } });
+    navigate(`/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`);
   };
 
   const handleStartEditMeal = (day: number, meal: MealPlanItem) => {

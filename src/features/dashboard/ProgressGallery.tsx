@@ -14,6 +14,7 @@ import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 import { getProfile } from '../../services/ProfileEngine';
 import { getCases } from '../../services/CaseEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { getActiveProfileScope, getScopedStorageKey } from '../../services/profileScope';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -23,7 +24,7 @@ export const ProgressGallery: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
-  const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync('hc_progress_photo'));
+  const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync(getScopedStorageKey('hc_progress_photo')));
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,7 +34,7 @@ export const ProgressGallery: React.FC = () => {
       const dataUrl = event.target?.result as string;
       if (dataUrl) {
         setUserPhoto(dataUrl);
-        setItemSync('hc_progress_photo', dataUrl);
+        setItemSync(getScopedStorageKey('hc_progress_photo'), dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
         toast.success('Private photo saved', 'Visual note added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
@@ -106,7 +107,8 @@ export const ProgressGallery: React.FC = () => {
     // Hydration & Habits
     const habitKeys = (() => {
       try {
-        return Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_'));
+        const scopeSuffix = `:${getActiveProfileScope()}`;
+        return Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_') && k.endsWith(scopeSuffix));
       } catch {
         return [];
       }

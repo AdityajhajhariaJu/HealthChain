@@ -51,29 +51,33 @@ describe('Clinical Emergency Triage Engine', () => {
 describe('Functional Biomarker Intelligence Engine', () => {
   it('should flag occult cellular iron depletion when Ferritin is in broad standard range but below optimal', () => {
     // 22 ng/mL is technically "normal" by standard 15-200 range, but functionally deficient
-    const res = evaluateBiomarkerFunctionally('Serum Ferritin', 22);
+    const res = evaluateBiomarkerFunctionally('Serum Ferritin', 22, 'ng/mL');
     expect(res).not.toBeNull();
     expect(res?.status).toBe('SUBCLINICAL_LOW');
     expect(res?.clinicalInsight).toContain('mitochondrial');
   });
 
   it('should recognize optimal Ferritin levels', () => {
-    const res = evaluateBiomarkerFunctionally('Ferritin', 75);
+    const res = evaluateBiomarkerFunctionally('Ferritin', 75, 'ng/mL');
     expect(res).not.toBeNull();
     expect(res?.status).toBe('OPTIMAL');
   });
 
   it('should flag subclinical hypothyroid risk when TSH is between 2.5 and 4.5 mIU/L', () => {
-    const res = evaluateBiomarkerFunctionally('TSH', 3.4);
+    const res = evaluateBiomarkerFunctionally('TSH', 3.4, 'mIU/L');
     expect(res).not.toBeNull();
     expect(res?.status).toBe('SUBCLINICAL_HIGH');
     expect(res?.clinicalInsight).toContain('subclinical hypothyroidism');
   });
 
   it('should flag subclinical Vitamin D deficiency below 50 ng/mL', () => {
-    const res = evaluateBiomarkerFunctionally('Vitamin D (25-OH)', 32);
+    const res = evaluateBiomarkerFunctionally('Vitamin D (25-OH)', 32, 'ng/mL');
     expect(res).not.toBeNull();
     expect(res?.status).toBe('SUBCLINICAL_LOW');
+  });
+
+  it('does not interpret a biomarker when the source unit is missing', () => {
+    expect(evaluateBiomarkerFunctionally('Ferritin', 22)).toBeNull();
   });
 });
 

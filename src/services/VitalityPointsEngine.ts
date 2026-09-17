@@ -1,6 +1,7 @@
 import { getProfile, saveProfile } from './ProfileEngine';
 import { triggerHapticSuccess } from './haptics';
 import { getItemSync } from './storage';
+import { getHabitStorageKey } from './profileScope';
 
 export interface PointsTransaction {
   id: string;
@@ -249,7 +250,7 @@ export function getDailyStreak(): DailyStreakInfo {
     if (hasPoints) return true;
 
     try {
-      const stored = getItemSync(`healthchain_habits_${dateStr}`);
+      const stored = getItemSync(getHabitStorageKey(dateStr));
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Object.values(parsed).some(Boolean)) return true;

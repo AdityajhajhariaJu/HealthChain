@@ -392,7 +392,8 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
         Object.entries(parsed.biomarkers).forEach(([bioName, bioData]: [string, any]) => {
           const val = typeof bioData === 'object' ? Number(bioData?.value) : Number(bioData);
           if (!isNaN(val)) {
-            const functionalRes = evaluateBiomarkerFunctionally(bioName, val);
+            const reportedUnit = typeof bioData === 'object' ? String(bioData?.unit || '') : '';
+            const functionalRes = evaluateBiomarkerFunctionally(bioName, val, reportedUnit);
             if (functionalRes && (functionalRes.status === 'SUBCLINICAL_LOW' || functionalRes.status === 'SUBCLINICAL_HIGH')) {
               const note = `[Functional Alert] ${functionalRes.biomarkerName} (${val} ${functionalRes.unit}): ${functionalRes.clinicalInsight}`;
               if (!extraAbnormalities.includes(note)) extraAbnormalities.push(note);
@@ -1838,7 +1839,7 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
   }
 }
 
-export async function refineAppointmentBrief(brief: AppointmentBrief): Promise<AppointmentBrief> {
+export async function refineAppointmentBrief(brief: AppointmentBrief): Promise<AppointmentBrief | null> {
   const prompt = `You are a clinical preparation AI.
 Take the following structured appointment brief and refine it to be "easier to discuss".
 Do NOT invent facts. Do NOT provide new medical diagnoses. Do NOT provide treatment directives.
@@ -1864,10 +1865,10 @@ ${JSON.stringify(brief, null, 2)}
       refined.isRefinedByAI = true;
       return refined;
     }
-    return brief;
+    return null;
   } catch (err) {
     console.error('refineAppointmentBrief error:', err);
-    return brief; // Return original on failure
+    return null;
   }
 }
 

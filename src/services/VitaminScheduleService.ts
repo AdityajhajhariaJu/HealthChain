@@ -2,6 +2,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
 import { requestNotificationPermission } from './DailyCheckinNotificationService';
+import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
 
 export interface VitaminItem {
   id: string;
@@ -16,10 +17,13 @@ const STORAGE_KEY_VITAMINS = 'healthchain_vitamins_schedule_v2';
 const STORAGE_KEY_LOGS = 'healthchain_vitamins_taken_logs';
 const NOTIFICATION_BASE_ID = 2000;
 
+const scopedKey = getScopedStorageKey;
+
 const DEFAULT_VITAMINS: VitaminItem[] = [];
 
 export function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -28,17 +32,17 @@ export function getTodayDateString(): string {
 export function getVitaminSchedule(): VitaminItem[] {
   let list: VitaminItem[] = [];
   try {
-    const raw = getItemSync(STORAGE_KEY_VITAMINS);
+    const raw = getItemSync(scopedKey(STORAGE_KEY_VITAMINS));
     if (raw) {
       list = JSON.parse(raw);
       // Self-healing migration: strip out any legacy hardcoded mock pill demo seeds
       if (Array.isArray(list) && list.some(i => ['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id))) {
         list = list.filter(i => !['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id));
-        setItemSync(STORAGE_KEY_VITAMINS, JSON.stringify(list));
+        setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(list));
       }
     } else {
       list = [];
-      setItemSync(STORAGE_KEY_VITAMINS, JSON.stringify(list));
+      setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(list));
     }
   } catch (e) {
     list = [];
@@ -48,7 +52,7 @@ export function getVitaminSchedule(): VitaminItem[] {
   const today = getTodayDateString();
   let takenMap: Record<string, boolean> = {};
   try {
-    const rawLogs = getItemSync(`${STORAGE_KEY_LOGS}_${today}`);
+    const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
     if (rawLogs) takenMap = JSON.parse(rawLogs);
   } catch {}
 
@@ -62,7 +66,7 @@ export function getVitaminSchedule(): VitaminItem[] {
  * Save the updated vitamins schedule and re-schedule alarms.
  */
 export async function saveVitaminSchedule(items: VitaminItem[]): Promise<void> {
-  setItemSync(STORAGE_KEY_VITAMINS, JSON.stringify(items));
+  setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(items));
   await rescheduleVitaminNotifications(items);
   window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: items }));
 }
@@ -74,13 +78,13 @@ export function toggleVitaminTaken(id: string): boolean {
   const today = getTodayDateString();
   let takenMap: Record<string, boolean> = {};
   try {
-    const raw = getItemSync(`${STORAGE_KEY_LOGS}_${today}`);
+    const raw = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
     if (raw) takenMap = JSON.parse(raw);
   } catch {}
 
   const nextState = !takenMap[id];
   takenMap[id] = nextState;
-  setItemSync(`${STORAGE_KEY_LOGS}_${today}`, JSON.stringify(takenMap));
+  setItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`), JSON.stringify(takenMap));
 
   // Check if all active vitamins are taken
   const all = getVitaminSchedule();
@@ -88,10 +92,11 @@ export function toggleVitaminTaken(id: string): boolean {
 
   // Sync with main habit key if all vitamins are taken
   try {
-    const habitRaw = getItemSync(`healthchain_habits_${today}`);
+    const habitKey = getHabitStorageKey(today);
+    const habitRaw = getItemSync(habitKey);
     const habits = habitRaw ? JSON.parse(habitRaw) : {};
     habits['vitamins'] = allTaken;
-    setItemSync(`healthchain_habits_${today}`, JSON.stringify(habits));
+    setItemSync(habitKey, JSON.stringify(habits));
   } catch {}
 
   window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: all }));
@@ -108,13 +113,14 @@ export function markAllVitaminsTaken(): void {
   all.forEach(v => {
     if (v.enabled) takenMap[v.id] = true;
   });
-  setItemSync(`${STORAGE_KEY_LOGS}_${today}`, JSON.stringify(takenMap));
+  setItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`), JSON.stringify(takenMap));
 
   try {
-    const habitRaw = getItemSync(`healthchain_habits_${today}`);
+    const habitKey = getHabitStorageKey(today);
+    const habitRaw = getItemSync(habitKey);
     const habits = habitRaw ? JSON.parse(habitRaw) : {};
     habits['vitamins'] = true;
-    setItemSync(`healthchain_habits_${today}`, JSON.stringify(habits));
+    setItemSync(habitKey, JSON.stringify(habits));
   } catch {}
 
   window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: all }));
@@ -147,8 +153,8 @@ export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Pro
 
         notificationsToSchedule.push({
           id: NOTIFICATION_BASE_ID + index,
-          title: `Time for ${item.name} 💊`,
-          body: `${item.dosage ? item.dosage + ' • ' : ''}Scheduled for ${item.time}. Tap to mark taken and earn +5 PTS.`,
+          title: 'HealthChain reminder',
+          body: 'A scheduled health reminder is ready. Open HealthChain to review it.',
           channelId: 'healthchain_daily_checkin',
           schedule: {
             on: { hour, minute },
@@ -158,8 +164,7 @@ export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Pro
           extra: {
             route: '/app/today',
             type: 'pill_reminder',
-            vitaminId: item.id,
-            vitaminName: item.name
+            vitaminId: item.id
           }
         });
       });
@@ -177,6 +182,18 @@ export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Pro
   } catch (err) {
     console.warn('[VitaminSchedule] Failed to schedule tablet alarms:', err);
   }
+}
+
+export async function cancelVitaminNotifications(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  const notifications = Array.from({ length: 100 }, (_, index) => ({ id: NOTIFICATION_BASE_ID + index }));
+  try { await LocalNotifications.cancel({ notifications }); } catch (error) {
+    console.warn('[VitaminSchedule] Failed to cancel scheduled reminders:', error);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_logout', () => { void cancelVitaminNotifications(); });
 }
 
 /**

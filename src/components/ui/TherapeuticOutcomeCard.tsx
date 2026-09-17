@@ -133,7 +133,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 >
                   DAY {trial.currentDay}/{trial.totalDays}
                 </div>
-                {trial.reductionPercent > 0 && (
+                {trial.reductionPercent !== null && trial.reductionPercent > 0 && (
                   <div
                     className="tabular-nums micro-badge"
                     style={{
