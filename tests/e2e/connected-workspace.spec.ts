@@ -48,13 +48,15 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await expect(page.getByText(/days streak/i)).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Open Zen Garden' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Calm Space' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Soundscapes' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Articles', exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Open Zen Garden' }).click();
   const garden = page.getByRole('dialog', { name: 'Zen Garden' });
   await expect(garden.getByRole('heading', { name: 'Zen Garden' })).toBeVisible();
-  await expect(garden.getByText(/day rhythm/i)).toBeVisible();
-  await expect(garden.getByRole('button', { name: /Tend garden/i })).toBeVisible();
+  await expect(garden.getByText(/days streak/i)).toBeVisible();
+  await expect(garden.getByText('Daily Care')).toBeVisible();
+  await expect(garden.getByRole('button', { name: /Water Garden/i })).toBeVisible();
   await garden.getByRole('button', { name: 'Close modal' }).click();
   await page.getByRole('link', { name: 'Ava', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();

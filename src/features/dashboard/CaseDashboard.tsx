@@ -65,7 +65,6 @@ import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCa
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
-import { CalmSpaceSection } from './CalmSpaceSection';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -982,11 +981,10 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <CalmSpaceSection onSelect={setActiveMeditation} sectionRef={calmSpaceRef} />
-
         <div
-          aria-hidden="true"
-          style={{ display: 'none' }}
+          ref={calmSpaceRef}
+          id="calm-space"
+          style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}
         >
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
