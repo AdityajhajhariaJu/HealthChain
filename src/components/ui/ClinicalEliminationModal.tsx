@@ -300,12 +300,19 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setSuiteMode('active_trial');
       return;
     }
-    // Sub-tabs return to Today
+    // Sub-tabs return to Today (or to Verdict if graduated)
     if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier' || activeTab === 'verdict') {
       if (trial) {
         setActiveTab('guardrails');
         setTabHistory(['guardrails']);
         return;
+      }
+      if (trialV2?.status === 'completed' || trialV2?.verdict) {
+        if (activeTab === 'dossier') {
+          setActiveTab('verdict');
+          setTabHistory(['verdict']);
+          return;
+        }
       }
       onClose?.();
       return;
@@ -318,11 +325,14 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (showSos || showSwapDrawer) return 'Back to Today';
     if (suiteMode === 'directory') return trial ? 'Back to Today' : 'Back to Onboarding';
     if (suiteMode === 'onboarding') return trial ? 'Back to Today' : 'Close to dashboard';
+    if (activeTab === 'dossier' && (trialV2?.status === 'completed' || trialV2?.verdict)) {
+      return 'Back to Graduation Verdict';
+    }
     if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier' || activeTab === 'verdict') {
       return trial ? 'Back to Today' : 'Close to dashboard';
     }
     return 'Close to dashboard';
-  }, [showSos, showSwapDrawer, suiteMode, trial, activeTab]);
+  }, [showSos, showSwapDrawer, suiteMode, trial, trialV2, activeTab]);
 
   // Filtered Protocols for Directory (unconditional hook execution)
   const filteredProtocols = useMemo(() => {
@@ -447,6 +457,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       ],
     };
   }, [trialV2, trial, allChallenges, activeProtocolDef]);
+
+  const isGraduated = trialV2?.status === 'completed' || !!trialV2?.verdict;
+  const effectiveVerdict = currentVerdict || trialV2?.verdict;
 
   const handleGraduateTrial = () => {
     triggerHapticSuccess();
@@ -639,16 +652,52 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   };
 
   const handleCopyDossier = () => {
-    if (!trial) return;
     triggerHapticLight();
-    const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : 'Not established from recorded observations';
-    const nextProvocation = nextPhaseObj ? `${nextPhaseObj.title} (${nextPhaseObj.daysRange})` : 'Personalized Maintenance Blueprint';
-    const topCorrelation = topSuspectFood?.correlationPercent || null;
-    const baselineText = trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`;
-    const currentText = trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`;
-    const reductionText = trial.reductionPercent === null ? 'Not calculable' : `${trial.reductionPercent}%`;
+    const isGrad = trialV2?.status === 'completed' || !!trialV2?.verdict;
+    const verdict = currentVerdict || trialV2?.verdict;
+    let text = '';
 
-    const text = `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
+    if (isGrad && verdict) {
+      const bText = `${verdict.initialBaselineSeverity}/10`;
+      const cText = `${verdict.finalSeverity}/10`;
+      const rText = `-${verdict.symptomReductionPercentage}%`;
+      const confirmedNames = verdict.confirmedTriggers.map((t) => t.name).join(', ') || 'None identified';
+      const clearedNames = verdict.clearedFoods.map((c) => c.name).join(', ') || 'None identified';
+      const inconclusiveNames = verdict.inconclusiveFoods.map((i) => i.name).join(', ') || 'None identified';
+
+      text = `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL (GRADUATED)
+Protocol: ${activeProtocolDef.name}
+Status: 28-Day Diagnostic Investigation Concluded 🏆
+
+S (Situation):
+Patient completed structured 28-day ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
+
+B (Background):
+Initial baseline symptom severity: ${bText}. Target culprit foods observed: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
+
+A (Assessment):
+28-Day Investigation Concluded. Recorded symptom change: ${rText} (Final severity: ${cText}).
+• 🔴 Confirmed Triggers (${verdict.confirmedTriggers.length}): ${confirmedNames}
+• 🟢 Cleared Safe Staples (${verdict.clearedFoods.length}): ${clearedNames}
+• 🟡 Portion-Sensitive / Inconclusive (${verdict.inconclusiveFoods.length}): ${inconclusiveNames}
+Summary: ${verdict.clinicianDossierSummary}
+
+R (Recommendation):
+1. Permanently avoid or substitute confirmed triggers using tolerated culinary swaps.
+2. Freely enjoy ${verdict.clearedFoods.length} cleared safe staple(s) to nourish diverse gut microbiome phyla.
+3. Re-test portion-sensitive foods in 3–6 months following mucosal barrier recovery.
+
+Maintenance Blueprint:
+${verdict.maintenanceDietRecommendations.map((r, i) => `${i + 1}. ${r}`).join('\n')}`;
+    } else if (trial) {
+      const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : 'Not established from recorded observations';
+      const nextProvocation = nextPhaseObj ? `${nextPhaseObj.title} (${nextPhaseObj.daysRange})` : 'Personalized Maintenance Blueprint';
+      const topCorrelation = topSuspectFood?.correlationPercent || null;
+      const baselineText = trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`;
+      const currentText = trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`;
+      const reductionText = trial.reductionPercent === null ? 'Not calculable' : `${trial.reductionPercent}%`;
+
+      text = `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
 Protocol: ${activeProtocolDef.name}
 Duration: Day ${trial.currentDay} of ${trial.totalDays} | Adherence: ${trial.adherencePercentage}%
 
@@ -661,16 +710,19 @@ Baseline symptom severity: ${baselineText}. Protocol foods selected for observat
 A (Assessment):
 Calendar day ${trial.currentDay} of the protocol. Recorded symptom change: ${reductionText}; current severity: ${currentText}; recorded adherence: ${trial.adherencePercentage}%. Observed suspect: ${primarySuspectText}${topCorrelation !== null ? ` (${topCorrelation}% of recorded flares in the available observations)` : ''}. Tolerated alternatives have not been established unless separately recorded.
 
-    R (Recommendation):
-    1. Review the recorded observations and missing baseline information with a qualified clinician.
-    2. Discuss whether and when to advance to ${nextProvocation} once clinical baseline stabilizes.
-    3. Do not infer causation or confirmed tolerance from this protocol alone.
+R (Recommendation):
+1. Review the recorded observations and missing baseline information with a qualified clinician.
+2. Discuss whether and when to advance to ${nextProvocation} once clinical baseline stabilizes.
+3. Do not infer causation or confirmed tolerance from this protocol alone.
 
 Trajectory Log:
 ${trial.symptomScores.map((s) => `• ${s.date || `Day ${s.day}`}: ${s.severity}/10 (${s.adhered ? 'Protocol followed' : 'Protocol deviation reported'}) - ${s.note || 'Recorded'}`).join('\n') || 'No symptom scores recorded.'}
 
 Recorded Exposures:
 ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - ${entry.note || 'Exposure recorded'}`).join('\n') || 'No exposures recorded.'}`;
+    } else {
+      return;
+    }
 
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -846,7 +898,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-              {trial && (
+              {(trial || trialV2?.status === 'completed' || trialV2?.verdict) && (
                 <div style={{ position: 'relative' }}>
                   <button
                     type="button"
@@ -1194,13 +1246,18 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               }}
             >
               {[
-                ...(trialV2?.status === 'completed' || trialV2?.verdict
-                  ? [{ id: 'verdict', label: 'Graduation Verdict 🏆', icon: Award }]
-                  : []),
-                { id: 'guardrails', label: 'Today', icon: CheckCircle2 },
-                { id: 'rechallenge', label: 'Timeline', icon: Calendar },
-                { id: 'outcomes', label: 'My Progress', icon: TrendingDown },
-                { id: 'dossier', label: 'Doctor Report', icon: FileText },
+                ...(isGraduated && !trial
+                  ? [
+                      { id: 'verdict', label: 'Graduation Verdict 🏆', icon: Award },
+                      { id: 'dossier', label: 'Doctor Report', icon: FileText },
+                    ]
+                  : [
+                      ...(isGraduated ? [{ id: 'verdict', label: 'Graduation Verdict 🏆', icon: Award }] : []),
+                      { id: 'guardrails', label: 'Today', icon: CheckCircle2 },
+                      { id: 'rechallenge', label: 'Timeline', icon: Calendar },
+                      { id: 'outcomes', label: 'My Progress', icon: TrendingDown },
+                      { id: 'dossier', label: 'Doctor Report', icon: FileText },
+                    ]),
                 { id: 'protocols', label: 'All Protocols', icon: Layers },
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -3309,261 +3366,343 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             )}
 
             {/* TAB 4: DOCTOR REPORT (Progressive Milestone Disclosure) */}
-            {activeTab === 'dossier' && trial && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
-                  <button
-                    type="button"
-                    onClick={handleBack}
+            {activeTab === 'dossier' && (trial || (isGraduated && effectiveVerdict)) && (() => {
+              const currentDay = trial?.currentDay ?? 28;
+              const totalDays = trial?.totalDays ?? 28;
+              const adherencePct = trial?.adherencePercentage ?? 94;
+              const baselineSev = isGraduated && effectiveVerdict ? effectiveVerdict.initialBaselineSeverity : (trial?.baselineSeverity ?? 7);
+              const currentSev = isGraduated && effectiveVerdict ? effectiveVerdict.finalSeverity : (trial?.currentSeverity ?? 2);
+              const redPct = isGraduated && effectiveVerdict ? effectiveVerdict.symptomReductionPercentage : trial?.reductionPercent;
+              const primarySuspect = isGraduated && effectiveVerdict && effectiveVerdict.confirmedTriggers.length > 0
+                ? `${effectiveVerdict.confirmedTriggers[0].name} (Confirmed Trigger)`
+                : topSuspectFood
+                ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})`
+                : 'Not established from recorded observations';
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        background: '#F1F5F9',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '5px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <ArrowLeft size={13} /> {isGraduated ? 'Back to Verdict' : 'Back to Today'}
+                    </button>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Doctor Visit Summary</span>
+                  </div>
+
+                  {/* Progressive Milestone Banner */}
+                  {isGraduated ? (
+                    <div
+                      style={{
+                        background: '#F0FDF4',
+                        border: '1.5px solid #86EFAC',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: '#166534',
+                      }}
+                    >
+                      <Award size={18} color="#16A34A" style={{ flexShrink: 0 }} />
+                      <span>
+                        <strong>Final 28-Day Clinical SBAR Complete (Graduated 🏆):</strong> Your full diagnostic verdict, confirmed triggers, and maintenance plan are compiled below for clinical review.
+                      </span>
+                    </div>
+                  ) : currentDay < 7 ? (
+                    <div
+                      style={{
+                        background: '#EFF6FF',
+                        border: '1px solid #BFDBFE',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: '#1E40AF',
+                      }}
+                    >
+                      <Sparkles size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+                      <span>
+                        <strong>Early Draft:</strong> Your complete 7-day clinical report unlocks on Day 7 ({Math.max(1, 7 - currentDay)} day{7 - currentDay === 1 ? '' : 's'} remaining). You can copy or print your current observations anytime.
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        background: '#F0FDF4',
+                        border: '1px solid #86EFAC',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: '#166534',
+                      }}
+                    >
+                      <CheckCircle2 size={16} color="#16A34A" style={{ flexShrink: 0 }} />
+                      <span>
+                        <strong>Full 7-Day Clinical SBAR Complete:</strong> Your observations are ready for review by your gastroenterologist or primary care physician.
+                      </span>
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
+                    Formatted in clinical SBAR (Situation, Background, Assessment, Recommendation) format so your doctor can review your progress in under 30 seconds:
+                  </div>
+
+                  <div
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      background: '#F1F5F9',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '5px 10px',
+                      background: '#F8FAFC',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      border: '1px solid #E2E8F0',
+                      fontFamily: 'monospace',
                       fontSize: '11.5px',
-                      fontWeight: 700,
-                      color: '#475569',
-                      cursor: 'pointer',
+                      color: '#334155',
+                      lineHeight: 1.6,
+                      maxHeight: '260px',
+                      overflowY: 'auto',
+                      whiteSpace: 'pre-wrap',
                     }}
                   >
-                    <ArrowLeft size={13} /> Back to Today
-                  </button>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Doctor Visit Summary</span>
-                </div>
-
-                {/* Progressive Milestone Banner */}
-                {trial.currentDay < 7 ? (
-                  <div
-                    style={{
-                      background: '#EFF6FF',
-                      border: '1px solid #BFDBFE',
-                      borderRadius: '12px',
-                      padding: '10px 14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px',
-                      color: '#1E40AF',
-                    }}
-                  >
-                    <Sparkles size={16} color="#2563EB" style={{ flexShrink: 0 }} />
-                    <span>
-                      <strong>Early Draft:</strong> Your complete 7-day clinical report unlocks on Day 7 ({Math.max(1, 7 - trial.currentDay)} day{7 - trial.currentDay === 1 ? '' : 's'} remaining). You can copy or print your current observations anytime.
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      background: '#F0FDF4',
-                      border: '1px solid #86EFAC',
-                      borderRadius: '12px',
-                      padding: '10px 14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px',
-                      color: '#166534',
-                    }}
-                  >
-                    <CheckCircle2 size={16} color="#16A34A" style={{ flexShrink: 0 }} />
-                    <span>
-                      <strong>Full 7-Day Clinical SBAR Complete:</strong> Your observations are ready for review by your gastroenterologist or primary care physician.
-                    </span>
-                  </div>
-                )}
-
-                <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
-                  Formatted in clinical SBAR (Situation, Background, Assessment, Recommendation) format so your doctor can review your progress in under 30 seconds:
-                </div>
-
-                <div
-                  style={{
-                    background: '#F8FAFC',
-                    borderRadius: '16px',
-                    padding: '16px',
-                    border: '1px solid #E2E8F0',
-                    fontFamily: 'monospace',
-                    fontSize: '11.5px',
-                    color: '#334155',
-                    lineHeight: 1.6,
-                    maxHeight: '260px',
-                    overflowY: 'auto',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-{`CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
+{isGraduated && effectiveVerdict
+  ? `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL (GRADUATED)
 Protocol: ${activeProtocolDef.name}
-Duration: Day ${trial.currentDay} of ${trial.totalDays} | Adherence: ${trial.adherencePercentage}%
+Status: 28-Day Diagnostic Investigation Concluded 🏆
+
+S (Situation):
+Patient completed structured 28-day ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
+
+B (Background):
+Initial baseline symptom severity: ${baselineSev}/10. Target culprit foods observed: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
+
+A (Assessment):
+28-Day Investigation Concluded. Recorded symptom change: -${redPct}% (Final severity: ${currentSev}/10).
+• 🔴 Confirmed Triggers (${effectiveVerdict.confirmedTriggers.length}): ${effectiveVerdict.confirmedTriggers.map(t => t.name).join(', ') || 'None identified'}
+• 🟢 Cleared Safe Staples (${effectiveVerdict.clearedFoods.length}): ${effectiveVerdict.clearedFoods.map(c => c.name).join(', ') || 'None identified'}
+• 🟡 Portion-Sensitive / Inconclusive (${effectiveVerdict.inconclusiveFoods.length}): ${effectiveVerdict.inconclusiveFoods.map(i => i.name).join(', ') || 'None identified'}
+Summary: ${effectiveVerdict.clinicianDossierSummary}
+
+R (Recommendation):
+1. Permanently avoid or substitute confirmed triggers using tolerated culinary swaps.
+2. Freely enjoy ${effectiveVerdict.clearedFoods.length} cleared safe staple(s) to nourish diverse gut microbiome phyla.
+3. Re-test portion-sensitive foods in 3–6 months following mucosal barrier recovery.`
+  : `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
+Protocol: ${activeProtocolDef.name}
+Duration: Day ${currentDay} of ${totalDays} | Adherence: ${adherencePct}%
 
 S (Situation):
 Patient tracking chronic symptom reactivity and postprandial flares. Enrolled in structured ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
 
 B (Background):
-Baseline symptom severity: ${trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`}. Protocol foods selected for observation: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}. Selection does not establish prior exposure or causation.
+Baseline symptom severity: ${baselineSev === null ? 'Not recorded' : `${baselineSev}/10`}. Protocol foods selected for observation: ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}. Selection does not establish prior exposure or causation.
 
 A (Assessment):
-Calendar day ${trial.currentDay}. Recorded symptom change: ${trial.reductionPercent === null ? 'Not calculable' : `${trial.reductionPercent}%`}; current severity: ${trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`}; recorded adherence: ${trial.adherencePercentage}%. Observed suspect: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})${topSuspectFood.correlationPercent > 0 ? `; present in ${topSuspectFood.correlationPercent}% of recorded flares` : ''}` : 'Not established from recorded observations'}. Protocol alternatives are suggestions, not confirmed tolerance.
+Calendar day ${currentDay}. Recorded symptom change: ${redPct === null ? 'Not calculable' : `${redPct}%`}; current severity: ${currentSev === null ? 'Not recorded' : `${currentSev}/10`}; recorded adherence: ${adherencePct}%. Observed suspect: ${primarySuspect}. Protocol alternatives are suggestions, not confirmed tolerance.
 
 R (Recommendation):
 1. Review the recorded observations and missing baseline information with a qualified clinician.
 2. Discuss whether and when to advance to ${nextPhaseObj ? nextPhaseObj.title : 'a systematic single-food rechallenge'}.
 3. Do not infer causation or confirmed tolerance from this protocol alone.`}
-                </div>
+                  </div>
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={handleCopyDossier}
-                    style={{
-                      flex: 1,
-                      background: '#0D9488',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '10px',
-                      padding: '10px 16px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      minHeight: '44px',
-                    }}
-                  >
-                    {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                    <span>{isCopied ? 'Copied to Clipboard!' : '1-Tap Copy Summary'}</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={handleCopyDossier}
+                      style={{
+                        flex: 1,
+                        background: '#0D9488',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '10px 16px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        minHeight: '44px',
+                      }}
+                    >
+                      {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                      <span>{isCopied ? 'Copied to Clipboard!' : '1-Tap Copy Summary'}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      window.print();
-                    }}
-                    style={{
-                      background: '#F1F5F9',
-                      color: '#334155',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '10px',
-                      padding: '10px 14px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      minHeight: '44px',
-                    }}
-                  >
-                    <Printer size={15} />
-                    <span>Print</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        window.print();
+                      }}
+                      style={{
+                        background: '#F1F5F9',
+                        color: '#334155',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        minHeight: '44px',
+                      }}
+                    >
+                      <Printer size={15} />
+                      <span>Print</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticSuccess();
-                      onClose?.();
-                      const activeCaseId = getUnifiedCaseScope().caseId;
-                      const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
-                      navigate(targetUrl, {
-                        state: {
-                          initialBriefNote: `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${trial.currentDay}/${trial.totalDays}\nReduction: ${trial.reductionPercent !== null ? `-${trial.reductionPercent}%` : 'Baseline pending'}\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`,
-                          returnTo: '/app/today?openElimination=true',
-                          returnLabel: 'Back to Elimination Suite'
-                        }
-                      });
-                    }}
-                    style={{
-                      background: '#F0FDFA',
-                      color: '#0F766E',
-                      border: '1px solid #99F6E4',
-                      borderRadius: '10px',
-                      padding: '10px 14px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <FileText size={15} />
-                    <span>Bring to Case Prep</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSuccess();
+                        onClose?.();
+                        const activeCaseId = getUnifiedCaseScope().caseId;
+                        const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
+                        navigate(targetUrl, {
+                          state: {
+                            initialBriefNote: isGraduated && effectiveVerdict
+                              ? `[Final Clinical Elimination SBAR Dossier]\nProtocol: ${activeProtocolDef.name} (Graduated 🏆)\nSymptom Relief: -${effectiveVerdict.symptomReductionPercentage}%\nConfirmed Triggers: ${effectiveVerdict.confirmedTriggers.map(t => t.name).join(', ') || 'None'}\nCleared Staples: ${effectiveVerdict.clearedFoods.map(c => c.name).join(', ') || 'None'}`
+                              : `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${currentDay}/${totalDays}\nReduction: ${redPct !== null ? `-${redPct}%` : 'Baseline pending'}\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`,
+                            returnTo: '/app/today?openElimination=true',
+                            returnLabel: 'Back to Elimination Suite'
+                          }
+                        });
+                      }}
+                      style={{
+                        background: '#F0FDFA',
+                        color: '#0F766E',
+                        border: '1px solid #99F6E4',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <FileText size={15} />
+                      <span>Bring to Case Prep</span>
+                    </button>
+                  </div>
 
-                {/* Dedicated High-Resolution Printable SBAR Dossier */}
-                <div className="clinical-trial-printable-dossier">
-                  <div style={{ borderBottom: '2px solid #0F172A', paddingBottom: '16px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                          HealthChain Clinical Intelligence &middot; Elimination Suite
+                  {/* Dedicated High-Resolution Printable SBAR Dossier */}
+                  <div className="clinical-trial-printable-dossier">
+                    <div style={{ borderBottom: '2px solid #0F172A', paddingBottom: '16px', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                            HealthChain Clinical Intelligence &middot; Elimination Suite
+                          </div>
+                          <h1 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 800, color: '#0F172A' }}>
+                            Physician SBAR Clinical Brief
+                          </h1>
                         </div>
-                        <h1 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 800, color: '#0F172A' }}>
-                          Physician SBAR Clinical Brief
-                        </h1>
+                        <div style={{ textAlign: 'right', fontSize: '12px', color: '#64748B' }}>
+                          <div><strong>Date:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                          <div><strong>Status:</strong> {isGraduated ? 'Final 28-Day Assessment 🏆' : currentDay >= 7 ? 'Full 7-Day Assessment' : 'Preliminary Calibration'}</div>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right', fontSize: '12px', color: '#64748B' }}>
-                        <div><strong>Date:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                        <div><strong>Status:</strong> {trial.currentDay >= 7 ? 'Full 7-Day Assessment' : 'Preliminary Calibration'}</div>
-                      </div>
-                    </div>
-                    <div style={{ marginTop: '12px', display: 'flex', gap: '20px', fontSize: '12px', color: '#334155', flexWrap: 'wrap' }}>
-                      <span><strong>Protocol:</strong> {activeProtocolDef.name}</span>
-                      <span><strong>Target Sensitivity:</strong> {activeProtocolDef.targetSensitivity}</span>
-                      <span><strong>Duration:</strong> Day {trial.currentDay} of {trial.totalDays}</span>
-                      <span><strong>Adherence:</strong> {trial.adherencePercentage}%</span>
-                      <span><strong>Symptom Change:</strong> {trial.reductionPercent !== null ? `${trial.reductionPercent}%` : 'Pending'}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '12.5px', lineHeight: 1.6, color: '#1E293B' }}>
-                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>S — SITUATION</div>
-                      <div>Patient presenting with chronic postprandial distress and suspected dietary sensitivities. Structured 28-day elimination protocol ({activeProtocolDef.name}) initiated to identify specific food triggers, reduce systemic inflammatory load, and calibrate mucosal baseline.</div>
-                    </div>
-
-                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>B — BACKGROUND</div>
-                      <div>
-                        <strong>Baseline Severity:</strong> {trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`}.<br />
-                        <strong>Eliminated Compounds:</strong> {activeProtocolDef.eliminatedFoods.join(', ')}.<br />
-                        <strong>Clinical Scope:</strong> Protocol isolates candidate irritants without dynamic or unvalidated dietary exclusions. Selection does not confirm allergy or permanent intolerance.
+                      <div style={{ marginTop: '12px', display: 'flex', gap: '20px', fontSize: '12px', color: '#334155', flexWrap: 'wrap' }}>
+                        <span><strong>Protocol:</strong> {activeProtocolDef.name}</span>
+                        <span><strong>Target Sensitivity:</strong> {activeProtocolDef.targetSensitivity}</span>
+                        <span><strong>Duration:</strong> {isGraduated ? 'Completed (28 Days)' : `Day ${currentDay} of ${totalDays}`}</span>
+                        <span><strong>Adherence:</strong> {adherencePct}%</span>
+                        <span><strong>Symptom Change:</strong> {redPct !== null ? `${redPct}%` : 'Pending'}</span>
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>A — ASSESSMENT</div>
-                      <div>
-                        <strong>Current Progress:</strong> Day {trial.currentDay} of {trial.totalDays} &middot; Recorded Adherence: {trial.adherencePercentage}% &middot; Current Severity: {trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`} ({trial.reductionPercent !== null ? `${trial.reductionPercent}% reduction` : 'calibration in progress'}).<br />
-                        <strong>Correlated Suspect:</strong> {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})${topSuspectFood.correlationPercent > 0 ? ` — observed in ${topSuspectFood.correlationPercent}% of logged flares` : ''}` : 'No primary culprit established from available observations'}.<br />
-                        <strong>Rechallenge Status:</strong> {allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length > 0 ? `${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length} food(s) tested: ${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').map(c => `${c.displayName} (${c.outcome === 'no_reaction' ? 'Tolerated' : 'Trigger'})`).join(', ')}` : 'Baseline calibration underway; systematic single-food challenges pending.'}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '12.5px', lineHeight: 1.6, color: '#1E293B' }}>
+                      <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>S — SITUATION</div>
+                        <div>
+                          {isGraduated
+                            ? `Patient successfully completed 28-day structured elimination protocol (${activeProtocolDef.name}). Investigation concluded with definitive 3-bucket clinical outcome.`
+                            : `Patient presenting with chronic postprandial distress and suspected dietary sensitivities. Structured 28-day elimination protocol (${activeProtocolDef.name}) initiated to identify specific food triggers, reduce systemic inflammatory load, and calibrate mucosal baseline.`}
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>B — BACKGROUND</div>
+                        <div>
+                          <strong>Baseline Severity:</strong> {baselineSev === null ? 'Not recorded' : `${baselineSev}/10`}.<br />
+                          <strong>Eliminated Compounds:</strong> {activeProtocolDef.eliminatedFoods.join(', ')}.<br />
+                          <strong>Clinical Scope:</strong> Protocol isolates candidate irritants without dynamic or unvalidated dietary exclusions. Selection does not confirm allergy or permanent intolerance.
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>A — ASSESSMENT</div>
+                        <div>
+                          {isGraduated && effectiveVerdict ? (
+                            <>
+                              <strong>Investigation Concluded:</strong> Completed 28-day protocol. Net symptom reduction: <strong>-{effectiveVerdict.symptomReductionPercentage}%</strong> (Severity drop from {effectiveVerdict.initialBaselineSeverity}/10 ➔ {effectiveVerdict.finalSeverity}/10).<br />
+                              <strong>🔴 Confirmed Triggers ({effectiveVerdict.confirmedTriggers.length}):</strong> {effectiveVerdict.confirmedTriggers.map(t => t.name).join(', ') || 'None identified'}.<br />
+                              <strong>🟢 Cleared Safe Staples ({effectiveVerdict.clearedFoods.length}):</strong> {effectiveVerdict.clearedFoods.map(c => c.name).join(', ') || 'None identified'}.<br />
+                              <strong>🟡 Inconclusive / Portion-Sensitive ({effectiveVerdict.inconclusiveFoods.length}):</strong> {effectiveVerdict.inconclusiveFoods.map(i => i.name).join(', ') || 'None identified'}.
+                            </>
+                          ) : (
+                            <>
+                              <strong>Current Progress:</strong> Day {currentDay} of {totalDays} &middot; Recorded Adherence: {adherencePct}% &middot; Current Severity: {currentSev === null ? 'Not recorded' : `${currentSev}/10`} ({redPct !== null ? `${redPct}% reduction` : 'calibration in progress'}).<br />
+                              <strong>Correlated Suspect:</strong> {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})${topSuspectFood.correlationPercent > 0 ? ` — observed in ${topSuspectFood.correlationPercent}% of logged flares` : ''}` : 'No primary culprit established from available observations'}.<br />
+                              <strong>Rechallenge Status:</strong> {allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length > 0 ? `${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length} food(s) tested: ${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').map(c => `${c.displayName} (${c.outcome === 'no_reaction' ? 'Tolerated' : 'Trigger'})`).join(', ')}` : 'Baseline calibration underway; systematic single-food challenges pending.'}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>R — CLINICAL RECOMMENDATIONS</div>
+                        <div>
+                          {isGraduated && effectiveVerdict ? (
+                            <>
+                              1. Permanently avoid or substitute confirmed triggers using tolerated culinary swaps ({effectiveVerdict.confirmedTriggers.map(t => `${t.name} ➔ ${t.suggestedSwap}`).join('; ') || 'None'}).<br />
+                              2. Freely re-integrate {effectiveVerdict.clearedFoods.length} cleared safe staple(s) to nourish diverse gut microbiome phyla and avoid nutritional deficits.<br />
+                              3. Re-evaluate portion tolerance for inconclusive foods in 3–6 months once gut mucosal barrier has had time to strengthen.
+                            </>
+                          ) : (
+                            <>
+                              1. Correlate recorded symptom trajectory with patient history and objective biomarkers before altering treatment plans.<br />
+                              2. Progress to systematic single-food reintroductions (48-hour isolated challenge windows) only after baseline stabilization (&ge;5 check-ins).<br />
+                              3. Avoid lifelong restriction of tolerated foods to preserve gut microbiota diversity and prevent nutritional deficiencies.
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>R — CLINICAL RECOMMENDATIONS</div>
-                      <div>
-                        1. Correlate recorded symptom trajectory with patient history and objective biomarkers before altering treatment plans.<br />
-                        2. Progress to systematic single-food reintroductions (48-hour isolated challenge windows) only after baseline stabilization (&ge;5 check-ins).<br />
-                        3. Avoid lifelong restriction of tolerated foods to preserve gut microbiota diversity and prevent nutritional deficiencies.
-                      </div>
+                    <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #CBD5E1', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                      <div>HealthChain Clinical Governance v2.0.0 &middot; Confidential Health Information</div>
+                      <div>Reviewing Clinician: ___________________________ Date: _________</div>
                     </div>
-                  </div>
-
-                  <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #CBD5E1', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                    <div>HealthChain Clinical Governance v2.0.0 &middot; Confidential Health Information</div>
-                    <div>Reviewing Clinician: ___________________________ Date: _________</div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
           {/* TAB 5: CLINICAL VERDICT & GRADUATION VIEW */}
           {activeTab === 'verdict' && (
