@@ -88,8 +88,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         role="button"
         tabIndex={0}
         aria-label={trial 
-          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and visit summary` 
-          : 'Elimination Protocol - Inactive. Tap to select a targeted washout protocol'}
+          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to view your daily plan, timeline, and doctor report` 
+          : 'Elimination Protocol - Inactive. Tap to choose an elimination protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -227,10 +227,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           >
             {trial ? (
               justLogged
-                ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent}% delta)`
-                : `Phase 1: Washout • ${trial.adherencePercentage}% Adherence`
+                ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
+                : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
             ) : (
-              'Isolate food sensitivities with structured 7-day or 28-day protocols.'
+              'Identify food triggers with structured, step-by-step protocols.'
             )}
           </p>
 
@@ -374,14 +374,14 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
                 <span style={{ fontSize: '9px', fontWeight: 800, color: '#6D28D9', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  Mechanism
+                  How It Works
                 </span>
                 <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
-                  DAO / Mast Clearance
+                  Gut & Nerve Reset
                 </span>
               </div>
               <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                Strict 7-day exclusion flushes circulating diamine oxidase substrates, dampening mast cell degranulation cycles.
+                Strict elimination calms gut inflammation and helps identify whether your symptoms improve when trigger foods are removed.
               </p>
             </motion.div>
           )}
