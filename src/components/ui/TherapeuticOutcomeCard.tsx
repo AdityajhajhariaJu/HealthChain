@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Activity, Check, Info, ChevronDown } from 'lucide-react';
+import { Target, Activity, Check, Info, ChevronDown, Compass } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -208,8 +208,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               <div
                 className="micro-badge"
                 style={{
-                  background: 'rgba(124, 58, 237, 0.08)',
-                  color: '#7C3AED',
+                  background: '#ECFDF5',
+                  color: '#059669',
                   padding: '3px 8px',
                   borderRadius: '999px',
                   fontSize: '10px',
@@ -219,7 +219,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   flexShrink: 0
                 }}
               >
-                SELECT PROTOCOL
+                GUIDED INTAKE AVAILABLE
               </div>
             )}
           </div>
@@ -237,7 +237,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               letterSpacing: '-0.3px'
             }}
           >
-            {activeProtocolDef ? activeProtocolDef.name : 'Clinical Elimination Suite'}
+            {activeProtocolDef ? activeProtocolDef.name : 'Clinical Food Reset & Elimination'}
           </h4>
           <p
             style={{
@@ -253,7 +253,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
                 : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
             ) : (
-              'Identify food triggers with structured, step-by-step protocols.'
+              'Discover food triggers with a 4-step guided intake & structured clinical reset.'
             )}
           </p>
 
@@ -333,7 +333,30 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   </button>
                 </div>
               )
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                data-compact="true"
+                onClick={handleOpenModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: '#059669',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '3px 9px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                }}
+              >
+                <Compass size={11} />
+                <span>Begin Guided Reset Onboarding →</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -415,6 +438,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       {isModalOpen && (
         <ClinicalEliminationModal
           isOpen={isModalOpen}
+          initialMode={trial ? 'active_trial' : 'onboarding'}
           onClose={() => setIsModalOpen(false)}
           onTrialUpdated={(updated) => setTrial(updated)}
         />

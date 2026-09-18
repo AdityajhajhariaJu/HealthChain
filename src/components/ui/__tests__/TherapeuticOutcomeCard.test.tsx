@@ -78,4 +78,21 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
     expect(events.length).toBeGreaterThanOrEqual(2);
     expect(events[events.length - 1].payload.severityScore).toBe(4);
   });
+
+  it('renders guided intake callout when no active elimination trial exists', () => {
+    // No trial started
+    render(<TherapeuticOutcomeCard />, { container: containerDiv });
+
+    // Inactive card callout
+    expect(screen.getByText(/GUIDED INTAKE AVAILABLE/i)).toBeTruthy();
+    expect(screen.getByText(/Clinical Food Reset & Elimination/i)).toBeTruthy();
+    expect(screen.getByText(/Begin Guided Reset Onboarding →/i)).toBeTruthy();
+
+    // Clicking button opens modal
+    const startBtn = screen.getByText(/Begin Guided Reset Onboarding →/i);
+    fireEvent.click(startBtn);
+
+    // Modal rendered in onboarding mode
+    expect(screen.getAllByText(/Elimination Suite Onboarding/i).length).toBeGreaterThanOrEqual(1);
+  });
 });

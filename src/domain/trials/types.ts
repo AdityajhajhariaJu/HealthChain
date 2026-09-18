@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Canonical Domain Model for Clinical Elimination Trials (TrialV2)
  * Schema Version: 2
  */
@@ -45,6 +45,15 @@ export interface TrialConsentRecord {
   supervisingClinician?: string;
 }
 
+export interface TrialIntakeAssessment {
+  symptoms: string[];
+  timing: string;
+  baselineSeverity: number | null;
+  safetyAcknowledged: boolean;
+  completedAt: string;
+  matchedProtocolId?: string;
+}
+
 export interface TrialV2 {
   id: string;
   schemaVersion: 2;
@@ -61,6 +70,7 @@ export interface TrialV2 {
   activeFilters: string[];
   currentChallengeId?: string;
   consent: TrialConsentRecord;
+  intakeAssessment?: TrialIntakeAssessment;
   stoppedReason?: 'flare' | 'difficulty' | 'clinician_advice' | 'completed' | 'switched' | 'other';
   stoppedAt?: string;
 }

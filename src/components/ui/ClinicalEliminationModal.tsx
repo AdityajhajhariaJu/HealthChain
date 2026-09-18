@@ -35,7 +35,10 @@ import {
   StopCircle,
   Apple,
   MoreVertical,
-  Search
+  Search,
+  Compass,
+  ClipboardList,
+  Trash2
 } from 'lucide-react';
 import {
   getActiveTrial,
@@ -43,12 +46,14 @@ import {
   logTrialExposure,
   startTrial,
   stopActiveTrial,
+  resetActiveTrial,
   ActiveTrialState,
   ELIMINATION_PROTOCOLS,
   CLINICAL_SENSITIVITIES,
   getSuspectFoodsLeaderboard,
 } from '../../services/TriggerEngine';
 import { GuidedStartModal } from './GuidedStartModal';
+import { EliminationOnboardingWizard } from './EliminationOnboardingWizard';
 import {
   getActiveTrialV2,
   saveActiveTrialV2,
@@ -57,6 +62,7 @@ import {
   pauseTrialV2,
   resumeTrialV2,
   stopTrialV2,
+  resetActiveTrialV2,
   evaluateChallengeReadiness,
   startFoodChallenge,
   recordChallengeObservation,
@@ -65,7 +71,7 @@ import {
   recordDailyObservation,
 } from '../../services/TrialWorkflowService';
 import { AdherenceLevel, TrialV2, FoodChallenge } from '../../domain/trials/types';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection, triggerHapticHeavy } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate } from 'react-router-dom';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
@@ -73,9 +79,10 @@ import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 export interface ClinicalEliminationModalProps {
   isOpen?: boolean;
   onClose?: () => void;
-  onTrialUpdated?: (trial: ActiveTrialState) => void;
+  onTrialUpdated?: (trial: ActiveTrialState | null) => void;
   inline?: boolean;
   initialProtocolId?: string | null;
+  initialMode?: 'onboarding' | 'active_trial' | 'directory';
 }
 
 export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> = ({
@@ -84,10 +91,23 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   onTrialUpdated,
   inline = false,
   initialProtocolId = null,
+  initialMode,
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
+  const [trialV2, setTrialV2] = useState<TrialV2 | null>(() => getActiveTrialV2());
+
+  type SuiteMode = 'onboarding' | 'active_trial' | 'directory';
+  const [suiteMode, setSuiteMode] = useState<SuiteMode>(() => {
+    if (initialMode) return initialMode;
+    if (trial) return 'active_trial';
+    return 'onboarding';
+  });
+
+  const [showAssessmentModal, setShowAssessmentModal] = useState<boolean>(false);
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+
   const [selectedProtocolId, setSelectedProtocolId] = useState<string>(() => {
     if (initialProtocolId && ELIMINATION_PROTOCOLS.some((p) => p.id === initialProtocolId)) {
       return initialProtocolId;
@@ -101,7 +121,6 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   
   // Guided Start state
   const [showGuidedStart, setShowGuidedStart] = useState<boolean>(false);
-  const [trialV2, setTrialV2] = useState<TrialV2 | null>(() => getActiveTrialV2());
 
   // Interactive check-in state (Unified on Today tab) - null by default until touched
   const [severityScore, setSeverityScore] = useState<number | null>(null);
@@ -244,6 +263,27 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setShowOverflowMenu(false);
       return;
     }
+    if (showAssessmentModal) {
+      setShowAssessmentModal(false);
+      return;
+    }
+    if (showResetConfirm) {
+      setShowResetConfirm(false);
+      return;
+    }
+    if (suiteMode === 'directory') {
+      if (trial) {
+        setSuiteMode('active_trial');
+        setActiveTab('guardrails');
+      } else {
+        setSuiteMode('onboarding');
+      }
+      return;
+    }
+    if (suiteMode === 'onboarding' && trial) {
+      setSuiteMode('active_trial');
+      return;
+    }
     // Sub-tabs return to Today
     if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
       setActiveTab('guardrails');
@@ -256,9 +296,11 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   const backButtonLabel = useMemo(() => {
     if (showSos || showSwapDrawer) return 'Back to Today';
+    if (suiteMode === 'directory') return trial ? 'Back to Today' : 'Back to Onboarding';
+    if (suiteMode === 'onboarding') return trial ? 'Back to Today' : 'Close to dashboard';
     if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') return 'Back to Today';
     return 'Close to dashboard';
-  }, [showSos, showSwapDrawer, activeTab]);
+  }, [showSos, showSwapDrawer, suiteMode, trial, activeTab]);
 
   // Filtered Protocols for Directory (unconditional hook execution)
   const filteredProtocols = useMemo(() => {
@@ -283,6 +325,15 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
           setShowSwapDrawer(false);
         } else if (showOverflowMenu) {
           setShowOverflowMenu(false);
+        } else if (showAssessmentModal) {
+          setShowAssessmentModal(false);
+        } else if (showResetConfirm) {
+          setShowResetConfirm(false);
+        } else if (suiteMode === 'directory') {
+          if (trial) setSuiteMode('active_trial');
+          else setSuiteMode('onboarding');
+        } else if (suiteMode === 'onboarding' && trial) {
+          setSuiteMode('active_trial');
         } else if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
           setActiveTab('guardrails');
           setTabHistory(['guardrails']);
@@ -293,7 +344,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, inline, showSos, showSwapDrawer, showOverflowMenu, activeTab, onClose]);
+  }, [isOpen, inline, showSos, showSwapDrawer, showOverflowMenu, showAssessmentModal, showResetConfirm, suiteMode, trial, activeTab, onClose]);
 
   if (!isOpen && !inline) return null;
 
@@ -301,7 +352,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
     : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]);
   const selectedProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0];
-  const isProtocolsTab = activeTab === 'protocols' || !trial;
+  const isProtocolsTab = suiteMode === 'directory' || (suiteMode !== 'onboarding' && (activeTab === 'protocols' || !trial));
   const suspectFoods = getSuspectFoodsLeaderboard();
   const topSuspectFood = suspectFoods[0];
 
@@ -619,21 +670,27 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     style={{
                       fontSize: '9.5px',
                       fontWeight: 800,
-                      color: '#475569',
-                      background: '#F1F5F9',
+                      color: suiteMode === 'onboarding' ? '#065F46' : '#475569',
+                      background: suiteMode === 'onboarding' ? '#ECFDF5' : '#F1F5F9',
                       padding: '2px 7px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
                       textTransform: 'uppercase',
                     }}
                   >
-                    {isProtocolsTab
+                    {suiteMode === 'onboarding'
+                      ? 'ELIMINATION SUITE ONBOARDING'
+                      : isProtocolsTab
                       ? '11 EVIDENCE-BASED PROTOCOLS'
                       : trial
                       ? 'ACTIVE HEALTH RESET'
                       : 'SELECT A RESET'}
                   </span>
-                  {isProtocolsTab ? (
+                  {suiteMode === 'onboarding' ? (
+                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                      Step-by-Step Clinical Intake
+                    </span>
+                  ) : isProtocolsTab ? (
                     <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                       11 Protocols Available
                     </span>
@@ -660,7 +717,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {isProtocolsTab ? 'Food Elimination & Reset Protocols' : activeProtocolDef.name}
+                  {suiteMode === 'onboarding'
+                    ? 'Clinical Food Reset Intake'
+                    : isProtocolsTab
+                    ? 'Food Elimination & Reset Protocols'
+                    : activeProtocolDef.name}
                 </h2>
               </div>
             </div>
@@ -768,6 +829,59 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       <button
                         type="button"
                         onClick={() => {
+                          setSuiteMode('onboarding');
+                          setShowOverflowMenu(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'none',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#475569',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <Compass size={14} /> Retake Guided Intake
+                      </button>
+
+                      {trialV2?.intakeAssessment && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAssessmentModal(true);
+                            setShowOverflowMenu(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '9px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'none',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#475569',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                          }}
+                        >
+                          <ClipboardList size={14} /> View Intake Assessment
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSuiteMode('directory');
                           setActiveTab('protocols');
                           setShowOverflowMenu(false);
                         }}
@@ -787,7 +901,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           width: '100%',
                         }}
                       >
-                        <RotateCcw size={14} /> Switch Protocol
+                        <RotateCcw size={14} /> Browse All Protocols
                       </button>
 
                       <div style={{ height: '1px', background: '#F1F5F9', margin: '4px 0' }} />
@@ -815,6 +929,31 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         }}
                       >
                         <StopCircle size={14} /> Stop Trial
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowResetConfirm(true);
+                          setShowOverflowMenu(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'none',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#991B1B',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <Trash2 size={14} /> Reset Protocol & Start Fresh
                       </button>
                     </div>
                   </>
@@ -853,8 +992,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             </div>
           </div>
 
-          {/* Tab Navigation (Only when active trial exists) */}
-          {trial && (
+          {/* Tab Navigation (Only when active trial exists and in active trial mode) */}
+          {trial && suiteMode === 'active_trial' && (
             <div
               className="hide-scrollbar"
               style={{
@@ -938,7 +1077,30 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               gap: '16px',
             }}
           >
-            {isProtocolsTab ? (
+            {suiteMode === 'onboarding' ? (
+              <EliminationOnboardingWizard
+                onProtocolSelect={(protocolId) => {
+                  setSelectedProtocolId(protocolId);
+                  setSuiteMode('directory');
+                }}
+                onComplete={() => {
+                  refreshTrialState();
+                  setSuiteMode('active_trial');
+                  setActiveTab('guardrails');
+                  onTrialUpdated?.(getActiveTrial());
+                }}
+                onCancel={() => {
+                  if (trial) {
+                    setSuiteMode('active_trial');
+                  } else {
+                    onClose?.();
+                  }
+                }}
+                onBrowseProtocols={() => {
+                  setSuiteMode('directory');
+                }}
+              />
+            ) : (isProtocolsTab || !trial) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Active Trial Notice Banner (if trial exists) */}
                 {trial && (
@@ -1028,7 +1190,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     type="button"
                     onClick={() => {
                       triggerHapticSelection();
-                      setShowGuidedStart(true);
+                      setSuiteMode('onboarding');
                     }}
                     style={{
                       background: '#0D9488',
@@ -1046,7 +1208,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       minHeight: '44px',
                     }}
                   >
-                    <span>Launch Guided Triage</span>
+                    <span>Launch Guided Intake</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>
@@ -1289,6 +1451,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       type="button"
                       onClick={() => {
                         triggerHapticSelection();
+                        setSuiteMode('active_trial');
                         setActiveTab('guardrails');
                       }}
                       style={{
@@ -1318,6 +1481,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         triggerHapticSuccess();
                         const newTrial = startTrial(selectedProtocolId);
                         setTrial(newTrial);
+                        setSuiteMode('active_trial');
                         onTrialUpdated?.(newTrial);
                         setActiveTab('guardrails');
                         setTabHistory(['guardrails']);
@@ -3050,62 +3214,64 @@ R (Recommendation):
             )}
           </div>
 
-          {/* Footer CTA */}
-          <div
-            style={{
-              padding: '12px 20px',
-              borderTop: '1px solid #F1F5F9',
-              background: '#FAFAFA',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                onClose?.();
-                navigate('/app/dietician?tab=elimination&returnTo=%2Fapp%2Ftoday%3FopenElimination%3Dtrue', { 
-                  state: { 
-                    tab: 'elimination',
-                    returnTo: '/app/today?openElimination=true',
-                    returnLabel: 'Back to Elimination Suite Card'
-                  } 
-                });
-              }}
+          {/* Footer CTA (Only when not in onboarding) */}
+          {suiteMode !== 'onboarding' && (
+            <div
               style={{
-                background: 'none',
-                border: 'none',
-                color: '#0D9488',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
+                padding: '12px 20px',
+                borderTop: '1px solid #F1F5F9',
+                background: '#FAFAFA',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '4px',
               }}
             >
-              <span>Full Dietician View</span>
-              <ArrowRight size={13} />
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                background: '#0F172A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '6px 16px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Done
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  onClose?.();
+                  navigate('/app/dietician?tab=elimination&returnTo=%2Fapp%2Ftoday%3FopenElimination%3Dtrue', { 
+                    state: { 
+                      tab: 'elimination',
+                      returnTo: '/app/today?openElimination=true',
+                      returnLabel: 'Back to Elimination Suite Card'
+                    } 
+                  });
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#0D9488',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>Full Dietician View</span>
+                <ArrowRight size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
   );
 
@@ -3175,6 +3341,261 @@ R (Recommendation):
                 Confirm Stop
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Trial Confirmation Dialog */}
+      {showResetConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '420px',
+              width: '100%',
+              padding: '22px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '12px',
+                  background: '#FEE2E2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#DC2626',
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                  Reset Protocol & Start Fresh?
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                  Active trial will be cleared
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#475569', margin: '0 0 16px', lineHeight: 1.5 }}>
+              This will clear your active elimination trial and allow you to retake the clinical intake wizard or pick another protocol from scratch. Your previous logs remain saved in history.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                style={{
+                  flex: 1,
+                  padding: '11px',
+                  borderRadius: '12px',
+                  border: '1px solid #CBD5E1',
+                  background: '#F8FAFC',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#334155',
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticHeavy();
+                  resetActiveTrial();
+                  resetActiveTrialV2();
+                  setTrial(null);
+                  setTrialV2(null);
+                  setShowResetConfirm(false);
+                  setSuiteMode('onboarding');
+                  onTrialUpdated?.(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '11px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                Yes, Reset Protocol
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Intake Assessment Viewer Dialog */}
+      {showAssessmentModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '22px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    background: '#F0FDFA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0D9488',
+                  }}
+                >
+                  <ClipboardList size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                    Intake Assessment Record
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>
+                    Baseline Clinical Profile
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAssessmentModal(false)}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: '#F1F5F9',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {trialV2?.intakeAssessment ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                    Reported Symptoms
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                    {trialV2.intakeAssessment.symptoms?.join(', ') || 'None reported'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                      Onset Timing
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                      {trialV2.intakeAssessment.timing || 'Unspecified'}
+                    </div>
+                  </div>
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                      Baseline Severity
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                      {trialV2.intakeAssessment.baselineSeverity} / 10
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '12px 14px', border: '1.5px solid #86EFAC' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>
+                    Protocol Matched
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#14532D', marginTop: '2px' }}>
+                    {trialV2.intakeAssessment.matchedProtocolId || trialV2.protocolId}
+                  </div>
+                </div>
+
+                <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                    Safety Exclusions Screened
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>
+                    {trialV2.intakeAssessment.safetyAcknowledged ? '✓ Confirmed no clinical exclusion flags' : 'Self-administered'}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '11px', color: '#94A3B8', textAlign: 'center', marginTop: '4px' }}>
+                  Intake completed on {new Date(trialV2.intakeAssessment.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '20px 0', color: '#64748B', fontSize: '13px' }}>
+                No baseline intake assessment record found for this trial.
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowAssessmentModal(false)}
+              style={{
+                width: '100%',
+                marginTop: '16px',
+                padding: '10px',
+                borderRadius: '10px',
+                border: 'none',
+                background: '#0F172A',
+                color: '#FFFFFF',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Close Record
+            </button>
           </div>
         </div>
       )}

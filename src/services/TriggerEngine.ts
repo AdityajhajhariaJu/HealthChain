@@ -78,6 +78,8 @@ export interface EliminationTrialProtocol {
   expectedBiomarkerImpact: string;
   dailyChecklist?: string[];
   governance?: ProtocolGovernance;
+  allowedStaples?: string[];
+  evidenceLevel?: string;
 }
 
 export interface EmpiricalMatchInsight {
@@ -1424,6 +1426,15 @@ export function stopActiveTrial(): ArchivedTrialState | null {
   removeItemSync(trialStorageKey());
   window.dispatchEvent(new Event('hc_trial_updated'));
   return getTrialHistory()[0] || null;
+}
+
+export function resetActiveTrial(): void {
+  try {
+    removeItemSync(trialStorageKey());
+    window.dispatchEvent(new Event('hc_trial_updated'));
+  } catch (e) {
+    console.warn('Failed to reset ActiveTrial:', e);
+  }
 }
 
 export function logTrialDay(severityScore: number, adhered: boolean | 'followed' | 'partly_followed' | 'partially_followed' | 'not_followed', note?: string): ActiveTrialState {

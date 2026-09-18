@@ -298,5 +298,81 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
       rerender(<ClinicalEliminationModal isOpen={false} />);
     }).not.toThrow();
   });
+
+  it('renders native onboarding wizard when no active trial exists', () => {
+    // No trial started
+    render(
+      <ClinicalEliminationModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTrialUpdated={mockOnTrialUpdated}
+      />,
+      { container: containerDiv }
+    );
+
+    // Onboarding header badge and wizard orientation rendered
+    expect(screen.getAllByText(/ELIMINATION SUITE ONBOARDING/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/A Scientific Investigation, Not a Permanent Diet/i)).toBeTruthy();
+    expect(screen.getByText(/Begin Symptom Triage/i)).toBeTruthy();
+  });
+
+  it('allows retaking intake, viewing assessment, and resetting protocol from overflow menu', () => {
+    startTrial('hunt_bloat');
+    startNewTrialV2({
+      protocolId: 'hunt_bloat',
+      durationDays: 28,
+      intakeAssessment: {
+        symptoms: ['bloating'],
+        timing: 'delayed',
+        baselineSeverity: 7,
+        safetyAcknowledged: true,
+        completedAt: new Date().toISOString(),
+        matchedProtocolId: 'hunt_bloat',
+      },
+    });
+
+    render(
+      <ClinicalEliminationModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTrialUpdated={mockOnTrialUpdated}
+      />,
+      { container: containerDiv }
+    );
+
+    // Open overflow menu
+    const overflowBtn = screen.getByRole('button', { name: /Trial options/i });
+    fireEvent.click(overflowBtn);
+
+    // Menu options visible
+    expect(screen.getByText(/Retake Guided Intake/i)).toBeTruthy();
+    expect(screen.getByText(/View Intake Assessment/i)).toBeTruthy();
+    expect(screen.getByText(/Reset Protocol & Start Fresh/i)).toBeTruthy();
+
+    // 1. Click View Intake Assessment
+    fireEvent.click(screen.getByText(/View Intake Assessment/i));
+    expect(screen.getByText(/Intake Assessment Record/i)).toBeTruthy();
+    expect(screen.getAllByText(/bloating/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/7 \/ 10/i)).toBeTruthy();
+
+    // Close assessment record
+    fireEvent.click(screen.getByText(/Close Record/i));
+
+    // 2. Open overflow menu again and test Reset Protocol
+    fireEvent.click(overflowBtn);
+    fireEvent.click(screen.getByText(/Reset Protocol & Start Fresh/i));
+
+    // Confirmation dialog appears
+    expect(screen.getByText(/Reset Protocol & Start Fresh\?/i)).toBeTruthy();
+    expect(screen.getByText(/Active trial will be cleared/i)).toBeTruthy();
+
+    // Confirm reset
+    fireEvent.click(screen.getByText(/Yes, Reset Protocol/i));
+
+    // Trial should now be null and mode switched to onboarding
+    expect(getActiveTrial()).toBeNull();
+    expect(getActiveTrialV2()).toBeNull();
+    expect(screen.getAllByText(/ELIMINATION SUITE ONBOARDING/i).length).toBeGreaterThanOrEqual(1);
+  });
 });
 

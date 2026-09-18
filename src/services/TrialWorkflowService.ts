@@ -2,6 +2,7 @@ import { getItemSync, setItemSync } from './storage';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 import {
   TrialV2,
+  TrialIntakeAssessment,
   FoodChallenge,
   HealthEvent,
   TrialDailyObservation,
@@ -539,6 +540,7 @@ export function startNewTrialV2(options: {
   baselineSeverity?: number | null;
   profileId?: string;
   acknowledgedLimitations?: boolean;
+  intakeAssessment?: TrialIntakeAssessment;
 }): TrialV2 {
   const pid = options.profileId || getActiveProfileId();
   const duration = options.durationDays || 28;
@@ -566,6 +568,7 @@ export function startNewTrialV2(options: {
       acceptedAt: now,
       acknowledgedLimitations: options.acknowledgedLimitations ?? true,
     },
+    intakeAssessment: options.intakeAssessment,
   };
 
   saveActiveTrialV2(trial);
@@ -585,5 +588,18 @@ export function startNewTrialV2(options: {
   });
 
   return trial;
+}
+
+export function resetActiveTrialV2(profileId?: string): void {
+  const pid = profileId || getActiveProfileId();
+  try {
+    const key = trialV2StorageKey(pid);
+    localStorage.removeItem(key);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('hc_trial_v2_updated'));
+    }
+  } catch (e) {
+    console.warn('Failed to reset TrialV2:', e);
+  }
 }
 
