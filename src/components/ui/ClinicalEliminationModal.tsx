@@ -23,7 +23,8 @@ import {
   HeartPulse,
   Sliders,
   MessageCircle,
-  FileText
+  FileText,
+  Layers
 } from 'lucide-react';
 import {
   getActiveTrial,
@@ -55,8 +56,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
   const [selectedProtocolId, setSelectedProtocolId] = useState<string>('hunt_histamine');
-  const [activeTab, setActiveTab] = useState<'guardrails' | 'rechallenge' | 'outcomes' | 'dossier'>('guardrails');
-  const [tabHistory, setTabHistory] = useState<('guardrails' | 'rechallenge' | 'outcomes' | 'dossier')[]>(['guardrails']);
+  type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols';
+  const [activeTab, setActiveTab] = useState<EliminationTab>('guardrails');
+  const [tabHistory, setTabHistory] = useState<EliminationTab[]>(['guardrails']);
   
   // Interactive check-in state
   const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity ?? 0);
@@ -78,14 +80,20 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (isOpen) {
       const current = getActiveTrial();
       setTrial(current);
-      if (current) setSeverityScore(current.currentSeverity ?? 0);
-      setTabHistory(['guardrails']);
-      setActiveTab('guardrails');
+      if (current) {
+        setSeverityScore(current.currentSeverity ?? 0);
+        setSelectedProtocolId(current.trialId);
+        setActiveTab('guardrails');
+        setTabHistory(['guardrails']);
+      } else {
+        setActiveTab('protocols');
+        setTabHistory(['protocols']);
+      }
       setShowSos(false);
     }
   }, [isOpen]);
 
-  const handleTabChange = (nextTab: 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier') => {
+  const handleTabChange = (nextTab: EliminationTab) => {
     if (nextTab === activeTab) return;
     triggerHapticSelection();
     setTabHistory((prev) => [...prev, nextTab]);
@@ -93,7 +101,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (showSos) setShowSos(false);
   };
 
-  const canGoBack = Boolean(showSos || activeTab !== 'guardrails');
+  const canGoBack = true;
 
   const handleBack = () => {
     triggerHapticLight();
@@ -102,40 +110,49 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setShowSos(false);
       return;
     }
-    // 2. If tab history has previous steps, step back through history
-    if (tabHistory.length > 1) {
-      const nextHistory = [...tabHistory];
-      nextHistory.pop(); // pop current tab
-      const previousTab = nextHistory[nextHistory.length - 1];
-      setTabHistory(nextHistory);
-      setActiveTab(previousTab);
-      return;
-    }
-    // 3. If on a sub-tab without history, return to guardrails root
-    if (activeTab !== 'guardrails') {
+    // 2. If on sub-tabs (rechallenge, outcomes, dossier), return to guardrails
+    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
       setActiveTab('guardrails');
       setTabHistory(['guardrails']);
       return;
     }
+    // 3. If on guardrails, go to the full 11-protocol directory!
+    if (activeTab === 'guardrails') {
+      setActiveTab('protocols');
+      setTabHistory(['protocols']);
+      return;
+    }
+    // 4. If on protocols and an active trial exists, return to active guardrails!
+    if (activeTab === 'protocols' && trial) {
+      setActiveTab('guardrails');
+      setTabHistory(['guardrails']);
+      return;
+    }
+    // 5. Otherwise (no trial and on protocols), close modal to dashboard
+    onClose();
   };
 
   const backButtonLabel = useMemo(() => {
     if (showSos) return 'Back to Guardrails checklist';
     if (activeTab === 'rechallenge') return 'Back to Guardrails';
     if (activeTab === 'outcomes') return 'Back to Guardrails';
-    if (activeTab === 'dossier') return 'Back to previous view';
-    if (tabHistory.length > 1) return 'Back to previous view';
-    return 'Back to Guardrails';
-  }, [showSos, activeTab, tabHistory]);
+    if (activeTab === 'dossier') return 'Back to Guardrails';
+    if (activeTab === 'guardrails') return 'Browse All 11 Protocols';
+    if (activeTab === 'protocols' && trial) return 'Back to Active Protocol';
+    return 'Close to dashboard';
+  }, [showSos, activeTab, trial]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         if (showSos) {
           setShowSos(false);
-        } else if (activeTab !== 'guardrails') {
+        } else if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
           setActiveTab('guardrails');
           setTabHistory(['guardrails']);
+        } else if (activeTab === 'guardrails') {
+          setActiveTab('protocols');
+          setTabHistory(['protocols']);
         } else {
           onClose();
         }
@@ -150,6 +167,8 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const activeProtocolDef = trial 
     ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
     : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]);
+  const selectedProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0];
+  const isProtocolsTab = activeTab === 'protocols' || !trial;
   const suspectFoods = getSuspectFoodsLeaderboard();
   const topSuspectFood = suspectFoods[0];
 
@@ -395,9 +414,17 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       textTransform: 'uppercase',
                     }}
                   >
-                    {trial ? (activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL') : 'CLINICAL ELIMINATION'}
+                    {isProtocolsTab
+                      ? 'CLINICAL ELIMINATION DIRECTORY'
+                      : trial
+                      ? (activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL')
+                      : 'CLINICAL ELIMINATION'}
                   </span>
-                  {trial ? (
+                  {isProtocolsTab ? (
+                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                      11 Protocols Available
+                    </span>
+                  ) : trial ? (
                     <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
                       Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}%)
                     </span>
@@ -420,7 +447,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {trial ? activeProtocolDef.name : 'Targeted Elimination & Washout Trials'}
+                  {isProtocolsTab ? 'Targeted Elimination & Washout Trials' : activeProtocolDef.name}
                 </h2>
               </div>
             </div>
@@ -474,6 +501,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 { id: 'rechallenge', label: 'Rechallenge Calendar', icon: Calendar },
                 { id: 'outcomes', label: 'Outcomes & Verdict', icon: TrendingDown },
                 { id: 'dossier', label: 'Visit Summary', icon: FileText },
+                { id: 'protocols', label: 'All Protocols', icon: Layers },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -505,6 +533,21 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   >
                     <Icon size={14} />
                     <span>{tab.label}</span>
+                    {tab.id === 'protocols' && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: '999px',
+                          background: isActive ? '#ECFDF5' : '#E2E8F0',
+                          color: isActive ? '#059669' : '#64748B',
+                          marginLeft: '2px',
+                        }}
+                      >
+                        11
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -522,8 +565,64 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               gap: '16px',
             }}
           >
-            {!trial ? (
+            {isProtocolsTab ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Active Trial Notice Banner (if trial exists) */}
+                {trial && (
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+                      borderRadius: '16px',
+                      padding: '14px 16px',
+                      border: '1.5px solid #86EFAC',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '10px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>🎯</span>
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#15803D', textTransform: 'uppercase' }}>
+                          Currently Active Protocol
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#14532D' }}>
+                          {activeProtocolDef.name}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#166534', marginTop: '1px' }}>
+                          Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}% Complete) • Adherence: {trial.adherencePercentage}%
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSelection();
+                        setActiveTab('guardrails');
+                      }}
+                      style={{
+                        background: '#16A34A',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '7px 12px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                      }}
+                    >
+                      <span>Return to Active Trial</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
+                )}
+
                 {/* Introduction Banner */}
                 <div
                   style={{
@@ -539,21 +638,24 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Sparkles size={16} color="#7C3AED" />
                     <span style={{ fontSize: '12px', fontWeight: 800, color: '#6D28D9', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                      Clinical Trial Protocol
+                      Clinical Trial Directory • 11 Protocols
                     </span>
                   </div>
                   <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E1B4B' }}>
-                    Choose an Evidence-Based Elimination Protocol
+                    {trial ? 'Review & Compare Elimination Protocols' : 'Choose an Evidence-Based Elimination Protocol'}
                   </div>
                   <div style={{ fontSize: '12.5px', color: '#4C1D95', lineHeight: 1.5 }}>
-                    Choose a protocol to identify food triggers and track results.
+                    {trial
+                      ? 'You can explore all clinical protocols below or switch hunts at any time. Past protocol data is preserved in your history.'
+                      : 'Choose a protocol to systematically isolate food triggers, calm gut reactivity, and establish clinical baseline.'}
                   </div>
                 </div>
 
-                {/* Protocol Options List */}
+                {/* Protocol Options List (11 Protocols) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {ELIMINATION_PROTOCOLS.map((p) => {
                     const isSelected = selectedProtocolId === p.id;
+                    const isCurrentActive = trial?.trialId === p.id;
                     return (
                       <div
                         key={p.id}
@@ -570,11 +672,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           }
                         }}
                         style={{
-                          background: isSelected ? '#FFFFFF' : '#F8FAFC',
+                          background: isCurrentActive ? '#F0FDF4' : isSelected ? '#FFFFFF' : '#F8FAFC',
                           borderRadius: '16px',
                           padding: '16px',
-                          border: isSelected ? '2px solid #7C3AED' : '1px solid #E2E8F0',
-                          boxShadow: isSelected ? '0 4px 14px rgba(124, 58, 237, 0.12)' : 'none',
+                          border: isCurrentActive ? '2px solid #16A34A' : isSelected ? '2px solid #7C3AED' : '1px solid #E2E8F0',
+                          boxShadow: isCurrentActive ? '0 4px 14px rgba(22, 163, 74, 0.12)' : isSelected ? '0 4px 14px rgba(124, 58, 237, 0.12)' : 'none',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           display: 'flex',
@@ -589,17 +691,34 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 width: '22px',
                                 height: '22px',
                                 borderRadius: '50%',
-                                border: isSelected ? '6px solid #7C3AED' : '2px solid #CBD5E1',
+                                border: isCurrentActive ? '6px solid #16A34A' : isSelected ? '6px solid #7C3AED' : '2px solid #CBD5E1',
                                 background: '#FFFFFF',
                                 flexShrink: 0,
                                 transition: 'all 0.15s ease',
                               }}
                             />
                             <div>
-                              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
-                                {p.name}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
+                                  {p.name}
+                                </span>
+                                {isCurrentActive && (
+                                  <span
+                                    style={{
+                                      fontSize: '10.5px',
+                                      fontWeight: 800,
+                                      color: '#15803D',
+                                      background: '#DCFCE7',
+                                      border: '1px solid #86EFAC',
+                                      padding: '1px 7px',
+                                      borderRadius: '999px',
+                                    }}
+                                  >
+                                    Active Now
+                                  </span>
+                                )}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#7C3AED', fontWeight: 700, marginTop: '1px' }}>
+                              <div style={{ fontSize: '11px', color: isCurrentActive ? '#15803D' : '#7C3AED', fontWeight: 700, marginTop: '1px' }}>
                                 Target: {p.targetSensitivity}
                               </div>
                             </div>
@@ -657,37 +776,68 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   })}
                 </div>
 
-                {/* Start Protocol Button */}
+                {/* Sticky Action Button */}
                 <div style={{ position: 'sticky', bottom: 0, background: 'linear-gradient(to top, rgba(255,255,255,1) 80%, rgba(255,255,255,0))', paddingTop: '12px', paddingBottom: '4px' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticSuccess();
-                      const newTrial = startTrial(selectedProtocolId);
-                      setTrial(newTrial);
-                      onTrialUpdated?.(newTrial);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '14px 20px',
-                      borderRadius: '14px',
-                      background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontSize: '14px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
-                      transition: 'transform 0.1s ease',
-                    }}
-                  >
-                    <span>Begin {activeProtocolDef.name}</span>
-                    <ArrowRight size={16} />
-                  </button>
+                  {trial && selectedProtocolId === trial.trialId ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSelection();
+                        setActiveTab('guardrails');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '14px 20px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+                      }}
+                    >
+                      <span>Return to Active Trial ({activeProtocolDef.name})</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSuccess();
+                        const newTrial = startTrial(selectedProtocolId);
+                        setTrial(newTrial);
+                        onTrialUpdated?.(newTrial);
+                        setActiveTab('guardrails');
+                        setTabHistory(['guardrails']);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '14px 20px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                        transition: 'transform 0.1s ease',
+                      }}
+                    >
+                      <span>{trial ? `Switch to ${selectedProtocolDef.name}` : `Begin ${selectedProtocolDef.name}`}</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -695,6 +845,50 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 {/* TAB 1: TODAY'S GUARDRAILS & ACCIDENTAL EXPOSURE SOS */}
                 {activeTab === 'guardrails' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* 11 Protocols Quick Switch Banner */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+                    borderRadius: '14px',
+                    border: '1px solid #E9D5FF',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#6B21A8' }}>
+                    <Layers size={16} color="#7C3AED" />
+                    <span><strong>11 Protocols Available:</strong> Want to explore other hunts or switch protocols?</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      handleTabChange('protocols');
+                    }}
+                    style={{
+                      background: '#7C3AED',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(124, 58, 237, 0.25)',
+                    }}
+                  >
+                    <span>Browse All 11 Cards</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
                 {/* Active Phase Banner */}
                 <div
                   style={{
