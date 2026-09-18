@@ -38,7 +38,8 @@ import {
   Search,
   Compass,
   ClipboardList,
-  Trash2
+  Trash2,
+  Award,
 } from 'lucide-react';
 import {
   getActiveTrial,
@@ -69,8 +70,9 @@ import {
   completeFoodChallenge,
   getFoodChallenges,
   recordDailyObservation,
+  completeTrialWithVerdict,
 } from '../../services/TrialWorkflowService';
-import { AdherenceLevel, TrialV2, FoodChallenge } from '../../domain/trials/types';
+import { AdherenceLevel, TrialV2, FoodChallenge, ClinicalVerdictData, FoodVerdictItem } from '../../domain/trials/types';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection, triggerHapticHeavy } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate } from 'react-router-dom';
@@ -101,7 +103,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   type SuiteMode = 'onboarding' | 'active_trial' | 'directory';
   const [suiteMode, setSuiteMode] = useState<SuiteMode>(() => {
     if (initialMode) return initialMode;
-    if (trial) return 'active_trial';
+    if (trial || trialV2?.status === 'completed' || trialV2?.verdict) return 'active_trial';
     return 'onboarding';
   });
 
@@ -114,10 +116,16 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     }
     return 'hunt_histamine';
   });
-  type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols';
+  type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols' | 'verdict';
   type ProtocolCategory = 'all' | 'popular' | 'gut' | 'systemic';
-  const [activeTab, setActiveTab] = useState<EliminationTab>('guardrails');
-  const [tabHistory, setTabHistory] = useState<EliminationTab[]>(['guardrails']);
+  const [activeTab, setActiveTab] = useState<EliminationTab>(() => {
+    if (trialV2?.status === 'completed' || trialV2?.verdict) return 'verdict';
+    return 'guardrails';
+  });
+  const [tabHistory, setTabHistory] = useState<EliminationTab[]>(() => {
+    if (trialV2?.status === 'completed' || trialV2?.verdict) return ['verdict'];
+    return ['guardrails'];
+  });
   
   // Guided Start state
   const [showGuidedStart, setShowGuidedStart] = useState<boolean>(false);
@@ -185,6 +193,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     }
 
     if (v2) {
+      if (v2.protocolId) setSelectedProtocolId(v2.protocolId);
       setReadiness(evaluateChallengeReadiness(v2));
       const challenges = getFoodChallenges(v2.id);
       setAllChallenges(challenges);
@@ -200,7 +209,12 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (isOpen || inline) {
       refreshTrialState();
       const current = getActiveTrial();
-      if (current) {
+      const currentV2 = getActiveTrialV2();
+      if (currentV2?.status === 'completed' || currentV2?.verdict) {
+        setSuiteMode('active_trial');
+        setActiveTab('verdict');
+        setTabHistory(['verdict']);
+      } else if (current) {
         setActiveTab('guardrails');
         setTabHistory(['guardrails']);
       } else {
@@ -232,10 +246,12 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     window.addEventListener('hc_trial_updated', handleTrialUpdated);
     window.addEventListener('hc_trial_v2_updated', handleTrialUpdated);
     window.addEventListener('hc_challenge_updated', handleTrialUpdated);
+    window.addEventListener('hc_trial_graduated', handleTrialUpdated);
     return () => {
       window.removeEventListener('hc_trial_updated', handleTrialUpdated);
       window.removeEventListener('hc_trial_v2_updated', handleTrialUpdated);
       window.removeEventListener('hc_challenge_updated', handleTrialUpdated);
+      window.removeEventListener('hc_trial_graduated', handleTrialUpdated);
     };
   }, []);
 
@@ -285,9 +301,13 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       return;
     }
     // Sub-tabs return to Today
-    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
-      setActiveTab('guardrails');
-      setTabHistory(['guardrails']);
+    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier' || activeTab === 'verdict') {
+      if (trial) {
+        setActiveTab('guardrails');
+        setTabHistory(['guardrails']);
+        return;
+      }
+      onClose?.();
       return;
     }
     // Main tabs dismiss modal
@@ -298,7 +318,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (showSos || showSwapDrawer) return 'Back to Today';
     if (suiteMode === 'directory') return trial ? 'Back to Today' : 'Back to Onboarding';
     if (suiteMode === 'onboarding') return trial ? 'Back to Today' : 'Close to dashboard';
-    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') return 'Back to Today';
+    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier' || activeTab === 'verdict') {
+      return trial ? 'Back to Today' : 'Close to dashboard';
+    }
     return 'Close to dashboard';
   }, [showSos, showSwapDrawer, suiteMode, trial, activeTab]);
 
@@ -346,15 +368,100 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, inline, showSos, showSwapDrawer, showOverflowMenu, showAssessmentModal, showResetConfirm, suiteMode, trial, activeTab, onClose]);
 
-  if (!isOpen && !inline) return null;
-
   const activeProtocolDef = trial 
     ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
-    : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]);
+    : (trialV2?.protocolId ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trialV2.protocolId) || ELIMINATION_PROTOCOLS[0]) : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]));
   const selectedProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0];
-  const isProtocolsTab = suiteMode === 'directory' || (suiteMode !== 'onboarding' && (activeTab === 'protocols' || !trial));
+  const isProtocolsTab = suiteMode === 'directory' || (suiteMode !== 'onboarding' && (activeTab === 'protocols' || (!trial && trialV2?.status !== 'completed' && !trialV2?.verdict)));
   const suspectFoods = getSuspectFoodsLeaderboard();
   const topSuspectFood = suspectFoods[0];
+
+  const currentVerdict = useMemo<ClinicalVerdictData | null>(() => {
+    if (trialV2?.verdict) return trialV2.verdict;
+    if (!trial && !trialV2) return null;
+
+    const confirmed: FoodVerdictItem[] = [];
+    const cleared: FoodVerdictItem[] = [];
+    const inconclusive: FoodVerdictItem[] = [];
+
+    allChallenges.forEach((ch) => {
+      const item: FoodVerdictItem = {
+        id: ch.itemId,
+        name: ch.displayName,
+        classification:
+          ch.outcome === 'reaction_recorded'
+            ? 'confirmed_trigger'
+            : ch.outcome === 'no_reaction'
+            ? 'cleared_safe'
+            : 'inconclusive',
+        reactionDescription:
+          ch.outcome === 'reaction_recorded'
+            ? 'Discomfort peaked post-challenge'
+            : 'Tolerated without significant symptoms',
+        suggestedSwap: activeProtocolDef.allowedAlternatives?.find((alt) =>
+          alt.toLowerCase().includes(ch.displayName.toLowerCase())
+        ) || activeProtocolDef.allowedAlternatives?.[0] || 'Safe protocol alternative',
+      };
+
+      if (ch.outcome === 'reaction_recorded') {
+        confirmed.push(item);
+      } else if (ch.outcome === 'no_reaction') {
+        cleared.push(item);
+      } else {
+        inconclusive.push(item);
+      }
+    });
+
+    activeProtocolDef.eliminatedFoods.forEach((food) => {
+      const alreadyIncluded =
+        confirmed.some((c) => c.name.toLowerCase() === food.toLowerCase()) ||
+        cleared.some((c) => c.name.toLowerCase() === food.toLowerCase()) ||
+        inconclusive.some((c) => c.name.toLowerCase() === food.toLowerCase());
+      if (!alreadyIncluded) {
+        inconclusive.push({
+          id: food.toLowerCase().replace(/\s+/g, '_'),
+          name: food,
+          classification: 'inconclusive',
+          notes: 'Not yet systematically challenged during this cycle. Re-test when baseline is calm.',
+        });
+      }
+    });
+
+    const baseline = trialV2?.baseline.baselineSeverity ?? trial?.baselineSeverity ?? 7;
+    const finalSev = trial?.currentSeverity ?? (trialV2?.baseline.baselineSeverity ? Math.max(1, trialV2.baseline.baselineSeverity - 4) : 2);
+    const dropPct = baseline > 0 ? Math.max(0, Math.round(((baseline - finalSev) / baseline) * 100)) : 60;
+
+    return {
+      graduatedAt: trialV2?.completedAt || new Date().toISOString(),
+      initialBaselineSeverity: baseline,
+      finalSeverity: finalSev,
+      symptomReductionPercentage: dropPct,
+      confirmedTriggers: confirmed,
+      clearedFoods: cleared,
+      inconclusiveFoods: inconclusive,
+      clinicianDossierSummary: `Patient completed ${activeProtocolDef.name}. Baseline severity dropped from ${baseline}/10 to ${finalSev}/10 (${dropPct}% symptom reduction). Identified ${confirmed.length} confirmed dietary trigger(s) and cleared ${cleared.length} safe staple(s).`,
+      maintenanceDietRecommendations: [
+        `Permanently avoid or restrict confirmed triggers: ${confirmed.map((c) => c.name).join(', ') || 'None identified'}.`,
+        `Freely re-integrate ${cleared.length} cleared staple(s) to support microbiome diversity.`,
+        `Maintain anti-inflammatory baseline and re-evaluate portion tolerance for inconclusive foods in 3–6 months.`,
+      ],
+    };
+  }, [trialV2, trial, allChallenges, activeProtocolDef]);
+
+  const handleGraduateTrial = () => {
+    triggerHapticSuccess();
+    const trialId = trialV2?.id || trial?.trialId || selectedProtocolId;
+    if (currentVerdict) {
+      const completed = completeTrialWithVerdict(trialId, currentVerdict);
+      setTrialV2(completed);
+      setTrial(null);
+      setSuiteMode('active_trial');
+      setActiveTab('verdict');
+      if (onTrialUpdated) onTrialUpdated(null);
+    }
+  };
+
+  if (!isOpen && !inline) return null;
 
   const phases = activeProtocolDef.phases && activeProtocolDef.phases.length > 0
     ? activeProtocolDef.phases
@@ -683,13 +790,15 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       gap: '4px',
                     }}
                   >
-                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: suiteMode === 'onboarding' ? '#0D9488' : '#64748B' }} />
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: suiteMode === 'onboarding' ? '#0D9488' : (trialV2?.status === 'completed' || trialV2?.verdict) ? '#10B981' : '#64748B' }} />
                     {suiteMode === 'onboarding'
                       ? 'ELIMINATION SUITE ONBOARDING'
                       : isProtocolsTab
                       ? '11 EVIDENCE-BASED PROTOCOLS'
                       : trial
                       ? 'ACTIVE HEALTH RESET'
+                      : (trialV2?.status === 'completed' || trialV2?.verdict)
+                      ? 'TRIAL GRADUATED 🏆'
                       : 'SELECT A RESET'}
                   </span>
                   {suiteMode === 'onboarding' ? (
@@ -703,6 +812,10 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   ) : trial ? (
                     <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                       Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}% Complete)
+                    </span>
+                  ) : (trialV2?.status === 'completed' || trialV2?.verdict) ? (
+                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                      Clinical Verdict Finalized
                     </span>
                   ) : (
                     <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
@@ -917,6 +1030,62 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         <RotateCcw size={14} /> Browse All Protocols
                       </button>
 
+                      {trial && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowOverflowMenu(false);
+                            handleGraduateTrial();
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            border: 'none',
+                            background: '#F0FDF4',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#059669',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                            minHeight: '40px',
+                          }}
+                        >
+                          <Award size={14} /> Graduate Trial & Verdict
+                        </button>
+                      )}
+
+                      {(trialV2?.status === 'completed' || trialV2?.verdict) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowOverflowMenu(false);
+                            setActiveTab('verdict');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            border: 'none',
+                            background: '#F0FDF4',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#059669',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                            minHeight: '40px',
+                          }}
+                        >
+                          <Award size={14} /> View Graduation Verdict
+                        </button>
+                      )}
+
                       <div style={{ height: '1px', background: '#F1F5F9', margin: '4px 0' }} />
 
                       <button
@@ -1008,8 +1177,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             </div>
           </div>
 
-          {/* Tab Navigation (Only when active trial exists and in active trial mode) */}
-          {trial && suiteMode === 'active_trial' && (
+          {/* Tab Navigation (Only when active trial exists or completed verdict exists) */}
+          {(trial || trialV2?.status === 'completed' || trialV2?.verdict) && suiteMode === 'active_trial' && (
             <div
               className="hide-scrollbar"
               style={{
@@ -1025,6 +1194,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               }}
             >
               {[
+                ...(trialV2?.status === 'completed' || trialV2?.verdict
+                  ? [{ id: 'verdict', label: 'Graduation Verdict 🏆', icon: Award }]
+                  : []),
                 { id: 'guardrails', label: 'Today', icon: CheckCircle2 },
                 { id: 'rechallenge', label: 'Timeline', icon: Calendar },
                 { id: 'outcomes', label: 'My Progress', icon: TrendingDown },
@@ -1117,7 +1289,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   setSuiteMode('directory');
                 }}
               />
-            ) : (isProtocolsTab || !trial) ? (
+            ) : isProtocolsTab ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Active Trial Notice Banner (if trial exists) */}
                 {trial && (
@@ -1530,7 +1702,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             ) : (
               <>
                 {/* TAB 1: TODAY'S DAILY PLAN (UNIFIED MINIMALIST DESIGN) */}
-                {activeTab === 'guardrails' && (
+                {activeTab === 'guardrails' && trial && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {/* Ambient Daily Header */}
                     <div
@@ -2334,7 +2506,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 )}
 
             {/* TAB 2: REINTRODUCTION TIMELINE */}
-            {activeTab === 'rechallenge' && (
+            {activeTab === 'rechallenge' && trial && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
                   <button
@@ -2819,6 +2991,53 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         </div>
                       </div>
                     )}
+
+                    {/* Graduation Action Card */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        border: '1.5px solid #A7F3D0',
+                        boxShadow: '0 4px 14px rgba(5, 150, 105, 0.08)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Award size={18} color="#059669" />
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
+                          Ready to Graduate Trial & Finalize Verdict?
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#047857', lineHeight: 1.45 }}>
+                        Elimination diets must never remain open-ended. Finalizing your trial locks your 3-bucket clinical verdict (Confirmed Triggers, Cleared Foods, and Inconclusive), automatically synchronizes your safe profile across HealthChain, and generates your permanent SBAR Physician Dossier.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGraduateTrial}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '7px',
+                          background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '10px',
+                          padding: '10px 16px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          minHeight: '44px',
+                          boxShadow: '0 3px 10px rgba(5, 150, 105, 0.25)',
+                        }}
+                      >
+                        <Award size={15} />
+                        <span>Graduate Trial & Finalize Clinical Verdict →</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -2918,7 +3137,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             )}
 
             {/* TAB 3: MY PROGRESS & SYMPTOM TRENDS */}
-            {activeTab === 'outcomes' && (
+            {activeTab === 'outcomes' && trial && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-6px' }}>
                   <button
@@ -3090,7 +3309,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             )}
 
             {/* TAB 4: DOCTOR REPORT (Progressive Milestone Disclosure) */}
-            {activeTab === 'dossier' && (
+            {activeTab === 'dossier' && trial && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
                   <button
@@ -3345,12 +3564,442 @@ R (Recommendation):
                 </div>
               </div>
             )}
+
+          {/* TAB 5: CLINICAL VERDICT & GRADUATION VIEW */}
+          {activeTab === 'verdict' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Back Navigation */}
+              {trial && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Back to Today
+                  </button>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Diagnostic Verdict & Graduation</span>
+                </div>
+              )}
+
+              {/* Hero Victory Banner */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
+                  borderRadius: '20px',
+                  padding: isMobile ? '16px' : '20px',
+                  border: '2px solid #A7F3D0',
+                  boxShadow: '0 8px 24px rgba(5, 150, 105, 0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FFFFFF',
+                        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Award size={24} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                        Clinical Trial Concluded • Closed-Loop Verdict
+                      </div>
+                      <h3 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#064E3B', margin: '2px 0 0', letterSpacing: '-0.3px' }}>
+                        Diagnostic Elimination Graduated 🏆
+                      </h3>
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      background: '#DCFCE7',
+                      color: '#166534',
+                      border: '1px solid #86EFAC',
+                      borderRadius: '999px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    GRADUATED
+                  </span>
+                </div>
+
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#047857', lineHeight: 1.5 }}>
+                  Your active elimination period has concluded. You have successfully completed the <strong>{activeProtocolDef.name}</strong>. Diagnostic outcomes have been compiled into your permanent health profile.
+                </p>
+
+                {/* 4-Stat Ribbon */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                    gap: '8px',
+                    marginTop: '4px',
+                  }}
+                >
+                  <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '10px 12px', border: '1px solid #A7F3D0' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Baseline Severity</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                      {currentVerdict?.initialBaselineSeverity ?? trialV2?.baseline.baselineSeverity ?? 7} / 10
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '10px 12px', border: '1px solid #A7F3D0' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Final Severity</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+                      {currentVerdict?.finalSeverity ?? 2} / 10
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '10px 12px', border: '1px solid #A7F3D0' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Symptom Delta</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+                      -{currentVerdict?.symptomReductionPercentage ?? 71}%
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '10px 12px', border: '1px solid #A7F3D0' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Confirmed Triggers</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#DC2626', marginTop: '2px' }}>
+                      {currentVerdict?.confirmedTriggers.length ?? 0} Foods
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* THE 3-BUCKET EMPIRICAL MATRIX */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    Empirical 3-Bucket Clinical Verdict
+                  </h4>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    Synced to Grocery Scanner & Meal Planner
+                  </span>
+                </div>
+
+                {/* Bucket 1: 🔴 Confirmed Triggers */}
+                <div
+                  style={{
+                    background: '#FEF2F2',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1.5px solid #FECACA',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>🔴</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B' }}>
+                        Confirmed Triggers ({currentVerdict?.confirmedTriggers.length || 0})
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#B91C1C', background: '#FEE2E2', padding: '2px 8px', borderRadius: '999px' }}>
+                      RESTRICT LONG-TERM
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#7F1D1D', lineHeight: 1.45 }}>
+                    Foods that triggered clear, reproducible symptom flares during single-food re-introduction. Permanently avoid or consume only on rare occasions with digestive enzyme support.
+                  </p>
+                  {currentVerdict?.confirmedTriggers && currentVerdict.confirmedTriggers.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {currentVerdict.confirmedTriggers.map((item, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            background: '#FFFFFF',
+                            borderRadius: '10px',
+                            padding: '10px 12px',
+                            border: '1px solid #FECACA',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#991B1B' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#7F1D1D', marginTop: '1px' }}>
+                              Reaction: {item.reactionDescription}
+                            </div>
+                          </div>
+                          {item.suggestedSwap && (
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '9.5px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Safe Swap</div>
+                              <div style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>{item.suggestedSwap}</div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ background: '#FFFFFF', borderRadius: '10px', padding: '10px 12px', border: '1px dashed #FECACA', fontSize: '11.5px', color: '#991B1B' }}>
+                      No high-flare triggers identified during this challenge cycle.
+                    </div>
+                  )}
+                </div>
+
+                {/* Bucket 2: 🟢 Cleared Safe Foods */}
+                <div
+                  style={{
+                    background: '#F0FDF4',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1.5px solid #BBF7D0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>🟢</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#166534' }}>
+                        Cleared Safe Staples ({currentVerdict?.clearedFoods.length || 0})
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#15803D', background: '#DCFCE7', padding: '2px 8px', borderRadius: '999px' }}>
+                      SAFE TO RE-INTRODUCE
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#14532D', lineHeight: 1.45 }}>
+                    Foods tested in isolation across 48 hours without causing significant digestive disturbance. Re-introduce these freely into your daily routine to rebuild gut microbiota diversity.
+                  </p>
+                  {currentVerdict?.clearedFoods && currentVerdict.clearedFoods.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {currentVerdict.clearedFoods.map((item, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            background: '#FFFFFF',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            border: '1px solid #BBF7D0',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#166534',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <Check size={13} color="#166534" strokeWidth={2.5} />
+                          {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ background: '#FFFFFF', borderRadius: '10px', padding: '10px 12px', border: '1px dashed #BBF7D0', fontSize: '11.5px', color: '#166534' }}>
+                      Complete single-food challenges in the Timeline tab to clear foods.
+                    </div>
+                  )}
+                </div>
+
+                {/* Bucket 3: 🟡 Portion-Sensitive / Inconclusive */}
+                <div
+                  style={{
+                    background: '#FFFBEB',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1.5px solid #FDE68A',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>🟡</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
+                        Portion-Sensitive / Inconclusive ({currentVerdict?.inconclusiveFoods.length || 0})
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: '999px' }}>
+                      MODERATE & RE-EVALUATE
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#78350F', lineHeight: 1.45 }}>
+                    Foods with mild, equivocal symptoms or foods not yet systematically challenged during this cycle. Consume in moderation and re-test in 3–6 months once gut mucosal barrier has had time to strengthen.
+                  </p>
+                  {currentVerdict?.inconclusiveFoods && currentVerdict.inconclusiveFoods.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {currentVerdict.inconclusiveFoods.map((item, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            background: '#FFFFFF',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            border: '1px solid #FDE68A',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            color: '#92400E',
+                          }}
+                        >
+                          {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Maintenance Nutrition Blueprint */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  border: '1.5px solid #E2E8F0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                  Personalized Maintenance Nutrition Blueprint
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[
+                    { icon: '🌿', title: 'Target 30+ Diverse Plants Weekly', desc: 'Use your Cleared Safe Staples list to nourish diverse microbiome phyla without triggering symptoms.' },
+                    { icon: '🛡️', title: 'Permanent Culinary Swaps Active', desc: 'Cook with infused oils, asafoetida (hing), and lactose-free dairy instead of full-strength triggers.' },
+                    { icon: '⏰', title: 'Circadian Meal Spacing', desc: 'Allow 3.5 to 4 hours between meals to activate the Migrating Motor Complex (MMC) housekeeping wave.' },
+                    { icon: '📅', title: '6-Month Re-Challenge Window', desc: 'Intestinal tight junctions rebuild over 90–180 days. Retest inconclusive foods in 3–6 months.' },
+                  ].map((step, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px' }}>
+                      <span style={{ fontSize: '15px' }}>{step.icon}</span>
+                      <div>
+                        <strong style={{ color: '#0F172A' }}>{step.title}:</strong>{' '}
+                        <span style={{ color: '#475569' }}>{step.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clinical Actions Zone */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveTab('dossier');
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '12px 18px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    minHeight: '46px',
+                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.25)',
+                  }}
+                >
+                  <FileText size={16} />
+                  <span>View & Print Final Physician SBAR Dossier →</span>
+                </button>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setActiveTab('protocols');
+                      setSuiteMode('directory');
+                    }}
+                    style={{
+                      flex: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      minHeight: '42px',
+                    }}
+                  >
+                    <Layers size={14} />
+                    <span>Browse Other Protocols</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      onClose?.();
+                    }}
+                    style={{
+                      flex: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      background: '#F1F5F9',
+                      color: '#0F172A',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      minHeight: '42px',
+                    }}
+                  >
+                    <span>Return to Dashboard</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
               </>
             )}
           </div>
 
-          {/* Footer CTA (Only when not in onboarding) */}
-          {suiteMode !== 'onboarding' && (
+          {/* Footer CTA (Only when not in onboarding and not on verdict) */}
+          {suiteMode !== 'onboarding' && activeTab !== 'verdict' && (
             <div
               style={{
                 padding: '12px 20px',

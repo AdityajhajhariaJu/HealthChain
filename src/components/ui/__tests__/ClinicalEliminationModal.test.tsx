@@ -374,5 +374,46 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     expect(getActiveTrialV2()).toBeNull();
     expect(screen.getAllByText(/ELIMINATION SUITE ONBOARDING/i).length).toBeGreaterThanOrEqual(1);
   });
+
+  it('graduates trial into 3-bucket clinical verdict view and persists completed verdict', () => {
+    startTrial('hunt_bloat');
+    startNewTrialV2({
+      protocolId: 'hunt_bloat',
+      durationDays: 28,
+    });
+
+    render(
+      <ClinicalEliminationModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTrialUpdated={mockOnTrialUpdated}
+      />,
+      { container: containerDiv }
+    );
+
+    // Open overflow menu
+    const overflowBtn = screen.getByRole('button', { name: /Trial options/i });
+    fireEvent.click(overflowBtn);
+
+    const graduateOption = screen.getByText(/Graduate Trial & Verdict/i);
+    expect(graduateOption).toBeTruthy();
+    fireEvent.click(graduateOption);
+
+    // Should switch to verdict view
+    expect(screen.getByText(/Diagnostic Elimination Graduated/i)).toBeTruthy();
+    expect(screen.getByText(/Empirical 3-Bucket Clinical Verdict/i)).toBeTruthy();
+    expect(screen.getAllByText(/Confirmed Triggers/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Cleared Safe Staples/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Portion-Sensitive/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Personalized Maintenance Nutrition Blueprint/i)).toBeTruthy();
+
+    // Verify trial status was persisted as completed with verdict data
+    const persistedV2 = getActiveTrialV2();
+    expect(persistedV2?.status).toBe('completed');
+    expect(persistedV2?.verdict).toBeDefined();
+    expect(persistedV2?.verdict?.confirmedTriggers).toBeDefined();
+    expect(persistedV2?.verdict?.clearedFoods).toBeDefined();
+    expect(persistedV2?.verdict?.inconclusiveFoods).toBeDefined();
+  });
 });
 

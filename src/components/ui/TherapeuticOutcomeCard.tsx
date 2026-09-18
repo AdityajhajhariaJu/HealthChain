@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Activity, Check, Info, ChevronDown, Compass } from 'lucide-react';
+import { Target, Activity, Check, Info, ChevronDown, Compass, Award } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -16,6 +16,7 @@ import {
   recordDailyObservation,
   saveActiveTrialV2
 } from '../../services/TrialWorkflowService';
+import { TrialV2 } from '../../domain/trials/types';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
 
 export const openEliminationSuiteModal = () => {
@@ -31,6 +32,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
   const location = useLocation();
   const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
+  const [trialV2, setTrialV2] = useState<TrialV2 | null>(() => getActiveTrialV2());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [justLogged, setJustLogged] = useState(false);
@@ -39,16 +41,22 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
   useEffect(() => {
     const handleUpdate = () => {
       const current = getActiveTrial();
+      const v2 = getActiveTrialV2();
       setTrial(current);
+      setTrialV2(v2);
     };
     const handleOpenEvent = () => {
       setIsModalOpen(true);
     };
     window.addEventListener('hc_trial_updated', handleUpdate);
+    window.addEventListener('hc_trial_v2_updated', handleUpdate);
+    window.addEventListener('hc_trial_graduated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('hc_open_elimination_suite', handleOpenEvent);
     return () => {
       window.removeEventListener('hc_trial_updated', handleUpdate);
+      window.removeEventListener('hc_trial_v2_updated', handleUpdate);
+      window.removeEventListener('hc_trial_graduated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('hc_open_elimination_suite', handleOpenEvent);
     };
@@ -70,7 +78,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     }
   }, [location.search, location.state, location.pathname, location.hash, navigate]);
 
-  const activeProtocolDef = trial ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0]) : null;
+  const isGraduated = trialV2?.status === 'completed' || Boolean(trialV2?.verdict);
+  const activeProtocolDef = trial 
+    ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0]) 
+    : (trialV2?.protocolId ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trialV2.protocolId) || ELIMINATION_PROTOCOLS[0]) : null);
 
   const handleQuickLog = (score: number) => {
     triggerHapticSuccess();
@@ -78,18 +89,18 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     setTrial(updated);
 
     // Sync to Trial V2 store so observation counts and calibration gates stay updated
-    const trialV2 = getActiveTrialV2();
-    if (trialV2) {
+    const v2 = getActiveTrialV2();
+    if (v2) {
       const todayKey = new Date().toLocaleDateString('en-CA');
-      const v2Updated = recordDailyObservation(trialV2.id, {
+      const v2Updated = recordDailyObservation(v2.id, {
         date: todayKey,
         severityScore: score,
         adherenceLevel: 'followed',
         notes: 'Quick score check-in from dashboard',
       });
       if (!v2Updated) {
-        trialV2.baseline.completedObservations = (trialV2.baseline.completedObservations || 0) + 1;
-        saveActiveTrialV2(trialV2);
+        v2.baseline.completedObservations = (v2.baseline.completedObservations || 0) + 1;
+        saveActiveTrialV2(v2);
       }
       window.dispatchEvent(new CustomEvent('hc_trial_v2_updated'));
     }
@@ -110,7 +121,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label={trial 
+        aria-label={isGraduated
+          ? 'Elimination Protocol - Graduated. Tap to view your clinical verdict, confirmed triggers, and maintenance plan'
+          : trial 
           ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to view your daily plan, timeline, and doctor report` 
           : 'Elimination Protocol - Inactive. Tap to choose an elimination protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
@@ -153,21 +166,68 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               minHeight: isMobile ? '40px' : '44px',
               flexShrink: 0,
               borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+              background: isGraduated
+                ? 'linear-gradient(135deg, #059669 0%, #0D9488 100%)'
+                : 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              boxShadow: isGraduated
+                ? '0 4px 14px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)'
+                : '0 4px 14px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
               border: '1px solid rgba(255,255,255,0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Target size={isMobile ? 19 : 21} color="#FFFFFF" strokeWidth={2.4} />
+            {isGraduated ? (
+              <Award size={isMobile ? 20 : 22} color="#FFFFFF" strokeWidth={2.4} />
+            ) : (
+              <Target size={isMobile ? 19 : 21} color="#FFFFFF" strokeWidth={2.4} />
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            {trial ? (
+            {isGraduated ? (
+              <>
+                <div
+                  className="micro-badge"
+                  style={{
+                    background: '#DCFCE7',
+                    color: '#15803D',
+                    border: '1px solid #86EFAC',
+                    padding: '3.5px 9px',
+                    borderRadius: '999px',
+                    fontSize: '10.5px',
+                    fontWeight: 800,
+                    letterSpacing: '0.4px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
+                >
+                  GRADUATED 🏆
+                </div>
+                {trialV2?.verdict?.symptomReductionPercentage ? (
+                  <div
+                    className="tabular-nums micro-badge"
+                    style={{
+                      background: '#ECFDF5',
+                      color: '#065F46',
+                      border: '1px solid #A7F3D0',
+                      padding: '3.5px 8px',
+                      borderRadius: '999px',
+                      fontSize: '10.5px',
+                      fontWeight: 800,
+                      letterSpacing: '0.2px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    -{trialV2.verdict.symptomReductionPercentage}%
+                  </div>
+                ) : null}
+              </>
+            ) : trial ? (
               <>
                 <div
                   className="tabular-nums micro-badge"
@@ -240,7 +300,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               letterSpacing: '-0.3px'
             }}
           >
-            {activeProtocolDef ? activeProtocolDef.name : 'Clinical Food Reset & Elimination'}
+            {isGraduated
+              ? (activeProtocolDef ? `${activeProtocolDef.name} — Graduated` : 'Elimination Protocol Graduated')
+              : (activeProtocolDef ? activeProtocolDef.name : 'Clinical Food Reset & Elimination')}
           </h4>
           <p
             style={{
@@ -251,7 +313,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               lineHeight: 1.35
             }}
           >
-            {trial ? (
+            {isGraduated ? (
+              `Investigation complete • ${trialV2?.verdict?.confirmedTriggers?.length || 0} Confirmed Trigger(s) • Profile Synchronized`
+            ) : trial ? (
               justLogged
                 ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
                 : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
@@ -261,7 +325,32 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
-            {trial ? (
+            {isGraduated ? (
+              <button
+                type="button"
+                data-compact="true"
+                onClick={handleOpenModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: isMobile ? '6px 12px' : '7px 14px',
+                  fontSize: '11.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  minHeight: '34px',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.28)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Award size={13} />
+                <span>View Clinical Verdict & Blueprint →</span>
+              </button>
+            ) : trial ? (
               !isLogging ? (
                 <button
                   type="button"

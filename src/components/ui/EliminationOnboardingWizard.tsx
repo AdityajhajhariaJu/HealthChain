@@ -51,25 +51,96 @@ interface SafetyFlags {
   unintendedWeightLoss: boolean;
   uninvestigatedRedFlags: boolean;
   pregnancyOrLactation: boolean;
+  untestedCeliac: boolean;
+  recentAntibiotics: boolean;
 }
 
-const COMMON_SYMPTOMS = [
-  { id: 'bloating', label: 'Bloating & Abdominal Distension', icon: '💨', protocol: 'hunt_bloat', alt: 'low_fodmap', desc: 'Gas, tight lower abdomen, post-meal swelling' },
-  { id: 'heartburn', label: 'Heartburn, Reflux & Throat Burning', icon: '🔥', protocol: 'hunt_heartburn', alt: 'hunt_vagal', desc: 'Acid rising, chest tightness, evening burn' },
-  { id: 'histamine', label: 'Flushing, Hives & Sudden Warmth', icon: '⚡', protocol: 'hunt_histamine', alt: 'low_histamine', desc: 'Red cheeks, nasal congestion, itching post-wine/aged foods' },
-  { id: 'headache', label: 'Postural Headache & Occipital Tension', icon: '💆', protocol: 'hunt_kinetic_headache', alt: 'hunt_vagal', desc: 'Neck ache, temporal throbbing, mealtime pressure' },
-  { id: 'pots', label: 'Post-Meal Heart Racing & Dizziness', icon: '❤️', protocol: 'hunt_pots_splanchnic', alt: 'hunt_vagal', desc: 'Splanchnic pooling, tachycardia after large carb meals' },
-  { id: 'motility', label: 'Sluggish Transit & Hard Stools', icon: '⏱️', protocol: 'hunt_transit', alt: 'hunt_bloat', desc: 'Infrequent bowel movements, incomplete evacuation' },
-  { id: 'vagal', label: 'Rushed Eating, Gut Spasms & Stress Cramps', icon: '🌿', protocol: 'hunt_vagal', alt: 'hunt_heartburn', desc: 'Tight stomach, sympathetic nervous cramping' },
-  { id: 'dairy', label: 'Congestion & Mucus Following Dairy', icon: '🥛', protocol: 'dairy_free', alt: 'hunt_histamine', desc: 'Post-milk throat clearing, bloating, facial breakouts' },
-  { id: 'gluten', label: 'Post-Wheat Fatigue & Joint Stiffness', icon: '🌾', protocol: 'gluten_gut_rest', alt: 'hunt_bloat', desc: 'Brain fog, heavy joints, lethargy after commercial bread' },
+// 1. PRIMARY DIGESTIVE PHENOTYPES (Layer 1: Anatomical / Physiological Anchor)
+const PRIMARY_PHENOTYPES = [
+  {
+    id: 'bloating',
+    label: 'Bloating & Abdominal Distension',
+    icon: '💨',
+    protocol: 'hunt_bloat',
+    alt: 'low_fodmap',
+    desc: 'Lower belly swelling, trapped intestinal gas, post-meal belt tightening',
+  },
+  {
+    id: 'motility',
+    label: 'Bowel Motility & Stool Irregularity',
+    icon: '⏳',
+    protocol: 'hunt_transit',
+    alt: 'hunt_bloat',
+    desc: 'Sluggish transit / constipation OR sudden post-meal urgency / loose stools',
+  },
+  {
+    id: 'heartburn',
+    label: 'Heartburn, Reflux & Throat Burning',
+    icon: '🔥',
+    protocol: 'hunt_heartburn',
+    alt: 'hunt_vagal',
+    desc: 'Acid rising, sour regurgitation, chest burn, Roemheld palpitations',
+  },
+  {
+    id: 'histamine',
+    label: 'Flushing, Hives & Sudden Warmth',
+    icon: '⚡',
+    protocol: 'hunt_histamine',
+    alt: 'low_histamine',
+    desc: 'Histamine reaction, red cheeks, nasal congestion post-fermented foods',
+  },
+  {
+    id: 'pots',
+    label: 'Post-Meal Heart Racing & Brain Fog',
+    icon: '❤️',
+    protocol: 'hunt_pots_splanchnic',
+    alt: 'hunt_vagal',
+    desc: 'Splanchnic pooling, rapid pulse after heavy carbs, mental lethargy',
+  },
 ];
 
+// 2. SUSPECTED DIETARY CATALYSTS (Layer 2: Food Vectors)
+const SUSPECTED_FOOD_CATALYSTS = [
+  {
+    id: 'dairy',
+    label: 'Dairy & Milk Proteins',
+    icon: '🥛',
+    desc: 'Chaas, paneer, cow milk, whey, yogurt',
+  },
+  {
+    id: 'gluten',
+    label: 'Post-Wheat Fatigue & Joint Stiffness',
+    icon: '🌾',
+    desc: 'Wheat roti, commercial bread, maida, semolina',
+  },
+  {
+    id: 'alliums_pulses',
+    label: 'Onions, Garlic & High-GOS Pulses',
+    icon: '🧄',
+    desc: 'Onions, garlic, rajma, chana, cauliflower',
+  },
+  {
+    id: 'histamine_amines',
+    label: 'Aged, Fermented & High-Amine Foods',
+    icon: '🍷',
+    desc: 'Achaar, vinegar, wine, aged paneer, day-old leftovers',
+  },
+  {
+    id: 'unknown',
+    label: 'I have no idea / Everything triggers me',
+    icon: '❓',
+    desc: 'Broad reactivity; baseline multi-trigger reset needed',
+  },
+];
+
+const COMMON_SYMPTOMS = PRIMARY_PHENOTYPES;
+
 const TIMING_OPTIONS = [
-  { id: 'immediate', label: 'Immediate (<30 mins)', desc: 'Rapid upper GI or histamine reactivity' },
-  { id: 'delayed', label: '1 to 4 Hours Post-Meal', desc: 'Small bowel fermentation & motility delay' },
-  { id: 'next_morning', label: 'Next Morning / Overnight', desc: 'Colonic fermentation & metabolic transit' },
-  { id: 'variable', label: 'Unpredictable / Variable', desc: 'Shifting flares influenced by stress & sleep' },
+  { id: 'immediate', label: 'Immediate (<30 mins)', badge: 'Gastric / Oral / Vagal', desc: 'Stomach chamber, acid release, or histamine vasodilation' },
+  { id: 'delayed', label: '1 to 4 Hours Post-Meal', badge: 'Small Intestine / SIBO', desc: 'Small bowel fermentation, sugar malabsorption (lactose, fructose)' },
+  { id: 'colonic', label: '4 to 8+ Hours Post-Meal', badge: 'Colonic Microbial', desc: 'Deep large bowel fermentation of complex fructans and GOS' },
+  { id: 'next_morning', label: 'Next Morning / Overnight', badge: 'Cumulative Transit', desc: 'Slow intestinal transit, multi-meal stacking, or cumulative load' },
+  { id: 'variable', label: 'Unpredictable / Variable', badge: 'Shifting Load', desc: 'Flares influenced by cumulative multi-meal load and stress' },
 ];
 
 export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardProps> = ({
@@ -87,6 +158,8 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
   // Step sequence: 0 = orientation, 1 = symptoms, 2 = safety, 3 = clinician_stop, 4 = recommendations, 5 = baseline
   const [step, setStep] = useState<number>(isRetake ? 1 : 0);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(initialSymptoms);
+  const [selectedPhenotype, setSelectedPhenotype] = useState<string>(initialSymptoms[0] || '');
+  const [suspectedFoods, setSuspectedFoods] = useState<string[]>([]);
   const [isUnsure, setIsUnsure] = useState<boolean>(false);
   const [timing, setTiming] = useState<string>('delayed');
   const [initialSeverity, setInitialSeverity] = useState<number>(6);
@@ -97,7 +170,10 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
     unintendedWeightLoss: false,
     uninvestigatedRedFlags: false,
     pregnancyOrLactation: false,
+    untestedCeliac: false,
+    recentAntibiotics: false,
   });
+  const [noneApplySafety, setNoneApplySafety] = useState<boolean>(false);
 
   const [chosenProtocolId, setChosenProtocolId] = useState<string>('hunt_bloat');
 
@@ -108,14 +184,30 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
       if (selectedSymptoms.length === 0 && profile?.symptoms && Array.isArray(profile.symptoms) && profile.symptoms.length > 0) {
         const matchedIds: string[] = [];
         const profileSyms = profile.symptoms.map((s: string) => s.toLowerCase());
-        if (profileSyms.some((s) => s.includes('bloat') || s.includes('gas'))) matchedIds.push('bloating');
-        if (profileSyms.some((s) => s.includes('heartburn') || s.includes('acid') || s.includes('reflux'))) matchedIds.push('heartburn');
-        if (profileSyms.some((s) => s.includes('flush') || s.includes('hive') || s.includes('histamine'))) matchedIds.push('histamine');
-        if (profileSyms.some((s) => s.includes('headache') || s.includes('migraine') || s.includes('neck'))) matchedIds.push('headache');
-        if (profileSyms.some((s) => s.includes('pot') || s.includes('tachycardia') || s.includes('palpitation'))) matchedIds.push('pots');
-        if (profileSyms.some((s) => s.includes('constipat') || s.includes('transit') || s.includes('bowel'))) matchedIds.push('motility');
-        if (profileSyms.some((s) => s.includes('dairy') || s.includes('milk') || s.includes('casein'))) matchedIds.push('dairy');
-        if (profileSyms.some((s) => s.includes('gluten') || s.includes('wheat'))) matchedIds.push('gluten');
+        if (profileSyms.some((s) => s.includes('bloat') || s.includes('gas'))) {
+          matchedIds.push('bloating');
+          setSelectedPhenotype('bloating');
+        }
+        if (profileSyms.some((s) => s.includes('heartburn') || s.includes('acid') || s.includes('reflux'))) {
+          matchedIds.push('heartburn');
+          setSelectedPhenotype('heartburn');
+        }
+        if (profileSyms.some((s) => s.includes('flush') || s.includes('hive') || s.includes('histamine'))) {
+          matchedIds.push('histamine');
+          setSelectedPhenotype('histamine');
+        }
+        if (profileSyms.some((s) => s.includes('constipat') || s.includes('transit') || s.includes('bowel'))) {
+          matchedIds.push('motility');
+          setSelectedPhenotype('motility');
+        }
+        if (profileSyms.some((s) => s.includes('dairy') || s.includes('milk') || s.includes('casein'))) {
+          matchedIds.push('dairy');
+          setSuspectedFoods((prev) => [...prev, 'dairy']);
+        }
+        if (profileSyms.some((s) => s.includes('gluten') || s.includes('wheat'))) {
+          matchedIds.push('gluten');
+          setSuspectedFoods((prev) => [...prev, 'gluten']);
+        }
         if (matchedIds.length > 0) {
           setSelectedSymptoms(matchedIds);
         }
@@ -123,48 +215,132 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
     } catch {}
   }, []);
 
-  const toggleSymptom = (id: string) => {
+  const togglePhenotype = (id: string) => {
     triggerHapticSelection();
     setIsUnsure(false);
-    setSelectedSymptoms((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSelectedPhenotype((prev) => (prev === id ? '' : id));
+    setSelectedSymptoms((prev) => {
+      const withoutPhenotypes = prev.filter((s) => !PRIMARY_PHENOTYPES.some((p) => p.id === s));
+      return prev.includes(id) ? withoutPhenotypes : [id, ...withoutPhenotypes];
+    });
+  };
+
+  const toggleSuspectedFood = (id: string) => {
+    triggerHapticSelection();
+    if (id === 'unknown') {
+      setSuspectedFoods(['unknown']);
+      setSelectedSymptoms((prev) => [
+        ...prev.filter((s) => !SUSPECTED_FOOD_CATALYSTS.some((c) => c.id === s)),
+        'unknown',
+      ]);
+      return;
+    }
+    setSuspectedFoods((prev) => {
+      const withoutUnknown = prev.filter((item) => item !== 'unknown');
+      const updated = withoutUnknown.includes(id) ? withoutUnknown.filter((item) => item !== id) : [...withoutUnknown, id];
+      setSelectedSymptoms([
+        selectedPhenotype,
+        ...updated,
+      ].filter(Boolean));
+      return updated;
+    });
+  };
+
+  const toggleSymptom = (id: string) => {
+    const isPhenotype = PRIMARY_PHENOTYPES.some((p) => p.id === id);
+    const isFood = SUSPECTED_FOOD_CATALYSTS.some((f) => f.id === id);
+    if (isPhenotype) {
+      togglePhenotype(id);
+    } else if (isFood) {
+      toggleSuspectedFood(id);
+    } else {
+      triggerHapticSelection();
+      setIsUnsure(false);
+      setSelectedSymptoms((prev) =>
+        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      );
+    }
   };
 
   const handleUnsure = () => {
     triggerHapticSelection();
     setIsUnsure(true);
-    setSelectedSymptoms([]);
+    setSelectedPhenotype('unsure');
+    setSuspectedFoods(['unknown']);
+    setSelectedSymptoms(['unsure', 'unknown']);
   };
 
-  const hasSafetyExclusion = Object.values(safetyFlags).some(Boolean);
+  const hasSevereSafetyExclusion = 
+    safetyFlags.eatingDisorder ||
+    safetyFlags.unintendedWeightLoss ||
+    safetyFlags.uninvestigatedRedFlags ||
+    safetyFlags.pregnancyOrLactation;
 
-  // Algorithmic Protocol Matching
+  const hasSafetyExclusion = hasSevereSafetyExclusion;
+
+  // Algorithmic Protocol Matching using A + C Cross-Matrix
   const matched = useMemo((): { primary: EliminationTrialProtocol; alternatives: EliminationTrialProtocol[]; confidence: number } => {
-    if (isUnsure || selectedSymptoms.length === 0) {
+    if (isUnsure || (selectedSymptoms.length === 0 && !selectedPhenotype)) {
       const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[0];
       const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_fodmap') || ELIMINATION_PROTOCOLS[1];
       const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_vagal') || ELIMINATION_PROTOCOLS[2];
       return { primary, alternatives: [alt1, alt2], confidence: 85 };
     }
 
-    const firstSymptom = COMMON_SYMPTOMS.find((s) => selectedSymptoms.includes(s.id));
-    const primaryId = firstSymptom?.protocol || 'hunt_bloat';
-    const altId1 = firstSymptom?.alt || 'low_fodmap';
-    const secondSymptom = COMMON_SYMPTOMS.find((s) => selectedSymptoms.includes(s.id) && s.protocol !== primaryId);
-    const altId2 = secondSymptom?.protocol || (primaryId === 'hunt_bloat' ? 'hunt_vagal' : 'hunt_bloat');
+    // 1. Suspected Dairy
+    if (suspectedFoods.includes('dairy') || selectedSymptoms.includes('dairy')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'dairy_free') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_fodmap') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 98 };
+    }
 
-    const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === primaryId) || ELIMINATION_PROTOCOLS[0];
-    const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === altId1 && p.id !== primary.id);
-    const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === altId2 && p.id !== primary.id && p.id !== alt1?.id);
+    // 2. Suspected Wheat / Gluten
+    if (suspectedFoods.includes('gluten') || selectedSymptoms.includes('gluten')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'gluten_gut_rest') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_fodmap') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 96 };
+    }
 
-    const alts: EliminationTrialProtocol[] = [];
-    if (alt1) alts.push(alt1);
-    if (alt2) alts.push(alt2);
+    // 3. Phenotype: Upper GI
+    if (selectedPhenotype === 'heartburn' || selectedSymptoms.includes('heartburn')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_heartburn') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_vagal') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 97 };
+    }
 
-    const confidence = selectedSymptoms.length === 1 ? 96 : selectedSymptoms.length === 2 ? 92 : 88;
-    return { primary, alternatives: alts.slice(0, 2), confidence };
-  }, [selectedSymptoms, isUnsure]);
+    // 4. Phenotype: Histamine
+    if (selectedPhenotype === 'histamine' || selectedSymptoms.includes('histamine') || suspectedFoods.includes('histamine_amines')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_histamine') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_histamine') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_pots_splanchnic') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 96 };
+    }
+
+    // 5. Phenotype: POTS
+    if (selectedPhenotype === 'pots' || selectedSymptoms.includes('pots')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_pots_splanchnic') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_heartburn') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_vagal') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 95 };
+    }
+
+    // 6. Phenotype: Motility
+    if (selectedPhenotype === 'motility' || selectedSymptoms.includes('motility')) {
+      const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_transit') || ELIMINATION_PROTOCOLS[0];
+      const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[1];
+      const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_fodmap') || ELIMINATION_PROTOCOLS[2];
+      return { primary, alternatives: [alt1, alt2], confidence: 95 };
+    }
+
+    // 7. Default Fermentation & Bloat
+    const primary = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_bloat') || ELIMINATION_PROTOCOLS[0];
+    const alt1 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'low_fodmap') || ELIMINATION_PROTOCOLS[1];
+    const alt2 = ELIMINATION_PROTOCOLS.find((p) => p.id === 'hunt_vagal') || ELIMINATION_PROTOCOLS[2];
+    return { primary, alternatives: [alt1, alt2], confidence: 94 };
+  }, [selectedSymptoms, selectedPhenotype, suspectedFoods, isUnsure]);
 
   // Sync chosen protocol to primary matched when matcher updates
   useEffect(() => {
@@ -420,7 +596,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             </motion.div>
           )}
 
-          {/* STEP 1: SYMPTOM & LATENCY TRIAGE */}
+          {/* STEP 1: SYMPTOM & LATENCY TRIAGE (A + C FUSION) */}
           {step === 1 && (
             <motion.div
               key="step-1"
@@ -428,56 +604,109 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
             >
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 3px', letterSpacing: '-0.2px' }}>
                   What symptoms are you experiencing most frequently?
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-                  Select all that apply. Your choices match you to the highest-yield clinical protocol.
+                  <strong>Layer 1:</strong> Select your primary gut distress pattern, then optionally tag suspected food triggers below.
                 </p>
               </div>
 
-              {/* Symptom Cards Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
-                {COMMON_SYMPTOMS.map((item) => {
-                  const isSelected = selectedSymptoms.includes(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => toggleSymptom(item.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px',
-                        padding: '13px 15px',
-                        borderRadius: '16px',
-                        border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                        background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)' : '#FFFFFF',
-                        boxShadow: isSelected ? '0 4px 14px rgba(13, 148, 136, 0.08)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        minHeight: '64px',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span style={{ fontSize: '22px', lineHeight: 1 }}>{item.icon}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
-                            {item.label}
+              {/* Layer 1: Primary Digestive Phenotypes */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Layer 1: Primary Digestive Phenotype (Chief Complaint)
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
+                  {PRIMARY_PHENOTYPES.map((item) => {
+                    const isSelected = selectedPhenotype === item.id || selectedSymptoms.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => togglePhenotype(item.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          padding: '13px 15px',
+                          borderRadius: '16px',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)' : '#FFFFFF',
+                          boxShadow: isSelected ? '0 4px 14px rgba(13, 148, 136, 0.08)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          minHeight: '64px',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span style={{ fontSize: '22px', lineHeight: 1 }}>{item.icon}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
+                              {item.label}
+                            </span>
+                            {isSelected && <Check size={15} color="#0D9488" strokeWidth={2.8} />}
+                          </div>
+                          <span style={{ fontSize: '11px', color: isSelected ? '#065F46' : '#64748B', lineHeight: 1.35, marginTop: '3px', display: 'block' }}>
+                            {item.desc}
                           </span>
-                          {isSelected && <Check size={15} color="#0D9488" strokeWidth={2.8} />}
                         </div>
-                        <span style={{ fontSize: '11px', color: isSelected ? '#065F46' : '#64748B', lineHeight: 1.35, marginTop: '3px', display: 'block' }}>
-                          {item.desc}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Layer 2: Suspected Dietary Catalysts */}
+              <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Layer 2: Suspected Dietary Catalysts (Optional Clues)
+                  </span>
+                  <span style={{ fontSize: '10.5px', color: '#64748B' }}>Multi-select</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
+                  {SUSPECTED_FOOD_CATALYSTS.map((item) => {
+                    const isSelected = suspectedFoods.includes(item.id) || selectedSymptoms.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggleSuspectedFood(item.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 14px',
+                          borderRadius: '14px',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? '#F0FDFA' : '#FFFFFF',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          minHeight: '48px',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#0F766E' : '#1E293B' }}>
+                            {item.label}
+                          </div>
+                          <div style={{ fontSize: '10px', color: isSelected ? '#047857' : '#64748B', marginTop: '1px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                            {item.desc}
+                          </div>
+                        </div>
+                        {isSelected && <Check size={14} color="#0D9488" strokeWidth={2.5} />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Unsure option */}
@@ -501,12 +730,17 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 I'm not sure / multiple shifting symptoms without an obvious pattern
               </button>
 
-              {/* Latency selection */}
+              {/* Layer 3: Bio-Transit Latency selection */}
               <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
-                <h4 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px', letterSpacing: '-0.2px' }}>
-                  When does discomfort usually peak?
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px', marginTop: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.2px' }}>
+                    When does discomfort usually peak?
+                  </h4>
+                  <span style={{ fontSize: '10.5px', color: '#0D9488', fontWeight: 700 }}>
+                    Bio-Transit Clock
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                   {TIMING_OPTIONS.map((opt) => {
                     const isSelected = timing === opt.id;
                     return (
@@ -529,8 +763,15 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
-                          {opt.label}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
+                            {opt.label}
+                          </span>
+                          {opt.badge && (
+                            <span style={{ fontSize: '9.5px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: isSelected ? '#CCFBF1' : '#F1F5F9', color: isSelected ? '#0F766E' : '#64748B' }}>
+                              {opt.badge}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '2px' }}>
                           {opt.desc}
@@ -572,9 +813,71 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     Clinical Safety & Contraindications Check
                   </h4>
                   <p style={{ fontSize: '12px', color: '#B45309', margin: '3px 0 0', lineHeight: 1.45 }}>
-                    Elimination diets restrict certain food groups temporarily. Please confirm if any of the following clinical exclusions apply to you right now:
+                    <strong>Why your safety comes first:</strong> Elimination diets are structured diagnostic investigations, not weight-loss diets. We screen these factors to ensure dietary shifts support your health safely without medical or psychological strain.
                   </p>
                 </div>
+              </div>
+
+              {/* Hero Affirmation Card: None of These Apply */}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticSelection();
+                  setSafetyFlags({
+                    eatingDisorder: false,
+                    unintendedWeightLoss: false,
+                    uninvestigatedRedFlags: false,
+                    pregnancyOrLactation: false,
+                    untestedCeliac: false,
+                    recentAntibiotics: false,
+                  });
+                  setNoneApplySafety(true);
+                }}
+                style={{
+                  background: (!hasSafetyExclusion && noneApplySafety) ? 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)' : '#FFFFFF',
+                  border: (!hasSafetyExclusion && noneApplySafety) ? '2px solid #059669' : '1.5px solid #CBD5E1',
+                  borderRadius: '16px',
+                  padding: '16px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  boxShadow: (!hasSafetyExclusion && noneApplySafety) ? '0 4px 14px rgba(5, 150, 105, 0.12)' : '0 2px 6px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: (!hasSafetyExclusion && noneApplySafety) ? '#059669' : '#F1F5F9',
+                    border: (!hasSafetyExclusion && noneApplySafety) ? 'none' : '2px solid #94A3B8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {(!hasSafetyExclusion && noneApplySafety) && <Check size={15} color="#FFFFFF" strokeWidth={3} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: (!hasSafetyExclusion && noneApplySafety) ? '#065F46' : '#0F172A' }}>
+                    ✓ None of these apply to me — I am safe to begin
+                  </div>
+                  <div style={{ fontSize: '11px', color: (!hasSafetyExclusion && noneApplySafety) ? '#047857' : '#64748B', marginTop: '2px' }}>
+                    I do not have an active eating disorder, pregnancy, rapid unexplained weight loss, or red flags.
+                  </div>
+                </div>
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '2px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Or select if any apply right now
+                </span>
+                <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
               </div>
 
               {/* Safety Exclusion Checkboxes */}
@@ -584,21 +887,37 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     key: 'eatingDisorder' as const,
                     title: 'Active eating disorder or severe food-related anxiety',
                     desc: 'Restricting foods can worsen psychological distress or obsessive orthorexia.',
+                    isRedFlag: true,
                   },
                   {
                     key: 'unintendedWeightLoss' as const,
                     title: 'Unexplained rapid weight loss (>5% body weight in past 6 months)',
                     desc: 'Requires physician workup to rule out malabsorption, celiac, or organic disease first.',
+                    isRedFlag: true,
                   },
                   {
                     key: 'pregnancyOrLactation' as const,
                     title: 'Active pregnancy or breastfeeding',
                     desc: 'Fetal and infant micronutrient needs take precedence over dietary restriction.',
+                    isRedFlag: true,
                   },
                   {
                     key: 'uninvestigatedRedFlags' as const,
                     title: 'Uninvestigated red flags (blood in stool, persistent vomiting, fever)',
                     desc: 'Red flags demand prompt medical evaluation, not self-directed dietary trials.',
+                    isRedFlag: true,
+                  },
+                  {
+                    key: 'untestedCeliac' as const,
+                    title: 'Have NOT tested for Celiac Disease yet',
+                    desc: 'Clinical warning: Celiac serology (anti-tTG IgA) must be tested BEFORE eliminating wheat; gluten-free diet causes false-negative tests.',
+                    isRedFlag: false,
+                  },
+                  {
+                    key: 'recentAntibiotics' as const,
+                    title: 'Antibiotic treatment within the past 4 weeks',
+                    desc: 'Microbiome baseline in recovery. Fermentation patterns may be erratic for 4 weeks post-antibiotic.',
+                    isRedFlag: false,
                   },
                 ].map((item) => {
                   const isChecked = safetyFlags[item.key];
@@ -608,6 +927,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                       type="button"
                       onClick={() => {
                         triggerHapticSelection();
+                        setNoneApplySafety(false);
                         setSafetyFlags((prev) => ({ ...prev, [item.key]: !prev[item.key] }));
                       }}
                       style={{
@@ -616,8 +936,8 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                         gap: '14px',
                         padding: '14px 16px',
                         borderRadius: '16px',
-                        border: isChecked ? '1.5px solid #DC2626' : '1px solid #E2E8F0',
-                        background: isChecked ? '#FEF2F2' : '#FFFFFF',
+                        border: isChecked ? (item.isRedFlag ? '1.5px solid #DC2626' : '1.5px solid #D97706') : '1px solid #E2E8F0',
+                        background: isChecked ? (item.isRedFlag ? '#FEF2F2' : '#FFFBEB') : '#FFFFFF',
                         cursor: 'pointer',
                         textAlign: 'left',
                         minHeight: '52px',
@@ -630,7 +950,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           height: '20px',
                           borderRadius: '6px',
                           border: isChecked ? 'none' : '1.5px solid #94A3B8',
-                          background: isChecked ? '#DC2626' : '#FFFFFF',
+                          background: isChecked ? (item.isRedFlag ? '#DC2626' : '#D97706') : '#FFFFFF',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -641,10 +961,10 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                         {isChecked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '12.5px', fontWeight: 800, color: isChecked ? '#991B1B' : '#0F172A' }}>
+                        <div style={{ fontSize: '12.5px', fontWeight: 800, color: isChecked ? (item.isRedFlag ? '#991B1B' : '#92400E') : '#0F172A' }}>
                           {item.title}
                         </div>
-                        <div style={{ fontSize: '11px', color: isChecked ? '#B91C1C' : '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
+                        <div style={{ fontSize: '11px', color: isChecked ? (item.isRedFlag ? '#B91C1C' : '#B45309') : '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
                           {item.desc}
                         </div>
                       </div>
@@ -732,6 +1052,8 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     unintendedWeightLoss: false,
                     uninvestigatedRedFlags: false,
                     pregnancyOrLactation: false,
+                    untestedCeliac: false,
+                    recentAntibiotics: false,
                   });
                   setStep(2);
                 }}
@@ -1188,21 +1510,21 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               triggerHapticMedium();
               setStep(2);
             }}
-            disabled={selectedSymptoms.length === 0 && !isUnsure}
+            disabled={selectedSymptoms.length === 0 && !selectedPhenotype && !isUnsure}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
               padding: '12px 24px',
               borderRadius: '14px',
-              background: (selectedSymptoms.length > 0 || isUnsure) ? 'linear-gradient(135deg, #0D9488 0%, #059669 100%)' : '#CBD5E1',
+              background: (selectedSymptoms.length > 0 || selectedPhenotype || isUnsure) ? 'linear-gradient(135deg, #0D9488 0%, #059669 100%)' : '#CBD5E1',
               color: '#FFFFFF',
               border: 'none',
               fontSize: '13.5px',
               fontWeight: 800,
-              cursor: (selectedSymptoms.length > 0 || isUnsure) ? 'pointer' : 'not-allowed',
+              cursor: (selectedSymptoms.length > 0 || selectedPhenotype || isUnsure) ? 'pointer' : 'not-allowed',
               minHeight: '46px',
-              boxShadow: (selectedSymptoms.length > 0 || isUnsure) ? '0 4px 14px rgba(13, 148, 136, 0.3)' : 'none',
+              boxShadow: (selectedSymptoms.length > 0 || selectedPhenotype || isUnsure) ? '0 4px 14px rgba(13, 148, 136, 0.3)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >

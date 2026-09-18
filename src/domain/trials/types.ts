@@ -54,6 +54,29 @@ export interface TrialIntakeAssessment {
   matchedProtocolId?: string;
 }
 
+export interface FoodVerdictItem {
+  id: string;
+  name: string;
+  category?: string;
+  classification: 'confirmed_trigger' | 'cleared_safe' | 'inconclusive';
+  severityDropOrDelta?: number;
+  reactionDescription?: string;
+  suggestedSwap?: string;
+  notes?: string;
+}
+
+export interface ClinicalVerdictData {
+  graduatedAt: string;
+  initialBaselineSeverity: number | null;
+  finalSeverity: number | null;
+  symptomReductionPercentage: number;
+  confirmedTriggers: FoodVerdictItem[];
+  clearedFoods: FoodVerdictItem[];
+  inconclusiveFoods: FoodVerdictItem[];
+  clinicianDossierSummary: string;
+  maintenanceDietRecommendations: string[];
+}
+
 export interface TrialV2 {
   id: string;
   schemaVersion: 2;
@@ -63,6 +86,7 @@ export interface TrialV2 {
   protocolVersion: string;
   status: TrialStatus;
   startedAt: string;
+  completedAt?: string;
   timezone: string;
   totalDurationDays: number;
   currentElapsedDays: number;
@@ -73,6 +97,7 @@ export interface TrialV2 {
   intakeAssessment?: TrialIntakeAssessment;
   stoppedReason?: 'flare' | 'difficulty' | 'clinician_advice' | 'completed' | 'switched' | 'other';
   stoppedAt?: string;
+  verdict?: ClinicalVerdictData;
 }
 
 export interface FoodChallenge {
@@ -132,6 +157,7 @@ export interface HealthEvent {
     | 'challenge_completed'
     | 'trial_paused'
     | 'trial_resumed'
+    | 'trial_completed'
     | 'trial_stopped';
   occurredAt: string;
   recordedAt: string;

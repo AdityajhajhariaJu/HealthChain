@@ -95,4 +95,36 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
     // Modal rendered in onboarding mode
     expect(screen.getAllByText(/Elimination Suite Onboarding/i).length).toBeGreaterThanOrEqual(1);
   });
+
+  it('renders clinical graduation victory cockpit when trial is completed with verdict', () => {
+    const v2 = startNewTrialV2({ protocolId: 'hunt_bloat', durationDays: 28 });
+    v2.status = 'completed';
+    v2.verdict = {
+      graduatedAt: new Date().toISOString(),
+      initialBaselineSeverity: 8,
+      finalSeverity: 2,
+      symptomReductionPercentage: 75,
+      confirmedTriggers: [{ id: 'garlic', name: 'Garlic', classification: 'confirmed_trigger' }],
+      clearedFoods: [{ id: 'oats', name: 'Rolled Oats', classification: 'cleared_safe' }],
+      inconclusiveFoods: [],
+      clinicianDossierSummary: 'Completed trial successfully.',
+      maintenanceDietRecommendations: ['Avoid garlic.'],
+    };
+    localStorage.setItem('hc_trial_v2_profile_1', JSON.stringify(v2));
+
+    render(<TherapeuticOutcomeCard />, { container: containerDiv });
+
+    // Graduation badges & metrics
+    expect(screen.getByText(/GRADUATED 🏆/i)).toBeTruthy();
+    expect(screen.getByText(/-75%/i)).toBeTruthy();
+    expect(screen.getByText(/Investigation complete • 1 Confirmed Trigger\(s\)/i)).toBeTruthy();
+    expect(screen.getByText(/View Clinical Verdict & Blueprint →/i)).toBeTruthy();
+
+    // Clicking button opens modal into verdict view
+    const viewBtn = screen.getByText(/View Clinical Verdict & Blueprint →/i);
+    fireEvent.click(viewBtn);
+
+    expect(screen.getByText(/Diagnostic Elimination Graduated 🏆/i)).toBeTruthy();
+    expect(screen.getByText(/Empirical 3-Bucket Clinical Verdict/i)).toBeTruthy();
+  });
 });

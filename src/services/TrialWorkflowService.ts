@@ -9,8 +9,10 @@ import {
   TrialChecklistCompletion,
   AdherenceLevel,
   ChallengeOutcome,
-  TrialStatus
+  TrialStatus,
+  ClinicalVerdictData
 } from '../domain/trials/types';
+import { recordConfirmedTrigger, stopActiveTrial } from './TriggerEngine';
 
 function getActiveProfileId(): string {
   try {
@@ -530,6 +532,63 @@ export function stopTrialV2(trialId: string, reason: TrialV2['stoppedReason'] = 
     source: 'trial',
     payload: { reason },
   });
+
+  return trial;
+}
+
+export function completeTrialWithVerdict(
+  trialId: string,
+  verdict: ClinicalVerdictData,
+  profileId?: string
+): TrialV2 | null {
+  const trial = findTrialById(trialId, profileId);
+  if (!trial) return null;
+
+  const now = verdict.graduatedAt || new Date().toISOString();
+  trial.status = 'completed';
+  trial.completedAt = now;
+  trial.verdict = verdict;
+  trial.stoppedReason = 'completed';
+  saveActiveTrialV2(trial);
+
+  // Synchronize confirmed triggers to persistent TriggerEngine store
+  if (Array.isArray(verdict.confirmedTriggers)) {
+    verdict.confirmedTriggers.forEach((trigger) => {
+      recordConfirmedTrigger({
+        food: trigger.name,
+        symptom: trigger.reactionDescription || 'Challenge flare recorded during elimination trial',
+        date: now.split('T')[0],
+        sensitivity: 'Confirmed Diagnostic Trigger',
+      });
+    });
+  }
+
+  // Archive legacy trial if active
+  try {
+    stopActiveTrial();
+  } catch {}
+
+  appendHealthEvent({
+    profileId: trial.profileId,
+    trialId: trial.id,
+    type: 'trial_completed',
+    occurredAt: now,
+    timezone: trial.timezone,
+    source: 'trial',
+    payload: {
+      verdictSummary: verdict.clinicianDossierSummary,
+      symptomReductionPercentage: verdict.symptomReductionPercentage,
+      confirmedTriggersCount: verdict.confirmedTriggers.length,
+      clearedFoodsCount: verdict.clearedFoods.length,
+      inconclusiveFoodsCount: verdict.inconclusiveFoods.length,
+    },
+  });
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('hc_trial_graduated', { detail: { trial, verdict } }));
+    window.dispatchEvent(new CustomEvent('hc_trial_v2_updated', { detail: trial }));
+    window.dispatchEvent(new Event('hc_trial_updated'));
+  }
 
   return trial;
 }
