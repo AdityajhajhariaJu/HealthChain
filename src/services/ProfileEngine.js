@@ -726,12 +726,14 @@ export function updateNutritionLogReaction(logIdentifier, reaction) {
       ...profile.nutrition.recentLogs[idx],
       reaction,
     };
-  } else if (profile.nutrition.recentLogs.length > 0) {
-    profile.nutrition.recentLogs[profile.nutrition.recentLogs.length - 1].reaction = reaction;
+    saveProfile(profile);
+    window.dispatchEvent(new CustomEvent('hc_nutrition_reaction_updated', { detail: { logIdentifier, reaction } }));
+    window.dispatchEvent(new Event('hc_profile_updated'));
+    return { success: true, updatedMealId: profile.nutrition.recentLogs[idx].id || logIdentifier };
+  } else {
+    console.warn(`updateNutritionLogReaction: Meal not found for identifier "${logIdentifier}". Write rejected to prevent meal corruption.`);
+    return { success: false, error: 'MEAL_NOT_FOUND', logIdentifier };
   }
-  saveProfile(profile);
-  window.dispatchEvent(new CustomEvent('hc_nutrition_reaction_updated', { detail: { logIdentifier, reaction } }));
-  window.dispatchEvent(new Event('hc_profile_updated'));
 }
 
 export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }) {

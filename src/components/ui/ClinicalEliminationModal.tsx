@@ -29,18 +29,40 @@ import {
   ChevronUp,
   Clock,
   HelpCircle,
-  Heart
+  Heart,
+  Pause,
+  Play,
+  StopCircle,
+  Apple
 } from 'lucide-react';
 import {
   getActiveTrial,
   logTrialDay,
   logTrialExposure,
   startTrial,
+  stopActiveTrial,
   ActiveTrialState,
   ELIMINATION_PROTOCOLS,
   CLINICAL_SENSITIVITIES,
   getSuspectFoodsLeaderboard,
 } from '../../services/TriggerEngine';
+import { GuidedStartModal } from './GuidedStartModal';
+import {
+  getActiveTrialV2,
+  saveActiveTrialV2,
+  getChecklistCompletion,
+  toggleChecklistTask,
+  pauseTrialV2,
+  resumeTrialV2,
+  stopTrialV2,
+  evaluateChallengeReadiness,
+  startFoodChallenge,
+  recordChallengeObservation,
+  completeFoodChallenge,
+  getFoodChallenges,
+  recordDailyObservation,
+} from '../../services/TrialWorkflowService';
+import { AdherenceLevel, TrialV2, FoodChallenge } from '../../domain/trials/types';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate } from 'react-router-dom';
@@ -66,8 +88,13 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [activeTab, setActiveTab] = useState<EliminationTab>('guardrails');
   const [tabHistory, setTabHistory] = useState<EliminationTab[]>(['guardrails']);
   
-  // Interactive check-in state (Unified on Today tab)
-  const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity ?? 3);
+  // Guided Start state
+  const [showGuidedStart, setShowGuidedStart] = useState<boolean>(false);
+  const [trialV2, setTrialV2] = useState<TrialV2 | null>(() => getActiveTrialV2());
+
+  // Interactive check-in state (Unified on Today tab) - null by default until touched
+  const [severityScore, setSeverityScore] = useState<number | null>(null);
+  const [adherenceLevel, setAdherenceLevel] = useState<AdherenceLevel>('followed');
   const [checkinNote, setCheckinNote] = useState<string>('');
   const [justLogged, setJustLogged] = useState<boolean>(false);
 
@@ -85,16 +112,59 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   // Copy state
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
-  // Daily checklist state
+  // Daily checklist state persisted by date
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
+
+  // Patient Agency Controls state
+  const [showStopModal, setShowStopModal] = useState<boolean>(false);
+  const [stopReason, setStopReason] = useState<TrialV2['stoppedReason']>('completed');
+
+  // Readiness Gate and Challenge state
+  const [readiness, setReadiness] = useState<ReturnType<typeof evaluateChallengeReadiness> | null>(null);
+  const [activeChallenge, setActiveChallenge] = useState<FoodChallenge | null>(null);
+  const [allChallenges, setAllChallenges] = useState<FoodChallenge[]>([]);
+  const [currentTime, setCurrentTime] = useState<number>(() => Date.now());
+  const [isLoggingReaction, setIsLoggingReaction] = useState<boolean>(false);
+  const [reactionSeverity, setReactionSeverity] = useState<number>(5);
+  const [reactionNote, setReactionNote] = useState<string>('');
+
+  const todayKey = new Date().toLocaleDateString('en-CA');
+
+  const refreshTrialState = () => {
+    const current = getActiveTrial();
+    const v2 = getActiveTrialV2();
+    setTrial(current);
+    setTrialV2(v2);
+
+    if (current) {
+      setSeverityScore(current.currentSeverity ?? null);
+      setSelectedProtocolId(current.trialId);
+      // Load persisted checklist
+      const completed = getChecklistCompletion(current.trialId, todayKey);
+      const m: Record<string, boolean> = {};
+      completed.forEach((id) => (m[id] = true));
+      setChecklist(m);
+    } else {
+      setSeverityScore(null);
+    }
+
+    if (v2) {
+      setReadiness(evaluateChallengeReadiness(v2));
+      const challenges = getFoodChallenges(v2.id);
+      setAllChallenges(challenges);
+      setActiveChallenge(challenges.find((c) => c.status === 'active') || null);
+    } else {
+      setReadiness(null);
+      setActiveChallenge(null);
+      setAllChallenges([]);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
+      refreshTrialState();
       const current = getActiveTrial();
-      setTrial(current);
       if (current) {
-        setSeverityScore(current.currentSeverity ?? (current.baselineSeverity ?? 3));
-        setSelectedProtocolId(current.trialId);
         setActiveTab('guardrails');
         setTabHistory(['guardrails']);
       } else {
@@ -106,6 +176,26 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setSelectedExposure(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!activeChallenge) return;
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeChallenge]);
+
+  useEffect(() => {
+    const handleTrialUpdated = () => refreshTrialState();
+    window.addEventListener('hc_trial_updated', handleTrialUpdated);
+    window.addEventListener('hc_trial_v2_updated', handleTrialUpdated);
+    window.addEventListener('hc_challenge_updated', handleTrialUpdated);
+    return () => {
+      window.removeEventListener('hc_trial_updated', handleTrialUpdated);
+      window.removeEventListener('hc_trial_v2_updated', handleTrialUpdated);
+      window.removeEventListener('hc_challenge_updated', handleTrialUpdated);
+    };
+  }, []);
 
   const handleTabChange = (nextTab: EliminationTab) => {
     if (nextTab === activeTab) return;
@@ -265,14 +355,104 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     return combined.slice(0, 4);
   })();
 
-  const handleLogScore = () => {
+  const handleToggleChecklist = (taskId: string) => {
     if (!trial) return;
+    triggerHapticSelection();
+    const updatedList = toggleChecklistTask(trial.trialId, taskId, todayKey);
+    const m: Record<string, boolean> = {};
+    updatedList.forEach((id) => (m[id] = true));
+    setChecklist(m);
+  };
+
+  const handleLogScore = () => {
+    if (!trial || severityScore === null) return;
     triggerHapticSuccess();
-    const updated = logTrialDay(severityScore, true, checkinNote || undefined);
+    const updated = logTrialDay(severityScore, adherenceLevel, checkinNote || undefined);
     setTrial(updated);
+    if (trialV2) {
+      const v2Updated = recordDailyObservation(trialV2.id, {
+        date: todayKey,
+        severityScore,
+        adherenceLevel,
+        notes: checkinNote || undefined,
+      });
+      if (v2Updated) {
+        setTrialV2({ ...v2Updated });
+        setReadiness(evaluateChallengeReadiness(v2Updated));
+      } else {
+        trialV2.baseline.completedObservations = (trialV2.baseline.completedObservations || 0) + 1;
+        saveActiveTrialV2(trialV2);
+        setTrialV2({ ...trialV2 });
+        setReadiness(evaluateChallengeReadiness(trialV2));
+      }
+    }
     onTrialUpdated?.(updated);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 2500);
+  };
+
+  const handlePauseTrial = () => {
+    if (!trial) return;
+    triggerHapticSelection();
+    const paused = pauseTrialV2(trial.trialId);
+    setTrialV2(paused);
+    if (paused) setReadiness(evaluateChallengeReadiness(paused));
+  };
+
+  const handleResumeTrial = () => {
+    if (!trial) return;
+    triggerHapticSuccess();
+    const resumed = resumeTrialV2(trial.trialId);
+    setTrialV2(resumed);
+    if (resumed) setReadiness(evaluateChallengeReadiness(resumed));
+  };
+
+  const handleStopTrialConfirm = (reason: TrialV2['stoppedReason']) => {
+    if (!trial) return;
+    triggerHapticSelection();
+    stopTrialV2(trial.trialId, reason);
+    stopActiveTrial();
+    setTrial(null);
+    setTrialV2(null);
+    setShowStopModal(false);
+    setActiveTab('protocols');
+  };
+
+  const handleStartChallengeItem = (foodName: string) => {
+    if (!trialV2) return;
+    triggerHapticSuccess();
+    const ch = startFoodChallenge(trialV2.id, {
+      itemId: foodName,
+      displayName: foodName,
+      doseDescription: '1 standard portion consumed in isolation',
+    });
+    setActiveChallenge(ch);
+    const updatedChallenges = getFoodChallenges(trialV2.id);
+    setAllChallenges(updatedChallenges);
+  };
+
+  const handleRecordChallengeReaction = (hasReaction: boolean, customSeverity?: number, note?: string) => {
+    if (!trialV2 || !activeChallenge) return;
+    triggerHapticSelection();
+    const updated = recordChallengeObservation(
+      trialV2.id,
+      activeChallenge.id,
+      customSeverity ?? (hasReaction ? 6 : 0),
+      hasReaction,
+      note || (hasReaction ? 'Reaction observed during challenge' : 'No symptoms observed')
+    );
+    setActiveChallenge(updated);
+    setIsLoggingReaction(false);
+    setReactionNote('');
+  };
+
+  const handleCompleteChallengeItem = (outcome: FoodChallenge['outcome']) => {
+    if (!trialV2 || !activeChallenge) return;
+    triggerHapticSuccess();
+    completeFoodChallenge(trialV2.id, activeChallenge.id, outcome || 'no_reaction');
+    setActiveChallenge(null);
+    const updatedChallenges = getFoodChallenges(trialV2.id);
+    setAllChallenges(updatedChallenges);
   };
 
   const handleApplySosMitigation = (triggerName: string) => {
@@ -308,10 +488,10 @@ Baseline symptom severity: ${baselineText}. Protocol foods selected for observat
 A (Assessment):
 Calendar day ${trial.currentDay} of the protocol. Recorded symptom change: ${reductionText}; current severity: ${currentText}; recorded adherence: ${trial.adherencePercentage}%. Observed suspect: ${primarySuspectText}${topCorrelation !== null ? ` (${topCorrelation}% of recorded flares in the available observations)` : ''}. Tolerated alternatives have not been established unless separately recorded.
 
-R (Recommendation):
-1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}
-2. Advance to ${nextProvocation} once clinical baseline stabilizes.
-3. Formulate customized reintroduction blueprint without blanket restriction.
+    R (Recommendation):
+    1. Review the recorded observations and missing baseline information with a qualified clinician.
+    2. Discuss whether and when to advance to ${nextProvocation} once clinical baseline stabilizes.
+    3. Do not infer causation or confirmed tolerance from this protocol alone.
 
 Trajectory Log:
 ${trial.symptomScores.map((s) => `• ${s.date || `Day ${s.day}`}: ${s.severity}/10 (${s.adhered ? 'Protocol followed' : 'Protocol deviation reported'}) - ${s.note || 'Recorded'}`).join('\n') || 'No symptom scores recorded.'}
@@ -319,7 +499,23 @@ ${trial.symptomScores.map((s) => `• ${s.date || `Day ${s.day}`}: ${s.severity}
 Recorded Exposures:
 ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - ${entry.note || 'Exposure recorded'}`).join('\n') || 'No exposures recorded.'}`;
 
-    navigator.clipboard.writeText(text);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+    } catch {
+      // safe fallback
+    }
     setIsCopied(true);
     triggerHapticSuccess();
     setTimeout(() => setIsCopied(false), 2000);
@@ -650,6 +846,61 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     </button>
                   </div>
                 )}
+
+                {/* Guided Start Hero Recommendation Banner */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                    borderRadius: '16px',
+                    padding: '16px 18px',
+                    border: '1.5px solid #5EEAD4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={16} color="#0D9488" />
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                        Recommended Starting Path
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#134E4A', marginTop: '2px' }}>
+                      Not sure which protocol fits your symptoms?
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#115E59', marginTop: '2px' }}>
+                      Answer 3 quick questions (~30s) to see the single best matched protocol with safe alternatives.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setShowGuidedStart(true);
+                    }}
+                    style={{
+                      background: '#0D9488',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '9px 16px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(13, 148, 136, 0.3)',
+                      minHeight: '44px',
+                    }}
+                  >
+                    <span>Launch Guided Triage</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
 
                 {/* Introduction Banner */}
                 <div
@@ -1003,6 +1254,67 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       </div>
                     </div>
 
+                    {/* Paused State Notification */}
+                    {trialV2?.status === 'paused' && (
+                      <div style={{ background: '#FFFBEB', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Pause size={18} color="#D97706" />
+                          <div>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>Trial Paused</span>
+                            <div style={{ fontSize: '11px', color: '#B45309' }}>Your logs are safely preserved. Resume whenever you are ready.</div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleResumeTrial}
+                          style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Play size={13} /> Resume
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Abundance Guide Card */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+                        borderRadius: '16px',
+                        padding: '14px 16px',
+                        border: '1.5px solid #86EFAC',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <Apple size={17} color="#15803D" />
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#14532D' }}>
+                          What You Can Abundantly Enjoy Today
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#166534', marginBottom: '8px' }}>
+                        Restriction is temporary. Focus your meals around these nourishing, tolerated staples:
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {activeProtocolDef.allowedAlternatives.map((alt, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: '#065F46',
+                              background: '#FFFFFF',
+                              border: '1px solid #A7F3D0',
+                              padding: '3px 9px',
+                              borderRadius: '8px',
+                            }}
+                          >
+                            ✓ {alt}
+                          </span>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #BBF7D0', fontSize: '11px', color: '#15803D' }}>
+                        🛡️ <strong>Temporarily set aside:</strong> {activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}
+                      </div>
+                    </div>
+
                     {/* Section 1: Today's Action Checklist */}
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1019,10 +1331,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             key={item.id}
                             role="button"
                             tabIndex={0}
-                            onClick={() => {
-                              triggerHapticSelection();
-                              setChecklist({ ...checklist, [item.id]: !checklist[item.id] });
-                            }}
+                            onClick={() => handleToggleChecklist(item.id)}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -1086,11 +1395,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             fontWeight: 800,
                             padding: '3px 10px',
                             borderRadius: '999px',
-                            background: severityScore <= 3 ? '#DCFCE7' : severityScore <= 6 ? '#FEF3C7' : '#FEE2E2',
-                            color: severityScore <= 3 ? '#15803D' : severityScore <= 6 ? '#B45309' : '#B91C1C',
+                            background: severityScore === null ? '#F1F5F9' : severityScore <= 3 ? '#DCFCE7' : severityScore <= 6 ? '#FEF3C7' : '#FEE2E2',
+                            color: severityScore === null ? '#64748B' : severityScore <= 3 ? '#15803D' : severityScore <= 6 ? '#B45309' : '#B91C1C',
                           }}
                         >
-                          {severityScore <= 3 ? `😊 Calmed (${severityScore}/10)` : severityScore <= 6 ? `😐 Mild (${severityScore}/10)` : `😣 Flare (${severityScore}/10)`}
+                          {severityScore === null ? 'Not recorded yet' : severityScore <= 3 ? `😊 Calmed (${severityScore}/10)` : severityScore <= 6 ? `😐 Mild (${severityScore}/10)` : `😣 Flare (${severityScore}/10)`}
                         </div>
                       </div>
 
@@ -1101,11 +1410,52 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           min="1"
                           max="10"
                           step="0.5"
-                          value={severityScore}
+                          value={severityScore ?? 5}
                           onChange={(e) => setSeverityScore(parseFloat(e.target.value))}
-                          style={{ flex: 1, accentColor: severityScore <= 3 ? '#10B981' : severityScore <= 6 ? '#F59E0B' : '#EF4444' }}
+                          style={{ flex: 1, accentColor: severityScore === null ? '#94A3B8' : severityScore <= 3 ? '#10B981' : severityScore <= 6 ? '#F59E0B' : '#EF4444' }}
                         />
                         <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626' }}>10 (Worst)</span>
+                      </div>
+
+                      {/* Tri-State Adherence Radio */}
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
+                          Protocol Adherence Today:
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {[
+                            { id: 'followed', label: 'Followed', color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46' },
+                            { id: 'partially_followed', label: 'Partly followed', color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A', text: '#92400E' },
+                            { id: 'not_followed', label: 'Did not follow', color: '#64748B', bg: '#F8FAFC', border: '#E2E8F0', text: '#334155' },
+                          ].map((lvl) => {
+                            const isSelected = adherenceLevel === lvl.id;
+                            return (
+                              <button
+                                key={lvl.id}
+                                type="button"
+                                onClick={() => {
+                                  triggerHapticSelection();
+                                  setAdherenceLevel(lvl.id as AdherenceLevel);
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '8px 4px',
+                                  borderRadius: '8px',
+                                  border: isSelected ? `2px solid ${lvl.color}` : '1px solid #E2E8F0',
+                                  background: isSelected ? lvl.bg : '#FFFFFF',
+                                  color: isSelected ? lvl.text : '#64748B',
+                                  fontSize: '11.5px',
+                                  fontWeight: isSelected ? 800 : 600,
+                                  cursor: 'pointer',
+                                  minHeight: '44px',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                {lvl.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <input
@@ -1125,28 +1475,33 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
 
                       <button
                         type="button"
+                        disabled={severityScore === null}
                         onClick={handleLogScore}
                         style={{
                           width: '100%',
-                          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                          color: '#FFFFFF',
+                          background: severityScore === null ? '#E2E8F0' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                          color: severityScore === null ? '#94A3B8' : '#FFFFFF',
                           border: 'none',
                           borderRadius: '10px',
                           padding: '11px',
                           fontSize: '13px',
                           fontWeight: 700,
-                          cursor: 'pointer',
+                          cursor: severityScore === null ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '6px',
-                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                          boxShadow: severityScore === null ? 'none' : '0 2px 8px rgba(16, 185, 129, 0.25)',
                           minHeight: '44px',
                         }}
                       >
                         {justLogged ? (
                           <>
                             <Check size={16} /> Saved & Progress Updated!
+                          </>
+                        ) : severityScore === null ? (
+                          <>
+                            <Activity size={15} /> Select a score to record check-in
                           </>
                         ) : (
                           <>
@@ -1241,6 +1596,117 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         </div>
                       )}
                     </div>
+
+                    {/* Section 4: Patient Agency & Trial Controls */}
+                    <div
+                      style={{
+                        background: '#F8FAFC',
+                        borderRadius: '16px',
+                        padding: '14px 16px',
+                        border: '1px solid #E2E8F0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#334155' }}>
+                        Trial Management & Controls
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>
+                        You are in full control of your observations. Pause, switch, or stop at any time.
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {trialV2?.status === 'paused' ? (
+                          <button
+                            type="button"
+                            onClick={handleResumeTrial}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              background: '#10B981',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              minHeight: '44px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <Play size={14} /> Resume Trial
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handlePauseTrial}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              background: '#F1F5F9',
+                              color: '#475569',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              minHeight: '44px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <Pause size={14} /> Pause Trial
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('protocols')}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            background: '#F1F5F9',
+                            color: '#475569',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            minHeight: '44px',
+                          }}
+                        >
+                          Switch Protocol
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowStopModal(true)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            background: '#FEF2F2',
+                            color: '#991B1B',
+                            border: '1px solid #FECACA',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            minHeight: '44px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <StopCircle size={14} /> Stop Trial
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1269,6 +1735,469 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   </button>
                   <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Food Reintroduction Roadmap</span>
                 </div>
+
+                {/* Readiness Gate Banner */}
+                {readiness && !readiness.ready ? (
+                  <div style={{ background: '#FFFBEB', borderRadius: '14px', padding: '14px 16px', border: '1.5px solid #FDE68A' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <ShieldAlert size={18} color="#D97706" />
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
+                        Baseline Calibration Gate: Rechallenge Locked
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#78350F', lineHeight: 1.5 }}>
+                      Single-food reintroduction requires a reliable baseline. You have logged <strong>{readiness.observedCount} of {readiness.requiredCount}</strong> required daily observations.
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#B45309', marginTop: '6px' }}>
+                      ⏳ Missing logs do not advance the trial. Complete {Math.max(1, readiness.requiredCount - readiness.observedCount)} more daily check-in{readiness.requiredCount - readiness.observedCount === 1 ? '' : 's'} on the Today tab to unlock safe testing.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ background: '#ECFDF5', borderRadius: '14px', padding: '14px 16px', border: '1.5px solid #A7F3D0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <ShieldCheck size={18} color="#059669" />
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
+                        Baseline Calibration Complete: Challenge Phase Unlocked
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#047857', lineHeight: 1.5 }}>
+                      You have sufficient observations ({readiness?.observedCount || 5} check-ins) to distinguish true reactions from baseline daily fluctuations.
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Rechallenge Challenge Card */}
+                {readiness && readiness.ready && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {activeChallenge ? (() => {
+                      const challengeStartedMs = new Date(activeChallenge.startedAt).getTime();
+                      const challengeWindowMs = (activeChallenge.observationWindowHours || 48) * 3600 * 1000;
+                      const elapsedMs = Math.max(0, currentTime - challengeStartedMs);
+                      const remainingMs = Math.max(0, challengeWindowMs - elapsedMs);
+                      const isWindowExpired = remainingMs === 0;
+                      const hoursLeft = Math.floor(remainingMs / (3600 * 1000));
+                      const minsLeft = Math.floor((remainingMs % (3600 * 1000)) / (60 * 1000));
+                      const progressPct = Math.min(100, Math.round((elapsedMs / challengeWindowMs) * 100));
+                      const hasReactionLogged = activeChallenge.observations?.some((o: any) => o.hasReaction) || false;
+
+                      return (
+                        <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #0D9488', boxShadow: '0 4px 16px rgba(13, 148, 136, 0.08)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                            <div>
+                              <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Active Food Reintroduction
+                              </div>
+                              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                                {activeChallenge.displayName}
+                              </div>
+                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
+                                Dose: {activeChallenge.doseDescription}
+                              </div>
+                            </div>
+                            <div>
+                              {isWindowExpired ? (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#065F46' }}>
+                                  <CheckCircle2 size={13} color="#059669" /> 48h Window Complete
+                                </span>
+                              ) : (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                                  <Clock size={13} color="#0D9488" /> {hoursLeft}h {minsLeft}m remaining
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 48-Hour Progress Bar */}
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginBottom: '4px', fontWeight: 600 }}>
+                              <span>48-Hour Observation Timeline</span>
+                              <span>{progressPct}% elapsed</span>
+                            </div>
+                            <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
+                              <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #14B8A6 0%, #0D9488 100%)', borderRadius: '999px', transition: 'width 0.5s ease' }} />
+                            </div>
+                          </div>
+
+                          {/* Observation Logger Form */}
+                          {!isLoggingReaction ? (
+                            <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                Any digestive, skin, or energy reaction since ingestion?
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRecordChallengeReaction(false, 0, 'No adverse symptoms observed')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #86EFAC',
+                                    background: '#F0FDF4',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    color: '#166534',
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                  }}
+                                >
+                                  😊 Asymptomatic / Clear
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsLoggingReaction(true)}
+                                  style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #FECACA',
+                                    background: '#FEF2F2',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    color: '#991B1B',
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                  }}
+                                >
+                                  😣 Reaction Observed
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ background: '#FFF7ED', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #FED7AA', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 800, color: '#9A3412' }}>
+                                Record Reaction Severity & Symptoms
+                              </div>
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', fontWeight: 700, color: '#7C2D12', marginBottom: '4px' }}>
+                                  <span>Flare Severity</span>
+                                  <span>{reactionSeverity}/10</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={1}
+                                  max={10}
+                                  value={reactionSeverity}
+                                  onChange={(e) => setReactionSeverity(parseInt(e.target.value, 10))}
+                                  style={{ width: '100%', accentColor: '#C2410C' }}
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                value={reactionNote}
+                                onChange={(e) => setReactionNote(e.target.value)}
+                                placeholder="Describe symptoms (e.g., lower abdominal bloating, cramps 45m post-meal)"
+                                style={{
+                                  padding: '8px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #FDBA74',
+                                  fontSize: '12px',
+                                  color: '#0F172A',
+                                  background: '#FFFFFF',
+                                }}
+                              />
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRecordChallengeReaction(true, reactionSeverity, reactionNote || 'Reaction observed during challenge')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#C2410C',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Save Reaction Observation
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsLoggingReaction(false);
+                                    setReactionNote('');
+                                  }}
+                                  style={{
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#FFFFFF',
+                                    color: '#64748B',
+                                    border: '1px solid #CBD5E1',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Recorded Observations Log */}
+                          {activeChallenge.observations && activeChallenge.observations.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                                Challenge Log ({activeChallenge.observations.length} recorded)
+                              </div>
+                              {activeChallenge.observations.map((obs, idx) => (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    padding: '8px 10px',
+                                    borderRadius: '8px',
+                                    background: obs.hasReaction ? '#FEF2F2' : '#F0FDF4',
+                                    border: `1px solid ${obs.hasReaction ? '#FECACA' : '#BBF7D0'}`,
+                                    fontSize: '11.5px',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: obs.hasReaction ? '#991B1B' : '#166534' }}>
+                                    <span>{obs.hasReaction ? `😣 Reaction (Score ${obs.severityScore}/10)` : '😊 No Adverse Reaction'}</span>
+                                    <span style={{ fontSize: '10.5px', color: '#64748B' }}>+{obs.hoursSinceIngestion.toFixed(1)}h post-meal</span>
+                                  </div>
+                                  {obs.symptomNotes && (
+                                    <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>{obs.symptomNotes}</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Outcome Evaluation Card */}
+                          {hasReactionLogged ? (
+                            <div style={{ background: '#FFF7ED', borderRadius: '12px', padding: '12px 14px', border: '1.5px solid #FED7AA', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <AlertTriangle size={16} color="#EA580C" />
+                                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#9A3412' }}>
+                                  Symptom Trigger Identified
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: '#7C2D12', lineHeight: 1.45 }}>
+                                Adverse symptoms were recorded following testing of <strong>{activeChallenge.displayName}</strong>. To support mucosal healing, keep this food eliminated for the remainder of this trial. Re-test in 3–6 months.
+                              </p>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCompleteChallengeItem('reaction_recorded')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#C2410C',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Confirm Trigger & Keep Set Aside
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCompleteChallengeItem('inconclusive')}
+                                  style={{
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#FFFFFF',
+                                    color: '#64748B',
+                                    border: '1px solid #CBD5E1',
+                                    fontSize: '11.5px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Inconclusive
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '12px 14px', border: '1.5px solid #86EFAC', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <CheckCircle2 size={16} color="#16A34A" />
+                                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#166534' }}>
+                                  {isWindowExpired ? '48-Hour Observation Complete: Tolerated' : 'Complete 48-Hour Observation'}
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: '#14532D', lineHeight: 1.45 }}>
+                                No reactions were reported. Once the observation window is satisfied, this food can be safely reintroduced into your regular rotation.
+                              </p>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCompleteChallengeItem('no_reaction')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#0D9488',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Clear Food & Mark Tolerated ✓
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCompleteChallengeItem('inconclusive')}
+                                  style={{
+                                    padding: '9px 12px',
+                                    borderRadius: '8px',
+                                    background: '#FFFFFF',
+                                    color: '#64748B',
+                                    border: '1px solid #CBD5E1',
+                                    fontSize: '11.5px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  Inconclusive
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
+                      /* No Active Challenge: Select Food to Challenge */
+                      <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                            Start a Structured Single-Food Rechallenge
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px', lineHeight: 1.4 }}>
+                            Select an eliminated staple to test in isolation for 48 hours:
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {activeProtocolDef.eliminatedFoods.map((food, idx) => {
+                            const past = allChallenges.find((c) => c.itemId === food || c.displayName === food);
+                            const isTested = Boolean(past);
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '10px 12px',
+                                  borderRadius: '10px',
+                                  background: isTested ? '#F8FAFC' : '#F0FDFA',
+                                  border: `1px solid ${isTested ? '#E2E8F0' : '#99F6E4'}`,
+                                  gap: '8px',
+                                }}
+                              >
+                                <div>
+                                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>
+                                    {food}
+                                  </div>
+                                  <div style={{ fontSize: '10.5px', color: '#64748B' }}>
+                                    1 standard serving in isolation
+                                  </div>
+                                </div>
+                                {isTested ? (
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      padding: '3px 8px',
+                                      borderRadius: '999px',
+                                      background: past?.outcome === 'no_reaction' ? '#DCFCE7' : past?.outcome === 'reaction_recorded' ? '#FEE2E2' : '#F1F5F9',
+                                      color: past?.outcome === 'no_reaction' ? '#166534' : past?.outcome === 'reaction_recorded' ? '#991B1B' : '#475569',
+                                    }}
+                                  >
+                                    {past?.outcome === 'no_reaction' ? 'Cleared ✓' : past?.outcome === 'reaction_recorded' ? 'Trigger ⚠️' : 'Inconclusive'}
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartChallengeItem(food)}
+                                    style={{
+                                      padding: '8px 14px',
+                                      borderRadius: '8px',
+                                      background: '#0D9488',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      fontSize: '11.5px',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      minHeight: '44px',
+                                    }}
+                                  >
+                                    Start 48h Challenge
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Completed Food Challenges History */}
+                    {allChallenges.filter((c) => c.status === 'completed' || c.status === 'reaction_recorded').length > 0 && (
+                      <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '14px 16px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                          Completed Reintroductions ({allChallenges.filter((c) => c.status === 'completed' || c.status === 'reaction_recorded').length})
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {allChallenges
+                            .filter((c) => c.status === 'completed' || c.status === 'reaction_recorded')
+                            .map((ch) => (
+                              <div
+                                key={ch.id}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '8px 10px',
+                                  borderRadius: '8px',
+                                  background: '#FFFFFF',
+                                  border: '1px solid #E2E8F0',
+                                  fontSize: '12px',
+                                }}
+                              >
+                                <span style={{ fontWeight: 700, color: '#1E293B' }}>{ch.displayName}</span>
+                                <span
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    padding: '2px 8px',
+                                    borderRadius: '999px',
+                                    background: ch.outcome === 'no_reaction' ? '#DCFCE7' : ch.outcome === 'reaction_recorded' ? '#FEE2E2' : '#F1F5F9',
+                                    color: ch.outcome === 'no_reaction' ? '#166534' : ch.outcome === 'reaction_recorded' ? '#991B1B' : '#475569',
+                                  }}
+                                >
+                                  {ch.outcome === 'no_reaction' ? 'Cleared / Tolerated ✓' : ch.outcome === 'reaction_recorded' ? 'Trigger Identified ⚠️' : 'Inconclusive'}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
                   Elimination is only Step 1. The <strong>Testing Phase</strong> is where you reintroduce foods one by one to discover what you can safely enjoy again, preventing unnecessary lifetime restrictions.
@@ -1725,6 +2654,72 @@ R (Recommendation):
                     <span>Bring to Case Prep</span>
                   </button>
                 </div>
+
+                {/* Dedicated High-Resolution Printable SBAR Dossier */}
+                <div className="clinical-trial-printable-dossier">
+                  <div style={{ borderBottom: '2px solid #0F172A', paddingBottom: '16px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          HealthChain Clinical Intelligence &middot; Elimination Suite
+                        </div>
+                        <h1 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 800, color: '#0F172A' }}>
+                          Physician SBAR Clinical Brief
+                        </h1>
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: '12px', color: '#64748B' }}>
+                        <div><strong>Date:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                        <div><strong>Status:</strong> {trial.currentDay >= 7 ? 'Full 7-Day Assessment' : 'Preliminary Calibration'}</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '12px', display: 'flex', gap: '20px', fontSize: '12px', color: '#334155', flexWrap: 'wrap' }}>
+                      <span><strong>Protocol:</strong> {activeProtocolDef.name}</span>
+                      <span><strong>Target Sensitivity:</strong> {activeProtocolDef.targetSensitivity}</span>
+                      <span><strong>Duration:</strong> Day {trial.currentDay} of {trial.totalDays}</span>
+                      <span><strong>Adherence:</strong> {trial.adherencePercentage}%</span>
+                      <span><strong>Symptom Change:</strong> {trial.reductionPercent !== null ? `${trial.reductionPercent}%` : 'Pending'}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '12.5px', lineHeight: 1.6, color: '#1E293B' }}>
+                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>S — SITUATION</div>
+                      <div>Patient presenting with chronic postprandial distress and suspected dietary sensitivities. Structured 28-day elimination protocol ({activeProtocolDef.name}) initiated to identify specific food triggers, reduce systemic inflammatory load, and calibrate mucosal baseline.</div>
+                    </div>
+
+                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>B — BACKGROUND</div>
+                      <div>
+                        <strong>Baseline Severity:</strong> {trial.baselineSeverity === null ? 'Not recorded' : `${trial.baselineSeverity}/10`}.<br />
+                        <strong>Eliminated Compounds:</strong> {activeProtocolDef.eliminatedFoods.join(', ')}.<br />
+                        <strong>Clinical Scope:</strong> Protocol isolates candidate irritants without dynamic or unvalidated dietary exclusions. Selection does not confirm allergy or permanent intolerance.
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>A — ASSESSMENT</div>
+                      <div>
+                        <strong>Current Progress:</strong> Day {trial.currentDay} of {trial.totalDays} &middot; Recorded Adherence: {trial.adherencePercentage}% &middot; Current Severity: {trial.currentSeverity === null ? 'Not recorded' : `${trial.currentSeverity}/10`} ({trial.reductionPercent !== null ? `${trial.reductionPercent}% reduction` : 'calibration in progress'}).<br />
+                        <strong>Correlated Suspect:</strong> {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})${topSuspectFood.correlationPercent > 0 ? ` — observed in ${topSuspectFood.correlationPercent}% of logged flares` : ''}` : 'No primary culprit established from available observations'}.<br />
+                        <strong>Rechallenge Status:</strong> {allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length > 0 ? `${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').length} food(s) tested: ${allChallenges.filter(c => c.status === 'completed' || c.status === 'reaction_recorded').map(c => `${c.displayName} (${c.outcome === 'no_reaction' ? 'Tolerated' : 'Trigger'})`).join(', ')}` : 'Baseline calibration underway; systematic single-food challenges pending.'}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>R — CLINICAL RECOMMENDATIONS</div>
+                      <div>
+                        1. Correlate recorded symptom trajectory with patient history and objective biomarkers before altering treatment plans.<br />
+                        2. Progress to systematic single-food reintroductions (48-hour isolated challenge windows) only after baseline stabilization (&ge;5 check-ins).<br />
+                        3. Avoid lifelong restriction of tolerated foods to preserve gut microbiota diversity and prevent nutritional deficiencies.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #CBD5E1', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <div>HealthChain Clinical Governance v2.0.0 &middot; Confidential Health Information</div>
+                    <div>Reviewing Clinician: ___________________________ Date: _________</div>
+                  </div>
+                </div>
               </div>
             )}
               </>
@@ -1788,6 +2783,90 @@ R (Recommendation):
             </button>
           </div>
         </motion.div>
+
+        {/* Stop Trial Confirmation Dialog */}
+        {showStopModal && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000000,
+              background: 'rgba(15, 23, 42, 0.65)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+          >
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '20px',
+                maxWidth: '420px',
+                width: '100%',
+                padding: '20px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                Stop Current Trial?
+              </div>
+              <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 12px', lineHeight: 1.5 }}>
+                Your observations will be safely archived for doctor review. Please select a reason for stopping:
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {[
+                  { id: 'completed', label: 'Symptoms resolved / feel better' },
+                  { id: 'difficulty', label: 'Too restrictive for daily life' },
+                  { id: 'clinician_advice', label: 'Advised by my clinician to stop' },
+                  { id: 'other', label: 'Other personal reason' },
+                ].map((r) => (
+                  <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155', cursor: 'pointer', minHeight: '36px' }}>
+                    <input
+                      type="radio"
+                      name="stopReason"
+                      checked={stopReason === r.id}
+                      onChange={() => setStopReason(r.id as any)}
+                    />
+                    <span>{r.label}</span>
+                  </label>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowStopModal(false)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
+                >
+                  Keep Going
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleStopTrialConfirm(stopReason)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#DC2626', color: '#FFFFFF', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
+                >
+                  Confirm Stop
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Guided Start Modal */}
+        <GuidedStartModal
+          isOpen={showGuidedStart}
+          onClose={() => setShowGuidedStart(false)}
+          onSelectProtocol={(protocolId, initialSeverity) => {
+            setShowGuidedStart(false);
+            refreshTrialState();
+            setSelectedProtocolId(protocolId);
+            setActiveTab('guardrails');
+          }}
+          onBrowseAll={() => {
+            setShowGuidedStart(false);
+            setActiveTab('protocols');
+          }}
+        />
       </div>
     </AnimatePresence>,
     document.body

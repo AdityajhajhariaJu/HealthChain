@@ -12,6 +12,7 @@ import {
   EliminationTrialProtocol,
   ArchivedTrialState,
 } from '../../services/TriggerEngine';
+import { startNewTrialV2, stopTrialV2 } from '../../services/TrialWorkflowService';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
 export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null }> = ({ initialProtocolId }) => {
@@ -31,6 +32,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
   const handleStartTrial = (protocolId: string) => {
     triggerHapticLight();
     const updated = startTrial(protocolId);
+    startNewTrialV2({ protocolId });
     setActiveTrialState(updated);
     setTrialHistory(getTrialHistory());
     setSelectedProtocolId(null);
@@ -168,7 +170,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 <span style={{ color: '#9A3412', fontSize: '11.5px' }}>Archive this protocol and keep its check-ins?</span>
                 <span style={{ display: 'flex', gap: '7px' }}>
                   <button type="button" onClick={() => setShowEndConfirmation(false)} style={{ border: '1px solid #CBD5E1', borderRadius: '7px', background: '#FFFFFF', color: '#475569', padding: '5px 9px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-                  <button type="button" onClick={() => { stopActiveTrial(); setActiveTrialState(null); setTrialHistory(getTrialHistory()); setShowEndConfirmation(false); }} style={{ border: 0, borderRadius: '7px', background: '#C2410C', color: '#FFFFFF', padding: '5px 9px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Archive</button>
+                  <button type="button" onClick={() => { if (activeTrialState) stopTrialV2(activeTrialState.trialId, 'other'); stopActiveTrial(); setActiveTrialState(null); setTrialHistory(getTrialHistory()); setShowEndConfirmation(false); }} style={{ border: 0, borderRadius: '7px', background: '#C2410C', color: '#FFFFFF', padding: '5px 9px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Archive</button>
                 </span>
               </div>
             )}

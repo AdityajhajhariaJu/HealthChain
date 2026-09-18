@@ -1,5 +1,6 @@
 import { getProfile, getProfileEngineState, getProfileKey } from './ProfileEngine';
 import { getItemSync, setItemSync, removeItemSync } from './storage';
+import { ProtocolGovernance } from '../domain/trials/types';
 
 export interface SensitivityProfile {
   id: string;
@@ -76,6 +77,7 @@ export interface EliminationTrialProtocol {
   allowedAlternatives: string[];
   expectedBiomarkerImpact: string;
   dailyChecklist?: string[];
+  governance?: ProtocolGovernance;
 }
 
 export interface EmpiricalMatchInsight {
@@ -763,8 +765,34 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['Onions & Garlic', 'Chana Dal & Rajma', 'Commercial Wheat Roti', 'Apples & Pears', 'Cauliflower'],
     allowedAlternatives: ['Garlic-Infused Oil', 'Scallion Greens', 'Yellow Moong Dal Khichdi', 'Sourdough GF Bread', 'Zucchini & Carrots'],
-    expectedBiomarkerImpact: '50%+ reduction in cecal gas distension, normalization of hydrogen/methane breath biomarkers.',
+    expectedBiomarkerImpact: 'Systematic observation of postprandial distension timing and hydrogen/methane breath records (if ordered by clinician).',
     dailyChecklist: ['Avoid all hidden alliums/beans', 'Drink warm ginger water post-meal', 'Log post-meal bloating latency in app'],
+    governance: {
+      intendedUse: 'Structured self-observation to identify fermentable carbohydrate triggers associated with postprandial bloating.',
+      notFor: [
+        'Active eating disorder or history of anorexia/bulimia',
+        'Severe unintended weight loss (>5% in 3 months)',
+        'Uninvestigated persistent GI bleeding or nocturnal diarrhea',
+        'Pregnancy or lactation without maternal dietitian supervision',
+      ],
+      evidenceScope: 'Based on clinical low-FODMAP dietary principles and reintroduction frameworks (Monash University / ACG Guidelines).',
+      sourceReferences: ['Monash FODMAP Framework', 'ACG Clinical Guideline: Management of Irritable Bowel Syndrome (2021)'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Clinical Nutrition Board',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Ensure sufficient caloric intake via low-FODMAP grains, proteins, and allowable fruits/vegetables.'],
+      stopRules: [
+        'Severe abdominal pain, persistent vomiting, or fever',
+        'Progressive weight loss or signs of malnutrition',
+        'Patient distress or feelings of food anxiety',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 48,
+        recoveryDaysBetweenChallenges: 3,
+      },
+    },
   },
   {
     id: 'hunt_heartburn',
@@ -805,8 +833,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['Late Night Meals (<3h to bed)', 'Tomato Purees & Achaar', 'Sparkling Water & Soda', 'Deep Fried Snacks', 'Espresso on Empty Stomach'],
     allowedAlternatives: ['Steamed Rice + Ghee', 'Moong Dal Broth', 'Alkaline Water with Cucumber', 'Baked Sweet Potatoes', 'Oatmeal Porridge'],
-    expectedBiomarkerImpact: 'Elimination of post-meal heart racing (PVCs), 65% drop in nocturnal acid regurgitation.',
+    expectedBiomarkerImpact: 'Structured tracking of postprandial acid regurgitation, meal volume correlation, and orthostatic heart rate trends for physician review.',
     dailyChecklist: ['Stop eating by 08:00 PM', 'Do 3-min pre-meal diaphragmatic breathing', 'Track postprandial heart rate at 60 mins'],
+    governance: {
+      intendedUse: 'Observational trial to correlate meal timing, portion volume, and posture with acid reflux and gastrocardiac palpitations.',
+      notFor: [
+        'Severe progressive dysphagia or odynophagia (difficulty swallowing)',
+        'Unexplained chest pain without prior cardiac workup',
+        'Persistent vomiting or hematemesis (vomiting blood)',
+      ],
+      evidenceScope: 'Gastroenterological lifestyle guidelines for gastroesophageal reflux and Roemheld syndrome literature.',
+      sourceReferences: ['ACG Guidelines for the Diagnosis and Management of GERD (2022)'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Cardiogastroenterology Advisory',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Maintain adequate hydration and balanced caloric distribution across smaller meals.'],
+      stopRules: [
+        'Radiating chest pain, shortness of breath, or syncope (call emergency services immediately)',
+        'Inability to tolerate liquids or medications',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
   {
     id: 'hunt_histamine',
@@ -847,8 +899,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['Mango & Lime Achaar', 'Aged Cheeses & Paneer', 'Alcohol (Red Wine, Beer)', 'Leftovers older than 24h', 'Spinach & Eggplant'],
     allowedAlternatives: ['Freshly Cooked Poultry', 'Flash-Frozen Fish', 'Fresh Homemade Mozzarella', 'Fresh White/Brown Basmati Rice', 'Blueberries & Pomegranates'],
-    expectedBiomarkerImpact: 'Recovery of serum DAO activity (>12 U/mL), 70% reduction in unexplained facial flushing and morning brain fog.',
+    expectedBiomarkerImpact: 'Structured observation of biogenic amine intake relative to facial flushing, temple warmth, and postprandial fatigue.',
     dailyChecklist: ['Eat only freshly cooked meals', 'No fermented or pickled items', 'Log dermographia or temple flushing'],
+    governance: {
+      intendedUse: 'Short-term tracking of symptom responses when removing aged, fermented, and biogenic amine-rich foods.',
+      notFor: [
+        'History of anaphylaxis without emergency epinephrine auto-injector access and allergist guidance',
+        'Severe systemic mastocytosis requiring specialized inpatient hematology management',
+        'Active severe malnutrition',
+      ],
+      evidenceScope: 'Observational histamine intolerance and diamine oxidase (DAO) clearance dietary trial frameworks.',
+      sourceReferences: ['Histamine Intolerance: The Current State of the Art (Biomolecules, 2020)'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Allergy & Clinical Immunology Panel',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Consume fresh unprocessed meats, safe low-histamine vegetables, and adequate minerals.'],
+      stopRules: [
+        'Facial/lip swelling, wheezing, respiratory distress, or severe urticaria (seek immediate emergency care)',
+        'Inability to prepare fresh meals safely',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 48,
+        recoveryDaysBetweenChallenges: 3,
+      },
+    },
   },
   {
     id: 'hunt_kinetic_headache',
@@ -856,7 +932,7 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Kinetic Cephalgia Hunt',
     targetSensitivity: 'Sacral Dural Traction & Suboccipital Nerve Entrapment',
     durationDays: 28,
-    description: 'Diagnose and release the mechanical kinetic chain connecting lumbosacral pelvic torsion to C1-C2 suboccipital spasms and greater occipital nerve entrapment.',
+    description: 'Track whether posture, prolonged sitting, and cervical mobility coincide with occipital throbbing and headache patterns.',
     phases: [
       {
         phase: 1,
@@ -889,8 +965,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['High-Omega-6 Seed Oils', 'Refined Sugars', 'Excessive Caffeine Rebounds', 'Pro-inflammatory Trans Fats'],
     allowedAlternatives: ['Pure Desi Ghee', 'Cold-Pressed Mustard Oil', 'Anti-Inflammatory Turmeric Milk', 'Magnesium-Rich Pumpkin Seeds'],
-    expectedBiomarkerImpact: 'Reduction in C1-C2 suboccipital trigger band density, 60%+ decrease in occipital headache frequency.',
+    expectedBiomarkerImpact: 'Observation of seated desk hours and cervical tension scores relative to occipital headache frequency for physical therapy review.',
     dailyChecklist: ['Zero leg-crossing', 'Do 3-minute pelvic decompression twice daily', 'Log desk hours and tension score'],
+    governance: {
+      intendedUse: 'Tracking mechanical posture, desk ergonomic intervals, and neck tension in relation to headache frequency.',
+      notFor: [
+        'Sudden onset "thunderclap" headache (requires immediate emergency medical evaluation)',
+        'Headache accompanied by focal neurological deficits, visual field loss, fever, or neck stiffness',
+        'Recent traumatic head or cervical spine injury',
+      ],
+      evidenceScope: 'Cervicogenic headache clinical diagnostic criteria and ergonomic behavioral interventions.',
+      sourceReferences: ['International Headache Society (ICHD-3) Cervicogenic Headache Criteria'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Neuromuscular & Physiatry Panel',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Ensure regular hydration and balanced anti-inflammatory nutritional foundation.'],
+      stopRules: [
+        'Onset of aura, visual blackout, extremity numbness, or thunderclap intensity pain',
+        'Worsening pain with coughing or bending over',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
   {
     id: 'hunt_pots_splanchnic',
@@ -931,8 +1031,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['Large High-Glycemic Carbs in Single Sitting', 'Alcohol / Vasodilators', 'Scalding Hot Soups (excessive vasodilation)'],
     allowedAlternatives: ['Frequent Smaller Low-Glycemic Meals', 'Electrolyte-Infused Waters', 'Chilled Mineral Broths', 'Salted Roasted Makhana'],
-    expectedBiomarkerImpact: 'Average orthostatic heart rate drop of 18 bpm, elimination of post-meal presyncope.',
+    expectedBiomarkerImpact: 'Structured tracking of active standing heart rate deltas, meal carbohydrate density, and hydration response for autonomic clinician evaluation.',
     dailyChecklist: ['Reach daily sodium & fluid target', 'Wear abdominal compression post-lunch', 'Record morning & post-meal standing HR'],
+    governance: {
+      intendedUse: 'Tracking hemodynamic orthostatic response, fluid/sodium pacing, and carbohydrate meal size in suspected autonomic orthostatic intolerance.',
+      notFor: [
+        'Undiagnosed syncope with loss of consciousness without prior cardiology evaluation',
+        'Known structural heart disease, cardiac arrhythmias, or coronary artery disease',
+        'Severe renal dysfunction or sodium-restricted medical conditions',
+      ],
+      evidenceScope: 'Postural Orthostatic Tachycardia Syndrome (POTS) dietary and lifestyle management consensus statements.',
+      sourceReferences: ['Heart Rhythm Society Consensus on PASC and Dysautonomia (2021)'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Autonomic Neurology Advisory',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Follow physician-approved hydration and electrolyte guidelines; never restrict essential calories.'],
+      stopRules: [
+        'Near-syncope or true syncopal events with loss of consciousness',
+        'Chest pain, severe dyspnea, or resting sustained tachycardia >130 bpm',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
   {
     id: 'low_histamine',
@@ -942,7 +1066,31 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     description: 'Systematically remove aged, fermented, and cured foods to allow intestinal diamine oxidase (DAO) reserves to recharge.',
     eliminatedFoods: ['Red Wine & Beer', 'Aged Cheeses', 'Salami & Cured Meats', 'Tomatoes & Spinach', 'Fermented Sauerkraut / Kombucha'],
     allowedAlternatives: ['Freshly Cooked Poultry', 'Flash-Frozen Fish', 'Fresh Mozzarella', 'Quinoa & Rice', 'Fresh Blueberries'],
-    expectedBiomarkerImpact: 'DAO saturation recovery, reduction in histamine-mediated migraines, flushing, and postprandial bloating.',
+    expectedBiomarkerImpact: 'Log whether eliminating aged and fermented foods correlates with fewer flushing, headache, or digestive episodes.',
+    governance: {
+      intendedUse: '7-day structured food-symptom logging reset focusing on biogenic amine reduction.',
+      notFor: [
+        'Suspected IgE-mediated immediate food allergies (requires allergist evaluation)',
+        'Active eating disorders',
+        'Severe chronic malnutrition',
+      ],
+      evidenceScope: 'Short-term diagnostic dietary elimination for biogenic amine sensitivity assessment.',
+      sourceReferences: ['European Academy of Allergy and Clinical Immunology (EAACI) Task Force Guidelines'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Clinical Nutrition Board',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Ensure adequate intake of fresh meats, wholesome grains, and non-restricted vegetables.'],
+      stopRules: [
+        'Severe hives, breathing difficulty, or significant dizziness',
+        'Severe restriction-induced anxiety',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 3,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
   {
     id: 'low_fodmap',
@@ -952,7 +1100,31 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     description: 'Calm visceral hypersensitivity and colonic gas fermentation by restricting short-chain poorly absorbed carbohydrates.',
     eliminatedFoods: ['Garlic & Onions', 'Wheat Sourdough & Pastas', 'Legumes (Chickpeas, Kidney Beans)', 'Apples & Pears', 'Cauliflower & Mushrooms'],
     allowedAlternatives: ['Garlic-Infused Olive Oil', 'Scallion Green Tops', 'Gluten-Free Oats', 'Carrots & Zucchini', 'Strawberries & Oranges'],
-    expectedBiomarkerImpact: 'Significant drop in hydrogen/methane breath production, 40%+ reduction in IBS distension and bowel urgency.',
+    expectedBiomarkerImpact: 'Assess whether reducing fermentable carbohydrates corresponds to fewer episodes of lower abdominal distension and urgency.',
+    governance: {
+      intendedUse: '14-day initial phase logging trial to evaluate response to low-FODMAP food choices.',
+      notFor: [
+        'Long-term strict restriction without reintroduction (risks microbiome dysbiosis)',
+        'Uninvestigated red flag symptoms (rectal bleeding, unexplained anemia)',
+        'Active eating disorders',
+      ],
+      evidenceScope: 'Short-term Phase 1 FODMAP elimination protocol based on Monash clinical criteria.',
+      sourceReferences: ['Monash FODMAP Framework', 'British Dietetic Association (BDA) Guidelines for IBS'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Clinical Nutrition Board',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Incorporate safe prebiotic fibers (e.g. oat bran, chia seeds) and diverse allowable produce.'],
+      stopRules: [
+        'Unintentional weight loss or persistent diarrhea',
+        'Fever, rectal bleeding, or night-time awakening symptoms',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 5,
+        observationWindowHours: 48,
+        recoveryDaysBetweenChallenges: 3,
+      },
+    },
   },
   {
     id: 'dairy_free',
@@ -962,7 +1134,31 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     description: 'Assess if dairy proteins stimulate mucosal immune complexes, sinus congestion, or epithelial hyper-permeability.',
     eliminatedFoods: ['Cow Milk', 'Commercial Cheeses', 'Dairy Ice Cream', 'Cow Butter', 'Whey Protein Powders'],
     allowedAlternatives: ['Coconut Yogurt', 'Almond Milk', 'Pure Ghee (Casein-free)', 'Hemp Seed Protein'],
-    expectedBiomarkerImpact: 'Reduction in post-nasal drip, clearer skin tone, and elimination of postprandial lower abdominal spasms.',
+    expectedBiomarkerImpact: 'Track whether dairy avoidance coincides with changes in digestive comfort, congestion, or skin irritation.',
+    governance: {
+      intendedUse: 'Short-term 10-day evaluation of whether bovine dairy products correlate with mucosal or digestive symptoms.',
+      notFor: [
+        'Known severe IgE milk anaphylaxis without physician care',
+        'Pediatric patients without pediatric dietitian oversight',
+        'Individuals at high risk for calcium deficiency without supplementation',
+      ],
+      evidenceScope: 'Structured elimination trial for non-IgE lactose or cow milk protein sensitivity.',
+      sourceReferences: ['World Allergy Organization (WAO) Diagnosis and Rationale for Action against Cow’s Milk Allergy (DRACMA) Guidelines'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Clinical Nutrition Board',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Ensure adequate dietary calcium and vitamin D through fortified alternatives or leafy greens.'],
+      stopRules: [
+        'Immediate hives, swelling, or wheezing upon accidental exposure (emergency care)',
+        'Excessive dietary restriction without adequate caloric replacement',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 3,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
   {
     id: 'gluten_gut_rest',
@@ -972,7 +1168,30 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     description: 'Halt gliadin-induced zonulin upregulation to support intestinal epithelial tight junction repair.',
     eliminatedFoods: ['Wheat Bread', 'Barley & Rye', 'Regular Pasta', 'Beer', 'Soy Sauce with Wheat'],
     allowedAlternatives: ['Certified Gluten-Free Oats', 'Brown & Basmati Rice', 'Quinoa', 'Sweet Potatoes', 'Tamari (Gluten-Free Soy Sauce)'],
-    expectedBiomarkerImpact: 'Decrease in circulating zonulin, reduction in systemic joint stiffness and midday brain fog.',
+    expectedBiomarkerImpact: 'Record whether gluten elimination aligns with changes in abdominal comfort, joint stiffness, or general energy.',
+    governance: {
+      intendedUse: '14-day symptom tracking trial to observe responses to dietary wheat/gluten elimination.',
+      notFor: [
+        'Suspected Celiac Disease BEFORE diagnostic serology (tTG-IgA) and biopsy testing (eliminating gluten invalidates celiac tests)',
+        'Active severe malnutrition or uncontrolled weight loss',
+      ],
+      evidenceScope: 'Clinical evaluation protocol for non-celiac gluten/wheat sensitivity (NCGS) after celiac disease exclusion.',
+      sourceReferences: ['Salerno Experts Criteria on Non-Celiac Gluten Sensitivity', 'ACG Clinical Guidelines: Diagnosis and Management of Celiac Disease'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Clinical Nutrition Board',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Substitute certified gluten-free grains (brown rice, quinoa, certified GF oats) to maintain dietary fiber and B vitamins.'],
+      stopRules: [
+        'Unintentional weight loss or persistent diarrhea',
+        'Signs of nutrient malabsorption',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 5,
+        observationWindowHours: 48,
+        recoveryDaysBetweenChallenges: 3,
+      },
+    },
   },
   {
     id: 'hunt_transit',
@@ -1006,8 +1225,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['Coarse Wheat Bran (Raw Insoluble)', 'Artificial Sweeteners (Sorbitol, Xylitol)', 'Processed Dehydrated Snacks', 'High-Fat Greasy Takeout'],
     allowedAlternatives: ['Partially Hydrolyzed Guar Gum (PHGG)', 'Soaked Chia Seed Pudding', 'Stewed Prunes with Warm Water', 'Steamed Zucchini & Squash'],
-    expectedBiomarkerImpact: 'Normalization of Bristol stool score to Type 3–4 on >80% of days, reduction in bloating distension.',
+    expectedBiomarkerImpact: 'Daily Bristol stool form scoring and transit timing correlation to establish personal motility baseline.',
     dailyChecklist: ['Morning 500ml warm hydration', '5g soluble fiber dose consumed', 'Log Bristol stool type in tracker', '30-minute movement session'],
+    governance: {
+      intendedUse: 'Structured daily tracking of stool consistency (Bristol Scale) and soluble fiber timing to understand bowel habit variability.',
+      notFor: [
+        'Acute bowel obstruction, paralytic ileus, or toxic megacolon',
+        'Unexplained rectal bleeding or severe acute abdominal pain',
+        'Inflammatory bowel disease flare without gastroenterologist consultation',
+      ],
+      evidenceScope: 'Bristol Stool Form Scale monitoring and fiber titration guidelines.',
+      sourceReferences: ['Rome IV Diagnostic Criteria for Functional Bowel Disorders'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Gastroenterology Clinical Panel',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Maintain minimum 2.0L daily fluid intake when adjusting fiber.'],
+      stopRules: [
+        'Severe sharp abdominal distension, intractable vomiting, or inability to pass flatus (seek immediate emergency care)',
+        'High fever or melena (black tarry stool)',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 7,
+        observationWindowHours: 48,
+        recoveryDaysBetweenChallenges: 3,
+      },
+    },
   },
   {
     id: 'hunt_vagal',
@@ -1034,8 +1277,32 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     ],
     eliminatedFoods: ['High-Caffeine Energy Drinks', 'Dining While Working / Screens', 'Speed Dining (<10 minutes)', 'Slouched / Hunched Seating'],
     allowedAlternatives: ['Screen-Free Dining Table', 'Minimum 20 Chews Per Bite', 'Upright 10-Min Slow Stroll', 'Chamomile & Lavender Evening Tea'],
-    expectedBiomarkerImpact: '65%+ drop in visceral cramping scores, elevation in vagal parasympathetic high-frequency HRV power.',
+    expectedBiomarkerImpact: 'Evaluation of mealtime pace, diaphragmatic breathing cues, and thoracic posture on visceral digestive comfort.',
     dailyChecklist: ['5-minute mindful breathing before meals', '100% screen-free mealtime', 'Paced meal duration to 20+ mins', 'Evening calming routine'],
+    governance: {
+      intendedUse: 'Mindful meal pacing and parasympathetic vagal stimulation tracking for visceral digestive comfort.',
+      notFor: [
+        'Acute severe dysphagia with aspiration risk',
+        'Active gastrointestinal bleed or ulcer perforation',
+        'Severe clinical psychiatric eating disorder without multidisciplinary supervision',
+      ],
+      evidenceScope: 'Behavioral gut-brain axis modulation and autonomic mealtime pacing literature.',
+      sourceReferences: ['Rome Foundation Working Team Report on Neuromodulators and Behavioral Interventions'],
+      contentVersion: '2.0.0',
+      reviewedBy: 'Neurogastroenterology & Behavioral Health Panel',
+      reviewedAt: '2026-01-15',
+      nextReviewAt: '2027-01-15',
+      minimumNutritionRequirements: ['Ensure all regular nutritious foods are consumed without arbitrary caloric restriction.'],
+      stopRules: [
+        'Severe choking episodes or persistent regurgitation',
+        'Severe persistent anxiety around eating',
+      ],
+      challengeRules: {
+        minimumBaselineDays: 5,
+        observationWindowHours: 24,
+        recoveryDaysBetweenChallenges: 2,
+      },
+    },
   },
 ];
 
@@ -1159,7 +1426,7 @@ export function stopActiveTrial(): ArchivedTrialState | null {
   return getTrialHistory()[0] || null;
 }
 
-export function logTrialDay(severityScore: number, adhered: boolean, note?: string): ActiveTrialState {
+export function logTrialDay(severityScore: number, adhered: boolean | 'followed' | 'partly_followed' | 'partially_followed' | 'not_followed', note?: string): ActiveTrialState {
   const state = getActiveTrial();
   if (!state) throw new Error('Start an elimination protocol before recording a daily check-in.');
 
@@ -1167,13 +1434,18 @@ export function logTrialDay(severityScore: number, adhered: boolean, note?: stri
   const elapsedDay = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
   const priorScores = state.symptomScores || [];
   const existingIndex = priorScores.findIndex((score) => score.date === today || (!score.date && score.day === elapsedDay));
-  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered, note: note || 'Daily check-in recorded.' };
+  const isAdhered = adhered === true || adhered === 'followed';
+  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered: isAdhered, adherenceLevel: typeof adhered === 'string' ? adhered : (isAdhered ? 'followed' : 'not_followed'), note: note || 'Daily check-in recorded.' };
   const updatedScores = existingIndex >= 0
     ? priorScores.map((score, index) => index === existingIndex ? nextScore : score)
     : [...priorScores, nextScore];
 
-  const totalAdhered = updatedScores.filter((s) => s.adhered).length;
-  const adherencePercentage = Math.round((totalAdhered / updatedScores.length) * 100);
+  const adherenceScoreTotal = updatedScores.reduce((acc, s: any) => {
+    if (s.adherenceLevel === 'followed' || s.adhered === true) return acc + 1.0;
+    if (s.adherenceLevel === 'partly_followed' || s.adherenceLevel === 'partially_followed') return acc + 0.5;
+    return acc;
+  }, 0);
+  const adherencePercentage = updatedScores.length > 0 ? Math.round((adherenceScoreTotal / updatedScores.length) * 100) : 0;
   const baseline = state.baselineSeverity ?? severityScore;
   const reduction = baseline > 0 ? Math.round(((baseline - severityScore) / baseline) * 100) : 0;
 

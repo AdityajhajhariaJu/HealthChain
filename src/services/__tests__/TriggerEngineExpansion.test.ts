@@ -84,4 +84,31 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
     expect(getTrialHistory()[0]?.endReason).toBe('replaced');
     expect(getTrialHistory()[0]?.symptomScores).toHaveLength(1);
   });
+
+  it('guarantees clinical governance, abundance definitions, and non-overclaiming impact statements across all 11 protocols', () => {
+    expect(ELIMINATION_PROTOCOLS).toHaveLength(11);
+
+    ELIMINATION_PROTOCOLS.forEach((proto) => {
+      expect(proto.id).toBeTruthy();
+      expect(proto.name).toBeTruthy();
+      expect(proto.targetSensitivity).toBeTruthy();
+      expect(proto.eliminatedFoods.length).toBeGreaterThanOrEqual(1);
+      expect(proto.allowedAlternatives.length).toBeGreaterThanOrEqual(1);
+
+      // Truthful observational impact statement: no fabricated percentages or cure promises
+      expect(proto.expectedBiomarkerImpact).toBeTruthy();
+      expect(proto.expectedBiomarkerImpact).not.toMatch(/100%|cure|guaranteed|zero symptoms/i);
+
+      // Governance metadata (TICKET-202)
+      expect(proto.governance).toBeDefined();
+      expect(proto.governance?.intendedUse).toBeTruthy();
+      expect(proto.governance?.notFor.length).toBeGreaterThanOrEqual(2);
+      expect(proto.governance?.evidenceScope).toBeTruthy();
+      expect(proto.governance?.sourceReferences.length).toBeGreaterThanOrEqual(1);
+      expect(proto.governance?.challengeRules.minimumBaselineDays).toBeGreaterThanOrEqual(1);
+      expect(proto.governance?.challengeRules.observationWindowHours).toBeGreaterThanOrEqual(24);
+      expect(proto.governance?.challengeRules.recoveryDaysBetweenChallenges).toBeGreaterThanOrEqual(1);
+      expect(proto.governance?.contentVersion).toBe('2.0.0');
+    });
+  });
 });

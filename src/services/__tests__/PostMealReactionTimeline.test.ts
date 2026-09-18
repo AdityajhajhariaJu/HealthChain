@@ -87,4 +87,34 @@ describe('Post-Meal Reaction Timeline & Incubation Engine', () => {
     expect(eventDetail?.logIdentifier).toBe('meal_test_2');
     expect(eventDetail?.reaction?.label).toBe('No bloating');
   });
+
+  it('rejects write and prevents fallback corruption of latest meal when mealId is unknown (TICKET-102)', () => {
+    addNutritionLog({
+      id: 'meal_safe_latest',
+      meal: 'Khichdi with Ghee',
+      calories: 300,
+    });
+
+    const result = updateNutritionLogReaction('non_existent_meal_id', {
+      reactionType: 'heartburn',
+      system: 'stomach',
+      severity: 3,
+      label: 'Severe heartburn',
+      emoji: '🔥',
+      incubationHours: 1.0,
+      loggedAt: new Date().toISOString(),
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: 'MEAL_NOT_FOUND',
+      logIdentifier: 'non_existent_meal_id',
+    });
+
+    // Verify latest meal was NOT corrupted!
+    const profile = getProfile();
+    const latestMeal = profile.nutrition.recentLogs.find((l: any) => l.id === 'meal_safe_latest');
+    expect(latestMeal.reaction).toBeUndefined();
+  });
 });
+
