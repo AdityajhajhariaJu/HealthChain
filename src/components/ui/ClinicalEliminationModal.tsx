@@ -598,7 +598,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
         height: inline ? 'auto' : (isMobile ? '92vh' : 'auto'),
         background: '#FFFFFF',
         borderRadius: inline ? '20px' : (isMobile ? '24px 24px 0 0' : '28px'),
-        border: '1px solid #E2E8F0',
+        border: '1.5px solid rgba(226, 232, 240, 0.9)',
         boxShadow: inline ? '0 4px 20px rgba(15, 23, 42, 0.05)' : '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
         display: 'flex',
         flexDirection: 'column',
@@ -610,8 +610,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
           <div
             style={{
               padding: isMobile ? '14px 16px' : '16px 22px',
-              borderBottom: '1px solid #F1F5F9',
-              background: '#FFFFFF',
+              borderBottom: '1px solid #E2E8F0',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -627,13 +627,13 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   aria-label={backButtonLabel}
                   title={backButtonLabel}
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    minWidth: '36px',
-                    minHeight: '36px',
-                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    minWidth: '38px',
+                    minHeight: '38px',
+                    borderRadius: '12px',
                     background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
+                    border: '1.5px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -641,7 +641,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     cursor: 'pointer',
                     flexShrink: 0,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                    transition: 'background 0.15s ease',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   <ArrowLeft size={16} />
@@ -650,19 +650,20 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
 
               <div
                 style={{
-                  width: isMobile ? '34px' : '38px',
-                  height: isMobile ? '34px' : '38px',
-                  borderRadius: '10px',
-                  background: '#F1F5F9',
-                  border: '1px solid #E2E8F0',
+                  width: isMobile ? '36px' : '40px',
+                  height: isMobile ? '36px' : '40px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                  border: '1.5px solid #99F6E4',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#0F172A',
+                  color: '#0D9488',
                   flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.12)',
                 }}
               >
-                <Target size={isMobile ? 16 : 18} />
+                <Target size={isMobile ? 18 : 20} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -670,14 +671,19 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     style={{
                       fontSize: '9.5px',
                       fontWeight: 800,
-                      color: suiteMode === 'onboarding' ? '#065F46' : '#475569',
-                      background: suiteMode === 'onboarding' ? '#ECFDF5' : '#F1F5F9',
-                      padding: '2px 7px',
+                      color: suiteMode === 'onboarding' ? '#0F766E' : '#475569',
+                      background: suiteMode === 'onboarding' ? '#F0FDFA' : '#F1F5F9',
+                      border: suiteMode === 'onboarding' ? '1px solid #99F6E4' : '1px solid #E2E8F0',
+                      padding: '2px 8px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
                       textTransform: 'uppercase',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: suiteMode === 'onboarding' ? '#0D9488' : '#64748B' }} />
                     {suiteMode === 'onboarding'
                       ? 'ELIMINATION SUITE ONBOARDING'
                       : isProtocolsTab
@@ -687,7 +693,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       : 'SELECT A RESET'}
                   </span>
                   {suiteMode === 'onboarding' ? (
-                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 700 }}>
                       Step-by-Step Clinical Intake
                     </span>
                   ) : isProtocolsTab ? (
@@ -707,10 +713,10 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 <h2
                   id="elimination-modal-title"
                   style={{
-                    fontSize: isMobile ? '15px' : '18px',
+                    fontSize: isMobile ? '16px' : '18px',
                     fontWeight: 800,
                     color: '#0F172A',
-                    margin: '1px 0 0',
+                    margin: '2px 0 0',
                     letterSpacing: '-0.3px',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -735,11 +741,13 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     aria-label="Trial options"
                     title="Trial Options"
                     style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
+                      width: '38px',
+                      height: '38px',
+                      minWidth: '38px',
+                      minHeight: '38px',
+                      borderRadius: '12px',
                       background: showOverflowMenu ? '#F1F5F9' : '#FFFFFF',
-                      border: '1px solid #E2E8F0',
+                      border: '1.5px solid #E2E8F0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -760,15 +768,15 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       <div
                         style={{
                           position: 'absolute',
-                          top: '42px',
+                          top: '44px',
                           right: 0,
                           background: '#FFFFFF',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                          borderRadius: '14px',
+                          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.15)',
                           border: '1px solid #E2E8F0',
                           padding: '6px',
                           zIndex: 100,
-                          minWidth: '170px',
+                          minWidth: '185px',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '2px',
@@ -785,8 +793,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '9px 12px',
-                            borderRadius: '8px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
                             border: 'none',
                             background: 'none',
                             fontSize: '12px',
@@ -795,6 +803,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             cursor: 'pointer',
                             textAlign: 'left',
                             width: '100%',
+                            minHeight: '40px',
                           }}
                         >
                           <Play size={14} /> Resume Trial
@@ -810,8 +819,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '9px 12px',
-                            borderRadius: '8px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
                             border: 'none',
                             background: 'none',
                             fontSize: '12px',
@@ -820,6 +829,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             cursor: 'pointer',
                             textAlign: 'left',
                             width: '100%',
+                            minHeight: '40px',
                           }}
                         >
                           <Pause size={14} /> Pause Trial
@@ -836,8 +846,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          padding: '9px 12px',
-                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
                           border: 'none',
                           background: 'none',
                           fontSize: '12px',
@@ -846,6 +856,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           cursor: 'pointer',
                           textAlign: 'left',
                           width: '100%',
+                          minHeight: '40px',
                         }}
                       >
                         <Compass size={14} /> Retake Guided Intake
@@ -862,8 +873,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '9px 12px',
-                            borderRadius: '8px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
                             border: 'none',
                             background: 'none',
                             fontSize: '12px',
@@ -872,6 +883,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             cursor: 'pointer',
                             textAlign: 'left',
                             width: '100%',
+                            minHeight: '40px',
                           }}
                         >
                           <ClipboardList size={14} /> View Intake Assessment
@@ -889,8 +901,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          padding: '9px 12px',
-                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
                           border: 'none',
                           background: 'none',
                           fontSize: '12px',
@@ -899,6 +911,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           cursor: 'pointer',
                           textAlign: 'left',
                           width: '100%',
+                          minHeight: '40px',
                         }}
                       >
                         <RotateCcw size={14} /> Browse All Protocols
@@ -916,8 +929,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          padding: '9px 12px',
-                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
                           border: 'none',
                           background: 'none',
                           fontSize: '12px',
@@ -926,6 +939,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           cursor: 'pointer',
                           textAlign: 'left',
                           width: '100%',
+                          minHeight: '40px',
                         }}
                       >
                         <StopCircle size={14} /> Stop Trial
@@ -941,8 +955,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          padding: '9px 12px',
-                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
                           border: 'none',
                           background: 'none',
                           fontSize: '12px',
@@ -951,6 +965,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           cursor: 'pointer',
                           textAlign: 'left',
                           width: '100%',
+                          minHeight: '40px',
                         }}
                       >
                         <Trash2 size={14} /> Reset Protocol & Start Fresh
@@ -970,20 +985,21 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   }}
                   aria-label="Close elimination outcomes modal"
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    minWidth: '36px',
-                    minHeight: '36px',
-                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    minWidth: '38px',
+                    minHeight: '38px',
+                    borderRadius: '12px',
                     background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
+                    border: '1.5px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#64748B',
                     cursor: 'pointer',
                     flexShrink: 0,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   <X size={16} />
@@ -998,7 +1014,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               className="hide-scrollbar"
               style={{
                 display: 'flex',
-                padding: '8px 16px',
+                padding: '10px 16px',
                 background: '#F8FAFC',
                 borderBottom: '1px solid #E2E8F0',
                 gap: '8px',
@@ -1027,23 +1043,24 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
+                      gap: '7px',
                       padding: '8px 14px',
-                      borderRadius: '10px',
-                      border: 'none',
-                      background: isActive ? '#FFFFFF' : 'transparent',
-                      color: isActive ? '#059669' : '#64748B',
+                      minHeight: '42px',
+                      borderRadius: '12px',
+                      border: isActive ? '1.5px solid #99F6E4' : '1.5px solid transparent',
+                      background: isActive ? '#F0FDFA' : 'transparent',
+                      color: isActive ? '#0D9488' : '#64748B',
                       fontSize: '12px',
-                      fontWeight: 700,
+                      fontWeight: isActive ? 800 : 600,
                       cursor: 'pointer',
-                      boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                      boxShadow: isActive ? '0 2px 8px rgba(13, 148, 136, 0.12)' : 'none',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                       flex: '0 0 auto',
-                      transition: 'all 0.2s ease',
+                      transition: 'all 0.18s ease',
                     }}
                   >
-                    <Icon size={14} />
+                    <Icon size={14} color={isActive ? '#0D9488' : '#64748B'} />
                     <span>{tab.label}</span>
                     {tab.id === 'protocols' && (
                       <span
@@ -1052,8 +1069,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           fontWeight: 800,
                           padding: '1px 6px',
                           borderRadius: '999px',
-                          background: isActive ? '#ECFDF5' : '#E2E8F0',
-                          color: isActive ? '#059669' : '#64748B',
+                          background: isActive ? '#CCFBF1' : '#E2E8F0',
+                          color: isActive ? '#0F766E' : '#64748B',
                           marginLeft: '2px',
                         }}
                       >
@@ -1518,22 +1535,22 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     {/* Ambient Daily Header */}
                     <div
                       style={{
-                        background: '#FFFFFF',
-                        borderRadius: '16px',
-                        padding: '16px',
-                        border: '1px solid #F1F5F9',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                        background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 65%, #F8FAFC 100%)',
+                        borderRadius: '18px',
+                        padding: '16px 18px',
+                        border: '1.5px solid #CCFBF1',
+                        boxShadow: '0 2px 10px rgba(13, 148, 136, 0.05)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '8px',
+                        gap: '10px',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                         <div>
-                          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                             {activePhaseObj.title.split(':')[1]?.trim() || activePhaseObj.title}
                           </div>
-                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '1px' }}>
+                          <div style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', marginTop: '1px' }}>
                             Day {trial.currentDay} of {trial.totalDays} • {activeProtocolDef.name}
                           </div>
                         </div>
@@ -1542,25 +1559,29 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: '#059669',
+                              color: '#065F46',
                               background: '#ECFDF5',
-                              border: '1px solid #A7F3D0',
-                              padding: '2px 8px',
+                              border: '1.5px solid #A7F3D0',
+                              padding: '3px 10px',
                               borderRadius: '999px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                           >
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
                             {trial.adherencePercentage}% Adherence
                           </span>
                         </div>
                       </div>
 
-                      {/* Hairline 3px Progress Bar */}
-                      <div style={{ height: '4px', width: '100%', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
+                      {/* Hairline 4px Progress Bar */}
+                      <div style={{ height: '5px', width: '100%', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
                             width: `${Math.min(100, Math.round((trial.currentDay / trial.totalDays) * 100))}%`,
-                            background: '#10B981',
+                            background: 'linear-gradient(90deg, #14B8A6 0%, #0D9488 100%)',
                             borderRadius: '999px',
                             transition: 'width 0.3s ease',
                           }}
@@ -1570,7 +1591,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
 
                     {/* Paused State Notification */}
                     {trialV2?.status === 'paused' && (
-                      <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '10px 14px', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ background: '#FFFBEB', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Pause size={16} color="#D97706" />
                           <div>
@@ -1581,7 +1602,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         <button
                           type="button"
                           onClick={handleResumeTrial}
-                          style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: '6px', padding: '5px 12px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         >
                           <Play size={12} /> Resume
                         </button>
@@ -1591,51 +1612,92 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     {/* Card 1: What You Can Abundantly Enjoy Today (Monash Positive Food Anchor) */}
                     <div
                       style={{
-                        background: '#FFFFFF',
-                        borderRadius: '16px',
-                        padding: '16px',
-                        border: '1px solid #F1F5F9',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                        background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 65%, #F8FAFC 100%)',
+                        borderRadius: '18px',
+                        padding: '18px',
+                        border: '1.5px solid #CCFBF1',
+                        boxShadow: '0 2px 10px rgba(13, 148, 136, 0.04)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Apple size={16} color="#059669" />
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <div
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '8px',
+                              background: '#ECFDF5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Apple size={16} color="#059669" />
+                          </div>
+                          <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
                             What You Can Abundantly Enjoy Today
                           </span>
                         </div>
-                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#059669', background: '#ECFDF5', padding: '2px 8px', borderRadius: '999px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#065F46', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 9px', borderRadius: '999px' }}>
                           Safe Staples
                         </span>
                       </div>
-                      <div style={{ fontSize: '11.5px', color: '#64748B', marginBottom: '10px' }}>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '12px' }}>
                         Restriction is temporary. Focus your meals around these nourishing, tolerated staples:
                       </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
                         {activeProtocolDef.allowedAlternatives.slice(0, 4).map((alt, idx) => (
                           <span
                             key={idx}
                             style={{
                               fontSize: '11.5px',
-                              fontWeight: 600,
-                              color: '#0F172A',
-                              background: '#F8FAFC',
-                              border: '1px solid #E2E8F0',
-                              padding: '4px 10px',
-                              borderRadius: '8px',
+                              fontWeight: 700,
+                              color: '#065F46',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              padding: '5px 11px',
+                              borderRadius: '10px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                           >
                             ✓ {alt}
                           </span>
                         ))}
                       </div>
-                      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', fontSize: '11px', color: '#64748B' }}>
-                        <span>Temporarily set aside: {activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}</span>
+
+                      {/* Culturally Grounded Indian Kitchen Safe Staple Callout */}
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          background: '#F0FDF4',
+                          border: '1px solid #BBF7D0',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          fontSize: '11.5px',
+                          color: '#166534',
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        <Sparkles size={14} color="#16A34A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div>
+                          <strong>Indian Kitchen Safe Staple:</strong> Cook with authentic <strong>Hing (Asafoetida)</strong> & garlic-infused oil to capture full rich aroma without fermentable fructans. Soothing options: <strong>Moong Dal Khichdi</strong>, <strong>Sourdough</strong>, and <strong>Lactose-Free Chaas</strong>.
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', fontSize: '11.5px', color: '#64748B' }}>
+                        <span>Temporarily set aside: <strong>{activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}</strong></span>
                         <button
                           type="button"
-                          onClick={() => setShowSwapDrawer(true)}
-                          style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: '11px' }}
+                          onClick={() => {
+                            triggerHapticLight();
+                            setShowSwapDrawer(true);
+                          }}
+                          style={{ background: 'none', border: 'none', color: '#0D9488', fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: '11.5px' }}
                         >
                           Full swap guide ({activeProtocolDef.allowedAlternatives.length} items) →
                         </button>
@@ -1646,16 +1708,31 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     <div
                       style={{
                         background: '#FFFFFF',
-                        borderRadius: '16px',
-                        padding: '16px',
-                        border: '1px solid #F1F5F9',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                        borderRadius: '18px',
+                        padding: '18px',
+                        border: '1.5px solid #E2E8F0',
+                        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', margin: 0, letterSpacing: '0.4px' }}>
-                          Today's Action Checklist
-                        </h3>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', margin: 0, letterSpacing: '0.4px' }}>
+                            Today's Action Checklist
+                          </h3>
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              color: '#065F46',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              padding: '1px 8px',
+                              borderRadius: '999px',
+                            }}
+                          >
+                            {Object.values(checklist).filter(Boolean).length}/{checklistItems.length} Done
+                          </span>
+                        </div>
                         <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
                           Tap when completed
                         </span>
@@ -1663,7 +1740,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {checklistItems.map((item, idx) => (
                           <React.Fragment key={item.id}>
-                            {idx > 0 && <div style={{ height: '1px', background: '#F8FAFC', margin: '2px 0' }} />}
+                            {idx > 0 && <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />}
                             <div
                               role="button"
                               tabIndex={0}
@@ -1672,17 +1749,18 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '12px',
-                                padding: '8px 4px',
-                                borderRadius: '8px',
+                                padding: '10px 8px',
+                                borderRadius: '10px',
                                 cursor: 'pointer',
-                                minHeight: '40px',
-                                transition: 'background 0.15s ease',
+                                minHeight: '44px',
+                                background: checklist[item.id] ? '#F8FAFC' : 'transparent',
+                                transition: 'all 0.15s ease',
                               }}
                             >
                               <div
                                 style={{
-                                  width: '20px',
-                                  height: '20px',
+                                  width: '22px',
+                                  height: '22px',
                                   borderRadius: '50%',
                                   background: checklist[item.id] ? '#10B981' : '#FFFFFF',
                                   border: checklist[item.id] ? 'none' : '2px solid #CBD5E1',
@@ -1692,15 +1770,16 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                   color: '#FFFFFF',
                                   flexShrink: 0,
                                   transition: 'all 0.15s ease',
+                                  boxShadow: checklist[item.id] ? '0 2px 6px rgba(16, 185, 129, 0.3)' : 'none',
                                 }}
                               >
                                 {checklist[item.id] && <Check size={13} strokeWidth={3} />}
                               </div>
                               <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '12.5px', fontWeight: 600, color: checklist[item.id] ? '#94A3B8' : '#0F172A', textDecoration: checklist[item.id] ? 'line-through' : 'none' }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 700, color: checklist[item.id] ? '#94A3B8' : '#0F172A', textDecoration: checklist[item.id] ? 'line-through' : 'none' }}>
                                   {item.label}
                                 </div>
-                                <div style={{ fontSize: '11px', color: '#94A3B8' }}>{item.desc}</div>
+                                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>{item.desc}</div>
                               </div>
                             </div>
                           </React.Fragment>
@@ -1712,29 +1791,30 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     <div
                       style={{
                         background: '#FFFFFF',
-                        borderRadius: '16px',
-                        padding: '16px',
-                        border: '1px solid #F1F5F9',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                        borderRadius: '18px',
+                        padding: '18px',
+                        border: '1.5px solid #E2E8F0',
+                        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                          <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
                             How do you feel today? (Day {trial.currentDay})
                           </div>
-                          <div style={{ fontSize: '11px', color: '#64748B' }}>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
                             Rate your overall gut and body comfort:
                           </div>
                         </div>
                         <div
                           style={{
                             fontSize: '11.5px',
-                            fontWeight: 700,
-                            padding: '2px 8px',
+                            fontWeight: 800,
+                            padding: '3px 10px',
                             borderRadius: '999px',
                             background: severityScore === null ? '#F1F5F9' : severityScore <= 3 ? '#DCFCE7' : severityScore <= 6 ? '#FEF3C7' : '#FEE2E2',
                             color: severityScore === null ? '#64748B' : severityScore <= 3 ? '#15803D' : severityScore <= 6 ? '#B45309' : '#B91C1C',
+                            border: severityScore === null ? '1px solid #E2E8F0' : severityScore <= 3 ? '1px solid #86EFAC' : severityScore <= 6 ? '1px solid #FDE68A' : '1px solid #FECACA',
                           }}
                         >
                           {severityScore === null ? 'Select score' : severityScore <= 3 ? `😊 Calm (${severityScore}/10)` : severityScore <= 6 ? `😐 Mild (${severityScore}/10)` : `😣 Flare (${severityScore}/10)`}
@@ -1742,7 +1822,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       </div>
 
                       {/* 4 Discrete Reaction Cards */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
                         {[
                           { score: 2, label: 'Calm', emoji: '😊' },
                           { score: 4, label: 'Good', emoji: '🙂' },
@@ -1759,31 +1839,56 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 setSeverityScore(btn.score);
                               }}
                               style={{
-                                padding: '10px 4px',
-                                borderRadius: '10px',
-                                border: isSelected ? '2px solid #10B981' : '1px solid #E2E8F0',
-                                background: isSelected ? '#ECFDF5' : '#FAFAFA',
+                                padding: '12px 6px',
+                                borderRadius: '12px',
+                                border: isSelected ? '2px solid #0D9488' : '1.5px solid #E2E8F0',
+                                background: isSelected ? '#F0FDFA' : '#FAFAFA',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: '3px',
                                 transition: 'all 0.15s ease',
+                                minHeight: '52px',
+                                boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                               }}
                             >
-                              <span style={{ fontSize: '18px' }}>{btn.emoji}</span>
-                              <span style={{ fontSize: '11px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#065F46' : '#334155' }}>
+                              <span style={{ fontSize: '20px' }}>{btn.emoji}</span>
+                              <span style={{ fontSize: '11.5px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#0F766E' : '#334155' }}>
                                 {btn.label}
                               </span>
-                              <span style={{ fontSize: '9px', color: '#94A3B8' }}>{btn.score}/10</span>
+                              <span style={{ fontSize: '9.5px', fontWeight: 600, color: isSelected ? '#0D9488' : '#94A3B8' }}>{btn.score}/10</span>
                             </button>
                           );
                         })}
                       </div>
 
+                      {/* Qualitative Slider Feedback Banner */}
+                      <div
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          background: severityScore === null ? '#F8FAFC' : severityScore <= 3 ? '#F0FDF4' : severityScore <= 6 ? '#FFFBEB' : '#FEF2F2',
+                          border: `1px solid ${severityScore === null ? '#E2E8F0' : severityScore <= 3 ? '#BBF7D0' : severityScore <= 6 ? '#FDE68A' : '#FECACA'}`,
+                          marginBottom: '10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: severityScore === null ? '#64748B' : severityScore <= 3 ? '#166534' : severityScore <= 6 ? '#92400E' : '#991B1B',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {severityScore === null
+                          ? '👆 Tap a reaction or drag slider below (1 = Calm, 10 = Flare)'
+                          : severityScore <= 3
+                          ? `😊 Score ${severityScore}: Calm & settled — zero postprandial distress`
+                          : severityScore <= 6
+                          ? `😐 Score ${severityScore}: Mild sensitivity — slight bloating, easily manageable`
+                          : `😣 Score ${severityScore}: Flare reaction — discomfort noted, soothing rest recommended`}
+                      </div>
+
                       {/* Continuous Slider (Role slider for full fine-tuning & test compatibility) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#059669' }}>1</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0D9488' }}>1 Calm</span>
                         <input
                           type="range"
                           role="slider"
@@ -1793,22 +1898,25 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           step="0.5"
                           value={severityScore ?? 5}
                           onChange={(e) => setSeverityScore(parseFloat(e.target.value))}
-                          style={{ flex: 1, height: '4px', accentColor: '#10B981' }}
+                          style={{ flex: 1, height: '6px', accentColor: '#0D9488', cursor: 'pointer' }}
                         />
-                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#DC2626' }}>10</span>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#DC2626' }}>10 Flare</span>
                       </div>
 
                       {/* Progressive Disclosure for Adherence & Notes */}
-                      <div style={{ marginBottom: '12px' }}>
+                      <div style={{ marginBottom: '14px' }}>
                         <button
                           type="button"
-                          onClick={() => setShowCheckinDetails(!showCheckinDetails)}
+                          onClick={() => {
+                            triggerHapticLight();
+                            setShowCheckinDetails(!showCheckinDetails);
+                          }}
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: '#059669',
+                            color: '#0D9488',
                             fontSize: '11.5px',
-                            fontWeight: 700,
+                            fontWeight: 800,
                             cursor: 'pointer',
                             padding: '4px 0',
                             display: 'inline-flex',
@@ -1821,9 +1929,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         </button>
 
                         {showCheckinDetails && (
-                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div>
-                              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                                 Protocol Adherence Today:
                               </div>
                               <div style={{ display: 'flex', gap: '6px' }}>
@@ -1843,15 +1951,16 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                       }}
                                       style={{
                                         flex: 1,
-                                        padding: '6px 2px',
-                                        borderRadius: '6px',
-                                        border: isSelected ? '2px solid #10B981' : '1px solid #E2E8F0',
-                                        background: isSelected ? '#ECFDF5' : '#FFFFFF',
-                                        color: isSelected ? '#065F46' : '#64748B',
-                                        fontSize: '11px',
-                                        fontWeight: isSelected ? 700 : 500,
+                                        padding: '8px 4px',
+                                        borderRadius: '8px',
+                                        border: isSelected ? '2px solid #0D9488' : '1px solid #E2E8F0',
+                                        background: isSelected ? '#F0FDFA' : '#FFFFFF',
+                                        color: isSelected ? '#0F766E' : '#64748B',
+                                        fontSize: '11.5px',
+                                        fontWeight: isSelected ? 800 : 600,
                                         cursor: 'pointer',
-                                        minHeight: '36px',
+                                        minHeight: '40px',
+                                        transition: 'all 0.15s ease',
                                       }}
                                     >
                                       {lvl.label}
@@ -1868,10 +1977,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                               onChange={(e) => setCheckinNote(e.target.value)}
                               style={{
                                 width: '100%',
-                                padding: '8px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid #CBD5E1',
-                                fontSize: '11.5px',
+                                padding: '10px 12px',
+                                borderRadius: '10px',
+                                border: '1.5px solid #CBD5E1',
+                                fontSize: '12px',
+                                outline: 'none',
                               }}
                             />
                           </div>
@@ -1885,25 +1995,26 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         onClick={handleLogScore}
                         style={{
                           width: '100%',
-                          background: severityScore === null ? '#E2E8F0' : '#10B981',
+                          background: severityScore === null ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
                           color: severityScore === null ? '#94A3B8' : '#FFFFFF',
                           border: 'none',
-                          borderRadius: '10px',
-                          padding: '11px',
+                          borderRadius: '12px',
+                          padding: '12px',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 800,
                           cursor: severityScore === null ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '6px',
-                          boxShadow: severityScore === null ? 'none' : '0 2px 8px rgba(16, 185, 129, 0.25)',
-                          minHeight: '44px',
+                          boxShadow: severityScore === null ? 'none' : '0 4px 14px rgba(13, 148, 136, 0.35)',
+                          minHeight: '48px',
+                          transition: 'all 0.15s ease',
                         }}
                       >
                         {justLogged ? (
                           <>
-                            <Check size={16} /> Saved & Progress Updated!
+                            <Check size={16} strokeWidth={3} /> Saved & Progress Updated!
                           </>
                         ) : severityScore === null ? (
                           <>
@@ -1921,13 +2032,16 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     <div style={{ textAlign: 'center', padding: '6px 0 2px' }}>
                       <button
                         type="button"
-                        onClick={() => setShowSos(true)}
+                        onClick={() => {
+                          triggerHapticLight();
+                          setShowSos(true);
+                        }}
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#64748B',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
+                          color: '#0D9488',
+                          fontSize: '12px',
+                          fontWeight: 700,
                           cursor: 'pointer',
                           textDecoration: 'underline',
                           textUnderlineOffset: '3px',
@@ -1994,7 +2108,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         style={{
                           position: 'fixed',
                           inset: 0,
-                          background: 'rgba(0,0,0,0.4)',
+                          background: 'rgba(15, 23, 42, 0.65)',
+                          backdropFilter: 'blur(8px)',
+                          WebkitBackdropFilter: 'blur(8px)',
                           zIndex: 1000,
                           display: 'flex',
                           alignItems: 'flex-end',
@@ -2007,35 +2123,35 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             width: '100%',
                             maxWidth: '540px',
                             background: '#FFFFFF',
-                            borderTopLeftRadius: '20px',
-                            borderTopRightRadius: '20px',
-                            padding: '20px',
-                            boxShadow: '0 -10px 30px rgba(0,0,0,0.1)',
+                            borderTopLeftRadius: '24px',
+                            borderTopRightRadius: '24px',
+                            padding: '24px 20px',
+                            boxShadow: '0 -10px 40px rgba(0,0,0,0.15)',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '12px',
+                            gap: '14px',
                           }}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                              <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                                 Accidental Exposure Relief
                               </h4>
-                              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0' }}>
+                              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0' }}>
                                 Accidental bites are useful data, not a failure.
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={() => setShowSos(false)}
-                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
                             >
                               <X size={16} />
                             </button>
                           </div>
 
-                          <p style={{ fontSize: '12px', color: '#334155', margin: '4px 0 0' }}>
+                          <p style={{ fontSize: '12.5px', color: '#334155', margin: '4px 0 0' }}>
                             Select what you accidentally had to record the exposure and view calming relief steps:
                           </p>
 
@@ -2046,14 +2162,16 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 type="button"
                                 onClick={() => handleApplySosMitigation(trig)}
                                 style={{
-                                  background: selectedExposure === trig ? '#0F172A' : '#F8FAFC',
+                                  background: selectedExposure === trig ? '#0D9488' : '#F8FAFC',
                                   color: selectedExposure === trig ? '#FFFFFF' : '#334155',
-                                  border: '1px solid #E2E8F0',
-                                  borderRadius: '8px',
-                                  padding: '7px 12px',
-                                  fontSize: '11.5px',
+                                  border: selectedExposure === trig ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
+                                  borderRadius: '10px',
+                                  padding: '8px 14px',
+                                  fontSize: '12px',
                                   fontWeight: 700,
                                   cursor: 'pointer',
+                                  minHeight: '40px',
+                                  boxShadow: selectedExposure === trig ? '0 2px 8px rgba(13, 148, 136, 0.25)' : 'none',
                                 }}
                               >
                                 {trig}
@@ -2062,13 +2180,14 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           </div>
 
                           {sosApplied && (
-                            <div style={{ background: '#F0FDF4', padding: '12px 14px', borderRadius: '12px', border: '1px solid #BBF7D0' }}>
-                              <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '6px' }}>
+                            <div style={{ background: '#F0FDF4', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #BBF7D0' }}>
+                              <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#166534', marginBottom: '8px' }}>
                                 ✓ Calming steps recorded for {selectedExposure}:
                               </div>
-                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: '#15803D', lineHeight: 1.6 }}>
-                                <li>Sip warm peppermint or ginger tea to relax smooth gut muscles.</li>
-                                <li>Hydrate with a glass of water with a pinch of electrolytes.</li>
+                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#15803D', lineHeight: 1.65 }}>
+                                <li><strong>Warm Herbal Sip:</strong> Drink warm peppermint or ginger tea to relax smooth gastrointestinal muscles.</li>
+                                <li><strong>Electrolyte Hydration:</strong> Slowly sip 300ml of water with a pinch of electrolytes to ease transit.</li>
+                                <li><strong>Gentle Paced Walking:</strong> A light 10-minute walk lowers visceral hypersensitivity.</li>
                                 <li><strong>Your Reset Continues:</strong> One exposure does not ruin your trial. Continue today as planned.</li>
                               </ul>
                             </div>
@@ -2083,7 +2202,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         style={{
                           position: 'fixed',
                           inset: 0,
-                          background: 'rgba(0,0,0,0.4)',
+                          background: 'rgba(15, 23, 42, 0.65)',
+                          backdropFilter: 'blur(8px)',
+                          WebkitBackdropFilter: 'blur(8px)',
                           zIndex: 1000,
                           display: 'flex',
                           alignItems: 'flex-end',
@@ -2095,39 +2216,39 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           style={{
                             width: '100%',
                             maxWidth: '560px',
-                            maxHeight: '80vh',
+                            maxHeight: '82vh',
                             background: '#FFFFFF',
-                            borderTopLeftRadius: '20px',
-                            borderTopRightRadius: '20px',
-                            padding: '20px',
-                            boxShadow: '0 -10px 30px rgba(0,0,0,0.1)',
+                            borderTopLeftRadius: '24px',
+                            borderTopRightRadius: '24px',
+                            padding: '22px 20px',
+                            boxShadow: '0 -10px 40px rgba(0,0,0,0.15)',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '12px',
+                            gap: '14px',
                             overflowY: 'auto',
                           }}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                              <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                                 Safe Swap Directory ({activeProtocolDef.name})
                               </h4>
-                              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0' }}>
+                              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0' }}>
                                 Evidence-based substitutions for symptom-free cooking
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={() => setShowSwapDrawer(false)}
-                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
                             >
                               <X size={16} />
                             </button>
                           </div>
 
                           <div style={{ position: 'relative' }}>
-                            <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+                            <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                             <input
                               type="text"
                               placeholder="Search swaps (e.g. oil, rice, milk)..."
@@ -2135,19 +2256,33 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                               onChange={(e) => setSwapSearchQuery(e.target.value)}
                               style={{
                                 width: '100%',
-                                padding: '8px 10px 8px 32px',
-                                borderRadius: '8px',
-                                border: '1px solid #CBD5E1',
-                                fontSize: '12px',
+                                padding: '10px 12px 10px 36px',
+                                borderRadius: '10px',
+                                border: '1.5px solid #CBD5E1',
+                                fontSize: '12.5px',
+                                outline: 'none',
                               }}
                             />
                           </div>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', textTransform: 'uppercase' }}>
+                          {/* Indian Kitchen Translations Box */}
+                          <div style={{ background: '#F0FDFA', borderRadius: '12px', padding: '12px 14px', border: '1px solid #99F6E4' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
+                              🇮🇳 Indian Culinary Translations
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#134E4A' }}>
+                              <div>• <strong>Onion / Garlic Gravy</strong> → Asafoetida (Hing) & Garlic-Infused Mustard/Olive Oil</div>
+                              <div>• <strong>Wheat Roti / Naan</strong> → Moong Dal Chilla, Rice Roti, or Sourdough</div>
+                              <div>• <strong>Dairy Curd / Chaas</strong> → Lactose-Free Chaas with Roasted Cumin & Mint</div>
+                              <div>• <strong>High-FODMAP Lentils (Rajma/Chana)</strong> → Sprouted Yellow Moong Dal (Khichdi)</div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                               Allowed & Tolerated Alternatives
                             </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
                               {activeProtocolDef.allowedAlternatives
                                 .filter((alt) => !swapSearchQuery || alt.toLowerCase().includes(swapSearchQuery.toLowerCase()))
                                 .map((alt, idx) => (
@@ -2155,11 +2290,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                     key={idx}
                                     style={{
                                       fontSize: '11.5px',
-                                      fontWeight: 600,
+                                      fontWeight: 700,
                                       color: '#065F46',
                                       background: '#ECFDF5',
                                       border: '1px solid #A7F3D0',
-                                      padding: '4px 10px',
+                                      padding: '5px 12px',
                                       borderRadius: '8px',
                                     }}
                                   >
@@ -2168,10 +2303,10 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 ))}
                             </div>
 
-                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', marginTop: '8px' }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '8px' }}>
                               Temporarily Eliminated Culprits
                             </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
                               {activeProtocolDef.eliminatedFoods
                                 .filter((food) => !swapSearchQuery || food.toLowerCase().includes(swapSearchQuery.toLowerCase()))
                                 .map((food, idx) => (
@@ -2179,11 +2314,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                     key={idx}
                                     style={{
                                       fontSize: '11.5px',
-                                      fontWeight: 600,
+                                      fontWeight: 700,
                                       color: '#991B1B',
                                       background: '#FEF2F2',
                                       border: '1px solid #FECACA',
-                                      padding: '4px 10px',
+                                      padding: '5px 12px',
                                       borderRadius: '8px',
                                     }}
                                   >

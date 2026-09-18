@@ -227,36 +227,38 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
       {/* Top Progress Tracker */}
       <div
         style={{
-          padding: isMobile ? '12px 16px' : '14px 22px',
-          borderBottom: '1px solid #F1F5F9',
-          background: '#F8FAFC',
+          padding: isMobile ? '14px 16px' : '16px 24px',
+          borderBottom: '1px solid #E2E8F0',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '8px',
-              background: '#ECFDF5',
-              border: '1px solid #A7F3D0',
+              width: '32px',
+              height: '32px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#059669',
+              color: '#FFFFFF',
+              flexShrink: 0,
             }}
           >
-            <Compass size={16} />
+            <Compass size={17} strokeWidth={2.4} />
           </div>
           <div>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            <div style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Elimination Suite Onboarding
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+            <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
               {step === 0 && 'Clinical Orientation'}
               {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
               {step === 2 && 'Step 2 of 4: Safety & Exclusions'}
@@ -268,7 +270,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
         </div>
 
         {/* Step dots */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {[0, 1, 2, 4, 5].map((sIndex, idx) => {
             const isCompleted = step > sIndex;
             const isCurrent = step === sIndex || (step === 3 && sIndex === 2);
@@ -276,11 +278,12 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               <div
                 key={sIndex}
                 style={{
-                  width: isCurrent ? '18px' : '6px',
-                  height: '6px',
+                  width: isCurrent ? '22px' : '7px',
+                  height: '7px',
                   borderRadius: '999px',
-                  background: isCurrent ? '#059669' : isCompleted ? '#A7F3D0' : '#E2E8F0',
-                  transition: 'all 0.25s ease',
+                  background: isCurrent ? '#0D9488' : isCompleted ? '#5EEAD4' : '#E2E8F0',
+                  boxShadow: isCurrent ? '0 1px 4px rgba(13, 148, 136, 0.3)' : 'none',
+                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
             );
@@ -311,72 +314,75 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
-                  borderRadius: '20px',
-                  padding: isMobile ? '18px' : '22px',
-                  border: '1.5px solid #A7F3D0',
+                  background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
+                  borderRadius: '22px',
+                  padding: isMobile ? '18px' : '24px',
+                  border: '1.5px solid #99F6E4',
+                  boxShadow: '0 8px 24px -6px rgba(13, 148, 136, 0.08)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px',
                 }}
               >
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', width: 'fit-content', background: '#FFFFFF', padding: '3px 9px', borderRadius: '999px', border: '1px solid #6EE7B7' }}>
-                  <Sparkles size={13} color="#059669" />
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#047857', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', width: 'fit-content', background: '#FFFFFF', padding: '3.5px 10px', borderRadius: '999px', border: '1px solid #5EEAD4' }}>
+                  <Sparkles size={13} color="#0D9488" />
+                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                     Evidence-Based Clinical Science
                   </span>
                 </div>
-                <h3 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: 800, color: '#064E3B', margin: 0, letterSpacing: '-0.3px', lineHeight: 1.25 }}>
+                <h3 style={{ fontSize: isMobile ? '18px' : '21px', fontWeight: 800, color: '#064E3B', margin: 0, letterSpacing: '-0.3px', lineHeight: 1.25 }}>
                   A Scientific Investigation, Not a Permanent Diet
                 </h3>
                 <p style={{ fontSize: '13px', color: '#065F46', margin: 0, lineHeight: 1.55 }}>
-                  Food intolerances are often temporary responses to gut inflammation or mucosal hyperpermeability. An elimination reset temporarily removes common irritants to calm your gut, then systematically tests each food to pinpoint your exact triggers.
+                  Food intolerances are often temporary responses to gut mucosal inflammation or dysbiosis. An elimination reset temporarily removes suspected irritants to calm your gut, then systematically challenges single foods to pinpoint your true triggers.
                 </p>
               </div>
 
               {/* 3-Phase Roadmap */}
               <div>
-                <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>
+                <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '0 0 12px' }}>
                   The 3-Phase Clinical Journey
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '14px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#E2E8F0', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>1</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Washout Reset</span>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
+                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 4px 14px rgba(13, 148, 136, 0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>1</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Washout Reset</span>
                     </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
                       Days 1–7: Strictly eliminate suspected culprits. Mucosal inflammation calms down.
                     </p>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '14px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#E2E8F0', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>2</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Challenge</span>
+                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>2</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Food Challenge</span>
                     </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
                       Days 8–14: Test single items 1-by-1 in isolation. Quantify latency and flare response.
                     </p>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '14px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#E2E8F0', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>3</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Freedom</span>
+                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>3</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Food Freedom</span>
                     </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
                       Days 15–28: Safely reintroduce tolerated foods. Preserve microbiome diversity for life.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Monash safe staples guarantee */}
-              <div style={{ background: '#F1F5F9', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Apple size={20} color="#059669" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: '11.5px', color: '#334155', lineHeight: 1.4 }}>
-                  <strong>Zero starvation:</strong> You will receive a verified <strong>Safe Staples List</strong> (e.g. garlic-infused oils, khichdi, sourdough GF) so meals remain satisfying and nourishing every single day.
+              {/* Monash safe staples guarantee & abundance framing */}
+              <div style={{ background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)', borderRadius: '16px', padding: '14px 16px', border: '1.5px solid #BBF7D0', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.06)' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Apple size={20} color="#059669" />
+                </div>
+                <span style={{ fontSize: '12px', color: '#14532D', lineHeight: 1.45 }}>
+                  <strong>Abundance Guarantee (Zero Starvation):</strong> You will receive a verified <strong>Safe Staples List</strong> tailored to your cuisine (e.g. moong dal khichdi, sourdough, garlic-infused oils, cumin-tempered rice, lactose-free chaas) so every meal is deeply satisfying.
                 </span>
               </div>
 
@@ -389,20 +395,24 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     handleBrowseCatalog();
                   }}
                   style={{
-                    background: 'none',
-                    border: 'none',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     fontSize: '12px',
                     fontWeight: 700,
-                    color: '#059669',
+                    color: '#0D9488',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '4px',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
+                    gap: '6px',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    width: 'fit-content',
+                    alignSelf: 'center',
+                    transition: 'all 0.15s ease',
                   }}
                 >
+                  <Layers size={14} />
                   <span>Browse All 11 Protocols Instead</span>
                   <ArrowRight size={13} />
                 </button>
@@ -421,7 +431,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
             >
               <div>
-                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', margin: '0 0 3px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 3px', letterSpacing: '-0.2px' }}>
                   What symptoms are you experiencing most frequently?
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -430,7 +440,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               </div>
 
               {/* Symptom Cards Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                 {COMMON_SYMPTOMS.map((item) => {
                   const isSelected = selectedSymptoms.includes(item.id);
                   return (
@@ -441,25 +451,27 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                       style={{
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '10px',
-                        padding: '12px 14px',
-                        borderRadius: '14px',
-                        border: isSelected ? '1.5px solid #059669' : '1px solid #E2E8F0',
-                        background: isSelected ? '#ECFDF5' : '#FFFFFF',
+                        gap: '12px',
+                        padding: '13px 15px',
+                        borderRadius: '16px',
+                        border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                        background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)' : '#FFFFFF',
+                        boxShadow: isSelected ? '0 4px 14px rgba(13, 148, 136, 0.08)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
                         cursor: 'pointer',
                         textAlign: 'left',
+                        minHeight: '64px',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span style={{ fontSize: '20px', lineHeight: 1 }}>{item.icon}</span>
+                      <span style={{ fontSize: '22px', lineHeight: 1 }}>{item.icon}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: isSelected ? '#065F46' : '#0F172A' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
                             {item.label}
                           </span>
-                          {isSelected && <Check size={14} color="#059669" />}
+                          {isSelected && <Check size={15} color="#0D9488" strokeWidth={2.8} />}
                         </div>
-                        <span style={{ fontSize: '10.5px', color: isSelected ? '#047857' : '#64748B', lineHeight: 1.3, marginTop: '2px', display: 'block' }}>
+                        <span style={{ fontSize: '11px', color: isSelected ? '#065F46' : '#64748B', lineHeight: 1.35, marginTop: '3px', display: 'block' }}>
                           {item.desc}
                         </span>
                       </div>
@@ -473,26 +485,28 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 type="button"
                 onClick={handleUnsure}
                 style={{
-                  padding: '10px 14px',
-                  borderRadius: '12px',
-                  border: isUnsure ? '1.5px solid #D97706' : '1px solid #E2E8F0',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  border: isUnsure ? '1.5px solid #D97706' : '1.5px dashed #CBD5E1',
                   background: isUnsure ? '#FEF3C7' : '#F8FAFC',
                   color: isUnsure ? '#92400E' : '#475569',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
+                  fontSize: '12px',
+                  fontWeight: 700,
                   cursor: 'pointer',
                   textAlign: 'center',
+                  minHeight: '44px',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 I'm not sure / multiple shifting symptoms without an obvious pattern
               </button>
 
               {/* Latency selection */}
-              <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '14px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', margin: '0 0 3px' }}>
+              <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                <h4 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px', letterSpacing: '-0.2px' }}>
                   When does discomfort usually peak?
                 </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '8px', marginTop: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px', marginTop: '8px' }}>
                   {TIMING_OPTIONS.map((opt) => {
                     const isSelected = timing === opt.id;
                     return (
@@ -504,18 +518,21 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           setTiming(opt.id);
                         }}
                         style={{
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: isSelected ? '1.5px solid #059669' : '1px solid #E2E8F0',
-                          background: isSelected ? '#ECFDF5' : '#FFFFFF',
+                          padding: '11px 14px',
+                          borderRadius: '14px',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? '#F0FDFA' : '#FFFFFF',
+                          boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.08)' : 'none',
                           cursor: 'pointer',
                           textAlign: 'left',
+                          minHeight: '52px',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: isSelected ? '#065F46' : '#0F172A' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
                           {opt.label}
                         </div>
-                        <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '2px' }}>
                           {opt.desc}
                         </div>
                       </button>
@@ -538,21 +555,23 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             >
               <div
                 style={{
-                  background: '#FEF3C7',
-                  borderRadius: '16px',
-                  padding: '14px 16px',
-                  border: '1px solid #FDE68A',
+                  background: '#FFFBEB',
+                  borderRadius: '18px',
+                  padding: '16px 18px',
+                  border: '1.5px solid #FDE68A',
                   display: 'flex',
                   alignItems: 'flex-start',
-                  gap: '10px',
+                  gap: '12px',
                 }}
               >
-                <ShieldAlert size={20} color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShieldAlert size={20} color="#D97706" />
+                </div>
                 <div>
-                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: 0 }}>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 800, color: '#92400E', margin: 0 }}>
                     Clinical Safety & Contraindications Check
                   </h4>
-                  <p style={{ fontSize: '11.5px', color: '#B45309', margin: '3px 0 0', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: '12px', color: '#B45309', margin: '3px 0 0', lineHeight: 1.45 }}>
                     Elimination diets restrict certain food groups temporarily. Please confirm if any of the following clinical exclusions apply to you right now:
                   </p>
                 </div>
@@ -594,21 +613,22 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                       style={{
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '12px',
-                        padding: '12px 14px',
-                        borderRadius: '14px',
+                        gap: '14px',
+                        padding: '14px 16px',
+                        borderRadius: '16px',
                         border: isChecked ? '1.5px solid #DC2626' : '1px solid #E2E8F0',
                         background: isChecked ? '#FEF2F2' : '#FFFFFF',
                         cursor: 'pointer',
                         textAlign: 'left',
+                        minHeight: '52px',
                         transition: 'all 0.15s ease',
                       }}
                     >
                       <div
                         style={{
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '4px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '6px',
                           border: isChecked ? 'none' : '1.5px solid #94A3B8',
                           background: isChecked ? '#DC2626' : '#FFFFFF',
                           display: 'flex',
@@ -618,13 +638,13 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           flexShrink: 0,
                         }}
                       >
-                        {isChecked && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                        {isChecked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: isChecked ? '#991B1B' : '#0F172A' }}>
+                        <div style={{ fontSize: '12.5px', fontWeight: 800, color: isChecked ? '#991B1B' : '#0F172A' }}>
                           {item.title}
                         </div>
-                        <div style={{ fontSize: '10.5px', color: isChecked ? '#B91C1C' : '#64748B', marginTop: '2px', lineHeight: 1.35 }}>
+                        <div style={{ fontSize: '11px', color: isChecked ? '#B91C1C' : '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
                           {item.desc}
                         </div>
                       </div>
@@ -634,9 +654,9 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               </div>
 
               {!hasSafetyExclusion && (
-                <div style={{ background: '#ECFDF5', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck size={16} color="#059669" />
-                  <span style={{ fontSize: '11px', color: '#065F46', fontWeight: 600 }}>
+                <div style={{ background: '#ECFDF5', borderRadius: '14px', padding: '12px 16px', border: '1px solid #A7F3D0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <ShieldCheck size={18} color="#059669" />
+                  <span style={{ fontSize: '11.5px', color: '#065F46', fontWeight: 700 }}>
                     None of the exclusions apply. You qualify for structured dietary exploration.
                   </span>
                 </div>
@@ -652,12 +672,12 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', textAlign: 'center', padding: '16px 8px' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '18px', alignItems: 'center', textAlign: 'center', padding: '16px 8px' }}
             >
               <div
                 style={{
-                  width: '56px',
-                  height: '56px',
+                  width: '60px',
+                  height: '60px',
                   borderRadius: '50%',
                   background: '#FEF2F2',
                   border: '2px solid #FECACA',
@@ -665,37 +685,38 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#DC2626',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.15)',
                 }}
               >
-                <Stethoscope size={28} />
+                <Stethoscope size={30} />
               </div>
 
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991B1B', margin: 0 }}>
                 Clinical Consultation Recommended First
               </h3>
 
-              <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.55, maxWidth: '440px', margin: 0 }}>
+              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, maxWidth: '460px', margin: 0 }}>
                 Based on your safety check answers, starting an unsupervised elimination protocol may carry clinical or psychological risk. We strongly recommend speaking with a gastroenterologist or licensed dietitian before removing food groups.
               </p>
 
               <div
                 style={{
                   width: '100%',
-                  maxWidth: '460px',
+                  maxWidth: '480px',
                   background: '#F8FAFC',
                   borderRadius: '16px',
-                  padding: '14px 16px',
+                  padding: '16px 18px',
                   border: '1px solid #E2E8F0',
                   textAlign: 'left',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px',
+                  gap: '10px',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   What you can safely do right now:
                 </div>
-                <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: 1.45 }}>
+                <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
                   • <strong>Maintain regular meal times:</strong> Consistent circadian meal pacing calms digestive motility without cutting foods.<br />
                   • <strong>Hydrate with warm fluids:</strong> Warm water or fresh ginger tea supports digestive enzymes.<br />
                   • <strong>Track symptoms gently:</strong> Log your baseline meals in the food diary without imposing restrictions.
@@ -717,7 +738,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 style={{
                   background: 'none',
                   border: 'none',
-                  fontSize: '11.5px',
+                  fontSize: '12px',
                   fontWeight: 700,
                   color: '#64748B',
                   textDecoration: 'underline',
@@ -741,13 +762,13 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
             >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                  <Sparkles size={14} color="#059669" />
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                  <Sparkles size={14} color="#0D9488" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Personalized Clinical Match ({matched.confidence}% Fit)
                   </span>
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '16.5px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.2px' }}>
                   Recommended Protocol For Your Profile
                 </h3>
               </div>
@@ -755,11 +776,11 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               {/* Primary Recommended Card */}
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
-                  borderRadius: '18px',
-                  padding: isMobile ? '16px' : '20px',
-                  border: '2px solid #059669',
-                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.12)',
+                  background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
+                  borderRadius: '20px',
+                  padding: isMobile ? '18px' : '22px',
+                  border: '2px solid #0D9488',
+                  boxShadow: '0 8px 24px -6px rgba(13, 148, 136, 0.16)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
@@ -768,52 +789,52 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803D', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase' }}>
                         PRIMARY MATCH • {matched.primary.durationDays} DAYS
                       </span>
-                      <span style={{ fontSize: '10px', fontWeight: 800, background: '#16A34A', color: '#FFFFFF', padding: '1px 6px', borderRadius: '999px' }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, background: '#0D9488', color: '#FFFFFF', padding: '2px 7px', borderRadius: '999px' }}>
                         {matched.confidence}% FIT
                       </span>
                     </div>
-                    <div style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#064E3B', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobile ? '17px' : '19px', fontWeight: 800, color: '#064E3B', marginTop: '2px', letterSpacing: '-0.2px' }}>
                       {matched.primary.name}
                     </div>
                   </div>
 
-                  <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#166534', background: '#FFFFFF', padding: '4px 8px', borderRadius: '8px', border: '1px solid #86EFAC' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#FFFFFF', padding: '4px 10px', borderRadius: '8px', border: '1px solid #99F6E4' }}>
                     {matched.primary.evidenceLevel || 'Clinical Grade'}
                   </span>
                 </div>
 
-                <p style={{ fontSize: '12px', color: '#14532D', margin: 0, lineHeight: 1.45 }}>
+                <p style={{ fontSize: '12.5px', color: '#14532D', margin: 0, lineHeight: 1.5 }}>
                   {matched.primary.description}
                 </p>
 
                 {/* Target Culprits & Safe Staples Preview */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', borderTop: '1px solid #BBF7D0', paddingTop: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', borderTop: '1px solid #A7F3D0', paddingTop: '12px' }}>
                   <div>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                       Temporarily Aside (Phase 1):
                     </span>
-                    <div style={{ fontSize: '11px', color: '#7F1D1D', fontWeight: 600, marginTop: '2px' }}>
+                    <div style={{ fontSize: '11.5px', color: '#7F1D1D', fontWeight: 600, marginTop: '3px' }}>
                       {matched.primary.eliminatedFoods.slice(0, 3).join(', ')}...
                     </div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                       Abundantly Allowed:
                     </span>
-                    <div style={{ fontSize: '11px', color: '#065F46', fontWeight: 600, marginTop: '2px' }}>
+                    <div style={{ fontSize: '11.5px', color: '#065F46', fontWeight: 600, marginTop: '3px' }}>
                       {(matched.primary.allowedStaples || matched.primary.allowedAlternatives || []).slice(0, 3).join(', ')}...
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #BBF7D0', paddingTop: '8px' }}>
-                  <span style={{ fontSize: '10.5px', color: '#166534', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #A7F3D0', paddingTop: '10px' }}>
+                  <span style={{ fontSize: '11px', color: '#065F46', fontWeight: 600 }}>
                     Target Irritant: <strong>{matched.primary.targetSensitivity}</strong>
                   </span>
-                  <span style={{ fontSize: '11px', color: '#059669', fontWeight: 800 }}>
+                  <span style={{ fontSize: '11.5px', color: '#0D9488', fontWeight: 800 }}>
                     Selected ✓
                   </span>
                 </div>
@@ -822,7 +843,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               {/* Alternative Options */}
               {matched.alternatives.length > 0 && (
                 <div>
-                  <h4 style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>
+                  <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 10px' }}>
                     Or Choose an Evidence-Based Alternative
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -840,23 +861,26 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '12px 14px',
-                            borderRadius: '14px',
-                            border: isChosen ? '1.5px solid #059669' : '1px solid #E2E8F0',
-                            background: isChosen ? '#ECFDF5' : '#FFFFFF',
+                            padding: '13px 16px',
+                            borderRadius: '16px',
+                            border: isChosen ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            background: isChosen ? '#F0FDFA' : '#FFFFFF',
+                            boxShadow: isChosen ? '0 2px 8px rgba(13, 148, 136, 0.08)' : 'none',
                             cursor: 'pointer',
                             textAlign: 'left',
+                            minHeight: '52px',
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           <div>
-                            <div style={{ fontSize: '12.5px', fontWeight: 700, color: isChosen ? '#065F46' : '#0F172A' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: isChosen ? '#0F766E' : '#0F172A' }}>
                               {alt.name}
                             </div>
-                            <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '1px' }}>
+                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
                               {alt.durationDays} Days • Focus: {alt.targetSensitivity}
                             </div>
                           </div>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: isChosen ? '#059669' : '#64748B' }}>
+                          <span style={{ fontSize: '11.5px', fontWeight: 800, color: isChosen ? '#0D9488' : '#64748B' }}>
                             {isChosen ? 'Selected ✓' : 'Select'}
                           </span>
                         </button>
@@ -875,20 +899,23 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     handleBrowseCatalog();
                   }}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '11.5px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    fontSize: '12px',
                     fontWeight: 700,
-                    color: '#4F46E5',
+                    color: '#0D9488',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
                     width: 'fit-content',
                     marginTop: '4px',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <Layers size={13} />
+                  <Layers size={14} />
                   <span>Explore all 11 protocols in the medical directory →</span>
                 </button>
               )}
@@ -906,44 +933,62 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
             >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Final Calibration
                   </span>
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '16.5px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.2px' }}>
                   Calibrate Baseline Severity & Confirm Reset
                 </h3>
               </div>
 
               {/* Protocol summary chip */}
-              <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '12px 14px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: '#F0FDFA', borderRadius: '16px', padding: '14px 16px', border: '1.5px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Enrolling In
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', marginTop: '1px' }}>
                     {activeChosenProtocol.name}
                   </div>
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '4px 8px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', background: '#FFFFFF', padding: '4px 9px', borderRadius: '8px', border: '1px solid #99F6E4' }}>
                   {activeChosenProtocol.durationDays} Days Total
                 </span>
               </div>
 
-              {/* Baseline Severity Rating (1-10) */}
-              <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label htmlFor="onboarding-baseline-slider" style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A' }}>
+              {/* Baseline Severity Rating (1-10) with Qualitative Anchor */}
+              <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '18px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label htmlFor="onboarding-baseline-slider" style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
                     How would you rate your typical flare severity right now?
                   </label>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#059669' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0D9488' }}>
                     {initialSeverity}/10
                   </span>
                 </div>
 
-                <p style={{ fontSize: '11px', color: '#64748B', margin: '0 0 12px' }}>
-                  This creates your starting baseline. As you log check-ins, we measure your symptom delta against this number.
+                <div
+                  style={{
+                    background: initialSeverity <= 3 ? '#ECFDF5' : initialSeverity <= 6 ? '#FEF3C7' : '#FEF2F2',
+                    border: initialSeverity <= 3 ? '1px solid #A7F3D0' : initialSeverity <= 6 ? '1px solid #FDE68A' : '1px solid #FECACA',
+                    color: initialSeverity <= 3 ? '#047857' : initialSeverity <= 6 ? '#92400E' : '#991B1B',
+                    padding: '5px 10px',
+                    borderRadius: '8px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    display: 'inline-block',
+                  }}
+                >
+                  {initialSeverity <= 3 && '🟢 Mild discomfort / intermittent rumble — does not impede daily work'}
+                  {initialSeverity > 3 && initialSeverity <= 6 && '🟡 Noticeable flare — distension, acid or discomfort requiring clothing adjustment'}
+                  {initialSeverity > 6 && '🔴 Severe distress — sharp cramping, fatigue or significant routine disruption'}
+                </div>
+
+                <p style={{ fontSize: '11.5px', color: '#64748B', margin: '0 0 12px', lineHeight: 1.45 }}>
+                  This establishes your baseline. As you log daily check-ins, HealthChain visualizes your symptom delta against this score.
                 </p>
 
                 <input
@@ -955,14 +1000,14 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                   onChange={(e) => setInitialSeverity(Number(e.target.value))}
                   style={{
                     width: '100%',
-                    accentColor: '#059669',
-                    height: '6px',
+                    accentColor: '#0D9488',
+                    height: '7px',
                     borderRadius: '999px',
                     cursor: 'pointer',
                   }}
                 />
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', fontWeight: 600, marginTop: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B', fontWeight: 600, marginTop: '8px' }}>
                   <span>1 (Mild / Manageable)</span>
                   <span>5 (Noticeable disruption)</span>
                   <span>10 (Severe / Debilitating)</span>
@@ -970,25 +1015,26 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               </div>
 
               {/* Phase 1 Preview (Immediate Safe Staples) */}
-              <div style={{ background: '#F0FDF4', borderRadius: '16px', padding: '14px 16px', border: '1px solid #BBF7D0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <Apple size={15} color="#15803D" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803D', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+              <div style={{ background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)', borderRadius: '18px', padding: '16px 18px', border: '1.5px solid #BBF7D0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <Apple size={16} color="#0D9488" />
+                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                     Phase 1 Safe Staples Ready For Day 1
                   </span>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                   {(activeChosenProtocol.allowedStaples || activeChosenProtocol.allowedAlternatives || []).slice(0, 4).map((staple) => (
                     <span
                       key={staple}
                       style={{
-                        fontSize: '11px',
+                        fontSize: '11.5px',
                         fontWeight: 700,
                         color: '#065F46',
                         background: '#FFFFFF',
                         border: '1px solid #86EFAC',
-                        padding: '3px 8px',
+                        padding: '4px 10px',
                         borderRadius: '999px',
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
                       }}
                     >
                       ✓ {staple}
@@ -1007,22 +1053,24 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 style={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  gap: '10px',
-                  padding: '12px 14px',
-                  borderRadius: '14px',
-                  border: acknowledgedConsent ? '1.5px solid #059669' : '1px solid #CBD5E1',
-                  background: acknowledgedConsent ? '#ECFDF5' : '#F8FAFC',
+                  gap: '12px',
+                  padding: '14px 16px',
+                  borderRadius: '16px',
+                  border: acknowledgedConsent ? '1.5px solid #0D9488' : '1px solid #CBD5E1',
+                  background: acknowledgedConsent ? '#F0FDFA' : '#F8FAFC',
                   cursor: 'pointer',
                   textAlign: 'left',
+                  minHeight: '52px',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <div
                   style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '4px',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '6px',
                     border: acknowledgedConsent ? 'none' : '1.5px solid #94A3B8',
-                    background: acknowledgedConsent ? '#059669' : '#FFFFFF',
+                    background: acknowledgedConsent ? '#0D9488' : '#FFFFFF',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1030,9 +1078,9 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     flexShrink: 0,
                   }}
                 >
-                  {acknowledgedConsent && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                  {acknowledgedConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                 </div>
-                <div style={{ fontSize: '11.5px', color: acknowledgedConsent ? '#065F46' : '#475569', lineHeight: 1.45 }}>
+                <div style={{ fontSize: '12px', color: acknowledgedConsent ? '#0F766E' : '#475569', lineHeight: 1.45 }}>
                   I understand this protocol is a structured <strong>temporary investigation</strong> (Phase 1 reset followed by food challenges), not a permanent restriction.
                 </div>
               </button>
@@ -1044,13 +1092,13 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
       {/* Sticky Bottom Action Zone */}
       <div
         style={{
-          padding: isMobile ? '12px 16px' : '14px 22px',
-          borderTop: '1px solid #F1F5F9',
-          background: '#FFFFFF',
+          padding: isMobile ? '14px 16px' : '16px 24px',
+          borderTop: '1px solid #E2E8F0',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '10px',
+          gap: '12px',
           flexShrink: 0,
         }}
       >
@@ -1068,17 +1116,19 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '10px 14px',
-              borderRadius: '10px',
-              border: '1px solid #E2E8F0',
+              padding: '11px 16px',
+              borderRadius: '12px',
+              border: '1px solid #CBD5E1',
               background: '#FFFFFF',
-              color: '#475569',
-              fontSize: '12px',
+              color: '#334155',
+              fontSize: '12.5px',
               fontWeight: 700,
               cursor: 'pointer',
+              minHeight: '44px',
+              transition: 'all 0.15s ease',
             }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={15} />
             <span>Back</span>
           </button>
         ) : onCancel ? (
@@ -1086,14 +1136,15 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             type="button"
             onClick={onCancel}
             style={{
-              padding: '10px 14px',
-              borderRadius: '10px',
-              border: '1px solid #E2E8F0',
+              padding: '11px 16px',
+              borderRadius: '12px',
+              border: '1px solid #CBD5E1',
               background: '#FFFFFF',
               color: '#64748B',
-              fontSize: '12px',
-              fontWeight: 600,
+              fontSize: '12.5px',
+              fontWeight: 700,
               cursor: 'pointer',
+              minHeight: '44px',
             }}
           >
             Close
@@ -1111,20 +1162,22 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '11px 20px',
-              borderRadius: '12px',
-              background: '#059669',
+              gap: '8px',
+              padding: '12px 24px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
               color: '#FFFFFF',
               border: 'none',
-              fontSize: '13px',
+              fontSize: '13.5px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              minHeight: '46px',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
+              transition: 'all 0.15s ease',
             }}
           >
             <span>Begin Symptom Triage</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </button>
         )}
 
@@ -1139,20 +1192,22 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '11px 20px',
-              borderRadius: '12px',
-              background: (selectedSymptoms.length > 0 || isUnsure) ? '#059669' : '#CBD5E1',
+              gap: '8px',
+              padding: '12px 24px',
+              borderRadius: '14px',
+              background: (selectedSymptoms.length > 0 || isUnsure) ? 'linear-gradient(135deg, #0D9488 0%, #059669 100%)' : '#CBD5E1',
               color: '#FFFFFF',
               border: 'none',
-              fontSize: '13px',
+              fontSize: '13.5px',
               fontWeight: 800,
               cursor: (selectedSymptoms.length > 0 || isUnsure) ? 'pointer' : 'not-allowed',
-              boxShadow: (selectedSymptoms.length > 0 || isUnsure) ? '0 2px 8px rgba(5, 150, 105, 0.3)' : 'none',
+              minHeight: '46px',
+              boxShadow: (selectedSymptoms.length > 0 || isUnsure) ? '0 4px 14px rgba(13, 148, 136, 0.3)' : 'none',
+              transition: 'all 0.15s ease',
             }}
           >
             <span>Continue to Safety Check</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </button>
         )}
 
@@ -1163,20 +1218,22 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '11px 20px',
-              borderRadius: '12px',
-              background: hasSafetyExclusion ? '#DC2626' : '#059669',
+              gap: '8px',
+              padding: '12px 24px',
+              borderRadius: '14px',
+              background: hasSafetyExclusion ? 'linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)' : 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
               color: '#FFFFFF',
               border: 'none',
-              fontSize: '13px',
+              fontSize: '13.5px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: hasSafetyExclusion ? '0 2px 8px rgba(220, 38, 38, 0.25)' : '0 2px 8px rgba(5, 150, 105, 0.3)',
+              minHeight: '46px',
+              boxShadow: hasSafetyExclusion ? '0 4px 14px rgba(220, 38, 38, 0.25)' : '0 4px 14px rgba(13, 148, 136, 0.3)',
+              transition: 'all 0.15s ease',
             }}
           >
             <span>{hasSafetyExclusion ? 'Review Safety Guidance' : 'View Matched Protocols'}</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </button>
         )}
 
@@ -1185,14 +1242,15 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             type="button"
             onClick={onCancel || (() => setStep(0))}
             style={{
-              padding: '11px 20px',
-              borderRadius: '12px',
+              padding: '12px 22px',
+              borderRadius: '14px',
               background: '#F1F5F9',
               color: '#334155',
               border: '1px solid #CBD5E1',
               fontSize: '13px',
               fontWeight: 800,
               cursor: 'pointer',
+              minHeight: '44px',
             }}
           >
             Close to Dashboard
@@ -1209,20 +1267,22 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '11px 20px',
-              borderRadius: '12px',
-              background: '#059669',
+              gap: '8px',
+              padding: '12px 24px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
               color: '#FFFFFF',
               border: 'none',
-              fontSize: '13px',
+              fontSize: '13.5px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+              minHeight: '46px',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
+              transition: 'all 0.15s ease',
             }}
           >
             <span>Calibrate & Commit</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </button>
         )}
 
@@ -1234,16 +1294,18 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '12px 24px',
-              borderRadius: '12px',
-              background: acknowledgedConsent ? '#059669' : '#CBD5E1',
+              gap: '8px',
+              padding: '13px 26px',
+              borderRadius: '14px',
+              background: acknowledgedConsent ? 'linear-gradient(135deg, #0D9488 0%, #059669 100%)' : '#CBD5E1',
               color: '#FFFFFF',
               border: 'none',
-              fontSize: '13.5px',
+              fontSize: '14px',
               fontWeight: 800,
               cursor: acknowledgedConsent ? 'pointer' : 'not-allowed',
-              boxShadow: acknowledgedConsent ? '0 4px 14px rgba(5, 150, 105, 0.35)' : 'none',
+              minHeight: '48px',
+              boxShadow: acknowledgedConsent ? '0 4px 16px rgba(13, 148, 136, 0.35)' : 'none',
+              transition: 'all 0.15s ease',
             }}
           >
             <span>Activate 28-Day Reset (Enter Day 1)</span>

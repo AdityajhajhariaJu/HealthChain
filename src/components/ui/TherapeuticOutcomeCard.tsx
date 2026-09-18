@@ -125,59 +125,60 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           }
         }}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 253, 250, 0.38) 100%)',
           backdropFilter: 'blur(32px)',
           WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(255, 255, 255, 0.85)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)',
-          borderRadius: isMobile ? '24px' : '32px',
-          padding: isMobile ? '14px 14px' : '20px',
+          border: '1.5px solid rgba(204, 251, 241, 0.85)',
+          boxShadow: '0 20px 40px -12px rgba(13, 148, 136, 0.09), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 24px rgba(255,255,255,0.4)',
+          borderRadius: isMobile ? '24px' : '30px',
+          padding: isMobile ? '16px' : '20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: isMobile ? '125px' : '140px',
+          minHeight: isMobile ? '135px' : '150px',
           ...(span2 ? { gridColumn: 'span 2' } : {}),
           cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
-          transition: 'border 0.3s ease, box-shadow 0.3s ease'
+          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
       >
-        {/* Top Row: Circular Icon & Micro-Badges */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        {/* Top Row: Clinical Circular Icon & Micro-Badges */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div
             style={{
-              width: isMobile ? '38px' : '44px',
-              height: isMobile ? '38px' : '44px',
-              minWidth: isMobile ? '38px' : '44px',
-              minHeight: isMobile ? '38px' : '44px',
+              width: isMobile ? '40px' : '44px',
+              height: isMobile ? '40px' : '44px',
+              minWidth: isMobile ? '40px' : '44px',
+              minHeight: isMobile ? '40px' : '44px',
               flexShrink: 0,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.95) 0%, rgba(109, 40, 217, 0.85) 100%)',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
-              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
+              border: '1px solid rgba(255,255,255,0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Target size={isMobile ? 18 : 20} color="#FFF" strokeWidth={2.4} />
+            <Target size={isMobile ? 19 : 21} color="#FFFFFF" strokeWidth={2.4} />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             {trial ? (
               <>
                 <div
                   className="tabular-nums micro-badge"
                   style={{
-                    background: 'rgba(124, 58, 237, 0.12)',
-                    color: '#6D28D9',
-                    padding: '3px 8px',
+                    background: '#F0FDFA',
+                    color: '#0F766E',
+                    border: '1px solid #99F6E4',
+                    padding: '3.5px 9px',
                     borderRadius: '999px',
-                    fontSize: '10px',
-                    fontWeight: 700,
+                    fontSize: '10.5px',
+                    fontWeight: 800,
                     letterSpacing: '0.4px',
                     whiteSpace: 'nowrap',
                     flexShrink: 0
@@ -191,9 +192,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     style={{
                       background: '#DCFCE7',
                       color: '#15803D',
-                      padding: '3px 7px',
+                      border: '1px solid #86EFAC',
+                      padding: '3.5px 8px',
                       borderRadius: '999px',
-                      fontSize: '10px',
+                      fontSize: '10.5px',
                       fontWeight: 800,
                       letterSpacing: '0.2px',
                       whiteSpace: 'nowrap',
@@ -209,10 +211,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 className="micro-badge"
                 style={{
                   background: '#ECFDF5',
-                  color: '#059669',
-                  padding: '3px 8px',
+                  color: '#047857',
+                  border: '1px solid #A7F3D0',
+                  padding: '3.5px 9px',
                   borderRadius: '999px',
-                  fontSize: '10px',
+                  fontSize: '10.5px',
                   fontWeight: 800,
                   letterSpacing: '0.4px',
                   whiteSpace: 'nowrap',
@@ -229,8 +232,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         <div>
           <h4
             style={{
-              fontSize: isMobile ? '14px' : '15px',
-              fontWeight: 700,
+              fontSize: isMobile ? '14.5px' : '16px',
+              fontWeight: 800,
               margin: '0 0 3px',
               color: '#0F172A',
               lineHeight: 1.25,
@@ -241,11 +244,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </h4>
           <p
             style={{
-              fontSize: isMobile ? '11px' : '12px',
-              color: justLogged ? '#10B981' : '#64748B',
-              margin: '0 0 6px',
-              fontWeight: justLogged ? 600 : 500,
-              lineHeight: 1.3
+              fontSize: isMobile ? '11.5px' : '12.5px',
+              color: justLogged ? '#059669' : '#64748B',
+              margin: '0 0 8px',
+              fontWeight: justLogged ? 700 : 500,
+              lineHeight: 1.35
             }}
           >
             {trial ? (
@@ -257,7 +260,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             )}
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
             {trial ? (
               !isLogging ? (
                 <button
@@ -272,22 +275,20 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    background: 'rgba(124, 58, 237, 0.1)',
-                    border: '1px solid rgba(124, 58, 237, 0.25)',
-                    borderRadius: '6px',
-                    padding: '2px 7px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: '#6D28D9',
+                    gap: '5px',
+                    background: '#F0FDFA',
+                    border: '1.5px solid #99F6E4',
+                    borderRadius: '8px',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#0F766E',
                     cursor: 'pointer',
-                    minWidth: 'unset',
-                    minHeight: 'unset',
-                    height: 'auto',
-                    width: 'fit-content'
+                    minHeight: '32px',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <Activity size={10} />
+                  <Activity size={12} />
                   <span>Check-In</span>
                 </button>
               ) : (
@@ -295,30 +296,33 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '5px',
                     background: '#FFFFFF',
-                    padding: '2px 6px',
-                    borderRadius: '6px',
-                    border: '1px solid #CBD5E1',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    padding: '3px 8px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #CCFBF1',
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)'
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <span style={{ fontSize: '9px', color: '#64748B', fontWeight: 700 }}>Score:</span>
+                  <span style={{ fontSize: '10px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Score:</span>
                   {[2, 4, 6, 8].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => handleQuickLog(val)}
                       style={{
-                        padding: '1px 5px',
-                        borderRadius: '4px',
-                        fontSize: '9.5px',
+                        minWidth: '28px',
+                        minHeight: '26px',
+                        padding: '2px 7px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
                         fontWeight: 800,
-                        border: '1px solid #CBD5E1',
-                        background: val <= 4 ? '#ECFDF5' : '#FEF2F2',
-                        color: val <= 4 ? '#059669' : '#DC2626',
-                        cursor: 'pointer'
+                        border: val <= 2 ? '1px solid #A7F3D0' : val <= 4 ? '1px solid #99F6E4' : val <= 6 ? '1px solid #FDE68A' : '1px solid #FECACA',
+                        background: val <= 2 ? '#ECFDF5' : val <= 4 ? '#F0FDFA' : val <= 6 ? '#FEF3C7' : '#FEF2F2',
+                        color: val <= 2 ? '#047857' : val <= 4 ? '#0D9488' : val <= 6 ? '#B45309' : '#DC2626',
+                        cursor: 'pointer',
+                        transition: 'transform 0.1s ease',
                       }}
                     >
                       {val}
@@ -327,7 +331,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   <button
                     type="button"
                     onClick={() => setIsLogging(false)}
-                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '10px', cursor: 'pointer', padding: '0 2px' }}
+                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '12px', cursor: 'pointer', padding: '0 4px', fontWeight: 800 }}
                   >
                     ✕
                   </button>
@@ -341,19 +345,21 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  background: '#059669',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: '6px',
-                  padding: '3px 9px',
-                  fontSize: '10px',
-                  fontWeight: 700,
+                  borderRadius: '10px',
+                  padding: isMobile ? '6px 12px' : '7px 14px',
+                  fontSize: '11.5px',
+                  fontWeight: 800,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                  minHeight: '34px',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.28)',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                <Compass size={11} />
+                <Compass size={13} />
                 <span>Begin Guided Reset Onboarding →</span>
               </button>
             )}
@@ -371,25 +377,22 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: showRationale ? 'rgba(124, 58, 237, 0.18)' : 'rgba(124, 58, 237, 0.08)',
-                border: '1px solid rgba(124, 58, 237, 0.22)',
-                borderRadius: '6px',
-                padding: '2px 7px',
-                fontSize: '10px',
-                fontWeight: 600,
-                color: '#6D28D9',
+                background: showRationale ? '#F0FDFA' : '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                padding: '4px 9px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: showRationale ? '#0D9488' : '#64748B',
                 cursor: 'pointer',
-                minWidth: 'unset',
-                minHeight: 'unset',
-                height: 'auto',
-                width: 'fit-content',
-                transition: 'all 0.2s ease'
+                minHeight: '32px',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Info size={10} />
+              <Info size={12} />
               <span>Science</span>
               <ChevronDown
-                size={10}
+                size={11}
                 style={{
                   transform: showRationale ? 'rotate(180deg)' : 'rotate(0deg)',
                   transition: 'transform 0.2s ease'
@@ -404,30 +407,29 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           {showRationale && (
             <motion.div
               initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               transition={{ type: 'spring', damping: 26, stiffness: 280 }}
               style={{
                 overflow: 'hidden',
-                background: 'rgba(255, 255, 255, 0.94)',
-                backdropFilter: 'blur(16px)',
+                background: '#FFFFFF',
                 borderRadius: '14px',
-                padding: '8px 10px',
-                border: '1px solid rgba(124, 58, 237, 0.25)',
-                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                padding: '10px 12px',
+                border: '1.5px solid #CCFBF1',
+                boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                <span style={{ fontSize: '9px', fontWeight: 800, color: '#6D28D9', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  How It Works
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Clinical Rationale (AGA & Monash)
                 </span>
-                <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
-                  Gut & Nerve Reset
+                <span className="tabular-nums" style={{ fontSize: '9.5px', fontWeight: 700, color: '#64748B' }}>
+                  Mucosal & Motility Reset
                 </span>
               </div>
-              <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                Strict elimination calms gut inflammation and helps identify whether your symptoms improve when trigger foods are removed.
+              <p style={{ fontSize: '11px', color: '#334155', margin: 0, lineHeight: 1.45, fontWeight: 500 }}>
+                Strict temporary elimination calms gut mucosal inflammation, giving hypersensitive gut endings a washout period to reset before systematic challenge.
               </p>
             </motion.div>
           )}
