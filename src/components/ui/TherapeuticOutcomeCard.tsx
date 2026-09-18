@@ -389,11 +389,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       </motion.div>
 
       {/* Fully Workable Clinical Outcomes Modal */}
-      <ClinicalEliminationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTrialUpdated={(updated) => setTrial(updated)}
-      />
+      {isModalOpen && (
+        <ClinicalEliminationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onTrialUpdated={(updated) => setTrial(updated)}
+        />
+      )}
     </>
   );
 };

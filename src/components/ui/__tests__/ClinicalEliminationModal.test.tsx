@@ -276,4 +276,24 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     expect(container.textContent).toContain('What You Can Abundantly Enjoy Today');
     expect(container.textContent).toContain('Protocol Adherence Today:');
   });
+
+  it('handles isOpen transition from false to true without hook count mismatch (React error #310 prevention)', () => {
+    startTrial('hunt_bloat');
+    const { rerender } = render(
+      <ClinicalEliminationModal isOpen={false} />
+    );
+
+    // Transition to isOpen=true: must not throw "Rendered more hooks than during previous render"
+    expect(() => {
+      rerender(<ClinicalEliminationModal isOpen={true} />);
+    }).not.toThrow();
+
+    expect(screen.getAllByText(/28-Day Bloating & Visceral Fermentation Hunt/i).length).toBeGreaterThanOrEqual(1);
+
+    // Transition back to isOpen=false: must not throw "Rendered fewer hooks than during previous render"
+    expect(() => {
+      rerender(<ClinicalEliminationModal isOpen={false} />);
+    }).not.toThrow();
+  });
 });
+

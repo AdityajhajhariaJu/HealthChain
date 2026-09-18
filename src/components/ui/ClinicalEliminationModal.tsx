@@ -261,9 +261,23 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     return 'Close to dashboard';
   }, [showSos, activeTab, trial]);
 
+  // Filtered Protocols for Directory (unconditional hook execution)
+  const filteredProtocols = useMemo(() => {
+    if (directoryCategory === 'popular') {
+      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_bloat', 'hunt_histamine', 'dairy_free'].includes(p.id));
+    }
+    if (directoryCategory === 'gut') {
+      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_bloat', 'low_fodmap', 'dairy_free', 'gluten_gut_rest', 'hunt_transit', 'hunt_heartburn'].includes(p.id));
+    }
+    if (directoryCategory === 'systemic') {
+      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_histamine', 'low_histamine', 'hunt_kinetic_headache', 'hunt_pots_splanchnic', 'hunt_vagal'].includes(p.id));
+    }
+    return ELIMINATION_PROTOCOLS;
+  }, [directoryCategory]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && (isOpen || inline)) {
         if (showSos) {
           setShowSos(false);
         } else if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
@@ -279,9 +293,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showSos, activeTab, onClose]);
+  }, [isOpen, inline, showSos, activeTab, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !inline) return null;
 
   const activeProtocolDef = trial 
     ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
@@ -333,20 +347,6 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const currentPhaseEndMatch = activePhaseObj.daysRange.match(/(\d+)\s*[–-]\s*(\d+)/);
   const currentPhaseEnd = currentPhaseEndMatch ? parseInt(currentPhaseEndMatch[2], 10) : 7;
   const daysUntilNext = Math.max(1, currentPhaseEnd - (trial?.currentDay || 1) + 1);
-
-  // Filtered Protocols for Directory
-  const filteredProtocols = useMemo(() => {
-    if (directoryCategory === 'popular') {
-      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_bloat', 'hunt_histamine', 'dairy_free'].includes(p.id));
-    }
-    if (directoryCategory === 'gut') {
-      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_bloat', 'low_fodmap', 'dairy_free', 'gluten_gut_rest', 'hunt_transit', 'hunt_heartburn'].includes(p.id));
-    }
-    if (directoryCategory === 'systemic') {
-      return ELIMINATION_PROTOCOLS.filter((p) => ['hunt_histamine', 'low_histamine', 'hunt_kinetic_headache', 'hunt_pots_splanchnic', 'hunt_vagal'].includes(p.id));
-    }
-    return ELIMINATION_PROTOCOLS;
-  }, [directoryCategory]);
 
   const checklistItems = activeProtocolDef.dailyChecklist && activeProtocolDef.dailyChecklist.length > 0
     ? activeProtocolDef.dailyChecklist.map((task, i) => ({
