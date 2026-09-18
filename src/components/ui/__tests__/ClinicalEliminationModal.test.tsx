@@ -56,19 +56,19 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     );
 
     // Abundance guide card
-    expect(screen.getByText('What You Can Abundantly Enjoy Today')).toBeTruthy();
+    expect(screen.getByText('Focus on these staples')).toBeTruthy();
     expect(screen.getByText(/Restriction is temporary/)).toBeTruthy();
 
     // Persisted checklist
-    expect(screen.getByText("Today's Action Checklist")).toBeTruthy();
+    expect(screen.getByText("Daily Checklist")).toBeTruthy();
 
     // Tri-state adherence radio
     expect(screen.getByText('Followed')).toBeTruthy();
-    expect(screen.getByText('Partly followed')).toBeTruthy();
+    expect(screen.getByText('Partial')).toBeTruthy();
     expect(screen.getByText('Did not follow')).toBeTruthy();
 
     // Severity check-in requires selection (disabled initially when severityScore is null)
-    const saveBtn = screen.getByText(/Select a score to record check-in/i);
+    const saveBtn = screen.getByText(/Select a score to save/i);
     expect(saveBtn.closest('button')?.disabled).toBe(true);
 
     // Select severity score on slider
@@ -76,11 +76,11 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     fireEvent.change(slider, { target: { value: '4' } });
 
     // Button should now be active
-    const activeSaveBtn = screen.getByText("Save Today's Check-In");
+    const activeSaveBtn = screen.getByText("Save Check-In");
     expect(activeSaveBtn.closest('button')?.disabled).toBe(false);
 
-    // Select "Partly followed"
-    fireEvent.click(screen.getByText('Partly followed'));
+    // Select "Partial"
+    fireEvent.click(screen.getByText('Partial'));
 
     // Save check-in
     fireEvent.click(activeSaveBtn);
@@ -145,14 +145,14 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     );
 
     // Click Pause
-    const pauseBtn = screen.getByText('Pause Trial');
+    const pauseBtn = screen.getByText('Pause');
     fireEvent.click(pauseBtn);
 
     // Trial should show paused banner
     expect(screen.getByText('Trial Paused')).toBeTruthy();
 
     // Click Stop Trial to open stop dialog
-    const stopBtn = screen.getByText('Stop Trial');
+    const stopBtn = screen.getByText('Stop');
     fireEvent.click(stopBtn);
 
     expect(screen.getByText('Stop Current Trial?')).toBeTruthy();
@@ -273,8 +273,8 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     );
 
     expect(container.textContent).toContain('28-Day Bloating & Visceral Fermentation Hunt');
-    expect(container.textContent).toContain('What You Can Abundantly Enjoy Today');
-    expect(container.textContent).toContain('Protocol Adherence Today:');
+    expect(container.textContent).toContain('Focus on these staples');
+    expect(container.textContent).toContain('Protocol Adherence:');
   });
 
   it('handles isOpen transition from false to true without hook count mismatch (React error #310 prevention)', () => {
