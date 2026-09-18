@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle, ChevronDown, Check, CheckCircle2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle, ChevronDown, Check, CheckCircle2, ExternalLink, ArrowRight } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -1683,7 +1683,7 @@ export default function AvaHealthBuddy() {
     onMutate: () => { setIsTyping(true); setSendError(false); },
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, request: AvaRequest) => {
-        if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
+        if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey()) return;
         const newMessages = request.messages;
         lastFailedDraftRef.current = null;
         setIsTyping(false);
@@ -1719,13 +1719,32 @@ export default function AvaHealthBuddy() {
         awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
-    onError: (_error, request) => {
-      if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
+    onError: (error: any, request: AvaRequest) => {
+      if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey()) return;
       setIsTyping(false);
       setIsStreaming(false);
-      setSendError(true);
-      if (lastFailedDraftRef.current) {
-        setFailedDraft(lastFailedDraftRef.current);
+
+      const errorMsg = String(error?.message || error || '');
+      const isQuota = 
+        errorMsg.includes('QUOTA_EXCEEDED') || 
+        errorMsg.toLowerCase().includes('quota') ||
+        errorMsg.includes('402') ||
+        errorMsg.includes('429');
+
+      if (isQuota) {
+        const quotaUpgradeMsg = {
+          role: 'model',
+          content: "You've reached your free consultation limit with Ava. Upgrade to HealthChain Pro for unlimited real-time clinical consultations, lab analysis, and 24/7 care support.",
+          isUpgradePrompt: true,
+          caseId: request.caseId,
+        };
+        setMessages(prev => [...prev, quotaUpgradeMsg]);
+        setSendError(false);
+      } else {
+        setSendError(true);
+        if (lastFailedDraftRef.current) {
+          setFailedDraft(lastFailedDraftRef.current);
+        }
       }
     },
     onSettled: (_data, _error, request) => {
@@ -1815,20 +1834,40 @@ export default function AvaHealthBuddy() {
     if (!session) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
-        if (userMessageCount >= 5) {
-          sendingRef.current = false;
-          window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-            detail: { 
+      if (userMessageCount >= 5) {
+        sendingRef.current = false;
+        const userMsg = { role: 'user', content: text.trim(), caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) };
+        const upgradeMsg = {
+          role: 'model',
+          content: "You've reached the free guest limit of 5 messages with Ava. Upgrade to HealthChain Pro to unlock unlimited conversations, continuous biomarker tracking, and personalized clinical guidance.",
+          isUpgradePrompt: true,
+          caseId: selectedCaseId,
+        };
+        setMessages(prev => [...prev, userMsg, upgradeMsg]);
+        setInput('');
+        setAttachments([]);
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
             title: 'Guest Limit Reached', 
-            message: 'You have reached the guest limit of 5 messages. Please log in or sign up to continue chatting with Ava.' 
-            } 
-          }));
-          return;
-        }
+            message: 'You have reached the guest limit of 5 messages. Buy premium or log in to continue chatting with Ava.' 
+          } 
+        }));
+        return;
+      }
     }
 
     if (!canUseTrial('ava')) {
       sendingRef.current = false;
+      const userMsg = { role: 'user', content: text.trim(), caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) };
+      const upgradeMsg = {
+        role: 'model',
+        content: "You've used all 10 free trial replies with Ava. Upgrade to HealthChain Pro to continue your consultation with unlimited messages, deep lab insights, and 24/7 care support.",
+        isUpgradePrompt: true,
+        caseId: selectedCaseId,
+      };
+      setMessages(prev => [...prev, userMsg, upgradeMsg]);
+      setInput('');
+      setAttachments([]);
       openTrialModal('Ava Health Buddy (10 Free Trial Replies)');
       return;
     }
@@ -2328,6 +2367,123 @@ export default function AvaHealthBuddy() {
                             onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
                             onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
                           />
+                          {msg.isUpgradePrompt && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              style={{
+                                marginTop: '14px',
+                                background: 'linear-gradient(135deg, #064E3B 0%, #047857 50%, #065F46 100%)',
+                                borderRadius: '16px',
+                                padding: '16px 18px',
+                                color: '#FFFFFF',
+                                boxShadow: '0 8px 24px rgba(4, 120, 87, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '10px',
+                                      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: '#FFFFFF',
+                                      boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <Sparkles size={16} />
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '-0.2px' }}>
+                                      HealthChain Pro
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#A7F3D0' }}>
+                                      Unlimited Clinical AI Consultations
+                                    </div>
+                                  </div>
+                                </div>
+                                <span
+                                  style={{
+                                    fontSize: '9px',
+                                    fontWeight: 800,
+                                    textTransform: 'uppercase',
+                                    padding: '2px 8px',
+                                    borderRadius: '999px',
+                                    background: 'rgba(245, 158, 11, 0.25)',
+                                    border: '1px solid rgba(245, 158, 11, 0.5)',
+                                    color: '#FDE68A',
+                                  }}
+                                >
+                                  PRO UPGRADE
+                                </span>
+                              </div>
+
+                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#E2E8F0', lineHeight: 1.6 }}>
+                                <li>Unlimited Ava consultations & multi-case memory</li>
+                                <li>Instant lab & document findings interpretation</li>
+                                <li>Comprehensive doctor visit agenda & summaries</li>
+                              </ul>
+
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    try { triggerHapticLight(); } catch {}
+                                    navigate('/pricing');
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    minWidth: '160px',
+                                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    padding: '10px 16px',
+                                    fontSize: '13px',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)',
+                                  }}
+                                >
+                                  <span>Buy Premium to Unlock More</span>
+                                  <ArrowRight size={15} />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    try { triggerHapticLight(); } catch {}
+                                    openTrialModal('Ava Health Buddy');
+                                  }}
+                                  style={{
+                                    background: 'rgba(255, 255, 255, 0.12)',
+                                    color: '#FFFFFF',
+                                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                                    borderRadius: '10px',
+                                    padding: '10px 14px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  View Plans
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
                           {msg.role === 'model' && documentedAnswers.length > 0 && (() => {
                             const matched = documentedAnswers.filter(ans => {
                               const topicWords = ans.topic.toLowerCase().split(/\s+/).filter(w => w.length > 3);
@@ -2429,7 +2585,7 @@ export default function AvaHealthBuddy() {
                               </button>
                             </motion.div>
                           )}
-                          {msg.role === 'model' && (
+                          {msg.role === 'model' && !msg.isUpgradePrompt && (
                             <AvaActionToolbar
                               msgIndex={idx}
                               modelContent={msg.content}

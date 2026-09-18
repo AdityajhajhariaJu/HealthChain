@@ -10,6 +10,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
@@ -131,7 +132,7 @@ export default function CaseDetail() {
           </p>
           <button 
             className="btn btn-primary" 
-            onClick={() => navigate('/app/my-cases')}
+            onClick={() => { triggerHapticLight(); safeNavigateBack(navigate, '/app/my-cases'); }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '0 auto' }}
           >
             <ArrowLeft size={16} /> Return to Cases
@@ -156,7 +157,7 @@ export default function CaseDetail() {
       {/* Back to Cases Link */}
       <div style={{ marginBottom: 16 }}>
         <button
-          onClick={() => { triggerHapticLight(); navigate('/app/my-cases'); }}
+          onClick={() => { triggerHapticLight(); safeNavigateBack(navigate, '/app/my-cases'); }}
           style={{
             background: 'none',
             border: 'none',
@@ -170,7 +171,7 @@ export default function CaseDetail() {
             padding: '6px 0'
           }}
         >
-          <ArrowLeft size={16} /> Back to Cases
+          <ArrowLeft size={16} /> Back
         </button>
       </div>
 

@@ -36,17 +36,16 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
-    // Create an idempotency key that expires every 5 minutes.
-  // This prevents double-clicks and page-refresh quota burns, but allows
-  // genuine retries later if the user gets stuck or the UI drops the response.
+    // Use caller-provided idempotency key or request ID, or generate a fresh collision-resistant request ID
+  const passedRequestId = options.headers?.['X-HC-Request-Id'] || idempotencyKey;
   const timeWindow = Math.floor(Date.now() / (5 * 60 * 1000));
-  const requestId = idempotencyKey || await sha256Hash((options.body || '') + timeWindow.toString());
+  const requestId = passedRequestId || (await sha256Hash((options.body || '') + '_' + timeWindow.toString() + '_' + Math.random().toString(36).slice(2, 9)));
 
   const secureOptions = {
     ...options,
     headers: {
-      ...options.headers,
       'X-HC-Request-Id': requestId,
+      ...options.headers,
       'X-HC-Operation': options.headers?.['X-HC-Operation'] || 'gemini',
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
     }
@@ -66,12 +65,12 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
             return executeFetch(retryCount + 1);
           }
           throw new Error('Session expired or unauthorized. Please verify your login.');
-        } else if (response.status === 402) {
+        } else if (response.status === 402 || response.status === 429) {
           window.dispatchEvent(new CustomEvent('hc_quota_exceeded', { 
-            detail: { operation: secureOptions.headers['X-HC-Operation'] } 
+            detail: { operation: secureOptions.headers['X-HC-Operation'], isRateLimit: response.status === 429 } 
           }));
           throw new Error('QUOTA_EXCEEDED');
-        } else if ((response.status === 502 || response.status === 503 || response.status === 504 || response.status === 429) && retryCount < 2) {
+        } else if ((response.status === 502 || response.status === 503 || response.status === 504) && retryCount < 2) {
           const delay = (retryCount + 1) * 800;
           await new Promise(res => setTimeout(res, delay));
           return executeFetch(retryCount + 1);

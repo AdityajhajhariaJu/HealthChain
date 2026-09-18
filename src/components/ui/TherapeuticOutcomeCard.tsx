@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, Activity, Check, Info, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -12,12 +13,18 @@ import {
 } from '../../services/TriggerEngine';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
 
+export const openEliminationSuiteModal = () => {
+  window.dispatchEvent(new CustomEvent('hc_open_elimination_suite'));
+};
+
 export interface TherapeuticOutcomeCardProps {
   span2?: boolean;
 }
 
 export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ span2 = false }) => {
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
@@ -29,13 +36,34 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       const current = getActiveTrial();
       setTrial(current);
     };
+    const handleOpenEvent = () => {
+      setIsModalOpen(true);
+    };
     window.addEventListener('hc_trial_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
+    window.addEventListener('hc_open_elimination_suite', handleOpenEvent);
     return () => {
       window.removeEventListener('hc_trial_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('hc_open_elimination_suite', handleOpenEvent);
     };
   }, []);
+
+  // Auto-open modal if returning with openElimination=true in query or location state
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const hasOpenParam = params.get('openElimination') === 'true';
+    const hasOpenState = Boolean((location.state as any)?.openElimination);
+
+    if (hasOpenParam || hasOpenState) {
+      setIsModalOpen(true);
+      if (hasOpenParam) {
+        params.delete('openElimination');
+        const cleanSearch = params.toString() ? `?${params.toString()}` : '';
+        navigate(`${location.pathname}${cleanSearch}${location.hash}`, { replace: true, state: {} });
+      }
+    }
+  }, [location.search, location.state, location.pathname, location.hash, navigate]);
 
   const activeProtocolDef = trial ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0]) : null;
 

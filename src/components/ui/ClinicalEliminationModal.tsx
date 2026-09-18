@@ -56,6 +56,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
   const [selectedProtocolId, setSelectedProtocolId] = useState<string>('hunt_histamine');
   const [activeTab, setActiveTab] = useState<'guardrails' | 'rechallenge' | 'outcomes' | 'dossier'>('guardrails');
+  const [tabHistory, setTabHistory] = useState<('guardrails' | 'rechallenge' | 'outcomes' | 'dossier')[]>(['guardrails']);
   
   // Interactive check-in state
   const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity ?? 0);
@@ -78,18 +79,71 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       const current = getActiveTrial();
       setTrial(current);
       if (current) setSeverityScore(current.currentSeverity ?? 0);
+      setTabHistory(['guardrails']);
+      setActiveTab('guardrails');
+      setShowSos(false);
     }
   }, [isOpen]);
+
+  const handleTabChange = (nextTab: 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier') => {
+    if (nextTab === activeTab) return;
+    triggerHapticSelection();
+    setTabHistory((prev) => [...prev, nextTab]);
+    setActiveTab(nextTab);
+    if (showSos) setShowSos(false);
+  };
+
+  const canGoBack = Boolean(showSos || activeTab !== 'guardrails');
+
+  const handleBack = () => {
+    triggerHapticLight();
+    // 1. If SOS panel is open in Guardrails, close SOS first
+    if (showSos) {
+      setShowSos(false);
+      return;
+    }
+    // 2. If tab history has previous steps, step back through history
+    if (tabHistory.length > 1) {
+      const nextHistory = [...tabHistory];
+      nextHistory.pop(); // pop current tab
+      const previousTab = nextHistory[nextHistory.length - 1];
+      setTabHistory(nextHistory);
+      setActiveTab(previousTab);
+      return;
+    }
+    // 3. If on a sub-tab without history, return to guardrails root
+    if (activeTab !== 'guardrails') {
+      setActiveTab('guardrails');
+      setTabHistory(['guardrails']);
+      return;
+    }
+  };
+
+  const backButtonLabel = useMemo(() => {
+    if (showSos) return 'Back to Guardrails checklist';
+    if (activeTab === 'rechallenge') return 'Back to Guardrails';
+    if (activeTab === 'outcomes') return 'Back to Guardrails';
+    if (activeTab === 'dossier') return 'Back to previous view';
+    if (tabHistory.length > 1) return 'Back to previous view';
+    return 'Back to Guardrails';
+  }, [showSos, activeTab, tabHistory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        if (showSos) {
+          setShowSos(false);
+        } else if (activeTab !== 'guardrails') {
+          setActiveTab('guardrails');
+          setTabHistory(['guardrails']);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, showSos, activeTab, onClose]);
 
   if (!isOpen) return null;
 
@@ -283,33 +337,33 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  onClose();
-                }}
-                aria-label="Back to dashboard"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  minWidth: '38px',
-                  minHeight: '38px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#1E293B',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                  transition: 'background 0.15s ease'
-                }}
-              >
-                <ArrowLeft size={18} />
-              </button>
+              {canGoBack && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  aria-label={backButtonLabel}
+                  title={backButtonLabel}
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    minWidth: '38px',
+                    minHeight: '38px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1E293B',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                    transition: 'background 0.15s ease'
+                  }}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
 
               <div
                 style={{
@@ -428,8 +482,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     key={tab.id}
                     type="button"
                     onClick={() => {
-                      triggerHapticSelection();
-                      setActiveTab(tab.id as any);
+                      handleTabChange(tab.id as any);
                     }}
                     style={{
                       display: 'inline-flex',
@@ -821,6 +874,28 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             {/* TAB 2: RECHALLENGE PROVOCATION CALENDAR */}
             {activeTab === 'rechallenge' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Back to Guardrails
+                  </button>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Rechallenge Phase Roadmap</span>
+                </div>
                 <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
                   An elimination diet is incomplete without the <strong>Challenge Phase</strong>. Systematically provocating one food group at a time confirms the biological culprit while preventing unnecessary permanent restriction.
                 </div>
@@ -876,6 +951,28 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             {/* TAB 3: OUTCOMES & VERDICT */}
             {activeTab === 'outcomes' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-6px' }}>
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Back to Guardrails
+                  </button>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Symptom Delta & Correlation</span>
+                </div>
                 {/* Quantified Score Delta Card */}
                 <div
                   style={{
@@ -1021,6 +1118,28 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             {/* TAB 4: PHYSICIAN VISIT SUMMARY */}
             {activeTab === 'dossier' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '-4px' }}>
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Back to Outcomes
+                  </button>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Clinical SBAR Summary</span>
+                </div>
                 <div style={{ fontSize: '12px', color: '#475569' }}>
                   Pre-formatted SBAR summary of your elimination trial ready to copy and send via patient portal (MyChart/Epic) or hand directly to your gastroenterologist:
                 </div>
@@ -1116,7 +1235,9 @@ R (Recommendation):
                       const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
                       navigate(targetUrl, {
                         state: {
-                          initialBriefNote: `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${trial.currentDay}/${trial.totalDays}\nReduction: -${trial.reductionPercent}%\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`
+                          initialBriefNote: `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${trial.currentDay}/${trial.totalDays}\nReduction: ${trial.reductionPercent !== null ? `-${trial.reductionPercent}%` : 'Baseline pending'}\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`,
+                          returnTo: '/app/today?openElimination=true',
+                          returnLabel: 'Back to Elimination Suite'
                         }
                       });
                     }}
@@ -1160,7 +1281,13 @@ R (Recommendation):
               onClick={() => {
                 triggerHapticLight();
                 onClose();
-                navigate('/app/dietician', { state: { tab: 'elimination' } });
+                navigate('/app/dietician?tab=elimination&returnTo=%2Fapp%2Ftoday%3FopenElimination%3Dtrue', { 
+                  state: { 
+                    tab: 'elimination',
+                    returnTo: '/app/today?openElimination=true',
+                    returnLabel: 'Back to Elimination Suite Card'
+                  } 
+                });
               }}
               style={{
                 background: 'none',
@@ -1177,7 +1304,6 @@ R (Recommendation):
               <span>Full Dietician View</span>
               <ArrowRight size={13} />
             </button>
-
             <button
               type="button"
               onClick={onClose}

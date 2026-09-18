@@ -290,6 +290,8 @@ export default function Dietician() {
   }, [searchParams, location.state]);
   const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
   const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
+  const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
+  const returnLabel = (location.state as any)?.returnLabel || searchParams.get('returnLabel');
 
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
@@ -1537,6 +1539,8 @@ export default function Dietician() {
                 onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
                 onOpenCalendarHeatmap={() => setActiveTab('calendar')}
                 onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
+                onBack={returnTo ? () => navigate(returnTo) : () => navigate('/app/today?openElimination=true')}
+                backLabel={returnLabel || 'Back to Elimination Suite Card'}
               />
             </motion.div>
           )}

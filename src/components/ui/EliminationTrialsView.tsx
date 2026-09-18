@@ -278,14 +278,22 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
             <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '14px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
               <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>Flare Severity</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
-                {activeTrialState.currentSeverity} <span style={{ fontSize: '11px', color: '#94A3B8' }}>/ 10</span>
+                {activeTrialState.currentSeverity !== null && activeTrialState.currentSeverity !== undefined ? (
+                  <>
+                    {activeTrialState.currentSeverity} <span style={{ fontSize: '11px', color: '#94A3B8' }}>/ 10</span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '13px', color: '#64748B' }}>Pending</span>
+                )}
               </div>
             </div>
 
             <div style={{ background: '#ECFDF5', padding: '10px 12px', borderRadius: '14px', border: '1px solid #A7F3D0', textAlign: 'center' }}>
               <div style={{ fontSize: '10.5px', color: '#047857', fontWeight: 600 }}>Symptom Drop</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
-                -{activeTrialState.reductionPercent}%
+                {typeof activeTrialState.reductionPercent === 'number' && activeTrialState.baselineSeverity !== null
+                  ? `${activeTrialState.reductionPercent >= 0 ? `-${activeTrialState.reductionPercent}%` : `+${Math.abs(activeTrialState.reductionPercent)}%`}`
+                  : 'Pending'}
               </div>
             </div>
           </div>
@@ -473,28 +481,51 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 </div>
 
                 {!isCurrent ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isSelected) handleStartTrial(proto.id);
-                      else setSelectedProtocolId(proto.id);
-                    }}
-                    style={{
-                      background: '#F0FDF4',
-                      border: '1px solid #BBF7D0',
-                      color: '#15803D',
-                      borderRadius: '8px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <Play size={13} fill="#15803D" /> {isSelected ? 'Start Protocol' : 'Review Protocol'}
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {isSelected && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          setSelectedProtocolId(null);
+                        }}
+                        style={{
+                          background: '#F1F5F9',
+                          border: '1px solid #CBD5E1',
+                          color: '#475569',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Back
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) handleStartTrial(proto.id);
+                        else setSelectedProtocolId(proto.id);
+                      }}
+                      style={{
+                        background: '#F0FDF4',
+                        border: '1px solid #BBF7D0',
+                        color: '#15803D',
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <Play size={13} fill="#15803D" /> {isSelected ? 'Start Protocol' : 'Review Protocol'}
+                    </button>
+                  </div>
                 ) : (
                   <span
                     style={{

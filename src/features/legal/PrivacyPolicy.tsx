@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeNavigateBack } from '../../services/navigation';
+import { triggerHapticLight } from '../../services/haptics';
 
 const sectionStyle = { fontSize: '20px', marginTop: '32px', marginBottom: '12px', color: 'var(--text-primary)' };
 const bodyStyle = { marginBottom: '14px', color: 'var(--text-secondary)' };
@@ -11,7 +13,7 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', padding: '24px', overflowY: 'auto' }}>
       <div style={{ maxWidth: '820px', margin: '0 auto', paddingBottom: '60px' }}>
-        <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '12px 0', marginBottom: '24px' }}><ArrowLeft size={20} /> Back</button>
+        <button onClick={() => { triggerHapticLight(); safeNavigateBack(navigate, '/app/today'); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '12px 0', marginBottom: '24px' }}><ArrowLeft size={20} /> Back</button>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', color: 'var(--text-primary)', lineHeight: '1.6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}><div style={{ padding: '12px', backgroundColor: 'rgba(20, 184, 166, 0.1)', borderRadius: '16px', color: 'var(--primary-color)' }}><Shield size={32} /></div><div><h1 style={{ fontSize: '32px', margin: 0 }}>Privacy Policy</h1><p style={{ margin: '4px 0 0', color: 'var(--text-secondary)' }}>HealthChain</p></div></div>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Last updated: August 21, 2026</p>

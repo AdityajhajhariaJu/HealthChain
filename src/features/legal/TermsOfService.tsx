@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeNavigateBack } from '../../services/navigation';
+import { triggerHapticLight } from '../../services/haptics';
 
 export default function TermsOfService() {
   const navigate = useNavigate();
@@ -10,7 +12,10 @@ export default function TermsOfService() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', padding: '24px', overflowY: 'auto' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '60px' }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            triggerHapticLight();
+            safeNavigateBack(navigate, '/app/today');
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',

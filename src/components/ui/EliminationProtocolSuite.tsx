@@ -19,11 +19,12 @@ import {
   Calendar,
   Zap,
   ArrowRight,
+  ArrowLeft,
   RefreshCw,
   Search,
 } from 'lucide-react';
 import { getProfile, getEliminationProtocolState, saveEliminationProtocolState } from '../../services/ProfileEngine';
-import { getActiveTrial, startTrial } from '../../services/TriggerEngine';
+import { getActiveTrial, startTrial, ActiveTrialState, PROTOCOL_ALIASES } from '../../services/TriggerEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useToast } from './ToastProvider';
@@ -258,12 +259,16 @@ interface EliminationProtocolSuiteProps {
   onOpenQuickMeal?: () => void;
   onOpenCalendarHeatmap?: () => void;
   onOpenPostMealTimeline?: () => void;
+  onBack?: () => void;
+  backLabel?: string;
 }
 
 export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> = ({
   onOpenQuickMeal,
   onOpenCalendarHeatmap,
   onOpenPostMealTimeline,
+  onBack,
+  backLabel,
 }) => {
   const isMobile = useIsMobile();
   const toast = useToast();
@@ -279,43 +284,68 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
 
   // ProfileEngine state
   const [protocolState, setProtocolState] = useState<any>(() => getEliminationProtocolState());
+  const [liveTrial, setLiveTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const handleUpdate = () => {
       const s = getEliminationProtocolState();
       setProtocolState(s);
+      setLiveTrial(getActiveTrial());
       if (s?.activeProtocolId) {
         setActiveProtocolId(s.activeProtocolId);
       }
     };
     window.addEventListener('hc_elimination_updated', handleUpdate);
     window.addEventListener('hc_profile_updated', handleUpdate);
+    window.addEventListener('hc_trial_updated', handleUpdate);
     return () => {
       window.removeEventListener('hc_elimination_updated', handleUpdate);
       window.removeEventListener('hc_profile_updated', handleUpdate);
+      window.removeEventListener('hc_trial_updated', handleUpdate);
     };
   }, []);
 
   const activeProtocol = PROTOCOLS[activeProtocolId];
 
+  const isCurrentTrialActive = useMemo(() => {
+    if (!liveTrial) return false;
+    return (
+      liveTrial.trialId === activeProtocolId ||
+      PROTOCOL_ALIASES[activeProtocolId] === liveTrial.trialId ||
+      PROTOCOL_ALIASES[liveTrial.trialId] === activeProtocolId
+    );
+  }, [liveTrial, activeProtocolId]);
+
   const isEnrolled = useMemo(() => {
-    const liveTrial = getActiveTrial();
     return Boolean(
-      (liveTrial && liveTrial.trialId === activeProtocolId) ||
+      isCurrentTrialActive ||
       (protocolState?.protocols?.[activeProtocolId]?.currentDay !== undefined && protocolState?.protocols?.[activeProtocolId]?.currentDay > 0)
     );
-  }, [protocolState, activeProtocolId]);
+  }, [isCurrentTrialActive, protocolState, activeProtocolId]);
 
   // Protocol specific saved progress
   const currentProtocolData = useMemo(() => {
-    const liveTrial = getActiveTrial();
+    const saved = protocolState?.protocols?.[activeProtocolId];
     if (isEnrolled) {
-      return protocolState?.protocols?.[activeProtocolId] || {
-        currentDay: liveTrial?.currentDay || 1,
-        targetDays: liveTrial?.totalDays || activeProtocol.targetDurationDays,
-        streakDays: liveTrial?.currentDay ? Math.max(0, liveTrial.currentDay - 1) : 0,
-        adherenceScore: liveTrial?.adherencePercentage || 100,
+      const day = isCurrentTrialActive && liveTrial?.currentDay
+        ? liveTrial.currentDay
+        : (saved?.currentDay || 1);
+      const total = isCurrentTrialActive && liveTrial?.totalDays
+        ? liveTrial.totalDays
+        : (saved?.targetDays || activeProtocol.targetDurationDays);
+      const streak = saved?.streakDays !== undefined
+        ? saved.streakDays
+        : (isCurrentTrialActive && liveTrial?.completedDays ? liveTrial.completedDays : 0);
+      const adh = isCurrentTrialActive && liveTrial?.adherencePercentage !== undefined
+        ? liveTrial.adherencePercentage
+        : (saved?.adherenceScore !== undefined ? saved.adherenceScore : 100);
+
+      return {
+        currentDay: day,
+        targetDays: total,
+        streakDays: streak,
+        adherenceScore: adh,
       };
     }
     return {
@@ -324,7 +354,7 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
       streakDays: 0,
       adherenceScore: 0,
     };
-  }, [protocolState, activeProtocolId, activeProtocol, isEnrolled]);
+  }, [protocolState, activeProtocolId, activeProtocol, isEnrolled, isCurrentTrialActive, liveTrial]);
 
   const getPhaseStatus = (weekNum: number) => {
     if (!isEnrolled) return 'upcoming';
@@ -347,9 +377,12 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
       triggerHapticSuccess();
       toast?.success?.('Daily Protocol Completed! (+20 Vitality Points)');
 
+      const currentStreak = typeof currentProtocolData.streakDays === 'number' ? currentProtocolData.streakDays : 0;
+      const currentAdh = typeof currentProtocolData.adherenceScore === 'number' ? currentProtocolData.adherenceScore : 100;
+
       saveEliminationProtocolState(activeProtocolId, {
-        streakDays: (currentProtocolData.streakDays || 11) + 1,
-        adherenceScore: Math.min(100, (currentProtocolData.adherenceScore || 90) + 2),
+        streakDays: currentStreak + 1,
+        adherenceScore: Math.min(100, currentAdh),
       });
     }
   };
@@ -357,10 +390,18 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
   // Copy structured clinical report for doctor
   const handleCopyProtocolSummary = () => {
     triggerHapticLight();
+    const isMatching = isCurrentTrialActive && liveTrial;
+    const hasBaseline = Boolean(isMatching && liveTrial && liveTrial.baselineSeverity !== null);
+    const currentSeverityStr = isMatching && liveTrial && liveTrial.currentSeverity !== null ? `${liveTrial.currentSeverity}/10` : 'Not recorded';
+    const baselineSeverityStr = hasBaseline && liveTrial ? `${liveTrial.baselineSeverity}/10` : 'Baseline pending';
+    const reductionStr = isMatching && liveTrial && typeof liveTrial.reductionPercent === 'number' && liveTrial.baselineSeverity !== null
+      ? `${liveTrial.reductionPercent >= 0 ? `-${liveTrial.reductionPercent}%` : `+${Math.abs(liveTrial.reductionPercent)}%`} symptom change`
+      : `Clinical study target: -${activeProtocol.symptomDrop.reductionPct}%`;
+
     const summaryText = `HEALTHCHAIN 360 • CLINICAL ELIMINATION PROTOCOL SUMMARY
 Active Protocol: ${activeProtocol.name}
 Clinical Framework: ${activeProtocol.clinicalAuthority}
-Progress: Day ${currentProtocolData.currentDay} of ${activeProtocol.targetDurationDays} (${Math.round((currentProtocolData.currentDay / activeProtocol.targetDurationDays) * 100)}% complete)
+Progress: ${isEnrolled ? `Day ${currentProtocolData.currentDay} of ${activeProtocol.targetDurationDays} (${Math.round((currentProtocolData.currentDay / activeProtocol.targetDurationDays) * 100)}% complete)` : `Not enrolled (${activeProtocol.targetDurationDays}-day protocol)`}
 Adherence Streak: ${currentProtocolData.streakDays} consecutive days (Score: ${currentProtocolData.adherenceScore}%)
 
 1. CLINICAL MECHANISM & TARGET:
@@ -368,8 +409,8 @@ ${activeProtocol.mechanism}
 
 2. QUANTIFIABLE SYMPTOM REDUCTION:
 • Metric: ${activeProtocol.symptomDrop.metric}
-• Baseline: ${activeProtocol.symptomDrop.startScore} ⇢ Current: ${activeProtocol.symptomDrop.currentScore}
-• Net Improvement: ${activeProtocol.symptomDrop.reductionPct}% symptom attenuation
+• Baseline: ${baselineSeverityStr} ⇢ Current: ${currentSeverityStr}
+• Net Improvement: ${reductionStr}
 
 3. CURRENT ELIMINATED FOOD GROUPS:
 ${activeProtocol.forbiddenFoods.map((f) => `• [${f.category}] ${f.food} — ${f.why}`).join('\n')}
@@ -398,6 +439,36 @@ Generated via HealthChain Clinical Elimination Protocol.`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '100%', boxSizing: 'border-box' }}>
+      {onBack && (
+        <div style={{ marginBottom: '-4px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              onBack();
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              color: '#0F766E',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ArrowLeft size={14} />
+            <span>{backLabel || 'Back'}</span>
+          </button>
+        </div>
+      )}
+
       {/* 1. Top Header Banner */}
       <div
         style={{
@@ -671,7 +742,19 @@ Generated via HealthChain Clinical Elimination Protocol.`;
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={14} color={activeProtocol.themeColor} />
               <span>
-                <strong>Symptom Drop:</strong> {activeProtocol.symptomDrop.metric} fell from {activeProtocol.symptomDrop.startScore} ⇢ <strong>{activeProtocol.symptomDrop.currentScore}</strong>
+                {isCurrentTrialActive && liveTrial && liveTrial.baselineSeverity !== null && liveTrial.currentSeverity !== null ? (
+                  <>
+                    <strong>Symptom Tracking:</strong> {activeProtocol.symptomDrop.metric} fell from {liveTrial.baselineSeverity}/10 ⇢ <strong>{liveTrial.currentSeverity}/10</strong>
+                  </>
+                ) : isEnrolled ? (
+                  <>
+                    <strong>Symptom Tracking:</strong> {activeProtocol.symptomDrop.metric} (Daily check-in needed to measure drop)
+                  </>
+                ) : (
+                  <>
+                    <strong>Clinical Benchmark:</strong> {activeProtocol.symptomDrop.metric} target drop
+                  </>
+                )}
               </span>
             </div>
             <span
@@ -683,9 +766,12 @@ Generated via HealthChain Clinical Elimination Protocol.`;
                 padding: '2px 8px',
                 borderRadius: '8px',
                 border: '1px solid #A7F3D0',
+                whiteSpace: 'nowrap',
               }}
             >
-              -{activeProtocol.symptomDrop.reductionPct}% Flare Drop
+              {isCurrentTrialActive && liveTrial && typeof liveTrial.reductionPercent === 'number' && liveTrial.baselineSeverity !== null
+                ? `${liveTrial.reductionPercent >= 0 ? `-${liveTrial.reductionPercent}%` : `+${Math.abs(liveTrial.reductionPercent)}%`} Flare Drop`
+                : `Target: -${activeProtocol.symptomDrop.reductionPct}%`}
             </span>
           </div>
         </div>
@@ -763,7 +849,7 @@ Generated via HealthChain Clinical Elimination Protocol.`;
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div>
                   <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                    Today's Protocol Protocol Checklist
+                    Today's Protocol Checklist
                   </h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
                     Use the checklist only if these actions fit your clinician-approved plan. Missing a day never removes points or access.
@@ -913,6 +999,30 @@ Generated via HealthChain Clinical Elimination Protocol.`;
             exit={{ opacity: 0, y: -10 }}
             style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveViewTab('checklist');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'none',
+                  border: 'none',
+                  padding: '2px 0',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#0D9488',
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowLeft size={13} /> Back to Daily Checklist
+              </button>
+            </div>
+
             {/* Search Input */}
             <div style={{ position: 'relative' }}>
               <Search size={16} color="#94A3B8" style={{ position: 'absolute', left: '14px', top: '12px' }} />
@@ -1021,6 +1131,30 @@ Generated via HealthChain Clinical Elimination Protocol.`;
             exit={{ opacity: 0, y: -10 }}
             style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveViewTab('checklist');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'none',
+                  border: 'none',
+                  padding: '2px 0',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#0D9488',
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowLeft size={13} /> Back to Daily Checklist
+              </button>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {activeProtocol.safeSwaps.map((swap, idx) => (
                 <div
@@ -1099,6 +1233,30 @@ Generated via HealthChain Clinical Elimination Protocol.`;
             exit={{ opacity: 0, y: -10 }}
             style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveViewTab('checklist');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'none',
+                  border: 'none',
+                  padding: '2px 0',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#0D9488',
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowLeft size={13} /> Back to Daily Checklist
+              </button>
+            </div>
+
             <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
               <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
                 Phased Elimination & Rechallenge Roadmap

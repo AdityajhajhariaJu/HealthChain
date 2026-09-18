@@ -5,6 +5,7 @@ import { analyzeFoodEntry } from '../../services/geminiService';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate } from 'react-router-dom';
+import { safeNavigateBack } from '../../services/navigation';
 import { getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 
@@ -124,7 +125,14 @@ export const NutritionInterceptor: React.FC = () => {
       
       {/* Header */}
       <div className="flex items-center gap-4 mb-12 relative z-10 pt-12">
-        <button onClick={() => navigate(-1)} className="p-3 bg-white/5 rounded-full border border-white/10 text-white">
+        <button 
+          onClick={() => {
+            triggerHapticLight();
+            safeNavigateBack(navigate, '/app/dietician');
+          }} 
+          className="p-3 bg-white/5 rounded-full border border-white/10 text-white cursor-pointer"
+          aria-label="Go back"
+        >
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-white text-2xl font-semibold tracking-tight">Nutrition</h1>

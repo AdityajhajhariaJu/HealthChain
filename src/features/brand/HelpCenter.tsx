@@ -6,6 +6,7 @@ import { supabase } from '../../services/supabaseClient';
 import { trackButtonClick } from '../../services/analytics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 
 const faqs = [
   {
@@ -110,7 +111,10 @@ export default function HelpCenter() {
   return (
     <div style={{ maxWidth: 840, margin: '0 auto', padding: isMobile ? '24px 16px' : '40px 24px', paddingBottom: '80px' }}>
       <button 
-        onClick={() => navigate(-1)} 
+        onClick={() => {
+          triggerHapticLight();
+          safeNavigateBack(navigate, '/app/today');
+        }} 
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '24px' }}
       >
         <ArrowLeft size={16} /> Back

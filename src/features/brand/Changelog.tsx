@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeft, PlusCircle, Sparkles, Zap, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeNavigateBack } from '../../services/navigation';
+import { triggerHapticLight } from '../../services/haptics';
 
 const log = [
   {
@@ -40,7 +42,10 @@ export default function Changelog() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
       <button 
-        onClick={() => navigate(-1)} 
+        onClick={() => {
+          triggerHapticLight();
+          safeNavigateBack(navigate, '/app/today');
+        }} 
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '20px' }}
       >
         <ArrowLeft size={16} /> Back

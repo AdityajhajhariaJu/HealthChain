@@ -30,6 +30,7 @@ import { getUnreadNotificationCount } from '../../services/NotificationEngine';
 import { HCLogo } from '../ui/HCLogo';
 import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
 import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
+import { safeNavigateBack } from '../../services/navigation';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -450,36 +451,33 @@ const enforceSafeArea = () => {
           <>
             <div className="mobile-top-bar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {location.pathname.startsWith('/app/ava') && (
+              {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab'].includes(location.pathname) && !location.pathname.startsWith('/app/war-room') ? (
                 <button
                   onClick={() => {
-                    if (window.history.state && window.history.state.idx > 0) {
-                      navigate(-1);
-                    } else {
-                      navigate('/app/today');
-                    }
+                    triggerHapticLight();
+                    safeNavigateBack(navigate, '/app/today');
                   }}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    border: location.pathname.startsWith('/app/ava') ? '1px solid rgba(244, 63, 94, 0.2)' : '1px solid #CBD5E1',
                     borderRadius: '50%',
-                    width: '44px',
-                    height: '44px',
-                    minWidth: '44px',
-                    minHeight: '44px',
+                    width: '40px',
+                    height: '40px',
+                    minWidth: '40px',
+                    minHeight: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(244, 63, 94, 0.15)',
-                    color: '#F43F5E',
+                    boxShadow: location.pathname.startsWith('/app/ava') ? '0 4px 12px rgba(244, 63, 94, 0.15)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                    color: location.pathname.startsWith('/app/ava') ? '#F43F5E' : '#0F172A',
                   }}
                   aria-label="Go back"
                 >
-                  <ArrowLeft size={20} strokeWidth={2.5} />
+                  <ArrowLeft size={19} strokeWidth={2.5} />
                 </button>
-              )}
-            {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
+              ) : null}
+            {['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab'].includes(location.pathname) && (
               <div style={{ position: 'relative' }}>
               <button
                 type="button"

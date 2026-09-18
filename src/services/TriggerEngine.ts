@@ -689,13 +689,13 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
   const flareCheckins = checkins.filter((c: any) => c?.score >= 2 || c?.severity === 'Moderate' || c?.severity === 'Severe');
   const totalFlares = flareCheckins.length;
 
-  // If user has confirmed triggers, map them to top items
+  // Map confirmed triggers to real suspect food items
   const dynamicItems: SuspectFoodItem[] = [];
 
   confirmed.forEach((conf: any) => {
     const foodName = conf.food || 'Logged Food';
     const flaresTracked = Math.max(0, Number(conf.count) || 0);
-    const correlationPercent = 0;
+    const correlationPercent = totalFlares > 0 ? Math.min(100, Math.round((flaresTracked / totalFlares) * 100)) : 0;
 
     dynamicItems.push({
       id: 'conf_' + foodName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
@@ -717,150 +717,7 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
     });
   });
 
-  // Culturally and clinically tailored fallback profiles
-  let baselineItems: SuspectFoodItem[];
-
-  if (isIndianContext || isVegetarian) {
-    baselineItems = [
-      {
-        id: 'indian_pickles_achaar',
-        name: 'Achaar (Aged Mango / Lime Pickle)',
-        emoji: '🥒',
-        category: 'Fermented Spices',
-        primarySensitivity: 'Histamine & Fermented Biogenic Amines',
-        correlationPercent: 38,
-        reactionWindow: '1 - 4 hours',
-        flaresTracked: Math.min(5, Math.max(2, Math.round(totalFlares * 0.6))),
-        daysObserved,
-        safeSwap: 'Fresh Mint-Coriander Chutney or Lemon Zest Dressing',
-        mechanism: 'Microbial lacto-fermentation in oil concentrates biogenic amines, overloading intestinal DAO clearance.',
-      },
-      {
-        id: 'chana_dal_besan',
-        name: 'Chana Dal & Besan (Chickpea Flour)',
-        emoji: '🍲',
-        category: 'High-Oligosaccharide Legumes',
-        primarySensitivity: 'Galacto-Oligosaccharides (GOS FODMAP)',
-        correlationPercent: 32,
-        reactionWindow: '4 - 8 hours',
-        flaresTracked: Math.min(4, Math.max(2, Math.round(totalFlares * 0.5))),
-        daysObserved,
-        safeSwap: 'Yellow Moong Dal (soaked & washed) or Sprouted Moong',
-        mechanism: 'Alpha-galactosidase deficiency prevents intestinal absorption, causing rapid cecal gas fermentation.',
-      },
-      {
-        id: 'buffalo_milk_paneer',
-        name: isLactoseFree ? 'Aged Plant-Based Spreads' : 'A1 Buffalo Milk & Full-Fat Paneer',
-        emoji: '🧀',
-        category: isLactoseFree ? 'Processed Spreads' : 'Dairy & Casein',
-        primarySensitivity: isLactoseFree ? 'Emulsifiers & Saturated Fats' : 'A1 Beta-Casein & Lactose',
-        correlationPercent: 28,
-        reactionWindow: '2 - 6 hours',
-        flaresTracked: Math.min(4, Math.max(1, Math.round(totalFlares * 0.4))),
-        daysObserved,
-        safeSwap: isLactoseFree ? 'Organic Tahini or Walnut Butter' : 'A2 Desi Cow Curd / Ghee, or Fresh Tofu',
-        mechanism: isLactoseFree ? 'Synthetic gums alter mucosal barrier mucus.' : 'Enzymatic cleavage produces BCM-7 (beta-casomorphin-7), stimulating enteric opioid receptors.',
-      },
-      {
-        id: 'masala_chai',
-        name: 'Masala Chai (Over-Boiled / High-Tannin)',
-        emoji: '☕',
-        category: 'Stimulants & Polyphenols',
-        primarySensitivity: 'Condensed Tannins & Caffeine Rebound',
-        correlationPercent: 25,
-        reactionWindow: 'within 1 - 2 hours',
-        flaresTracked: Math.min(3, Math.max(1, Math.round(totalFlares * 0.35))),
-        daysObserved,
-        safeSwap: 'Light Cardamom-Ginger Herbal Tisane (Caffeine-Free)',
-        mechanism: 'Condensed tannins chelate gastric enzymes; caffeine stimulates transient gastric HCL hypersecretion and lower esophageal reflux.',
-      },
-      {
-        id: 'fried_snacks_tadka',
-        name: 'Deep-Fried Snacks (Bhujia / Namkeen)',
-        emoji: '🥟',
-        category: 'Oxidized Lipids',
-        primarySensitivity: 'Oxidized Omega-6 Seed Oils',
-        correlationPercent: 22,
-        reactionWindow: '3 - 8 hours',
-        flaresTracked: Math.min(3, Math.max(1, Math.round(totalFlares * 0.3))),
-        daysObserved,
-        safeSwap: 'Roasted Foxnuts (Makhana) lightly toasted in pure A2 Ghee',
-        mechanism: 'Thermally degraded linoleic acid forms 4-HNE, triggering gut endothelial tight junction permeability.',
-      },
-    ];
-  } else {
-    baselineItems = [
-      {
-        id: 'red_wine',
-        name: 'Red Wine',
-        emoji: '🍷',
-        category: 'Alcohol & Fermented',
-        primarySensitivity: 'Histamine & Sulfites',
-        correlationPercent: 34,
-        reactionWindow: 'within 1 day',
-        flaresTracked: 6,
-        daysObserved,
-        safeSwap: 'Vodka soda with fresh lime or non-alcoholic botanical elixir',
-        mechanism: 'Inhibits DAO enzyme clearance and dilates cerebral microvasculature.',
-      },
-      {
-        id: 'aged_cheddar',
-        name: 'Aged Cheddar / Parmesan',
-        emoji: '🧀',
-        category: 'Aged Dairy',
-        primarySensitivity: 'Tyramine & Histamine',
-        correlationPercent: 31,
-        reactionWindow: '2 - 8 hours',
-        flaresTracked: 5,
-        daysObserved,
-        safeSwap: 'Fresh Fior di Latte Mozzarella or Fresh Ricotta',
-        mechanism: 'Bacterial fermentation concentrates vasoactive tyramine, triggering vasoconstriction.',
-      },
-      {
-        id: 'salami',
-        name: 'Cured Salami',
-        emoji: '🥩',
-        category: 'Processed Meat',
-        primarySensitivity: 'Histamine & Nitrites',
-        correlationPercent: 24,
-        reactionWindow: 'within 1 day',
-        flaresTracked: 4,
-        daysObserved,
-        safeSwap: 'Fresh roasted organic chicken or turkey breast',
-        mechanism: 'Lactic curing creates dense biogenic amines that overwhelm gut epithelial receptors.',
-      },
-      {
-        id: 'garlic_onion',
-        name: 'Garlic & Raw Onion',
-        emoji: '🧄',
-        category: 'Alliums',
-        primarySensitivity: 'Fructans (FODMAP)',
-        correlationPercent: 22,
-        reactionWindow: '4 - 12 hours',
-        flaresTracked: 5,
-        daysObserved,
-        safeSwap: 'Garlic-infused extra virgin olive oil or scallion green tops',
-        mechanism: 'Ferments rapidly in cecal lumen, drawing osmotic fluid and elevating hydrogen gas.',
-      },
-      {
-        id: 'spinach_cooked',
-        name: 'Cooked Spinach',
-        emoji: '🥬',
-        category: 'Leafy Green',
-        primarySensitivity: 'Oxalates & Histamine',
-        correlationPercent: 19,
-        reactionWindow: '12 - 24 hours',
-        flaresTracked: 3,
-        daysObserved,
-        safeSwap: 'Lacinato Kale, Romaine lettuce, or Bok Choy',
-        mechanism: 'Microcrystalline calcium oxalate precipitates provoke tissue and mucosal friction.',
-      },
-    ];
-  }
-
-  // Combine dynamic user confirmed items with baseline profiles up to 5 items
-  const combined = [...dynamicItems];
-  return combined.slice(0, 5);
+  return dynamicItems.slice(0, 5);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1117,6 +974,69 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     allowedAlternatives: ['Certified Gluten-Free Oats', 'Brown & Basmati Rice', 'Quinoa', 'Sweet Potatoes', 'Tamari (Gluten-Free Soy Sauce)'],
     expectedBiomarkerImpact: 'Decrease in circulating zonulin, reduction in systemic joint stiffness and midday brain fog.',
   },
+  {
+    id: 'hunt_transit',
+    name: '21-Day Bristol Motility & Colonic Transit Plan',
+    huntTitle: '🎯 The Colonic Motility Hunt',
+    targetSensitivity: 'Colonic Transit Time & Soluble Fiber Deficit',
+    durationDays: 21,
+    description: 'Modulate stool hydration and migrating motor complex (MMC) speed using soluble mucilaginous fiber and timed peristaltic cues to eliminate constipation and diarrhea flares.',
+    phases: [
+      {
+        phase: 1,
+        title: 'Phase 1: Soluble Fiber Priming',
+        daysRange: 'Days 1 – 7',
+        focus: 'Introduce gentle psyllium husk and chia gel hydration.',
+        clinicalInstructions: ['Eliminate raw abrasive insoluble bran and artificial sweeteners.', 'Start with 5g partially hydrolyzed guar gum (PHGG) with 500ml warm water.', 'Log daily Bristol stool form.'],
+      },
+      {
+        phase: 2,
+        title: 'Phase 2: Transit Pacing & Motility Cueing',
+        daysRange: 'Days 8 – 14',
+        focus: 'Achieve consistent Bristol Type 3–4 bowel motion without straining.',
+        clinicalInstructions: ['Incorporate morning 15-minute gastrocolic ambulation post-breakfast.', 'Track transit latency windows.'],
+      },
+      {
+        phase: 3,
+        title: 'Phase 3: Autonomic Rhythm Stabilization',
+        daysRange: 'Days 15 – 21',
+        focus: 'Gastrocolic morning reflex anchoring after waking.',
+        clinicalInstructions: ['Anchor circadian defecation window within 45 mins of waking.', 'Export Bristol Motility SBAR report for gastroenterologist.'],
+      },
+    ],
+    eliminatedFoods: ['Coarse Wheat Bran (Raw Insoluble)', 'Artificial Sweeteners (Sorbitol, Xylitol)', 'Processed Dehydrated Snacks', 'High-Fat Greasy Takeout'],
+    allowedAlternatives: ['Partially Hydrolyzed Guar Gum (PHGG)', 'Soaked Chia Seed Pudding', 'Stewed Prunes with Warm Water', 'Steamed Zucchini & Squash'],
+    expectedBiomarkerImpact: 'Normalization of Bristol stool score to Type 3–4 on >80% of days, reduction in bloating distension.',
+    dailyChecklist: ['Morning 500ml warm hydration', '5g soluble fiber dose consumed', 'Log Bristol stool type in tracker', '30-minute movement session'],
+  },
+  {
+    id: 'hunt_vagal',
+    name: '14-Day Gut-Brain Sensitivity Protocol',
+    huntTitle: '🎯 The Gut-Brain & Vagal Axis Hunt',
+    targetSensitivity: 'Enteric Visceral Hypersensitivity & Diaphragmatic Clutching',
+    durationDays: 14,
+    description: 'Activate the motor nucleus of the Vagus Nerve via diaphragmatic breathing and posture de-slouching, shifting the enteric nervous system from sympathetic fight-or-flight cramping into rest-and-digest motility.',
+    phases: [
+      {
+        phase: 1,
+        title: 'Phase 1: Mealtime Sensory Reset',
+        daysRange: 'Days 1 – 7',
+        focus: 'Screen-free dining and 5-min diaphragmatic pre-meal breathing.',
+        clinicalInstructions: ['Zero phone or laptop screens during all meals.', 'Perform 5-min 4-7-8 parasympathetic breathwork prior to first bite.', 'Rest fork between bites (chew > 20x).'],
+      },
+      {
+        phase: 2,
+        title: 'Phase 2: Diaphragmatic Uncoupling & Maintenance',
+        daysRange: 'Days 8 – 14',
+        focus: 'De-slouching posture to eliminate Roemheld stomach clutching.',
+        clinicalInstructions: ['Maintain upright thoracic posture for 30 minutes post-meal.', 'Complete evening 60-second heart rate variability reset.'],
+      },
+    ],
+    eliminatedFoods: ['High-Caffeine Energy Drinks', 'Dining While Working / Screens', 'Speed Dining (<10 minutes)', 'Slouched / Hunched Seating'],
+    allowedAlternatives: ['Screen-Free Dining Table', 'Minimum 20 Chews Per Bite', 'Upright 10-Min Slow Stroll', 'Chamomile & Lavender Evening Tea'],
+    expectedBiomarkerImpact: '65%+ drop in visceral cramping scores, elevation in vagal parasympathetic high-frequency HRV power.',
+    dailyChecklist: ['5-minute mindful breathing before meals', '100% screen-free mealtime', 'Paced meal duration to 20+ mins', 'Evening calming routine'],
+  },
 ];
 
 export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
@@ -1145,74 +1065,6 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
       });
     });
   }
-
-  // Clinical Baselines calibrated for Indian & functional profiles
-  const baselines: EmpiricalMatchInsight[] = [
-    {
-      id: 'emp_besan_bloat',
-      foodName: 'Besan Chilla / Chana Dal',
-      foodIcon: '🥞',
-      category: 'Fermentable Legume (GOS)',
-      symptomName: 'Subdiaphragmatic Bloating',
-      symptomIcon: '🎈',
-      flaresCount: 4,
-      exposuresCount: 4,
-      matchRatioText: '4/4 day match',
-      correlationPercent: 100,
-      latencyWindow: 'within 1.5 – 2 hours',
-      pathophysiologicalMechanism: 'Galacto-oligosaccharides escape small intestinal absorption and undergo rapid cecal fermentation, producing excessive hydrogen and methane gas.',
-      targetedSwap: 'Yellow Moong Dal Khichdi or sprouted lentils with ginger + hing.',
-      recommendedAction: 'Initiate 28-Day Bloating Hunt (Low-FODMAP Phase 1).',
-    },
-    {
-      id: 'emp_achaar_palp',
-      foodName: 'Mango Achaar / Cured Pickles',
-      foodIcon: '🥭',
-      category: 'Biogenic Amines & Salt',
-      symptomName: 'Postprandial Palpitations & Flushing',
-      symptomIcon: '💓',
-      flaresCount: 4,
-      exposuresCount: 5,
-      matchRatioText: '4/5 day match',
-      correlationPercent: 80,
-      latencyWindow: 'within 45m – 1.5 hours',
-      pathophysiologicalMechanism: 'Concentrated biogenic amines saturate mucosal DAO enzymes, driving systemic histamine absorption, reactive splanchnic vasodilation, and compensatory sinus tachycardia.',
-      targetedSwap: 'Fresh lemon juice with roasted cumin, Himalayan pink salt, and fresh coriander.',
-      recommendedAction: 'Initiate 28-Day Histamine & Mast Cell Hunt.',
-    },
-    {
-      id: 'emp_chai_headache',
-      foodName: 'Evening Masala Chai + Desk Slouch',
-      foodIcon: '☕',
-      category: 'Caffeine & Kinetic Dural Traction',
-      symptomName: 'Occipital & Temple Throbbing',
-      symptomIcon: '🤕',
-      flaresCount: 5,
-      exposuresCount: 6,
-      matchRatioText: '5/6 day match',
-      correlationPercent: 83,
-      latencyWindow: 'within 2 – 3 hours',
-      pathophysiologicalMechanism: 'Adenosine receptor rebound combined with prolonged lumbosacral dural pull traps the C2 Greater Occipital Nerve.',
-      targetedSwap: 'Warm Tulsi Ginger infusion + 3-minute pelvic decompression.',
-      recommendedAction: 'Initiate 28-Day Kinetic & Postural Headache Hunt.',
-    },
-    {
-      id: 'emp_dairy_sinus',
-      foodName: 'Commercial Buffalo Milk Curd / Dahi',
-      foodIcon: '🥛',
-      category: 'A1 Beta-Casein & Lactose',
-      symptomName: 'Morning Sinus Congestion & Post-Nasal Drip',
-      symptomIcon: '🤧',
-      flaresCount: 3,
-      exposuresCount: 4,
-      matchRatioText: '3/4 day match',
-      correlationPercent: 75,
-      latencyWindow: 'overnight (8 – 12 hours)',
-      pathophysiologicalMechanism: 'Beta-casomorphin-7 (BCM-7) stimulates airway goblet cell mucin production and promotes low-grade mucosal inflammation.',
-      targetedSwap: 'A2 Gir Cow Milk or Fresh Almond / Coconut Yogurt.',
-      recommendedAction: 'Initiate 10-Day A1 Casein Elimination Trial.',
-    },
-  ];
 
   return results;
 }
@@ -1262,11 +1114,23 @@ function archiveTrial(state: ActiveTrialState, endReason: ArchivedTrialState['en
   setItemSync(trialHistoryStorageKey(), JSON.stringify([archived, ...history].slice(0, 20)));
 }
 
+export const PROTOCOL_ALIASES: Record<string, string> = {
+  'bloating_hunt': 'hunt_bloat',
+  'heartburn_hunt': 'hunt_heartburn',
+  'transit_hunt': 'hunt_transit',
+  'vagal_hunt': 'hunt_vagal',
+  'hunt_bloat': 'bloating_hunt',
+  'hunt_heartburn': 'heartburn_hunt',
+  'hunt_transit': 'transit_hunt',
+  'hunt_vagal': 'vagal_hunt',
+};
+
 export function startTrial(trialId: string, initialSeverity?: number): ActiveTrialState {
-  const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === trialId);
+  const targetId = PROTOCOL_ALIASES[trialId] || trialId;
+  const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === targetId || p.id === trialId);
   if (!protocol) throw new Error(`Unknown elimination protocol: ${trialId}`);
   const current = getActiveTrial();
-  if (current && current.trialId !== trialId) archiveTrial(current, 'replaced');
+  if (current && current.trialId !== protocol.id && current.trialId !== trialId) archiveTrial(current, 'replaced');
   const baseline = typeof initialSeverity === 'number' ? initialSeverity : null;
   const newState: ActiveTrialState = {
     trialId: protocol.id,

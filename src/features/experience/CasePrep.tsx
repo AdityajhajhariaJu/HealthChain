@@ -18,6 +18,7 @@ import { generateDeterministicBrief, isBriefUpToDate } from '../../services/Appo
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
 import {
+  ArrowLeft,
   ArrowRight,
   Briefcase,
   ChevronRight,
@@ -42,7 +43,8 @@ import {
   Tag,
   ListFilter,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { safeNavigateBack } from '../../services/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
@@ -59,9 +61,12 @@ const DOCTOR_ACTION_PRESETS = [
 
 export default function CasePrep() {
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const caseIdParam = searchParams.get('caseId');
+  const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
+  const returnLabel = (location.state as any)?.returnLabel || (returnTo?.includes('openElimination') ? 'Back to Elimination Suite' : null);
 
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseItem | null>(null);
@@ -435,6 +440,21 @@ export default function CasePrep() {
             </div>
           </div>
         )}
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            triggerHapticLight();
+            if (returnTo) {
+              navigate(returnTo);
+            } else {
+              safeNavigateBack(navigate, '/app/today');
+            }
+          }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}
+        >
+          <ArrowLeft size={14} /> {returnLabel || 'Back to Dashboard'}
+        </button>
         <h2 style={{ fontSize: 24, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
           <Briefcase size={24} color="#0d9488" /> Choose a case
         </h2>
@@ -497,9 +517,26 @@ export default function CasePrep() {
 
       {/* Navigation & Controls */}
       <div className="print-hide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <button className="btn btn-outline btn-sm" onClick={() => { setSelectedCase(null); setShowPicker(true); }}>
-          &larr; Change case
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button 
+            type="button"
+            className="btn btn-outline btn-sm" 
+            onClick={() => {
+              triggerHapticLight();
+              if (returnTo) {
+                navigate(returnTo);
+              } else {
+                safeNavigateBack(navigate, selectedCase?.id ? `/app/cases/${encodeURIComponent(selectedCase.id)}` : '/app/today');
+              }
+            }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <ArrowLeft size={14} /> {returnLabel || 'Back'}
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => { setSelectedCase(null); setShowPicker(true); }}>
+            Change case
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Brief Version Picker */}
           {briefHistory.length > 0 && (

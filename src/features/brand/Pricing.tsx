@@ -38,6 +38,7 @@ import {
 } from '../../services/razorpay';
 import { PaymentRecoveryBanner } from '../../components/ui/PaymentRecoveryBanner';
 import { triggerHapticLight } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 import { motion } from 'framer-motion';
 import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
 
@@ -197,7 +198,10 @@ export default function Pricing() {
       <PaymentRecoveryBanner />
 
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => {
+          triggerHapticLight();
+          safeNavigateBack(navigate, '/app/today');
+        }}
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', marginBottom: '24px', fontWeight: 600, fontSize: '14px' }}
       >
         <ArrowLeft size={16} /> Back to Dashboard

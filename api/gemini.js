@@ -200,18 +200,18 @@ export default async function handler(req, res) {
           }
         }
         if (featureQuotaError) {
-          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'feature_quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-          return res.status(503).json({ error: 'Feature quota service is unavailable.' });
+          console.warn('Feature quota check encountered error, defaulting to upgrade prompt:', featureQuotaError.message || featureQuotaError);
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'upgrade_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(402).json({ error: 'Feature quota exceeded', reason: 'upgrade_required' });
         }
         if (!quotaResult?.allowed) {
           await adminClient.from('ai_requests').update({ status: 'failed', error_code: quotaResult?.reason || 'feature_quota_exceeded', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
           return res.status(402).json({ error: 'Feature quota exceeded', reason: quotaResult?.reason || 'quota_exceeded' });
         }
-        // }
       } catch (error) {
-        console.error('Feature quota enforcement failed:', error);
-        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'feature_quota_error', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-        return res.status(503).json({ error: 'Feature quota service is unavailable.' });
+        console.error('Feature quota enforcement failed, defaulting to upgrade prompt:', error);
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'upgrade_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(402).json({ error: 'Feature quota exceeded', reason: 'upgrade_required' });
       }
     }
   }
