@@ -68,21 +68,30 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate } from 'react-router-dom';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 
-interface ClinicalEliminationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+export interface ClinicalEliminationModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
   onTrialUpdated?: (trial: ActiveTrialState) => void;
+  inline?: boolean;
+  initialProtocolId?: string | null;
 }
 
 export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> = ({
-  isOpen,
+  isOpen = true,
   onClose,
-  onTrialUpdated
+  onTrialUpdated,
+  inline = false,
+  initialProtocolId = null,
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
-  const [selectedProtocolId, setSelectedProtocolId] = useState<string>('hunt_histamine');
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string>(() => {
+    if (initialProtocolId && ELIMINATION_PROTOCOLS.some((p) => p.id === initialProtocolId)) {
+      return initialProtocolId;
+    }
+    return 'hunt_histamine';
+  });
   type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols';
   type ProtocolCategory = 'all' | 'popular' | 'gut' | 'systemic';
   const [activeTab, setActiveTab] = useState<EliminationTab>('guardrails');
@@ -161,7 +170,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen || inline) {
       refreshTrialState();
       const current = getActiveTrial();
       if (current) {
@@ -175,7 +184,13 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setSosApplied(false);
       setSelectedExposure(null);
     }
-  }, [isOpen]);
+  }, [isOpen, inline]);
+
+  useEffect(() => {
+    if (initialProtocolId && ELIMINATION_PROTOCOLS.some((p) => p.id === initialProtocolId)) {
+      setSelectedProtocolId(initialProtocolId);
+    }
+  }, [initialProtocolId]);
 
   useEffect(() => {
     if (!activeChallenge) return;
@@ -233,7 +248,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       return;
     }
     // 5. Otherwise (no trial and on protocols), close modal to dashboard
-    onClose();
+    onClose?.();
   };
 
   const backButtonLabel = useMemo(() => {
@@ -258,7 +273,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
           setActiveTab('protocols');
           setTabHistory(['protocols']);
         } else {
-          onClose();
+          onClose?.();
         }
       }
     };
@@ -521,51 +536,25 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  return createPortal(
-    <AnimatePresence>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 999999,
-          display: 'flex',
-          alignItems: isMobile ? 'flex-end' : 'center',
-          justifyContent: 'center',
-          padding: isMobile ? '0' : '16px',
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            triggerHapticLight();
-            onClose();
-          }
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="elimination-modal-title"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
-          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          style={{
-            width: '100%',
-            maxWidth: '760px',
-            maxHeight: isMobile ? 'calc(100vh - max(24px, env(safe-area-inset-top, 24px)))' : 'calc(100vh - 40px)',
-            height: isMobile ? '92vh' : 'auto',
-            background: '#FFFFFF',
-            borderRadius: isMobile ? '24px 24px 0 0' : '28px',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
+  if (!inline && !isOpen) return null;
+
+  const modalInnerContent = (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: inline ? '100%' : '760px',
+        maxHeight: inline ? 'none' : (isMobile ? 'calc(100vh - max(24px, env(safe-area-inset-top, 24px)))' : 'calc(100vh - 40px)'),
+        height: inline ? 'auto' : (isMobile ? '92vh' : 'auto'),
+        background: '#FFFFFF',
+        borderRadius: inline ? '20px' : (isMobile ? '24px 24px 0 0' : '28px'),
+        border: '1px solid #E2E8F0',
+        boxShadow: inline ? '0 4px 20px rgba(15, 23, 42, 0.05)' : '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: inline ? 'visible' : 'hidden',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
           {/* Header */}
           <div
             style={{
@@ -676,32 +665,34 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                onClose();
-              }}
-              aria-label="Close elimination outcomes modal"
-              style={{
-                width: '38px',
-                height: '38px',
-                minWidth: '38px',
-                minHeight: '38px',
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#64748B',
-                cursor: 'pointer',
-                flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-              }}
-            >
-              <X size={18} />
-            </button>
+            {onClose && (
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  onClose();
+                }}
+                aria-label="Close elimination outcomes modal"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  minWidth: '38px',
+                  minHeight: '38px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                }}
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
 
           {/* Tab Navigation (Only when active trial exists) */}
@@ -2625,7 +2616,7 @@ R (Recommendation):
                     type="button"
                     onClick={() => {
                       triggerHapticSuccess();
-                      onClose();
+                      onClose?.();
                       const activeCaseId = getUnifiedCaseScope().caseId;
                       const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
                       navigate(targetUrl, {
@@ -2741,7 +2732,7 @@ R (Recommendation):
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                onClose();
+                onClose?.();
                 navigate('/app/dietician?tab=elimination&returnTo=%2Fapp%2Ftoday%3FopenElimination%3Dtrue', { 
                   state: { 
                     tab: 'elimination',
@@ -2782,91 +2773,141 @@ R (Recommendation):
               Done
             </button>
           </div>
-        </motion.div>
+        </div>
+  );
 
-        {/* Stop Trial Confirmation Dialog */}
-        {showStopModal && (
+  const sharedOverlays = (
+    <>
+      {/* Stop Trial Confirmation Dialog */}
+      {showStopModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
           <div
             style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 1000000,
-              background: 'rgba(15, 23, 42, 0.65)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px',
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '420px',
+              width: '100%',
+              padding: '20px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '20px',
-                maxWidth: '420px',
-                width: '100%',
-                padding: '20px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-                Stop Current Trial?
-              </div>
-              <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 12px', lineHeight: 1.5 }}>
-                Your observations will be safely archived for doctor review. Please select a reason for stopping:
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                {[
-                  { id: 'completed', label: 'Symptoms resolved / feel better' },
-                  { id: 'difficulty', label: 'Too restrictive for daily life' },
-                  { id: 'clinician_advice', label: 'Advised by my clinician to stop' },
-                  { id: 'other', label: 'Other personal reason' },
-                ].map((r) => (
-                  <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155', cursor: 'pointer', minHeight: '36px' }}>
-                    <input
-                      type="radio"
-                      name="stopReason"
-                      checked={stopReason === r.id}
-                      onChange={() => setStopReason(r.id as any)}
-                    />
-                    <span>{r.label}</span>
-                  </label>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowStopModal(false)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
-                >
-                  Keep Going
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStopTrialConfirm(stopReason)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#DC2626', color: '#FFFFFF', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
-                >
-                  Confirm Stop
-                </button>
-              </div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+              Stop Current Trial?
+            </div>
+            <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 12px', lineHeight: 1.5 }}>
+              Your observations will be safely archived for doctor review. Please select a reason for stopping:
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              {[
+                { id: 'completed', label: 'Symptoms resolved / feel better' },
+                { id: 'difficulty', label: 'Too restrictive for daily life' },
+                { id: 'clinician_advice', label: 'Advised by my clinician to stop' },
+                { id: 'other', label: 'Other personal reason' },
+              ].map((r) => (
+                <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155', cursor: 'pointer', minHeight: '36px' }}>
+                  <input
+                    type="radio"
+                    name="stopReason"
+                    checked={stopReason === r.id}
+                    onChange={() => setStopReason(r.id as any)}
+                  />
+                  <span>{r.label}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setShowStopModal(false)}
+                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
+              >
+                Keep Going
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStopTrialConfirm(stopReason)}
+                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#DC2626', color: '#FFFFFF', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }}
+              >
+                Confirm Stop
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Guided Start Modal */}
-        <GuidedStartModal
-          isOpen={showGuidedStart}
-          onClose={() => setShowGuidedStart(false)}
-          onSelectProtocol={(protocolId, initialSeverity) => {
-            setShowGuidedStart(false);
-            refreshTrialState();
-            setSelectedProtocolId(protocolId);
-            setActiveTab('guardrails');
-          }}
-          onBrowseAll={() => {
-            setShowGuidedStart(false);
-            setActiveTab('protocols');
-          }}
-        />
+      {/* Guided Start Modal */}
+      <GuidedStartModal
+        isOpen={showGuidedStart}
+        onClose={() => setShowGuidedStart(false)}
+        onSelectProtocol={(protocolId, initialSeverity) => {
+          setShowGuidedStart(false);
+          refreshTrialState();
+          setSelectedProtocolId(protocolId);
+          setActiveTab('guardrails');
+        }}
+        onBrowseAll={() => {
+          setShowGuidedStart(false);
+          setActiveTab('protocols');
+        }}
+      />
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {modalInnerContent}
+        {sharedOverlays}
+      </div>
+    );
+  }
+
+  return createPortal(
+    <AnimatePresence>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: isMobile ? 'flex-end' : 'center',
+          justifyContent: 'center',
+          padding: isMobile ? '0' : '16px',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            triggerHapticLight();
+            onClose?.();
+          }
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="elimination-modal-title"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          style={{ width: '100%', maxWidth: '760px', display: 'flex', justifyContent: 'center' }}
+        >
+          {modalInnerContent}
+        </motion.div>
+        {sharedOverlays}
       </div>
     </AnimatePresence>,
     document.body

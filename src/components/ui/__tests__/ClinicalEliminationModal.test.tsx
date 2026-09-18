@@ -265,4 +265,15 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     expect(printSpy).toHaveBeenCalled();
     printSpy.mockRestore();
   });
+
+  it('renders correctly in inline mode without portal', () => {
+    startTrial('hunt_bloat');
+    const { container } = render(
+      <ClinicalEliminationModal inline={true} />
+    );
+
+    expect(container.textContent).toContain('28-Day Bloating & Visceral Fermentation Hunt');
+    expect(container.textContent).toContain('What You Can Abundantly Enjoy Today');
+    expect(container.textContent).toContain('Protocol Adherence Today:');
+  });
 });
