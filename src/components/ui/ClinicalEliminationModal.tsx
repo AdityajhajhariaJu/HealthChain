@@ -691,23 +691,28 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   </button>
 
                   {showOverflowMenu && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '42px',
-                        right: 0,
-                        background: '#FFFFFF',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
-                        border: '1px solid #E2E8F0',
-                        padding: '6px',
-                        zIndex: 100,
-                        minWidth: '170px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                      }}
-                    >
+                    <>
+                      <div
+                        style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                        onClick={() => setShowOverflowMenu(false)}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '42px',
+                          right: 0,
+                          background: '#FFFFFF',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                          border: '1px solid #E2E8F0',
+                          padding: '6px',
+                          zIndex: 100,
+                          minWidth: '170px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                        }}
+                      >
                       {trialV2?.status === 'paused' ? (
                         <button
                           type="button"
@@ -812,7 +817,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         <StopCircle size={14} /> Stop Trial
                       </button>
                     </div>
-                  )}
+                  </>
+                )}
                 </div>
               )}
 
