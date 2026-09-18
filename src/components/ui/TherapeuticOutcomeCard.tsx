@@ -11,6 +11,11 @@ import {
   ActiveTrialState,
   ELIMINATION_PROTOCOLS
 } from '../../services/TriggerEngine';
+import {
+  getActiveTrialV2,
+  recordDailyObservation,
+  saveActiveTrialV2
+} from '../../services/TrialWorkflowService';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
 
 export const openEliminationSuiteModal = () => {
@@ -71,6 +76,24 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     triggerHapticSuccess();
     const updated = logTrialDay(score, true, 'Quick score check-in from dashboard');
     setTrial(updated);
+
+    // Sync to Trial V2 store so observation counts and calibration gates stay updated
+    const trialV2 = getActiveTrialV2();
+    if (trialV2) {
+      const todayKey = new Date().toLocaleDateString('en-CA');
+      const v2Updated = recordDailyObservation(trialV2.id, {
+        date: todayKey,
+        severityScore: score,
+        adherenceLevel: 'followed',
+        notes: 'Quick score check-in from dashboard',
+      });
+      if (!v2Updated) {
+        trialV2.baseline.completedObservations = (trialV2.baseline.completedObservations || 0) + 1;
+        saveActiveTrialV2(trialV2);
+      }
+      window.dispatchEvent(new CustomEvent('hc_trial_v2_updated'));
+    }
+
     setJustLogged(true);
     setIsLogging(false);
     setTimeout(() => setJustLogged(false), 2500);

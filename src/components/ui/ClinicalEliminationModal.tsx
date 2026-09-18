@@ -33,7 +33,9 @@ import {
   Pause,
   Play,
   StopCircle,
-  Apple
+  Apple,
+  MoreVertical,
+  Search
 } from 'lucide-react';
 import {
   getActiveTrial,
@@ -137,6 +139,12 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [reactionSeverity, setReactionSeverity] = useState<number>(5);
   const [reactionNote, setReactionNote] = useState<string>('');
 
+  // Minimalist progressive disclosure and overflow states
+  const [showOverflowMenu, setShowOverflowMenu] = useState<boolean>(false);
+  const [showSwapDrawer, setShowSwapDrawer] = useState<boolean>(false);
+  const [showCheckinDetails, setShowCheckinDetails] = useState<boolean>(false);
+  const [swapSearchQuery, setSwapSearchQuery] = useState<string>('');
+
   const todayKey = new Date().toLocaleDateString('en-CA');
 
   const refreshTrialState = () => {
@@ -224,42 +232,33 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   const handleBack = () => {
     triggerHapticLight();
-    // 1. If SOS panel is open in Today, close SOS first
     if (showSos) {
       setShowSos(false);
       return;
     }
-    // 2. If on sub-tabs (Timeline, Progress, Doctor Report), return to Today
+    if (showSwapDrawer) {
+      setShowSwapDrawer(false);
+      return;
+    }
+    if (showOverflowMenu) {
+      setShowOverflowMenu(false);
+      return;
+    }
+    // Sub-tabs return to Today
     if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
       setActiveTab('guardrails');
       setTabHistory(['guardrails']);
       return;
     }
-    // 3. If on Today, browse full 11-protocol directory
-    if (activeTab === 'guardrails') {
-      setActiveTab('protocols');
-      setTabHistory(['protocols']);
-      return;
-    }
-    // 4. If on protocols and an active trial exists, return to Today
-    if (activeTab === 'protocols' && trial) {
-      setActiveTab('guardrails');
-      setTabHistory(['guardrails']);
-      return;
-    }
-    // 5. Otherwise (no trial and on protocols), close modal to dashboard
+    // Main tabs dismiss modal
     onClose?.();
   };
 
   const backButtonLabel = useMemo(() => {
-    if (showSos) return 'Back to Today';
-    if (activeTab === 'rechallenge') return 'Back to Today';
-    if (activeTab === 'outcomes') return 'Back to Today';
-    if (activeTab === 'dossier') return 'Back to Today';
-    if (activeTab === 'guardrails') return 'Browse All 11 Protocols';
-    if (activeTab === 'protocols' && trial) return 'Back to Today';
+    if (showSos || showSwapDrawer) return 'Back to Today';
+    if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') return 'Back to Today';
     return 'Close to dashboard';
-  }, [showSos, activeTab, trial]);
+  }, [showSos, showSwapDrawer, activeTab]);
 
   // Filtered Protocols for Directory (unconditional hook execution)
   const filteredProtocols = useMemo(() => {
@@ -280,12 +279,13 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       if (e.key === 'Escape' && (isOpen || inline)) {
         if (showSos) {
           setShowSos(false);
+        } else if (showSwapDrawer) {
+          setShowSwapDrawer(false);
+        } else if (showOverflowMenu) {
+          setShowOverflowMenu(false);
         } else if (activeTab === 'rechallenge' || activeTab === 'outcomes' || activeTab === 'dossier') {
           setActiveTab('guardrails');
           setTabHistory(['guardrails']);
-        } else if (activeTab === 'guardrails') {
-          setActiveTab('protocols');
-          setTabHistory(['protocols']);
         } else {
           onClose?.();
         }
@@ -293,7 +293,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, inline, showSos, activeTab, onClose]);
+  }, [isOpen, inline, showSos, showSwapDrawer, showOverflowMenu, activeTab, onClose]);
 
   if (!isOpen && !inline) return null;
 
@@ -558,9 +558,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
           {/* Header */}
           <div
             style={{
-              padding: isMobile ? '16px 16px 14px' : '20px 24px',
+              padding: isMobile ? '14px 16px' : '16px 22px',
               borderBottom: '1px solid #F1F5F9',
-              background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+              background: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -576,51 +576,51 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   aria-label={backButtonLabel}
                   title={backButtonLabel}
                   style={{
-                    width: '38px',
-                    height: '38px',
-                    minWidth: '38px',
-                    minHeight: '38px',
+                    width: '36px',
+                    height: '36px',
+                    minWidth: '36px',
+                    minHeight: '36px',
                     borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: '#F8FAFC',
                     border: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#1E293B',
+                    color: '#0F172A',
                     cursor: 'pointer',
                     flexShrink: 0,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                    transition: 'background 0.15s ease'
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'background 0.15s ease',
                   }}
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={16} />
                 </button>
               )}
 
               <div
                 style={{
-                  width: isMobile ? '36px' : '44px',
-                  height: isMobile ? '36px' : '44px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                  width: isMobile ? '34px' : '38px',
+                  height: isMobile ? '34px' : '38px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFFFFF',
-                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
+                  color: '#0F172A',
                   flexShrink: 0,
                 }}
               >
-                <Target size={isMobile ? 18 : 22} />
+                <Target size={isMobile ? 16 : 18} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      fontSize: '10px',
+                      fontSize: '9.5px',
                       fontWeight: 800,
-                      color: '#6D28D9',
-                      background: '#EDE9FE',
+                      color: '#475569',
+                      background: '#F1F5F9',
                       padding: '2px 7px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
@@ -634,15 +634,15 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       : 'SELECT A RESET'}
                   </span>
                   {isProtocolsTab ? (
-                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                       11 Protocols Available
                     </span>
                   ) : trial ? (
-                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                       Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}% Complete)
                     </span>
                   ) : (
-                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                       Choose your starting point
                     </span>
                   )}
@@ -650,11 +650,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 <h2
                   id="elimination-modal-title"
                   style={{
-                    fontSize: isMobile ? '16px' : '20px',
+                    fontSize: isMobile ? '15px' : '18px',
                     fontWeight: 800,
                     color: '#0F172A',
-                    margin: '2px 0 0',
-                    letterSpacing: '-0.4px',
+                    margin: '1px 0 0',
+                    letterSpacing: '-0.3px',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -665,34 +665,186 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               </div>
             </div>
 
-            {onClose && (
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  onClose();
-                }}
-                aria-label="Close elimination outcomes modal"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  minWidth: '38px',
-                  minHeight: '38px',
-                  borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#64748B',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-                }}
-              >
-                <X size={18} />
-              </button>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              {trial && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowOverflowMenu(!showOverflowMenu)}
+                    aria-label="Trial options"
+                    title="Trial Options"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: showOverflowMenu ? '#F1F5F9' : '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#475569',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+
+                  {showOverflowMenu && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '42px',
+                        right: 0,
+                        background: '#FFFFFF',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                        border: '1px solid #E2E8F0',
+                        padding: '6px',
+                        zIndex: 100,
+                        minWidth: '170px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                      }}
+                    >
+                      {trialV2?.status === 'paused' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleResumeTrial();
+                            setShowOverflowMenu(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '9px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'none',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#15803D',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                          }}
+                        >
+                          <Play size={14} /> Resume Trial
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handlePauseTrial();
+                            setShowOverflowMenu(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '9px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'none',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#475569',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                          }}
+                        >
+                          <Pause size={14} /> Pause Trial
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('protocols');
+                          setShowOverflowMenu(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'none',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#475569',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <RotateCcw size={14} /> Switch Protocol
+                      </button>
+
+                      <div style={{ height: '1px', background: '#F1F5F9', margin: '4px 0' }} />
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowStopModal(true);
+                          setShowOverflowMenu(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'none',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#DC2626',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <StopCircle size={14} /> Stop Trial
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    onClose();
+                  }}
+                  aria-label="Close elimination outcomes modal"
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    minWidth: '36px',
+                    minHeight: '36px',
+                    borderRadius: '50%',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748B',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Tab Navigation (Only when active trial exists) */}
@@ -1190,39 +1342,40 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               </div>
             ) : (
               <>
-                {/* TAB 1: TODAY'S DAILY PLAN (UNIFIED: Checklist + Severity Slider + SOS) */}
+                {/* TAB 1: TODAY'S DAILY PLAN (UNIFIED MINIMALIST DESIGN) */}
                 {activeTab === 'guardrails' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Hero Daily Header */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {/* Ambient Daily Header */}
                     <div
                       style={{
-                        background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+                        background: '#FFFFFF',
                         borderRadius: '16px',
                         padding: '16px',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid #F1F5F9',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '10px',
+                        gap: '8px',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                         <div>
-                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                             {activePhaseObj.title.split(':')[1]?.trim() || activePhaseObj.title}
                           </div>
-                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '1px' }}>
                             Day {trial.currentDay} of {trial.totalDays} • {activeProtocolDef.name}
                           </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <span
                             style={{
-                              fontSize: '11.5px',
+                              fontSize: '11px',
                               fontWeight: 800,
                               color: '#059669',
                               background: '#ECFDF5',
                               border: '1px solid #A7F3D0',
-                              padding: '3px 9px',
+                              padding: '2px 8px',
                               borderRadius: '999px',
                             }}
                           >
@@ -1231,13 +1384,13 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         </div>
                       </div>
 
-                      {/* Daily Progress Bar */}
-                      <div style={{ height: '7px', width: '100%', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden' }}>
+                      {/* Hairline 3px Progress Bar */}
+                      <div style={{ height: '4px', width: '100%', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
                             width: `${Math.min(100, Math.round((trial.currentDay / trial.totalDays) * 100))}%`,
-                            background: 'linear-gradient(90deg, #10B981, #059669)',
+                            background: '#10B981',
                             borderRadius: '999px',
                             transition: 'width 0.3s ease',
                           }}
@@ -1247,53 +1400,59 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
 
                     {/* Paused State Notification */}
                     {trialV2?.status === 'paused' && (
-                      <div style={{ background: '#FFFBEB', borderRadius: '14px', padding: '12px 16px', border: '1.5px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '10px 14px', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Pause size={18} color="#D97706" />
+                          <Pause size={16} color="#D97706" />
                           <div>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>Trial Paused</span>
+                            <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#92400E' }}>Trial Paused</span>
                             <div style={{ fontSize: '11px', color: '#B45309' }}>Your logs are safely preserved. Resume whenever you are ready.</div>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={handleResumeTrial}
-                          style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          style={{ background: '#D97706', color: '#FFFFFF', border: 'none', borderRadius: '6px', padding: '5px 12px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         >
-                          <Play size={13} /> Resume
+                          <Play size={12} /> Resume
                         </button>
                       </div>
                     )}
 
-                    {/* Abundance Guide Card */}
+                    {/* Card 1: What You Can Abundantly Enjoy Today (Monash Positive Food Anchor) */}
                     <div
                       style={{
-                        background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+                        background: '#FFFFFF',
                         borderRadius: '16px',
-                        padding: '14px 16px',
-                        border: '1.5px solid #86EFAC',
+                        padding: '16px',
+                        border: '1px solid #F1F5F9',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <Apple size={17} color="#15803D" />
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#14532D' }}>
-                          What You Can Abundantly Enjoy Today
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Apple size={16} color="#059669" />
+                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                            What You Can Abundantly Enjoy Today
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#059669', background: '#ECFDF5', padding: '2px 8px', borderRadius: '999px' }}>
+                          Safe Staples
                         </span>
                       </div>
-                      <div style={{ fontSize: '11.5px', color: '#166534', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '11.5px', color: '#64748B', marginBottom: '10px' }}>
                         Restriction is temporary. Focus your meals around these nourishing, tolerated staples:
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {activeProtocolDef.allowedAlternatives.map((alt, idx) => (
+                        {activeProtocolDef.allowedAlternatives.slice(0, 4).map((alt, idx) => (
                           <span
                             key={idx}
                             style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              color: '#065F46',
-                              background: '#FFFFFF',
-                              border: '1px solid #A7F3D0',
-                              padding: '3px 9px',
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              color: '#0F172A',
+                              background: '#F8FAFC',
+                              border: '1px solid #E2E8F0',
+                              padding: '4px 10px',
                               borderRadius: '8px',
                             }}
                           >
@@ -1301,74 +1460,92 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           </span>
                         ))}
                       </div>
-                      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #BBF7D0', fontSize: '11px', color: '#15803D' }}>
-                        🛡️ <strong>Temporarily set aside:</strong> {activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}
+                      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', fontSize: '11px', color: '#64748B' }}>
+                        <span>Temporarily set aside: {activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowSwapDrawer(true)}
+                          style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: '11px' }}
+                        >
+                          Full swap guide ({activeProtocolDef.allowedAlternatives.length} items) →
+                        </button>
                       </div>
                     </div>
 
-                    {/* Section 1: Today's Action Checklist */}
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', margin: 0, letterSpacing: '0.4px' }}>
-                          Today's Action Checklist
-                        </h3>
-                        <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                          Tap when completed
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {checklistItems.map((item) => (
-                          <div
-                            key={item.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleToggleChecklist(item.id)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '12px',
-                              padding: '12px 14px',
-                              borderRadius: '12px',
-                              background: checklist[item.id] ? '#F0FDF4' : '#F8FAFC',
-                              border: checklist[item.id] ? '1.5px solid #86EFAC' : '1px solid #E2E8F0',
-                              cursor: 'pointer',
-                              minHeight: '48px',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                borderRadius: '7px',
-                                background: checklist[item.id] ? '#10B981' : '#FFFFFF',
-                                border: checklist[item.id] ? 'none' : '2px solid #CBD5E1',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#FFFFFF',
-                                flexShrink: 0,
-                              }}
-                            >
-                              {checklist[item.id] && <Check size={15} strokeWidth={3} />}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{item.label}</div>
-                              <div style={{ fontSize: '11px', color: '#64748B' }}>{item.desc}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Section 2: Daily Severity Check-In (Unified here from Outcomes) */}
+                    {/* Card 2: Today's Action Checklist (Apple-Inspired Task Strip) */}
                     <div
                       style={{
                         background: '#FFFFFF',
                         borderRadius: '16px',
                         padding: '16px',
-                        border: '1.5px solid #E2E8F0',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                        border: '1px solid #F1F5F9',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <h3 style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', margin: 0, letterSpacing: '0.4px' }}>
+                          Today's Action Checklist
+                        </h3>
+                        <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                          Tap when completed
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {checklistItems.map((item, idx) => (
+                          <React.Fragment key={item.id}>
+                            {idx > 0 && <div style={{ height: '1px', background: '#F8FAFC', margin: '2px 0' }} />}
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleToggleChecklist(item.id)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '8px 4px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                minHeight: '40px',
+                                transition: 'background 0.15s ease',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '50%',
+                                  background: checklist[item.id] ? '#10B981' : '#FFFFFF',
+                                  border: checklist[item.id] ? 'none' : '2px solid #CBD5E1',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#FFFFFF',
+                                  flexShrink: 0,
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                {checklist[item.id] && <Check size={13} strokeWidth={3} />}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 600, color: checklist[item.id] ? '#94A3B8' : '#0F172A', textDecoration: checklist[item.id] ? 'line-through' : 'none' }}>
+                                  {item.label}
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#94A3B8' }}>{item.desc}</div>
+                              </div>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Card 3: Daily Gut Comfort Check-In (Bowelle 1-Tap Reaction Model) */}
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        border: '1px solid #F1F5F9',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1382,95 +1559,163 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         </div>
                         <div
                           style={{
-                            fontSize: '13px',
-                            fontWeight: 800,
-                            padding: '3px 10px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
                             borderRadius: '999px',
                             background: severityScore === null ? '#F1F5F9' : severityScore <= 3 ? '#DCFCE7' : severityScore <= 6 ? '#FEF3C7' : '#FEE2E2',
                             color: severityScore === null ? '#64748B' : severityScore <= 3 ? '#15803D' : severityScore <= 6 ? '#B45309' : '#B91C1C',
                           }}
                         >
-                          {severityScore === null ? 'Not recorded yet' : severityScore <= 3 ? `😊 Calmed (${severityScore}/10)` : severityScore <= 6 ? `😐 Mild (${severityScore}/10)` : `😣 Flare (${severityScore}/10)`}
+                          {severityScore === null ? 'Select score' : severityScore <= 3 ? `😊 Calm (${severityScore}/10)` : severityScore <= 6 ? `😐 Mild (${severityScore}/10)` : `😣 Flare (${severityScore}/10)`}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', marginTop: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>1 (Best)</span>
+                      {/* 4 Discrete Reaction Cards */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                        {[
+                          { score: 2, label: 'Calm', emoji: '😊' },
+                          { score: 4, label: 'Good', emoji: '🙂' },
+                          { score: 6, label: 'Mild', emoji: '😐' },
+                          { score: 8, label: 'Flare', emoji: '😣' },
+                        ].map((btn) => {
+                          const isSelected = severityScore !== null && Math.abs(severityScore - btn.score) <= 1;
+                          return (
+                            <button
+                              key={btn.score}
+                              type="button"
+                              onClick={() => {
+                                triggerHapticSelection();
+                                setSeverityScore(btn.score);
+                              }}
+                              style={{
+                                padding: '10px 4px',
+                                borderRadius: '10px',
+                                border: isSelected ? '2px solid #10B981' : '1px solid #E2E8F0',
+                                background: isSelected ? '#ECFDF5' : '#FAFAFA',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '3px',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              <span style={{ fontSize: '18px' }}>{btn.emoji}</span>
+                              <span style={{ fontSize: '11px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#065F46' : '#334155' }}>
+                                {btn.label}
+                              </span>
+                              <span style={{ fontSize: '9px', color: '#94A3B8' }}>{btn.score}/10</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Continuous Slider (Role slider for full fine-tuning & test compatibility) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#059669' }}>1</span>
                         <input
                           type="range"
+                          role="slider"
+                          aria-label="Severity score"
                           min="1"
                           max="10"
                           step="0.5"
                           value={severityScore ?? 5}
                           onChange={(e) => setSeverityScore(parseFloat(e.target.value))}
-                          style={{ flex: 1, accentColor: severityScore === null ? '#94A3B8' : severityScore <= 3 ? '#10B981' : severityScore <= 6 ? '#F59E0B' : '#EF4444' }}
+                          style={{ flex: 1, height: '4px', accentColor: '#10B981' }}
                         />
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626' }}>10 (Worst)</span>
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#DC2626' }}>10</span>
                       </div>
 
-                      {/* Tri-State Adherence Radio */}
+                      {/* Progressive Disclosure for Adherence & Notes */}
                       <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
-                          Protocol Adherence Today:
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {[
-                            { id: 'followed', label: 'Followed', color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46' },
-                            { id: 'partially_followed', label: 'Partly followed', color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A', text: '#92400E' },
-                            { id: 'not_followed', label: 'Did not follow', color: '#64748B', bg: '#F8FAFC', border: '#E2E8F0', text: '#334155' },
-                          ].map((lvl) => {
-                            const isSelected = adherenceLevel === lvl.id;
-                            return (
-                              <button
-                                key={lvl.id}
-                                type="button"
-                                onClick={() => {
-                                  triggerHapticSelection();
-                                  setAdherenceLevel(lvl.id as AdherenceLevel);
-                                }}
-                                style={{
-                                  flex: 1,
-                                  padding: '8px 4px',
-                                  borderRadius: '8px',
-                                  border: isSelected ? `2px solid ${lvl.color}` : '1px solid #E2E8F0',
-                                  background: isSelected ? lvl.bg : '#FFFFFF',
-                                  color: isSelected ? lvl.text : '#64748B',
-                                  fontSize: '11.5px',
-                                  fontWeight: isSelected ? 800 : 600,
-                                  cursor: 'pointer',
-                                  minHeight: '44px',
-                                  transition: 'all 0.15s ease',
-                                }}
-                              >
-                                {lvl.label}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowCheckinDetails(!showCheckinDetails)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#059669',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: '4px 0',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          {showCheckinDetails ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                          <span>{showCheckinDetails ? 'Hide details' : '+ Add protocol adherence & notes'}</span>
+                        </button>
+
+                        {showCheckinDetails && (
+                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div>
+                              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
+                                Protocol Adherence Today:
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                {[
+                                  { id: 'followed', label: 'Followed' },
+                                  { id: 'partially_followed', label: 'Partly followed' },
+                                  { id: 'not_followed', label: 'Did not follow' },
+                                ].map((lvl) => {
+                                  const isSelected = adherenceLevel === lvl.id;
+                                  return (
+                                    <button
+                                      key={lvl.id}
+                                      type="button"
+                                      onClick={() => {
+                                        triggerHapticSelection();
+                                        setAdherenceLevel(lvl.id as AdherenceLevel);
+                                      }}
+                                      style={{
+                                        flex: 1,
+                                        padding: '6px 2px',
+                                        borderRadius: '6px',
+                                        border: isSelected ? '2px solid #10B981' : '1px solid #E2E8F0',
+                                        background: isSelected ? '#ECFDF5' : '#FFFFFF',
+                                        color: isSelected ? '#065F46' : '#64748B',
+                                        fontSize: '11px',
+                                        fontWeight: isSelected ? 700 : 500,
+                                        cursor: 'pointer',
+                                        minHeight: '36px',
+                                      }}
+                                    >
+                                      {lvl.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <input
+                              type="text"
+                              placeholder="Optional note: e.g. bloat after lunch, headache gone"
+                              value={checkinNote}
+                              onChange={(e) => setCheckinNote(e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                borderRadius: '8px',
+                                border: '1px solid #CBD5E1',
+                                fontSize: '11.5px',
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
 
-                      <input
-                        type="text"
-                        placeholder="Quick symptom note (optional: e.g. bloat after lunch, headache gone)"
-                        value={checkinNote}
-                        onChange={(e) => setCheckinNote(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          border: '1px solid #CBD5E1',
-                          fontSize: '12px',
-                          marginBottom: '12px',
-                        }}
-                      />
-
+                      {/* Save Check-In Button */}
                       <button
                         type="button"
                         disabled={severityScore === null}
                         onClick={handleLogScore}
                         style={{
                           width: '100%',
-                          background: severityScore === null ? '#E2E8F0' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                          background: severityScore === null ? '#E2E8F0' : '#10B981',
                           color: severityScore === null ? '#94A3B8' : '#FFFFFF',
                           border: 'none',
                           borderRadius: '10px',
@@ -1502,46 +1747,128 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       </button>
                     </div>
 
-                    {/* Section 3: Accidental Exposure SOS Box (Warm, de-escalated) */}
+                    {/* Safety Valve Link (Accidental Exposure Relief) */}
+                    <div style={{ textAlign: 'center', padding: '6px 0 2px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowSos(true)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#64748B',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '3px',
+                        }}
+                      >
+                        Ate an off-track trigger? View quick relief steps →
+                      </button>
+                    </div>
+
+                    {/* Secondary Trial Controls Footer (Clean 1-Line Strip) */}
                     <div
                       style={{
-                        background: '#FFFBEB',
-                        borderRadius: '16px',
-                        padding: '14px 16px',
-                        border: '1.5px solid #FDE68A',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '12px',
+                        padding: '10px 0 4px',
+                        borderTop: '1px solid #F1F5F9',
+                        flexWrap: 'wrap',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <AlertTriangle size={18} color="#D97706" />
-                          <div>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>Accidental Exposure?</span>
-                            <div style={{ fontSize: '11px', color: '#B45309' }}>Don't panic — accidental bites are useful data, not a failure.</div>
-                          </div>
-                        </div>
+                      {trialV2?.status === 'paused' ? (
                         <button
                           type="button"
-                          onClick={() => setShowSos(!showSos)}
-                          style={{
-                            background: '#F59E0B',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '6px 12px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                          }}
+                          onClick={handleResumeTrial}
+                          style={{ background: 'none', border: 'none', color: '#15803D', fontSize: '11px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         >
-                          {showSos ? 'Hide SOS' : 'I Ate a Trigger'}
+                          <Play size={12} /> Resume Trial
                         </button>
-                      </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handlePauseTrial}
+                          style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Pause size={12} /> Pause Trial
+                        </button>
+                      )}
 
-                      {showSos && (
-                        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #FEF3C7' }}>
-                          <p style={{ fontSize: '12px', color: '#78350F', margin: '0 0 8px' }}>
-                            Select what you accidentally had to receive immediate calming steps:
+                      <span style={{ color: '#CBD5E1', fontSize: '10px' }}>•</span>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('protocols')}
+                        style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <RotateCcw size={12} /> Switch Protocol
+                      </button>
+
+                      <span style={{ color: '#CBD5E1', fontSize: '10px' }}>•</span>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowStopModal(true)}
+                        style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <StopCircle size={12} /> Stop Trial
+                      </button>
+                    </div>
+
+                    {/* Calming Accidental Exposure Bottom Sheet */}
+                    {showSos && (
+                      <div
+                        style={{
+                          position: 'fixed',
+                          inset: 0,
+                          background: 'rgba(0,0,0,0.4)',
+                          zIndex: 1000,
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          justifyContent: 'center',
+                        }}
+                        onClick={() => setShowSos(false)}
+                      >
+                        <div
+                          style={{
+                            width: '100%',
+                            maxWidth: '540px',
+                            background: '#FFFFFF',
+                            borderTopLeftRadius: '20px',
+                            borderTopRightRadius: '20px',
+                            padding: '20px',
+                            boxShadow: '0 -10px 30px rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                                Accidental Exposure Relief
+                              </h4>
+                              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0' }}>
+                                Accidental bites are useful data, not a failure.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowSos(false)}
+                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+
+                          <p style={{ fontSize: '12px', color: '#334155', margin: '4px 0 0' }}>
+                            Select what you accidentally had to record the exposure and view calming relief steps:
                           </p>
+
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             {sosOptions.map((trig) => (
                               <button
@@ -1549,11 +1876,11 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 type="button"
                                 onClick={() => handleApplySosMitigation(trig)}
                                 style={{
-                                  background: selectedExposure === trig ? '#78350F' : '#FFFFFF',
-                                  color: selectedExposure === trig ? '#FFFFFF' : '#92400E',
-                                  border: '1px solid #FCD34D',
+                                  background: selectedExposure === trig ? '#0F172A' : '#F8FAFC',
+                                  color: selectedExposure === trig ? '#FFFFFF' : '#334155',
+                                  border: '1px solid #E2E8F0',
                                   borderRadius: '8px',
-                                  padding: '6px 12px',
+                                  padding: '7px 12px',
                                   fontSize: '11.5px',
                                   fontWeight: 700,
                                   cursor: 'pointer',
@@ -1565,139 +1892,139 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           </div>
 
                           {sosApplied && (
-                            <div
-                              style={{
-                                marginTop: '12px',
-                                background: '#FFFFFF',
-                                padding: '12px 14px',
-                                borderRadius: '12px',
-                                border: '1px solid #FDE68A',
-                              }}
-                            >
-                              <div style={{ fontSize: '12px', fontWeight: 800, color: '#B45309', marginBottom: '6px' }}>
-                                🛡️ Quick Relief Steps for {selectedExposure}:
+                            <div style={{ background: '#F0FDF4', padding: '12px 14px', borderRadius: '12px', border: '1px solid #BBF7D0' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '6px' }}>
+                                ✓ Calming steps recorded for {selectedExposure}:
                               </div>
-                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: '#78350F', lineHeight: 1.6 }}>
-                                <li>Take a digestive enzyme or sip warm peppermint/ginger tea to ease gut tension.</li>
-                                <li>Hydrate with a glass of water with a pinch of mineral salt/electrolytes.</li>
+                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: '#15803D', lineHeight: 1.6 }}>
+                                <li>Sip warm peppermint or ginger tea to relax smooth gut muscles.</li>
+                                <li>Hydrate with a glass of water with a pinch of electrolytes.</li>
                                 <li><strong>Your Reset Continues:</strong> One exposure does not ruin your trial. Continue today as planned.</li>
                               </ul>
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Section 4: Patient Agency & Trial Controls */}
-                    <div
-                      style={{
-                        background: '#F8FAFC',
-                        borderRadius: '16px',
-                        padding: '14px 16px',
-                        border: '1px solid #E2E8F0',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                      }}
-                    >
-                      <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#334155' }}>
-                        Trial Management & Controls
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748B' }}>
-                        You are in full control of your observations. Pause, switch, or stop at any time.
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {trialV2?.status === 'paused' ? (
-                          <button
-                            type="button"
-                            onClick={handleResumeTrial}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              background: '#10B981',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              fontSize: '11.5px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              minHeight: '44px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <Play size={14} /> Resume Trial
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handlePauseTrial}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              background: '#F1F5F9',
-                              color: '#475569',
-                              border: '1px solid #CBD5E1',
-                              fontSize: '11.5px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              minHeight: '44px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <Pause size={14} /> Pause Trial
-                          </button>
-                        )}
+                    )}
 
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('protocols')}
+                    {/* Monash Low-FODMAP / Food Swap Drawer */}
+                    {showSwapDrawer && (
+                      <div
+                        style={{
+                          position: 'fixed',
+                          inset: 0,
+                          background: 'rgba(0,0,0,0.4)',
+                          zIndex: 1000,
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          justifyContent: 'center',
+                        }}
+                        onClick={() => setShowSwapDrawer(false)}
+                      >
+                        <div
                           style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            background: '#F1F5F9',
-                            color: '#475569',
-                            border: '1px solid #CBD5E1',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            minHeight: '44px',
-                          }}
-                        >
-                          Switch Protocol
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setShowStopModal(true)}
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            background: '#FEF2F2',
-                            color: '#991B1B',
-                            border: '1px solid #FECACA',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            minHeight: '44px',
+                            width: '100%',
+                            maxWidth: '560px',
+                            maxHeight: '80vh',
+                            background: '#FFFFFF',
+                            borderTopLeftRadius: '20px',
+                            borderTopRightRadius: '20px',
+                            padding: '20px',
+                            boxShadow: '0 -10px 30px rgba(0,0,0,0.1)',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
+                            flexDirection: 'column',
+                            gap: '12px',
+                            overflowY: 'auto',
                           }}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <StopCircle size={14} /> Stop Trial
-                        </button>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                                Safe Swap Directory ({activeProtocolDef.name})
+                              </h4>
+                              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0' }}>
+                                Evidence-based substitutions for symptom-free cooking
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowSwapDrawer(false)}
+                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+
+                          <div style={{ position: 'relative' }}>
+                            <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+                            <input
+                              type="text"
+                              placeholder="Search swaps (e.g. oil, rice, milk)..."
+                              value={swapSearchQuery}
+                              onChange={(e) => setSwapSearchQuery(e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px 8px 32px',
+                                borderRadius: '8px',
+                                border: '1px solid #CBD5E1',
+                                fontSize: '12px',
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', textTransform: 'uppercase' }}>
+                              Allowed & Tolerated Alternatives
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              {activeProtocolDef.allowedAlternatives
+                                .filter((alt) => !swapSearchQuery || alt.toLowerCase().includes(swapSearchQuery.toLowerCase()))
+                                .map((alt, idx) => (
+                                  <span
+                                    key={idx}
+                                    style={{
+                                      fontSize: '11.5px',
+                                      fontWeight: 600,
+                                      color: '#065F46',
+                                      background: '#ECFDF5',
+                                      border: '1px solid #A7F3D0',
+                                      padding: '4px 10px',
+                                      borderRadius: '8px',
+                                    }}
+                                  >
+                                    ✓ {alt}
+                                  </span>
+                                ))}
+                            </div>
+
+                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', marginTop: '8px' }}>
+                              Temporarily Eliminated Culprits
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              {activeProtocolDef.eliminatedFoods
+                                .filter((food) => !swapSearchQuery || food.toLowerCase().includes(swapSearchQuery.toLowerCase()))
+                                .map((food, idx) => (
+                                  <span
+                                    key={idx}
+                                    style={{
+                                      fontSize: '11.5px',
+                                      fontWeight: 600,
+                                      color: '#991B1B',
+                                      background: '#FEF2F2',
+                                      border: '1px solid #FECACA',
+                                      padding: '4px 10px',
+                                      borderRadius: '8px',
+                                    }}
+                                  >
+                                    ✕ {food}
+                                  </span>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

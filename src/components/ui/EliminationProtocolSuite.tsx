@@ -1,37 +1,5 @@
+import React from 'react';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  CheckCircle2,
-  AlertTriangle,
-  Flame,
-  Wind,
-  Brain,
-  Activity,
-  Sliders,
-  ChevronRight,
-  Clock,
-  Copy,
-  Check,
-  Info,
-  Calendar,
-  Zap,
-  ArrowRight,
-  ArrowLeft,
-  RefreshCw,
-  Search,
-} from 'lucide-react';
-import { getProfile, getEliminationProtocolState, saveEliminationProtocolState } from '../../services/ProfileEngine';
-import { getActiveTrial, startTrial, ActiveTrialState, PROTOCOL_ALIASES } from '../../services/TriggerEngine';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
-import { useToast } from './ToastProvider';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { PersonalizedJourneyGoalSelector } from './PersonalizedJourneyGoalSelector';
-import FocusTrap from './FocusTrap';
 
 // --- Types ---
 export type ProtocolId = 'bloating_hunt' | 'heartburn_hunt' | 'transit_hunt' | 'vagal_hunt';

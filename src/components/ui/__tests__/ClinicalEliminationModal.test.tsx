@@ -62,6 +62,9 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     // Persisted checklist
     expect(screen.getByText("Today's Action Checklist")).toBeTruthy();
 
+    // Open progressive disclosure for adherence & notes
+    fireEvent.click(screen.getByText(/Add protocol adherence & notes/i));
+
     // Tri-state adherence radio
     expect(screen.getByText('Followed')).toBeTruthy();
     expect(screen.getByText('Partly followed')).toBeTruthy();
@@ -274,7 +277,7 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
 
     expect(container.textContent).toContain('28-Day Bloating & Visceral Fermentation Hunt');
     expect(container.textContent).toContain('What You Can Abundantly Enjoy Today');
-    expect(container.textContent).toContain('Protocol Adherence Today:');
+    expect(container.textContent).toContain("Today's Action Checklist");
   });
 
   it('handles isOpen transition from false to true without hook count mismatch (React error #310 prevention)', () => {
