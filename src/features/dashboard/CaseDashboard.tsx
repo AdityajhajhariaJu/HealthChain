@@ -242,32 +242,36 @@ export default function CaseDashboard() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'flex-end',
-                  padding: isMobile ? '18px 12px' : '22px 16px',
+                  padding: isMobile ? '16px 8px' : '20px 14px',
                   minHeight: isMobile ? '220px' : '260px'
                 }}
               >
                 {/* Bottom Centerpiece: Clean Zen Sanctuary pill & subtitle */}
-                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', maxWidth: '100%' }}>
                   <div
                     style={{
-                      background: 'rgba(255, 255, 255, 0.92)',
+                      background: 'rgba(255, 255, 255, 0.94)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
                       border: '1px solid rgba(167, 243, 208, 0.9)',
                       borderRadius: '999px',
-                      padding: isMobile ? '4px 11px' : '5px 14px',
+                      padding: isMobile ? '4px 10px' : '5px 13px',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '5px',
+                      gap: '4px',
                       boxShadow: '0 4px 14px rgba(13, 148, 136, 0.12)',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
                     }}
                   >
-                    <span style={{ fontSize: isMobile ? '11.5px' : '12.5px' }}>🌸</span>
-                    <span style={{ fontSize: isMobile ? '10px' : '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: isMobile ? '11px' : '12px', lineHeight: 1, flexShrink: 0 }}>🌸</span>
+                    <span style={{ fontSize: isMobile ? '9.5px' : '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.4px', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1 }}>
                       Zen Sanctuary
                     </span>
                   </div>
-                  <p style={{ fontSize: isMobile ? '9.5px' : '10.5px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
+                  <p style={{ fontSize: isMobile ? '8.5px' : '9.5px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: isMobile ? '0.7px' : '1px', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    PAUSE · BREATHE · RESET
+                  </p>
                 </div>
               </motion.div>
 
