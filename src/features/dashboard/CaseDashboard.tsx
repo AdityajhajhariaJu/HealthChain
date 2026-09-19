@@ -400,7 +400,7 @@ export default function CaseDashboard() {
               {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
               <TherapeuticOutcomeCard span2={true} />
 
-              {/* Point 3: Interactive Daily Habit Stack - Full Width Radial Progress Cards */}
+              {/* Point 3: Interactive Daily Habit Stack - Full Width Compact Radial Cards */}
               {/* Habit 1: Daily Hydration Tracking */}
               {(() => {
                 const waterMl = hydrationData.currentMl;
@@ -411,7 +411,7 @@ export default function CaseDashboard() {
                 const remainingGlasses = Math.ceil(remainingWaterMl / 250);
                 const currentGlasses = Math.round(waterMl / 250);
                 const totalGlasses = Math.round(targetWaterMl / 250);
-                const ringRadius = 34;
+                const ringRadius = 29;
                 const ringCircumference = 2 * Math.PI * ringRadius;
                 const ringOffset = ringCircumference - (waterPct / 100) * ringCircumference;
 
@@ -445,14 +445,14 @@ export default function CaseDashboard() {
                         ? '1px solid rgba(186, 230, 253, 0.95)'
                         : '1px solid rgba(255, 255, 255, 0.95)',
                       boxShadow: isWaterGoal
-                        ? '0 16px 36px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(14, 165, 233, 0.05)'
-                        : '0 16px 36px rgba(0, 0, 0, 0.035), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
-                      borderRadius: isMobile ? '24px' : '28px',
-                      padding: isMobile ? '16px 16px' : '20px 24px',
+                        ? '0 12px 28px rgba(14, 165, 233, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(14, 165, 233, 0.04)'
+                        : '0 12px 28px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(255,255,255,0.5)',
+                      borderRadius: isMobile ? '22px' : '26px',
+                      padding: isMobile ? '12px 14px' : '15px 20px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: '14px',
+                      gap: '12px',
                       cursor: 'pointer',
                       position: 'relative',
                       overflow: 'hidden',
@@ -471,12 +471,12 @@ export default function CaseDashboard() {
                           background: 'rgba(224, 242, 254, 0.85)',
                           border: '1px solid rgba(186, 230, 253, 0.9)',
                           borderRadius: '999px',
-                          padding: '3px 10px',
-                          fontSize: '11px',
+                          padding: '2.5px 9px',
+                          fontSize: '10.5px',
                           fontWeight: 800,
                           color: '#0284C7',
                           letterSpacing: '-0.1px',
-                          marginBottom: '6px'
+                          marginBottom: '3px'
                         }}
                       >
                         <Sparkles size={11} color="#0284C7" />
@@ -488,7 +488,7 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '26px' : '30px',
+                            fontSize: isMobile ? '23px' : '27px',
                             fontWeight: 900,
                             color: '#0F172A',
                             letterSpacing: '-0.8px',
@@ -499,7 +499,7 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: isMobile ? '13px' : '15px',
+                            fontSize: isMobile ? '12.5px' : '14px',
                             fontWeight: 600,
                             color: '#64748B'
                           }}
@@ -511,11 +511,14 @@ export default function CaseDashboard() {
                       {/* Contextual Subtext */}
                       <p
                         style={{
-                          fontSize: isMobile ? '11.5px' : '12.5px',
+                          fontSize: isMobile ? '11px' : '12px',
                           fontWeight: 500,
                           color: isWaterGoal ? '#059669' : '#64748B',
-                          margin: '4px 0 10px',
-                          lineHeight: 1.3
+                          margin: '2px 0 6px',
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }}
                       >
                         {isWaterGoal ? (
@@ -527,8 +530,8 @@ export default function CaseDashboard() {
                         )}
                       </p>
 
-                      {/* Bottom Micro-Pill & Quick Action */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {/* Bottom Micro-Pill & Quick Action (Zero-Wrap Single Row) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                         <span
                           style={{
                             display: 'inline-flex',
@@ -536,13 +539,14 @@ export default function CaseDashboard() {
                             background: 'rgba(224, 242, 254, 0.65)',
                             border: '1.5px solid rgba(125, 211, 252, 0.8)',
                             borderRadius: '999px',
-                            padding: '3.5px 11px',
-                            fontSize: isMobile ? '10.5px' : '11.5px',
+                            padding: '3px 9px',
+                            fontSize: '10.5px',
                             fontWeight: 700,
-                            color: '#0369A1'
+                            color: '#0369A1',
+                            whiteSpace: 'nowrap'
                           }}
                         >
-                          {currentGlasses} of {totalGlasses} Standard Glasses (250ml)
+                          {currentGlasses}/{totalGlasses} Glasses (250ml)
                         </span>
 
                         {!isWaterGoal && (
@@ -556,8 +560,8 @@ export default function CaseDashboard() {
                               background: '#0284C7',
                               border: 'none',
                               borderRadius: '999px',
-                              padding: '4px 11px',
-                              fontSize: isMobile ? '10.5px' : '11px',
+                              padding: '3px 10px',
+                              fontSize: '10.5px',
                               fontWeight: 800,
                               color: '#FFFFFF',
                               display: 'inline-flex',
@@ -566,7 +570,7 @@ export default function CaseDashboard() {
                               cursor: 'pointer',
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
-                              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.28)'
+                              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
                             }}
                           >
                             <Plus size={11} strokeWidth={2.8} /> 250ml
@@ -579,9 +583,9 @@ export default function CaseDashboard() {
                     <div
                       style={{
                         position: 'relative',
-                        width: isMobile ? '76px' : '86px',
-                        height: isMobile ? '76px' : '86px',
-                        minWidth: isMobile ? '76px' : '86px',
+                        width: isMobile ? '68px' : '76px',
+                        height: isMobile ? '68px' : '76px',
+                        minWidth: isMobile ? '68px' : '76px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -595,22 +599,22 @@ export default function CaseDashboard() {
                           transform: 'rotate(-90deg)',
                           overflow: 'visible'
                         }}
-                        viewBox="0 0 80 80"
+                        viewBox="0 0 74 74"
                       >
                         <circle
-                          cx="40"
-                          cy="40"
+                          cx="37"
+                          cy="37"
                           r={ringRadius}
                           stroke="#E0F2FE"
-                          strokeWidth={7}
+                          strokeWidth={6.5}
                           fill="transparent"
                         />
                         <circle
-                          cx="40"
-                          cy="40"
+                          cx="37"
+                          cy="37"
                           r={ringRadius}
                           stroke={isWaterGoal ? '#10B981' : '#0284C7'}
-                          strokeWidth={7}
+                          strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
                           strokeLinecap="round"
@@ -633,7 +637,7 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '16px' : '18px',
+                            fontSize: isMobile ? '15px' : '17px',
                             fontWeight: 900,
                             color: '#0F172A',
                             lineHeight: 1,
@@ -644,7 +648,7 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: '8.5px',
+                            fontSize: '8px',
                             fontWeight: 900,
                             color: isWaterGoal ? '#059669' : '#0284C7',
                             letterSpacing: '0.8px',
@@ -660,7 +664,7 @@ export default function CaseDashboard() {
                 );
               })()}
 
-              {/* Habit 2: Daily Vitamins / Micronutrients */}
+              {/* Habit 2: Daily Meds & Vitamins */}
               {(() => {
                 const totalRxDoses = vitaminSchedule.length > 0 ? vitaminSchedule.length : 1;
                 const takenRxDoses = completedHabits['vitamins']
@@ -669,7 +673,7 @@ export default function CaseDashboard() {
                 const isRxDone = Boolean(completedHabits['vitamins']) || (vitaminSchedule.length > 0 && takenRxDoses >= totalRxDoses);
                 const rxPct = Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100));
                 const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
-                const ringRadius = 34;
+                const ringRadius = 29;
                 const ringCircumference = 2 * Math.PI * ringRadius;
                 const ringOffset = ringCircumference - (rxPct / 100) * ringCircumference;
                 const nextDoseItem = vitaminSchedule.find(v => !v.takenToday);
@@ -678,7 +682,7 @@ export default function CaseDashboard() {
                   <motion.div 
                     role="button"
                     tabIndex={0}
-                    aria-label={`Daily Vitamins / Micronutrients - ${isRxDone ? 'Completed' : 'Tap to manage schedule or mark done'}`}
+                    aria-label={`Daily Meds & Vitamins - ${isRxDone ? 'All Taken' : 'Tap to manage schedule or mark done'}`}
                     whileHover={{ y: -2, scale: 1.005 }}
                     whileTap={{ scale: 0.99 }}
                     transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -704,14 +708,14 @@ export default function CaseDashboard() {
                         ? '1px solid rgba(167, 243, 208, 0.95)'
                         : '1px solid rgba(255, 255, 255, 0.95)',
                       boxShadow: isRxDone
-                        ? '0 16px 36px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(16, 185, 129, 0.05)'
-                        : '0 16px 36px rgba(0, 0, 0, 0.035), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
-                      borderRadius: isMobile ? '24px' : '28px',
-                      padding: isMobile ? '16px 16px' : '20px 24px',
+                        ? '0 12px 28px rgba(16, 185, 129, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(16, 185, 129, 0.04)'
+                        : '0 12px 28px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(255,255,255,0.5)',
+                      borderRadius: isMobile ? '22px' : '26px',
+                      padding: isMobile ? '12px 14px' : '15px 20px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: '14px',
+                      gap: '12px',
                       cursor: 'pointer',
                       position: 'relative',
                       overflow: 'hidden',
@@ -730,16 +734,16 @@ export default function CaseDashboard() {
                           background: isRxDone ? 'rgba(209, 250, 229, 0.85)' : 'rgba(254, 243, 199, 0.85)',
                           border: isRxDone ? '1px solid rgba(167, 243, 208, 0.9)' : '1px solid rgba(253, 230, 138, 0.9)',
                           borderRadius: '999px',
-                          padding: '3px 10px',
-                          fontSize: '11px',
+                          padding: '2.5px 9px',
+                          fontSize: '10.5px',
                           fontWeight: 800,
                           color: isRxDone ? '#059669' : '#D97706',
                           letterSpacing: '-0.1px',
-                          marginBottom: '6px'
+                          marginBottom: '3px'
                         }}
                       >
                         <Sparkles size={11} color={isRxDone ? '#059669' : '#D97706'} />
-                        <span>Daily Rx</span>
+                        <span>Daily Meds & Vitamins</span>
                       </div>
 
                       {/* Hero KPI Number */}
@@ -747,7 +751,7 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '26px' : '30px',
+                            fontSize: isMobile ? '23px' : '27px',
                             fontWeight: 900,
                             color: '#0F172A',
                             letterSpacing: '-0.8px',
@@ -758,80 +762,106 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: isMobile ? '13px' : '15px',
+                            fontSize: isMobile ? '12.5px' : '14px',
                             fontWeight: 600,
                             color: '#64748B'
                           }}
                         >
-                          / {totalRxDoses} Scheduled
+                          / {totalRxDoses} Taken
                         </span>
                       </div>
 
                       {/* Contextual Subtext */}
                       <p
                         style={{
-                          fontSize: isMobile ? '11.5px' : '12.5px',
+                          fontSize: isMobile ? '11px' : '12px',
                           fontWeight: 500,
                           color: isRxDone ? '#059669' : '#64748B',
-                          margin: '4px 0 10px',
-                          lineHeight: 1.3
+                          margin: '2px 0 6px',
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }}
                       >
                         {isRxDone ? (
                           <span style={{ fontWeight: 700, color: '#059669' }}>
-                            All scheduled micronutrients taken today ✨
+                            All daily meds & vitamins taken today ✨
                           </span>
                         ) : (
-                          `${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} to go (${nextDoseItem?.name ? (nextDoseItem.time ? `${nextDoseItem.name} @ ${nextDoseItem.time}` : nextDoseItem.name) : 'Scheduled'})`
+                          `${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} left today • ${nextDoseItem?.name ? nextDoseItem.name : 'Scheduled'}`
                         )}
                       </p>
 
-                      {/* Bottom Micro-Pill & Quick Action */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            background: isRxDone ? 'rgba(209, 250, 229, 0.65)' : 'rgba(254, 243, 199, 0.65)',
-                            border: isRxDone ? '1.5px solid rgba(110, 231, 183, 0.8)' : '1.5px solid rgba(253, 230, 138, 0.8)',
-                            borderRadius: '999px',
-                            padding: '3.5px 11px',
-                            fontSize: isMobile ? '10.5px' : '11.5px',
-                            fontWeight: 700,
-                            color: isRxDone ? '#047857' : '#B45309'
-                          }}
-                        >
-                          {takenRxDoses} of {totalRxDoses} Daily Doses Logged
-                        </span>
+                      {/* Bottom Micro-Pill & Quick Action (Graceful Zero-Wrap Handling) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
+                        {isRxDone ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              background: 'rgba(209, 250, 229, 0.7)',
+                              border: '1px solid rgba(110, 231, 183, 0.85)',
+                              borderRadius: '999px',
+                              padding: '3px 10px',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              color: '#047857',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
+                          </span>
+                        ) : (
+                          <>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                background: 'rgba(254, 243, 199, 0.7)',
+                                border: '1px solid rgba(253, 230, 138, 0.85)',
+                                borderRadius: '999px',
+                                padding: '3px 9px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                color: '#B45309',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {takenRxDoses}/{totalRxDoses} Doses
+                            </span>
 
-                        <motion.button
-                          type="button"
-                          whileTap={{ scale: 0.92 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                          }}
-                          title={isRxDone ? 'Toggle vitamins status' : 'Mark all vitamins taken'}
-                          aria-label="Mark vitamins taken"
-                          style={{
-                            background: isRxDone ? '#059669' : '#D97706',
-                            border: 'none',
-                            borderRadius: '999px',
-                            padding: '4px 11px',
-                            fontSize: isMobile ? '10.5px' : '11px',
-                            fontWeight: 800,
-                            color: '#FFFFFF',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            boxShadow: isRxDone ? '0 2px 8px rgba(5, 150, 105, 0.28)' : '0 2px 8px rgba(217, 119, 6, 0.28)'
-                          }}
-                        >
-                          <Check size={11} strokeWidth={2.8} /> {isRxDone ? 'Done' : 'Mark Taken'}
-                        </motion.button>
+                            <motion.button
+                              type="button"
+                              whileTap={{ scale: 0.92 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                              }}
+                              title="Mark all daily meds taken"
+                              aria-label="Mark daily meds taken"
+                              style={{
+                                background: '#D97706',
+                                border: 'none',
+                                borderRadius: '999px',
+                                padding: '3px 11px',
+                                fontSize: '10.5px',
+                                fontWeight: 800,
+                                color: '#FFFFFF',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)'
+                              }}
+                            >
+                              <Check size={11} strokeWidth={3} /> Done
+                            </motion.button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -839,9 +869,9 @@ export default function CaseDashboard() {
                     <div
                       style={{
                         position: 'relative',
-                        width: isMobile ? '76px' : '86px',
-                        height: isMobile ? '76px' : '86px',
-                        minWidth: isMobile ? '76px' : '86px',
+                        width: isMobile ? '68px' : '76px',
+                        height: isMobile ? '68px' : '76px',
+                        minWidth: isMobile ? '68px' : '76px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -855,22 +885,22 @@ export default function CaseDashboard() {
                           transform: 'rotate(-90deg)',
                           overflow: 'visible'
                         }}
-                        viewBox="0 0 80 80"
+                        viewBox="0 0 74 74"
                       >
                         <circle
-                          cx="40"
-                          cy="40"
+                          cx="37"
+                          cy="37"
                           r={ringRadius}
                           stroke={isRxDone ? '#D1FAE5' : '#FEF3C7'}
-                          strokeWidth={7}
+                          strokeWidth={6.5}
                           fill="transparent"
                         />
                         <circle
-                          cx="40"
-                          cy="40"
+                          cx="37"
+                          cy="37"
                           r={ringRadius}
                           stroke={isRxDone ? '#10B981' : '#D97706'}
-                          strokeWidth={7}
+                          strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
                           strokeLinecap="round"
@@ -893,7 +923,7 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '16px' : '18px',
+                            fontSize: isMobile ? '15px' : '17px',
                             fontWeight: 900,
                             color: '#0F172A',
                             lineHeight: 1,
@@ -904,7 +934,7 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: '8.5px',
+                            fontSize: '8px',
                             fontWeight: 900,
                             color: isRxDone ? '#059669' : '#D97706',
                             letterSpacing: '0.8px',
