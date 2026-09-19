@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Activity, Check, Info, ChevronDown, Compass, Award } from 'lucide-react';
+import { Target, Activity, Check, Info, ChevronDown, Compass, Award, Sparkles } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -138,17 +138,17 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           }
         }}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 253, 250, 0.38) 100%)',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 253, 250, 0.48) 100%)',
           backdropFilter: 'blur(32px)',
           WebkitBackdropFilter: 'blur(32px)',
-          border: '1.5px solid rgba(204, 251, 241, 0.85)',
-          boxShadow: '0 20px 40px -12px rgba(13, 148, 136, 0.09), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 24px rgba(255,255,255,0.4)',
-          borderRadius: isMobile ? '24px' : '30px',
-          padding: isMobile ? '16px' : '20px',
+          border: '1px solid rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 24px rgba(255,255,255,0.5)',
+          borderRadius: isMobile ? '26px' : '32px',
+          padding: isMobile ? '16px 15px' : '20px 22px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: isMobile ? '135px' : '150px',
+          minHeight: isMobile ? '135px' : '148px',
           ...(span2 ? { gridColumn: 'span 2' } : {}),
           cursor: 'pointer',
           position: 'relative',
@@ -160,30 +160,28 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div
             style={{
-              width: isMobile ? '40px' : '44px',
-              height: isMobile ? '40px' : '44px',
-              minWidth: isMobile ? '40px' : '44px',
-              minHeight: isMobile ? '40px' : '44px',
+              width: isMobile ? '38px' : '44px',
+              height: isMobile ? '38px' : '44px',
+              minWidth: isMobile ? '38px' : '44px',
+              minHeight: isMobile ? '38px' : '44px',
               flexShrink: 0,
-              borderRadius: '14px',
+              borderRadius: '50%',
               background: isGraduated
-                ? 'linear-gradient(135deg, #059669 0%, #0D9488 100%)'
-                : 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
               boxShadow: isGraduated
-                ? '0 4px 14px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)'
-                : '0 4px 14px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
-              border: '1px solid rgba(255,255,255,0.25)',
+                ? '0 6px 16px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.45)'
+                : '0 6px 16px rgba(13, 148, 136, 0.3), inset 0 1px 0 rgba(255,255,255,0.45)',
+              border: '1px solid rgba(255,255,255,0.5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
             {isGraduated ? (
-              <Award size={isMobile ? 20 : 22} color="#FFFFFF" strokeWidth={2.4} />
+              <Award size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
             ) : (
-              <Target size={isMobile ? 19 : 21} color="#FFFFFF" strokeWidth={2.4} />
+              <Target size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
             )}
           </div>
 
@@ -193,9 +191,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 <div
                   className="micro-badge"
                   style={{
-                    background: '#DCFCE7',
-                    color: '#15803D',
-                    border: '1px solid #86EFAC',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    color: '#047857',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
                     padding: '3.5px 9px',
                     borderRadius: '999px',
                     fontSize: '10.5px',
@@ -232,9 +230,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 <div
                   className="tabular-nums micro-badge"
                   style={{
-                    background: '#F0FDFA',
+                    background: 'rgba(13, 148, 136, 0.1)',
                     color: '#0F766E',
-                    border: '1px solid #99F6E4',
+                    border: '1px solid rgba(13, 148, 136, 0.25)',
                     padding: '3.5px 9px',
                     borderRadius: '999px',
                     fontSize: '10.5px',
@@ -250,9 +248,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   <div
                     className="tabular-nums micro-badge"
                     style={{
-                      background: '#DCFCE7',
-                      color: '#15803D',
-                      border: '1px solid #86EFAC',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      color: '#047857',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
                       padding: '3.5px 8px',
                       borderRadius: '999px',
                       fontSize: '10.5px',
@@ -270,19 +268,23 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               <div
                 className="micro-badge"
                 style={{
-                  background: '#ECFDF5',
+                  background: 'rgba(16, 185, 129, 0.12)',
                   color: '#047857',
-                  border: '1px solid #A7F3D0',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
                   padding: '3.5px 9px',
                   borderRadius: '999px',
                   fontSize: '10.5px',
                   fontWeight: 800,
                   letterSpacing: '0.4px',
                   whiteSpace: 'nowrap',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
                 }}
               >
-                GUIDED INTAKE AVAILABLE
+                <Sparkles size={10} color="#059669" />
+                <span>GUIDED INTAKE AVAILABLE</span>
               </div>
             )}
           </div>
@@ -291,11 +293,12 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         {/* Middle / Bottom Content: Title, Subtitle, & Quick Actions */}
         <div>
           <h4
+            className="serif-heading"
             style={{
-              fontSize: isMobile ? '14.5px' : '16px',
-              fontWeight: 800,
+              fontSize: isMobile ? '16.5px' : '18.5px',
+              fontWeight: 700,
               margin: '0 0 3px',
-              color: '#0F172A',
+              color: '#134E4A',
               lineHeight: 1.25,
               letterSpacing: '-0.3px'
             }}
@@ -306,9 +309,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </h4>
           <p
             style={{
-              fontSize: isMobile ? '11.5px' : '12.5px',
+              fontSize: isMobile ? '12px' : '13px',
               color: justLogged ? '#059669' : '#64748B',
-              margin: '0 0 8px',
+              margin: '0 0 10px',
               fontWeight: justLogged ? 700 : 500,
               lineHeight: 1.35
             }}
@@ -337,13 +340,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: '10px',
-                  padding: isMobile ? '6px 12px' : '7px 14px',
+                  borderRadius: '999px',
+                  padding: isMobile ? '7px 14px' : '8px 18px',
                   fontSize: '11.5px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '34px',
-                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.28)',
+                  minHeight: '35px',
+                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -365,15 +368,16 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '5px',
-                    background: '#F0FDFA',
-                    border: '1.5px solid #99F6E4',
-                    borderRadius: '8px',
-                    padding: '4px 10px',
-                    fontSize: '11px',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '999px',
+                    padding: isMobile ? '7px 14px' : '8px 18px',
+                    fontSize: '11.5px',
                     fontWeight: 800,
-                    color: '#0F766E',
                     cursor: 'pointer',
-                    minHeight: '32px',
+                    minHeight: '35px',
+                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -388,7 +392,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     gap: '5px',
                     background: '#FFFFFF',
                     padding: '3px 8px',
-                    borderRadius: '10px',
+                    borderRadius: '999px',
                     border: '1.5px solid #CCFBF1',
                     boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)'
                   }}
@@ -404,7 +408,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                         minWidth: '28px',
                         minHeight: '26px',
                         padding: '2px 7px',
-                        borderRadius: '6px',
+                        borderRadius: '999px',
                         fontSize: '11px',
                         fontWeight: 800,
                         border: val <= 2 ? '1px solid #A7F3D0' : val <= 4 ? '1px solid #99F6E4' : val <= 6 ? '1px solid #FDE68A' : '1px solid #FECACA',
@@ -438,13 +442,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: '10px',
-                  padding: isMobile ? '6px 12px' : '7px 14px',
+                  borderRadius: '999px',
+                  padding: isMobile ? '7px 16px' : '8px 20px',
                   fontSize: '11.5px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '34px',
-                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.28)',
+                  minHeight: '35px',
+                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.3)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -466,15 +470,16 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: showRationale ? '#F0FDFA' : '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                padding: '4px 9px',
+                background: showRationale ? 'rgba(13, 148, 136, 0.12)' : 'rgba(255, 255, 255, 0.85)',
+                border: showRationale ? '1px solid rgba(13, 148, 136, 0.35)' : '1px solid rgba(203, 213, 225, 0.8)',
+                borderRadius: '999px',
+                padding: '4px 12px',
                 fontSize: '11px',
                 fontWeight: 700,
                 color: showRationale ? '#0D9488' : '#64748B',
                 cursor: 'pointer',
-                minHeight: '32px',
+                minHeight: '35px',
+                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -496,16 +501,17 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           {showRationale && (
             <motion.div
               initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               transition={{ type: 'spring', damping: 26, stiffness: 280 }}
               style={{
                 overflow: 'hidden',
-                background: '#FFFFFF',
-                borderRadius: '14px',
-                padding: '10px 12px',
-                border: '1.5px solid #CCFBF1',
-                boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)'
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                padding: '12px 14px',
+                border: '1px solid rgba(13, 148, 136, 0.25)',
+                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.08)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -517,7 +523,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   Mucosal & Motility Reset
                 </span>
               </div>
-              <p style={{ fontSize: '11px', color: '#334155', margin: 0, lineHeight: 1.45, fontWeight: 500 }}>
+              <p style={{ fontSize: '11.5px', color: '#334155', margin: 0, lineHeight: 1.45, fontWeight: 500 }}>
                 Strict temporary elimination calms gut mucosal inflammation, giving hypersensitive gut endings a washout period to reset before systematic challenge.
               </p>
             </motion.div>
