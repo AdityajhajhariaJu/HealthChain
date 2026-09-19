@@ -294,12 +294,10 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(240, 253, 250, 0.55) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.95)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)', 
-                  borderRadius: isMobile ? '32px' : '40px',
+                  background: '#FFFFFF', 
+                  border: '1px solid #E2E8F0', 
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)', 
+                  borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -319,21 +317,21 @@ export default function CaseDashboard() {
                     flexShrink: 0,
                     borderRadius: '50%', 
                     background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-                    boxShadow: '0 8px 18px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.4)', 
-                    border: '1px solid rgba(255,255,255,0.5)', 
+                    boxShadow: '0 2px 6px rgba(5, 150, 105, 0.22), 0 1px 2px rgba(0, 0, 0, 0.06)', 
+                    border: '1px solid rgba(255,255,255,0.6)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
                     <Scan size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#B45309', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     NEW
                   </div>
                 </div>
                 <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#134E4A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#475569', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
                 </div>
               </motion.div>
 
@@ -354,12 +352,10 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(245, 243, 255, 0.55) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.95)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)', 
-                  borderRadius: isMobile ? '32px' : '40px',
+                  background: '#FFFFFF', 
+                  border: '1px solid #E2E8F0', 
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)', 
+                  borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -378,22 +374,22 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', 
-                    boxShadow: '0 8px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255,255,255,0.4)', 
-                    border: '1px solid rgba(255,255,255,0.5)', 
+                    background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', 
+                    boxShadow: '0 2px 6px rgba(79, 70, 229, 0.22), 0 1px 2px rgba(0, 0, 0, 0.06)', 
+                    border: '1px solid rgba(255,255,255,0.6)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
                     <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'rgba(99, 102, 241, 0.10)', color: '#4F46E5', border: '1px solid rgba(99, 102, 241, 0.22)', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#EEF2FF', color: '#4338CA', border: '1px solid #C7D2FE', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     CORRELATIONS
                   </div>
                 </div>
                 <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#1E1B4B', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#475569', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
                 </div>
               </motion.div>
 
@@ -436,17 +432,9 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: isWaterGoal
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(224, 242, 254, 0.6) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 249, 255, 0.55) 100%)',
-                      backdropFilter: 'blur(30px)',
-                      WebkitBackdropFilter: 'blur(30px)',
-                      border: isWaterGoal
-                        ? '1px solid rgba(186, 230, 253, 0.95)'
-                        : '1px solid rgba(255, 255, 255, 0.95)',
-                      boxShadow: isWaterGoal
-                        ? '0 12px 28px rgba(14, 165, 233, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(14, 165, 233, 0.04)'
-                        : '0 12px 28px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(255,255,255,0.5)',
+                      background: isWaterGoal ? '#F0FDF4' : '#FFFFFF',
+                      border: isWaterGoal ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '22px' : '26px',
                       padding: isMobile ? '12px 14px' : '15px 20px',
                       display: 'flex',
@@ -468,8 +456,8 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          background: 'rgba(224, 242, 254, 0.85)',
-                          border: '1px solid rgba(186, 230, 253, 0.9)',
+                          background: '#E0F2FE',
+                          border: '1px solid #BAE6FD',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
                           fontSize: '10.5px',
@@ -536,8 +524,8 @@ export default function CaseDashboard() {
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            background: 'rgba(224, 242, 254, 0.65)',
-                            border: '1.5px solid rgba(125, 211, 252, 0.8)',
+                            background: '#F0F9FF',
+                            border: '1px solid #BAE6FD',
                             borderRadius: '999px',
                             padding: '3px 9px',
                             fontSize: '10.5px',
@@ -699,17 +687,9 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: isRxDone
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(240, 253, 244, 0.6) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(254, 252, 232, 0.55) 100%)',
-                      backdropFilter: 'blur(30px)',
-                      WebkitBackdropFilter: 'blur(30px)',
-                      border: isRxDone
-                        ? '1px solid rgba(167, 243, 208, 0.95)'
-                        : '1px solid rgba(255, 255, 255, 0.95)',
-                      boxShadow: isRxDone
-                        ? '0 12px 28px rgba(16, 185, 129, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(16, 185, 129, 0.04)'
-                        : '0 12px 28px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 16px rgba(255,255,255,0.5)',
+                      background: isRxDone ? '#F0FDF4' : '#FFFFFF',
+                      border: isRxDone ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '22px' : '26px',
                       padding: isMobile ? '12px 14px' : '15px 20px',
                       display: 'flex',
@@ -731,13 +711,13 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          background: isRxDone ? 'rgba(209, 250, 229, 0.85)' : 'rgba(254, 243, 199, 0.85)',
-                          border: isRxDone ? '1px solid rgba(167, 243, 208, 0.9)' : '1px solid rgba(253, 230, 138, 0.9)',
+                          background: isRxDone ? '#ECFDF5' : '#FEF3C7',
+                          border: isRxDone ? '1px solid #A7F3D0' : '1px solid #FDE68A',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
                           fontSize: '10.5px',
                           fontWeight: 800,
-                          color: isRxDone ? '#059669' : '#D97706',
+                          color: isRxDone ? '#047857' : '#B45309',
                           letterSpacing: '-0.1px',
                           marginBottom: '3px'
                         }}
@@ -801,8 +781,8 @@ export default function CaseDashboard() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '3px',
-                              background: 'rgba(209, 250, 229, 0.7)',
-                              border: '1px solid rgba(110, 231, 183, 0.85)',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
                               borderRadius: '999px',
                               padding: '3px 10px',
                               fontSize: '10.5px',
@@ -819,8 +799,8 @@ export default function CaseDashboard() {
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                background: 'rgba(254, 243, 199, 0.7)',
-                                border: '1px solid rgba(253, 230, 138, 0.85)',
+                                background: '#FEF3C7',
+                                border: '1px solid #FDE68A',
                                 borderRadius: '999px',
                                 padding: '3px 9px',
                                 fontSize: '10.5px',

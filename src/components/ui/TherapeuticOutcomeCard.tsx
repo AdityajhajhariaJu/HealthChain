@@ -138,11 +138,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           }
         }}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 253, 250, 0.48) 100%)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 24px rgba(255,255,255,0.5)',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
           borderRadius: isMobile ? '26px' : '32px',
           padding: isMobile ? '16px 15px' : '20px 22px',
           display: 'flex',
@@ -170,9 +168,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
                 : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
               boxShadow: isGraduated
-                ? '0 6px 16px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.45)'
-                : '0 6px 16px rgba(13, 148, 136, 0.3), inset 0 1px 0 rgba(255,255,255,0.45)',
-              border: '1px solid rgba(255,255,255,0.5)',
+                ? '0 2px 6px rgba(5, 150, 105, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)'
+                : '0 2px 6px rgba(13, 148, 136, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(255,255,255,0.6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -191,9 +189,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 <div
                   className="micro-badge"
                   style={{
-                    background: 'rgba(16, 185, 129, 0.12)',
+                    background: '#ECFDF5',
                     color: '#047857',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    border: '1px solid #A7F3D0',
                     padding: '3.5px 9px',
                     borderRadius: '999px',
                     fontSize: '10.5px',
@@ -230,9 +228,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 <div
                   className="tabular-nums micro-badge"
                   style={{
-                    background: 'rgba(13, 148, 136, 0.1)',
+                    background: '#F0FDFA',
                     color: '#0F766E',
-                    border: '1px solid rgba(13, 148, 136, 0.25)',
+                    border: '1px solid #99F6E4',
                     padding: '3.5px 9px',
                     borderRadius: '999px',
                     fontSize: '10.5px',
@@ -248,9 +246,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   <div
                     className="tabular-nums micro-badge"
                     style={{
-                      background: 'rgba(16, 185, 129, 0.12)',
+                      background: '#ECFDF5',
                       color: '#047857',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      border: '1px solid #A7F3D0',
                       padding: '3.5px 8px',
                       borderRadius: '999px',
                       fontSize: '10.5px',
@@ -268,9 +266,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               <div
                 className="micro-badge"
                 style={{
-                  background: 'rgba(16, 185, 129, 0.12)',
+                  background: '#ECFDF5',
                   color: '#047857',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  border: '1px solid #A7F3D0',
                   padding: '3.5px 9px',
                   borderRadius: '999px',
                   fontSize: '10.5px',
@@ -298,7 +296,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               fontSize: isMobile ? '16.5px' : '18.5px',
               fontWeight: 700,
               margin: '0 0 3px',
-              color: '#134E4A',
+              color: '#0F172A',
               lineHeight: 1.25,
               letterSpacing: '-0.3px'
             }}
