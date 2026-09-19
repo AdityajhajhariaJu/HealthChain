@@ -400,405 +400,525 @@ export default function CaseDashboard() {
               {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
               <TherapeuticOutcomeCard span2={true} />
 
-              {/* Point 3: Interactive Daily Habit Bento Stack */}
+              {/* Point 3: Interactive Daily Habit Stack - Full Width Radial Progress Cards */}
               {/* Habit 1: Daily Hydration Tracking */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Goal Met' : 'Open intake tracker'}`}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => {
-                  triggerHapticLight();
-                  setShowHydrationModal(true);
-                }}
-                onKeyDown={(e) => {
-                  if (e.target !== e.currentTarget) return;
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setShowHydrationModal(true);
-                  }
-                }}
-                style={{
-                  background: completedHabits['hydration']
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.5) 100%)'
-                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 249, 255, 0.5) 100%)',
-                  backdropFilter: 'blur(28px)',
-                  WebkitBackdropFilter: 'blur(28px)',
-                  border: completedHabits['hydration'] 
-                    ? '1.5px solid rgba(14, 165, 233, 0.5)' 
-                    : '1px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: completedHabits['hydration']
-                    ? '0 16px 36px rgba(14, 165, 233, 0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(14, 165, 233, 0.05)'
-                    : '0 16px 36px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
-                  borderRadius: isMobile ? '24px' : '28px',
-                  padding: isMobile ? '14px 13px 13px' : '18px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '142px' : '155px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                  transition: 'border-color 0.25s ease, box-shadow 0.25s ease'
-                }}
-              >
-                {/* Top Row: Glowing Icon on left, single tactile action button on right */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    aria-hidden="true"
-                    style={{ 
-                      width: isMobile ? '36px' : '40px', 
-                      height: isMobile ? '36px' : '40px', 
-                      minWidth: isMobile ? '36px' : '40px', 
-                      minHeight: isMobile ? '36px' : '40px', 
-                      flexShrink: 0,
-                      borderRadius: '50%', 
-                      background: completedHabits['hydration'] 
-                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)', 
-                      boxShadow: completedHabits['hydration']
-                        ? '0 6px 14px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)'
-                        : '0 6px 14px rgba(2, 132, 199, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)',
-                      border: '1px solid rgba(255,255,255,0.6)',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease'
+              {(() => {
+                const waterMl = hydrationData.currentMl;
+                const targetWaterMl = hydrationData.targetMl || 2000;
+                const waterPct = Math.min(100, Math.round((waterMl / targetWaterMl) * 100));
+                const isWaterGoal = Boolean(completedHabits['hydration']) || waterMl >= targetWaterMl;
+                const remainingWaterMl = Math.max(0, targetWaterMl - waterMl);
+                const remainingGlasses = Math.ceil(remainingWaterMl / 250);
+                const currentGlasses = Math.round(waterMl / 250);
+                const totalGlasses = Math.round(targetWaterMl / 250);
+                const ringRadius = 34;
+                const ringCircumference = 2 * Math.PI * ringRadius;
+                const ringOffset = ringCircumference - (waterPct / 100) * ringCircumference;
+
+                return (
+                  <motion.div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Daily Hydration - ${isWaterGoal ? 'Goal Met' : 'Open intake tracker'}`}
+                    whileHover={{ y: -2, scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                    onClick={() => {
+                      triggerHapticLight();
+                      setShowHydrationModal(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowHydrationModal(true);
+                      }
+                    }}
+                    style={{
+                      gridColumn: 'span 2',
+                      background: isWaterGoal
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(224, 242, 254, 0.6) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 249, 255, 0.55) 100%)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      border: isWaterGoal
+                        ? '1px solid rgba(186, 230, 253, 0.95)'
+                        : '1px solid rgba(255, 255, 255, 0.95)',
+                      boxShadow: isWaterGoal
+                        ? '0 16px 36px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(14, 165, 233, 0.05)'
+                        : '0 16px 36px rgba(0, 0, 0, 0.035), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '16px 16px' : '20px 24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      userSelect: 'none',
+                      transition: 'all 0.25s ease'
                     }}
                   >
-                    {completedHabits['hydration'] ? (
-                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={3} />
-                    ) : (
-                      <Droplets size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.2} />
-                    )}
-                  </div>
+                    {/* Left: Content Information */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Top Pill Badge */}
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: 'rgba(224, 242, 254, 0.85)',
+                          border: '1px solid rgba(186, 230, 253, 0.9)',
+                          borderRadius: '999px',
+                          padding: '3px 10px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#0284C7',
+                          letterSpacing: '-0.1px',
+                          marginBottom: '6px'
+                        }}
+                      >
+                        <Sparkles size={11} color="#0284C7" />
+                        <span>Hydration</span>
+                      </div>
 
-                  {/* Single Action Button on Right */}
-                  {completedHabits['hydration'] ? (
-                    <div 
-                      style={{ 
-                        background: 'rgba(16, 185, 129, 0.12)', 
-                        border: '1px solid rgba(16, 185, 129, 0.3)',
-                        color: '#059669', 
-                        padding: '3px 8px', 
-                        borderRadius: '999px',
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        display: 'inline-flex',
+                      {/* Hero KPI Number */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                        <span
+                          className="tabular-nums"
+                          style={{
+                            fontSize: isMobile ? '26px' : '30px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            letterSpacing: '-0.8px',
+                            lineHeight: 1
+                          }}
+                        >
+                          {waterMl.toLocaleString()}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: isMobile ? '13px' : '15px',
+                            fontWeight: 600,
+                            color: '#64748B'
+                          }}
+                        >
+                          / {targetWaterMl.toLocaleString()} ml
+                        </span>
+                      </div>
+
+                      {/* Contextual Subtext */}
+                      <p
+                        style={{
+                          fontSize: isMobile ? '11.5px' : '12.5px',
+                          fontWeight: 500,
+                          color: isWaterGoal ? '#059669' : '#64748B',
+                          margin: '4px 0 10px',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {isWaterGoal ? (
+                          <span style={{ fontWeight: 700, color: '#059669' }}>
+                            Goal reached! Gut mucosa hydration optimal ✨
+                          </span>
+                        ) : (
+                          `${remainingWaterMl.toLocaleString()} ml to go (${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'})`
+                        )}
+                      </p>
+
+                      {/* Bottom Micro-Pill & Quick Action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            background: 'rgba(224, 242, 254, 0.65)',
+                            border: '1.5px solid rgba(125, 211, 252, 0.8)',
+                            borderRadius: '999px',
+                            padding: '3.5px 11px',
+                            fontSize: isMobile ? '10.5px' : '11.5px',
+                            fontWeight: 700,
+                            color: '#0369A1'
+                          }}
+                        >
+                          {currentGlasses} of {totalGlasses} Standard Glasses (250ml)
+                        </span>
+
+                        {!isWaterGoal && (
+                          <motion.button
+                            type="button"
+                            whileTap={{ scale: 0.92 }}
+                            onClick={(e) => handleQuickWater(250, e)}
+                            title="Quick log 1 glass (+250ml)"
+                            aria-label="Quick log 250ml water"
+                            style={{
+                              background: '#0284C7',
+                              border: 'none',
+                              borderRadius: '999px',
+                              padding: '4px 11px',
+                              fontSize: isMobile ? '10.5px' : '11px',
+                              fontWeight: 800,
+                              color: '#FFFFFF',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.28)'
+                            }}
+                          >
+                            <Plus size={11} strokeWidth={2.8} /> 250ml
+                          </motion.button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Circular Progress Ring */}
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: isMobile ? '76px' : '86px',
+                        height: isMobile ? '76px' : '86px',
+                        minWidth: isMobile ? '76px' : '86px',
+                        display: 'flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        justifyContent: 'center',
                         flexShrink: 0
                       }}
                     >
-                      <Check size={10} strokeWidth={3} />
-                      <span>Goal Met</span>
+                      <svg
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          transform: 'rotate(-90deg)',
+                          overflow: 'visible'
+                        }}
+                        viewBox="0 0 80 80"
+                      >
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r={ringRadius}
+                          stroke="#E0F2FE"
+                          strokeWidth={7}
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r={ringRadius}
+                          stroke={isWaterGoal ? '#10B981' : '#0284C7'}
+                          strokeWidth={7}
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={ringOffset}
+                          strokeLinecap="round"
+                          fill="transparent"
+                          style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        />
+                      </svg>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <span
+                          className="tabular-nums"
+                          style={{
+                            fontSize: isMobile ? '16px' : '18px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            lineHeight: 1,
+                            letterSpacing: '-0.3px'
+                          }}
+                        >
+                          {waterPct}%
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '8.5px',
+                            fontWeight: 900,
+                            color: isWaterGoal ? '#059669' : '#0284C7',
+                            letterSpacing: '0.8px',
+                            textTransform: 'uppercase',
+                            marginTop: '2px'
+                          }}
+                        >
+                          {isWaterGoal ? 'MET ✓' : 'GOAL'}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.92 }}
-                      onClick={(e) => handleQuickWater(250, e)}
-                      title="Quick log 1 glass (+250ml)"
-                      aria-label="Quick log 250ml water"
-                      style={{
-                        background: 'rgba(14, 165, 233, 0.12)',
-                        border: '1px solid rgba(14, 165, 233, 0.28)',
-                        borderRadius: '999px',
-                        padding: '3px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: '#0284C7',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        boxShadow: '0 1px 4px rgba(14, 165, 233, 0.08)'
-                      }}
-                    >
-                      <Plus size={11} strokeWidth={2.5} /> 250ml
-                    </motion.button>
-                  )}
-                </div>
-
-                {/* Centerpiece: Bold Hero KPI with Goal & Category */}
-                <div style={{ margin: '8px 0 4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-                    <span 
-                      className="tabular-nums"
-                      style={{ 
-                        fontSize: isMobile ? '21px' : '23px', 
-                        fontWeight: 800, 
-                        color: '#0F172A', 
-                        letterSpacing: '-0.6px', 
-                        lineHeight: 1 
-                      }}
-                    >
-                      {hydrationData.currentMl > 0 ? hydrationData.currentMl.toLocaleString() : '0'}
-                    </span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
-                      / {hydrationData.targetMl >= 1000 ? `${(hydrationData.targetMl / 1000).toFixed(1).replace('.0', '')}k` : hydrationData.targetMl} ml
-                    </span>
-                  </div>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    marginTop: '3px'
-                  }}>
-                    <span style={{ 
-                      fontSize: isMobile ? '13px' : '14px', 
-                      fontWeight: 700, 
-                      color: completedHabits['hydration'] ? '#0284C7' : '#1E293B',
-                      letterSpacing: '-0.2px'
-                    }}>
-                      Hydration
-                    </span>
-                    <span className="tabular-nums" style={{ fontSize: '10.5px', fontWeight: 700, color: completedHabits['hydration'] ? '#0284C7' : '#94A3B8' }}>
-                      {Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom: Fluid Progress Track & Micro Science Link */}
-                <div>
-                  <div style={{
-                    width: '100%',
-                    height: '5px',
-                    borderRadius: '999px',
-                    background: 'rgba(14, 165, 233, 0.15)',
-                    overflow: 'hidden',
-                    marginBottom: '5px'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
-                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
-                      boxShadow: '0 1px 6px rgba(2, 132, 199, 0.4)',
-                      borderRadius: '999px',
-                      transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }} />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#0284C7', fontWeight: 700 }}>
-                      <Sparkles size={9} /> Gut Mucosa
-                    </span>
-                    <span style={{ color: '#94A3B8', fontWeight: 600 }}>
-                      Details ›
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+                  </motion.div>
+                );
+              })()}
 
               {/* Habit 2: Daily Vitamins / Micronutrients */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label={`Daily Vitamins / Micronutrients - ${completedHabits['vitamins'] ? 'Completed' : 'Tap to manage schedule or mark done'}`}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => {
-                  triggerHapticLight();
-                  setShowVitaminModal(true);
-                }}
-                onKeyDown={(e) => {
-                  if (e.target !== e.currentTarget) return;
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setShowVitaminModal(true);
-                  }
-                }}
-                style={{
-                  background: completedHabits['vitamins']
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 244, 0.5) 100%)'
-                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(254, 252, 232, 0.5) 100%)',
-                  backdropFilter: 'blur(28px)',
-                  WebkitBackdropFilter: 'blur(28px)',
-                  border: completedHabits['vitamins'] 
-                    ? '1.5px solid rgba(16, 185, 129, 0.5)' 
-                    : '1px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: completedHabits['vitamins']
-                    ? '0 16px 36px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(16, 185, 129, 0.05)'
-                    : '0 16px 36px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
-                  borderRadius: isMobile ? '24px' : '28px',
-                  padding: isMobile ? '14px 13px 13px' : '18px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '142px' : '155px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                  transition: 'border-color 0.25s ease, box-shadow 0.25s ease'
-                }}
-              >
-                {/* Top Row: Glowing Icon on left, single status/badge on right */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div 
-                    aria-hidden="true"
-                    style={{ 
-                      width: isMobile ? '36px' : '40px', 
-                      height: isMobile ? '36px' : '40px', 
-                      minWidth: isMobile ? '36px' : '40px', 
-                      minHeight: isMobile ? '36px' : '40px', 
-                      flexShrink: 0,
-                      borderRadius: '50%', 
-                      background: completedHabits['vitamins'] 
-                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'linear-gradient(135deg, #FBBF24 0%, #D97706 100%)', 
-                      boxShadow: completedHabits['vitamins']
-                        ? '0 6px 14px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)'
-                        : '0 6px 14px rgba(217, 119, 6, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)',
-                      border: '1px solid rgba(255,255,255,0.6)',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease'
+              {(() => {
+                const totalRxDoses = vitaminSchedule.length > 0 ? vitaminSchedule.length : 1;
+                const takenRxDoses = completedHabits['vitamins']
+                  ? totalRxDoses
+                  : (vitaminSchedule.length > 0 ? vitaminSchedule.filter(v => Boolean(v.takenToday)).length : 0);
+                const isRxDone = Boolean(completedHabits['vitamins']) || (vitaminSchedule.length > 0 && takenRxDoses >= totalRxDoses);
+                const rxPct = Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100));
+                const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
+                const ringRadius = 34;
+                const ringCircumference = 2 * Math.PI * ringRadius;
+                const ringOffset = ringCircumference - (rxPct / 100) * ringCircumference;
+                const nextDoseItem = vitaminSchedule.find(v => !v.takenToday);
+
+                return (
+                  <motion.div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Daily Vitamins / Micronutrients - ${isRxDone ? 'Completed' : 'Tap to manage schedule or mark done'}`}
+                    whileHover={{ y: -2, scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                    onClick={() => {
+                      triggerHapticLight();
+                      setShowVitaminModal(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowVitaminModal(true);
+                      }
+                    }}
+                    style={{
+                      gridColumn: 'span 2',
+                      background: isRxDone
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(240, 253, 244, 0.6) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(254, 252, 232, 0.55) 100%)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      border: isRxDone
+                        ? '1px solid rgba(167, 243, 208, 0.95)'
+                        : '1px solid rgba(255, 255, 255, 0.95)',
+                      boxShadow: isRxDone
+                        ? '0 16px 36px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(16, 185, 129, 0.05)'
+                        : '0 16px 36px rgba(0, 0, 0, 0.035), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '16px 16px' : '20px 24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      userSelect: 'none',
+                      transition: 'all 0.25s ease'
                     }}
                   >
-                    {completedHabits['vitamins'] ? (
-                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={3} />
-                    ) : (
-                      <Pill size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.2} />
-                    )}
-                  </div>
+                    {/* Left: Content Information */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Top Pill Badge */}
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: isRxDone ? 'rgba(209, 250, 229, 0.85)' : 'rgba(254, 243, 199, 0.85)',
+                          border: isRxDone ? '1px solid rgba(167, 243, 208, 0.9)' : '1px solid rgba(253, 230, 138, 0.9)',
+                          borderRadius: '999px',
+                          padding: '3px 10px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: isRxDone ? '#059669' : '#D97706',
+                          letterSpacing: '-0.1px',
+                          marginBottom: '6px'
+                        }}
+                      >
+                        <Sparkles size={11} color={isRxDone ? '#059669' : '#D97706'} />
+                        <span>Daily Rx</span>
+                      </div>
 
-                  {/* Single Action Button on Right */}
-                  {completedHabits['vitamins'] ? (
-                    <div 
-                      style={{ 
-                        background: 'rgba(16, 185, 129, 0.12)', 
-                        border: '1px solid rgba(16, 185, 129, 0.3)',
-                        color: '#059669', 
-                        padding: '3px 8px', 
-                        borderRadius: '999px',
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        display: 'inline-flex',
+                      {/* Hero KPI Number */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                        <span
+                          className="tabular-nums"
+                          style={{
+                            fontSize: isMobile ? '26px' : '30px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            letterSpacing: '-0.8px',
+                            lineHeight: 1
+                          }}
+                        >
+                          {takenRxDoses}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: isMobile ? '13px' : '15px',
+                            fontWeight: 600,
+                            color: '#64748B'
+                          }}
+                        >
+                          / {totalRxDoses} Scheduled
+                        </span>
+                      </div>
+
+                      {/* Contextual Subtext */}
+                      <p
+                        style={{
+                          fontSize: isMobile ? '11.5px' : '12.5px',
+                          fontWeight: 500,
+                          color: isRxDone ? '#059669' : '#64748B',
+                          margin: '4px 0 10px',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {isRxDone ? (
+                          <span style={{ fontWeight: 700, color: '#059669' }}>
+                            All scheduled micronutrients taken today ✨
+                          </span>
+                        ) : (
+                          `${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} to go (${nextDoseItem?.name ? (nextDoseItem.time ? `${nextDoseItem.name} @ ${nextDoseItem.time}` : nextDoseItem.name) : 'Scheduled'})`
+                        )}
+                      </p>
+
+                      {/* Bottom Micro-Pill & Quick Action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            background: isRxDone ? 'rgba(209, 250, 229, 0.65)' : 'rgba(254, 243, 199, 0.65)',
+                            border: isRxDone ? '1.5px solid rgba(110, 231, 183, 0.8)' : '1.5px solid rgba(253, 230, 138, 0.8)',
+                            borderRadius: '999px',
+                            padding: '3.5px 11px',
+                            fontSize: isMobile ? '10.5px' : '11.5px',
+                            fontWeight: 700,
+                            color: isRxDone ? '#047857' : '#B45309'
+                          }}
+                        >
+                          {takenRxDoses} of {totalRxDoses} Daily Doses Logged
+                        </span>
+
+                        <motion.button
+                          type="button"
+                          whileTap={{ scale: 0.92 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                          }}
+                          title={isRxDone ? 'Toggle vitamins status' : 'Mark all vitamins taken'}
+                          aria-label="Mark vitamins taken"
+                          style={{
+                            background: isRxDone ? '#059669' : '#D97706',
+                            border: 'none',
+                            borderRadius: '999px',
+                            padding: '4px 11px',
+                            fontSize: isMobile ? '10.5px' : '11px',
+                            fontWeight: 800,
+                            color: '#FFFFFF',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            boxShadow: isRxDone ? '0 2px 8px rgba(5, 150, 105, 0.28)' : '0 2px 8px rgba(217, 119, 6, 0.28)'
+                          }}
+                        >
+                          <Check size={11} strokeWidth={2.8} /> {isRxDone ? 'Done' : 'Mark Taken'}
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    {/* Right: Circular Progress Ring */}
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: isMobile ? '76px' : '86px',
+                        height: isMobile ? '76px' : '86px',
+                        minWidth: isMobile ? '76px' : '86px',
+                        display: 'flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        justifyContent: 'center',
                         flexShrink: 0
                       }}
                     >
-                      <Check size={10} strokeWidth={3} />
-                      <span>Taken</span>
+                      <svg
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          transform: 'rotate(-90deg)',
+                          overflow: 'visible'
+                        }}
+                        viewBox="0 0 80 80"
+                      >
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r={ringRadius}
+                          stroke={isRxDone ? '#D1FAE5' : '#FEF3C7'}
+                          strokeWidth={7}
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="40"
+                          cy="40"
+                          r={ringRadius}
+                          stroke={isRxDone ? '#10B981' : '#D97706'}
+                          strokeWidth={7}
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={ringOffset}
+                          strokeLinecap="round"
+                          fill="transparent"
+                          style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        />
+                      </svg>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <span
+                          className="tabular-nums"
+                          style={{
+                            fontSize: isMobile ? '16px' : '18px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            lineHeight: 1,
+                            letterSpacing: '-0.3px'
+                          }}
+                        >
+                          {rxPct}%
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '8.5px',
+                            fontWeight: 900,
+                            color: isRxDone ? '#059669' : '#D97706',
+                            letterSpacing: '0.8px',
+                            textTransform: 'uppercase',
+                            marginTop: '2px'
+                          }}
+                        >
+                          {isRxDone ? 'MET ✓' : 'GOAL'}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.92 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                      }}
-                      title="Mark all vitamins taken"
-                      aria-label="Mark all vitamins taken"
-                      style={{
-                        background: 'rgba(245, 158, 11, 0.12)',
-                        border: '1px solid rgba(245, 158, 11, 0.28)',
-                        borderRadius: '999px',
-                        padding: '3px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: '#B45309',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        boxShadow: '0 1px 4px rgba(217, 119, 6, 0.08)'
-                      }}
-                    >
-                      <Check size={11} strokeWidth={2.5} /> Done
-                    </motion.button>
-                  )}
-                </div>
-
-                {/* Centerpiece: Bold Hero KPI with Goal & Category */}
-                <div style={{ margin: '8px 0 4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                    <span 
-                      className="tabular-nums"
-                      style={{ 
-                        fontSize: isMobile ? '21px' : '23px', 
-                        fontWeight: 800, 
-                        color: '#0F172A', 
-                        letterSpacing: '-0.6px', 
-                        lineHeight: 1 
-                      }}
-                    >
-                      {completedHabits['vitamins'] 
-                        ? (vitaminSchedule.length > 0 ? `${vitaminSchedule.length}/${vitaminSchedule.length}` : 'All') 
-                        : (vitaminSchedule.length > 0 ? `${vitaminSchedule.filter(v => Boolean(v.takenToday)).length}/${vitaminSchedule.length}` : '0/1')}
-                    </span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
-                      {completedHabits['vitamins'] ? 'Doses Taken' : (vitaminSchedule.length > 0 ? 'Doses' : 'Scheduled')}
-                    </span>
-                  </div>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    marginTop: '3px'
-                  }}>
-                    <span style={{ 
-                      fontSize: isMobile ? '13px' : '14px', 
-                      fontWeight: 700, 
-                      color: completedHabits['vitamins'] ? '#15803D' : '#1E293B',
-                      letterSpacing: '-0.2px'
-                    }}>
-                      Daily Rx
-                    </span>
-                    <span className="tabular-nums" style={{ fontSize: '10.5px', fontWeight: 700, color: completedHabits['vitamins'] ? '#15803D' : '#94A3B8' }}>
-                      {completedHabits['vitamins'] ? '100%' : (vitaminSchedule.length > 0 ? `${Math.round((vitaminSchedule.filter(v => Boolean(v.takenToday)).length / vitaminSchedule.length) * 100)}%` : 'Pending')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom: Progress Track & Micro Science Link */}
-                <div>
-                  <div style={{
-                    width: '100%',
-                    height: '5px',
-                    borderRadius: '999px',
-                    background: 'rgba(245, 158, 11, 0.16)',
-                    overflow: 'hidden',
-                    marginBottom: '5px'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: completedHabits['vitamins'] 
-                        ? '100%' 
-                        : `${vitaminSchedule.length > 0 ? Math.round((vitaminSchedule.filter(v => Boolean(v.takenToday)).length / vitaminSchedule.length) * 100) : 0}%`,
-                      background: completedHabits['vitamins']
-                        ? 'linear-gradient(90deg, #34D399 0%, #059669 100%)'
-                        : 'linear-gradient(90deg, #FBBF24 0%, #D97706 100%)',
-                      boxShadow: completedHabits['vitamins']
-                        ? '0 1px 6px rgba(16, 185, 129, 0.4)'
-                        : '0 1px 6px rgba(217, 119, 6, 0.4)',
-                      borderRadius: '999px',
-                      transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }} />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#B45309', fontWeight: 700 }}>
-                      <Sparkles size={9} /> Micronutrients
-                    </span>
-                    <span style={{ color: '#94A3B8', fontWeight: 600 }}>
-                      Details ›
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+                  </motion.div>
+                );
+              })()}
           </div>
         </div>
 
