@@ -122,10 +122,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         role="button"
         tabIndex={0}
         aria-label={isGraduated
-          ? 'Elimination Protocol - Graduated. Tap to view your clinical verdict, confirmed triggers, and maintenance plan'
+          ? `Clinical Food Reset & Elimination - Graduated${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your clinical verdict, confirmed triggers, and maintenance plan`
           : trial 
-          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to view your daily plan, timeline, and doctor report` 
-          : 'Elimination Protocol - Inactive. Tap to choose an elimination protocol'}
+          ? `Clinical Food Reset & Elimination - Day ${trial.currentDay} of ${trial.totalDays}${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your daily plan, timeline, and doctor report` 
+          : 'Clinical Food Reset & Elimination - Inactive. Tap to choose an elimination protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -303,9 +303,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               letterSpacing: '-0.3px'
             }}
           >
-            {isGraduated
-              ? (activeProtocolDef ? `${activeProtocolDef.name} — Graduated` : 'Elimination Protocol Graduated')
-              : (activeProtocolDef ? activeProtocolDef.name : 'Clinical Food Reset & Elimination')}
+            Clinical Food Reset & Elimination
           </h4>
           <p
             style={{
@@ -317,11 +315,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             }}
           >
             {isGraduated ? (
-              `Investigation complete • ${trialV2?.verdict?.confirmedTriggers?.length || 0} Confirmed Trigger(s) • Profile Synchronized`
+              `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Investigation complete • ${trialV2?.verdict?.confirmedTriggers?.length || 0} Confirmed Trigger(s) • Profile Synchronized`
             ) : trial ? (
               justLogged
                 ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
-                : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
+                : (activeProtocolDef
+                    ? `${activeProtocolDef.name} • Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
+                    : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`)
             ) : (
               'Discover food triggers with a 4-step guided intake & structured clinical reset.'
             )}

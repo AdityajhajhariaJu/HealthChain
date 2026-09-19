@@ -46,6 +46,7 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
 
     render(<TherapeuticOutcomeCard />, { container: containerDiv });
 
+    expect(screen.getByText('Clinical Food Reset & Elimination')).toBeTruthy();
     expect(screen.getByText(/DAY 1\/28/i)).toBeTruthy();
     expect(screen.getByText('Check-In')).toBeTruthy();
   });
@@ -114,7 +115,8 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
 
     render(<TherapeuticOutcomeCard />, { container: containerDiv });
 
-    // Graduation badges & metrics
+    // Permanent title & Graduation badges & metrics
+    expect(screen.getByText('Clinical Food Reset & Elimination')).toBeTruthy();
     expect(screen.getByText(/GRADUATED 🏆/i)).toBeTruthy();
     expect(screen.getByText(/-75%/i)).toBeTruthy();
     expect(screen.getByText(/Investigation complete • 1 Confirmed Trigger\(s\)/i)).toBeTruthy();
