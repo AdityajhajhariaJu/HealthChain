@@ -373,8 +373,8 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: '#111827', 
-                    boxShadow: '0 2px 6px rgba(17, 24, 39, 0.25)', 
+                    background: '#4F46E5', 
+                    boxShadow: '0 2px 6px rgba(79, 70, 229, 0.25)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
