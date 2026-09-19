@@ -226,7 +226,7 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 48%, rgba(240, 253, 244, 0.82) 76%, rgba(240, 253, 244, 0.98) 100%), url(/images/zen-garden-dashboard.webp)',
+                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(240, 253, 244, 0.45) 78%, rgba(240, 253, 244, 0.92) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backdropFilter: 'blur(32px)', 
@@ -242,37 +242,32 @@ export default function CaseDashboard() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'flex-end',
-                  padding: isMobile ? '18px 12px' : '24px',
+                  padding: isMobile ? '18px 12px' : '22px 16px',
                   minHeight: isMobile ? '220px' : '260px'
                 }}
               >
-                {/* Zen Sanctuary pill badge */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: isMobile ? '16px' : '20px',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(167, 243, 208, 0.9)',
-                    borderRadius: '999px',
-                    padding: '4px 10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.15)',
-                    zIndex: 1,
-                  }}
-                >
-                  <span style={{ fontSize: '11px' }}>🌸</span>
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    Zen Sanctuary
-                  </span>
-                </div>
-                
-                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', textShadow: '0 1px 12px rgba(255,255,255,0.9)' }}>
-                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#134E4A', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Zen<br/>Garden</h3>
-                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
+                {/* Bottom Centerpiece: Clean Zen Sanctuary pill & subtitle */}
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.92)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(167, 243, 208, 0.9)',
+                      borderRadius: '999px',
+                      padding: isMobile ? '4px 11px' : '5px 14px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 4px 14px rgba(13, 148, 136, 0.12)',
+                    }}
+                  >
+                    <span style={{ fontSize: isMobile ? '11.5px' : '12.5px' }}>🌸</span>
+                    <span style={{ fontSize: isMobile ? '10px' : '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                      Zen Sanctuary
+                    </span>
+                  </div>
+                  <p style={{ fontSize: isMobile ? '9.5px' : '10.5px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
                 </div>
               </motion.div>
 
