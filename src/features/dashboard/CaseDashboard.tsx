@@ -316,16 +316,15 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-                    boxShadow: '0 2px 6px rgba(5, 150, 105, 0.22), 0 1px 2px rgba(0, 0, 0, 0.06)', 
-                    border: '1px solid rgba(255,255,255,0.6)', 
+                    background: '#111827', 
+                    boxShadow: '0 2px 6px rgba(17, 24, 39, 0.25)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <Scan size={isMobile ? 18 : 20} color="#FFF" />
+                    <Scan size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
                   </div>
-                  <div className="micro-badge" style={{ background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#EF4444', color: '#FFFFFF', padding: '3.5px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     NEW
                   </div>
                 </div>
@@ -374,17 +373,13 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', 
-                    boxShadow: '0 2px 6px rgba(79, 70, 229, 0.22), 0 1px 2px rgba(0, 0, 0, 0.06)', 
-                    border: '1px solid rgba(255,255,255,0.6)', 
+                    background: '#111827', 
+                    boxShadow: '0 2px 6px rgba(17, 24, 39, 0.25)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
-                  </div>
-                  <div className="micro-badge" style={{ background: '#EEF2FF', color: '#4338CA', border: '1px solid #C7D2FE', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    CORRELATIONS
+                    <GitMerge size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
                   </div>
                 </div>
                 <div>
