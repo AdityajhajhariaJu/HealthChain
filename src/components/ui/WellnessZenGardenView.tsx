@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Info, Sparkles } from 'lucide-react';
+import { Droplet, Info, Sparkles, Flame } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
-import { VitalityStreakBanner } from '../../features/dashboard/VitalityStreakBanner';
+import { getDailyStreak } from '../../services/VitalityPointsEngine';
 
 interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }
 
 export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () => {
   const [garden, setGarden] = useState<GardenState>(getGardenState());
+  const [dailyStreak, setDailyStreak] = useState(() => getDailyStreak());
   const [isWatering, setIsWatering] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const today = new Date().toLocaleDateString('en-CA');
   const gardenTendedToday = garden.lastWateredDate === today;
+
+  const refreshStreak = () => {
+    setDailyStreak(getDailyStreak());
+    setGarden(getGardenState());
+  };
+
+  useEffect(() => {
+    window.addEventListener('hc_points_updated', refreshStreak);
+    window.addEventListener('hc_daily_checkin_completed', refreshStreak);
+    window.addEventListener('hc_garden_updated', refreshStreak);
+    return () => {
+      window.removeEventListener('hc_points_updated', refreshStreak);
+      window.removeEventListener('hc_daily_checkin_completed', refreshStreak);
+      window.removeEventListener('hc_garden_updated', refreshStreak);
+    };
+  }, []);
+
+  const streakCount = Math.max(dailyStreak?.currentStreak || 0, garden.streakDays || 0, 1);
+  const isRecordedToday = Boolean(dailyStreak?.todayCompleted || gardenTendedToday);
 
   const handleWater = () => {
     triggerHapticLight();
@@ -34,7 +54,64 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
       </div>
 
-      <VitalityStreakBanner variant="garden" gardenTendedToday={gardenTendedToday} />
+      {/* Zen Consistency & Streak Count - Clean Zen Garden style */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+          borderRadius: '20px',
+          padding: '16px 18px',
+          border: '1.5px solid #A7F3D0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          boxShadow: '0 4px 14px rgba(5, 150, 105, 0.08)'
+        }}
+      >
+        <div
+          style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#FFFFFF',
+            boxShadow: '0 4px 12px rgba(217, 119, 6, 0.22)',
+            flexShrink: 0
+          }}
+        >
+          <Flame size={22} fill="#FFFFFF" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
+              {streakCount} {streakCount === 1 ? 'Day' : 'Days'} Streak
+            </span>
+            <span
+              style={{
+                background: '#DCFCE7',
+                color: '#15803D',
+                border: '1px solid #BBF7D0',
+                borderRadius: '999px',
+                padding: '2px 8px',
+                fontSize: '10px',
+                fontWeight: 800,
+                letterSpacing: '0.4px',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {isRecordedToday ? '✓ Care recorded' : 'Pending today'}
+            </span>
+          </div>
+          <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
+            {isRecordedToday
+              ? "Today's care is recorded. Your rhythm continues."
+              : "Tend your garden today to keep your daily rhythm growing."}
+          </div>
+        </div>
+      </div>
 
       <div style={{ position: 'relative', background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #DCFCE7 60%, #CCFBF1 100%)', borderRadius: '28px', padding: '24px 20px', border: '2px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(13, 148, 136, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'hidden', minHeight: '260px' }}>
         <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }} style={{ position: 'absolute', top: '-20px', right: '20px', width: '90px', height: '90px', borderRadius: '50%', background: 'radial-gradient(circle, #FDE047 0%, rgba(251, 146, 60, 0) 70%)', pointerEvents: 'none' }} />
@@ -89,7 +166,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           <div style={metricCardStyle}><div style={metricLabelStyle}>Blooms</div><div style={metricValueStyle}>🌸 {garden.bloomCount}</div></div>
           <div style={metricCardStyle}><div style={metricLabelStyle}>Days Tended</div><div style={{ ...metricValueStyle, color: '#059669' }}>💧 {garden.waterCount}</div></div>
-          <div style={metricCardStyle}><div style={metricLabelStyle}>Garden Streak</div><div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {garden.streakDays}</div></div>
+          <div style={metricCardStyle}><div style={metricLabelStyle}>Garden Streak</div><div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {streakCount} {streakCount === 1 ? 'Day' : 'Days'}</div></div>
         </div>
       </div>
     </div>
