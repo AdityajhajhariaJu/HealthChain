@@ -16,20 +16,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: 'pnpm'
           
       - name: Install dependencies
-        run: npm ci
+        run: corepack enable pnpm && pnpm install
         
       - name: Build project
-        run: npm run build
+        run: pnpm build
 
       - name: Run unit tests
-        run: npm test -- --run
+        run: pnpm test run
         
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11
         with:
-          configPath: './lighthouserc.js'
+          configPath: './lighthouserc.cjs'
           uploadArtifacts: true
           temporaryPublicStorage: true
