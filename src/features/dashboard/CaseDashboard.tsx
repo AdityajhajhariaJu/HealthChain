@@ -21,8 +21,6 @@ import {
   Award, 
   X, 
   ShieldCheck,
-  Info,
-  ChevronDown,
   ArrowRight,
   FolderHeart,
   Pill,
@@ -66,18 +64,6 @@ import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiv
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 
-const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
-  hydration: {
-    summary: 'Supports daily hydration and energy.',
-    detail: 'Drinking water consistently throughout the day supports circulation, energy levels, and healthy digestion.',
-    biomarker: 'Hydration / Energy'
-  },
-  vitamins: {
-    summary: 'Maintains consistent nutrient levels.',
-    detail: 'Taking vitamins at regular times supports steady daily absorption and nutritional balance.',
-    biomarker: 'Nutrient Balance'
-  }
-};
 
 export default function CaseDashboard() {
   
@@ -108,7 +94,6 @@ export default function CaseDashboard() {
 
   // Daily Habit & Protocol tracking
   const todayDateStr = getTodayDateString();
-  const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [showVitaminModal, setShowVitaminModal] = useState(false);
   const [vitaminSchedule, setVitaminSchedule] = useState<VitaminItem[]>(() => getVitaminSchedule());
   const [showHydrationModal, setShowHydrationModal] = useState(false);
@@ -151,12 +136,6 @@ export default function CaseDashboard() {
       const stored = getItemSync(getHabitStorageKey(todayDateStr));
       if (stored) setCompletedHabits(JSON.parse(stored));
     } catch {}
-  };
-
-  const toggleRationale = (habitId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    triggerHapticSelection();
-    setExpandedRationale(prev => prev === habitId ? null : habitId);
   };
 
   const toggleHabit = (habitId: string, title: string) => {
@@ -422,10 +401,11 @@ export default function CaseDashboard() {
               <TherapeuticOutcomeCard span2={true} />
 
               {/* Point 3: Interactive Daily Habit Bento Stack */}
+              {/* Habit 1: Daily Hydration Tracking */}
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Open intake tracker'}`}
+                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Goal Met' : 'Open intake tracker'}`}
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -441,21 +421,31 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: '#FFFFFF',
-                  border: completedHabits['hydration'] ? '1.5px solid #38BDF8' : '1px solid #E2E8F0',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-                  borderRadius: isMobile ? '20px' : '26px',
-                  padding: isMobile ? '14px' : '18px',
+                  background: completedHabits['hydration']
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.5) 100%)'
+                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 249, 255, 0.5) 100%)',
+                  backdropFilter: 'blur(28px)',
+                  WebkitBackdropFilter: 'blur(28px)',
+                  border: completedHabits['hydration'] 
+                    ? '1.5px solid rgba(14, 165, 233, 0.5)' 
+                    : '1px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: completedHabits['hydration']
+                    ? '0 16px 36px rgba(14, 165, 233, 0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(14, 165, 233, 0.05)'
+                    : '0 16px 36px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
+                  borderRadius: isMobile ? '24px' : '28px',
+                  padding: isMobile ? '14px 13px 13px' : '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '130px' : '142px',
+                  minHeight: isMobile ? '142px' : '155px',
                   cursor: 'pointer',
-                  transition: 'all 0.25s ease',
-                  userSelect: 'none'
+                  position: 'relative',
+                  overflow: 'hidden',
+                  userSelect: 'none',
+                  transition: 'border-color 0.25s ease, box-shadow 0.25s ease'
                 }}
               >
-                {/* Top Row: Icon on left, single action button on right (No colliding badges!) */}
+                {/* Top Row: Glowing Icon on left, single tactile action button on right */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div
                     aria-hidden="true"
@@ -467,8 +457,12 @@ export default function CaseDashboard() {
                       flexShrink: 0,
                       borderRadius: '50%', 
                       background: completedHabits['hydration'] 
-                        ? 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)' 
-                        : 'rgba(14, 165, 233, 0.12)', 
+                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                        : 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)', 
+                      boxShadow: completedHabits['hydration']
+                        ? '0 6px 14px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)'
+                        : '0 6px 14px rgba(2, 132, 199, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)',
+                      border: '1px solid rgba(255,255,255,0.6)',
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
@@ -476,177 +470,129 @@ export default function CaseDashboard() {
                     }}
                   >
                     {completedHabits['hydration'] ? (
-                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.5} />
+                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={3} />
                     ) : (
-                      <Droplets size={isMobile ? 16 : 18} color="#0284C7" />
+                      <Droplets size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.2} />
                     )}
                   </div>
 
-                  {/* Single Action on Right */}
+                  {/* Single Action Button on Right */}
                   {completedHabits['hydration'] ? (
                     <div 
                       style={{ 
-                        background: '#E0F2FE', 
-                        color: '#0284C7', 
+                        background: 'rgba(16, 185, 129, 0.12)', 
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        color: '#059669', 
                         padding: '3px 8px', 
                         borderRadius: '999px',
-                        fontSize: '11px',
+                        fontSize: '10.5px',
                         fontWeight: 700,
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
                         flexShrink: 0
                       }}
                     >
-                      <Check size={11} strokeWidth={3} />
-                      <span>Done</span>
+                      <Check size={10} strokeWidth={3} />
+                      <span>Goal Met</span>
                     </div>
                   ) : (
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.92 }}
                       onClick={(e) => handleQuickWater(250, e)}
                       title="Quick log 1 glass (+250ml)"
                       aria-label="Quick log 250ml water"
                       style={{
-                        background: 'rgba(14, 165, 233, 0.1)',
-                        border: '1px solid rgba(14, 165, 233, 0.25)',
+                        background: 'rgba(14, 165, 233, 0.12)',
+                        border: '1px solid rgba(14, 165, 233, 0.28)',
                         borderRadius: '999px',
                         padding: '3px 8px',
                         fontSize: '11px',
                         fontWeight: 700,
-                        color: '#0369A1',
-                        display: 'flex',
+                        color: '#0284C7',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        boxShadow: '0 1px 4px rgba(14, 165, 233, 0.08)'
                       }}
                     >
                       <Plus size={11} strokeWidth={2.5} /> 250ml
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
-                {/* Middle: Title & Single-Line Concise Metric */}
-                <div style={{ margin: '10px 0 6px' }}>
-                  <h4 style={{ 
-                    fontSize: isMobile ? '15px' : '16.5px', 
-                    fontWeight: 700, 
-                    margin: '0 0 2px', 
-                    color: '#0F172A', 
-                    lineHeight: 1.25, 
-                    letterSpacing: '-0.3px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
+                {/* Centerpiece: Bold Hero KPI with Goal & Category */}
+                <div style={{ margin: '8px 0 4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                    <span 
+                      className="tabular-nums"
+                      style={{ 
+                        fontSize: isMobile ? '21px' : '23px', 
+                        fontWeight: 800, 
+                        color: '#0F172A', 
+                        letterSpacing: '-0.6px', 
+                        lineHeight: 1 
+                      }}
+                    >
+                      {hydrationData.currentMl > 0 ? hydrationData.currentMl.toLocaleString() : '0'}
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                      / {hydrationData.targetMl >= 1000 ? `${(hydrationData.targetMl / 1000).toFixed(1).replace('.0', '')}k` : hydrationData.targetMl} ml
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    marginTop: '3px'
                   }}>
-                    {completedHabits['hydration'] 
-                      ? 'Hydrated 💧' 
-                      : 'Hydration'}
-                  </h4>
-                  <p style={{ 
-                    fontSize: isMobile ? '12px' : '13px', 
-                    color: completedHabits['hydration'] ? '#0284C7' : '#64748B', 
-                    margin: 0, 
-                    fontWeight: 500, 
-                    lineHeight: 1.2,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {hydrationData.currentMl > 0 
-                      ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml`
-                      : `Goal ${hydrationData.targetMl.toLocaleString()} ml`}
-                  </p>
+                    <span style={{ 
+                      fontSize: isMobile ? '13px' : '14px', 
+                      fontWeight: 700, 
+                      color: completedHabits['hydration'] ? '#0284C7' : '#1E293B',
+                      letterSpacing: '-0.2px'
+                    }}>
+                      Hydration
+                    </span>
+                    <span className="tabular-nums" style={{ fontSize: '10.5px', fontWeight: 700, color: completedHabits['hydration'] ? '#0284C7' : '#94A3B8' }}>
+                      {Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%
+                    </span>
+                  </div>
                 </div>
 
-                {/* Bottom: Fluid Progress Bar & Minimalist Science Trigger */}
+                {/* Bottom: Fluid Progress Track & Micro Science Link */}
                 <div>
                   <div style={{
                     width: '100%',
-                    height: '4px',
+                    height: '5px',
                     borderRadius: '999px',
-                    background: 'rgba(56, 189, 248, 0.16)',
+                    background: 'rgba(14, 165, 233, 0.15)',
                     overflow: 'hidden',
-                    marginBottom: '4px'
+                    marginBottom: '5px'
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
                       background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
+                      boxShadow: '0 1px 6px rgba(2, 132, 199, 0.4)',
                       borderRadius: '999px',
-                      transition: 'width 0.4s ease'
+                      transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                     }} />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
-                    <span style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600 }}>
-                      {Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#0284C7', fontWeight: 700 }}>
+                      <Sparkles size={9} /> Gut Mucosa
                     </span>
-                    <button
-                      type="button"
-                      data-compact="true"
-                      onClick={(e) => toggleRationale('hydration', e)}
-                      aria-label="Toggle clinical rationale for hydration"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '2px',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        fontSize: '10.5px',
-                        fontWeight: 600,
-                        color: '#0284C7',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Info size={10} />
-                      <span>Science</span>
-                      <ChevronDown 
-                        size={10} 
-                        style={{ 
-                          transform: expandedRationale === 'hydration' ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease'
-                        }} 
-                      />
-                    </button>
+                    <span style={{ color: '#94A3B8', fontWeight: 600 }}>
+                      Details ›
+                    </span>
                   </div>
                 </div>
-
-                <AnimatePresence>
-                  {expandedRationale === 'hydration' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                      style={{
-                        overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.96)',
-                        backdropFilter: 'blur(16px)',
-                        borderRadius: '12px',
-                        padding: '8px 10px',
-                        border: '1px solid rgba(14, 165, 233, 0.25)',
-                        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#0369A1', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                          Mechanism
-                        </span>
-                        <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
-                          {HABIT_RATIONALES.hydration.biomarker}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                        {HABIT_RATIONALES.hydration.detail}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
 
               {/* Habit 2: Daily Vitamins / Micronutrients */}
@@ -669,38 +615,34 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: '#FFFFFF',
-                  border: completedHabits['vitamins'] ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-                  borderRadius: isMobile ? '20px' : '26px',
-                  padding: isMobile ? '14px' : '18px',
+                  background: completedHabits['vitamins']
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 244, 0.5) 100%)'
+                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(254, 252, 232, 0.5) 100%)',
+                  backdropFilter: 'blur(28px)',
+                  WebkitBackdropFilter: 'blur(28px)',
+                  border: completedHabits['vitamins'] 
+                    ? '1.5px solid rgba(16, 185, 129, 0.5)' 
+                    : '1px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: completedHabits['vitamins']
+                    ? '0 16px 36px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(16, 185, 129, 0.05)'
+                    : '0 16px 36px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 20px rgba(255,255,255,0.5)',
+                  borderRadius: isMobile ? '24px' : '28px',
+                  padding: isMobile ? '14px 13px 13px' : '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '130px' : '142px',
+                  minHeight: isMobile ? '142px' : '155px',
                   cursor: 'pointer',
-                  transition: 'all 0.25s ease',
-                  userSelect: 'none'
+                  position: 'relative',
+                  overflow: 'hidden',
+                  userSelect: 'none',
+                  transition: 'border-color 0.25s ease, box-shadow 0.25s ease'
                 }}
               >
-                {/* Top Row: Icon on left, single status/badge on right */}
+                {/* Top Row: Glowing Icon on left, single status/badge on right */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div 
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Toggle all vitamins taken"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.target !== e.currentTarget) return;
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                      }
-                    }}
+                    aria-hidden="true"
                     style={{ 
                       width: isMobile ? '36px' : '40px', 
                       height: isMobile ? '36px' : '40px', 
@@ -710,177 +652,152 @@ export default function CaseDashboard() {
                       borderRadius: '50%', 
                       background: completedHabits['vitamins'] 
                         ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'rgba(245, 158, 11, 0.14)', 
+                        : 'linear-gradient(135deg, #FBBF24 0%, #D97706 100%)', 
+                      boxShadow: completedHabits['vitamins']
+                        ? '0 6px 14px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)'
+                        : '0 6px 14px rgba(217, 119, 6, 0.28), inset 0 1px 0 rgba(255,255,255,0.5)',
+                      border: '1px solid rgba(255,255,255,0.6)',
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     {completedHabits['vitamins'] ? (
-                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.5} />
+                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={3} />
                     ) : (
-                      <Clock size={isMobile ? 16 : 18} color="#D97706" />
+                      <Pill size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.2} />
                     )}
                   </div>
 
-                  {/* Single Action/Badge on Right (No colliding badges!) */}
+                  {/* Single Action Button on Right */}
                   {completedHabits['vitamins'] ? (
                     <div 
                       style={{ 
-                        background: '#DCFCE7', 
-                        color: '#15803D', 
+                        background: 'rgba(16, 185, 129, 0.12)', 
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        color: '#059669', 
                         padding: '3px 8px', 
                         borderRadius: '999px',
-                        fontSize: '11px',
+                        fontSize: '10.5px',
                         fontWeight: 700,
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px',
                         flexShrink: 0
                       }}
                     >
-                      <Check size={11} strokeWidth={3} />
-                      <span>Done</span>
+                      <Check size={10} strokeWidth={3} />
+                      <span>Taken</span>
                     </div>
                   ) : (
-                    <div 
-                      className="tabular-nums micro-badge"
-                      style={{ 
-                        background: 'rgba(245, 158, 11, 0.12)', 
-                        color: '#B45309', 
-                        padding: '3px 8px', 
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                      }}
+                      title="Mark all vitamins taken"
+                      aria-label="Mark all vitamins taken"
+                      style={{
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        border: '1px solid rgba(245, 158, 11, 0.28)',
                         borderRadius: '999px',
-                        fontSize: '10.5px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
                         fontWeight: 700,
-                        letterSpacing: '0.3px',
+                        color: '#B45309',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        boxShadow: '0 1px 4px rgba(217, 119, 6, 0.08)'
                       }}
                     >
-                      RX / VIT
-                    </div>
+                      <Check size={11} strokeWidth={2.5} /> Done
+                    </motion.button>
                   )}
                 </div>
 
-                {/* Middle: Title & Single-Line Concise Metric */}
-                <div style={{ margin: '10px 0 6px' }}>
-                  <h4 style={{ 
-                    fontSize: isMobile ? '15px' : '16.5px', 
-                    fontWeight: 700, 
-                    margin: '0 0 2px', 
-                    color: '#0F172A', 
-                    lineHeight: 1.25, 
-                    letterSpacing: '-0.3px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
+                {/* Centerpiece: Bold Hero KPI with Goal & Category */}
+                <div style={{ margin: '8px 0 4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span 
+                      className="tabular-nums"
+                      style={{ 
+                        fontSize: isMobile ? '21px' : '23px', 
+                        fontWeight: 800, 
+                        color: '#0F172A', 
+                        letterSpacing: '-0.6px', 
+                        lineHeight: 1 
+                      }}
+                    >
+                      {completedHabits['vitamins'] 
+                        ? (vitaminSchedule.length > 0 ? `${vitaminSchedule.length}/${vitaminSchedule.length}` : 'All') 
+                        : (vitaminSchedule.length > 0 ? `${vitaminSchedule.filter(v => Boolean(v.takenToday)).length}/${vitaminSchedule.length}` : '0/1')}
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                      {completedHabits['vitamins'] ? 'Doses Taken' : (vitaminSchedule.length > 0 ? 'Doses' : 'Scheduled')}
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    marginTop: '3px'
                   }}>
-                    {completedHabits['vitamins'] ? 'Vitamins Taken ✓' : 'Daily Vitamins'}
-                  </h4>
-                  <p style={{ 
-                    fontSize: isMobile ? '12px' : '13px', 
-                    color: completedHabits['vitamins'] ? '#15803D' : '#64748B', 
-                    margin: 0, 
-                    fontWeight: 500, 
-                    lineHeight: 1.2,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {completedHabits['vitamins'] 
-                      ? 'Logged for today' 
-                      : (vitaminSchedule.length > 0 ? `${vitaminSchedule.length} scheduled` : 'Log supplements')}
-                  </p>
+                    <span style={{ 
+                      fontSize: isMobile ? '13px' : '14px', 
+                      fontWeight: 700, 
+                      color: completedHabits['vitamins'] ? '#15803D' : '#1E293B',
+                      letterSpacing: '-0.2px'
+                    }}>
+                      Daily Rx
+                    </span>
+                    <span className="tabular-nums" style={{ fontSize: '10.5px', fontWeight: 700, color: completedHabits['vitamins'] ? '#15803D' : '#94A3B8' }}>
+                      {completedHabits['vitamins'] ? '100%' : (vitaminSchedule.length > 0 ? `${Math.round((vitaminSchedule.filter(v => Boolean(v.takenToday)).length / vitaminSchedule.length) * 100)}%` : 'Pending')}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Bottom: Progress Bar & Minimalist Science Trigger */}
+                {/* Bottom: Progress Track & Micro Science Link */}
                 <div>
                   <div style={{
                     width: '100%',
-                    height: '4px',
+                    height: '5px',
                     borderRadius: '999px',
                     background: 'rgba(245, 158, 11, 0.16)',
                     overflow: 'hidden',
-                    marginBottom: '4px'
+                    marginBottom: '5px'
                   }}>
                     <div style={{
                       height: '100%',
-                      width: completedHabits['vitamins'] ? '100%' : '0%',
-                      background: 'linear-gradient(90deg, #FBBF24 0%, #D97706 100%)',
+                      width: completedHabits['vitamins'] 
+                        ? '100%' 
+                        : `${vitaminSchedule.length > 0 ? Math.round((vitaminSchedule.filter(v => Boolean(v.takenToday)).length / vitaminSchedule.length) * 100) : 0}%`,
+                      background: completedHabits['vitamins']
+                        ? 'linear-gradient(90deg, #34D399 0%, #059669 100%)'
+                        : 'linear-gradient(90deg, #FBBF24 0%, #D97706 100%)',
+                      boxShadow: completedHabits['vitamins']
+                        ? '0 1px 6px rgba(16, 185, 129, 0.4)'
+                        : '0 1px 6px rgba(217, 119, 6, 0.4)',
                       borderRadius: '999px',
-                      transition: 'width 0.4s ease'
+                      transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                     }} />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
-                    <span style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600 }}>
-                      {completedHabits['vitamins'] ? 'Complete' : 'Daily'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#B45309', fontWeight: 700 }}>
+                      <Sparkles size={9} /> Micronutrients
                     </span>
-                    <button
-                      type="button"
-                      data-compact="true"
-                      onClick={(e) => toggleRationale('vitamins', e)}
-                      aria-label="Toggle clinical rationale for vitamins"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '2px',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        fontSize: '10.5px',
-                        fontWeight: 600,
-                        color: '#B45309',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Info size={10} />
-                      <span>Science</span>
-                      <ChevronDown 
-                        size={10} 
-                        style={{ 
-                          transform: expandedRationale === 'vitamins' ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease'
-                        }} 
-                      />
-                    </button>
+                    <span style={{ color: '#94A3B8', fontWeight: 600 }}>
+                      Details ›
+                    </span>
                   </div>
                 </div>
-
-                <AnimatePresence>
-                  {expandedRationale === 'vitamins' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                      style={{
-                        overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.96)',
-                        backdropFilter: 'blur(16px)',
-                        borderRadius: '12px',
-                        padding: '8px 10px',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
-                        boxShadow: '0 4px 12px rgba(217, 119, 6, 0.08)'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#B45309', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                          Mechanism
-                        </span>
-                        <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
-                          {HABIT_RATIONALES.vitamins.biomarker}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                        {HABIT_RATIONALES.vitamins.detail}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
           </div>
         </div>
