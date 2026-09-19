@@ -441,51 +441,67 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['hydration'] ? '1px solid rgba(56, 189, 248, 0.6)' : '1px solid rgba(255, 255, 255, 0.95)', 
-                  boxShadow: completedHabits['hydration'] 
-                    ? '0 20px 40px rgba(56, 189, 248, 0.1), inset 0 1px 0 rgba(255,255,255,0.95)' 
-                    : '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95)', 
-                  borderRadius: isMobile ? '32px' : '40px',
-                  padding: isMobile ? '16px' : '22px',
+                  background: '#FFFFFF',
+                  border: completedHabits['hydration'] ? '1.5px solid #38BDF8' : '1px solid #E2E8F0',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                  borderRadius: isMobile ? '20px' : '26px',
+                  padding: isMobile ? '14px' : '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '135px' : '150px',
+                  minHeight: isMobile ? '130px' : '142px',
                   cursor: 'pointer',
-                  transition: 'border 0.3s ease, box-shadow 0.3s ease'
+                  transition: 'all 0.25s ease',
+                  userSelect: 'none'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div aria-hidden="true"
+                {/* Top Row: Icon on left, single action button on right (No colliding badges!) */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    aria-hidden="true"
                     style={{ 
-                      width: isMobile ? '38px' : '44px', 
-                      height: isMobile ? '38px' : '44px', 
-                      minWidth: isMobile ? '38px' : '44px', 
-                      minHeight: isMobile ? '38px' : '44px', 
+                      width: isMobile ? '36px' : '40px', 
+                      height: isMobile ? '36px' : '40px', 
+                      minWidth: isMobile ? '36px' : '40px', 
+                      minHeight: isMobile ? '36px' : '40px', 
                       flexShrink: 0,
                       borderRadius: '50%', 
                       background: completedHabits['hydration'] 
                         ? 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)' 
-                        : 'linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(2, 132, 199, 0.1) 100%)', 
-                      boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(14, 165, 233, 0.3)',
+                        : 'rgba(14, 165, 233, 0.12)', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
-                      transition: 'all 0.3s ease',
-                      cursor: 'default'
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     {completedHabits['hydration'] ? (
-                      <Check size={isMobile ? 18 : 20} color="#FFF" />
+                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.5} />
                     ) : (
-                      <Droplets size={isMobile ? 18 : 20} color="#0284C7" />
+                      <Droplets size={isMobile ? 16 : 18} color="#0284C7" />
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+
+                  {/* Single Action on Right */}
+                  {completedHabits['hydration'] ? (
+                    <div 
+                      style={{ 
+                        background: '#E0F2FE', 
+                        color: '#0284C7', 
+                        padding: '3px 8px', 
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Check size={11} strokeWidth={3} />
+                      <span>Done</span>
+                    </div>
+                  ) : (
                     <button
                       type="button"
                       onClick={(e) => handleQuickWater(250, e)}
@@ -495,72 +511,79 @@ export default function CaseDashboard() {
                         background: 'rgba(14, 165, 233, 0.1)',
                         border: '1px solid rgba(14, 165, 233, 0.25)',
                         borderRadius: '999px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
                         fontWeight: 700,
                         color: '#0369A1',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '3px',
                         cursor: 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      <Plus size={10} /> 250ml
-                    </button>
-                    <div 
-                      className="tabular-nums micro-badge"
-                      style={{ 
-                        background: completedHabits['hydration'] ? '#E0F2FE' : 'rgba(14, 165, 233, 0.12)', 
-                        color: completedHabits['hydration'] ? '#0284C7' : '#0369A1', 
-                        padding: '3px 8px', 
-                        borderRadius: '999px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        letterSpacing: '0.4px',
                         whiteSpace: 'nowrap',
                         flexShrink: 0
                       }}
                     >
-                      {completedHabits['hydration'] ? '✓ +2 PTS' : 'DAILY'}
-                    </div>
-                  </div>
+                      <Plus size={11} strokeWidth={2.5} /> 250ml
+                    </button>
+                  )}
                 </div>
 
-                <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                    {hydrationData.currentMl >= hydrationData.targetMl 
-                      ? 'Goal Reached 💧' 
-                      : completedHabits['hydration'] 
-                        ? 'Hydrated 💧' 
-                        : 'Hydrate 500ml'}
+                {/* Middle: Title & Single-Line Concise Metric */}
+                <div style={{ margin: '10px 0 6px' }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '15px' : '16.5px', 
+                    fontWeight: 700, 
+                    margin: '0 0 2px', 
+                    color: '#0F172A', 
+                    lineHeight: 1.25, 
+                    letterSpacing: '-0.3px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {completedHabits['hydration'] 
+                      ? 'Hydrated 💧' 
+                      : 'Hydration'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: completedHabits['hydration'] ? '#0284C7' : '#64748B', margin: '0 0 8px', fontWeight: 600, lineHeight: 1.3 }}>
+                  <p style={{ 
+                    fontSize: isMobile ? '12px' : '13px', 
+                    color: completedHabits['hydration'] ? '#0284C7' : '#64748B', 
+                    margin: 0, 
+                    fontWeight: 500, 
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
                     {hydrationData.currentMl > 0 
-                      ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml • ${Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%`
-                      : 'Tap to log sips & track'}
+                      ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml`
+                      : `Goal ${hydrationData.targetMl.toLocaleString()} ml`}
                   </p>
+                </div>
 
-                  {/* Sleek Mini Fluid Progress Bar */}
+                {/* Bottom: Fluid Progress Bar & Minimalist Science Trigger */}
+                <div>
                   <div style={{
                     width: '100%',
-                    height: '6px',
+                    height: '4px',
                     borderRadius: '999px',
-                    background: 'rgba(56, 189, 248, 0.15)',
+                    background: 'rgba(56, 189, 248, 0.16)',
                     overflow: 'hidden',
-                    marginBottom: '12px',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
+                    marginBottom: '4px'
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
-                      background: 'linear-gradient(90deg, #BAE6FD 0%, #38BDF8 100%)',
+                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
                       borderRadius: '999px',
                       transition: 'width 0.4s ease'
                     }} />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
+                    <span style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600 }}>
+                      {Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%
+                    </span>
                     <button
                       type="button"
                       data-compact="true"
@@ -569,20 +592,14 @@ export default function CaseDashboard() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        background: expandedRationale === 'hydration' ? 'rgba(14, 165, 233, 0.16)' : 'rgba(14, 165, 233, 0.08)',
-                        border: '1px solid rgba(14, 165, 233, 0.22)',
-                        borderRadius: '6px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
+                        gap: '2px',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: '10.5px',
                         fontWeight: 600,
-                        color: '#0369A1',
-                        cursor: 'pointer',
-                        minWidth: 'unset',
-                        minHeight: 'unset',
-                        height: 'auto',
-                        width: 'fit-content',
-                        transition: 'all 0.2s ease',
+                        color: '#0284C7',
+                        cursor: 'pointer'
                       }}
                     >
                       <Info size={10} />
@@ -607,12 +624,12 @@ export default function CaseDashboard() {
                       transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                       style={{
                         overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.94)',
+                        background: 'rgba(255, 255, 255, 0.96)',
                         backdropFilter: 'blur(16px)',
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         padding: '8px 10px',
                         border: '1px solid rgba(14, 165, 233, 0.25)',
-                        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)'
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -652,24 +669,22 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['vitamins'] ? '1px solid rgba(251, 191, 36, 0.6)' : '1px solid rgba(255, 255, 255, 0.95)', 
-                  boxShadow: completedHabits['vitamins'] 
-                    ? '0 20px 40px rgba(251, 191, 36, 0.1), inset 0 1px 0 rgba(255,255,255,0.95)' 
-                    : '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95)', 
-                  borderRadius: isMobile ? '32px' : '40px',
-                  padding: isMobile ? '16px' : '22px',
+                  background: '#FFFFFF',
+                  border: completedHabits['vitamins'] ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                  borderRadius: isMobile ? '20px' : '26px',
+                  padding: isMobile ? '14px' : '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '135px' : '150px',
+                  minHeight: isMobile ? '130px' : '142px',
                   cursor: 'pointer',
-                  transition: 'border 0.3s ease, box-shadow 0.3s ease'
+                  transition: 'all 0.25s ease',
+                  userSelect: 'none'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                {/* Top Row: Icon on left, single status/badge on right */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div 
                     role="button"
                     tabIndex={0}
@@ -687,17 +702,15 @@ export default function CaseDashboard() {
                       }
                     }}
                     style={{ 
-                      width: isMobile ? '38px' : '44px', 
-                      height: isMobile ? '38px' : '44px', 
-                      minWidth: isMobile ? '38px' : '44px', 
-                      minHeight: isMobile ? '38px' : '44px', 
+                      width: isMobile ? '36px' : '40px', 
+                      height: isMobile ? '36px' : '40px', 
+                      minWidth: isMobile ? '36px' : '40px', 
+                      minHeight: isMobile ? '36px' : '40px', 
                       flexShrink: 0,
                       borderRadius: '50%', 
                       background: completedHabits['vitamins'] 
                         ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%)', 
-                      boxShadow: completedHabits['vitamins'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                      border: completedHabits['vitamins'] ? 'none' : '1px solid rgba(245, 158, 11, 0.3)',
+                        : 'rgba(245, 158, 11, 0.14)', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
@@ -706,38 +719,105 @@ export default function CaseDashboard() {
                     }}
                   >
                     {completedHabits['vitamins'] ? (
-                      <Check size={isMobile ? 18 : 20} color="#FFF" />
+                      <Check size={isMobile ? 16 : 18} color="#FFF" strokeWidth={2.5} />
                     ) : (
-                      <Clock size={isMobile ? 18 : 20} color="#D97706" />
+                      <Clock size={isMobile ? 16 : 18} color="#D97706" />
                     )}
                   </div>
-                  <div 
-                    className="tabular-nums micro-badge"
-                    style={{ 
-                      background: completedHabits['vitamins'] ? '#DCFCE7' : 'rgba(245, 158, 11, 0.15)', 
-                      color: completedHabits['vitamins'] ? '#15803D' : '#B45309', 
-                      padding: '3px 8px', 
-                      borderRadius: '999px',
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      letterSpacing: '0.4px',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0
-                    }}
-                  >
-                    {completedHabits['vitamins'] ? '✓ +2 PTS' : 'RX / VIT'}
-                  </div>
+
+                  {/* Single Action/Badge on Right (No colliding badges!) */}
+                  {completedHabits['vitamins'] ? (
+                    <div 
+                      style={{ 
+                        background: '#DCFCE7', 
+                        color: '#15803D', 
+                        padding: '3px 8px', 
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Check size={11} strokeWidth={3} />
+                      <span>Done</span>
+                    </div>
+                  ) : (
+                    <div 
+                      className="tabular-nums micro-badge"
+                      style={{ 
+                        background: 'rgba(245, 158, 11, 0.12)', 
+                        color: '#B45309', 
+                        padding: '3px 8px', 
+                        borderRadius: '999px',
+                        fontSize: '10.5px',
+                        fontWeight: 700,
+                        letterSpacing: '0.3px',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
+                      }}
+                    >
+                      RX / VIT
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                    {completedHabits['vitamins'] ? 'Taken 💊' : 'Daily Vitamins'}
+                {/* Middle: Title & Single-Line Concise Metric */}
+                <div style={{ margin: '10px 0 6px' }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '15px' : '16.5px', 
+                    fontWeight: 700, 
+                    margin: '0 0 2px', 
+                    color: '#0F172A', 
+                    lineHeight: 1.25, 
+                    letterSpacing: '-0.3px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {completedHabits['vitamins'] ? 'Vitamins Taken ✓' : 'Daily Vitamins'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: completedHabits['vitamins'] ? '#B45309' : '#64748B', margin: '0 0 8px', fontWeight: 600, lineHeight: 1.3 }}>
-                    {completedHabits['vitamins'] ? 'Logged' : 'Log supplements'}
+                  <p style={{ 
+                    fontSize: isMobile ? '12px' : '13px', 
+                    color: completedHabits['vitamins'] ? '#15803D' : '#64748B', 
+                    margin: 0, 
+                    fontWeight: 500, 
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {completedHabits['vitamins'] 
+                      ? 'Logged for today' 
+                      : (vitaminSchedule.length > 0 ? `${vitaminSchedule.length} scheduled` : 'Log supplements')}
                   </p>
+                </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                {/* Bottom: Progress Bar & Minimalist Science Trigger */}
+                <div>
+                  <div style={{
+                    width: '100%',
+                    height: '4px',
+                    borderRadius: '999px',
+                    background: 'rgba(245, 158, 11, 0.16)',
+                    overflow: 'hidden',
+                    marginBottom: '4px'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: completedHabits['vitamins'] ? '100%' : '0%',
+                      background: 'linear-gradient(90deg, #FBBF24 0%, #D97706 100%)',
+                      borderRadius: '999px',
+                      transition: 'width 0.4s ease'
+                    }} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
+                    <span style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600 }}>
+                      {completedHabits['vitamins'] ? 'Complete' : 'Daily'}
+                    </span>
                     <button
                       type="button"
                       data-compact="true"
@@ -746,20 +826,14 @@ export default function CaseDashboard() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        background: expandedRationale === 'vitamins' ? 'rgba(217, 119, 6, 0.18)' : 'rgba(217, 119, 6, 0.08)',
-                        border: '1px solid rgba(217, 119, 6, 0.25)',
-                        borderRadius: '6px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
+                        gap: '2px',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: '10.5px',
                         fontWeight: 600,
                         color: '#B45309',
-                        cursor: 'pointer',
-                        minWidth: 'unset',
-                        minHeight: 'unset',
-                        height: 'auto',
-                        width: 'fit-content',
-                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
                       }}
                     >
                       <Info size={10} />
@@ -784,12 +858,12 @@ export default function CaseDashboard() {
                       transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                       style={{
                         overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.94)',
+                        background: 'rgba(255, 255, 255, 0.96)',
                         backdropFilter: 'blur(16px)',
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         padding: '8px 10px',
                         border: '1px solid rgba(245, 158, 11, 0.3)',
-                        boxShadow: '0 4px 12px rgba(217, 119, 6, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                        boxShadow: '0 4px 12px rgba(217, 119, 6, 0.08)'
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
