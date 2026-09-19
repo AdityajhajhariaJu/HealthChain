@@ -413,7 +413,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const contentTitleLower = (content?.title || '').toLowerCase();
   const contentTypeLower = (content?.type || '').toLowerCase();
 
-  const isSleep = content?.id === 'mood-0' || contentTypeLower === 'sleep_story' || contentTitleLower.includes('sleep') || contentTitleLower.includes('slumber') || contentTitleLower.includes('lullaby');
+  const isSleep = content?.id === 'mood-0' || contentTypeLower === 'sleep_story' || contentTitleLower.includes('sleep') || contentTitleLower.includes('slumber') || contentTitleLower.includes('lullaby') || contentTitleLower.includes('ocean');
   const isRain = content?.id === 'soundscape-0' || contentTitleLower.includes('rain') || contentTitleLower.includes('storm') || contentTitleLower.includes('drizzle');
   const isFrequency = content?.id === 'soundscape-1' || contentTitleLower.includes('frequency') || contentTitleLower.includes('frequencies') || contentTitleLower.includes('hz') || contentTitleLower.includes('cymatic') || contentTitleLower.includes('binaural');
   const isForest = content?.id === 'soundscape-2' || contentTitleLower.includes('forest') || contentTitleLower.includes('woodland') || contentTitleLower.includes('pines') || contentTitleLower.includes('nature');
@@ -421,7 +421,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const isEnergy = content?.id === 'mood-2' || contentTitleLower.includes('energy') || contentTitleLower.includes('morning') || contentTitleLower.includes('wake') || contentTitleLower.includes('vitality');
 
   const playlistTitle = 
-    isSleep ? 'Deep Sleep' :
+    isSleep ? (contentTitleLower.includes('ocean') ? 'Ocean Waves' : 'Deep Sleep') :
     isRain ? 'Rain Sounds' :
     isFrequency ? 'Focus Frequencies' :
     isForest ? 'Forest Ambience' :
