@@ -294,7 +294,7 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(240, 253, 250, 0.55) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
                   border: '1px solid rgba(255, 255, 255, 0.95)', 
@@ -318,8 +318,8 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #A7C796 0%, #8EB67A 100%)', 
-                    boxShadow: '0 8px 16px rgba(167, 199, 150, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)', 
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
+                    boxShadow: '0 8px 18px rgba(16, 185, 129, 0.28), inset 0 1px 0 rgba(255,255,255,0.4)', 
                     border: '1px solid rgba(255,255,255,0.5)', 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -327,13 +327,13 @@ export default function CaseDashboard() {
                   }}>
                     <Scan size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: '#FFD180', color: '#B45309', padding: '4px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#B45309', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     NEW
                   </div>
                 </div>
                 <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#134E4A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#475569', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
                 </div>
               </motion.div>
 
@@ -354,7 +354,7 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(245, 243, 255, 0.55) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
                   border: '1px solid rgba(255, 255, 255, 0.95)', 
@@ -378,8 +378,8 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%)', 
-                    boxShadow: '0 8px 16px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)', 
+                    background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', 
+                    boxShadow: '0 8px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255,255,255,0.4)', 
                     border: '1px solid rgba(255,255,255,0.5)', 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -387,13 +387,13 @@ export default function CaseDashboard() {
                   }}>
                     <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: '#E0F2FE', color: '#0284C7', padding: '4px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: 'rgba(99, 102, 241, 0.10)', color: '#4F46E5', border: '1px solid rgba(99, 102, 241, 0.22)', padding: '3.5px 9px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     CORRELATIONS
                   </div>
                 </div>
                 <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#1E1B4B', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#475569', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
                 </div>
               </motion.div>
 
