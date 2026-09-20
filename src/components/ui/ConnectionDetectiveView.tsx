@@ -907,11 +907,17 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           padding: '4px',
                           borderRadius: '12px',
                           width: 'fit-content',
+                          maxWidth: '100%',
+                          overflowX: 'auto',
+                          WebkitOverflowScrolling: 'touch',
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none',
                           border: '1px solid #E2E8F0',
                         }}
                       >
                         <button
                           type="button"
+                          data-compact="true"
                           onClick={() => {
                             triggerHapticLight();
                             setTimelineViewMode('timeline');
@@ -922,22 +928,25 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             fontWeight: timelineViewMode === 'timeline' ? 700 : 600,
                             border: timelineViewMode === 'timeline' ? '1px solid #CBD5E1' : '1px solid transparent',
                             boxShadow: timelineViewMode === 'timeline' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                            padding: '6px 12px',
+                            padding: isMobile ? '6px 10px' : '6px 12px',
                             borderRadius: '8px',
-                            fontSize: '12px',
+                            fontSize: isMobile ? '11px' : '12px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <span>⏱️</span>
-                          <span>2h & 6h Reaction Windows</span>
+                          <span style={{ flexShrink: 0 }}>⏱️</span>
+                          <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? '2h & 6h Windows' : '2h & 6h Reaction Windows'}</span>
                         </button>
 
                         <button
                           type="button"
+                          data-compact="true"
                           onClick={() => {
                             triggerHapticLight();
                             setTimelineViewMode('heatmap');
@@ -948,18 +957,20 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             fontWeight: timelineViewMode === 'heatmap' ? 700 : 600,
                             border: timelineViewMode === 'heatmap' ? '1px solid #CBD5E1' : '1px solid transparent',
                             boxShadow: timelineViewMode === 'heatmap' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                            padding: '6px 12px',
+                            padding: isMobile ? '6px 10px' : '6px 12px',
                             borderRadius: '8px',
-                            fontSize: '12px',
+                            fontSize: isMobile ? '11px' : '12px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <span>📅</span>
-                          <span>30-Day Digestion Calendar</span>
+                          <span style={{ flexShrink: 0 }}>📅</span>
+                          <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? '30-Day Calendar' : '30-Day Digestion Calendar'}</span>
                         </button>
                       </div>
 
@@ -1431,13 +1442,18 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           alignItems: 'center',
                           gap: '6px',
                           overflowX: 'auto',
+                          WebkitOverflowScrolling: 'touch',
                           paddingTop: '6px',
+                          paddingBottom: '4px',
                           scrollbarWidth: 'none',
+                          msOverflowStyle: 'none',
+                          width: '100%',
                         }}
                       >
                         {openedPillar.id === 'gut' && (
                           <button
                             type="button"
+                            data-compact="true"
                             onClick={() => {
                               triggerHapticSelection();
                               setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
@@ -1446,21 +1462,25 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '5px',
-                              padding: '6px 14px',
+                              padding: isMobile ? '6px 12px' : '6px 14px',
                               borderRadius: '999px',
                               background: activeStationIdForPillar === 'overview' ? '#0F172A' : '#FFFFFF',
                               color: activeStationIdForPillar === 'overview' ? '#FFFFFF' : '#475569',
                               border: activeStationIdForPillar === 'overview' ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
-                              fontSize: '11px',
+                              fontSize: isMobile ? '11px' : '11.5px',
                               fontWeight: activeStationIdForPillar === 'overview' ? 800 : 600,
                               cursor: 'pointer',
                               whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                              minWidth: 'max-content',
                               boxShadow: activeStationIdForPillar === 'overview' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
                               transition: 'all 0.15s ease',
+                              lineHeight: 1.2,
+                              boxSizing: 'border-box',
                             }}
                           >
-                            <span>✨</span>
-                            <span>All Features</span>
+                            <span style={{ flexShrink: 0 }}>✨</span>
+                            <span style={{ whiteSpace: 'nowrap' }}>All Features</span>
                           </button>
                         )}
 
@@ -1470,6 +1490,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             <button
                               key={station.id}
                               type="button"
+                              data-compact="true"
                               onClick={() => {
                                 triggerHapticSelection();
                                 setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
@@ -1478,21 +1499,25 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '5px',
-                                padding: '6px 14px',
+                                padding: isMobile ? '6px 12px' : '6px 14px',
                                 borderRadius: '999px',
                                 background: isStationActive ? '#0F172A' : '#FFFFFF',
                                 color: isStationActive ? '#FFFFFF' : '#475569',
                                 border: isStationActive ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
-                                fontSize: '11px',
+                                fontSize: isMobile ? '11px' : '11.5px',
                                 fontWeight: isStationActive ? 800 : 600,
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                minWidth: 'max-content',
                                 boxShadow: isStationActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
                                 transition: 'all 0.15s ease',
+                                lineHeight: 1.2,
+                                boxSizing: 'border-box',
                               }}
                             >
-                              <span>{station.icon}</span>
-                              <span>{station.shortTitle}</span>
+                              <span style={{ flexShrink: 0 }}>{station.icon}</span>
+                              <span style={{ whiteSpace: 'nowrap' }}>{station.shortTitle}</span>
                             </button>
                           );
                         })}
@@ -1504,16 +1529,16 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   {activeStationIdForPillar === 'overview' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {/* Section Title */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '2px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <h4 style={{ margin: 0, fontSize: isMobile ? '15.5px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', whiteSpace: isMobile ? 'normal' : 'nowrap' }}>
                             {openedPillar.title} Features & Tools
                           </h4>
                           <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
                             {openedPillar.desc}
                           </p>
                         </div>
-                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                           {`${pillarStations.length} Clinical Tools`}
                         </span>
                       </div>

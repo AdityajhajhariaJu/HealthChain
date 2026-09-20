@@ -5,6 +5,7 @@ import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
 import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR, resolveStationTab } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface ConnectionDetectiveModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   onOpenConsult,
   onOpenCasePrep,
 }) => {
+  const isMobile = useIsMobile();
   const [openedPillarId, setOpenedPillarId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -153,11 +155,11 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                   </button>
                 )}
 
-                <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Gut Health <span style={{ color: '#0D9488' }}>& Connections</span>
+                <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px' }}>
+                  <h2 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Gut Health {!isMobile && <span style={{ color: '#0D9488' }}>& Connections</span>}
                   </h2>
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', background: '#CCFBF1', border: '1px solid #99F6E4', padding: '2px 7px', borderRadius: '999px', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: isMobile ? '9.5px' : '10px', fontWeight: 800, color: '#0F766E', background: '#CCFBF1', border: '1px solid #99F6E4', padding: isMobile ? '2px 6px' : '2px 7px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     Systems Detective
                   </span>
                 </div>
