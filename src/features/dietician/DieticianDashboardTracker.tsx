@@ -98,20 +98,20 @@ export function DieticianDashboardTracker({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '100px', position: 'relative' }}>
       
-      {/* 1. Fasting & Hydration Widgets */}
+      {/* 1. Diet Goals & Hydration Widgets */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-        {/* Fasting Card */}
+        {/* Diet & Goals Card */}
         <div style={{
           background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9'
         }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-            <div style={{ background: '#F8FAFC', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={20} color="#0F172A" />
+            <div style={{ background: '#ECFDF5', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Activity size={20} color="#059669" />
             </div>
             <div>
-              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Intermittent Fasting</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Target Window</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{profile?.mealSchedule?.includes('16:8') ? '16:8 Protocol' : '14 hrs Active'}</div>
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Diet & Goals</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Target: {targetCalories} kcal • {targetProtein}g Protein</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{profile?.goal || 'Maintain Weight'}</div>
             </div>
           </div>
           <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
@@ -207,13 +207,7 @@ export function DieticianDashboardTracker({
         </div>
 
       {/* 3. Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
-        <button onClick={() => navigate('/app/nutrition-log')} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-          <div style={{ background: '#8B5CF6', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={16} color="#FFF" />
-          </div>
-          ⚡ Quick Log
-        </button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
         <button onClick={onOpenGallery} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={16} color="#FFF" />
@@ -225,12 +219,6 @@ export function DieticianDashboardTracker({
             <BookOpen size={16} color="#FFF" />
           </div>
           Saved Meals
-        </button>
-        <button onClick={onOpenSettings} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-          <div style={{ background: '#059669', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Activity size={16} color="#FFF" />
-          </div>
-          Diet & Goals
         </button>
       </div>
 
