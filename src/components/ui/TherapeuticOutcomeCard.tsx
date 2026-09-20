@@ -141,12 +141,12 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           background: '#FFFFFF',
           border: '1px solid #E2E8F0',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-          borderRadius: isMobile ? '26px' : '32px',
-          padding: isMobile ? '16px 15px' : '20px 22px',
+          borderRadius: isMobile ? '22px' : '26px',
+          padding: isMobile ? '13px 15px' : '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: isMobile ? '135px' : '148px',
+          minHeight: isMobile ? '125px' : '138px',
           ...(span2 ? { gridColumn: 'span 2' } : {}),
           cursor: 'pointer',
           position: 'relative',
@@ -155,13 +155,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         }}
       >
         {/* Top Row: Clinical Circular Icon & Micro-Badges */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div
             style={{
-              width: isMobile ? '38px' : '44px',
-              height: isMobile ? '38px' : '44px',
-              minWidth: isMobile ? '38px' : '44px',
-              minHeight: isMobile ? '38px' : '44px',
+              width: isMobile ? '34px' : '38px',
+              height: isMobile ? '34px' : '38px',
+              minWidth: isMobile ? '34px' : '38px',
+              minHeight: isMobile ? '34px' : '38px',
               flexShrink: 0,
               borderRadius: '50%',
               background: isGraduated
@@ -177,9 +177,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             }}
           >
             {isGraduated ? (
-              <Award size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
+              <Award size={isMobile ? 16 : 18} color="#FFFFFF" strokeWidth={2.4} />
             ) : (
-              <Target size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
+              <Target size={isMobile ? 16 : 18} color="#FFFFFF" strokeWidth={2.4} />
             )}
           </div>
 
@@ -269,11 +269,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   background: '#ECFDF5',
                   color: '#047857',
                   border: '1px solid #A7F3D0',
-                  padding: '3.5px 9px',
+                  padding: '2.5px 8px',
                   borderRadius: '999px',
-                  fontSize: '10.5px',
+                  fontSize: '10px',
                   fontWeight: 800,
-                  letterSpacing: '0.4px',
+                  letterSpacing: '0.3px',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   display: 'inline-flex',
@@ -293,9 +293,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           <h4
             className="serif-heading"
             style={{
-              fontSize: isMobile ? '16.5px' : '18.5px',
+              fontSize: isMobile ? '15.5px' : '17px',
               fontWeight: 700,
-              margin: '0 0 3px',
+              margin: '0 0 2px',
               color: '#0F172A',
               lineHeight: 1.25,
               letterSpacing: '-0.3px'
@@ -305,11 +305,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </h4>
           <p
             style={{
-              fontSize: isMobile ? '12px' : '13px',
+              fontSize: isMobile ? '11.5px' : '12px',
               color: justLogged ? '#059669' : '#64748B',
-              margin: '0 0 10px',
+              margin: '0 0 8px',
               fontWeight: justLogged ? 700 : 500,
-              lineHeight: 1.35
+              lineHeight: 1.3
             }}
           >
             {isGraduated ? (
@@ -339,11 +339,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '999px',
-                  padding: isMobile ? '7px 14px' : '8px 18px',
-                  fontSize: '11.5px',
+                  padding: isMobile ? '5.5px 12px' : '6.5px 15px',
+                  fontSize: '11px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '35px',
+                  minHeight: '32px',
                   boxShadow: '0 4px 14px rgba(5, 150, 105, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
                   transition: 'all 0.15s ease'
                 }}
@@ -370,11 +370,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '999px',
-                    padding: isMobile ? '7px 14px' : '8px 18px',
-                    fontSize: '11.5px',
+                    padding: isMobile ? '5.5px 12px' : '6.5px 15px',
+                    fontSize: '11px',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    minHeight: '35px',
+                    minHeight: '32px',
                     boxShadow: '0 4px 14px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
                     transition: 'all 0.15s ease'
                   }}
@@ -441,16 +441,16 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '999px',
-                  padding: isMobile ? '7px 16px' : '8px 20px',
-                  fontSize: '11.5px',
+                  padding: isMobile ? '6px 14px' : '7px 16px',
+                  fontSize: '11px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '35px',
+                  minHeight: '32px',
                   boxShadow: '0 4px 16px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.3)',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <Compass size={13} />
+                <Compass size={12} />
                 <span>Begin Guided Reset Onboarding →</span>
               </button>
             )}
@@ -471,17 +471,17 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 background: showRationale ? 'rgba(13, 148, 136, 0.12)' : 'rgba(255, 255, 255, 0.85)',
                 border: showRationale ? '1px solid rgba(13, 148, 136, 0.35)' : '1px solid rgba(203, 213, 225, 0.8)',
                 borderRadius: '999px',
-                padding: '4px 12px',
-                fontSize: '11px',
+                padding: '4px 10px',
+                fontSize: '10.5px',
                 fontWeight: 700,
                 color: showRationale ? '#0D9488' : '#64748B',
                 cursor: 'pointer',
-                minHeight: '35px',
+                minHeight: '32px',
                 boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
                 transition: 'all 0.15s ease'
               }}
             >
-              <Info size={12} />
+              <Info size={11} />
               <span>Science</span>
               <ChevronDown
                 size={11}

@@ -470,10 +470,10 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '23px' : '27px',
+                            fontSize: isMobile ? '19px' : '22px',
                             fontWeight: 900,
                             color: '#0F172A',
-                            letterSpacing: '-0.8px',
+                            letterSpacing: '-0.5px',
                             lineHeight: 1
                           }}
                         >
@@ -481,7 +481,7 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: isMobile ? '12.5px' : '14px',
+                            fontSize: isMobile ? '12px' : '13px',
                             fontWeight: 600,
                             color: '#64748B'
                           }}
@@ -493,7 +493,7 @@ export default function CaseDashboard() {
                       {/* Contextual Subtext */}
                       <p
                         style={{
-                          fontSize: isMobile ? '11px' : '12px',
+                          fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
                           color: isWaterGoal ? '#059669' : '#64748B',
                           margin: '2px 0 6px',
@@ -521,8 +521,8 @@ export default function CaseDashboard() {
                             background: '#F0F9FF',
                             border: '1px solid #BAE6FD',
                             borderRadius: '999px',
-                            padding: '3px 9px',
-                            fontSize: '10.5px',
+                            padding: '3px 8px',
+                            fontSize: '10px',
                             fontWeight: 700,
                             color: '#0369A1',
                             whiteSpace: 'nowrap'
@@ -725,10 +725,10 @@ export default function CaseDashboard() {
                         <span
                           className="tabular-nums"
                           style={{
-                            fontSize: isMobile ? '23px' : '27px',
+                            fontSize: isMobile ? '19px' : '22px',
                             fontWeight: 900,
                             color: '#0F172A',
-                            letterSpacing: '-0.8px',
+                            letterSpacing: '-0.5px',
                             lineHeight: 1
                           }}
                         >
@@ -736,7 +736,7 @@ export default function CaseDashboard() {
                         </span>
                         <span
                           style={{
-                            fontSize: isMobile ? '12.5px' : '14px',
+                            fontSize: isMobile ? '12px' : '13px',
                             fontWeight: 600,
                             color: '#64748B'
                           }}
@@ -748,7 +748,7 @@ export default function CaseDashboard() {
                       {/* Contextual Subtext */}
                       <p
                         style={{
-                          fontSize: isMobile ? '11px' : '12px',
+                          fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
                           color: isRxDone ? '#059669' : '#64748B',
                           margin: '2px 0 6px',
@@ -778,8 +778,8 @@ export default function CaseDashboard() {
                               background: '#ECFDF5',
                               border: '1px solid #A7F3D0',
                               borderRadius: '999px',
-                              padding: '3px 10px',
-                              fontSize: '10.5px',
+                              padding: '3px 9px',
+                              fontSize: '10px',
                               fontWeight: 700,
                               color: '#047857',
                               whiteSpace: 'nowrap'
@@ -796,8 +796,8 @@ export default function CaseDashboard() {
                                 background: '#FEF3C7',
                                 border: '1px solid #FDE68A',
                                 borderRadius: '999px',
-                                padding: '3px 9px',
-                                fontSize: '10.5px',
+                                padding: '3px 8px',
+                                fontSize: '10px',
                                 fontWeight: 700,
                                 color: '#B45309',
                                 whiteSpace: 'nowrap'
