@@ -60,6 +60,7 @@ import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModa
 import { TherapeuticOutcomeCard } from './TherapeuticOutcomeCard';
 
 export type TabId =
+  | 'overview'
   | 'map'
   | 'postmeal'
   | 'calendar'
@@ -407,7 +408,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     setInternalOpenedPillarId(id);
   };
   const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body', TabId>>(() => ({
-    gut: initialTab && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
+    gut: initialTab && initialTab !== 'map' && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'overview',
     body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
   }));
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
@@ -1384,8 +1385,37 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           scrollbarWidth: 'none',
                         }}
                       >
+                        {openedPillar.id === 'gut' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticSelection();
+                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '6px 14px',
+                              borderRadius: '999px',
+                              background: activeStationIdForPillar === 'overview' ? '#0F172A' : '#FFFFFF',
+                              color: activeStationIdForPillar === 'overview' ? '#FFFFFF' : '#475569',
+                              border: activeStationIdForPillar === 'overview' ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
+                              fontSize: '11px',
+                              fontWeight: activeStationIdForPillar === 'overview' ? 800 : 600,
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              boxShadow: activeStationIdForPillar === 'overview' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <span>✨</span>
+                            <span>All Features</span>
+                          </button>
+                        )}
+
                         {pillarStations.map((station) => {
-                          const isStationActive = activeStation?.id === station.id;
+                          const isStationActive = activeStationIdForPillar === station.id;
                           return (
                             <button
                               key={station.id}
@@ -1411,7 +1441,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                                 transition: 'all 0.15s ease',
                               }}
                             >
-
                               <span>{station.icon}</span>
                               <span>{station.shortTitle}</span>
                             </button>
@@ -1421,10 +1450,182 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     )}
                   </div>
 
-                  {/* ACTIVE STATION CONTENT */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {activeStation && renderStation(activeStation)}
-                  </div>
+                  {/* ACTIVE STATION CONTENT OR OVERVIEW HUB */}
+                  {activeStationIdForPillar === 'overview' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Active Protocol / Track Food Triggers Hero Card */}
+                      <TherapeuticOutcomeCard />
+
+                      {/* Section Title */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                            Gut Health Features & Tools
+                          </h4>
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                            Tap any tool to investigate symptoms, reaction delays, and flare calendars
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px' }}>
+                          5 Core Tools
+                        </span>
+                      </div>
+
+                      {/* Grid of All 5 Gut Features */}
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                          gap: '12px',
+                        }}
+                      >
+                        {pillarStations.map((station) => (
+                          <motion.div
+                            key={station.id}
+                            whileHover={{ y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                            onClick={() => {
+                              triggerHapticSelection();
+                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Open ${station.title}`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                triggerHapticSelection();
+                                setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
+                              }
+                            }}
+                            style={{
+                              background: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                              borderRadius: '16px',
+                              padding: '14px 16px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              minHeight: '120px',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '20px' }}>{station.icon}</span>
+                                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', background: '#F0FDFA', border: '1px solid #CCFBF1', padding: '2px 7px', borderRadius: '6px' }}>
+                                    {station.statusBadge}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: '12px', color: '#94A3B8' }}>→</span>
+                              </div>
+                              <h5 style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                                {station.title}
+                              </h5>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B', lineHeight: 1.35 }}>
+                                {station.subtitle}
+                              </p>
+                            </div>
+                            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                Open Tool →
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Multi-System Labs & Body Section */}
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          background: 'linear-gradient(135deg, #F8FAFC 0%, #F0F9FF 100%)',
+                          borderRadius: '16px',
+                          border: '1px solid #BAE6FD',
+                          padding: '14px 16px',
+                          display: 'flex',
+                          alignItems: isMobile ? 'flex-start' : 'center',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '22px' }}>🧪</span>
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: '#0369A1', display: 'block' }}>
+                              Multi-System Body Connections
+                            </strong>
+                            <span style={{ fontSize: '12px', color: '#64748B' }}>
+                              Inspect optimal functional lab biomarkers and posture-vagus nerve biomechanics.
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setOpenedPillarId('body');
+                          }}
+                          style={{
+                            background: '#0284C7',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '7px 13px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
+                          }}
+                        >
+                          View Labs & Body <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Breadcrumb Back Button */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
+                          }}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            padding: '5px 11px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <ArrowLeft size={13} /> Back to All Features
+                        </button>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                          Station {activeStation?.stationNumber} of 05
+                        </span>
+                      </div>
+
+                      {activeStation && renderStation(activeStation)}
+                    </div>
+                  )}
 
                 </div>
               </motion.div>
