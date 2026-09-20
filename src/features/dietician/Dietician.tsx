@@ -1171,8 +1171,8 @@ export default function Dietician() {
                 padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
-                background: activeTab === 'dashboard' ? '#0F172A' : 'transparent',
-                color: activeTab === 'dashboard' ? '#FFFFFF' : '#64748B',
+                background: (activeTab === 'dashboard' || activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') ? '#0F172A' : 'transparent',
+                color: (activeTab === 'dashboard' || activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
                 fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
@@ -1185,79 +1185,6 @@ export default function Dietician() {
               }}
             >
               <Target size={15} /> Dashboard
-            </button>
-            <button
-              onClick={() => {
-                triggerHapticLight();
-                setActiveTab('sensitivities');
-              }}
-              style={{
-                padding: isMobile ? '8px 12px' : '8px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'sensitivities' ? '#0F172A' : 'transparent',
-                color: activeTab === 'sensitivities' ? '#FFFFFF' : '#64748B',
-                fontWeight: 700,
-                fontSize: isMobile ? '12.5px' : '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <Activity size={15} color={activeTab === 'sensitivities' ? '#34D399' : '#64748B'} /> Post-Meal Sensitivities
-            </button>
-            <button
-              onClick={() => {
-                triggerHapticLight();
-                setActiveTab('calendar');
-              }}
-              style={{
-                padding: isMobile ? '8px 12px' : '8px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'calendar' ? '#0F172A' : 'transparent',
-                color: activeTab === 'calendar' ? '#FFFFFF' : '#64748B',
-                fontWeight: 700,
-                fontSize: isMobile ? '12.5px' : '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <Calendar size={15} color={activeTab === 'calendar' ? '#38BDF8' : '#64748B'} /> Digestion Calendar
-            </button>
-
-            <button
-              onClick={() => {
-                triggerHapticLight();
-                setActiveTab('insights');
-              }}
-              style={{
-                padding: isMobile ? '8px 12px' : '8px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'insights' ? '#0F172A' : 'transparent',
-                color: activeTab === 'insights' ? '#FFFFFF' : '#64748B',
-                fontWeight: 700,
-                fontSize: isMobile ? '12.5px' : '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Insights
             </button>
             <button
               onClick={() => setActiveTab('mealplan')}
@@ -1497,7 +1424,33 @@ export default function Dietician() {
           {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
           {activeTab === 'sensitivities' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              
+              <div style={{ marginBottom: '14px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveTab('dashboard');
+                  }}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    color: '#0F172A',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  <span>Back to Dashboard</span>
+                </button>
+              </div>
               <PostMealReactionTimeline onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
             </motion.div>
           )}
@@ -1505,7 +1458,33 @@ export default function Dietician() {
           {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
           {activeTab === 'calendar' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              
+              <div style={{ marginBottom: '14px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveTab('dashboard');
+                  }}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    color: '#0F172A',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  <span>Back to Dashboard</span>
+                </button>
+              </div>
               <DigestionCalendarHeatmap onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
             </motion.div>
           )}
@@ -1513,7 +1492,33 @@ export default function Dietician() {
           {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
           {activeTab === 'insights' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              
+              <div style={{ marginBottom: '14px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveTab('dashboard');
+                  }}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    color: '#0F172A',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  <span>Back to Dashboard</span>
+                </button>
+              </div>
               <SmartCorrelationInsightsView
                 onOpenElimination={() => {
                   triggerHapticSelection();
