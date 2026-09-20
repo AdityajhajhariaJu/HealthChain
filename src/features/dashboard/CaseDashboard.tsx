@@ -733,8 +733,8 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: isWaterGoal ? '#F0FDF4' : '#FFFFFF',
-                      border: isWaterGoal ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '22px' : '26px',
                       padding: isMobile ? '12px 14px' : '15px 20px',
@@ -802,7 +802,7 @@ export default function CaseDashboard() {
                         style={{
                           fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
-                          color: isWaterGoal ? '#059669' : '#64748B',
+                          color: isWaterGoal ? '#0284C7' : '#64748B',
                           margin: '2px 0 6px',
                           lineHeight: 1.25,
                           whiteSpace: 'nowrap',
@@ -811,7 +811,7 @@ export default function CaseDashboard() {
                         }}
                       >
                         {isWaterGoal ? (
-                          <span style={{ fontWeight: 700, color: '#059669' }}>
+                          <span style={{ fontWeight: 700, color: '#0284C7' }}>
                             ✓ Daily hydration goal reached • Gut mucosa optimal
                           </span>
                         ) : (
@@ -828,14 +828,14 @@ export default function CaseDashboard() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '3px',
-                              background: '#ECFDF5',
-                              border: '1px solid #A7F3D0',
+                              background: '#E0F2FE',
+                              border: '1px solid #BAE6FD',
                               borderRadius: '999px',
                               height: isMobile ? '24px' : '26px',
                               padding: isMobile ? '0 9px' : '0 11px',
                               fontSize: isMobile ? '10px' : '10.5px',
                               fontWeight: 700,
-                              color: '#047857',
+                              color: '#0284C7',
                               whiteSpace: 'nowrap',
                               lineHeight: 1
                             }}
@@ -914,7 +914,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isWaterGoal ? '#10B981' : '#0284C7'}
+                          stroke="#0284C7"
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
@@ -951,7 +951,7 @@ export default function CaseDashboard() {
                           style={{
                             fontSize: '8px',
                             fontWeight: 900,
-                            color: isWaterGoal ? '#059669' : '#0284C7',
+                            color: '#0284C7',
                             letterSpacing: '0.8px',
                             textTransform: 'uppercase',
                             marginTop: '2px'
@@ -1000,8 +1000,8 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: isRxDone ? '#F0FDF4' : 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
-                      border: isRxDone ? '1px solid #BBF7D0' : '1px solid #FCE7F3',
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
+                      border: '1px solid #FCE7F3',
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '22px' : '26px',
                       padding: isMobile ? '12px 14px' : '15px 20px',
@@ -1024,18 +1024,18 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          background: isRxDone ? '#ECFDF5' : '#FDF2F8',
-                          border: isRxDone ? '1px solid #A7F3D0' : '1px solid #FBCFE8',
+                          background: '#FDF2F8',
+                          border: '1px solid #FBCFE8',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
                           fontSize: '10.5px',
                           fontWeight: 800,
-                          color: isRxDone ? '#047857' : '#BE185D',
+                          color: '#BE185D',
                           letterSpacing: '-0.1px',
                           marginBottom: '3px'
                         }}
                       >
-                        <Pill size={11} color={isRxDone ? '#059669' : '#CE5A7B'} />
+                        <Pill size={11} color="#CE5A7B" />
                         <span>Daily Meds & Vitamins</span>
                       </div>
 
@@ -1069,7 +1069,7 @@ export default function CaseDashboard() {
                         style={{
                           fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
-                          color: isRxDone ? '#059669' : '#64748B',
+                          color: isRxDone ? '#BE185D' : '#64748B',
                           margin: '2px 0 6px',
                           lineHeight: 1.25,
                           whiteSpace: 'nowrap',
@@ -1078,7 +1078,7 @@ export default function CaseDashboard() {
                         }}
                       >
                         {isRxDone ? (
-                          <span style={{ fontWeight: 700, color: '#059669' }}>
+                          <span style={{ fontWeight: 700, color: '#BE185D' }}>
                             ✓ All daily meds & vitamins taken today
                           </span>
                         ) : (
@@ -1095,14 +1095,14 @@ export default function CaseDashboard() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '3px',
-                              background: '#ECFDF5',
-                              border: '1px solid #A7F3D0',
+                              background: '#FDF2F8',
+                              border: '1px solid #FBCFE8',
                               borderRadius: '999px',
                               height: isMobile ? '24px' : '26px',
                               padding: isMobile ? '0 9px' : '0 11px',
                               fontSize: isMobile ? '10px' : '10.5px',
                               fontWeight: 700,
-                              color: '#047857',
+                              color: '#BE185D',
                               whiteSpace: 'nowrap',
                               lineHeight: 1
                             }}
@@ -1176,7 +1176,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isRxDone ? '#D1FAE5' : '#FCE7F3'}
+                          stroke="#FCE7F3"
                           strokeWidth={6.5}
                           fill="transparent"
                         />
@@ -1184,7 +1184,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isRxDone ? '#10B981' : '#CE5A7B'}
+                          stroke="#CE5A7B"
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
@@ -1221,7 +1221,7 @@ export default function CaseDashboard() {
                           style={{
                             fontSize: '8px',
                             fontWeight: 900,
-                            color: isRxDone ? '#059669' : '#BE185D',
+                            color: '#BE185D',
                             letterSpacing: '0.8px',
                             textTransform: 'uppercase',
                             marginTop: '2px'
