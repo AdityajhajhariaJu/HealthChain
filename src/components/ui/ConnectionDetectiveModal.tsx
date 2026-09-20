@@ -150,13 +150,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {openedPillarId === 'gut' ? (
-                        <>Gut & <span style={{ color: '#0D9488' }}>Food Workspace</span></>
-                      ) : openedPillarId === 'body' ? (
-                        <>Labs & <span style={{ color: '#0284C7' }}>Body Workspace</span></>
-                      ) : (
-                        <>Gut <span style={{ color: '#0D9488' }}>Health</span></>
-                      )}
+                      Gut <span style={{ color: '#0D9488' }}>Health</span>
                     </h2>
                     <span
                       style={{
@@ -165,13 +159,13 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                         color: openedPillarId === 'body' ? '#0369A1' : '#0D9488',
                         background: openedPillarId === 'body' ? '#E0F2FE' : '#CCFBF1',
                         border: openedPillarId === 'body' ? '1px solid #BAE6FD' : '1px solid #99F6E4',
-                        padding: '1.5px 7.5px',
+                        padding: '2px 8px',
                         borderRadius: '999px',
                         letterSpacing: '0.2px',
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {openedPillarId === 'gut' ? 'Pillar 01' : openedPillarId === 'body' ? 'Pillar 02' : 'Clinical Command'}
+                      {openedPillarId === 'gut' ? 'Gut & Food' : openedPillarId === 'body' ? 'Labs & Body' : 'Digestive Suite'}
                     </span>
                   </div>
                   <p style={{ margin: '1px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -179,7 +173,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                       ? 'Dietary triggers, post-meal timing, heatmap flares & elimination protocol'
                       : openedPillarId === 'body'
                       ? 'Systemic biomarkers, functional optimal ranges & vagus biomechanics'
-                      : 'Evidence-based digestive mapping, dietary triggers & clinical diagnostics'}
+                      : 'Evidence-based food triggers, reaction timelines & elimination protocols'}
                   </p>
                 </div>
               </div>
