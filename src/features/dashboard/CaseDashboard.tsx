@@ -1062,7 +1062,7 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4.5px',
-                          background: '#FFFFFF',
+                          background: '#FDF2F8',
                           border: '1px solid #FBCFE8',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
@@ -1076,7 +1076,7 @@ export default function CaseDashboard() {
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                           <rect x="2.5" y="7.5" width="19" height="9" rx="4.5" stroke="#DB2777" strokeWidth="2.2" />
                           <path d="M12 7.5v9" stroke="#DB2777" strokeWidth="2" strokeDasharray="1.5 1.5" />
-                          <rect x="3.5" y="8.5" width="8.5" height="7" rx="3.5" fill="#FBCFE8" opacity="0.6" />
+                          <rect x="3.5" y="8.5" width="8.5" height="7" rx="3.5" fill="#DB2777" opacity="0.45" />
                         </svg>
                         <span>Daily Meds & Vitamins</span>
                       </div>
