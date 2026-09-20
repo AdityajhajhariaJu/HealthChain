@@ -467,7 +467,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   };
 
   useEffect(() => {
-    if (initialTab) {
+    if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
       if (target) {
         setCardActiveStations((prev) => ({ ...prev, [target.pillarId]: target.id }));

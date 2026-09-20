@@ -18,7 +18,7 @@ interface ConnectionDetectiveModalProps {
 export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> = ({
   isOpen,
   onClose,
-  initialTab = 'map',
+  initialTab,
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
