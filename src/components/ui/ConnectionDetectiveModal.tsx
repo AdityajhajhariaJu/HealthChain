@@ -148,31 +148,9 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 )}
 
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      Gut <span style={{ color: '#0D9488' }}>Health</span>
-                    </h2>
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        color: openedPillarId === 'body' ? '#0369A1' : '#0D9488',
-                        background: openedPillarId === 'body' ? '#E0F2FE' : '#CCFBF1',
-                        border: openedPillarId === 'body' ? '1px solid #BAE6FD' : '1px solid #99F6E4',
-                        padding: '2px 8px',
-                        borderRadius: '999px',
-                        letterSpacing: '0.2px',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {openedPillarId === 'body' ? 'Labs & Body' : 'Digestive Suite'}
-                    </span>
-                  </div>
-                  <p style={{ margin: '1px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {openedPillarId === 'body'
-                      ? 'Systemic biomarkers, functional optimal ranges & vagus biomechanics'
-                      : 'Evidence-based food triggers, reaction timelines & 30-day digestion flares'}
-                  </p>
+                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Gut <span style={{ color: '#0D9488' }}>Health</span>
+                  </h2>
                 </div>
               </div>
 

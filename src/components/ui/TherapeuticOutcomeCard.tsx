@@ -119,13 +119,6 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
   const todayLog = trial?.symptomScores?.find(s => s.date === todayStr || s.day === trial?.currentDay);
   const hasLoggedToday = Boolean(todayLog);
 
-  const PROTOCOL_PHASES_PREVIEW = [
-    { phase: '01', title: 'Baseline Washout', days: 'Days 1–7', desc: 'Isolate high-risk foods & log symptoms' },
-    { phase: '02', title: 'Mucosal Rest', days: 'Days 8–14', desc: 'Calm gut lining & digestive baseline' },
-    { phase: '03', title: 'Provocation Test', days: 'Days 15–21', desc: 'Reintroduce single foods to test flares' },
-    { phase: '04', title: 'Clinical Verdict', days: 'Days 22–28', desc: 'Confirmed triggers & doctor brief' },
-  ];
-
   return (
     <>
       <motion.div
@@ -136,8 +129,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           : trial 
           ? `Track Food Triggers - Day ${trial.currentDay} of ${trial.totalDays}${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your daily plan, timeline, and doctor report` 
           : 'Track Food Triggers - Inactive. Tap to choose an elimination protocol'}
-        whileHover={{ y: -3, scale: 1.006 }}
-        whileTap={{ scale: 0.985 }}
+        whileHover={{ y: -3, scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
         onClick={handleOpenModal}
         onKeyDown={(e) => {
@@ -148,15 +141,15 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           }
         }}
         style={{
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 55%, #ECFDF5 100%)',
-          border: '1px solid rgba(13, 148, 136, 0.28)',
-          boxShadow: '0 8px 24px -4px rgba(13, 148, 136, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02)',
-          borderRadius: isMobile ? '22px' : '26px',
-          padding: isMobile ? '16px' : '20px 22px',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
+          border: '1px solid #99F6E4',
+          boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)',
+          borderRadius: isMobile ? '24px' : '28px',
+          padding: isMobile ? '14px 16px' : '16px 20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
-          minHeight: isMobile ? '135px' : '150px',
+          justifyContent: 'space-between',
+          minHeight: isMobile ? '125px' : '138px',
           ...(span2 ? { gridColumn: 'span 2' } : {}),
           cursor: 'pointer',
           position: 'relative',
@@ -164,50 +157,33 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
       >
-        {/* Top Row: Clinical Circular Icon, Engine Pill & Micro-Badges */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div
-              style={{
-                width: isMobile ? '32px' : '36px',
-                height: isMobile ? '32px' : '36px',
-                minWidth: isMobile ? '32px' : '36px',
-                minHeight: isMobile ? '32px' : '36px',
-                flexShrink: 0,
-                borderRadius: '50%',
-                background: isGraduated
-                  ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
-                  : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-                boxShadow: isGraduated
-                  ? '0 2px 6px rgba(5, 150, 105, 0.24)'
-                  : '0 2px 6px rgba(13, 148, 136, 0.24)',
-                border: '1px solid rgba(255,255,255,0.6)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {isGraduated ? (
-                <Award size={isMobile ? 15 : 17} color="#FFFFFF" strokeWidth={2.4} />
-              ) : (
-                <Utensils size={isMobile ? 15 : 17} color="#FFFFFF" strokeWidth={2.4} />
-              )}
-            </div>
-            <span
-              style={{
-                fontSize: '10.5px',
-                fontWeight: 800,
-                color: '#0F766E',
-                background: '#CCFBF1',
-                border: '1px solid #99F6E4',
-                padding: '2.5px 8px',
-                borderRadius: '999px',
-                letterSpacing: '0.3px',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              ACTIVE PROTOCOL ENGINE
-            </span>
+        {/* Top Row: Clinical Circular Icon & Micro-Badges */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div
+            style={{
+              width: isMobile ? '34px' : '38px',
+              height: isMobile ? '34px' : '38px',
+              minWidth: isMobile ? '34px' : '38px',
+              minHeight: isMobile ? '34px' : '38px',
+              flexShrink: 0,
+              borderRadius: '50%',
+              background: isGraduated
+                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
+              boxShadow: isGraduated
+                ? '0 2px 6px rgba(5, 150, 105, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)'
+                : '0 2px 6px rgba(13, 148, 136, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(255,255,255,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {isGraduated ? (
+              <Award size={isMobile ? 16 : 18} color="#FFFFFF" strokeWidth={2.4} />
+            ) : (
+              <Utensils size={isMobile ? 16 : 18} color="#FFFFFF" strokeWidth={2.4} />
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -315,132 +291,95 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </div>
         </div>
 
-        {/* Main Content Body: Responsive 2-Zone Layout */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1.15fr 1fr',
-            gap: isMobile ? '14px' : '22px',
-            alignItems: 'center',
-          }}
-        >
-          {/* Left Column: Heading, Narrative & CTAs */}
-          <div>
-            <h4
-              className="serif-heading"
-              style={{
-                fontSize: isMobile ? '17px' : '19px',
-                fontWeight: 800,
-                margin: '0 0 4px',
-                color: '#0F172A',
-                lineHeight: 1.25,
-                letterSpacing: '-0.3px'
-              }}
-            >
-              Track Food Triggers
-            </h4>
-            <p
-              style={{
-                fontSize: isMobile ? '12px' : '12.5px',
-                color: justLogged ? '#059669' : '#475569',
-                margin: '0 0 12px',
-                fontWeight: justLogged ? 700 : 500,
-                lineHeight: 1.4
-              }}
-            >
-              {isGraduated ? (
-                `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Investigation complete • ${trialV2?.verdict?.confirmedTriggers?.length || 0} Confirmed Trigger(s) • Profile Synchronized`
-              ) : trial ? (
-                justLogged
-                  ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
-                  : hasLoggedToday
-                  ? `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Day ${trial.currentDay} of ${trial.totalDays} • Check-in recorded (${todayLog?.severity}/10)`
-                  : (activeProtocolDef
-                      ? `${activeProtocolDef.name} • Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
-                      : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`)
-              ) : (
-                'Identify food triggers with a structured 4-step reset. Isolate suspect food culprits, soothe gut mucosa, and confirm exact triggers.'
-              )}
-            </p>
+        {/* Middle / Bottom Content: Title, Subtitle, & Quick Actions */}
+        <div>
+          <h4
+            className="serif-heading"
+            style={{
+              fontSize: isMobile ? '15.5px' : '17px',
+              fontWeight: 700,
+              margin: '0 0 2px',
+              color: '#0F172A',
+              lineHeight: 1.25,
+              letterSpacing: '-0.3px'
+            }}
+          >
+            Track Food Triggers
+          </h4>
+          <p
+            style={{
+              fontSize: isMobile ? '11.5px' : '12px',
+              color: justLogged ? '#059669' : '#64748B',
+              margin: '0 0 8px',
+              fontWeight: justLogged ? 700 : 500,
+              lineHeight: 1.3
+            }}
+          >
+            {isGraduated ? (
+              `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Investigation complete • ${trialV2?.verdict?.confirmedTriggers?.length || 0} Confirmed Trigger(s) • Profile Synchronized`
+            ) : trial ? (
+              justLogged
+                ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
+                : hasLoggedToday
+                ? `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Day ${trial.currentDay} of ${trial.totalDays} • Check-in recorded (${todayLog?.severity}/10)`
+                : (activeProtocolDef
+                    ? `${activeProtocolDef.name} • Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
+                    : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`)
+            ) : (
+              'Identify food triggers with a structured 4-step reset.'
+            )}
+          </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
-              {isGraduated ? (
-                <button
-                  type="button"
-                  data-compact="true"
-                  onClick={handleOpenModal}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '999px',
-                    height: isMobile ? '28px' : '32px',
-                    padding: isMobile ? '0 12px' : '0 16px',
-                    fontSize: isMobile ? '11px' : '12px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    lineHeight: 1,
-                    boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  <Award size={13} />
-                  <span>View Verdict & Plan →</span>
-                </button>
-              ) : trial ? (
-                !isLogging ? (
-                  hasLoggedToday ? (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '3.5px',
-                          background: '#ECFDF5',
-                          border: '1px solid #A7F3D0',
-                          borderRadius: '999px',
-                          height: isMobile ? '26px' : '28px',
-                          padding: isMobile ? '0 10px' : '0 12px',
-                          fontSize: isMobile ? '10.5px' : '11px',
-                          fontWeight: 700,
-                          color: '#047857',
-                          whiteSpace: 'nowrap',
-                          lineHeight: 1
-                        }}
-                      >
-                        <Check size={11} strokeWidth={2.8} /> Today: {todayLog?.severity}/10
-                      </span>
-                      <motion.button
-                        type="button"
-                        data-micro="true"
-                        className="btn-micro"
-                        whileTap={{ scale: 0.92 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          triggerHapticLight();
-                          setIsLogging(true);
-                        }}
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid #CBD5E1',
-                          color: '#64748B',
-                          borderRadius: '999px',
-                          height: isMobile ? '26px' : '28px',
-                          padding: isMobile ? '0 9px' : '0 11px',
-                          fontSize: isMobile ? '10.5px' : '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          lineHeight: 1
-                        }}
-                      >
-                        Edit
-                      </motion.button>
-                    </div>
-                  ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+            {isGraduated ? (
+              <button
+                type="button"
+                data-compact="true"
+                onClick={handleOpenModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '999px',
+                  height: isMobile ? '24px' : '26px',
+                  padding: isMobile ? '0 11px' : '0 13px',
+                  fontSize: isMobile ? '10.5px' : '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Award size={12} />
+                <span>View Verdict & Plan →</span>
+              </button>
+            ) : trial ? (
+              !isLogging ? (
+                hasLoggedToday ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3.5px',
+                        background: '#ECFDF5',
+                        border: '1px solid #A7F3D0',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 11px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
+                        color: '#047857',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1
+                      }}
+                    >
+                      <Check size={11} strokeWidth={2.8} /> Today: {todayLog?.severity}/10
+                    </span>
                     <motion.button
                       type="button"
                       data-micro="true"
@@ -451,182 +390,143 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                         triggerHapticLight();
                         setIsLogging(true);
                       }}
-                      aria-label="Log today symptom severity"
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-                        color: '#FFFFFF',
-                        border: 'none',
+                        background: 'transparent',
+                        border: '1px solid #CBD5E1',
+                        color: '#64748B',
                         borderRadius: '999px',
-                        height: isMobile ? '28px' : '32px',
-                        padding: isMobile ? '0 14px' : '0 18px',
-                        fontSize: isMobile ? '11px' : '12px',
-                        fontWeight: 800,
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 10px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
                         cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
                         whiteSpace: 'nowrap',
                         lineHeight: 1
                       }}
                     >
-                      <Activity size={12} strokeWidth={2.6} />
-                      <span>Check-In</span>
+                      Edit
                     </motion.button>
-                  )
+                  </div>
                 ) : (
-                  <div
+                  <motion.button
+                    type="button"
+                    data-micro="true"
+                    className="btn-micro"
+                    whileTap={{ scale: 0.92 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerHapticLight();
+                      setIsLogging(true);
+                    }}
+                    aria-label="Log today symptom severity"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      background: '#FFFFFF',
-                      padding: '3px 8px',
+                      background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
                       borderRadius: '999px',
-                      border: '1.5px solid #CCFBF1',
-                      boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)',
-                      height: isMobile ? '28px' : '30px',
-                      whiteSpace: 'nowrap'
+                      height: isMobile ? '24px' : '26px',
+                      padding: isMobile ? '0 12px' : '0 14px',
+                      fontSize: isMobile ? '10.5px' : '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   >
-                    <span style={{ fontSize: '10px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2px', paddingLeft: '2px' }}>
-                      Score:
-                    </span>
-                    {[
-                      { val: 0, label: '0', bg: '#ECFDF5', border: '#A7F3D0', color: '#047857' },
-                      { val: 2, label: '2', bg: '#F0FDFA', border: '#99F6E4', color: '#0D9488' },
-                      { val: 5, label: '5', bg: '#FEF3C7', border: '#FDE68A', color: '#B45309' },
-                      { val: 8, label: '8', bg: '#FFEDD5', border: '#FED7AA', color: '#C2410C' },
-                      { val: 10, label: '10', bg: '#FEF2F2', border: '#FECACA', color: '#DC2626' }
-                    ].map((item) => (
-                      <button
-                        key={item.val}
-                        type="button"
-                        onClick={() => handleQuickLog(item.val)}
-                        style={{
-                          minWidth: '24px',
-                          height: '22px',
-                          padding: '0 4px',
-                          borderRadius: '999px',
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          border: `1px solid ${item.border}`,
-                          background: item.bg,
-                          color: item.color,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          lineHeight: 1
-                        }}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setIsLogging(false)}
-                      style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '11px', cursor: 'pointer', padding: '0 4px', fontWeight: 800, lineHeight: 1 }}
-                    >
-                      ✕
-                    </button>
-                  </div>
+                    <Activity size={11} strokeWidth={2.6} />
+                    <span>Check-In</span>
+                  </motion.button>
                 )
               ) : (
-                <button
-                  type="button"
-                  data-compact="true"
-                  onClick={handleOpenModal}
+                <div
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
+                    gap: '4px',
+                    background: '#FFFFFF',
+                    padding: '2px 6px',
                     borderRadius: '999px',
-                    height: isMobile ? '28px' : '32px',
-                    padding: isMobile ? '0 14px' : '0 18px',
-                    fontSize: isMobile ? '11.5px' : '12.5px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.28)',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1
+                    border: '1.5px solid #CCFBF1',
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)',
+                    height: isMobile ? '26px' : '28px',
+                    whiteSpace: 'nowrap'
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Compass size={13} strokeWidth={2.4} />
-                  <span>Start Guided Reset →</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: 4-Phase Stepper Roadmap Visualizer */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '8px',
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenModal(e);
-            }}
-          >
-            {PROTOCOL_PHASES_PREVIEW.map((item, idx) => {
-              const isCurrent = Boolean(trial && (
-                (idx === 0 && trial.currentDay <= 7) ||
-                (idx === 1 && trial.currentDay > 7 && trial.currentDay <= 14) ||
-                (idx === 2 && trial.currentDay > 14 && trial.currentDay <= 21) ||
-                (idx === 3 && trial.currentDay > 21)
-              ));
-              const isCompleted = Boolean(isGraduated || (trial && (
-                (idx === 0 && trial.currentDay > 7) ||
-                (idx === 1 && trial.currentDay > 14) ||
-                (idx === 2 && trial.currentDay > 21)
-              )));
-
-              return (
-                <div
-                  key={item.phase}
-                  style={{
-                    background: isCurrent ? '#FFFFFF' : isCompleted ? '#F0FDF4' : 'rgba(255, 255, 255, 0.75)',
-                    border: isCurrent ? '1.5px solid #0D9488' : isCompleted ? '1px solid #86EFAC' : '1px solid rgba(226, 232, 240, 0.9)',
-                    borderRadius: '12px',
-                    padding: '8px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxShadow: isCurrent ? '0 4px 12px rgba(13, 148, 136, 0.12)' : '0 1px 2px rgba(0,0,0,0.02)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '9.5px', fontWeight: 800, color: isCurrent ? '#0D9488' : '#64748B', letterSpacing: '0.2px' }}>
-                      PHASE {item.phase}
-                    </span>
-                    <span
+                  <span style={{ fontSize: '9.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2px', paddingLeft: '2px' }}>
+                    Score:
+                  </span>
+                  {[
+                    { val: 0, label: '0', bg: '#ECFDF5', border: '#A7F3D0', color: '#047857' },
+                    { val: 2, label: '2', bg: '#F0FDFA', border: '#99F6E4', color: '#0D9488' },
+                    { val: 5, label: '5', bg: '#FEF3C7', border: '#FDE68A', color: '#B45309' },
+                    { val: 8, label: '8', bg: '#FFEDD5', border: '#FED7AA', color: '#C2410C' },
+                    { val: 10, label: '10', bg: '#FEF2F2', border: '#FECACA', color: '#DC2626' }
+                  ].map((item) => (
+                    <button
+                      key={item.val}
+                      type="button"
+                      onClick={() => handleQuickLog(item.val)}
                       style={{
-                        fontSize: '9px',
-                        fontWeight: 700,
-                        color: isCurrent ? '#0D9488' : isCompleted ? '#059669' : '#94A3B8',
+                        minWidth: '22px',
+                        height: '20px',
+                        padding: '0 4px',
+                        borderRadius: '999px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        border: `1px solid ${item.border}`,
+                        background: item.bg,
+                        color: item.color,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1
                       }}
                     >
-                      {isCompleted ? '✓ Done' : isCurrent ? '● Active' : item.days}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#1E293B', lineHeight: 1.2 }}>
-                    {item.title}
-                  </div>
-                  <div style={{ fontSize: '9.5px', color: '#64748B', lineHeight: 1.25, marginTop: '2px' }}>
-                    {item.desc}
-                  </div>
+                      {item.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsLogging(false)}
+                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '11px', cursor: 'pointer', padding: '0 3px', fontWeight: 800, lineHeight: 1 }}
+                  >
+                    ✕
+                  </button>
                 </div>
-              );
-            })}
+              )
+            ) : (
+              <button
+                type="button"
+                data-compact="true"
+                onClick={handleOpenModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '999px',
+                  height: isMobile ? '24px' : '26px',
+                  padding: isMobile ? '0 12px' : '0 14px',
+                  fontSize: isMobile ? '10.5px' : '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1
+                }}
+              >
+                <Compass size={12} strokeWidth={2.4} />
+                <span>Start Guided Reset →</span>
+              </button>
+            )}
           </div>
         </div>
       </motion.div>

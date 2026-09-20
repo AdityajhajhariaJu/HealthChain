@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GitMerge,
-  Network,
   Sparkles,
   Stethoscope,
   Activity,
@@ -32,7 +31,6 @@ import {
   Layers,
   ChevronDown,
   BookmarkCheck,
-  Utensils,
 } from 'lucide-react';
 import {
   getConnectionDetectiveReport,
@@ -47,9 +45,7 @@ import {
 } from '../../services/ConnectionDetectiveEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { generateDoctorSummary, getActiveTrial, ActiveTrialState } from '../../services/TriggerEngine';
-import { getActiveTrialV2 } from '../../services/TrialWorkflowService';
-import { TrialV2 } from '../../domain/trials/types';
+import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
@@ -411,38 +407,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     if (onOpenedPillarChange) onOpenedPillarChange(id);
     setInternalOpenedPillarId(id);
   };
-  const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
-  const [trialV2, setTrialV2] = useState<TrialV2 | null>(() => getActiveTrialV2());
-  const isGraduated = trialV2?.status === 'completed' || Boolean(trialV2?.verdict);
-
-  useEffect(() => {
-    const handleTrialUpdate = () => {
-      setTrial(getActiveTrial());
-      setTrialV2(getActiveTrialV2());
-    };
-    window.addEventListener('hc_trial_updated', handleTrialUpdate);
-    window.addEventListener('hc_trial_v2_updated', handleTrialUpdate);
-    return () => {
-      window.removeEventListener('hc_trial_updated', handleTrialUpdate);
-      window.removeEventListener('hc_trial_v2_updated', handleTrialUpdate);
-    };
-  }, []);
-
   const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body', TabId>>(() => ({
-    gut: initialTab && initialTab !== 'overview' && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
+    gut: initialTab && initialTab !== 'map' && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'overview',
     body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
   }));
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
-
-  const handleOpenStation = (stationId: TabId) => {
-    triggerHapticSelection();
-    const station = ALL_12_STATIONS.find((s) => s.id === stationId);
-    if (!station) return;
-    setOpenedPillarId(station.pillarId);
-    setCardActiveStations((prev) => ({ ...prev, [station.pillarId]: stationId }));
-    trackButtonClick('clinical_station_open', stationId);
-  };
 
   const handleSelectPillar = (pillarId: PillarId) => {
     triggerHapticSelection();
@@ -618,52 +588,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
         return station.statusBadge;
     }
   };
-
-  const gutHubCards = useMemo(() => [
-    {
-      id: 'map' as TabId,
-      pillarId: 'gut' as const,
-      icon: '🥗',
-      title: 'Track Food Triggers',
-      badge: trial
-        ? `Day ${trial.currentDay}/${trial.totalDays}`
-        : dynamicPillarData.gut.triggersCount > 0
-        ? `${dynamicPillarData.gut.triggersCount} ${dynamicPillarData.gut.triggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
-        : 'Food & Reset',
-      desc: 'Isolate culprit foods, sensitivities & inflammatory dietary triggers with semantic evidence mapping.',
-      accentColor: '#0D9488',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FAFEFD 50%, #F0FDFA 100%)',
-      borderColor: 'rgba(13, 148, 136, 0.22)',
-      badgeBg: '#CCFBF1',
-      badgeColor: '#0F766E',
-    },
-    {
-      id: 'postmeal' as TabId,
-      pillarId: 'gut' as const,
-      icon: '🍽️',
-      title: 'Reaction Timeline',
-      badge: '2h & 6h Windows',
-      desc: 'Track digestive symptom delays across acute gastric and delayed systemic flare reaction windows.',
-      accentColor: '#D97706',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FFFDF9 50%, #FFFBEB 100%)',
-      borderColor: 'rgba(217, 119, 6, 0.22)',
-      badgeBg: '#FEF3C7',
-      badgeColor: '#92400E',
-    },
-    {
-      id: 'calendar' as TabId,
-      pillarId: 'gut' as const,
-      icon: '📅',
-      title: 'Flare Calendar Heatmap',
-      badge: '30-Day Trend',
-      desc: 'Visual monthly calendar correlating daily meal logs with bloating, stool quality, and symptom spikes.',
-      accentColor: '#4F46E5',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FAFAFF 50%, #EEF2FF 100%)',
-      borderColor: 'rgba(79, 70, 229, 0.22)',
-      badgeBg: '#E0E7FF',
-      badgeColor: '#3730A3',
-    },
-  ], [dynamicPillarData, trial]);
 
 
 
@@ -1128,7 +1052,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       <AnimatePresence mode="wait">
         {openedPillarId === null ? (
           /* ======================================================== */
-          /* GUT HEALTH HUB (OVERVIEW)                                */
+          /* 2 DOMAIN CARDS (OVERVIEW)                                */
           /* ======================================================== */
           <motion.div
             key="main-overview-hub"
@@ -1139,264 +1063,201 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
+              gap: '16px',
             }}
           >
-            {/* Optional Sleek Active Protocol Strip (Only if trial active) */}
-            {trial && !isGraduated && (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => handleOpenStation('elimination')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleOpenStation('elimination');
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDFA 100%)',
-                  border: '1px solid #A7F3D0',
-                  borderRadius: '16px',
-                  padding: isMobile ? '10px 14px' : '11px 18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(5, 150, 105, 0.08)',
-                  transition: 'all 0.18s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FFFFFF',
-                      boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Utensils size={13} strokeWidth={2.4} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>
-                      Elimination Protocol Active · Day {trial.currentDay} of {trial.totalDays}
-                    </span>
-                    {trial.reductionPercent !== null && trial.reductionPercent > 0 && (
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          color: '#047857',
-                          background: '#D1FAE5',
-                          padding: '1px 7px',
-                          borderRadius: '999px',
-                        }}
-                      >
-                        -{trial.reductionPercent}% symptoms
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    color: '#059669',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span>Daily Plan</span>
-                  <span>→</span>
-                </span>
-              </div>
-            )}
+            {/* Active Protocol / Track Food Triggers Hero Card */}
+            <TherapeuticOutcomeCard />
 
-            {/* Hub Section Title */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px', marginBottom: '2px' }}>
+            {/* Section Header: Clinical Health Domains */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
               <div>
                 <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  Gut Health Tools
+                  Health Domains & Diagnostics
                 </h4>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-                  Tap any tool to track triggers, view reaction delays & analyze digestion
+                  Explore connected clinical intelligence across digestive and systemic health
                 </p>
               </div>
-
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#0D9488',
-                  background: '#F0FDFA',
-                  border: '1px solid #CCFBF1',
-                  padding: '3px 10px',
-                  borderRadius: '999px',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                3 Core Tools
-              </span>
             </div>
 
-            {/* Grid of All 3 Features */}
+            {/* 2 DOMAIN CARDS GRID */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                gap: isMobile ? '12px' : '14px',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: isMobile ? '12px' : '16px',
+                alignItems: 'stretch',
               }}
             >
-              {gutHubCards.map((card) => (
+              {PARENT_PILLAR_CARDS.map((pillar) => {
+              const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+
+              return (
                 <motion.div
-                  key={card.id}
-                  whileHover={{ y: -2, scale: 1.006 }}
-                  whileTap={{ scale: 0.985 }}
+                  id={`cd-card-${pillar.id}`}
+                  key={pillar.id}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                  onClick={() => handleOpenStation(card.id)}
+                  onClick={() => {
+                    triggerHapticSelection();
+                    setOpenedPillarId(pillar.id);
+                    trackButtonClick('clinical_parent_pillar_open', pillar.id);
+                  }}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Open ${card.title}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleOpenStation(card.id);
+                  aria-label={`Open ${pillar.title}`}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleSelectPillar(pillar.id);
                     }
                   }}
                   style={{
-                    background: card.bgGradient,
-                    border: `1px solid ${card.borderColor}`,
-                    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    background: '#FFFFFF',
+                    border: `1px solid ${pillar.borderColor}`,
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
                     borderRadius: '20px',
-                    padding: isMobile ? '15px' : '18px 20px',
+                    padding: isMobile ? '16px' : '20px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    minHeight: isMobile ? '125px' : '140px',
+                    minHeight: isMobile ? '150px' : '170px',
                     cursor: 'pointer',
                     position: 'relative',
-                    transition: 'all 0.2s ease',
+                    overflow: 'hidden',
                   }}
                 >
                   <div>
-                    {/* Card Top: Icon + Badge + Arrow */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                        <div
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '12px',
-                            background: card.badgeBg,
-                            border: `1px solid ${card.borderColor}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '18px',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {card.icon}
-                        </div>
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            color: card.badgeColor,
-                            background: card.badgeBg,
-                            border: `1px solid ${card.borderColor}`,
-                            padding: '2.5px 8px',
-                            borderRadius: '999px',
-                            letterSpacing: '0.2px',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {card.badge}
-                        </span>
-                      </div>
-
-                      {/* Small circular open arrow */}
+                    {/* Top Row: Circular Icon + Badge + Open Arrow */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div
                         style={{
-                          width: '28px',
-                          height: '28px',
+                          width: isMobile ? '40px' : '46px',
+                          height: isMobile ? '40px' : '46px',
                           borderRadius: '50%',
-                          background: '#FFFFFF',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
+                          background: pillar.gradient,
+                          boxShadow: `0 8px 18px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.5)`,
+                          border: '1px solid rgba(255,255,255,0.6)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: card.accentColor,
-                          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
-                          fontSize: '12px',
+                          fontSize: isMobile ? '20px' : '23px',
+                          flexShrink: 0,
                         }}
                       >
-                        →
+                        {pillar.icon}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+
+                        {/* Open Arrow Button Indicator */}
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: pillar.accentColor,
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                          }}
+                        >
+                          <ArrowRight size={15} />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Title & Description */}
-                    <h5
-                      style={{
-                        margin: '0 0 4px',
-                        fontSize: isMobile ? '15px' : '16px',
-                        fontWeight: 800,
-                        color: '#0F172A',
-                        letterSpacing: '-0.3px',
-                      }}
-                    >
-                      {card.title}
-                    </h5>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: isMobile ? '11.5px' : '12px',
-                        color: '#64748B',
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {card.desc}
+                    {/* Title & Subtitle */}
+                    <div>
+                      <h4
+                        className="serif-heading"
+                        style={{
+                          fontSize: isMobile ? '20px' : '22px',
+                          fontWeight: 700,
+                          margin: '0 0 4px',
+                          color: '#2D3748',
+                          lineHeight: 1.25,
+                          letterSpacing: '-0.3px',
+                        }}
+                      >
+                        {pillar.title}
+                      </h4>
+                      <p
+                        style={{
+                          fontSize: isMobile ? '12.5px' : '13.5px',
+                          color: '#64748B',
+                          margin: 0,
+                          fontWeight: 600,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {pillar.desc}
+                      </p>
+                    </div>
+
+                    <p style={{ margin: '12px 0 0', color: '#94A3B8', fontSize: '11.5px', lineHeight: 1.45 }}>
+                      {pillarStations.map((station) => station.shortTitle).join(' · ')}
                     </p>
                   </div>
 
-                  {/* Bottom Action Hint */}
-                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  {/* Telemetry pill */}
+                  <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '10.5px',
+                        fontWeight: 800,
+                        color: pillar.accentColor,
+                        background: pillar.badgeBg,
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          background: pillar.accentColor,
+                        }}
+                      />
+                      <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
+                    </div>
+
                     <span
                       style={{
                         fontSize: '11px',
                         fontWeight: 700,
-                        color: card.accentColor,
+                        color: pillar.accentColor,
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '3px',
                       }}
                     >
-                      <span>Explore</span>
+                      <span>Open</span>
                       <span>→</span>
                     </span>
                   </div>
                 </motion.div>
-              ))}
-            </div>
+              );
+            })}
 
             {/* Doctor Appointment Prep Action Card */}
             <div
               style={{
-                marginTop: '4px',
-                background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)',
-                borderRadius: '18px',
-                padding: isMobile ? '14px 16px' : '16px 20px',
+                gridColumn: isMobile ? '1' : '1 / -1',
+                background: '#F8FAFC',
+                borderRadius: '16px',
+                padding: '14px 18px',
                 border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
                 display: 'flex',
                 alignItems: isMobile ? 'flex-start' : 'center',
                 flexDirection: isMobile ? 'column' : 'row',
@@ -1405,22 +1266,16 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '22px' }}>📋</span>
+                <span style={{ fontSize: '20px' }}>📋</span>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                    <strong style={{ fontSize: isMobile ? '13px' : '13.5px', color: '#0F172A' }}>
-                      Visiting your Doctor or Gastroenterologist?
-                    </strong>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', background: '#CCFBF1', padding: '1.5px 7px', borderRadius: '999px' }}>
-                      VISIT BRIEF
-                    </span>
-                  </div>
-                  <span style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
-                    Export a verified clinical summary synthesizing your suspected food triggers, reaction delays, and flare calendar patterns.
+                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                    Preparing for a doctor visit?
+                  </strong>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>
+                    Create a clinical appointment brief with prioritized questions and clinical records in Case Prep.
                   </span>
                 </div>
               </div>
-
               <button
                 type="button"
                 onClick={() => {
@@ -1429,38 +1284,34 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   else window.location.href = '/app/case-prep';
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                  background: '#0F766E',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: '999px',
-                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  padding: '8px 14px',
                   fontSize: '12px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '5px',
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
-                  alignSelf: isMobile ? 'flex-end' : 'center',
-                  flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                 }}
               >
-                <span>Prepare Visit Brief</span>
-                <ArrowRight size={13} />
+                Go to Case Prep <ArrowRight size={13} />
               </button>
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
         ) : (
           /* ======================================================== */
           /* OPENED DOMAIN WORKSPACE VIEW                             */
           /* ======================================================== */
           (() => {
             const openedPillar = PARENT_PILLAR_CARDS.find((p) => p.id === openedPillarId) || PARENT_PILLAR_CARDS[0];
-            const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || 'map';
-            const pillarStations = openedPillar.id === 'gut'
-              ? ALL_12_STATIONS.filter((s) => s.pillarId === 'gut' && (['map', 'postmeal', 'calendar'].includes(s.id) || activeStationIdForPillar === s.id))
-              : ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
+            const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
+            const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || pillarStations[0]?.id;
             const activeStation = pillarStations.find((s) => s.id === activeStationIdForPillar) || pillarStations[0];
 
             return (
@@ -1521,6 +1372,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         </div>
 
                         <div>
+
+
                           <h3
                             className="serif-heading"
                             style={{
@@ -1536,6 +1389,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           </h3>
                         </div>
                       </div>
+
+
                     </div>
 
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
@@ -1554,32 +1409,34 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           scrollbarWidth: 'none',
                         }}
                       >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHapticSelection();
-                            setOpenedPillarId(null);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 14px',
-                            borderRadius: '999px',
-                            background: '#F8FAFC',
-                            color: '#475569',
-                            border: '1px solid #CBD5E1',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <span>←</span>
-                          <span>All Tools</span>
-                        </button>
+                        {openedPillar.id === 'gut' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticSelection();
+                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '6px 14px',
+                              borderRadius: '999px',
+                              background: activeStationIdForPillar === 'overview' ? '#0F172A' : '#FFFFFF',
+                              color: activeStationIdForPillar === 'overview' ? '#FFFFFF' : '#475569',
+                              border: activeStationIdForPillar === 'overview' ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
+                              fontSize: '11px',
+                              fontWeight: activeStationIdForPillar === 'overview' ? 800 : 600,
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              boxShadow: activeStationIdForPillar === 'overview' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <span>✨</span>
+                            <span>All Features</span>
+                          </button>
+                        )}
 
                         {pillarStations.map((station) => {
                           const isStationActive = activeStationIdForPillar === station.id;
@@ -1617,41 +1474,182 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     )}
                   </div>
 
-                  {/* ACTIVE STATION CONTENT */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Breadcrumb Back Button */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          setOpenedPillarId(null);
-                        }}
+                  {/* ACTIVE STATION CONTENT OR OVERVIEW HUB */}
+                  {activeStationIdForPillar === 'overview' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Active Protocol / Track Food Triggers Hero Card */}
+                      <TherapeuticOutcomeCard />
+
+                      {/* Section Title */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                            Gut Health Features & Tools
+                          </h4>
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                            Tap any tool to investigate symptoms, reaction delays, and flare calendars
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px' }}>
+                          5 Core Tools
+                        </span>
+                      </div>
+
+                      {/* Grid of All 5 Gut Features */}
+                      <div
                         style={{
-                          background: '#F1F5F9',
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '8px',
-                          padding: '6px 13px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: '#334155',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                          transition: 'all 0.15s ease',
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                          gap: '12px',
                         }}
                       >
-                        <ArrowLeft size={13} /> Back to All Tools
-                      </button>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
-                        Station {activeStation?.stationNumber} of {openedPillar.id === 'gut' ? '05' : '02'}
-                      </span>
-                    </div>
+                        {pillarStations.map((station) => (
+                          <motion.div
+                            key={station.id}
+                            whileHover={{ y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                            onClick={() => {
+                              triggerHapticSelection();
+                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Open ${station.title}`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                triggerHapticSelection();
+                                setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
+                              }
+                            }}
+                            style={{
+                              background: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                              borderRadius: '16px',
+                              padding: '14px 16px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              minHeight: '120px',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '20px' }}>{station.icon}</span>
+                                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', background: '#F0FDFA', border: '1px solid #CCFBF1', padding: '2px 7px', borderRadius: '6px' }}>
+                                    {station.statusBadge}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: '12px', color: '#94A3B8' }}>→</span>
+                              </div>
+                              <h5 style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                                {station.title}
+                              </h5>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B', lineHeight: 1.35 }}>
+                                {station.subtitle}
+                              </p>
+                            </div>
+                            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                Open Tool →
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
 
-                    {activeStation && renderStation(activeStation)}
-                  </div>
+                      {/* Multi-System Labs & Body Section */}
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          background: 'linear-gradient(135deg, #F8FAFC 0%, #F0F9FF 100%)',
+                          borderRadius: '16px',
+                          border: '1px solid #BAE6FD',
+                          padding: '14px 16px',
+                          display: 'flex',
+                          alignItems: isMobile ? 'flex-start' : 'center',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '22px' }}>🧪</span>
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: '#0369A1', display: 'block' }}>
+                              Multi-System Body Connections
+                            </strong>
+                            <span style={{ fontSize: '12px', color: '#64748B' }}>
+                              Inspect optimal functional lab biomarkers and posture-vagus nerve biomechanics.
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setOpenedPillarId('body');
+                          }}
+                          style={{
+                            background: '#0284C7',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '7px 13px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
+                          }}
+                        >
+                          View Labs & Body <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Breadcrumb Back Button */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
+                          }}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            padding: '5px 11px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <ArrowLeft size={13} /> Back to All Features
+                        </button>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                          Station {activeStation?.stationNumber} of 05
+                        </span>
+                      </div>
+
+                      {activeStation && renderStation(activeStation)}
+                    </div>
+                  )}
 
                 </div>
               </motion.div>
@@ -1659,7 +1657,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
           })()
         )}
       </AnimatePresence>
-      
+
       {sourcePassageModalData && (
         <SourcePassageModal
           {...sourcePassageModalData}
