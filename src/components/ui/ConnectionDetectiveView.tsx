@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GitMerge,
+  Network,
   Sparkles,
   Stethoscope,
   Activity,
@@ -1070,15 +1071,48 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
             <TherapeuticOutcomeCard />
 
             {/* Section Header: Clinical Health Domains */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  Health Domains & Diagnostics
-                </h4>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-                  Explore connected clinical intelligence across digestive and systemic health
-                </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', marginBottom: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '8px',
+                    background: '#F0FDFA',
+                    border: '1px solid #CCFBF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0D9488',
+                    flexShrink: 0
+                  }}
+                >
+                  <Network size={15} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                    Health Domains & Diagnostics
+                  </h4>
+                  <p style={{ margin: '1px 0 0', fontSize: '12px', color: '#64748B' }}>
+                    Connected clinical intelligence across digestive and systemic health
+                  </p>
+                </div>
               </div>
+
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#0F766E',
+                  background: '#F0FDFA',
+                  border: '1px solid #CCFBF1',
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                2 Workspaces · 7 Tools
+              </span>
             </div>
 
             {/* 2 DOMAIN CARDS GRID */}
@@ -1086,72 +1120,90 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
               style={{
                 display: 'grid',
                 gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                gap: isMobile ? '12px' : '16px',
+                gap: isMobile ? '14px' : '18px',
                 alignItems: 'stretch',
               }}
             >
               {PARENT_PILLAR_CARDS.map((pillar) => {
-              const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+                const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
 
-              return (
-                <motion.div
-                  id={`cd-card-${pillar.id}`}
-                  key={pillar.id}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setOpenedPillarId(pillar.id);
-                    trackButtonClick('clinical_parent_pillar_open', pillar.id);
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Open ${pillar.title}`}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      handleSelectPillar(pillar.id);
-                    }
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: `1px solid ${pillar.borderColor}`,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
-                    borderRadius: '20px',
-                    padding: isMobile ? '16px' : '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: isMobile ? '150px' : '170px',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div>
-                    {/* Top Row: Circular Icon + Badge + Open Arrow */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <div
-                        style={{
-                          width: isMobile ? '40px' : '46px',
-                          height: isMobile ? '40px' : '46px',
-                          borderRadius: '50%',
-                          background: pillar.gradient,
-                          boxShadow: `0 8px 18px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.5)`,
-                          border: '1px solid rgba(255,255,255,0.6)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: isMobile ? '20px' : '23px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {pillar.icon}
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-
+                return (
+                  <motion.div
+                    id={`cd-card-${pillar.id}`}
+                    key={pillar.id}
+                    whileHover={{ y: -3, scale: 1.005 }}
+                    whileTap={{ scale: 0.985 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setOpenedPillarId(pillar.id);
+                      trackButtonClick('clinical_parent_pillar_open', pillar.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${pillar.title}`}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleSelectPillar(pillar.id);
+                      }
+                    }}
+                    style={{
+                      background: pillar.id === 'gut'
+                        ? 'linear-gradient(155deg, #FFFFFF 0%, #FAFEFD 50%, #F0FDFA 100%)'
+                        : 'linear-gradient(155deg, #FFFFFF 0%, #FAFCFF 50%, #F0F9FF 100%)',
+                      border: pillar.id === 'gut'
+                        ? '1px solid rgba(13, 148, 136, 0.25)'
+                        : '1px solid rgba(2, 132, 199, 0.25)',
+                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                      borderRadius: '22px',
+                      padding: isMobile ? '16px' : '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: isMobile ? '170px' : '190px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div>
+                      {/* Top Row: Circular Icon + Pill Count Badge + Open Arrow */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div
+                            style={{
+                              width: isMobile ? '40px' : '44px',
+                              height: isMobile ? '40px' : '44px',
+                              borderRadius: '50%',
+                              background: pillar.gradient,
+                              boxShadow: `0 6px 16px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.6)`,
+                              border: '1px solid rgba(255,255,255,0.7)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: isMobile ? '20px' : '22px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {pillar.icon}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: pillar.accentColor,
+                              background: pillar.badgeBg,
+                              border: `1px solid ${pillar.borderColor}`,
+                              padding: '2.5px 9px',
+                              borderRadius: '999px',
+                              letterSpacing: '0.2px',
+                            }}
+                          >
+                            {pillar.stationCount} Tools Available
+                          </span>
+                        </div>
 
                         {/* Open Arrow Button Indicator */}
                         <div
@@ -1159,151 +1211,206 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             width: '32px',
                             height: '32px',
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(0, 0, 0, 0.08)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: pillar.accentColor,
                             boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                            transition: 'all 0.2s ease'
                           }}
                         >
                           <ArrowRight size={15} />
                         </div>
                       </div>
+
+                      {/* Title & Subtitle */}
+                      <div>
+                        <h4
+                          className="serif-heading"
+                          style={{
+                            fontSize: isMobile ? '19px' : '21px',
+                            fontWeight: 800,
+                            margin: '0 0 3px',
+                            color: '#0F172A',
+                            lineHeight: 1.25,
+                            letterSpacing: '-0.3px',
+                          }}
+                        >
+                          {pillar.title}
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: isMobile ? '12.5px' : '13px',
+                            color: '#475569',
+                            margin: 0,
+                            fontWeight: 500,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {pillar.desc}
+                        </p>
+                      </div>
+
+                      {/* Interactive Station Tool Chips */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '14px 0 16px' }}>
+                        {pillarStations.map((station) => (
+                          <span
+                            key={station.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerHapticSelection();
+                              setOpenedPillarId(pillar.id);
+                              setCardActiveStations((prev) => ({ ...prev, [pillar.id]: station.id }));
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3.5px 8.5px',
+                              borderRadius: '8px',
+                              background: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: '#334155',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <span>{station.icon}</span>
+                            <span>{station.shortTitle}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    {/* Title & Subtitle */}
-                    <div>
-                      <h4
-                        className="serif-heading"
+                    {/* Telemetry pill & Workspace CTA */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(226, 232, 240, 0.6)', paddingTop: '12px' }}>
+                      <div
                         style={{
-                          fontSize: isMobile ? '20px' : '22px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '11px',
                           fontWeight: 700,
-                          margin: '0 0 4px',
-                          color: '#2D3748',
-                          lineHeight: 1.25,
-                          letterSpacing: '-0.3px',
+                          color: pillar.accentColor,
+                          background: pillar.badgeBg,
+                          border: `1px solid ${pillar.borderColor}`,
+                          padding: '3px 9px',
+                          borderRadius: '999px',
                         }}
                       >
-                        {pillar.title}
-                      </h4>
-                      <p
-                        style={{
-                          fontSize: isMobile ? '12.5px' : '13.5px',
-                          color: '#64748B',
-                          margin: 0,
-                          fontWeight: 600,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {pillar.desc}
-                      </p>
-                    </div>
+                        <span
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: pillar.accentColor,
+                            boxShadow: `0 0 5px ${pillar.accentColor}`,
+                          }}
+                        />
+                        <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
+                      </div>
 
-                    <p style={{ margin: '12px 0 0', color: '#94A3B8', fontSize: '11.5px', lineHeight: 1.45 }}>
-                      {pillarStations.map((station) => station.shortTitle).join(' · ')}
-                    </p>
-                  </div>
-
-                  {/* Telemetry pill */}
-                  <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        color: pillar.accentColor,
-                        background: pillar.badgeBg,
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                      }}
-                    >
                       <span
                         style={{
-                          width: '5px',
-                          height: '5px',
-                          borderRadius: '50%',
-                          background: pillar.accentColor,
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          color: pillar.accentColor,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
-                      />
-                      <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
+                      >
+                        <span>Explore Workspace</span>
+                        <span>→</span>
+                      </span>
                     </div>
+                  </motion.div>
+                );
+              })}
 
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: pillar.accentColor,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                      }}
-                    >
-                      <span>Open</span>
-                      <span>→</span>
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-
-            {/* Doctor Appointment Prep Action Card */}
-            <div
-              style={{
-                gridColumn: isMobile ? '1' : '1 / -1',
-                background: '#F8FAFC',
-                borderRadius: '16px',
-                padding: '14px 18px',
-                border: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: isMobile ? 'flex-start' : 'center',
-                flexDirection: isMobile ? 'column' : 'row',
-                justifyContent: 'space-between',
-                gap: '12px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '20px' }}>📋</span>
-                <div>
-                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
-                    Preparing for a doctor visit?
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>
-                    Create a clinical appointment brief with prioritized questions and clinical records in Case Prep.
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  if (onOpenCasePrep) onOpenCasePrep();
-                  else window.location.href = '/app/case-prep';
-                }}
+              {/* Doctor Appointment Prep Action Card */}
+              <div
                 style={{
-                  background: '#0F766E',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 14px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  gridColumn: isMobile ? '1' : '1 / -1',
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)',
+                  borderRadius: '20px',
+                  padding: isMobile ? '16px' : '18px 22px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+                  display: 'flex',
+                  alignItems: isMobile ? 'flex-start' : 'center',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  justifyContent: 'space-between',
+                  gap: '14px',
                 }}
               >
-                Go to Case Prep <ArrowRight size={13} />
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: '#F0FDFA',
+                      border: '1px solid #CCFBF1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.12)'
+                    }}
+                  >
+                    📋
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <strong style={{ fontSize: isMobile ? '13.5px' : '14px', color: '#0F172A' }}>
+                        Preparing for a Gastroenterologist or Doctor Visit?
+                      </strong>
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', background: '#CCFBF1', padding: '1.5px 7px', borderRadius: '999px' }}>
+                        PRE-VISIT BRIEF
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
+                      Generate a clinical appointment summary synthesizing suspected food triggers, reaction delays, and symptom flares for your physician.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (onOpenCasePrep) onOpenCasePrep();
+                    else window.location.href = '/app/case-prep';
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '999px',
+                    padding: '9px 18px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.28)',
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0
+                  }}
+                >
+                  <span>Generate Visit Brief</span> <ArrowRight size={13} />
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
         ) : (
           /* ======================================================== */
           /* OPENED DOMAIN WORKSPACE VIEW                             */
