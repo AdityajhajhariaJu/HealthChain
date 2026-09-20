@@ -826,15 +826,18 @@ export default function CaseDashboard() {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
+                              justifyContent: 'center',
                               gap: '3px',
                               background: '#ECFDF5',
                               border: '1px solid #A7F3D0',
                               borderRadius: '999px',
-                              padding: '3px 9px',
-                              fontSize: '10px',
+                              height: isMobile ? '24px' : '26px',
+                              padding: isMobile ? '0 9px' : '0 11px',
+                              fontSize: isMobile ? '10px' : '10.5px',
                               fontWeight: 700,
                               color: '#047857',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1
                             }}
                           >
                             <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Logged
@@ -842,6 +845,8 @@ export default function CaseDashboard() {
                         ) : (
                           <motion.button
                             type="button"
+                            data-micro="true"
+                            className="btn-micro"
                             whileTap={{ scale: 0.92 }}
                             onClick={(e) => handleQuickWater(250, e)}
                             title="Quick log 1 glass (+250ml)"
@@ -850,16 +855,22 @@ export default function CaseDashboard() {
                               background: '#0284C7',
                               border: 'none',
                               borderRadius: '999px',
-                              padding: '3.5px 11px',
-                              fontSize: '10.5px',
+                              height: isMobile ? '24px' : '26px',
+                              minHeight: isMobile ? '24px' : '26px',
+                              maxHeight: isMobile ? '24px' : '26px',
+                              minWidth: 'unset',
+                              padding: isMobile ? '0 11px' : '0 13px',
+                              fontSize: isMobile ? '10.5px' : '11px',
                               fontWeight: 800,
                               color: '#FFFFFF',
                               display: 'inline-flex',
                               alignItems: 'center',
+                              justifyContent: 'center',
                               gap: '3.5px',
                               cursor: 'pointer',
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
+                              lineHeight: 1,
                               boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
                             }}
                           >
@@ -1082,15 +1093,18 @@ export default function CaseDashboard() {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
+                              justifyContent: 'center',
                               gap: '3px',
                               background: '#ECFDF5',
                               border: '1px solid #A7F3D0',
                               borderRadius: '999px',
-                              padding: '3px 9px',
-                              fontSize: '10px',
+                              height: isMobile ? '24px' : '26px',
+                              padding: isMobile ? '0 9px' : '0 11px',
+                              fontSize: isMobile ? '10px' : '10.5px',
                               fontWeight: 700,
                               color: '#047857',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1
                             }}
                           >
                             <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
@@ -1098,6 +1112,8 @@ export default function CaseDashboard() {
                         ) : (
                           <motion.button
                             type="button"
+                            data-micro="true"
+                            className="btn-micro"
                             whileTap={{ scale: 0.92 }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1109,16 +1125,22 @@ export default function CaseDashboard() {
                               background: 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)',
                               border: 'none',
                               borderRadius: '999px',
-                              padding: '3.5px 12px',
-                              fontSize: '10.5px',
+                              height: isMobile ? '24px' : '26px',
+                              minHeight: isMobile ? '24px' : '26px',
+                              maxHeight: isMobile ? '24px' : '26px',
+                              minWidth: 'unset',
+                              padding: isMobile ? '0 12px' : '0 14px',
+                              fontSize: isMobile ? '10.5px' : '11px',
                               fontWeight: 800,
                               color: '#FFFFFF',
                               display: 'inline-flex',
                               alignItems: 'center',
+                              justifyContent: 'center',
                               gap: '3.5px',
                               cursor: 'pointer',
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
+                              lineHeight: 1,
                               boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
                             }}
                           >

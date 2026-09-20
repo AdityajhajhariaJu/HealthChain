@@ -1003,9 +1003,9 @@ html.dark-theme body {
   }
   
   /* Touch targets (excluding compact buttons, badges, and micro-controls) */
-  button:not([data-compact="true"], .btn-compact), 
-  a:not([data-compact="true"], .btn-compact), 
-  [role="button"]:not([data-compact="true"], .btn-compact) { 
+  button:not([data-compact="true"], [data-micro="true"], .btn-compact, .btn-micro), 
+  a:not([data-compact="true"], [data-micro="true"], .btn-compact, .btn-micro), 
+  [role="button"]:not([data-compact="true"], [data-micro="true"], .btn-compact, .btn-micro) { 
     min-height: 44px; 
     min-width: 44px; 
   }
@@ -1016,6 +1016,15 @@ html.dark-theme body {
   [role="button"][data-compact="true"],
   .btn-compact {
     min-height: 36px;
+  }
+
+  /* Micro inline pill buttons, badge actions, and quick-log chips */
+  button[data-micro="true"],
+  a[data-micro="true"],
+  [role="button"][data-micro="true"],
+  .btn-micro {
+    min-height: unset;
+    min-width: unset;
   }
 
   .app-shell {
