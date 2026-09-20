@@ -783,11 +783,11 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   <span style={{
                     fontSize: '11.5px',
                     fontWeight: 800,
-                    color: allTaken ? '#065F46' : '#B45309',
-                    background: allTaken ? '#DCFCE7' : '#FEF3C7',
+                    color: allTaken ? '#065F46' : '#C2410C',
+                    background: allTaken ? '#DCFCE7' : '#FFF1EB',
                     padding: '2px 9px',
                     borderRadius: '999px',
-                    border: allTaken ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                    border: allTaken ? '1px solid #A7F3D0' : '1px solid #FED7AA'
                   }}>
                     {takenCount} of {vitamins.length} taken
                   </span>
@@ -1245,8 +1245,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                                   fontWeight: 700,
                                   padding: '2px 7px',
                                   borderRadius: '6px',
-                                  background: item.takenToday ? '#DCFCE7' : '#FEF3C7',
-                                  color: item.takenToday ? '#15803D' : '#B45309',
+                                  background: item.takenToday ? '#DCFCE7' : '#FFF1EB',
+                                  color: item.takenToday ? '#15803D' : '#C2410C',
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '3px'
