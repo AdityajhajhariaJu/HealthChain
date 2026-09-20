@@ -3171,7 +3171,7 @@ export default function AvaHealthBuddy() {
         }}
       />
 
-      {/* Connection Detective Multi-System Intelligence Modal */}
+      {/* Gut Health Multi-System Intelligence Modal */}
       <ConnectionDetectiveModal
         isOpen={isDetectiveOpen}
         initialTab={detectiveTab}

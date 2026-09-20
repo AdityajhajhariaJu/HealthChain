@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Sparkles,
   GitMerge,
+  Utensils,
   ChevronRight,
   Copy,
   Check,
@@ -137,22 +138,21 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(8px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <GitMerge size={18} color="#FFFFFF" />
+              <Utensils size={18} color="#FFFFFF" />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#CCFBF1' }}>
-                  Connection Detective
+                  Gut Health
                 </span>
               </div>
               <h4 style={{ margin: 0, fontSize: '15.5px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.2px' }}>

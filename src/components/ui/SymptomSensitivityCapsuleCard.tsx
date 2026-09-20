@@ -179,7 +179,7 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
               transition: 'background 0.15s ease',
             }}
           >
-            <span>Explore in Connection Detective</span>
+            <span>Track in Gut Health</span>
             <ChevronRight size={15} />
           </button>
         )}

@@ -180,9 +180,9 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           color: '#0F172A',
         }}
       >
-        Connection Detective:{' '}
+        Gut Health:{' '}
         <span style={{ color: '#0D9488' }}>
-          Cross-System Map
+          Food & Trigger Map
         </span>
       </h3>
 
@@ -220,7 +220,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
       >
         <Globe size={18} />
-        <span>Investigate Connections</span>
+        <span>Explore in Gut Health</span>
       </button>
 
       {/* 4 Interactive Conduit Capsules (2x2 Grid) */}

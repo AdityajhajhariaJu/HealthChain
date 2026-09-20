@@ -29,7 +29,8 @@ import {
   FileText,
   GitMerge,
   Zap,
-  Leaf
+  Leaf,
+  Utensils
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -640,11 +641,11 @@ export default function CaseDashboard() {
                 </div>
               </motion.div>
 
-              {/* Connection Detective Bento Tile */}
+              {/* Gut Health Bento Tile */}
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Connection Detective - Gut, food and biomarker connections"
+                aria-label="Gut Health - Track food triggers, meal reactions & digestion"
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -658,8 +659,8 @@ export default function CaseDashboard() {
                 }}
                 style={{
                   background: '#FFFFFF', 
-                  border: '1px solid #E2E8F0', 
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)', 
+                  border: '1px solid #CCFBF1', 
+                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)', 
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
@@ -679,21 +680,21 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: '#4F46E5', 
-                    boxShadow: '0 2px 6px rgba(79, 70, 229, 0.25)', 
+                    background: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)', 
+                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.28)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <GitMerge size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
+                    <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
                   </div>
-                  <div className="micro-badge" style={{ background: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: isMobile ? '2.5px 7px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    CORRELATIONS
+                  <div className="micro-badge" style={{ background: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4', padding: isMobile ? '2.5px 7px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    GUT & DIGESTION
                   </div>
                 </div>
                 <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Gut Health</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Track food triggers, meal reactions & digestion</p>
                 </div>
               </motion.div>
 

@@ -52,7 +52,7 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
     id: 'bloating_hunt',
     name: 'Low-FODMAP Bloating & Fermentation Protocol',
     tagline: 'Systematic 28-day washout of fermentable carbohydrates & SIBO gas triggers',
-    badge: 'GI ELIMINATION PROTOCOL',
+    badge: 'FOOD TRIGGER ELIMINATION PROTOCOL',
     targetDurationDays: 28,
     clinicalAuthority: 'Clinical Gastroenterology Low-FODMAP Protocol (Rome IV Standards)',
     icon: '💨',

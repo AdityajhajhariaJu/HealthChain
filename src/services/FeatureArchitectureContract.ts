@@ -148,8 +148,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     downstreamHandoffs: [
       {
         targetFeatureId: 'connection-detective',
-        label: 'Explore Why in Connection Detective',
-        actionDescription: 'Investigate biological mechanisms, domino triggers, and counter-factors',
+        label: 'Explore in Gut Health',
+        actionDescription: 'Investigate food triggers, meal reactions, and biological pathways',
         route: '/app/cases',
       },
       {
@@ -175,16 +175,16 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
 
   'connection-detective': {
     id: 'connection-detective',
-    name: 'Connection Detective',
-    shortLabel: 'Connection Detective',
+    name: 'Gut Health',
+    shortLabel: 'Gut Health',
     uniqueQuestion: 'Why are these things connected?',
     owns: "Exploration of the Engine's relationships",
     produces: 'Inspectable connections and evidence paths',
     mustNotDuplicate: 'Another independently generated diagnosis list',
     pipelineStage: 'exploration',
     route: '/app/cases',
-    plainDescription: 'Visualizing biological pathways and underlying mechanisms connecting your symptoms, vitals, and triggers.',
-    plainPurpose: 'Biological pathway & trigger exploration',
+    plainDescription: 'Visualizing food triggers, digestion patterns, and biological mechanisms connecting your symptoms, vitals, and gut motility.',
+    plainPurpose: 'Gut health, food trigger tracking & digestive motility synthesis',
     badgeColor: {
       bg: '#F0F9FF',
       text: '#075985',
