@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Info, Sparkles, Flame } from 'lucide-react';
+import { Droplet, Info, Sparkles } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { getDailyStreak } from '../../services/VitalityPointsEngine';
@@ -32,7 +32,6 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
   }, []);
 
   const streakCount = Math.max(dailyStreak?.currentStreak || 0, garden.streakDays || 0, 1);
-  const isRecordedToday = Boolean(dailyStreak?.todayCompleted || gardenTendedToday);
 
   const handleWater = () => {
     triggerHapticLight();
@@ -54,62 +53,19 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
       </div>
 
-      {/* Zen Consistency & Streak Count - Clean Zen Garden style */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
-          borderRadius: '20px',
-          padding: '16px 18px',
-          border: '1.5px solid #A7F3D0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          boxShadow: '0 4px 14px rgba(5, 150, 105, 0.08)'
-        }}
-      >
-        <div
-          style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(217, 119, 6, 0.22)',
-            flexShrink: 0
-          }}
-        >
-          <Flame size={22} fill="#FFFFFF" />
+      {/* 3 Metric Cards: Blooms, Days Tended, Garden Streak */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>Blooms</div>
+          <div style={metricValueStyle}>🌸 {garden.bloomCount}</div>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-              {streakCount} {streakCount === 1 ? 'Day' : 'Days'} Streak
-            </span>
-            <span
-              style={{
-                background: '#DCFCE7',
-                color: '#15803D',
-                border: '1px solid #BBF7D0',
-                borderRadius: '999px',
-                padding: '2px 8px',
-                fontSize: '10px',
-                fontWeight: 800,
-                letterSpacing: '0.4px',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {isRecordedToday ? '✓ Care recorded' : 'Pending today'}
-            </span>
-          </div>
-          <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
-            {isRecordedToday
-              ? "Today's care is recorded. Your rhythm continues."
-              : "Tend your garden today to keep your daily rhythm growing."}
-          </div>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>Days Tended</div>
+          <div style={{ ...metricValueStyle, color: '#059669' }}>💧 {garden.waterCount}</div>
+        </div>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>Garden Streak</div>
+          <div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {streakCount} {streakCount === 1 ? 'Day' : 'Days'}</div>
         </div>
       </div>
 
@@ -162,11 +118,6 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
         <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
           <motion.div initial={{ width: 0 }} animate={{ width: `${garden.vitalityScore}%` }} transition={{ duration: 0.6 }} style={{ height: '100%', background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', borderRadius: '999px' }} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-          <div style={metricCardStyle}><div style={metricLabelStyle}>Blooms</div><div style={metricValueStyle}>🌸 {garden.bloomCount}</div></div>
-          <div style={metricCardStyle}><div style={metricLabelStyle}>Days Tended</div><div style={{ ...metricValueStyle, color: '#059669' }}>💧 {garden.waterCount}</div></div>
-          <div style={metricCardStyle}><div style={metricLabelStyle}>Garden Streak</div><div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {streakCount} {streakCount === 1 ? 'Day' : 'Days'}</div></div>
         </div>
       </div>
     </div>
