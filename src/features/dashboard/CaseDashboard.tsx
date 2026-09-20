@@ -1044,9 +1044,9 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
-                      border: '1px solid #FCE7F3',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FDF2F8 60%, #FCE7F3 100%)',
+                      border: '1px solid #FBCFE8',
+                      boxShadow: '0 4px 16px rgba(219, 39, 119, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '24px' : '28px',
                       padding: isMobile ? '14px 16px' : '16px 20px',
                       display: 'flex',
@@ -1068,20 +1068,20 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4.5px',
-                          background: '#FDF2F8',
+                          background: '#FFFFFF',
                           border: '1px solid #FBCFE8',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
                           fontSize: '10.5px',
                           fontWeight: 800,
-                          color: '#C02672',
+                          color: '#DB2777',
                           letterSpacing: '-0.1px',
                           marginBottom: '3px'
                         }}
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                          <rect x="2.5" y="7.5" width="19" height="9" rx="4.5" stroke="#D4548A" strokeWidth="2.2" />
-                          <path d="M12 7.5v9" stroke="#D4548A" strokeWidth="2" strokeDasharray="1.5 1.5" />
+                          <rect x="2.5" y="7.5" width="19" height="9" rx="4.5" stroke="#DB2777" strokeWidth="2.2" />
+                          <path d="M12 7.5v9" stroke="#DB2777" strokeWidth="2" strokeDasharray="1.5 1.5" />
                           <rect x="3.5" y="8.5" width="8.5" height="7" rx="3.5" fill="#FBCFE8" opacity="0.6" />
                         </svg>
                         <span>Daily Meds & Vitamins</span>
@@ -1143,7 +1143,7 @@ export default function CaseDashboard() {
                         style={{
                           fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
-                          color: hasConfiguredMeds && isRxDone ? '#C02672' : '#64748B',
+                          color: hasConfiguredMeds && isRxDone ? '#DB2777' : '#64748B',
                           margin: '2px 0 6px',
                           lineHeight: 1.25,
                           whiteSpace: 'nowrap',
@@ -1153,7 +1153,7 @@ export default function CaseDashboard() {
                       >
                         {hasConfiguredMeds ? (
                           isRxDone ? (
-                            <span style={{ fontWeight: 700, color: '#C02672' }}>
+                            <span style={{ fontWeight: 700, color: '#DB2777' }}>
                               ✓ All daily meds & vitamins taken today
                             </span>
                           ) : (
@@ -1181,7 +1181,7 @@ export default function CaseDashboard() {
                                 padding: isMobile ? '0 9px' : '0 11px',
                                 fontSize: isMobile ? '10px' : '10.5px',
                                 fontWeight: 700,
-                                color: '#C02672',
+                                color: '#DB2777',
                                 whiteSpace: 'nowrap',
                                 lineHeight: 1
                               }}
@@ -1208,7 +1208,7 @@ export default function CaseDashboard() {
                               title="Mark all daily meds taken"
                               aria-label="Mark daily meds taken"
                               style={{
-                                background: 'linear-gradient(135deg, #F68DBB 0%, #D4548A 100%)',
+                                background: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)',
                                 border: 'none',
                                 borderRadius: '999px',
                                 height: isMobile ? '24px' : '26px',
@@ -1227,7 +1227,7 @@ export default function CaseDashboard() {
                                 whiteSpace: 'nowrap',
                                 flexShrink: 0,
                                 lineHeight: 1,
-                                boxShadow: '0 2px 6px rgba(212, 84, 138, 0.22)'
+                                boxShadow: '0 2px 6px rgba(219, 39, 119, 0.25)'
                               }}
                             >
                               <Check size={11} strokeWidth={3} /> Done
@@ -1247,7 +1247,7 @@ export default function CaseDashboard() {
                             title="Set up daily meds schedule"
                             aria-label="Set up daily meds schedule"
                             style={{
-                              background: 'linear-gradient(135deg, #F68DBB 0%, #D4548A 100%)',
+                              background: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)',
                               border: 'none',
                               borderRadius: '999px',
                               height: isMobile ? '24px' : '26px',
@@ -1266,7 +1266,7 @@ export default function CaseDashboard() {
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
                               lineHeight: 1,
-                              boxShadow: '0 2px 6px rgba(212, 84, 138, 0.22)'
+                              boxShadow: '0 2px 6px rgba(219, 39, 119, 0.25)'
                             }}
                           >
                             <Plus size={11} strokeWidth={2.8} /> Add Meds
@@ -1309,7 +1309,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke="#D4548A"
+                          stroke="#DB2777"
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={hasConfiguredMeds ? ringOffset : ringCircumference}
@@ -1348,7 +1348,7 @@ export default function CaseDashboard() {
                               style={{
                                 fontSize: '8px',
                                 fontWeight: 900,
-                                color: '#C02672',
+                                color: '#DB2777',
                                 letterSpacing: '0.8px',
                                 textTransform: 'uppercase',
                                 marginTop: '2px'
@@ -1359,12 +1359,12 @@ export default function CaseDashboard() {
                           </>
                         ) : (
                           <>
-                            <Plus size={isMobile ? 15 : 17} strokeWidth={2.8} color="#C02672" />
+                            <Plus size={isMobile ? 15 : 17} strokeWidth={2.8} color="#DB2777" />
                             <span
                               style={{
                                 fontSize: '7.5px',
                                 fontWeight: 900,
-                                color: '#C02672',
+                                color: '#DB2777',
                                 letterSpacing: '0.6px',
                                 textTransform: 'uppercase',
                                 marginTop: '1px'
