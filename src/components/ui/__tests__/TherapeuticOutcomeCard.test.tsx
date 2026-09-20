@@ -8,9 +8,17 @@ vi.mock('framer-motion', async () => {
   return {
     ...actual,
     AnimatePresence: ({ children }: any) => <>{children}</>,
-    motion: {
-      div: ({ children, whileHover, whileTap, ...props }: any) => <div {...props}>{children}</div>,
-    },
+    motion: new Proxy(
+      {},
+      {
+        get: (_target, prop: string) => {
+          return ({ children, whileHover, whileTap, ...props }: any) => {
+            const Tag = prop as any;
+            return <Tag {...props}>{children}</Tag>;
+          };
+        },
+      }
+    ),
   };
 });
 
@@ -46,7 +54,7 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
 
     render(<TherapeuticOutcomeCard />, { container: containerDiv });
 
-    expect(screen.getByText('Clinical Food Reset & Elimination')).toBeTruthy();
+    expect(screen.getByText('Track Food Triggers')).toBeTruthy();
     expect(screen.getByText(/DAY 1\/28/i)).toBeTruthy();
     expect(screen.getByText('Check-In')).toBeTruthy();
   });
@@ -62,13 +70,13 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
     const checkinBtn = screen.getByText('Check-In');
     fireEvent.click(checkinBtn);
 
-    // Score buttons [2, 4, 6, 8] should be visible
-    const score4Btn = screen.getByText('4');
-    fireEvent.click(score4Btn);
+    // Score buttons [0, 2, 5, 8, 10] should be visible
+    const score5Btn = screen.getByText('5');
+    fireEvent.click(score5Btn);
 
     // V1 state updated
     const v1Updated = getActiveTrial();
-    expect(v1Updated?.currentSeverity).toBe(4);
+    expect(v1Updated?.currentSeverity).toBe(5);
 
     // V2 state MUST be synchronized (P0 bug fix verified)
     const v2Updated = getActiveTrialV2();
@@ -77,7 +85,7 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
 
     const events = getHealthEvents({ profileId: v2Updated!.profileId, trialId: v2Updated!.id, type: 'daily_checkin' });
     expect(events.length).toBeGreaterThanOrEqual(2);
-    expect(events[events.length - 1].payload.severityScore).toBe(4);
+    expect(events[events.length - 1].payload.severityScore).toBe(5);
   });
 
   it('renders guided intake callout when no active elimination trial exists', () => {
@@ -85,12 +93,12 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
     render(<TherapeuticOutcomeCard />, { container: containerDiv });
 
     // Inactive card callout
-    expect(screen.getByText(/GUIDED INTAKE AVAILABLE/i)).toBeTruthy();
-    expect(screen.getByText(/Clinical Food Reset & Elimination/i)).toBeTruthy();
-    expect(screen.getByText(/Begin Guided Reset Onboarding →/i)).toBeTruthy();
+    expect(screen.getByText(/4-WEEK PROTOCOL/i)).toBeTruthy();
+    expect(screen.getByText(/Track Food Triggers/i)).toBeTruthy();
+    expect(screen.getByText(/Start Guided Reset →/i)).toBeTruthy();
 
     // Clicking button opens modal
-    const startBtn = screen.getByText(/Begin Guided Reset Onboarding →/i);
+    const startBtn = screen.getByText(/Start Guided Reset →/i);
     fireEvent.click(startBtn);
 
     // Modal rendered in onboarding mode
@@ -116,14 +124,14 @@ describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
     render(<TherapeuticOutcomeCard />, { container: containerDiv });
 
     // Permanent title & Graduation badges & metrics
-    expect(screen.getByText('Clinical Food Reset & Elimination')).toBeTruthy();
+    expect(screen.getByText('Track Food Triggers')).toBeTruthy();
     expect(screen.getByText(/GRADUATED 🏆/i)).toBeTruthy();
     expect(screen.getByText(/-75%/i)).toBeTruthy();
     expect(screen.getByText(/Investigation complete • 1 Confirmed Trigger\(s\)/i)).toBeTruthy();
-    expect(screen.getByText(/View Clinical Verdict & Blueprint →/i)).toBeTruthy();
+    expect(screen.getByText(/View Verdict & Plan →/i)).toBeTruthy();
 
     // Clicking button opens modal into verdict view
-    const viewBtn = screen.getByText(/View Clinical Verdict & Blueprint →/i);
+    const viewBtn = screen.getByText(/View Verdict & Plan →/i);
     fireEvent.click(viewBtn);
 
     expect(screen.getByText(/Diagnostic Elimination Graduated 🏆/i)).toBeTruthy();

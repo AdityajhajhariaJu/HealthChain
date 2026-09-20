@@ -658,8 +658,8 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: '#FFFFFF', 
-                  border: '1px solid #CCFBF1', 
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)', 
+                  border: '1px solid #99F6E4', 
                   boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)', 
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
@@ -672,7 +672,7 @@ export default function CaseDashboard() {
                   overflow: 'hidden'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                   <div style={{ 
                     width: isMobile ? '38px' : '44px', 
                     height: isMobile ? '38px' : '44px', 
@@ -687,9 +687,6 @@ export default function CaseDashboard() {
                     justifyContent: 'center' 
                   }}>
                     <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
-                  </div>
-                  <div className="micro-badge" style={{ background: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4', padding: isMobile ? '2.5px 7px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    GUT & DIGESTION
                   </div>
                 </div>
                 <div>

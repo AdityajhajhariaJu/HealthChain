@@ -125,10 +125,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         role="button"
         tabIndex={0}
         aria-label={isGraduated
-          ? `Clinical Food Reset & Elimination - Graduated${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your clinical verdict, confirmed triggers, and maintenance plan`
+          ? `Track Food Triggers - Graduated${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your clinical verdict, confirmed triggers, and maintenance plan`
           : trial 
-          ? `Clinical Food Reset & Elimination - Day ${trial.currentDay} of ${trial.totalDays}${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your daily plan, timeline, and doctor report` 
-          : 'Clinical Food Reset & Elimination - Inactive. Tap to choose an elimination protocol'}
+          ? `Track Food Triggers - Day ${trial.currentDay} of ${trial.totalDays}${activeProtocolDef ? ` (${activeProtocolDef.name})` : ''}. Tap to view your daily plan, timeline, and doctor report` 
+          : 'Track Food Triggers - Inactive. Tap to choose an elimination protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -141,9 +141,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           }
         }}
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
+          border: '1px solid #99F6E4',
+          boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)',
           borderRadius: isMobile ? '24px' : '28px',
           padding: isMobile ? '14px 16px' : '16px 20px',
           display: 'flex',
@@ -304,7 +304,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               letterSpacing: '-0.3px'
             }}
           >
-            Clinical Food Reset & Elimination
+            Track Food Triggers
           </h4>
           <p
             style={{
