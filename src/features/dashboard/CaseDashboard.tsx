@@ -1042,9 +1042,9 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FDF2F8 60%, #FCE7F3 100%)',
-                      border: '1px solid #FBCFE8',
-                      boxShadow: '0 4px 16px rgba(219, 39, 119, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '24px' : '28px',
                       padding: isMobile ? '14px 16px' : '16px 20px',
                       display: 'flex',
