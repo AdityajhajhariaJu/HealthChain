@@ -15,6 +15,7 @@ import {
   Bookmark, 
   Scan, 
   Check, 
+  Droplet,
   Droplets, 
   Sparkles, 
   BookOpen, 
@@ -461,7 +462,7 @@ export default function CaseDashboard() {
                           marginBottom: '3px'
                         }}
                       >
-                        <Sparkles size={11} color="#0284C7" />
+                        <Droplet size={11} fill="#0284C7" color="#0284C7" />
                         <span>Hydration</span>
                       </div>
 
@@ -505,33 +506,34 @@ export default function CaseDashboard() {
                       >
                         {isWaterGoal ? (
                           <span style={{ fontWeight: 700, color: '#059669' }}>
-                            Goal reached! Gut mucosa hydration optimal ✨
+                            ✓ Daily hydration goal reached • Gut mucosa optimal
                           </span>
                         ) : (
-                          `${remainingWaterMl.toLocaleString()} ml to go (${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'})`
+                          `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today`
                         )}
                       </p>
 
-                      {/* Bottom Micro-Pill & Quick Action (Zero-Wrap Single Row) */}
+                      {/* Bottom Action Row (Zero-Wrap Single Row) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            background: '#F0F9FF',
-                            border: '1px solid #BAE6FD',
-                            borderRadius: '999px',
-                            padding: '3px 8px',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            color: '#0369A1',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {currentGlasses}/{totalGlasses} Glasses (250ml)
-                        </span>
-
-                        {!isWaterGoal && (
+                        {isWaterGoal ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              borderRadius: '999px',
+                              padding: '3px 9px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              color: '#047857',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Logged
+                          </span>
+                        ) : (
                           <motion.button
                             type="button"
                             whileTap={{ scale: 0.92 }}
@@ -542,13 +544,13 @@ export default function CaseDashboard() {
                               background: '#0284C7',
                               border: 'none',
                               borderRadius: '999px',
-                              padding: '3px 10px',
+                              padding: '3.5px 11px',
                               fontSize: '10.5px',
                               fontWeight: 800,
                               color: '#FFFFFF',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '3px',
+                              gap: '3.5px',
                               cursor: 'pointer',
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
@@ -716,7 +718,7 @@ export default function CaseDashboard() {
                           marginBottom: '3px'
                         }}
                       >
-                        <Sparkles size={11} color={isRxDone ? '#059669' : '#D97706'} />
+                        <Pill size={11} color={isRxDone ? '#059669' : '#D97706'} />
                         <span>Daily Meds & Vitamins</span>
                       </div>
 
@@ -760,14 +762,14 @@ export default function CaseDashboard() {
                       >
                         {isRxDone ? (
                           <span style={{ fontWeight: 700, color: '#059669' }}>
-                            All daily meds & vitamins taken today ✨
+                            ✓ All daily meds & vitamins taken today
                           </span>
                         ) : (
-                          `${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} left today • ${nextDoseItem?.name ? nextDoseItem.name : 'Scheduled'}`
+                          `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • Scheduled today`
                         )}
                       </p>
 
-                      {/* Bottom Micro-Pill & Quick Action (Graceful Zero-Wrap Handling) */}
+                      {/* Bottom Action Row (Zero-Wrap Single Row) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                         {isRxDone ? (
                           <span
@@ -788,53 +790,34 @@ export default function CaseDashboard() {
                             <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
                           </span>
                         ) : (
-                          <>
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                background: '#FEF3C7',
-                                border: '1px solid #FDE68A',
-                                borderRadius: '999px',
-                                padding: '3px 8px',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                color: '#B45309',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {takenRxDoses}/{totalRxDoses} Doses
-                            </span>
-
-                            <motion.button
-                              type="button"
-                              whileTap={{ scale: 0.92 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                              }}
-                              title="Mark all daily meds taken"
-                              aria-label="Mark daily meds taken"
-                              style={{
-                                background: '#D97706',
-                                border: 'none',
-                                borderRadius: '999px',
-                                padding: '3px 11px',
-                                fontSize: '10.5px',
-                                fontWeight: 800,
-                                color: '#FFFFFF',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)'
-                              }}
-                            >
-                              <Check size={11} strokeWidth={3} /> Done
-                            </motion.button>
-                          </>
+                          <motion.button
+                            type="button"
+                            whileTap={{ scale: 0.92 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                            }}
+                            title="Mark all daily meds taken"
+                            aria-label="Mark daily meds taken"
+                            style={{
+                              background: '#D97706',
+                              border: 'none',
+                              borderRadius: '999px',
+                              padding: '3.5px 12px',
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              color: '#FFFFFF',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3.5px',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                              boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)'
+                            }}
+                          >
+                            <Check size={11} strokeWidth={3} /> Done
+                          </motion.button>
                         )}
                       </div>
                     </div>

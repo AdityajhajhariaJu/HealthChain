@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Activity, Check, Info, ChevronDown, Compass, Award, Sparkles } from 'lucide-react';
+import { Target, Activity, Check, Compass, Award } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -36,7 +36,6 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [justLogged, setJustLogged] = useState(false);
-  const [showRationale, setShowRationale] = useState(false);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -278,11 +277,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   flexShrink: 0,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px'
+                  gap: '4px'
                 }}
               >
-                <Sparkles size={10} color="#059669" />
-                <span>GUIDED INTAKE AVAILABLE</span>
+                <Target size={11} color="#059669" />
+                <span>Guided Protocol Ready</span>
               </div>
             )}
           </div>
@@ -321,7 +320,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     ? `${activeProtocolDef.name} • Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
                     : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`)
             ) : (
-              'Discover food triggers with a 4-step guided intake & structured clinical reset.'
+              'Identify food triggers with a structured 4-step reset.'
             )}
           </p>
 
@@ -451,82 +450,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 }}
               >
                 <Compass size={12} />
-                <span>Begin Guided Reset Onboarding →</span>
+                <span>Begin Guided Reset →</span>
               </button>
             )}
-
-            <button
-              type="button"
-              data-compact="true"
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerHapticLight();
-                setShowRationale((prev) => !prev);
-              }}
-              aria-label="Toggle clinical rationale for elimination protocol"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                background: showRationale ? 'rgba(13, 148, 136, 0.12)' : 'rgba(255, 255, 255, 0.85)',
-                border: showRationale ? '1px solid rgba(13, 148, 136, 0.35)' : '1px solid rgba(203, 213, 225, 0.8)',
-                borderRadius: '999px',
-                padding: '4px 10px',
-                fontSize: '10.5px',
-                fontWeight: 700,
-                color: showRationale ? '#0D9488' : '#64748B',
-                cursor: 'pointer',
-                minHeight: '32px',
-                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Info size={11} />
-              <span>Science</span>
-              <ChevronDown
-                size={11}
-                style={{
-                  transform: showRationale ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease'
-                }}
-              />
-            </button>
           </div>
         </div>
-
-        {/* Expandable Clinical Science Rationale */}
-        <AnimatePresence>
-          {showRationale && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-              style={{
-                overflow: 'hidden',
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '16px',
-                padding: '12px 14px',
-                border: '1px solid rgba(13, 148, 136, 0.25)',
-                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.08)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  Clinical Rationale (AGA & Monash)
-                </span>
-                <span className="tabular-nums" style={{ fontSize: '9.5px', fontWeight: 700, color: '#64748B' }}>
-                  Mucosal & Motility Reset
-                </span>
-              </div>
-              <p style={{ fontSize: '11.5px', color: '#334155', margin: 0, lineHeight: 1.45, fontWeight: 500 }}>
-                Strict temporary elimination calms gut mucosal inflammation, giving hypersensitive gut endings a washout period to reset before systematic challenge.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
 
       {/* Fully Workable Clinical Outcomes Modal */}
