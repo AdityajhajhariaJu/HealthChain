@@ -140,7 +140,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
 
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Gut <span style={{ color: '#DB2777' }}>Health</span>
+                    Gut <span style={{ color: '#0D9488' }}>Health</span>
                   </h2>
                 </div>
               </div>
