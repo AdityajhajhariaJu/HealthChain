@@ -36,8 +36,17 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // TODO: Add strict admin role check here. For now, assuming authorized since it's an internal route.
-  // In production: if (user.id !== ADMIN_USER_ID) return res.status(403);
+  const adminUserId = process.env.ADMIN_USER_ID;
+
+  if (!adminUserId) {
+    console.error('CRITICAL: ADMIN_USER_ID is not configured.');
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+
+  if (user.id !== adminUserId) {
+    console.warn(`Unauthorized access attempt by user: ${user.id}`);
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
 
   try {
     const { action, payload, table = 'fitness_content' } = req.body;
