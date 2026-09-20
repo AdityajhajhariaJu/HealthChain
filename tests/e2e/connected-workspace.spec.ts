@@ -53,7 +53,7 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   const quickWater = page.getByRole('button', { name: 'Quick log 250ml water' });
   await quickWater.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByText(/250 \/ 2,000 ml/)).toBeVisible();
+  await expect(page.getByText(/Glasses \(250ml\)/)).toBeVisible();
   await expect(page.getByRole('dialog', { name: /Hydration/i })).toHaveCount(0);
   await page.getByRole('button', { name: 'View all 10 articles' }).click();
   await expect(page.getByRole('button', { name: 'Show recommended' })).toBeVisible();
