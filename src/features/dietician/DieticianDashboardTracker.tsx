@@ -295,47 +295,10 @@ export function DieticianDashboardTracker({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gridTemplateColumns: isMobile ? 'repeat(1, 1fr)' : 'repeat(3, 1fr)',
           gap: '10px',
         }}
       >
-        <button
-          type="button"
-          onClick={() => {
-            triggerHapticLight();
-            if (onSelectTab) onSelectTab('elimination');
-          }}
-          style={{
-            background: '#FFFFFF',
-            padding: '12px 14px',
-            borderRadius: '16px',
-            border: '1.5px solid #F1F5F9',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer',
-            textAlign: 'left',
-            transition: 'transform 0.15s ease, border-color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#F43F5E';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#F1F5F9';
-            e.currentTarget.style.transform = 'none';
-          }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFE4E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-            🎈
-          </div>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Elimination Protocol</div>
-            <div style={{ fontSize: '11px', color: '#64748B' }}>4-Wk Elimination</div>
-          </div>
-        </button>
-
         <button
           type="button"
           onClick={() => {

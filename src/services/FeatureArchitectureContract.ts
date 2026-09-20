@@ -422,8 +422,7 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
         targetFeatureId: 'elimination-suite',
         label: 'Run 4-Week Clinical Elimination Protocol',
         actionDescription: 'Isolate suspected food triggers under structured clinical phases',
-        route: '/app/dietician',
-        targetTab: 'elimination',
+        route: '/app/today',
       },
       {
         targetFeatureId: 'engine',
@@ -450,7 +449,7 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     produces: 'Progress logs and reviewable outcomes',
     mustNotDuplicate: 'Automatically deciding what caused symptoms',
     pipelineStage: 'action',
-    route: '/app/dietician',
+    route: '/app/today',
     plainDescription: 'Guiding you through structured elimination and reintroduction phases to safely identify food sensitivities.',
     plainPurpose: 'Structured elimination protocol',
     badgeColor: {

@@ -84,12 +84,12 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
-import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
+import { openEliminationSuiteModal } from '../../components/ui/TherapeuticOutcomeCard';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 import { FeatureId } from '../../services/FeatureArchitectureContract';
 import {
@@ -255,14 +255,17 @@ export default function Dietician() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'elimination', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
+  const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
   type DietTab = typeof validTabs[number];
 
   const resolveTabKey = (raw?: string | null): DietTab | null => {
     if (!raw) return null;
     const clean = raw.trim().toLowerCase();
     if (clean === 'food-detective') return 'sensitivities';
-    if (clean === 'elimination-suite') return 'elimination';
+    if (clean === 'elimination' || clean === 'elimination-suite') {
+      navigate('/app/today?openElimination=true', { replace: true });
+      return null;
+    }
     if (clean === 'diet-plan') return 'mealplan';
     if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
     return null;
@@ -1077,7 +1080,6 @@ export default function Dietician() {
   const currentSelectedDayObj = normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) || normalizedPlanDays[0];
 
   const currentFeatureId: FeatureId =
-    activeTab === 'elimination' ? 'elimination-suite' :
     (activeTab === 'sensitivities' || activeTab === 'insights') ? 'food-detective' :
     'diet-plan';
 
@@ -1232,30 +1234,7 @@ export default function Dietician() {
             >
               <Calendar size={15} color={activeTab === 'calendar' ? '#38BDF8' : '#64748B'} /> Digestion Calendar
             </button>
-            <button
-              onClick={() => {
-                triggerHapticLight();
-                setActiveTab('elimination');
-              }}
-              style={{
-                padding: isMobile ? '8px 12px' : '8px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'elimination' ? '#0F172A' : 'transparent',
-                color: activeTab === 'elimination' ? '#FFFFFF' : '#64748B',
-                fontWeight: 700,
-                fontSize: isMobile ? '12.5px' : '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Elimination Protocol
-            </button>
+
             <button
               onClick={() => {
                 triggerHapticLight();
@@ -1531,26 +1510,15 @@ export default function Dietician() {
             </motion.div>
           )}
 
-          {/* TAB: 4-WEEK CLINICAL ELIMINATION SUITE (media_1788704747359.png) */}
-          {activeTab === 'elimination' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              
-              <EliminationProtocolSuite
-                onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
-                onOpenCalendarHeatmap={() => setActiveTab('calendar')}
-                onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
-                onBack={returnTo ? () => navigate(returnTo) : () => navigate('/app/today?openElimination=true')}
-                backLabel={returnLabel || 'Back to Elimination Suite Card'}
-              />
-            </motion.div>
-          )}
-
           {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
           {activeTab === 'insights' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
               
               <SmartCorrelationInsightsView
-                onOpenElimination={() => setActiveTab('elimination')}
+                onOpenElimination={() => {
+                  triggerHapticSelection();
+                  openEliminationSuiteModal();
+                }}
                 onOpenTimeline={() => setActiveTab('sensitivities')}
                 onOpenHeatmap={() => setActiveTab('calendar')}
               />

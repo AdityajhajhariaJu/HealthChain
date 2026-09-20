@@ -51,7 +51,7 @@ describe('PaymentLifecycleAndEntitlements (Package 10)', () => {
       const navigate = vi.fn();
       const task = {
         featureId: 'food_detective',
-        returnPath: '/app/dietician?tab=elimination',
+        returnPath: '/app/today?openElimination=true',
         draftState: { protocol: 'gluten_free', day: 3 },
         timestamp: Date.now(),
         title: 'Clinical Elimination Protocol',
@@ -61,7 +61,7 @@ describe('PaymentLifecycleAndEntitlements (Package 10)', () => {
       const resumed = resumeInterruptedTask(navigate, mockUserId);
 
       expect(resumed).toBe(true);
-      expect(navigate).toHaveBeenCalledWith('/app/dietician?tab=elimination', {
+      expect(navigate).toHaveBeenCalledWith('/app/today?openElimination=true', {
         state: { protocol: 'gluten_free', day: 3 },
       });
       // Task should be cleared from storage

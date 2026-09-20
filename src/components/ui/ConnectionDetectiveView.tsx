@@ -52,7 +52,6 @@ import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
-import { EliminationProtocolSuite } from './EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
@@ -962,21 +961,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />
                       )}
                     </div>
-                  )}
-
-                  {/* STATION: ELIMINATION PROTOCOL FALLBACK */}
-                  {station.id === 'elimination' && (
-                    <EliminationProtocolSuite
-                      onOpenQuickMeal={onOpenFoodDetective}
-                      onOpenCalendarHeatmap={() => {
-                        setTimelineViewMode('heatmap');
-                        scrollToStation('postmeal');
-                      }}
-                      onOpenPostMealTimeline={() => {
-                        setTimelineViewMode('timeline');
-                        scrollToStation('postmeal');
-                      }}
-                    />
                   )}
 
                   {/* STATION 03: FUNCTIONAL LABS */}

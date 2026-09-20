@@ -1696,7 +1696,7 @@ export default function CaseDashboard() {
       <ConnectionDetectiveModal
         isOpen={showDetectiveModal}
         onClose={() => setShowDetectiveModal(false)}
-        onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
+        onOpenFoodDetective={() => navigate('/app/nutrition-log')}
         onOpenConsult={() => navigate('/app/consult')}
         onOpenCasePrep={() => navigate('/app/case-prep')}
       />

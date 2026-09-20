@@ -4145,38 +4145,10 @@ R (Recommendation):
                 borderTop: '1px solid #F1F5F9',
                 background: '#FAFAFA',
                 display: 'flex',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 alignItems: 'center',
               }}
             >
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  onClose?.();
-                  navigate('/app/dietician?tab=elimination&returnTo=%2Fapp%2Ftoday%3FopenElimination%3Dtrue', { 
-                    state: { 
-                      tab: 'elimination',
-                      returnTo: '/app/today?openElimination=true',
-                      returnLabel: 'Back to Elimination Suite Card'
-                    } 
-                  });
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#0D9488',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span>Full Dietician View</span>
-                <ArrowRight size={13} />
-              </button>
               <button
                 type="button"
                 onClick={onClose}
