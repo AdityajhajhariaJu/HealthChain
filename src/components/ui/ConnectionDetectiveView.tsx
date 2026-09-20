@@ -57,6 +57,7 @@ import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
+import { TherapeuticOutcomeCard } from './TherapeuticOutcomeCard';
 
 export type TabId =
   | 'map'
@@ -674,6 +675,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   {/* STATION 01: CONNECTED EVIDENCE & FOODS */}
                   {station.id === 'map' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Active Food Triggers Protocol Tracker */}
+                      <TherapeuticOutcomeCard />
+
                       {/* STEP 8: THE 6 CANONICAL RELATIONSHIPS EVIDENCE GRAPH */}
                       {semanticGraph.nodes.length > 0 && (
                         <SemanticEvidenceGraphView

@@ -61,7 +61,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
@@ -694,9 +693,6 @@ export default function CaseDashboard() {
                   <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Track food triggers, meal reactions & digestion</p>
                 </div>
               </motion.div>
-
-              {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
-              <TherapeuticOutcomeCard span2={true} />
 
               {/* Point 3: Interactive Daily Habit Stack - Full Width Compact Radial Cards */}
               {/* Habit 1: Daily Hydration Tracking */}

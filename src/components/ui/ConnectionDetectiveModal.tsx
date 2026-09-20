@@ -23,10 +23,12 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   onOpenConsult,
   onOpenCasePrep,
 }) => {
-  const [openedPillarId, setOpenedPillarId] = useState<string | null>(null);
+  const [openedPillarId, setOpenedPillarId] = useState<string | null>('gut');
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setOpenedPillarId('gut');
+    } else {
       setOpenedPillarId(null);
     }
   }, [isOpen]);
