@@ -228,7 +228,7 @@ export default function CaseDashboard() {
                 style={{
                   backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(240, 253, 244, 0.45) 78%, rgba(240, 253, 244, 0.92) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
                   backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  backgroundPosition: 'center 30%',
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
                   border: '1px solid rgba(255, 255, 255, 0.9)', 
