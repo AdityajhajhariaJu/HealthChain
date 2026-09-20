@@ -1368,7 +1368,7 @@ export default function AvaHealthBuddy() {
   const [isRiverOpen, setIsRiverOpen] = useState(false);
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
-  const [detectiveTab, setDetectiveTab] = useState<string>('map');
+  const [detectiveTab, setDetectiveTab] = useState<string>('overview');
   useEffect(() => { if (new URLSearchParams(location.search).get('tool') === 'connection-detective') setIsDetectiveOpen(true); }, [location.search]);
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showContextModal, setShowContextModal] = useState(false);
@@ -1377,7 +1377,7 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     const handleOpenDetective = (e?: any) => {
-      setDetectiveTab(e?.detail?.tab || 'map');
+      setDetectiveTab(e?.detail?.tab || 'overview');
       setIsDetectiveOpen(true);
     };
     window.addEventListener('hc_open_connection_detective_modal', handleOpenDetective);

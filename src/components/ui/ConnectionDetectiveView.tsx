@@ -226,6 +226,15 @@ export const ALL_12_STATIONS: StationConfig[] = [
   },
 ];
 
+export const ALL_CLINICAL_STATIONS: StationConfig[] = ALL_12_STATIONS;
+
+export const resolveStationTab = (tab?: TabId): TabId => {
+  if (!tab || tab === 'overview') return 'overview';
+  if (tab === 'calendar') return 'postmeal';
+  if (tab === 'map') return 'insights';
+  return tab;
+};
+
 export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body'>> = {
   map: 'gut',
   postmeal: 'gut',
@@ -388,8 +397,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   }, [activeReview, activeCase]);
 
   const [internalOpenedPillarId, setInternalOpenedPillarId] = useState<PillarId | null>(() => {
-    if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
-      const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+    if (initialTab && initialTab !== 'overview') {
+      const resolved = resolveStationTab(initialTab);
+      const target = ALL_12_STATIONS.find((s) => s.id === resolved);
       if (target) return target.pillarId;
     }
     return null; // Always show the main overview screen by default!
@@ -399,12 +409,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   const setOpenedPillarId = (id: PillarId | null) => {
     if (onOpenedPillarChange) onOpenedPillarChange(id);
     setInternalOpenedPillarId(id);
-  };
-  const resolveStationTab = (tab?: TabId): TabId => {
-    if (!tab || tab === 'overview') return 'overview';
-    if (tab === 'calendar') return 'postmeal';
-    if (tab === 'map') return 'insights';
-    return tab;
   };
 
   const [timelineViewMode, setTimelineViewMode] = useState<'timeline' | 'heatmap'>(() =>
@@ -982,12 +986,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     />
                   )}
 
-                  {/* STATION 06: FUNCTIONAL LABS */}
+                  {/* STATION 03: FUNCTIONAL LABS */}
                   {station.id === 'biomarkers' && (
                     <FunctionalBiomarkersView />
                   )}
 
-                  {/* STATION 07: KINETIC BIOMECHANICS */}
+                  {/* STATION 04: KINETIC BIOMECHANICS */}
                   {station.id === 'kinetic' && (
                     movementObservations.length > 0 ? (
                       <div style={{ display: 'grid', gap: '9px' }}>
@@ -1514,7 +1518,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         </span>
                       </div>
 
-                      {/* Grid of All 5 Gut Features */}
+                      {/* Grid of Domain Clinical Tools */}
                       <div
                         style={{
                           display: 'grid',
@@ -1662,7 +1666,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           <ArrowLeft size={13} /> Back to All Features
                         </button>
                         <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
-                          Station {activeStation?.stationNumber} of 05
+                          Station {activeStation?.stationNumber} of {String(ALL_12_STATIONS.length).padStart(2, '0')}
                         </span>
                       </div>
 

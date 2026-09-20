@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
-import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR } from './ConnectionDetectiveView';
+import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR, resolveStationTab } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
 
 interface ConnectionDetectiveModalProps {
@@ -33,7 +33,8 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           setOpenedPillarId(pillar);
           return;
         }
-        const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+        const resolved = resolveStationTab(initialTab as any);
+        const target = ALL_12_STATIONS.find((s) => s.id === resolved);
         if (target) {
           setOpenedPillarId(target.pillarId);
           return;
