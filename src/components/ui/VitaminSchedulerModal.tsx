@@ -528,18 +528,31 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setHasNotificationPermission(granted);
   };
 
+  const persistSchedule = async (updated: VitaminItem[]) => {
+    setVitamins(updated);
+    try {
+      await saveVitaminSchedule(updated);
+    } catch (e) {
+      console.error('Failed to save vitamins:', e);
+    }
+    if (onUpdated) onUpdated();
+  };
+
   const handleTimeChange = (id: string, newTimeStr: string) => {
-    setVitamins(prev => prev.map(v => v.id === id ? { ...v, time: newTimeStr } : v));
+    const next = vitamins.map(v => v.id === id ? { ...v, time: newTimeStr } : v);
+    persistSchedule(next);
   };
 
   const handleToggleEnabled = (id: string) => {
     triggerHapticLight();
-    setVitamins(prev => prev.map(v => v.id === id ? { ...v, enabled: !v.enabled } : v));
+    const next = vitamins.map(v => v.id === id ? { ...v, enabled: !v.enabled } : v);
+    persistSchedule(next);
   };
 
   const handleRemove = (id: string) => {
     triggerHapticLight();
-    setVitamins(prev => prev.filter(v => v.id !== id));
+    const next = vitamins.filter(v => v.id !== id);
+    persistSchedule(next);
   };
 
   const handleToggleTaken = (id: string, name: string) => {
@@ -571,7 +584,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
       takenToday: false
     };
 
-    setVitamins(prev => [...prev, newItem]);
+    const next = [...vitamins, newItem];
+    persistSchedule(next);
   };
 
   const handleAddCustom = (e?: React.FormEvent) => {
@@ -588,7 +602,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
       takenToday: false
     };
 
-    setVitamins(prev => [...prev, newItem]);
+    const next = [...vitamins, newItem];
+    persistSchedule(next);
     setNewName('');
     setNewDosage('');
     setNewBenefit('');
@@ -604,7 +619,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   const handleSaveAndClose = async () => {
     triggerHapticSuccess();
-    await saveVitaminSchedule(vitamins);
+    try {
+      await saveVitaminSchedule(vitamins);
+    } catch {}
     if (onUpdated) onUpdated();
     onClose();
   };

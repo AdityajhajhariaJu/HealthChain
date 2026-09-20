@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Activity, Check, Compass, Award } from 'lucide-react';
+import { Target, Activity, Check, Compass, Award, Sparkles } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -115,6 +115,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     setIsModalOpen(true);
   };
 
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const todayLog = trial?.symptomScores?.find(s => s.date === todayStr || s.day === trial?.currentDay);
+  const hasLoggedToday = Boolean(todayLog);
+
   return (
     <>
       <motion.div
@@ -140,8 +144,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           background: '#FFFFFF',
           border: '1px solid #E2E8F0',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-          borderRadius: isMobile ? '22px' : '26px',
-          padding: isMobile ? '13px 15px' : '16px 20px',
+          borderRadius: isMobile ? '24px' : '28px',
+          padding: isMobile ? '14px 16px' : '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -268,11 +272,11 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   background: '#ECFDF5',
                   color: '#047857',
                   border: '1px solid #A7F3D0',
-                  padding: '2.5px 8px',
+                  padding: isMobile ? '3px 8px' : '3.5px 10px',
                   borderRadius: '999px',
-                  fontSize: '10px',
+                  fontSize: isMobile ? '9.5px' : '10.5px',
                   fontWeight: 800,
-                  letterSpacing: '0.3px',
+                  letterSpacing: '0.4px',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   display: 'inline-flex',
@@ -280,8 +284,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   gap: '4px'
                 }}
               >
-                <Target size={11} color="#059669" />
-                <span>Guided Protocol Ready</span>
+                <Sparkles size={11} color="#059669" />
+                <span>4-WEEK PROTOCOL</span>
               </div>
             )}
           </div>
@@ -316,6 +320,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             ) : trial ? (
               justLogged
                 ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent !== null ? `${trial.reductionPercent}% delta` : 'saved'})`
+                : hasLoggedToday
+                ? `${activeProtocolDef ? `${activeProtocolDef.name} • ` : ''}Day ${trial.currentDay} of ${trial.totalDays} • Check-in recorded (${todayLog?.severity}/10)`
                 : (activeProtocolDef
                     ? `${activeProtocolDef.name} • Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`
                     : `Day ${trial.currentDay} of ${trial.totalDays} • Reset Phase (${trial.adherencePercentage}% on track)`)
@@ -324,7 +330,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             )}
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
             {isGraduated ? (
               <button
                 type="button"
@@ -333,95 +339,162 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '4px',
                   background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '999px',
-                  padding: isMobile ? '5.5px 12px' : '6.5px 15px',
-                  fontSize: '11px',
+                  height: isMobile ? '24px' : '26px',
+                  padding: isMobile ? '0 11px' : '0 13px',
+                  fontSize: isMobile ? '10.5px' : '11px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '32px',
-                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
-                  transition: 'all 0.15s ease'
+                  lineHeight: 1,
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Award size={13} />
-                <span>View Clinical Verdict & Blueprint →</span>
+                <Award size={12} />
+                <span>View Verdict & Plan →</span>
               </button>
             ) : trial ? (
               !isLogging ? (
-                <button
-                  type="button"
-                  data-compact="true"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    triggerHapticLight();
-                    setIsLogging(true);
-                  }}
-                  aria-label="Log today symptom severity"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '999px',
-                    padding: isMobile ? '5.5px 12px' : '6.5px 15px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    minHeight: '32px',
-                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Activity size={12} />
-                  <span>Check-In</span>
-                </button>
+                hasLoggedToday ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3.5px',
+                        background: '#ECFDF5',
+                        border: '1px solid #A7F3D0',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 11px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
+                        color: '#047857',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1
+                      }}
+                    >
+                      <Check size={11} strokeWidth={2.8} /> Today: {todayLog?.severity}/10
+                    </span>
+                    <motion.button
+                      type="button"
+                      data-micro="true"
+                      className="btn-micro"
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHapticLight();
+                        setIsLogging(true);
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid #CBD5E1',
+                        color: '#64748B',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 10px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1
+                      }}
+                    >
+                      Edit
+                    </motion.button>
+                  </div>
+                ) : (
+                  <motion.button
+                    type="button"
+                    data-micro="true"
+                    className="btn-micro"
+                    whileTap={{ scale: 0.92 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerHapticLight();
+                      setIsLogging(true);
+                    }}
+                    aria-label="Log today symptom severity"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '999px',
+                      height: isMobile ? '24px' : '26px',
+                      padding: isMobile ? '0 12px' : '0 14px',
+                      fontSize: isMobile ? '10.5px' : '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1
+                    }}
+                  >
+                    <Activity size={11} strokeWidth={2.6} />
+                    <span>Check-In</span>
+                  </motion.button>
+                )
               ) : (
                 <div
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '4px',
                     background: '#FFFFFF',
-                    padding: '3px 8px',
+                    padding: '2px 6px',
                     borderRadius: '999px',
                     border: '1.5px solid #CCFBF1',
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)'
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)',
+                    height: isMobile ? '26px' : '28px',
+                    whiteSpace: 'nowrap'
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <span style={{ fontSize: '10px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Score:</span>
-                  {[2, 4, 6, 8].map((val) => (
+                  <span style={{ fontSize: '9.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2px', paddingLeft: '2px' }}>
+                    Score:
+                  </span>
+                  {[
+                    { val: 0, label: '0', bg: '#ECFDF5', border: '#A7F3D0', color: '#047857' },
+                    { val: 2, label: '2', bg: '#F0FDFA', border: '#99F6E4', color: '#0D9488' },
+                    { val: 5, label: '5', bg: '#FEF3C7', border: '#FDE68A', color: '#B45309' },
+                    { val: 8, label: '8', bg: '#FFEDD5', border: '#FED7AA', color: '#C2410C' },
+                    { val: 10, label: '10', bg: '#FEF2F2', border: '#FECACA', color: '#DC2626' }
+                  ].map((item) => (
                     <button
-                      key={val}
+                      key={item.val}
                       type="button"
-                      onClick={() => handleQuickLog(val)}
+                      onClick={() => handleQuickLog(item.val)}
                       style={{
-                        minWidth: '28px',
-                        minHeight: '26px',
-                        padding: '2px 7px',
+                        minWidth: '22px',
+                        height: '20px',
+                        padding: '0 4px',
                         borderRadius: '999px',
-                        fontSize: '11px',
+                        fontSize: '10px',
                         fontWeight: 800,
-                        border: val <= 2 ? '1px solid #A7F3D0' : val <= 4 ? '1px solid #99F6E4' : val <= 6 ? '1px solid #FDE68A' : '1px solid #FECACA',
-                        background: val <= 2 ? '#ECFDF5' : val <= 4 ? '#F0FDFA' : val <= 6 ? '#FEF3C7' : '#FEF2F2',
-                        color: val <= 2 ? '#047857' : val <= 4 ? '#0D9488' : val <= 6 ? '#B45309' : '#DC2626',
+                        border: `1px solid ${item.border}`,
+                        background: item.bg,
+                        color: item.color,
                         cursor: 'pointer',
-                        transition: 'transform 0.1s ease',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1
                       }}
                     >
-                      {val}
+                      {item.label}
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setIsLogging(false)}
-                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '12px', cursor: 'pointer', padding: '0 4px', fontWeight: 800 }}
+                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '11px', cursor: 'pointer', padding: '0 3px', fontWeight: 800, lineHeight: 1 }}
                   >
                     ✕
                   </button>
@@ -435,22 +508,23 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '4px',
                   background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '999px',
-                  padding: isMobile ? '6px 14px' : '7px 16px',
-                  fontSize: '11px',
+                  height: isMobile ? '24px' : '26px',
+                  padding: isMobile ? '0 12px' : '0 14px',
+                  fontSize: isMobile ? '10.5px' : '11px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  minHeight: '32px',
-                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.32), inset 0 1px 0 rgba(255,255,255,0.3)',
-                  transition: 'all 0.15s ease'
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1
                 }}
               >
-                <Compass size={12} />
-                <span>Begin Guided Reset →</span>
+                <Compass size={12} strokeWidth={2.4} />
+                <span>Start Guided Reset →</span>
               </button>
             )}
           </div>

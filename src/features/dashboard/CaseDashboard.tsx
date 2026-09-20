@@ -630,7 +630,7 @@ export default function CaseDashboard() {
                   }}>
                     <Scan size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
                   </div>
-                  <div className="micro-badge" style={{ background: '#EF4444', color: '#FFFFFF', padding: '3.5px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#EF4444', color: '#FFFFFF', padding: isMobile ? '2.5px 8px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     NEW
                   </div>
                 </div>
@@ -687,6 +687,9 @@ export default function CaseDashboard() {
                   }}>
                     <GitMerge size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
                   </div>
+                  <div className="micro-badge" style={{ background: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: isMobile ? '2.5px 7px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    CORRELATIONS
+                  </div>
                 </div>
                 <div>
                   <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
@@ -736,8 +739,8 @@ export default function CaseDashboard() {
                       background: '#FFFFFF',
                       border: '1px solid #E2E8F0',
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                      borderRadius: isMobile ? '22px' : '26px',
-                      padding: isMobile ? '12px 14px' : '15px 20px',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '14px 16px' : '16px 20px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -812,36 +815,73 @@ export default function CaseDashboard() {
                       >
                         {isWaterGoal ? (
                           <span style={{ fontWeight: 700, color: '#0284C7' }}>
-                            ✓ Daily hydration goal reached • Gut mucosa optimal
+                            {waterMl > targetWaterMl
+                              ? `✓ Goal surpassed (+${(waterMl - targetWaterMl).toLocaleString()} ml extra) • Gut mucosa optimal`
+                              : '✓ Daily hydration goal reached • Gut mucosa optimal'}
                           </span>
                         ) : (
-                          `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today`
+                          `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today (${remainingWaterMl.toLocaleString()} ml to goal)`
                         )}
                       </p>
 
                       {/* Bottom Action Row (Zero-Wrap Single Row) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                         {isWaterGoal ? (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '3px',
-                              background: '#E0F2FE',
-                              border: '1px solid #BAE6FD',
-                              borderRadius: '999px',
-                              height: isMobile ? '24px' : '26px',
-                              padding: isMobile ? '0 9px' : '0 11px',
-                              fontSize: isMobile ? '10px' : '10.5px',
-                              fontWeight: 700,
-                              color: '#0284C7',
-                              whiteSpace: 'nowrap',
-                              lineHeight: 1
-                            }}
-                          >
-                            <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Logged
-                          </span>
+                          <>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '3px',
+                                background: '#E0F2FE',
+                                border: '1px solid #BAE6FD',
+                                borderRadius: '999px',
+                                height: isMobile ? '24px' : '26px',
+                                padding: isMobile ? '0 9px' : '0 11px',
+                                fontSize: isMobile ? '10px' : '10.5px',
+                                fontWeight: 700,
+                                color: '#0284C7',
+                                whiteSpace: 'nowrap',
+                                lineHeight: 1
+                              }}
+                            >
+                              <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Met
+                            </span>
+                            <motion.button
+                              type="button"
+                              data-micro="true"
+                              className="btn-micro"
+                              whileTap={{ scale: 0.92 }}
+                              onClick={(e) => handleQuickWater(250, e)}
+                              title="Log extra glass (+250ml)"
+                              aria-label="Log extra 250ml water"
+                              style={{
+                                background: '#0284C7',
+                                border: 'none',
+                                borderRadius: '999px',
+                                height: isMobile ? '24px' : '26px',
+                                minHeight: isMobile ? '24px' : '26px',
+                                maxHeight: isMobile ? '24px' : '26px',
+                                minWidth: 'unset',
+                                padding: isMobile ? '0 9px' : '0 11px',
+                                fontSize: isMobile ? '10px' : '10.5px',
+                                fontWeight: 800,
+                                color: '#FFFFFF',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '3px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                lineHeight: 1,
+                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
+                              }}
+                            >
+                              <Plus size={10} strokeWidth={2.8} /> 250ml
+                            </motion.button>
+                          </>
                         ) : (
                           <motion.button
                             type="button"
@@ -1007,8 +1047,8 @@ export default function CaseDashboard() {
                       background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
                       border: '1px solid #FCE7F3',
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                      borderRadius: isMobile ? '22px' : '26px',
-                      padding: isMobile ? '12px 14px' : '15px 20px',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '14px 16px' : '16px 20px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -1022,12 +1062,12 @@ export default function CaseDashboard() {
                   >
                     {/* Left: Content Information */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Top Pill Badge */}
+                      {/* Top Pill Badge with Unambiguous Crisp Capsule Icon */}
                       <div
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '4.5px',
                           background: '#FDF2F8',
                           border: '1px solid #FBCFE8',
                           borderRadius: '999px',
@@ -1039,41 +1079,71 @@ export default function CaseDashboard() {
                           marginBottom: '3px'
                         }}
                       >
-                        <Pill size={11} color="#CE5A7B" />
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                          <rect x="2.5" y="7.5" width="19" height="9" rx="4.5" stroke="#CE5A7B" strokeWidth="2.2" />
+                          <path d="M12 7.5v9" stroke="#CE5A7B" strokeWidth="2" strokeDasharray="1.5 1.5" />
+                          <rect x="3.5" y="8.5" width="8.5" height="7" rx="3.5" fill="#FBCFE8" opacity="0.6" />
+                        </svg>
                         <span>Daily Meds & Vitamins</span>
                       </div>
 
                       {/* Hero KPI Number */}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                        <span
-                          className="tabular-nums"
-                          style={{
-                            fontSize: isMobile ? '19px' : '22px',
-                            fontWeight: 900,
-                            color: '#0F172A',
-                            letterSpacing: '-0.5px',
-                            lineHeight: 1
-                          }}
-                        >
-                          {takenRxDoses}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: isMobile ? '12px' : '13px',
-                            fontWeight: 600,
-                            color: '#64748B'
-                          }}
-                        >
-                          / {totalRxDoses} Taken
-                        </span>
-                      </div>
+                      {hasConfiguredMeds ? (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                          <span
+                            className="tabular-nums"
+                            style={{
+                              fontSize: isMobile ? '19px' : '22px',
+                              fontWeight: 900,
+                              color: '#0F172A',
+                              letterSpacing: '-0.5px',
+                              lineHeight: 1
+                            }}
+                          >
+                            {takenRxDoses}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: isMobile ? '12px' : '13px',
+                              fontWeight: 600,
+                              color: '#64748B'
+                            }}
+                          >
+                            / {totalRxDoses} Taken
+                          </span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                          <span
+                            className="tabular-nums"
+                            style={{
+                              fontSize: isMobile ? '17px' : '19px',
+                              fontWeight: 900,
+                              color: '#0F172A',
+                              letterSpacing: '-0.4px',
+                              lineHeight: 1
+                            }}
+                          >
+                            0 Active
+                          </span>
+                          <span
+                            style={{
+                              fontSize: isMobile ? '11.5px' : '12.5px',
+                              fontWeight: 600,
+                              color: '#64748B'
+                            }}
+                          >
+                            Meds Scheduled
+                          </span>
+                        </div>
+                      )}
 
                       {/* Contextual Subtext */}
                       <p
                         style={{
                           fontSize: isMobile ? '11px' : '11.5px',
                           fontWeight: 500,
-                          color: isRxDone ? '#BE185D' : '#64748B',
+                          color: hasConfiguredMeds && isRxDone ? '#BE185D' : '#64748B',
                           margin: '2px 0 6px',
                           lineHeight: 1.25,
                           whiteSpace: 'nowrap',
@@ -1081,47 +1151,51 @@ export default function CaseDashboard() {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {isRxDone ? (
-                          <span style={{ fontWeight: 700, color: '#BE185D' }}>
-                            ✓ All daily meds & vitamins taken today
-                          </span>
+                        {hasConfiguredMeds ? (
+                          isRxDone ? (
+                            <span style={{ fontWeight: 700, color: '#BE185D' }}>
+                              ✓ All daily meds & vitamins taken today
+                            </span>
+                          ) : (
+                            `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • ${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} remaining`
+                          )
                         ) : (
-                          `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • ${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} remaining`
+                          'Set up daily vitamins, supplements & prescriptions'
                         )}
                       </p>
 
                       {/* Bottom Action Row (Zero-Wrap Single Row) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
-                        {isRxDone ? (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '3px',
-                              background: '#FDF2F8',
-                              border: '1px solid #FBCFE8',
-                              borderRadius: '999px',
-                              height: isMobile ? '24px' : '26px',
-                              padding: isMobile ? '0 9px' : '0 11px',
-                              fontSize: isMobile ? '10px' : '10.5px',
-                              fontWeight: 700,
-                              color: '#BE185D',
-                              whiteSpace: 'nowrap',
-                              lineHeight: 1
-                            }}
-                          >
-                            <Check size={10} strokeWidth={3} /> {hasConfiguredMeds ? `All ${totalRxDoses} Taken Today` : 'Taken Today'}
-                          </span>
-                        ) : (
-                          <motion.button
-                            type="button"
-                            data-micro="true"
-                            className="btn-micro"
-                            whileTap={{ scale: 0.92 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (hasConfiguredMeds) {
+                        {hasConfiguredMeds ? (
+                          isRxDone ? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '3px',
+                                background: '#FDF2F8',
+                                border: '1px solid #FBCFE8',
+                                borderRadius: '999px',
+                                height: isMobile ? '24px' : '26px',
+                                padding: isMobile ? '0 9px' : '0 11px',
+                                fontSize: isMobile ? '10px' : '10.5px',
+                                fontWeight: 700,
+                                color: '#BE185D',
+                                whiteSpace: 'nowrap',
+                                lineHeight: 1
+                              }}
+                            >
+                              <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
+                            </span>
+                          ) : (
+                            <motion.button
+                              type="button"
+                              data-micro="true"
+                              className="btn-micro"
+                              whileTap={{ scale: 0.92 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 markAllVitaminsTaken();
                                 triggerHapticSuccess();
                                 awardPoints(5, 'Daily Micronutrient / Rx Protocol', 'lifestyle', `habit_vitamins_${todayDateStr}`);
@@ -1130,12 +1204,48 @@ export default function CaseDashboard() {
                                   const stored = getItemSync(getHabitStorageKey(todayDateStr));
                                   if (stored) setCompletedHabits(JSON.parse(stored));
                                 } catch {}
-                              } else {
-                                toggleHabit('vitamins', 'Daily Micronutrient / Rx');
-                              }
+                              }}
+                              title="Mark all daily meds taken"
+                              aria-label="Mark daily meds taken"
+                              style={{
+                                background: 'linear-gradient(135deg, #F492A7 0%, #CE5A7B 100%)',
+                                border: 'none',
+                                borderRadius: '999px',
+                                height: isMobile ? '24px' : '26px',
+                                minHeight: isMobile ? '24px' : '26px',
+                                maxHeight: isMobile ? '24px' : '26px',
+                                minWidth: 'unset',
+                                padding: isMobile ? '0 12px' : '0 14px',
+                                fontSize: isMobile ? '10.5px' : '11px',
+                                fontWeight: 800,
+                                color: '#FFFFFF',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '3.5px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                lineHeight: 1,
+                                boxShadow: '0 2px 6px rgba(206, 90, 123, 0.2)'
+                              }}
+                            >
+                              <Check size={11} strokeWidth={3} /> Done
+                            </motion.button>
+                          )
+                        ) : (
+                          <motion.button
+                            type="button"
+                            data-micro="true"
+                            className="btn-micro"
+                            whileTap={{ scale: 0.92 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerHapticSelection();
+                              setShowVitaminModal(true);
                             }}
-                            title="Mark all daily meds taken"
-                            aria-label="Mark daily meds taken"
+                            title="Set up daily meds schedule"
+                            aria-label="Set up daily meds schedule"
                             style={{
                               background: 'linear-gradient(135deg, #F492A7 0%, #CE5A7B 100%)',
                               border: 'none',
@@ -1144,7 +1254,7 @@ export default function CaseDashboard() {
                               minHeight: isMobile ? '24px' : '26px',
                               maxHeight: isMobile ? '24px' : '26px',
                               minWidth: 'unset',
-                              padding: isMobile ? '0 12px' : '0 14px',
+                              padding: isMobile ? '0 11px' : '0 13px',
                               fontSize: isMobile ? '10.5px' : '11px',
                               fontWeight: 800,
                               color: '#FFFFFF',
@@ -1159,7 +1269,7 @@ export default function CaseDashboard() {
                               boxShadow: '0 2px 6px rgba(206, 90, 123, 0.2)'
                             }}
                           >
-                            <Check size={11} strokeWidth={3} /> Done
+                            <Plus size={11} strokeWidth={2.8} /> Add Meds
                           </motion.button>
                         )}
                       </div>
@@ -1202,7 +1312,7 @@ export default function CaseDashboard() {
                           stroke="#CE5A7B"
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
-                          strokeDashoffset={ringOffset}
+                          strokeDashoffset={hasConfiguredMeds ? ringOffset : ringCircumference}
                           strokeLinecap="round"
                           fill="transparent"
                           style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
@@ -1220,30 +1330,50 @@ export default function CaseDashboard() {
                           pointerEvents: 'none'
                         }}
                       >
-                        <span
-                          className="tabular-nums"
-                          style={{
-                            fontSize: isMobile ? '15px' : '17px',
-                            fontWeight: 900,
-                            color: '#0F172A',
-                            lineHeight: 1,
-                            letterSpacing: '-0.3px'
-                          }}
-                        >
-                          {rxPct}%
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '8px',
-                            fontWeight: 900,
-                            color: '#BE185D',
-                            letterSpacing: '0.8px',
-                            textTransform: 'uppercase',
-                            marginTop: '2px'
-                          }}
-                        >
-                          {isRxDone ? 'MET ✓' : 'GOAL'}
-                        </span>
+                        {hasConfiguredMeds ? (
+                          <>
+                            <span
+                              className="tabular-nums"
+                              style={{
+                                fontSize: isMobile ? '15px' : '17px',
+                                fontWeight: 900,
+                                color: '#0F172A',
+                                lineHeight: 1,
+                                letterSpacing: '-0.3px'
+                              }}
+                            >
+                              {rxPct}%
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '8px',
+                                fontWeight: 900,
+                                color: '#BE185D',
+                                letterSpacing: '0.8px',
+                                textTransform: 'uppercase',
+                                marginTop: '2px'
+                              }}
+                            >
+                              {isRxDone ? 'MET ✓' : 'GOAL'}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={isMobile ? 15 : 17} strokeWidth={2.8} color="#BE185D" />
+                            <span
+                              style={{
+                                fontSize: '7.5px',
+                                fontWeight: 900,
+                                color: '#BE185D',
+                                letterSpacing: '0.6px',
+                                textTransform: 'uppercase',
+                                marginTop: '1px'
+                              }}
+                            >
+                              SET UP
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -1523,7 +1653,14 @@ export default function CaseDashboard() {
 
       <VitaminSchedulerModal
         isOpen={showVitaminModal}
-        onClose={() => setShowVitaminModal(false)}
+        onClose={() => {
+          setShowVitaminModal(false);
+          setVitaminSchedule(getVitaminSchedule());
+          try {
+            const stored = getItemSync(getHabitStorageKey(todayDateStr));
+            if (stored) setCompletedHabits(JSON.parse(stored));
+          } catch {}
+        }}
         onUpdated={() => {
           setVitaminSchedule(getVitaminSchedule());
           try {
@@ -1537,7 +1674,14 @@ export default function CaseDashboard() {
 
       <HydrationTrackerModal
         isOpen={showHydrationModal}
-        onClose={() => setShowHydrationModal(false)}
+        onClose={() => {
+          setShowHydrationModal(false);
+          setHydrationData(getHydrationData());
+          try {
+            const stored = getItemSync(getHabitStorageKey(todayDateStr));
+            if (stored) setCompletedHabits(JSON.parse(stored));
+          } catch {}
+        }}
         onUpdated={() => {
           setHydrationData(getHydrationData());
           try {
