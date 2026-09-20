@@ -57,7 +57,7 @@ import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
-import { TherapeuticOutcomeCard } from './TherapeuticOutcomeCard';
+import { TherapeuticOutcomeCard, openEliminationSuiteModal } from './TherapeuticOutcomeCard';
 
 export type TabId =
   | 'overview'
@@ -165,82 +165,40 @@ export const SourceEvidenceBadge: React.FC<{
 );
 
 export const ALL_12_STATIONS: StationConfig[] = [
-  // Pillar 1: Gut & Food (01 - 05)
+  // Pillar 1: Gut & Food (01 - 02)
   {
-    id: 'map',
+    id: 'postmeal',
     stationNumber: '01',
     pillarId: 'gut',
     pillarLabel: 'Gut & Food',
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Track Food Triggers',
-    shortTitle: 'Food Triggers',
-    icon: '🥗',
-    subtitle: 'Dietary triggers, sensitivities & culprit compounds',
-    statusBadge: 'Food Triggers',
+    title: 'Post-Meal Timeline & Flare Calendar',
+    shortTitle: 'Timeline & Calendar',
+    icon: '🍽️',
+    subtitle: 'Post-meal reaction delay windows & 30-day digestion heatmap',
+    statusBadge: '2h/6h & Heatmap',
   },
   {
-    id: 'postmeal',
+    id: 'insights',
     stationNumber: '02',
     pillarId: 'gut',
     pillarLabel: 'Gut & Food',
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Post-Meal Sensitivities Timeline',
-    shortTitle: 'Post-Meal',
-    icon: '🍽️',
-    subtitle: 'Post-meal reaction timeline & delay windows',
-    statusBadge: '2h & 6h Windows',
-  },
-  {
-    id: 'calendar',
-    stationNumber: '03',
-    pillarId: 'gut',
-    pillarLabel: 'Gut & Food',
-    pillarColor: '#0D9488',
-    pillarBg: '#F0FDFA',
-    pillarBorder: '#CCFBF1',
-    title: 'Digestion & Bloating Calendar Heatmap',
-    shortTitle: 'Heatmap',
-    icon: '📅',
-    subtitle: 'Monthly meal logs & flare calendar',
-    statusBadge: '30-Day Trend',
-  },
-  {
-    id: 'elimination',
-    stationNumber: '04',
-    pillarId: 'gut',
-    pillarLabel: 'Gut & Food',
-    pillarColor: '#0D9488',
-    pillarBg: '#F0FDFA',
-    pillarBorder: '#CCFBF1',
-    title: 'Trigger Elimination & Reintroduction',
-    shortTitle: 'Elimination',
-    icon: '🎯',
-    subtitle: 'Structured 4-week elimination trial & reintroduction challenges',
-    statusBadge: 'Elimination Trial',
-  },
-  {
-    id: 'insights',
-    stationNumber: '05',
-    pillarId: 'gut',
-    pillarLabel: 'Gut & Food',
-    pillarColor: '#0D9488',
-    pillarBg: '#F0FDFA',
-    pillarBorder: '#CCFBF1',
-    title: 'Cross-Correlation Insights',
-    shortTitle: 'Insights',
-    icon: '💡',
-    subtitle: 'Ingredient-to-symptom statistical correlations',
+    title: 'Food Triggers & Insights',
+    shortTitle: 'Triggers & Insights',
+    icon: '🥗',
+    subtitle: 'Culprit foods, evidence graph & statistical correlations',
     statusBadge: 'Correlations',
   },
 
-  // Pillar 2: Labs & Biomechanics (06 - 07)
+  // Pillar 2: Labs & Body (03 - 04)
   {
     id: 'biomarkers',
-    stationNumber: '06',
+    stationNumber: '03',
     pillarId: 'body',
     pillarLabel: 'Labs & Body',
     pillarColor: '#0284C7',
@@ -254,7 +212,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
   },
   {
     id: 'kinetic',
-    stationNumber: '07',
+    stationNumber: '04',
     pillarId: 'body',
     pillarLabel: 'Labs & Body',
     pillarColor: '#0284C7',
@@ -266,9 +224,6 @@ export const ALL_12_STATIONS: StationConfig[] = [
     subtitle: 'Posture chains & vagus nerve axis',
     statusBadge: 'Vagus Axis',
   },
-
-
-
 ];
 
 export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body'>> = {
@@ -307,8 +262,13 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     badge: 'Pillar 01',
     desc: 'Dietary triggers, histamine, post-meal timing & calendar flares',
     icon: '🥗',
-    stationCount: 5,
-    stationRange: '01 - 05',
+    get stationCount() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'gut').length;
+    },
+    get stationRange() {
+      const stations = ALL_12_STATIONS.filter((s) => s.pillarId === 'gut');
+      return stations.length > 0 ? `${stations[0].stationNumber} - ${stations[stations.length - 1].stationNumber}` : '01 - 02';
+    },
     telemetry: 'Triggers & Flares',
     accentColor: '#0D9488',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
@@ -317,7 +277,9 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     gradient: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)',
     badgeBg: '#CCFBF1',
     badgeColor: '#0F766E',
-    stationIds: ['map', 'postmeal', 'calendar', 'elimination', 'insights']
+    get stationIds() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'gut').map((s) => s.id);
+    },
   },
   {
     id: 'body',
@@ -325,8 +287,13 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     badge: 'Pillar 02',
     desc: 'Lab ranges, optimal targets & biomechanics',
     icon: '🧪',
-    stationCount: 2,
-    stationRange: '06 - 07',
+    get stationCount() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'body').length;
+    },
+    get stationRange() {
+      const stations = ALL_12_STATIONS.filter((s) => s.pillarId === 'body');
+      return stations.length > 0 ? `${stations[0].stationNumber} - ${stations[stations.length - 1].stationNumber}` : '03 - 04';
+    },
     telemetry: 'Biomarkers & Vagus',
     accentColor: '#0284C7',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 60%, #E0F2FE 100%)',
@@ -335,7 +302,9 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     gradient: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
     badgeBg: '#E0F2FE',
     badgeColor: '#0369A1',
-    stationIds: ['biomarkers', 'kinetic']
+    get stationIds() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'body').map((s) => s.id);
+    },
   },
 ];
 
@@ -348,9 +317,33 @@ export interface PillarFilterOption {
 }
 
 export const PILLAR_FILTERS: PillarFilterOption[] = [
-  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 7 },
-  { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut', icon: '🥗', count: 5 },
-  { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs', icon: '🧪', count: 2 },
+  {
+    id: 'all',
+    label: 'All Domains',
+    shortLabel: 'All',
+    icon: '✨',
+    get count() {
+      return ALL_12_STATIONS.length;
+    },
+  },
+  {
+    id: 'gut',
+    label: 'Gut & Food',
+    shortLabel: '🥗 Gut',
+    icon: '🥗',
+    get count() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'gut').length;
+    },
+  },
+  {
+    id: 'body',
+    label: 'Labs & Body',
+    shortLabel: '🧪 Labs',
+    icon: '🧪',
+    get count() {
+      return ALL_12_STATIONS.filter((s) => s.pillarId === 'body').length;
+    },
+  },
 ];
 
 interface ConnectionDetectiveViewProps {
@@ -407,10 +400,24 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     if (onOpenedPillarChange) onOpenedPillarChange(id);
     setInternalOpenedPillarId(id);
   };
-  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body', TabId>>(() => ({
-    gut: initialTab && initialTab !== 'map' && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'overview',
-    body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
-  }));
+  const resolveStationTab = (tab?: TabId): TabId => {
+    if (!tab || tab === 'overview') return 'overview';
+    if (tab === 'calendar') return 'postmeal';
+    if (tab === 'map') return 'insights';
+    return tab;
+  };
+
+  const [timelineViewMode, setTimelineViewMode] = useState<'timeline' | 'heatmap'>(() =>
+    initialTab === 'calendar' ? 'heatmap' : 'timeline'
+  );
+
+  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body', TabId>>(() => {
+    const resolved = resolveStationTab(initialTab);
+    return {
+      gut: resolved && resolved !== 'overview' && TAB_TO_PILLAR[resolved] === 'gut' ? resolved : 'overview',
+      body: resolved && TAB_TO_PILLAR[resolved] === 'body' ? resolved : 'biomarkers',
+    };
+  });
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
 
@@ -419,8 +426,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     setOpenedPillarId(pillarId === 'all' ? null : pillarId);
     trackButtonClick('clinical_parent_pillar_select', pillarId);
   };
-
-
 
   const [sourcePassageModalData, setSourcePassageModalData] = useState<SourcePassageModalProps | null>(null);
 
@@ -442,17 +447,30 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   // Scroll to station helper
   const scrollToStation = (tabId: TabId) => {
     triggerHapticSelection();
-    const targetStation = ALL_12_STATIONS.find((s) => s.id === tabId);
+
+    if (tabId === 'elimination') {
+      openEliminationSuiteModal();
+      return;
+    }
+
+    if (tabId === 'calendar') {
+      setTimelineViewMode('heatmap');
+      scrollToStation('postmeal');
+      return;
+    }
+
+    const resolvedId = resolveStationTab(tabId);
+    const targetStation = ALL_12_STATIONS.find((s) => s.id === resolvedId);
     if (targetStation) {
       setOpenedPillarId(targetStation.pillarId);
       setCardActiveStations((prev) => ({ ...prev, [targetStation.pillarId]: targetStation.id }));
     }
     setFocusedStationId(null);
-    setHighlightedStationId(tabId);
-    trackButtonClick('clinical_station_jump', tabId);
+    setHighlightedStationId(resolvedId);
+    trackButtonClick('clinical_station_jump', resolvedId);
 
     setTimeout(() => {
-      const element = document.getElementById(`cd-station-${tabId}`);
+      const element = document.getElementById(`cd-station-${resolvedId}`);
       const cardEl = targetStation ? document.getElementById(`cd-card-${targetStation.pillarId}`) : null;
       if (cardEl) {
         cardEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -467,11 +485,15 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   };
 
   useEffect(() => {
-    if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
-      const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+    if (initialTab && initialTab !== 'overview') {
+      if (initialTab === 'calendar') {
+        setTimelineViewMode('heatmap');
+      }
+      const resolved = resolveStationTab(initialTab);
+      const target = ALL_12_STATIONS.find((s) => s.id === resolved);
       if (target) {
         setCardActiveStations((prev) => ({ ...prev, [target.pillarId]: target.id }));
-        setHighlightedStationId(initialTab);
+        setHighlightedStationId(resolved);
         const timer = setTimeout(() => {
           setHighlightedStationId(null);
         }, 2400);
@@ -672,12 +694,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                 {/* STATION BODY */}
                 <div style={{ padding: isMobile ? '12px 14px 16px 14px' : '16px 18px 20px 18px' }}>
 
-                  {/* STATION 01: CONNECTED EVIDENCE & FOODS */}
-                  {station.id === 'map' && (
+                  {/* STATION: FOOD TRIGGERS & INSIGHTS */}
+                  {(station.id === 'insights' || station.id === 'map') && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {/* Active Food Triggers Protocol Tracker */}
-                      <TherapeuticOutcomeCard />
-
                       {/* STEP 8: THE 6 CANONICAL RELATIONSHIPS EVIDENCE GRAPH */}
                       {semanticGraph.nodes.length > 0 && (
                         <SemanticEvidenceGraphView
@@ -858,74 +877,108 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        <button
-                          type="button"
-                          onClick={() => scrollToStation('postmeal')}
-                          style={{
-                            background: '#F1F5F9',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '8px',
-                            padding: '6px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            color: '#334155',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
+                      <div style={{ marginTop: '14px' }}>
+                        <SmartCorrelationInsightsView
+                          onOpenElimination={() => openEliminationSuiteModal()}
+                          onOpenTimeline={() => scrollToStation('postmeal')}
+                          onOpenHeatmap={() => {
+                            setTimelineViewMode('heatmap');
+                            scrollToStation('postmeal');
                           }}
-                        >
-                          View Reaction Timeline ↓
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => scrollToStation('calendar')}
-                          style={{
-                            background: '#F1F5F9',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '8px',
-                            padding: '6px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            color: '#334155',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          View 30-Day Heatmap ↓
-                        </button>
+                        />
                       </div>
                     </div>
                   )}
 
-                  {/* STATION 02: POST-MEAL TIMELINE */}
-                  {station.id === 'postmeal' && (
-                    <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />
+                  {/* STATION: POST-MEAL TIMELINE & FLARE CALENDAR */}
+                  {(station.id === 'postmeal' || station.id === 'calendar') && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {/* Sub-tab switcher */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: '#F1F5F9',
+                          padding: '4px',
+                          borderRadius: '12px',
+                          width: 'fit-content',
+                          border: '1px solid #E2E8F0',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setTimelineViewMode('timeline');
+                          }}
+                          style={{
+                            background: timelineViewMode === 'timeline' ? '#FFFFFF' : 'transparent',
+                            color: timelineViewMode === 'timeline' ? '#0F172A' : '#64748B',
+                            fontWeight: timelineViewMode === 'timeline' ? 700 : 600,
+                            border: timelineViewMode === 'timeline' ? '1px solid #CBD5E1' : '1px solid transparent',
+                            boxShadow: timelineViewMode === 'timeline' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span>⏱️</span>
+                          <span>2h & 6h Reaction Windows</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setTimelineViewMode('heatmap');
+                          }}
+                          style={{
+                            background: timelineViewMode === 'heatmap' ? '#FFFFFF' : 'transparent',
+                            color: timelineViewMode === 'heatmap' ? '#0F172A' : '#64748B',
+                            fontWeight: timelineViewMode === 'heatmap' ? 700 : 600,
+                            border: timelineViewMode === 'heatmap' ? '1px solid #CBD5E1' : '1px solid transparent',
+                            boxShadow: timelineViewMode === 'heatmap' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span>📅</span>
+                          <span>30-Day Digestion Calendar</span>
+                        </button>
+                      </div>
+
+                      {timelineViewMode === 'timeline' ? (
+                        <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />
+                      ) : (
+                        <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />
+                      )}
+                    </div>
                   )}
 
-                  {/* STATION 03: DIGESTION HEATMAP */}
-                  {station.id === 'calendar' && (
-                    <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />
-                  )}
-
-                  {/* STATION 04: ELIMINATION PROTOCOL */}
+                  {/* STATION: ELIMINATION PROTOCOL FALLBACK */}
                   {station.id === 'elimination' && (
                     <EliminationProtocolSuite
                       onOpenQuickMeal={onOpenFoodDetective}
-                      onOpenCalendarHeatmap={() => scrollToStation('calendar')}
-                      onOpenPostMealTimeline={() => scrollToStation('postmeal')}
-                    />
-                  )}
-
-                  {/* STATION 05: SMART CORRELATION INSIGHTS */}
-                  {station.id === 'insights' && (
-                    <SmartCorrelationInsightsView
-                      onOpenElimination={() => scrollToStation('elimination')}
-                      onOpenTimeline={() => scrollToStation('postmeal')}
-                      onOpenHeatmap={() => scrollToStation('calendar')}
+                      onOpenCalendarHeatmap={() => {
+                        setTimelineViewMode('heatmap');
+                        scrollToStation('postmeal');
+                      }}
+                      onOpenPostMealTimeline={() => {
+                        setTimelineViewMode('timeline');
+                        scrollToStation('postmeal');
+                      }}
                     />
                   )}
 
@@ -1169,7 +1222,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           }}
                         >
                           <Sparkles size={11} color={isGut ? '#059669' : '#0284C7'} />
-                          <span>{isGut ? '5 CLINICAL TOOLS' : '2 CLINICAL TOOLS'}</span>
+                          <span>{`${pillarStations.length} CLINICAL TOOLS`}</span>
                         </div>
                       </div>
 
@@ -1446,21 +1499,18 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   {/* ACTIVE STATION CONTENT OR OVERVIEW HUB */}
                   {activeStationIdForPillar === 'overview' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {/* Active Protocol / Track Food Triggers Hero Card */}
-                      <TherapeuticOutcomeCard />
-
                       {/* Section Title */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
                         <div>
                           <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                            Gut Health Features & Tools
+                            {openedPillar.title} Features & Tools
                           </h4>
                           <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-                            Tap any tool to investigate symptoms, reaction delays, and flare calendars
+                            {openedPillar.desc}
                           </p>
                         </div>
                         <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px' }}>
-                          5 Core Tools
+                          {`${pillarStations.length} Clinical Tools`}
                         </span>
                       </div>
 

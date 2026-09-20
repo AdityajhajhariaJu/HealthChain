@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
-import { ConnectionDetectiveView, ALL_12_STATIONS } from './ConnectionDetectiveView';
+import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
 
 interface ConnectionDetectiveModalProps {
@@ -27,7 +27,12 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
 
   useEffect(() => {
     if (isOpen) {
-      if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
+      if (initialTab && initialTab !== 'overview') {
+        const pillar = TAB_TO_PILLAR[initialTab as any];
+        if (pillar) {
+          setOpenedPillarId(pillar);
+          return;
+        }
         const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
         if (target) {
           setOpenedPillarId(target.pillarId);
@@ -147,10 +152,13 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                   </button>
                 )}
 
-                <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Gut <span style={{ color: '#0D9488' }}>Health</span>
+                    Gut Health <span style={{ color: '#0D9488' }}>& Connections</span>
                   </h2>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', background: '#CCFBF1', border: '1px solid #99F6E4', padding: '2px 7px', borderRadius: '999px', whiteSpace: 'nowrap' }}>
+                    Systems Detective
+                  </span>
                 </div>
               </div>
 
@@ -160,7 +168,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                   triggerHapticLight();
                   onClose();
                 }}
-                aria-label="Close Gut Health"
+                aria-label="Close Gut Health & Connections"
                 style={{
                   width: '36px',
                   height: '36px',
