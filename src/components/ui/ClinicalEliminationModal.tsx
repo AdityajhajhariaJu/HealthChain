@@ -889,7 +889,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                   }}
                 >
                   {suiteMode === 'onboarding'
-                    ? 'Clinical Food Reset Intake'
+                    ? 'Track Food Triggers Intake'
                     : isProtocolsTab
                     ? 'Food Elimination & Reset Protocols'
                     : activeProtocolDef.name}

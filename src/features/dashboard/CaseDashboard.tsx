@@ -658,9 +658,9 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)', 
-                  border: '1px solid #99F6E4', 
-                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)', 
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #FDF2F8 60%, #FCE7F3 100%)', 
+                  border: '1px solid #FBCFE8', 
+                  boxShadow: '0 4px 16px rgba(219, 39, 119, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02)', 
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
@@ -680,8 +680,8 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)', 
-                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.28)', 
+                    background: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)', 
+                    boxShadow: '0 2px 8px rgba(219, 39, 119, 0.28)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
