@@ -28,8 +28,6 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   useEffect(() => {
     if (isOpen) {
       setOpenedPillarId('gut');
-    } else {
-      setOpenedPillarId(null);
     }
   }, [isOpen]);
 

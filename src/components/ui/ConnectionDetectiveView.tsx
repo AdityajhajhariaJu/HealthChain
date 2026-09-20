@@ -394,12 +394,11 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   }, [activeReview, activeCase]);
 
   const [internalOpenedPillarId, setInternalOpenedPillarId] = useState<PillarId | null>(() => {
-    // Only open a pillar directly if an explicit non-default initialTab is provided (not 'map')
-    if (initialTab && initialTab !== 'map') {
+    if (initialTab) {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
-      return target ? target.pillarId : null;
+      if (target) return target.pillarId;
     }
-    return null; // Always show the 4 cards by default!
+    return 'gut'; // Default directly to Gut & Food workspace!
   });
 
   const openedPillarId = controlledOpenedPillarId !== undefined ? controlledOpenedPillarId : internalOpenedPillarId;
