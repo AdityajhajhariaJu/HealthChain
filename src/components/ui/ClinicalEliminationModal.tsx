@@ -2374,6 +2374,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             <button
                               type="button"
                               onClick={() => setShowSos(false)}
+                              aria-label="Close accidental exposure relief"
                               style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
                             >
                               <X size={16} />
@@ -2470,6 +2471,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                             <button
                               type="button"
                               onClick={() => setShowSwapDrawer(false)}
+                              aria-label="Close safe swap directory"
                               style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
                             >
                               <X size={16} />
@@ -4426,6 +4428,7 @@ R (Recommendation):
               <button
                 type="button"
                 onClick={() => setShowAssessmentModal(false)}
+                aria-label="Close intake assessment"
                 style={{
                   width: '32px',
                   height: '32px',
