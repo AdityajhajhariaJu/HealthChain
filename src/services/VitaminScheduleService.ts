@@ -67,8 +67,34 @@ export function getVitaminSchedule(): VitaminItem[] {
  */
 export async function saveVitaminSchedule(items: VitaminItem[]): Promise<void> {
   setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(items));
+
+  // Sync today's completion state
+  const today = getTodayDateString();
+  let takenMap: Record<string, boolean> = {};
+  try {
+    const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
+    if (rawLogs) takenMap = JSON.parse(rawLogs);
+  } catch {}
+
+  const enabledItems = items.filter(v => v.enabled !== false);
+  const allTaken = enabledItems.length > 0 && enabledItems.every(v => !!takenMap[v.id]);
+
+  try {
+    const habitKey = getHabitStorageKey(today);
+    const habitRaw = getItemSync(habitKey);
+    const habits = habitRaw ? JSON.parse(habitRaw) : {};
+    habits['vitamins'] = allTaken;
+    setItemSync(habitKey, JSON.stringify(habits));
+  } catch {}
+
   await rescheduleVitaminNotifications(items);
-  window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: items }));
+
+  const updatedWithLogs = items.map(item => ({
+    ...item,
+    takenToday: !!takenMap[item.id]
+  }));
+  window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: updatedWithLogs }));
+  window.dispatchEvent(new Event('storage'));
 }
 
 /**
@@ -78,8 +104,8 @@ export function toggleVitaminTaken(id: string): boolean {
   const today = getTodayDateString();
   let takenMap: Record<string, boolean> = {};
   try {
-    const raw = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
-    if (raw) takenMap = JSON.parse(raw);
+    const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
+    if (rawLogs) takenMap = JSON.parse(rawLogs);
   } catch {}
 
   const nextState = !takenMap[id];
@@ -88,7 +114,8 @@ export function toggleVitaminTaken(id: string): boolean {
 
   // Check if all active vitamins are taken
   const all = getVitaminSchedule();
-  const allTaken = all.filter(v => v.enabled).every(v => !!takenMap[v.id]);
+  const enabledItems = all.filter(v => v.enabled !== false);
+  const allTaken = enabledItems.length > 0 && enabledItems.every(v => !!takenMap[v.id]);
 
   // Sync with main habit key if all vitamins are taken
   try {
@@ -100,6 +127,7 @@ export function toggleVitaminTaken(id: string): boolean {
   } catch {}
 
   window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: all }));
+  window.dispatchEvent(new Event('storage'));
   return nextState;
 }
 
@@ -111,19 +139,24 @@ export function markAllVitaminsTaken(): void {
   const all = getVitaminSchedule();
   const takenMap: Record<string, boolean> = {};
   all.forEach(v => {
-    if (v.enabled) takenMap[v.id] = true;
+    if (v.enabled !== false) takenMap[v.id] = true;
   });
   setItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`), JSON.stringify(takenMap));
+
+  const enabledItems = all.filter(v => v.enabled !== false);
+  const hasEnabled = enabledItems.length > 0;
 
   try {
     const habitKey = getHabitStorageKey(today);
     const habitRaw = getItemSync(habitKey);
     const habits = habitRaw ? JSON.parse(habitRaw) : {};
-    habits['vitamins'] = true;
+    habits['vitamins'] = hasEnabled;
     setItemSync(habitKey, JSON.stringify(habits));
   } catch {}
 
-  window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: all }));
+  const updated = getVitaminSchedule();
+  window.dispatchEvent(new CustomEvent('hc_vitamins_updated', { detail: updated }));
+  window.dispatchEvent(new Event('storage'));
 }
 
 /**

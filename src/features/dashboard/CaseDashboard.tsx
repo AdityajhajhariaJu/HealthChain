@@ -43,7 +43,7 @@ import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
-import { getVitaminSchedule, VitaminItem } from '../../services/VitaminScheduleService';
+import { getVitaminSchedule, markAllVitaminsTaken, VitaminItem } from '../../services/VitaminScheduleService';
 import { HydrationTrackerModal } from '../../components/ui/HydrationTrackerModal';
 import { getHydrationData, addWaterLog, HydrationDayData, getTodayDateString } from '../../services/HydrationService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
@@ -702,8 +702,8 @@ export default function CaseDashboard() {
               {(() => {
                 const waterMl = hydrationData.currentMl;
                 const targetWaterMl = hydrationData.targetMl || 2000;
-                const waterPct = Math.min(100, Math.round((waterMl / targetWaterMl) * 100));
-                const isWaterGoal = Boolean(completedHabits['hydration']) || waterMl >= targetWaterMl;
+                const waterPct = targetWaterMl > 0 ? Math.min(100, Math.round((waterMl / targetWaterMl) * 100)) : 0;
+                const isWaterGoal = targetWaterMl > 0 ? waterMl >= targetWaterMl : false;
                 const remainingWaterMl = Math.max(0, targetWaterMl - waterMl);
                 const remainingGlasses = Math.ceil(remainingWaterMl / 250);
                 const currentGlasses = Math.round(waterMl / 250);
@@ -967,17 +967,21 @@ export default function CaseDashboard() {
 
               {/* Habit 2: Daily Meds & Vitamins */}
               {(() => {
-                const totalRxDoses = vitaminSchedule.length > 0 ? vitaminSchedule.length : 1;
-                const takenRxDoses = completedHabits['vitamins']
-                  ? totalRxDoses
-                  : (vitaminSchedule.length > 0 ? vitaminSchedule.filter(v => Boolean(v.takenToday)).length : 0);
-                const isRxDone = Boolean(completedHabits['vitamins']) || (vitaminSchedule.length > 0 && takenRxDoses >= totalRxDoses);
-                const rxPct = Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100));
+                const activeVitamins = vitaminSchedule.filter(v => v.enabled !== false);
+                const hasConfiguredMeds = activeVitamins.length > 0;
+                const totalRxDoses = hasConfiguredMeds ? activeVitamins.length : 1;
+                const takenRxDoses = hasConfiguredMeds
+                  ? activeVitamins.filter(v => Boolean(v.takenToday)).length
+                  : (completedHabits['vitamins'] ? 1 : 0);
+                const isRxDone = hasConfiguredMeds
+                  ? (totalRxDoses > 0 && takenRxDoses >= totalRxDoses)
+                  : Boolean(completedHabits['vitamins']);
+                const rxPct = totalRxDoses > 0 ? Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100)) : 0;
                 const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
                 const ringRadius = 29;
                 const ringCircumference = 2 * Math.PI * ringRadius;
                 const ringOffset = ringCircumference - (rxPct / 100) * ringCircumference;
-                const nextDoseItem = vitaminSchedule.find(v => !v.takenToday);
+                const nextDoseItem = activeVitamins.find(v => !v.takenToday);
 
                 return (
                   <motion.div 
@@ -1082,7 +1086,7 @@ export default function CaseDashboard() {
                             ✓ All daily meds & vitamins taken today
                           </span>
                         ) : (
-                          `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • Scheduled today`
+                          `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • ${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} remaining`
                         )}
                       </p>
 
@@ -1107,7 +1111,7 @@ export default function CaseDashboard() {
                               lineHeight: 1
                             }}
                           >
-                            <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
+                            <Check size={10} strokeWidth={3} /> {hasConfiguredMeds ? `All ${totalRxDoses} Taken Today` : 'Taken Today'}
                           </span>
                         ) : (
                           <motion.button
@@ -1117,7 +1121,18 @@ export default function CaseDashboard() {
                             whileTap={{ scale: 0.92 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                              if (hasConfiguredMeds) {
+                                markAllVitaminsTaken();
+                                triggerHapticSuccess();
+                                awardPoints(5, 'Daily Micronutrient / Rx Protocol', 'lifestyle', `habit_vitamins_${todayDateStr}`);
+                                setVitaminSchedule(getVitaminSchedule());
+                                try {
+                                  const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                                  if (stored) setCompletedHabits(JSON.parse(stored));
+                                } catch {}
+                              } else {
+                                toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                              }
                             }}
                             title="Mark all daily meds taken"
                             aria-label="Mark daily meds taken"

@@ -79,17 +79,15 @@ export function saveHydrationData(data: HydrationDayData): void {
   try {
     setItemSync(scopedKey(`${STORAGE_PREFIX}${data.date}`), JSON.stringify(data));
 
-    // Habit sync: if currentMl >= 500ml, habit is achieved for today
+    // Habit sync: habit is achieved for today when currentMl >= targetMl
     const habitKey = getHabitStorageKey(data.date);
     const habitRaw = getItemSync(habitKey);
     const habits = habitRaw ? JSON.parse(habitRaw) : {};
-    const wasHabitDone = !!habits['hydration'];
-    const isNowDone = data.currentMl >= 500;
+    const target = data.targetMl > 0 ? data.targetMl : 2000;
+    const isNowDone = data.currentMl >= target;
     
-    if (wasHabitDone !== isNowDone) {
-      habits['hydration'] = isNowDone;
-      setItemSync(habitKey, JSON.stringify(habits));
-    }
+    habits['hydration'] = isNowDone;
+    setItemSync(habitKey, JSON.stringify(habits));
 
     // Dispatch update events for reactive UI
     window.dispatchEvent(new CustomEvent('hc_hydration_updated', { detail: data }));
@@ -132,7 +130,7 @@ export function addWaterLog(
   // Award Vitality points:
   // 1. First 500ml threshold hit
   if (current.currentMl < 500 && updatedMl >= 500) {
-    awardPoints(2, 'Morning Hydration (500ml)', 'lifestyle', `habit_hydration_${date}`);
+    awardPoints(2, 'Morning Hydration (500ml)', 'lifestyle', `hydration_500_${date}`);
   }
   // 2. Full daily target achieved
   if (wasBelowTarget && updatedMl >= current.targetMl) {

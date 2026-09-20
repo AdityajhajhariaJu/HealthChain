@@ -594,6 +594,14 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setNewBenefit('');
   };
 
+  const handleDismiss = async () => {
+    try {
+      await saveVitaminSchedule(vitamins);
+    } catch {}
+    if (onUpdated) onUpdated();
+    onClose();
+  };
+
   const handleSaveAndClose = async () => {
     triggerHapticSuccess();
     await saveVitaminSchedule(vitamins);
@@ -652,7 +660,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)'
         }}
-        onClick={onClose}
+        onClick={handleDismiss}
       >
         <motion.div
           role="dialog"
@@ -688,7 +696,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               cursor: 'pointer',
               paddingTop: '6px'
             }}
-            onClick={onClose}
+            onClick={handleDismiss}
           >
             <div style={{ width: '38px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '999px' }} />
           </div>
@@ -731,7 +739,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                onClose();
+                handleDismiss();
               }}
               style={{
                 width: '44px',
