@@ -1035,7 +1035,7 @@ export default function CaseDashboard() {
                           marginBottom: '3px'
                         }}
                       >
-                        <Pill size={11} color={isRxDone ? '#059669' : '#DB2777'} />
+                        <Pill size={11} color={isRxDone ? '#059669' : '#CE5A7B'} />
                         <span>Daily Meds & Vitamins</span>
                       </div>
 
@@ -1122,7 +1122,7 @@ export default function CaseDashboard() {
                             title="Mark all daily meds taken"
                             aria-label="Mark daily meds taken"
                             style={{
-                              background: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)',
+                              background: 'linear-gradient(135deg, #F492A7 0%, #CE5A7B 100%)',
                               border: 'none',
                               borderRadius: '999px',
                               height: isMobile ? '24px' : '26px',
@@ -1141,7 +1141,7 @@ export default function CaseDashboard() {
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
                               lineHeight: 1,
-                              boxShadow: '0 2px 8px rgba(219, 39, 119, 0.25)'
+                              boxShadow: '0 2px 6px rgba(206, 90, 123, 0.2)'
                             }}
                           >
                             <Check size={11} strokeWidth={3} /> Done
@@ -1184,7 +1184,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isRxDone ? '#10B981' : '#DB2777'}
+                          stroke={isRxDone ? '#10B981' : '#CE5A7B'}
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
