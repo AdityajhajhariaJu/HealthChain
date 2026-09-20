@@ -1069,18 +1069,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
             {/* Active Protocol / Track Food Triggers Hero Card */}
             <TherapeuticOutcomeCard />
 
-            {/* Section Header: Clinical Health Domains */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  Health Domains & Diagnostics
-                </h4>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-                  Explore connected clinical intelligence across digestive and systemic health
-                </p>
-              </div>
-            </div>
-
             {/* 2 DOMAIN CARDS GRID */}
             <div
               style={{
