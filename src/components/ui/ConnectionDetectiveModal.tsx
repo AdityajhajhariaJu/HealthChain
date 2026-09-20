@@ -165,15 +165,13 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {openedPillarId === 'gut' ? 'Gut & Food' : openedPillarId === 'body' ? 'Labs & Body' : 'Digestive Suite'}
+                      {openedPillarId === 'body' ? 'Labs & Body' : 'Digestive Suite'}
                     </span>
                   </div>
                   <p style={{ margin: '1px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {openedPillarId === 'gut'
-                      ? 'Dietary triggers, post-meal timing, heatmap flares & elimination protocol'
-                      : openedPillarId === 'body'
+                    {openedPillarId === 'body'
                       ? 'Systemic biomarkers, functional optimal ranges & vagus biomechanics'
-                      : 'Evidence-based food triggers, reaction timelines & elimination protocols'}
+                      : 'Evidence-based food triggers, reaction timelines & 30-day digestion flares'}
                   </p>
                 </div>
               </div>

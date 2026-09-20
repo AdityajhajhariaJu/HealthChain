@@ -625,32 +625,17 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       pillarId: 'gut' as const,
       icon: '🥗',
       title: 'Track Food Triggers',
-      badge: dynamicPillarData.gut.triggersCount > 0
+      badge: trial
+        ? `Day ${trial.currentDay}/${trial.totalDays}`
+        : dynamicPillarData.gut.triggersCount > 0
         ? `${dynamicPillarData.gut.triggersCount} ${dynamicPillarData.gut.triggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
-        : 'Food Mapping',
+        : 'Food & Reset',
       desc: 'Isolate culprit foods, sensitivities & inflammatory dietary triggers with semantic evidence mapping.',
       accentColor: '#0D9488',
       bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FAFEFD 50%, #F0FDFA 100%)',
       borderColor: 'rgba(13, 148, 136, 0.22)',
       badgeBg: '#CCFBF1',
       badgeColor: '#0F766E',
-    },
-    {
-      id: 'elimination' as TabId,
-      pillarId: 'gut' as const,
-      icon: '🎯',
-      title: 'Elimination Protocol',
-      badge: trial
-        ? `Day ${trial.currentDay}/${trial.totalDays}`
-        : isGraduated
-        ? 'Graduated 🏆'
-        : '4-Week Reset',
-      desc: 'Structured 4-phase reset: Baseline Washout, Mucosal Rest, Provocation Testing & Doctor Verdict.',
-      accentColor: '#059669',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FAFEFC 50%, #ECFDF5 100%)',
-      borderColor: 'rgba(16, 185, 129, 0.24)',
-      badgeBg: '#D1FAE5',
-      badgeColor: '#065F46',
     },
     {
       id: 'postmeal' as TabId,
@@ -678,37 +663,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       badgeBg: '#E0E7FF',
       badgeColor: '#3730A3',
     },
-    {
-      id: 'insights' as TabId,
-      pillarId: 'gut' as const,
-      icon: '💡',
-      title: 'Correlation Insights',
-      badge: 'AI Pattern Engine',
-      desc: 'Statistical cross-correlation engine linking suspect ingredients to recurring digestive symptoms.',
-      accentColor: '#7C3AED',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #FAF8FF 50%, #F5F3FF 100%)',
-      borderColor: 'rgba(124, 58, 237, 0.22)',
-      badgeBg: '#EDE9FE',
-      badgeColor: '#5B21B6',
-    },
-    {
-      id: 'biomarkers' as TabId,
-      pillarId: 'body' as const,
-      icon: '🧪',
-      title: 'Labs & Biomechanics',
-      badge: dynamicPillarData.body.flaggedCount > 0
-        ? `${dynamicPillarData.body.flaggedCount} Flagged Markers`
-        : dynamicPillarData.body.totalCount > 0
-        ? `${dynamicPillarData.body.totalCount} Markers Tracked`
-        : 'Functional Ranges',
-      desc: 'Functional biomarker cutoffs, gut-barrier lab markers, and posture-vagus nerve axis observations.',
-      accentColor: '#0284C7',
-      bgGradient: 'linear-gradient(145deg, #FFFFFF 0%, #F8FBFE 50%, #F0F9FF 100%)',
-      borderColor: 'rgba(2, 132, 199, 0.22)',
-      badgeBg: '#E0F2FE',
-      badgeColor: '#075985',
-    },
-  ], [dynamicPillarData, trial, isGraduated]);
+  ], [dynamicPillarData, trial]);
 
 
 
@@ -1289,15 +1244,15 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   whiteSpace: 'nowrap',
                 }}
               >
-                6 Core Tools
+                3 Core Tools
               </span>
             </div>
 
-            {/* Grid of All 6 Features */}
+            {/* Grid of All 3 Features */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
                 gap: isMobile ? '12px' : '14px',
               }}
             >
@@ -1502,8 +1457,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
           /* ======================================================== */
           (() => {
             const openedPillar = PARENT_PILLAR_CARDS.find((p) => p.id === openedPillarId) || PARENT_PILLAR_CARDS[0];
-            const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
-            const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || pillarStations[0]?.id;
+            const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || 'map';
+            const pillarStations = openedPillar.id === 'gut'
+              ? ALL_12_STATIONS.filter((s) => s.pillarId === 'gut' && (['map', 'postmeal', 'calendar'].includes(s.id) || activeStationIdForPillar === s.id))
+              : ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
             const activeStation = pillarStations.find((s) => s.id === activeStationIdForPillar) || pillarStations[0];
 
             return (
