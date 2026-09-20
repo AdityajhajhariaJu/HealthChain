@@ -1238,58 +1238,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
               );
             })}
 
-            {/* Doctor Appointment Prep Action Card */}
-            <div
-              style={{
-                gridColumn: isMobile ? '1' : '1 / -1',
-                background: '#F8FAFC',
-                borderRadius: '16px',
-                padding: '14px 18px',
-                border: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: isMobile ? 'flex-start' : 'center',
-                flexDirection: isMobile ? 'column' : 'row',
-                justifyContent: 'space-between',
-                gap: '12px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '20px' }}>📋</span>
-                <div>
-                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
-                    Preparing for a doctor visit?
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>
-                    Create a clinical appointment brief with prioritized questions and clinical records in Case Prep.
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  if (onOpenCasePrep) onOpenCasePrep();
-                  else window.location.href = '/app/case-prep';
-                }}
-                style={{
-                  background: '#0F766E',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 14px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                }}
-              >
-                Go to Case Prep <ArrowRight size={13} />
-              </button>
-            </div>
           </div>
         </motion.div>
         ) : (
