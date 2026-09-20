@@ -1000,8 +1000,8 @@ export default function CaseDashboard() {
                     }}
                     style={{
                       gridColumn: 'span 2',
-                      background: isRxDone ? '#F0FDF4' : 'linear-gradient(135deg, #FFFFFF 0%, #FFF8F5 100%)',
-                      border: isRxDone ? '1px solid #BBF7D0' : '1px solid #FEDCD2',
+                      background: isRxDone ? '#F0FDF4' : 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
+                      border: isRxDone ? '1px solid #BBF7D0' : '1px solid #FCE7F3',
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                       borderRadius: isMobile ? '22px' : '26px',
                       padding: isMobile ? '12px 14px' : '15px 20px',
@@ -1024,18 +1024,18 @@ export default function CaseDashboard() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          background: isRxDone ? '#ECFDF5' : '#FFF1EB',
-                          border: isRxDone ? '1px solid #A7F3D0' : '1px solid #FED7AA',
+                          background: isRxDone ? '#ECFDF5' : '#FDF2F8',
+                          border: isRxDone ? '1px solid #A7F3D0' : '1px solid #FBCFE8',
                           borderRadius: '999px',
                           padding: '2.5px 9px',
                           fontSize: '10.5px',
                           fontWeight: 800,
-                          color: isRxDone ? '#047857' : '#C2410C',
+                          color: isRxDone ? '#047857' : '#BE185D',
                           letterSpacing: '-0.1px',
                           marginBottom: '3px'
                         }}
                       >
-                        <Pill size={11} color={isRxDone ? '#059669' : '#EA580C'} />
+                        <Pill size={11} color={isRxDone ? '#059669' : '#DB2777'} />
                         <span>Daily Meds & Vitamins</span>
                       </div>
 
@@ -1122,7 +1122,7 @@ export default function CaseDashboard() {
                             title="Mark all daily meds taken"
                             aria-label="Mark daily meds taken"
                             style={{
-                              background: 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)',
+                              background: 'linear-gradient(135deg, #F472B6 0%, #DB2777 100%)',
                               border: 'none',
                               borderRadius: '999px',
                               height: isMobile ? '24px' : '26px',
@@ -1141,7 +1141,7 @@ export default function CaseDashboard() {
                               whiteSpace: 'nowrap',
                               flexShrink: 0,
                               lineHeight: 1,
-                              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
+                              boxShadow: '0 2px 8px rgba(219, 39, 119, 0.25)'
                             }}
                           >
                             <Check size={11} strokeWidth={3} /> Done
@@ -1176,7 +1176,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isRxDone ? '#D1FAE5' : '#FFE8E0'}
+                          stroke={isRxDone ? '#D1FAE5' : '#FCE7F3'}
                           strokeWidth={6.5}
                           fill="transparent"
                         />
@@ -1184,7 +1184,7 @@ export default function CaseDashboard() {
                           cx="37"
                           cy="37"
                           r={ringRadius}
-                          stroke={isRxDone ? '#10B981' : '#EA580C'}
+                          stroke={isRxDone ? '#10B981' : '#DB2777'}
                           strokeWidth={6.5}
                           strokeDasharray={ringCircumference}
                           strokeDashoffset={ringOffset}
@@ -1221,7 +1221,7 @@ export default function CaseDashboard() {
                           style={{
                             fontSize: '8px',
                             fontWeight: 900,
-                            color: isRxDone ? '#059669' : '#C2410C',
+                            color: isRxDone ? '#059669' : '#BE185D',
                             letterSpacing: '0.8px',
                             textTransform: 'uppercase',
                             marginTop: '2px'
