@@ -88,7 +88,12 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         setCameraError("Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.");
       });
 
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
     return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       if (activeStream) {
         activeStream.getTracks().forEach(t => t.stop());
       }

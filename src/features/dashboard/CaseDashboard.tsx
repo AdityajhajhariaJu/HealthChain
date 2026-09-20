@@ -1478,7 +1478,6 @@ export default function CaseDashboard() {
             />
           </div>
         )}
-        {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
         {/* Minimized Calm Space & Soundscapes Hub */}
         <div
@@ -1714,11 +1713,14 @@ export default function CaseDashboard() {
         initialTab="garden"
         standaloneTab
         onOpenMindfulness={() => {
+          setShowZenGardenModal(false);
           window.setTimeout(() => {
             calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         }}
       />
+
+      {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
     </div>
   );

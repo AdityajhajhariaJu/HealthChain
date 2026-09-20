@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Info, Sparkles } from 'lucide-react';
+import { Droplet, Info, Sparkles, Wind } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { getDailyStreak } from '../../services/VitalityPointsEngine';
 
 interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }
 
-export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () => {
+export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ onOpenMindfulness }) => {
   const [garden, setGarden] = useState<GardenState>(getGardenState());
   const [dailyStreak, setDailyStreak] = useState(() => getDailyStreak());
   const [isWatering, setIsWatering] = useState(false);
@@ -82,13 +82,39 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
           </motion.div>
         )}
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '18px', width: '100%', maxWidth: '320px' }}>
-          <button type="button" onClick={handleWater} disabled={isWatering || gardenTendedToday} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 14px', borderRadius: '14px', background: '#FFFFFF', color: '#0284C7', border: '1.5px solid #BAE6FD', fontSize: '13px', fontWeight: 700, cursor: gardenTendedToday ? 'default' : 'pointer', opacity: gardenTendedToday ? 0.72 : 1, boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)' }}>
-            <Droplet size={16} fill="#0284C7" /> {gardenTendedToday ? 'Garden Tended Today' : 'Water Garden'}
-          </button>
-          <button type="button" onClick={() => setShowGuide((value) => !value)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 14px', borderRadius: '14px', background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)', color: '#FFFFFF', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)' }}>
-            <Info size={16} /> {showGuide ? 'Hide Guide' : 'How It Grows'}
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '18px', width: '100%', maxWidth: '340px' }}>
+          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+            <button type="button" onClick={handleWater} disabled={isWatering || gardenTendedToday} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 14px', borderRadius: '14px', background: '#FFFFFF', color: '#0284C7', border: '1.5px solid #BAE6FD', fontSize: '13px', fontWeight: 700, cursor: gardenTendedToday ? 'default' : 'pointer', opacity: gardenTendedToday ? 0.72 : 1, boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)' }}>
+              <Droplet size={16} fill="#0284C7" /> {gardenTendedToday ? 'Garden Tended Today' : 'Water Garden'}
+            </button>
+            <button type="button" onClick={() => setShowGuide((value) => !value)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 14px', borderRadius: '14px', background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)', color: '#FFFFFF', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)' }}>
+              <Info size={16} /> {showGuide ? 'Hide Guide' : 'How It Grows'}
+            </button>
+          </div>
+          {onOpenMindfulness && (
+            <button
+              type="button"
+              onClick={onOpenMindfulness}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '9px 14px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)',
+                color: '#0F766E',
+                border: '1.5px solid #99F6E4',
+                fontSize: '12.5px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)'
+              }}
+            >
+              <Wind size={14} strokeWidth={2.4} /> Explore Soundscapes & Breathwork →
+            </button>
+          )}
         </div>
       </div>
 

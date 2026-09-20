@@ -535,7 +535,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       {isModalOpen && (
         <ClinicalEliminationModal
           isOpen={isModalOpen}
-          initialMode={trial ? 'active_trial' : 'onboarding'}
+          initialMode={isGraduated || trial ? 'active_trial' : 'onboarding'}
           onClose={() => setIsModalOpen(false)}
           onTrialUpdated={(updated) => setTrial(updated)}
         />

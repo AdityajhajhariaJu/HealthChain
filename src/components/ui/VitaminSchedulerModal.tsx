@@ -617,6 +617,19 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     onClose();
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleDismiss();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, vitamins]);
+
   const handleSaveAndClose = async () => {
     triggerHapticSuccess();
     try {
