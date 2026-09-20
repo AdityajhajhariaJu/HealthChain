@@ -596,24 +596,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     };
   }, [activeCase, report, semanticGraph, resolvedCulpritFoods, activeReview]);
 
-  const getDynamicStationBadge = (station: StationConfig): string => {
-    switch (station.id) {
-      case 'map':
-        return dynamicPillarData.gut.triggersCount > 0
-          ? `${dynamicPillarData.gut.triggersCount} ${dynamicPillarData.gut.triggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
-          : 'Awaiting Logs';
-      case 'biomarkers':
-        return dynamicPillarData.body.flaggedCount > 0
-          ? `${dynamicPillarData.body.flaggedCount} Flagged`
-          : dynamicPillarData.body.totalCount > 0
-          ? `${dynamicPillarData.body.totalCount} Markers`
-          : 'Optimal Ranges';
-
-
-      default:
-        return station.statusBadge;
-    }
-  };
 
 
 
@@ -1260,15 +1242,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           style={{
                             fontSize: isMobile ? '12px' : '12.5px',
                             color: '#475569',
-                            margin: '0 0 6px',
+                            margin: 0,
                             fontWeight: 500,
                             lineHeight: 1.4,
                           }}
                         >
                           {pillar.desc}
-                        </p>
-                        <p style={{ margin: 0, color: '#64748B', fontSize: '11px', fontWeight: 500, lineHeight: 1.4 }}>
-                          {pillarStations.map((station) => station.shortTitle).join(' · ')}
                         </p>
                       </div>
                     </div>
@@ -1392,8 +1371,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div
                           style={{
-                            width: '46px',
-                            height: '46px',
+                            width: isMobile ? '40px' : '46px',
+                            height: isMobile ? '40px' : '46px',
                             borderRadius: '50%',
                             background: openedPillar.gradient,
                             boxShadow: `0 8px 18px ${openedPillar.shadowColor}`,
@@ -1401,7 +1380,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '24px',
+                            fontSize: isMobile ? '20px' : '24px',
                             flexShrink: 0,
                           }}
                         >
@@ -1409,13 +1388,11 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         </div>
 
                         <div>
-
-
                           <h3
                             className="serif-heading"
                             style={{
                               margin: 0,
-                              fontSize: isMobile ? '22px' : '26px',
+                              fontSize: isMobile ? '20px' : '24px',
                               fontWeight: 800,
                               color: '#0F172A',
                               letterSpacing: '-0.4px',
@@ -1427,122 +1404,31 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         </div>
                       </div>
 
-
-                    </div>
-
-                    <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
-                      {openedPillar.desc}
-                    </p>
-
-                    {/* DOCKED INSIDER STATION TABS */}
-                    {pillarStations.length > 1 && (
-                      <div
+                      <span
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          overflowX: 'auto',
-                          WebkitOverflowScrolling: 'touch',
-                          paddingTop: '6px',
-                          paddingBottom: '4px',
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none',
-                          width: '100%',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: openedPillar.id === 'body' ? '#0369A1' : '#0D9488',
+                          background: openedPillar.id === 'body' ? '#E0F2FE' : '#CCFBF1',
+                          border: `1px solid ${openedPillar.id === 'body' ? '#BAE6FD' : '#99F6E4'}`,
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
                         }}
                       >
-                        {openedPillar.id === 'gut' && (
-                          <button
-                            type="button"
-                            data-compact="true"
-                            onClick={() => {
-                              triggerHapticSelection();
-                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
-                            }}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              padding: isMobile ? '6px 12px' : '6px 14px',
-                              borderRadius: '999px',
-                              background: activeStationIdForPillar === 'overview' ? '#0F172A' : '#FFFFFF',
-                              color: activeStationIdForPillar === 'overview' ? '#FFFFFF' : '#475569',
-                              border: activeStationIdForPillar === 'overview' ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
-                              fontSize: isMobile ? '11px' : '11.5px',
-                              fontWeight: activeStationIdForPillar === 'overview' ? 800 : 600,
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                              minWidth: 'max-content',
-                              boxShadow: activeStationIdForPillar === 'overview' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
-                              transition: 'all 0.15s ease',
-                              lineHeight: 1.2,
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            <span style={{ flexShrink: 0 }}>✨</span>
-                            <span style={{ whiteSpace: 'nowrap' }}>All Features</span>
-                          </button>
-                        )}
+                        {`${pillarStations.length} Clinical Tools`}
+                      </span>
+                    </div>
 
-                        {pillarStations.map((station) => {
-                          const isStationActive = activeStationIdForPillar === station.id;
-                          return (
-                            <button
-                              key={station.id}
-                              type="button"
-                              data-compact="true"
-                              onClick={() => {
-                                triggerHapticSelection();
-                                setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: isMobile ? '6px 12px' : '6px 14px',
-                                borderRadius: '999px',
-                                background: isStationActive ? '#0F172A' : '#FFFFFF',
-                                color: isStationActive ? '#FFFFFF' : '#475569',
-                                border: isStationActive ? '1.5px solid #0F172A' : '1px solid #CBD5E1',
-                                fontSize: isMobile ? '11px' : '11.5px',
-                                fontWeight: isStationActive ? 800 : 600,
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                minWidth: 'max-content',
-                                boxShadow: isStationActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
-                                transition: 'all 0.15s ease',
-                                lineHeight: 1.2,
-                                boxSizing: 'border-box',
-                              }}
-                            >
-                              <span style={{ flexShrink: 0 }}>{station.icon}</span>
-                              <span style={{ whiteSpace: 'nowrap' }}>{station.shortTitle}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <p style={{ margin: 0, fontSize: isMobile ? '12.5px' : '13px', color: '#64748B', lineHeight: 1.4 }}>
+                      {openedPillar.desc}
+                    </p>
                   </div>
 
                   {/* ACTIVE STATION CONTENT OR OVERVIEW HUB */}
                   {activeStationIdForPillar === 'overview' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {/* Section Title */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '2px' }}>
-                        <div style={{ minWidth: 0 }}>
-                          <h4 style={{ margin: 0, fontSize: isMobile ? '15.5px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', whiteSpace: isMobile ? 'normal' : 'nowrap' }}>
-                            {openedPillar.title} Features & Tools
-                          </h4>
-                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-                            {openedPillar.desc}
-                          </p>
-                        </div>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488', background: '#CCFBF1', padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                          {`${pillarStations.length} Clinical Tools`}
-                        </span>
-                      </div>
-
                       {/* Grid of Domain Clinical Tools */}
                       <div
                         style={{
@@ -1588,12 +1474,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           >
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '20px' }}>{station.icon}</span>
-                                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', background: '#F0FDFA', border: '1px solid #CCFBF1', padding: '2px 7px', borderRadius: '6px' }}>
-                                    {station.statusBadge}
-                                  </span>
-                                </div>
+                                <span style={{ fontSize: '20px' }}>{station.icon}</span>
                                 <span style={{ fontSize: '12px', color: '#94A3B8' }}>→</span>
                               </div>
                               <h5 style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
@@ -1604,7 +1485,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                               </p>
                             </div>
                             <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: openedPillar.id === 'body' ? '#0284C7' : '#0D9488', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                                 Open Tool →
                               </span>
                             </div>
@@ -1688,7 +1569,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             gap: '5px',
                           }}
                         >
-                          <ArrowLeft size={13} /> Back to All Features
+                          <ArrowLeft size={13} /> Back to {openedPillar.title}
                         </button>
                         <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
                           Station {activeStation?.stationNumber} of {String(ALL_12_STATIONS.length).padStart(2, '0')}
