@@ -1493,57 +1493,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         ))}
                       </div>
 
-                      {/* Multi-System Labs & Body Section */}
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          background: 'linear-gradient(135deg, #F8FAFC 0%, #F0F9FF 100%)',
-                          borderRadius: '16px',
-                          border: '1px solid #BAE6FD',
-                          padding: '14px 16px',
-                          display: 'flex',
-                          alignItems: isMobile ? 'flex-start' : 'center',
-                          flexDirection: isMobile ? 'column' : 'row',
-                          justifyContent: 'space-between',
-                          gap: '12px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '22px' }}>🧪</span>
-                          <div>
-                            <strong style={{ fontSize: '13.5px', color: '#0369A1', display: 'block' }}>
-                              Multi-System Body Connections
-                            </strong>
-                            <span style={{ fontSize: '12px', color: '#64748B' }}>
-                              Inspect optimal functional lab biomarkers and posture-vagus nerve biomechanics.
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHapticSelection();
-                            setOpenedPillarId('body');
-                          }}
-                          style={{
-                            background: '#0284C7',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '7px 13px',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            whiteSpace: 'nowrap',
-                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
-                          }}
-                        >
-                          View Labs & Body <ArrowRight size={12} />
-                        </button>
-                      </div>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
