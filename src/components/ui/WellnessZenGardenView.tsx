@@ -53,22 +53,6 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
       </div>
 
-      {/* 3 Metric Cards: Blooms, Days Tended, Garden Streak */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-        <div style={metricCardStyle}>
-          <div style={metricLabelStyle}>Blooms</div>
-          <div style={metricValueStyle}>🌸 {garden.bloomCount}</div>
-        </div>
-        <div style={metricCardStyle}>
-          <div style={metricLabelStyle}>Days Tended</div>
-          <div style={{ ...metricValueStyle, color: '#059669' }}>💧 {garden.waterCount}</div>
-        </div>
-        <div style={metricCardStyle}>
-          <div style={metricLabelStyle}>Garden Streak</div>
-          <div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {streakCount} {streakCount === 1 ? 'Day' : 'Days'}</div>
-        </div>
-      </div>
-
       <div style={{ position: 'relative', background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #DCFCE7 60%, #CCFBF1 100%)', borderRadius: '28px', padding: '24px 20px', border: '2px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(13, 148, 136, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'hidden', minHeight: '260px' }}>
         <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }} style={{ position: 'absolute', top: '-20px', right: '20px', width: '90px', height: '90px', borderRadius: '50%', background: 'radial-gradient(circle, #FDE047 0%, rgba(251, 146, 60, 0) 70%)', pointerEvents: 'none' }} />
         <motion.div animate={{ y: [-5, -20, -5], opacity: [0.4, 0.9, 0.4] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} style={{ position: 'absolute', top: '40px', left: '30px', fontSize: '18px' }}>✨</motion.div>
@@ -118,6 +102,22 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
         <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
           <motion.div initial={{ width: 0 }} animate={{ width: `${garden.vitalityScore}%` }} transition={{ duration: 0.6 }} style={{ height: '100%', background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', borderRadius: '999px' }} />
+        </div>
+
+        {/* 3 Metric Cards: Blooms, Days Tended, Garden Streak */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '2px' }}>
+          <div style={metricCardStyle}>
+            <div style={metricLabelStyle}>Blooms</div>
+            <div style={metricValueStyle}>🌸 {garden.bloomCount}</div>
+          </div>
+          <div style={metricCardStyle}>
+            <div style={metricLabelStyle}>Days Tended</div>
+            <div style={{ ...metricValueStyle, color: '#059669' }}>💧 {garden.waterCount}</div>
+          </div>
+          <div style={metricCardStyle}>
+            <div style={metricLabelStyle}>Garden Streak</div>
+            <div style={{ ...metricValueStyle, color: '#D97706' }}>🔥 {streakCount} {streakCount === 1 ? 'Day' : 'Days'}</div>
+          </div>
         </div>
       </div>
     </div>
