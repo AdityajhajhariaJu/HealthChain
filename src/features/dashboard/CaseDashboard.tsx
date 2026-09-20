@@ -65,6 +65,312 @@ import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiv
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 
+interface CalmAudioItem {
+  id: string;
+  title: string;
+  fullTitle: string;
+  subtitle: string;
+  badge: string;
+  badgeColor: string;
+  badgeBg: string;
+  durationMinutes: number;
+  img: string;
+  fallbackImg: string;
+  categoryId: string;
+  type: 'meditation' | 'soundscape';
+  description: string;
+}
+
+const AudioTrackCard: React.FC<{
+  item: CalmAudioItem;
+  isMobile: boolean;
+  onSelect: () => void;
+}> = ({ item, isMobile, onSelect }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.98 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      aria-label={`Play ${item.fullTitle}`}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: isMobile ? '10px 12px' : '12px 16px',
+        background: isHovered
+          ? 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)'
+          : 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
+        borderRadius: isMobile ? '18px' : '20px',
+        border: isHovered ? '1.5px solid rgba(13, 148, 136, 0.45)' : '1.5px solid rgba(226, 232, 240, 0.9)',
+        cursor: 'pointer',
+        boxShadow: isHovered
+          ? '0 10px 24px rgba(13, 148, 136, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)'
+          : '0 2px 8px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02)',
+        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        minWidth: 0,
+        userSelect: 'none',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Left: Thumbnail + Metadata */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', minWidth: 0, overflow: 'hidden' }}>
+        {/* Generative Visual Art Thumbnail */}
+        <div
+          style={{
+            position: 'relative',
+            width: isMobile ? '48px' : '56px',
+            height: isMobile ? '48px' : '56px',
+            minWidth: isMobile ? '48px' : '56px',
+            borderRadius: isMobile ? '14px' : '16px',
+            overflow: 'hidden',
+            flexShrink: 0,
+            background: '#0F172A',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.2)'
+          }}
+        >
+          <motion.img
+            loading="lazy"
+            decoding="async"
+            src={item.img}
+            alt={item.title}
+            animate={{ scale: isHovered ? 1.08 : 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onError={(e) => {
+              e.currentTarget.src = item.fallbackImg || '/images/calm_meditate_lotus.jpg';
+            }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.22) 100%)',
+              pointerEvents: 'none'
+            }}
+          />
+        </div>
+
+        {/* Text Details & Category Micro-Pill */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: isMobile ? '14px' : '15.5px',
+              fontWeight: 800,
+              color: '#0F172A',
+              lineHeight: 1.25,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%',
+              letterSpacing: '-0.3px'
+            }}
+          >
+            {item.title}
+          </h3>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginTop: '4px',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              background: item.badgeBg,
+              color: item.badgeColor,
+              fontSize: isMobile ? '10px' : '10.5px',
+              fontWeight: 700,
+              letterSpacing: '0.1px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%'
+            }}
+          >
+            {item.badge}
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Tactile Circular Play Action Button */}
+      <motion.div
+        animate={{
+          scale: isHovered ? 1.08 : 1,
+          backgroundColor: isHovered ? '#0D9488' : 'rgba(241, 245, 249, 0.95)',
+          borderColor: isHovered ? '#0D9488' : 'rgba(226, 232, 240, 0.95)',
+          boxShadow: isHovered
+            ? '0 4px 14px rgba(13, 148, 136, 0.35)'
+            : '0 2px 6px rgba(15, 23, 42, 0.04)'
+        }}
+        transition={{ duration: 0.2 }}
+        style={{
+          width: isMobile ? '32px' : '36px',
+          height: isMobile ? '32px' : '36px',
+          minWidth: isMobile ? '32px' : '36px',
+          borderRadius: '999px',
+          border: '1.5px solid rgba(226, 232, 240, 0.95)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          marginLeft: isMobile ? '6px' : '10px'
+        }}
+      >
+        <Play
+          size={isMobile ? 11 : 12}
+          fill={isHovered ? '#FFFFFF' : '#0D9488'}
+          color={isHovered ? '#FFFFFF' : '#0D9488'}
+          style={{ marginLeft: '1.5px' }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const CALM_SPACE_TRACKS: CalmAudioItem[] = [
+  {
+    id: 'm1',
+    title: 'Meditate',
+    fullTitle: 'Full Meditation',
+    subtitle: '30 min',
+    badge: '30 min • Zen',
+    badgeColor: '#0D9488',
+    badgeBg: '#F0FDFA',
+    durationMinutes: 30,
+    img: '/images/calm_meditate_lotus.jpg',
+    fallbackImg: '/images/thumb_zen_stones_1788260013795.jpg',
+    categoryId: 'meditation',
+    type: 'meditation',
+    description: 'Our most complete meditation experience.'
+  },
+  {
+    id: 'mood-0',
+    title: 'Sleep',
+    fullTitle: 'Deep Sleep',
+    subtitle: '45 min',
+    badge: '45 min • Twilight',
+    badgeColor: '#7C3AED',
+    badgeBg: '#F5F3FF',
+    durationMinutes: 45,
+    img: '/images/calm_sleep_moon.jpg',
+    fallbackImg: '/images/thumb_night_clouds_1788262545783.jpg',
+    categoryId: 'mood',
+    type: 'meditation',
+    description: 'A guided progression into delta-wave sleep.'
+  },
+  {
+    id: 'mood-1',
+    title: 'Focus',
+    fullTitle: 'Deep Focus',
+    subtitle: '60 min',
+    badge: '60 min • Clarity',
+    badgeColor: '#0284C7',
+    badgeBg: '#F0F9FF',
+    durationMinutes: 60,
+    img: '/images/calm_focus_prism.jpg',
+    fallbackImg: '/images/thumb_focus_sphere_1788262954419.jpg',
+    categoryId: 'mood',
+    type: 'meditation',
+    description: 'Designed for deep work.'
+  },
+  {
+    id: 'mood-2',
+    title: 'Energy',
+    fullTitle: 'Morning Energy',
+    subtitle: '30 min',
+    badge: '30 min • Vitality',
+    badgeColor: '#EA580C',
+    badgeBg: '#FFF7ED',
+    durationMinutes: 30,
+    img: '/images/calm_energy_dawn.jpg',
+    fallbackImg: '/images/thumb_energy_sun_1788263731169.jpg',
+    categoryId: 'mood',
+    type: 'meditation',
+    description: 'An energizing morning protocol.'
+  }
+];
+
+const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
+  {
+    id: 'soundscape-0',
+    title: 'Rain',
+    fullTitle: 'Rain Sounds',
+    subtitle: 'Ambient',
+    badge: 'Ambient • Mist',
+    badgeColor: '#0284C7',
+    badgeBg: '#F0F9FF',
+    durationMinutes: 120,
+    img: '/images/soundscape_rain_window.jpg',
+    fallbackImg: '/images/thumb_rain_window_1788262571496.jpg',
+    categoryId: 'soundscape',
+    type: 'soundscape',
+    description: 'A continuous, looping recording of gentle rain falling on leaves.'
+  },
+  {
+    id: 'soundscape-1',
+    title: 'Focus Freqs',
+    fullTitle: 'Focus Freqs',
+    subtitle: '432Hz',
+    badge: '432 Hz • Binaural',
+    badgeColor: '#D97706',
+    badgeBg: '#FFFBEB',
+    durationMinutes: 120,
+    img: '/images/soundscape_focus_freqs.jpg',
+    fallbackImg: '/images/thumb_freq_cymatics_1788264629537.jpg',
+    categoryId: 'soundscape',
+    type: 'soundscape',
+    description: 'A continuous 432Hz frequency hum mixed with subtle brown noise.'
+  },
+  {
+    id: 'soundscape-2',
+    title: 'Forest Aura',
+    fullTitle: 'Forest Aura',
+    subtitle: 'Nature',
+    badge: 'Nature • Biophilic',
+    badgeColor: '#059669',
+    badgeBg: '#ECFDF5',
+    durationMinutes: 120,
+    img: '/images/soundscape_forest_mist.jpg',
+    fallbackImg: '/images/thumb_water_drop_1788260024692.jpg',
+    categoryId: 'soundscape',
+    type: 'soundscape',
+    description: 'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.'
+  },
+  {
+    id: 'soundscape-3',
+    title: 'Ocean Waves',
+    fullTitle: 'Ocean Waves',
+    subtitle: 'Deep Delta',
+    badge: 'Deep Delta • Surf',
+    badgeColor: '#0D9488',
+    badgeBg: '#F0FDFA',
+    durationMinutes: 120,
+    img: '/images/soundscape_ocean_waves.jpg',
+    fallbackImg: '/images/thumb_dark_ocean_1788262557769.jpg',
+    categoryId: 'soundscape',
+    type: 'soundscape',
+    description: 'Continuous soothing ambient pad and ocean tide surf for deep relaxation.'
+  }
+];
 
 export default function CaseDashboard() {
   
@@ -1025,370 +1331,146 @@ export default function CaseDashboard() {
           <div
             style={{
               background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(226, 232, 240, 0.85)',
+              boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03)',
               position: 'relative',
               zIndex: 1,
-              padding: isMobile ? '16px 14px 20px' : '22px 22px 26px',
+              padding: isMobile ? '18px 14px 22px' : '24px 24px 28px',
               borderRadius: isMobile ? '24px' : '28px',
             }}
           >
             {/* 1. Calm Space Section */}
-            <section style={{ marginBottom: '22px' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
-                  Calm Space
-                </h2>
-                <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 400 }}>
-                  Choose a sound and begin.
-                </p>
+            <section style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 800, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
+                    Calm Space
+                  </h2>
+                  <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
+                    Choose a sound and begin.
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    background: 'rgba(240, 253, 250, 0.95)',
+                    border: '1px solid rgba(204, 251, 241, 0.95)',
+                    color: '#0D9488',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.3px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  <Sparkles size={11} /> Guided Rituals
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
-                {[
-                  {
-                    id: 'm1',
-                    title: 'Meditate',
-                    fullTitle: 'Full Meditation',
-                    subtitle: '30 min',
-                    durationMinutes: 30,
-                    img: '/images/thumb_zen_stones_1788260013795.jpg',
-                    categoryId: 'meditation',
-                    type: 'meditation' as const,
-                    description: 'Our most complete meditation experience.'
-                  },
-                  {
-                    id: 'mood-0',
-                    title: 'Sleep',
-                    fullTitle: 'Deep Sleep',
-                    subtitle: '45 min',
-                    durationMinutes: 45,
-                    img: '/images/thumb_night_clouds_1788262545783.jpg',
-                    categoryId: 'mood',
-                    type: 'meditation' as const,
-                    description: 'A guided progression into delta-wave sleep.'
-                  },
-                  {
-                    id: 'mood-1',
-                    title: 'Focus',
-                    fullTitle: 'Deep Focus',
-                    subtitle: '60 min',
-                    durationMinutes: 60,
-                    img: '/images/thumb_focus_sphere_1788262954419.jpg',
-                    categoryId: 'mood',
-                    type: 'meditation' as const,
-                    description: 'Designed for deep work.'
-                  },
-                  {
-                    id: 'mood-2',
-                    title: 'Energy',
-                    fullTitle: 'Morning Energy',
-                    subtitle: '30 min',
-                    durationMinutes: 30,
-                    img: '/images/thumb_energy_sun_1788263731169.jpg',
-                    categoryId: 'mood',
-                    type: 'meditation' as const,
-                    description: 'An energizing morning protocol.'
-                  }
-                ].map((item) => {
-                  const handleSelect = () => {
-                    triggerHapticLight();
-                    setActiveMeditation({
-                      id: item.id,
-                      category_id: item.categoryId,
-                      is_active: true,
-                      type: item.type,
-                      title: item.fullTitle,
-                      subtitle: item.subtitle,
-                      description: item.description,
-                      cover_image_url: item.img,
-                      audio_url: '',
-                      video_url: '',
-                      duration_minutes: item.durationMinutes,
-                      calories_estimate: 0,
-                      difficulty: 'Beginner',
-                      equipment: [],
-                      is_premium: false,
-                      is_featured: true
-                    });
-                  };
-
-                  return (
-                    <motion.div
-                      key={item.id}
-                      whileHover={{ y: -2, borderColor: '#CBD5E1', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)' }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleSelect}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Play ${item.fullTitle}`}
-                      onKeyDown={(e) => {
-                        if (e.target !== e.currentTarget) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleSelect();
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: isMobile ? '8px 10px' : '10px 14px',
-                        background: '#FFFFFF',
-                        borderRadius: '16px',
-                        border: '1px solid #E2E8F0',
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                        minWidth: 0,
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', minWidth: 0, overflow: 'hidden' }}>
-                        <div style={{
-                          width: isMobile ? '42px' : '48px',
-                          height: isMobile ? '42px' : '48px',
-                          borderRadius: '12px',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                          background: '#F1F5F9',
-                          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)'
-                        }}>
-                          <img
-                            loading="lazy"
-                            decoding="async"
-                            src={item.img}
-                            alt={item.title}
-                            onError={(e) => {
-                              e.currentTarget.src = '/images/thumb_zen_stones_1788260013795.jpg';
-                            }}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                          <h3 style={{
-                            margin: 0,
-                            fontSize: isMobile ? '14px' : '15px',
-                            fontWeight: 700,
-                            color: '#0F172A',
-                            lineHeight: 1.25,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '100%'
-                          }}>
-                            {item.title}
-                          </h3>
-                          <p style={{
-                            margin: '2px 0 0 0',
-                            fontSize: isMobile ? '12px' : '13px',
-                            color: '#64748B',
-                            fontWeight: 500,
-                            lineHeight: 1.2,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '100%'
-                          }}>
-                            {item.subtitle}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        paddingLeft: isMobile ? '4px' : '8px'
-                      }}>
-                        <Play size={13} fill="#0D9488" color="#0D9488" />
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {CALM_SPACE_TRACKS.map((item) => (
+                  <AudioTrackCard
+                    key={item.id}
+                    item={item}
+                    isMobile={isMobile}
+                    onSelect={() => {
+                      triggerHapticLight();
+                      setActiveMeditation({
+                        id: item.id,
+                        category_id: item.categoryId,
+                        is_active: true,
+                        type: item.type,
+                        title: item.fullTitle,
+                        subtitle: item.subtitle,
+                        description: item.description,
+                        cover_image_url: item.img,
+                        audio_url: '',
+                        video_url: '',
+                        duration_minutes: item.durationMinutes,
+                        calories_estimate: 0,
+                        difficulty: 'Beginner',
+                        equipment: [],
+                        is_premium: false,
+                        is_featured: true
+                      });
+                    }}
+                  />
+                ))}
               </div>
             </section>
 
-            {/* Subtle Divider */}
-            <div style={{ height: '1px', background: '#F1F5F9', margin: '4px 0 20px' }} />
+            {/* Subtle Ambient Divider */}
+            <div
+              style={{
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(226, 232, 240, 0.9) 20%, rgba(203, 213, 225, 0.9) 50%, rgba(226, 232, 240, 0.9) 80%, transparent 100%)',
+                margin: '8px 0 22px'
+              }}
+            />
 
             {/* 2. Soundscapes Section */}
             <section>
-              <div style={{ marginBottom: '14px' }}>
-                <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
-                  Soundscapes
-                </h2>
-                <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 400 }}>
-                  Immersive audio environments
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 800, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
+                    Soundscapes
+                  </h2>
+                  <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
+                    Immersive audio environments
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    background: 'rgba(240, 249, 255, 0.95)',
+                    border: '1px solid rgba(224, 242, 254, 0.95)',
+                    color: '#0284C7',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.3px',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  <Waves size={11} /> Spatial Audio
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
-                {[
-                  {
-                    id: 'soundscape-0',
-                    title: 'Rain',
-                    fullTitle: 'Rain Sounds',
-                    subtitle: 'Ambient',
-                    durationMinutes: 120,
-                    img: '/images/thumb_rain_window_1788262571496.jpg',
-                    categoryId: 'soundscape',
-                    type: 'soundscape' as const,
-                    description: 'A continuous, looping recording of gentle rain falling on leaves.'
-                  },
-                  {
-                    id: 'soundscape-1',
-                    title: 'Focus Freqs',
-                    fullTitle: 'Focus Freqs',
-                    subtitle: '432Hz',
-                    durationMinutes: 120,
-                    img: '/images/thumb_freq_cymatics_1788264629537.jpg',
-                    categoryId: 'soundscape',
-                    type: 'soundscape' as const,
-                    description: 'A continuous 432Hz frequency hum mixed with subtle brown noise.'
-                  },
-                  {
-                    id: 'soundscape-2',
-                    title: 'Forest Aura',
-                    fullTitle: 'Forest Aura',
-                    subtitle: 'Nature',
-                    durationMinutes: 120,
-                    img: '/images/thumb_water_drop_1788260024692.jpg',
-                    categoryId: 'soundscape',
-                    type: 'soundscape' as const,
-                    description: 'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.'
-                  },
-                  {
-                    id: 'soundscape-3',
-                    title: 'Ocean Waves',
-                    fullTitle: 'Ocean Waves',
-                    subtitle: 'Deep Delta',
-                    durationMinutes: 120,
-                    img: '/images/thumb_dark_ocean_1788262557769.jpg',
-                    categoryId: 'soundscape',
-                    type: 'soundscape' as const,
-                    description: 'Continuous soothing ambient pad and ocean tide surf for deep relaxation.'
-                  }
-                ].map((item) => {
-                  const handleSelect = () => {
-                    triggerHapticLight();
-                    setActiveMeditation({
-                      id: item.id,
-                      category_id: item.categoryId,
-                      is_active: true,
-                      type: item.type,
-                      title: item.fullTitle,
-                      subtitle: item.subtitle,
-                      description: item.description,
-                      cover_image_url: item.img,
-                      audio_url: '',
-                      video_url: '',
-                      duration_minutes: item.durationMinutes,
-                      calories_estimate: 0,
-                      difficulty: 'Beginner',
-                      equipment: [],
-                      is_premium: false,
-                      is_featured: true
-                    });
-                  };
-
-                  return (
-                    <motion.div
-                      key={item.id}
-                      whileHover={{ y: -2, borderColor: '#CBD5E1', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)' }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleSelect}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Play ${item.fullTitle}`}
-                      onKeyDown={(e) => {
-                        if (e.target !== e.currentTarget) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleSelect();
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: isMobile ? '8px 10px' : '10px 14px',
-                        background: '#FFFFFF',
-                        borderRadius: '16px',
-                        border: '1px solid #E2E8F0',
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                        minWidth: 0,
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', minWidth: 0, overflow: 'hidden' }}>
-                        <div style={{
-                          width: isMobile ? '42px' : '48px',
-                          height: isMobile ? '42px' : '48px',
-                          borderRadius: '12px',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                          background: '#F1F5F9',
-                          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)'
-                        }}>
-                          <img
-                            loading="lazy"
-                            decoding="async"
-                            src={item.img}
-                            alt={item.title}
-                            onError={(e) => {
-                              e.currentTarget.src = '/images/thumb_rain_window_1788262571496.jpg';
-                            }}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                          <h3 style={{
-                            margin: 0,
-                            fontSize: isMobile ? '14px' : '15px',
-                            fontWeight: 700,
-                            color: '#0F172A',
-                            lineHeight: 1.25,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '100%'
-                          }}>
-                            {item.title}
-                          </h3>
-                          <p style={{
-                            margin: '2px 0 0 0',
-                            fontSize: isMobile ? '12px' : '13px',
-                            color: '#64748B',
-                            fontWeight: 500,
-                            lineHeight: 1.2,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '100%'
-                          }}>
-                            {item.subtitle}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        paddingLeft: isMobile ? '4px' : '8px'
-                      }}>
-                        <Play size={13} fill="#0D9488" color="#0D9488" />
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {SOUNDSCAPE_TRACKS.map((item) => (
+                  <AudioTrackCard
+                    key={item.id}
+                    item={item}
+                    isMobile={isMobile}
+                    onSelect={() => {
+                      triggerHapticLight();
+                      setActiveMeditation({
+                        id: item.id,
+                        category_id: item.categoryId,
+                        is_active: true,
+                        type: item.type,
+                        title: item.fullTitle,
+                        subtitle: item.subtitle,
+                        description: item.description,
+                        cover_image_url: item.img,
+                        audio_url: '',
+                        video_url: '',
+                        duration_minutes: item.durationMinutes,
+                        calories_estimate: 0,
+                        difficulty: 'Beginner',
+                        equipment: [],
+                        is_premium: false,
+                        is_featured: true
+                      });
+                    }}
+                  />
+                ))}
               </div>
             </section>
           </div>
