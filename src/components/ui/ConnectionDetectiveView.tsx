@@ -1079,164 +1079,197 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
               }}
             >
               {PARENT_PILLAR_CARDS.map((pillar) => {
-              const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+                const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+                const isGut = pillar.id === 'gut';
 
-              return (
-                <motion.div
-                  id={`cd-card-${pillar.id}`}
-                  key={pillar.id}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setOpenedPillarId(pillar.id);
-                    trackButtonClick('clinical_parent_pillar_open', pillar.id);
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Open ${pillar.title}`}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      handleSelectPillar(pillar.id);
-                    }
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: `1px solid ${pillar.borderColor}`,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
-                    borderRadius: '20px',
-                    padding: isMobile ? '16px' : '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: isMobile ? '150px' : '170px',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div>
-                    {/* Top Row: Circular Icon + Badge + Open Arrow */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <div
-                        style={{
-                          width: isMobile ? '40px' : '46px',
-                          height: isMobile ? '40px' : '46px',
-                          borderRadius: '50%',
-                          background: pillar.gradient,
-                          boxShadow: `0 8px 18px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.5)`,
-                          border: '1px solid rgba(255,255,255,0.6)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: isMobile ? '20px' : '23px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {pillar.icon}
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-
-
-                        {/* Open Arrow Button Indicator */}
+                return (
+                  <motion.div
+                    id={`cd-card-${pillar.id}`}
+                    key={pillar.id}
+                    whileHover={{ y: -3, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setOpenedPillarId(pillar.id);
+                      trackButtonClick('clinical_parent_pillar_open', pillar.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${pillar.title}`}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleSelectPillar(pillar.id);
+                      }
+                    }}
+                    style={{
+                      background: isGut
+                        ? 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)'
+                        : 'linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 60%, #E0F2FE 100%)',
+                      border: `1px solid ${isGut ? '#99F6E4' : '#BAE6FD'}`,
+                      boxShadow: isGut
+                        ? '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)'
+                        : '0 4px 16px rgba(2, 132, 199, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '14px 16px' : '16px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: isMobile ? '135px' : '148px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  >
+                    <div>
+                      {/* Top Row: Circular Icon + Micro Badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <div
                           style={{
-                            width: '32px',
-                            height: '32px',
+                            width: isMobile ? '34px' : '38px',
+                            height: isMobile ? '34px' : '38px',
+                            minWidth: isMobile ? '34px' : '38px',
+                            minHeight: isMobile ? '34px' : '38px',
+                            flexShrink: 0,
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                            background: isGut
+                              ? 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)'
+                              : 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
+                            boxShadow: isGut
+                              ? '0 2px 6px rgba(13, 148, 136, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)'
+                              : '0 2px 6px rgba(2, 132, 199, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                            border: '1px solid rgba(255,255,255,0.6)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: pillar.accentColor,
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                            fontSize: isMobile ? '17px' : '19px',
                           }}
                         >
-                          <ArrowRight size={15} />
+                          {pillar.icon}
                         </div>
+
+                        <div
+                          className="micro-badge"
+                          style={{
+                            background: isGut ? '#ECFDF5' : '#F0F9FF',
+                            color: isGut ? '#047857' : '#0369A1',
+                            border: `1px solid ${isGut ? '#A7F3D0' : '#BAE6FD'}`,
+                            padding: isMobile ? '3px 8px' : '3.5px 10px',
+                            borderRadius: '999px',
+                            fontSize: isMobile ? '9.5px' : '10.5px',
+                            fontWeight: 800,
+                            letterSpacing: '0.4px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Sparkles size={11} color={isGut ? '#059669' : '#0284C7'} />
+                          <span>{isGut ? '5 CLINICAL TOOLS' : '2 CLINICAL TOOLS'}</span>
+                        </div>
+                      </div>
+
+                      {/* Title & Subtitle */}
+                      <div>
+                        <h4
+                          className="serif-heading"
+                          style={{
+                            fontSize: isMobile ? '16.5px' : '18px',
+                            fontWeight: 800,
+                            margin: '0 0 3px',
+                            color: '#0F172A',
+                            lineHeight: 1.25,
+                            letterSpacing: '-0.3px',
+                          }}
+                        >
+                          {pillar.title}
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: isMobile ? '12px' : '12.5px',
+                            color: '#475569',
+                            margin: '0 0 6px',
+                            fontWeight: 500,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {pillar.desc}
+                        </p>
+                        <p style={{ margin: 0, color: '#64748B', fontSize: '11px', fontWeight: 500, lineHeight: 1.4 }}>
+                          {pillarStations.map((station) => station.shortTitle).join(' · ')}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Title & Subtitle */}
-                    <div>
-                      <h4
-                        className="serif-heading"
+                    {/* Bottom Row: Telemetry Pill & Compact Action Button */}
+                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div
                         style={{
-                          fontSize: isMobile ? '20px' : '22px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: isMobile ? '10px' : '10.5px',
                           fontWeight: 700,
-                          margin: '0 0 4px',
-                          color: '#2D3748',
-                          lineHeight: 1.25,
-                          letterSpacing: '-0.3px',
+                          color: isGut ? '#047857' : '#0369A1',
+                          background: isGut ? '#ECFDF5' : '#F0F9FF',
+                          border: `1px solid ${isGut ? '#A7F3D0' : '#BAE6FD'}`,
+                          padding: '3px 9px',
+                          borderRadius: '999px',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        {pillar.title}
-                      </h4>
-                      <p
+                        <span
+                          style={{
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: isGut ? '#10B981' : '#0284C7',
+                          }}
+                        />
+                        <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        data-compact="true"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerHapticSelection();
+                          setOpenedPillarId(pillar.id);
+                        }}
                         style={{
-                          fontSize: isMobile ? '12.5px' : '13.5px',
-                          color: '#64748B',
-                          margin: 0,
-                          fontWeight: 600,
-                          lineHeight: 1.4,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: isGut
+                            ? 'linear-gradient(135deg, #0D9488 0%, #059669 100%)'
+                            : 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '999px',
+                          height: isMobile ? '24px' : '26px',
+                          padding: isMobile ? '0 12px' : '0 14px',
+                          fontSize: isMobile ? '10.5px' : '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: isGut
+                            ? '0 2px 6px rgba(13, 148, 136, 0.25)'
+                            : '0 2px 6px rgba(2, 132, 199, 0.25)',
+                          whiteSpace: 'nowrap',
+                          lineHeight: 1,
                         }}
                       >
-                        {pillar.desc}
-                      </p>
+                        <span>Open</span>
+                        <ArrowRight size={11} strokeWidth={2.6} />
+                      </button>
                     </div>
-
-                    <p style={{ margin: '12px 0 0', color: '#94A3B8', fontSize: '11.5px', lineHeight: 1.45 }}>
-                      {pillarStations.map((station) => station.shortTitle).join(' · ')}
-                    </p>
-                  </div>
-
-                  {/* Telemetry pill */}
-                  <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        color: pillar.accentColor,
-                        background: pillar.badgeBg,
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '5px',
-                          height: '5px',
-                          borderRadius: '50%',
-                          background: pillar.accentColor,
-                        }}
-                      />
-                      <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
-                    </div>
-
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: pillar.accentColor,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                      }}
-                    >
-                      <span>Open</span>
-                      <span>→</span>
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
 
           </div>
         </motion.div>
