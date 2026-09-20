@@ -395,11 +395,11 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   }, [activeReview, activeCase]);
 
   const [internalOpenedPillarId, setInternalOpenedPillarId] = useState<PillarId | null>(() => {
-    if (initialTab) {
+    if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
       if (target) return target.pillarId;
     }
-    return 'gut'; // Default directly to Gut & Food workspace!
+    return null; // Always show the main overview screen by default!
   });
 
   const openedPillarId = controlledOpenedPillarId !== undefined ? controlledOpenedPillarId : internalOpenedPillarId;
@@ -1055,19 +1055,42 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
           /* 2 DOMAIN CARDS (OVERVIEW)                                */
           /* ======================================================== */
           <motion.div
-            key="four-cards-grid"
+            key="main-overview-hub"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
             style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: isMobile ? '12px' : '16px',
-              alignItems: 'stretch',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
             }}
           >
-            {PARENT_PILLAR_CARDS.map((pillar) => {
+            {/* Active Protocol / Track Food Triggers Hero Card */}
+            <TherapeuticOutcomeCard />
+
+            {/* Section Header: Clinical Health Domains */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                  Health Domains & Diagnostics
+                </h4>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  Explore connected clinical intelligence across digestive and systemic health
+                </p>
+              </div>
+            </div>
+
+            {/* 2 DOMAIN CARDS GRID */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: isMobile ? '12px' : '16px',
+                alignItems: 'stretch',
+              }}
+            >
+              {PARENT_PILLAR_CARDS.map((pillar) => {
               const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
 
               return (
@@ -1279,7 +1302,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                 Go to Case Prep <ArrowRight size={13} />
               </button>
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
         ) : (
           /* ======================================================== */
           /* OPENED DOMAIN WORKSPACE VIEW                             */

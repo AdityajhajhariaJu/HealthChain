@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
-import { ConnectionDetectiveView } from './ConnectionDetectiveView';
+import { ConnectionDetectiveView, ALL_12_STATIONS } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
 
 interface ConnectionDetectiveModalProps {
@@ -23,13 +23,22 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   onOpenConsult,
   onOpenCasePrep,
 }) => {
-  const [openedPillarId, setOpenedPillarId] = useState<string | null>('gut');
+  const [openedPillarId, setOpenedPillarId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setOpenedPillarId('gut');
+      if (initialTab && initialTab !== 'overview' && initialTab !== 'map') {
+        const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+        if (target) {
+          setOpenedPillarId(target.pillarId);
+          return;
+        }
+      }
+      setOpenedPillarId(null);
+    } else {
+      setOpenedPillarId(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
