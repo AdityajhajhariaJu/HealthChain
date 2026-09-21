@@ -418,7 +418,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     const resolved = resolveStationTab(initialTab);
     return {
       gut: resolved && resolved !== 'overview' && TAB_TO_PILLAR[resolved] === 'gut' ? resolved : 'overview',
-      body: resolved && TAB_TO_PILLAR[resolved] === 'body' ? resolved : 'biomarkers',
+      body: resolved && resolved !== 'overview' && TAB_TO_PILLAR[resolved] === 'body' ? resolved : 'overview',
     };
   });
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
@@ -426,6 +426,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   const handleSelectPillar = (pillarId: PillarId) => {
     triggerHapticSelection();
+    if (pillarId !== 'all') {
+      setCardActiveStations((prev) => ({ ...prev, [pillarId]: 'overview' }));
+    }
     setOpenedPillarId(pillarId === 'all' ? null : pillarId);
     trackButtonClick('clinical_parent_pillar_select', pillarId);
   };
@@ -1125,6 +1128,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                     onClick={() => {
                       triggerHapticSelection();
+                      setCardActiveStations((prev) => ({ ...prev, [pillar.id]: 'overview' }));
                       setOpenedPillarId(pillar.id);
                       trackButtonClick('clinical_parent_pillar_open', pillar.id);
                     }}
@@ -1270,6 +1274,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         onClick={(e) => {
                           e.stopPropagation();
                           triggerHapticSelection();
+                          setCardActiveStations((prev) => ({ ...prev, [pillar.id]: 'overview' }));
                           setOpenedPillarId(pillar.id);
                         }}
                         style={{
