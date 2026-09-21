@@ -598,7 +598,7 @@ AI-generated preparation material. Verify against original records; this is not 
           />
 
           <details style={{ marginTop: 18, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
-            <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+            <summary style={{ cursor: 'pointer', color: '#C2410C', fontSize: 14, fontWeight: 800 }}>
               Review reasoning
             </summary>
             <ClinicalReasoningPipelineView
@@ -636,7 +636,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
           {perspectives.length > 0 && (
             <details style={{ marginTop: 14, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
-              <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+              <summary style={{ cursor: 'pointer', color: '#C2410C', fontSize: 14, fontWeight: 800 }}>
                 Perspectives ({perspectives.length})
               </summary>
               <MeaningfulMultiPerspectiveView
@@ -703,9 +703,9 @@ AI-generated preparation material. Verify against original records; this is not 
             transition: 'all 0.15s ease'
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.color = '#0F766E';
-            e.currentTarget.style.borderColor = '#99F6E4';
-            e.currentTarget.style.background = '#F0FDFA';
+            e.currentTarget.style.color = '#C2410C';
+            e.currentTarget.style.borderColor = '#FED7AA';
+            e.currentTarget.style.background = '#FFF7ED';
           }}
           onMouseOut={(e) => {
             e.currentTarget.style.color = '#475569';
@@ -716,8 +716,8 @@ AI-generated preparation material. Verify against original records; this is not 
           ← Back to Workspace
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#059669', fontWeight: 700, background: '#ECFDF5', padding: '5px 12px', borderRadius: '999px', border: '1px solid #A7F3D0', boxShadow: '0 1px 2px rgba(16, 185, 129, 0.1)' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 6px #10B981' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#C2410C', fontWeight: 700, background: '#FFF7ED', padding: '5px 12px', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 1px 2px rgba(249, 115, 22, 0.1)' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F97316', display: 'inline-block', boxShadow: '0 0 6px #F97316' }} />
           <span>ON-DEVICE ENCRYPTED</span>
         </div>
       </div>
@@ -730,23 +730,23 @@ AI-generated preparation material. Verify against original records; this is not 
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           borderRadius: '24px', 
-          boxShadow: '0 20px 60px -15px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0,0,0,0.02)', 
-          border: '1.5px solid rgba(226, 232, 240, 0.9)', 
+          boxShadow: '0 20px 60px -15px rgba(194, 65, 12, 0.07), 0 1px 3px rgba(0,0,0,0.02)', 
+          border: '1.5px solid rgba(254, 215, 170, 0.85)', 
           overflow: 'hidden',
           position: 'relative'
         }}
       >
         {/* Background Glowing Ambient Orbs for Warmth and Visual Life */}
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '280px', height: '280px', background: '#10B981', filter: 'blur(90px)', opacity: 0.12, borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '35%', left: '-50px', width: '240px', height: '240px', background: '#0EA5E9', filter: 'blur(100px)', opacity: 0.08, borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-40px', right: '15%', width: '260px', height: '260px', background: '#F59E0B', filter: 'blur(90px)', opacity: 0.07, borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '280px', height: '280px', background: '#FB923C', filter: 'blur(90px)', opacity: 0.14, borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '35%', left: '-50px', width: '240px', height: '240px', background: '#FB7185', filter: 'blur(100px)', opacity: 0.09, borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-40px', right: '15%', width: '260px', height: '260px', background: '#FBBF24', filter: 'blur(90px)', opacity: 0.08, borderRadius: '50%', pointerEvents: 'none' }} />
 
-        {/* Clinical Teal Hero Banner */}
+        {/* Clinical Light Peach Hero Banner */}
         <div 
           style={{ 
-            background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 60%, #F8FAFC 100%)', 
+            background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 60%, #FFFBF7 100%)', 
             padding: isMobile ? '22px 18px' : '28px 36px', 
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid #FED7AA',
             position: 'relative',
             zIndex: 1
           }}
@@ -758,18 +758,18 @@ AI-generated preparation material. Verify against original records; this is not 
                   width: '38px', 
                   height: '38px', 
                   borderRadius: '12px', 
-                  background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)', 
+                  background: 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)'
+                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.28)'
                 }}
               >
                 <BrainCircuit size={20} color="#FFFFFF" />
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '3px 10px', borderRadius: '999px' }}>
-                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0D9488' }} />
-                <span style={{ color: '#0F766E', fontWeight: 800, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 10px', borderRadius: '999px' }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#F97316' }} />
+                <span style={{ color: '#C2410C', fontWeight: 800, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
                   Clinical Review Workstation
                 </span>
               </div>
@@ -787,9 +787,9 @@ AI-generated preparation material. Verify against original records; this is not 
                 gap: '6px',
                 padding: '5px 12px',
                 borderRadius: '999px',
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
-                color: '#15803D',
+                background: '#FFF7ED',
+                border: '1px solid #FED7AA',
+                color: '#9A3412',
                 fontSize: '11.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -815,8 +815,8 @@ AI-generated preparation material. Verify against original records; this is not 
         <div 
           style={{ 
             padding: '16px 24px 14px', 
-            background: '#F8FAFC', 
-            borderBottom: '1px solid #E2E8F0',
+            background: '#FFFBF7', 
+            borderBottom: '1px solid #FED7AA',
             position: 'relative',
             zIndex: 1
           }}
@@ -830,8 +830,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   flex: 1, 
                   height: '7px', 
                   borderRadius: '999px', 
-                  background: 'linear-gradient(90deg, #059669, #10B981)',
-                  boxShadow: intakeStep === 1 ? '0 0 10px rgba(16, 185, 129, 0.45)' : 'none',
+                  background: 'linear-gradient(90deg, #EA580C, #F97316, #FB923C)',
+                  boxShadow: intakeStep === 1 ? '0 0 10px rgba(249, 115, 22, 0.45)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease'
                 }} 
@@ -842,8 +842,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   flex: 1, 
                   height: '7px', 
                   borderRadius: '999px', 
-                  background: intakeStep >= 2 || files.length > 0 ? 'linear-gradient(90deg, #059669, #10B981)' : '#E2E8F0',
-                  boxShadow: intakeStep === 2 ? '0 0 10px rgba(16, 185, 129, 0.45)' : 'none',
+                  background: intakeStep >= 2 || files.length > 0 ? 'linear-gradient(90deg, #EA580C, #F97316, #FB923C)' : '#FFEDD5',
+                  boxShadow: intakeStep === 2 ? '0 0 10px rgba(249, 115, 22, 0.45)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease'
                 }} 
@@ -854,8 +854,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   flex: 1, 
                   height: '7px', 
                   borderRadius: '999px', 
-                  background: intakeStep === 3 ? 'linear-gradient(90deg, #059669, #10B981)' : '#E2E8F0',
-                  boxShadow: intakeStep === 3 ? '0 0 10px rgba(16, 185, 129, 0.45)' : 'none',
+                  background: intakeStep === 3 ? 'linear-gradient(90deg, #EA580C, #F97316, #FB923C)' : '#FFEDD5',
+                  boxShadow: intakeStep === 3 ? '0 0 10px rgba(249, 115, 22, 0.45)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease'
                 }} 
@@ -865,10 +865,10 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* Step Sub-label & Interactive Pill Navigators */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingTop: '2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#9A3412' }}>
                   Step {intakeStep} of 3 · {intakeStep === 1 ? 'Clinical Narrative & Symptoms' : intakeStep === 2 ? 'Lab Reports & Medical Evidence' : 'Scope, Context & Launchpad'}
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', background: '#ECFDF5', padding: '1px 8px', borderRadius: '999px', border: '1px solid #A7F3D0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#C2410C', background: '#FFF7ED', padding: '1px 8px', borderRadius: '999px', border: '1px solid #FED7AA' }}>
                   {intakeStep === 1 ? 'Start with symptoms ✨' : intakeStep === 2 ? 'Evidence Vault 📄' : 'Final Step 🚀'}
                 </span>
               </div>
@@ -889,9 +889,9 @@ AI-generated preparation material. Verify against original records; this is not 
                     style={{
                       padding: '4px 11px',
                       borderRadius: '999px',
-                      border: intakeStep === item.step ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                      background: intakeStep === item.step ? '#CCFBF1' : '#FFFFFF',
-                      color: intakeStep === item.step ? '#0F766E' : '#64748B',
+                      border: intakeStep === item.step ? '1.5px solid #FB923C' : '1px solid #FED7AA',
+                      background: intakeStep === item.step ? '#FFEDD5' : '#FFFFFF',
+                      color: intakeStep === item.step ? '#9A3412' : '#78350F',
                       fontSize: '11.5px',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -901,7 +901,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {item.isDone ? <Check size={12} color="#059669" strokeWidth={2.5} /> : null}
+                    {item.isDone ? <Check size={12} color="#EA580C" strokeWidth={2.5} /> : null}
                     <span>{item.label}</span>
                   </button>
                 ))}
@@ -948,8 +948,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
                     padding: isMobile ? '18px 16px' : '22px 24px',
-                    border: '1.5px solid rgba(226, 232, 240, 0.85)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    border: '1.5px solid rgba(254, 215, 170, 0.85)',
+                    boxShadow: '0 10px 30px rgba(194, 65, 12, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -962,12 +962,12 @@ AI-generated preparation material. Verify against original records; this is not 
                         width: '36px', 
                         height: '36px', 
                         borderRadius: '12px', 
-                        background: 'linear-gradient(135deg, #ECFDF5 0%, #CCFBF1 100%)', 
-                        border: '1px solid #A7F3D0',
+                        background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', 
+                        border: '1px solid #FDBA74', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: '#059669',
+                        justifyContent: 'center', 
+                        color: '#EA580C',
                         flexShrink: 0
                       }}
                     >
@@ -1011,16 +1011,16 @@ AI-generated preparation material. Verify against original records; this is not 
                             fontSize: '12.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                            color: isSelected ? '#0F766E' : '#334155',
-                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.2)' : '0 1px 2px rgba(0,0,0,0.02)',
+                            border: isSelected ? '1.5px solid #FB923C' : '1px solid #FED7AA',
+                            background: isSelected ? '#FFEDD5' : '#FFFFFF',
+                            color: isSelected ? '#9A3412' : '#431407',
+                            boxShadow: isSelected ? '0 2px 8px rgba(249, 115, 22, 0.2)' : '0 1px 2px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
                           <span style={{ fontSize: '13px' }}>{opt.emoji}</span>
                           <span>{opt.name}</span>
-                          {isSelected && <Check size={13} color="#0D9488" strokeWidth={2.5} />}
+                          {isSelected && <Check size={13} color="#EA580C" strokeWidth={2.5} />}
                         </motion.button>
                       );
                     })}
@@ -1035,8 +1035,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
                     padding: isMobile ? '18px 16px' : '22px 24px',
-                    border: '1.5px solid rgba(226, 232, 240, 0.85)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    border: '1.5px solid rgba(254, 215, 170, 0.85)',
+                    boxShadow: '0 10px 30px rgba(194, 65, 12, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -1049,12 +1049,12 @@ AI-generated preparation material. Verify against original records; this is not 
                         width: '36px', 
                         height: '36px', 
                         borderRadius: '12px', 
-                        background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', 
-                        border: '1px solid #FCD34D',
+                        background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', 
+                        border: '1px solid #FDBA74', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: '#D97706',
+                        justifyContent: 'center', 
+                        color: '#EA580C',
                         flexShrink: 0
                       }}
                     >
@@ -1074,7 +1074,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {[
                       { name: 'Getting worse ↗', label: 'Getting worse', emoji: '↗️', activeBg: '#FFF1F2', activeBorder: '#FDA4AF', activeColor: '#BE123C' },
-                      { name: 'Fluctuating / Comes & Goes ∿', label: 'Fluctuating', emoji: '∿', activeBg: '#F5F3FF', activeBorder: '#DDD6FE', activeColor: '#7E22CE' },
+                      { name: 'Fluctuating / Comes & Goes ∿', label: 'Fluctuating', emoji: '∿', activeBg: '#FFF7ED', activeBorder: '#FDBA74', activeColor: '#C2410C' },
                       { name: 'Constant / Unchanged →', label: 'Constant', emoji: '→', activeBg: '#F8FAFC', activeBorder: '#CBD5E1', activeColor: '#334155' },
                       { name: 'Gradually improving ↘', label: 'Gradually improving', emoji: '↘️', activeBg: '#ECFDF5', activeBorder: '#A7F3D0', activeColor: '#047857' },
                     ].map((opt) => {
@@ -1096,9 +1096,9 @@ AI-generated preparation material. Verify against original records; this is not 
                             fontSize: '12.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid #E2E8F0',
+                            border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid #FED7AA',
                             background: isSelected ? opt.activeBg : '#FFFFFF',
-                            color: isSelected ? opt.activeColor : '#334155',
+                            color: isSelected ? opt.activeColor : '#431407',
                             boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
@@ -1120,8 +1120,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
                     padding: isMobile ? '18px 16px' : '22px 24px',
-                    border: '1.5px solid rgba(226, 232, 240, 0.85)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    border: '1.5px solid rgba(254, 215, 170, 0.85)',
+                    boxShadow: '0 10px 30px rgba(194, 65, 12, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -1135,12 +1135,12 @@ AI-generated preparation material. Verify against original records; this is not 
                           width: '36px', 
                           height: '36px', 
                           borderRadius: '12px', 
-                          background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)', 
-                          border: '1px solid #C7D2FE',
+                          background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', 
+                          border: '1px solid #FDBA74', 
                           display: 'flex', 
                           alignItems: 'center', 
-                          justifyContent: 'center',
-                          color: '#4F46E5',
+                          justifyContent: 'center', 
+                          color: '#EA580C',
                           flexShrink: 0
                         }}
                       >
@@ -1164,9 +1164,9 @@ AI-generated preparation material. Verify against original records; this is not 
                           ? '#EF4444' 
                           : (history.trim().split(/\s+/).filter(w => w.length > 0).length > 650)
                           ? '#D97706'
-                          : '#0F766E',
-                        background: '#F0FDFA',
-                        border: '1px solid #CCFBF1',
+                          : '#C2410C',
+                        background: '#FFF7ED',
+                        border: '1px solid #FED7AA',
                         padding: '3px 9px',
                         borderRadius: '999px'
                       }}
@@ -1177,8 +1177,8 @@ AI-generated preparation material. Verify against original records; this is not 
 
                   {/* Magic Prompt Pills */}
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Sparkles size={12} color="#0D9488" />
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={12} color="#F97316" />
                       <span>Tap to insert structured clinical prompts:</span>
                     </div>
 
@@ -1202,8 +1202,8 @@ AI-generated preparation material. Verify against original records; this is not 
                             padding: '6px 12px',
                             borderRadius: '999px',
                             background: '#FFFFFF',
-                            border: '1px solid #CBD5E1',
-                            color: '#334155',
+                            border: '1px solid #FED7AA',
+                            color: '#431407',
                             fontSize: '11.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
@@ -1214,14 +1214,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#F0FDFA';
-                            e.currentTarget.style.borderColor = '#99F6E4';
-                            e.currentTarget.style.color = '#0F766E';
+                            e.currentTarget.style.background = '#FFF7ED';
+                            e.currentTarget.style.borderColor = '#FB923C';
+                            e.currentTarget.style.color = '#9A3412';
                           }}
                           onMouseOut={(e) => {
                             e.currentTarget.style.background = '#FFFFFF';
-                            e.currentTarget.style.borderColor = '#CBD5E1';
-                            e.currentTarget.style.color = '#334155';
+                            e.currentTarget.style.borderColor = '#FED7AA';
+                            e.currentTarget.style.color = '#431407';
                           }}
                         >
                           <span>{cluster.emoji}</span>
@@ -1249,7 +1249,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       height: '170px', 
                       padding: '16px', 
                       borderRadius: '16px', 
-                      border: '1.5px solid #CBD5E1', 
+                      border: '1.5px solid #FED7AA', 
                       resize: 'vertical', 
                       fontSize: '13.5px', 
                       fontFamily: 'inherit', 
@@ -1260,11 +1260,11 @@ AI-generated preparation material. Verify against original records; this is not 
                       color: '#0F172A'
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#0D9488';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(13, 148, 136, 0.15)';
+                      e.target.style.borderColor = '#FB923C';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(249, 115, 22, 0.18)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = '#CBD5E1';
+                      e.target.style.borderColor = '#FED7AA';
                       e.target.style.boxShadow = 'none';
                     }}
                   />
@@ -1279,7 +1279,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     flexWrap: 'wrap', 
                     gap: '12px', 
                     paddingTop: '16px', 
-                    borderTop: '1px solid #E2E8F0' 
+                    borderTop: '1px solid #FED7AA' 
                   }}
                 >
                   <span style={{ fontSize: '12px', color: '#64748B' }}>
@@ -1296,11 +1296,11 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{
                         padding: '11px 22px',
                         borderRadius: '12px',
-                        background: '#F0FDFA',
-                        color: '#0F766E',
+                        background: '#FFF7ED',
+                        color: '#C2410C',
                         fontWeight: 800,
                         fontSize: '13.5px',
-                        border: '1.5px solid #99F6E4',
+                        border: '1.5px solid #FED7AA',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -1319,7 +1319,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{
                         padding: '11px 22px',
                         borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E2E8F0' : 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)',
                         color: (isReadingFiles || (!history.trim() && !files.length)) ? '#94A3B8' : '#FFFFFF',
                         fontWeight: 800,
                         fontSize: '13.5px',
@@ -1328,7 +1328,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(5, 150, 105, 0.3)',
+                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(249, 115, 22, 0.35)',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -1352,8 +1352,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
                     padding: isMobile ? '18px 16px' : '24px 28px',
-                    border: '1.5px solid rgba(226, 232, 240, 0.85)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    border: '1.5px solid rgba(254, 215, 170, 0.85)',
+                    boxShadow: '0 10px 30px rgba(194, 65, 12, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     marginBottom: '20px'
                   }}
                 >
@@ -1363,12 +1363,12 @@ AI-generated preparation material. Verify against original records; this is not 
                         width: '38px', 
                         height: '38px', 
                         borderRadius: '12px', 
-                        background: 'linear-gradient(135deg, #ECFDF5 0%, #CCFBF1 100%)', 
-                        border: '1px solid #A7F3D0',
+                        background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', 
+                        border: '1px solid #FDBA74', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: '#059669',
+                        justifyContent: 'center', 
+                        color: '#EA580C',
                         flexShrink: 0
                       }}
                     >
@@ -1397,38 +1397,38 @@ AI-generated preparation material. Verify against original records; this is not 
                     />
 
                     <button 
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label="Upload PDFs or photos of medical records"
+                      type="button" 
+                      onClick={() => fileInputRef.current?.click()} 
+                      aria-label="Upload PDFs or photos of medical records" 
                       style={{ 
                         width: '100%', 
                         padding: '28px 20px', 
-                        background: 'linear-gradient(135deg, #F8FAFC 0%, #F0FDFA 100%)', 
-                        border: '2px dashed #5EEAD4', 
+                        background: 'linear-gradient(135deg, #FFFBF7 0%, #FFF7ED 100%)', 
+                        border: '2px dashed #FDBA74', 
                         borderRadius: '18px', 
-                        color: '#0F766E', 
+                        color: '#C2410C', 
                         fontWeight: 700, 
                         display: 'flex', 
                         flexDirection: 'column', 
                         alignItems: 'center', 
                         gap: '12px', 
                         cursor: 'pointer', 
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 8px rgba(13, 148, 136, 0.04)'
+                        transition: 'all 0.2s ease', 
+                        boxShadow: '0 2px 8px rgba(249, 115, 22, 0.04)' 
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.borderColor = '#0D9488';
-                        e.currentTarget.style.background = '#E6FFFA';
+                        e.currentTarget.style.borderColor = '#F97316';
+                        e.currentTarget.style.background = '#FFEDD5';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseOut={(e) => {
-                        e.currentTarget.style.borderColor = '#5EEAD4';
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #F8FAFC 0%, #F0FDFA 100%)';
+                        e.currentTarget.style.borderColor = '#FDBA74';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #FFFBF7 0%, #FFF7ED 100%)';
                         e.currentTarget.style.transform = 'none';
                       }}
                     >
-                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)' }}>
-                        <UploadCloud size={25} color="#0D9488" />
+                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)' }}>
+                        <UploadCloud size={25} color="#EA580C" />
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '15px', color: '#0F172A', display: 'block', fontWeight: 800 }}>
@@ -1439,9 +1439,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         </span>
                       </div>
                       <div style={{ display: 'inline-flex', gap: '8px', marginTop: '4px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 9px', borderRadius: '999px' }}>📄 PDF Lab Panels</span>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', background: '#F0F9FF', border: '1px solid #BAE6FD', padding: '3px 9px', borderRadius: '999px' }}>📸 Photos & Scans</span>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#4F46E5', background: '#EEF2FF', border: '1px solid #C7D2FE', padding: '3px 9px', borderRadius: '999px' }}>🔬 Imaging Reports</span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#C2410C', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 9px', borderRadius: '999px' }}>📄 PDF Lab Panels</span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#9A3412', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 9px', borderRadius: '999px' }}>📸 Photos & Scans</span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#EA580C', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 9px', borderRadius: '999px' }}>🔬 Imaging Reports</span>
                       </div>
                     </button>
                   </div>
@@ -1451,16 +1451,16 @@ AI-generated preparation material. Verify against original records; this is not 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
                       <div style={{
                         padding: '8px 14px',
-                        background: '#F0FDF4',
-                        border: '1px solid #BBF7D0',
+                        background: '#FFF7ED',
+                        border: '1px solid #FED7AA',
                         borderRadius: '12px',
                         fontSize: '12px',
-                        color: '#166534',
+                        color: '#9A3412',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px'
                       }}>
-                        <ShieldCheck size={16} color="#16A34A" />
+                        <ShieldCheck size={16} color="#EA580C" />
                         <span><strong>{files.length} document(s) staged.</strong> Original files are encrypted on your local device.</span>
                       </div>
                       {files.map((f, idx) => (
@@ -1472,14 +1472,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             justifyContent: 'space-between', 
                             padding: '10px 14px', 
                             background: '#FFFFFF', 
-                            border: '1px solid #E2E8F0', 
+                            border: '1px solid #FED7AA', 
                             borderRadius: '12px',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <FileText size={15} color="#0D9488" />
+                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#FFF7ED', border: '1px solid #FED7AA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <FileText size={15} color="#EA580C" />
                             </div>
                             <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {f.file.name}
@@ -1521,8 +1521,8 @@ AI-generated preparation material. Verify against original records; this is not 
                       ))}
                     </div>
                   ) : (
-                    <div style={{ padding: '12px 16px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '12px', color: '#64748B', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#94A3B8', display: 'inline-block' }} />
+                    <div style={{ padding: '12px 16px', background: '#FFFBF7', border: '1px solid #FED7AA', borderRadius: '12px', fontSize: '12px', color: '#78350F', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FB923C', display: 'inline-block' }} />
                       <span>No documents attached yet. If you have lab panels or scans, upload them above for extraction.</span>
                     </div>
                   )}
@@ -1532,12 +1532,12 @@ AI-generated preparation material. Verify against original records; this is not 
                     const activeCase = selectedCaseId ? getCase(selectedCaseId) : null;
                     if (!activeCase?.medicalRecords || activeCase.medicalRecords.length === 0) return null;
                     return (
-                      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+                      <div style={{ borderTop: '1px solid #FED7AA', paddingTop: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                             Connected Case Records ({activeCase.medicalRecords.length})
                           </span>
-                          <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '11px', color: '#C2410C', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             <ShieldCheck size={12} /> Stored on device
                           </span>
                         </div>
@@ -1550,14 +1550,14 @@ AI-generated preparation material. Verify against original records; this is not 
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 padding: '9px 12px',
-                                background: '#F8FAFC',
-                                border: '1px solid #E2E8F0',
+                                background: '#FFFBF7',
+                                border: '1px solid #FED7AA',
                                 borderRadius: '10px',
                                 fontSize: '12px',
                               }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                                <FileText size={14} color="#0D9488" />
+                                <FileText size={14} color="#EA580C" />
                                 <span style={{ fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
                                   {rec.filename}
                                 </span>
@@ -1585,12 +1585,12 @@ AI-generated preparation material. Verify against original records; this is not 
                                   });
                                 }}
                                 style={{
-                                  background: 'rgba(13, 148, 136, 0.08)',
-                                  border: '1px solid rgba(13, 148, 136, 0.25)',
+                                  background: '#FFF7ED',
+                                  border: '1px solid #FED7AA',
                                   borderRadius: '6px',
                                   padding: '3px 8px',
                                   fontSize: '11px',
-                                  color: '#0F766E',
+                                  color: '#C2410C',
                                   fontWeight: 700,
                                   cursor: 'pointer',
                                 }}
@@ -1614,7 +1614,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     flexWrap: 'wrap', 
                     gap: '12px', 
                     paddingTop: '16px', 
-                    borderTop: '1px solid #E2E8F0' 
+                    borderTop: '1px solid #FED7AA' 
                   }}
                 >
                   <button
@@ -1630,7 +1630,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       color: '#475569',
                       fontWeight: 700,
                       fontSize: '13.5px',
-                      border: '1px solid #CBD5E1',
+                      border: '1px solid #FED7AA',
                       cursor: 'pointer'
                     }}
                   >
@@ -1647,11 +1647,11 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{
                         padding: '11px 22px',
                         borderRadius: '12px',
-                        background: '#F0FDFA',
-                        color: '#0F766E',
+                        background: '#FFF7ED',
+                        color: '#C2410C',
                         fontWeight: 800,
                         fontSize: '13.5px',
-                        border: '1.5px solid #99F6E4',
+                        border: '1.5px solid #FED7AA',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -1670,7 +1670,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{
                         padding: '11px 22px',
                         borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E2E8F0' : 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)',
                         color: (isReadingFiles || (!history.trim() && !files.length)) ? '#94A3B8' : '#FFFFFF',
                         fontWeight: 800,
                         fontSize: '13.5px',
@@ -1679,7 +1679,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(5, 150, 105, 0.3)',
+                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(249, 115, 22, 0.35)',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -1703,8 +1703,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
                     padding: isMobile ? '18px 16px' : '24px 28px',
-                    border: '1.5px solid rgba(226, 232, 240, 0.85)',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    border: '1.5px solid rgba(254, 215, 170, 0.85)',
+                    boxShadow: '0 10px 30px rgba(194, 65, 12, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     marginBottom: '20px'
                   }}
                 >
@@ -1714,12 +1714,12 @@ AI-generated preparation material. Verify against original records; this is not 
                         width: '38px', 
                         height: '38px', 
                         borderRadius: '12px', 
-                        background: 'linear-gradient(135deg, #ECFDF5 0%, #CCFBF1 100%)', 
-                        border: '1px solid #A7F3D0',
+                        background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', 
+                        border: '1px solid #FDBA74', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: '#059669',
+                        justifyContent: 'center', 
+                        color: '#EA580C',
                         flexShrink: 0
                       }}
                     >
@@ -1740,36 +1740,36 @@ AI-generated preparation material. Verify against original records; this is not 
                     style={{ 
                       marginBottom: '18px', 
                       padding: '16px 18px', 
-                      background: '#F8FAFC', 
-                      border: '1px solid #E2E8F0', 
+                      background: '#FFFBF7', 
+                      border: '1px solid #FED7AA', 
                       borderRadius: '16px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '10px'
                     }}
                   >
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Evidence Readiness Checklist
                     </span>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
-                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #FED7AA', borderRadius: '12px' }}>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Clinical Timeline</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: history.trim() ? '#059669' : '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: history.trim() ? '#EA580C' : '#64748B', marginTop: '2px' }}>
                           {history.trim() ? `✓ ${history.trim().split(/\s+/).filter(w => w.length > 0).length} words recorded` : '○ No notes (records only)'}
                         </div>
                       </div>
 
-                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #FED7AA', borderRadius: '12px' }}>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Attached Evidence</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: files.length > 0 ? '#059669' : '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: files.length > 0 ? '#EA580C' : '#64748B', marginTop: '2px' }}>
                           {files.length > 0 ? `✓ ${files.length} document(s) staged` : '○ No files (timeline only)'}
                         </div>
                       </div>
 
-                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                      <div style={{ padding: '10px 12px', background: '#FFFFFF', border: '1px solid #FED7AA', borderRadius: '12px' }}>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Destination Case</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: selectedCaseId ? '#0D9488' : '#334155', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: selectedCaseId ? '#EA580C' : '#334155', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {selectedCaseId ? '✓ Existing Timeline' : '✓ New Case Draft'}
                         </div>
                       </div>
@@ -1782,7 +1782,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       marginBottom: '18px',
                       padding: '16px 18px',
                       background: '#FFFFFF',
-                      border: '1.5px solid #E2E8F0',
+                      border: '1.5px solid #FED7AA',
                       borderRadius: '16px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -1791,8 +1791,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Folder size={15} color="#0D9488" />
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#FFF7ED', border: '1px solid #FED7AA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Folder size={15} color="#EA580C" />
                         </div>
                         <div>
                           <label htmlFor="engine-case-context" style={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
@@ -1800,7 +1800,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           </label>
                         </div>
                       </div>
-                      <span style={{ fontSize: '11.5px', color: selectedCaseId ? '#0D9488' : '#64748B', fontWeight: 700 }}>
+                      <span style={{ fontSize: '11.5px', color: selectedCaseId ? '#EA580C' : '#64748B', fontWeight: 700 }}>
                         {selectedCaseId ? 'Connected to Case Timeline' : 'New Longitudinal Case'}
                       </span>
                     </div>
@@ -1815,7 +1815,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           width: '100%',
                           padding: '10px 36px 10px 14px',
                           borderRadius: '12px',
-                          border: '1.5px solid #CBD5E1',
+                          border: '1.5px solid #FED7AA',
                           background: '#FFFFFF',
                           color: '#0F172A',
                           fontSize: '13.5px',
@@ -1826,11 +1826,11 @@ AI-generated preparation material. Verify against original records; this is not 
                           transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
                         }}
                         onFocus={(e) => {
-                          e.target.style.borderColor = '#0D9488';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(13, 148, 136, 0.12)';
+                          e.target.style.borderColor = '#FB923C';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(249, 115, 22, 0.15)';
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = '#CBD5E1';
+                          e.target.style.borderColor = '#FED7AA';
                           e.target.style.boxShadow = 'none';
                         }}
                       >
@@ -1850,7 +1850,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       {selectedCaseId ? 'Uses this case’s saved context.' : 'Creates a new case.'} Starting a review sends the included information to the AI service.
                     </p>
                     {isReadingFiles && (
-                      <p role="status" style={{ fontSize: 12, color: '#0D9488', fontWeight: 700, margin: 0 }}>
+                      <p role="status" style={{ fontSize: 12, color: '#EA580C', fontWeight: 700, margin: 0 }}>
                         Preparing your documents… Please wait before starting the review.
                       </p>
                     )}
@@ -1858,7 +1858,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
                   {/* Review Objective Focus */}
                   <div style={{ marginBottom: '18px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
                       Clinical Objective Focus
                     </span>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '8px' }}>
@@ -1878,14 +1878,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             padding: '12px 14px',
                             borderRadius: '14px',
                             textAlign: 'left',
-                            border: reviewFocus === opt.id ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: reviewFocus === opt.id ? '#F0FDFA' : '#FFFFFF',
-                            boxShadow: reviewFocus === opt.id ? '0 2px 8px rgba(13, 148, 136, 0.12)' : 'none',
+                            border: reviewFocus === opt.id ? '1.5px solid #FB923C' : '1px solid #FED7AA',
+                            background: reviewFocus === opt.id ? '#FFF7ED' : '#FFFFFF',
+                            boxShadow: reviewFocus === opt.id ? '0 2px 8px rgba(249, 115, 22, 0.15)' : 'none',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <div style={{ fontSize: '12.5px', fontWeight: 800, color: reviewFocus === opt.id ? '#0F766E' : '#0F172A' }}>
+                          <div style={{ fontSize: '12.5px', fontWeight: 800, color: reviewFocus === opt.id ? '#9A3412' : '#0F172A' }}>
                             {opt.label}
                           </div>
                           <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px', lineHeight: 1.35 }}>
@@ -1901,8 +1901,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     <div 
                       style={{ 
                         padding: '14px 18px', 
-                        background: '#F8FAFC', 
-                        border: '1px solid #E2E8F0', 
+                        background: '#FFFBF7', 
+                        border: '1px solid #FED7AA', 
                         borderRadius: '16px', 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -1913,7 +1913,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     >
                       <div style={{ flex: '1 1 240px' }}>
                         <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Sliders size={14} color="#0D9488" />
+                          <Sliders size={14} color="#EA580C" />
                           <span>Isolated Investigation Mode</span>
                         </div>
                         <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
@@ -1932,9 +1932,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           padding: '7px 14px',
                           borderRadius: '10px',
-                          border: isIsolated ? '1.5px solid #0D9488' : '1px solid #CBD5E1',
-                          background: isIsolated ? '#F0FDFA' : '#FFFFFF',
-                          color: isIsolated ? '#0F766E' : '#475569',
+                          border: isIsolated ? '1.5px solid #FB923C' : '1px solid #FED7AA',
+                          background: isIsolated ? '#FFF7ED' : '#FFFFFF',
+                          color: isIsolated ? '#C2410C' : '#475569',
                           fontSize: '12.5px',
                           fontWeight: 800,
                           cursor: 'pointer',
@@ -1945,7 +1945,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       </button>
                     </div>
                   ) : (
-                    <div style={{ padding: '10px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '12px', color: '#64748B' }}>
+                    <div style={{ padding: '10px 14px', background: '#FFFBF7', border: '1px solid #FED7AA', borderRadius: '12px', fontSize: '12px', color: '#78350F' }}>
                       <span>No background profile conditions recorded. The review will analyze direct case inputs.</span>
                     </div>
                   )}
@@ -1960,7 +1960,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     flexWrap: 'wrap', 
                     gap: '14px', 
                     paddingTop: '16px', 
-                    borderTop: '1px solid #E2E8F0' 
+                    borderTop: '1px solid #FED7AA' 
                   }}
                 >
                   <button
@@ -1976,7 +1976,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       color: '#475569',
                       fontWeight: 700,
                       fontSize: '14px',
-                      border: '1px solid #CBD5E1',
+                      border: '1px solid #FED7AA',
                       cursor: 'pointer'
                     }}
                   >
@@ -1994,7 +1994,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       border: 'none',
                       background: (isReadingFiles || (!history.trim() && !files.length))
                         ? '#E2E8F0'
-                        : 'linear-gradient(135deg, #059669 0%, #0D9488 50%, #047857 100%)',
+                        : 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)',
                       color: (isReadingFiles || (!history.trim() && !files.length))
                         ? '#94A3B8'
                         : '#FFFFFF',
@@ -2007,7 +2007,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       gap: '10px',
                       boxShadow: (isReadingFiles || (!history.trim() && !files.length))
                         ? 'none'
-                        : '0 10px 30px -4px rgba(5, 150, 105, 0.4)',
+                        : '0 10px 30px -4px rgba(249, 115, 22, 0.4)',
                       transition: 'all 0.15s ease'
                     }}
                     onMouseDown={(e) => {
