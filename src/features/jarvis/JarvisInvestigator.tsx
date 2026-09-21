@@ -5,7 +5,9 @@ import {
   FileUp, Sparkles, Search, ArrowRight,
   X, HelpCircle, BrainCircuit, Copy, Check,
   AlertTriangle, ShieldCheck, Stethoscope, CalendarClock,
-  FileText, Zap, ChevronRight, AlertCircle, Plus
+  FileText, Zap, ChevronRight, AlertCircle, Plus,
+  Activity, Sliders, MessageCircle, Folder, ChevronDown, Lock,
+  UploadCloud, Trash2
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
@@ -610,67 +612,116 @@ AI-generated preparation material. Verify against original records; this is not 
     <div 
       style={{ 
         minHeight: '100vh', 
-        background: '#FDFBF7', 
-        padding: isMobile ? '16px 12px 100px' : '40px 24px 100px',
+        background: 'transparent', 
+        padding: isMobile ? '12px 8px 100px' : '32px 20px 100px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
       }}
     >
-      <div style={{ width: '100%', maxWidth: '960px', marginBottom: '16px' }}>
-        
+      {/* Workspace Header / Session Status */}
+      <div 
+        style={{ 
+          width: '100%', 
+          maxWidth: '860px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          padding: '0 4px'
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            color: '#475569',
+            fontSize: '12.5px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 14px',
+            borderRadius: '999px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.color = '#0F766E';
+            e.currentTarget.style.borderColor = '#99F6E4';
+            e.currentTarget.style.background = '#F0FDFA';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.color = '#475569';
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.background = '#FFFFFF';
+          }}
+        >
+          ← Back to Workspace
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#059669', fontWeight: 700, background: '#ECFDF5', padding: '4px 10px', borderRadius: '999px', border: '1px solid #A7F3D0' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+          <span>ON-DEVICE ENCRYPTED</span>
+        </div>
       </div>
 
       <div 
         style={{ 
           width: '100%', 
-          maxWidth: '960px', 
+          maxWidth: '860px', 
           background: '#FFFFFF', 
           borderRadius: '24px', 
-          boxShadow: '0 12px 40px rgba(249, 115, 22, 0.06), 0 1px 3px rgba(0,0,0,0.02)', 
-          border: '1.5px solid #FED7AA', 
+          boxShadow: '0 20px 60px -15px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(0,0,0,0.02)', 
+          border: '1px solid #E2E8F0', 
           overflow: 'hidden' 
         }}
       >
-        {/* Amber Hero Banner */}
+        {/* Clinical Teal Hero Banner */}
         <div 
           style={{ 
-            background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 50%, #FFEDD5 100%)', 
-            padding: isMobile ? '24px 16px' : '36px 36px', 
-            borderBottom: '1px solid #FED7AA',
+            background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 60%, #F8FAFC 100%)', 
+            padding: isMobile ? '24px 18px' : '32px 36px', 
+            borderBottom: '1px solid #E2E8F0',
             position: 'relative'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <div 
               style={{ 
-                width: '38px', 
-                height: '38px', 
+                width: '36px', 
+                height: '36px', 
                 borderRadius: '12px', 
-                background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', 
+                background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)'
+                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)'
               }}
             >
               <BrainCircuit size={20} color="#FFFFFF" />
             </div>
-            <span style={{ color: '#9A3412', fontWeight: 800, fontSize: '12px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              Clinical Review
-            </span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '3px 9px', borderRadius: '999px' }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0D9488' }} />
+              <span style={{ color: '#0F766E', fontWeight: 800, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                Clinical Review
+              </span>
+            </div>
           </div>
 
-          <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.5px', lineHeight: 1.25 }}>
+          <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-0.5px', lineHeight: 1.25 }}>
             Review your health records
           </h1>
 
-          <p style={{ color: '#475569', fontSize: '14.5px', margin: '0 0 18px 0', lineHeight: 1.6, maxWidth: '680px' }}>
-            Organize documented facts, uncertainties, and questions for your visit.
+          <p style={{ color: '#475569', fontSize: '14px', margin: '0 0 16px 0', lineHeight: 1.6, maxWidth: '680px' }}>
+            Organize documented facts, symptoms, and medical records into an evidence-backed clinical briefing for your visit.
           </p>
 
-          <div style={{ marginTop: 8 }}>
+          <div>
             <button
               type="button"
               onClick={() => {
@@ -686,9 +737,10 @@ AI-generated preparation material. Verify against original records; this is not 
                 background: '#F0FDF4',
                 border: '1px solid #BBF7D0',
                 color: '#15803D',
-                fontSize: '12px',
+                fontSize: '11.5px',
                 fontWeight: 700,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
               }}
               title="Review how data is stored and processed"
             >
@@ -699,7 +751,7 @@ AI-generated preparation material. Verify against original records; this is not 
         </div>
 
         {/* Form Body */}
-        <div style={{ padding: isMobile ? '20px 16px' : '32px 36px' }}>
+        <div style={{ padding: isMobile ? '20px 16px' : '30px 36px' }}>
           {missingCaseId && (
             <div
               role="alert"
@@ -722,77 +774,169 @@ AI-generated preparation material. Verify against original records; this is not 
               </div>
             </div>
           )}
-          <div className="connected-experience" style={{ marginBottom: 24 }}>
-            <label htmlFor="engine-case-context" style={{ fontWeight: 700 }}>Save to</label>
-            <select id="engine-case-context" aria-label="Where should this review be saved?" className="case-context-select" value={selectedCaseId} onChange={e => setSelectedCaseId(e.target.value)}>
-              <option value="">Start a new case</option>
-              {availableCases.filter(item => item.status !== 'archived').map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
-            </select>
-            <p style={{ fontSize: 12, color: '#475569' }}>{selectedCaseId ? 'Uses this case’s saved context.' : 'Creates a new case.'} Starting a review sends the included information to the AI service.</p>
-            {isReadingFiles && <p role="status">Preparing your documents… Please wait before starting the review.</p>}
+
+          {/* Case Destination Workspace Dock */}
+          <div 
+            style={{ 
+              marginBottom: 24,
+              padding: '16px 18px',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Folder size={15} color="#0D9488" />
+                </div>
+                <div>
+                  <label htmlFor="engine-case-context" style={{ fontWeight: 800, fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                    Save to
+                  </label>
+                </div>
+              </div>
+              <span style={{ fontSize: '11.5px', color: selectedCaseId ? '#0D9488' : '#64748B', fontWeight: 700 }}>
+                {selectedCaseId ? 'Connected to Case Timeline' : 'New Longitudinal Case'}
+              </span>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <select 
+                id="engine-case-context" 
+                aria-label="Where should this review be saved?" 
+                value={selectedCaseId} 
+                onChange={e => setSelectedCaseId(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 14px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#0F172A',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  appearance: 'none',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#0D9488';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(13, 148, 136, 0.12)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#CBD5E1';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <option value="">Start a new case</option>
+                {availableCases.filter(item => item.status !== 'archived').map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.title}
+                  </option>
+                ))}
+              </select>
+              <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#64748B' }}>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+
+            <p style={{ fontSize: 12, color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+              {selectedCaseId ? 'Uses this case’s saved context.' : 'Creates a new case.'} Starting a review sends the included information to the AI service.
+            </p>
+            {isReadingFiles && (
+              <p role="status" style={{ fontSize: 12, color: '#0D9488', fontWeight: 700, margin: 0 }}>
+                Preparing your documents… Please wait before starting the review.
+              </p>
+            )}
           </div>
 
-          {/* 1-Tap Multi-System Clinical Clusters */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <Sparkles size={13} color="#EA580C" />
+          {/* Guided Clinical Prompts */}
+          <div style={{ marginBottom: '22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Sparkles size={13} color="#0D9488" />
                 Writing prompts
+              </span>
+              <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                Tap to insert structured guidance
               </span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
               {[
-                { label: 'When it started', icon: '📅', text: 'When this started and how it has changed: ' },
-                { label: 'What I notice', icon: '📝', text: 'Symptoms I have noticed, how often they happen, and their effect on my day: ' },
-                { label: 'What changes it', icon: '🔎', text: 'Things that seem to improve or worsen symptoms (if known): ' },
-                { label: 'Care so far', icon: '📋', text: 'Appointments, tests, treatments, and what my clinician told me: ' },
-                { label: 'My main question', icon: '💬', text: 'What I most want help understanding: ' }
-              ].map((cluster, cIdx) => (
-                <button
-                  key={cIdx}
-                  type="button"
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setHistory(prev => prev ? `${prev}\n\n${cluster.text}` : cluster.text);
-                  }}
-                  style={{
-                    flexShrink: 0,
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                    background: '#FFF7ED',
-                    border: '1px solid #FED7AA',
-                    color: '#9A3412',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s ease',
-                    boxShadow: '0 1px 2px rgba(249, 115, 22, 0.05)'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#FFEDD5';
-                    e.currentTarget.style.borderColor = '#FDBA74';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = '#FFF7ED';
-                    e.currentTarget.style.borderColor = '#FED7AA';
-                  }}
-                >
-                  <span>{cluster.icon}</span>
-                  <span>{cluster.label}</span>
-                </button>
-              ))}
+                { label: 'When it started', icon: CalendarClock, text: 'When this started and how it has changed: ' },
+                { label: 'What I notice', icon: Activity, text: 'Symptoms I have noticed, how often they happen, and their effect on my day: ' },
+                { label: 'What changes it', icon: Sliders, text: 'Things that seem to improve or worsen symptoms (if known): ' },
+                { label: 'Care so far', icon: Stethoscope, text: 'Appointments, tests, treatments, and what my clinician told me: ' },
+                { label: 'My main question', icon: MessageCircle, text: 'What I most want help understanding: ' }
+              ].map((cluster, cIdx) => {
+                const IconComponent = cluster.icon;
+                return (
+                  <button
+                    key={cIdx}
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setHistory(prev => prev ? `${prev}\n\n${cluster.text}` : cluster.text);
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      padding: '7px 12px',
+                      borderRadius: '10px',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      color: '#334155',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#F0FDFA';
+                      e.currentTarget.style.borderColor = '#99F6E4';
+                      e.currentTarget.style.color = '#0F766E';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = '#FFFFFF';
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                      e.currentTarget.style.color = '#334155';
+                    }}
+                  >
+                    <IconComponent size={13} color="#0D9488" />
+                    <span>{cluster.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Clinical Timeline & Symptoms Textarea */}
           <div style={{ marginBottom: '24px' }}>
             <label htmlFor="clinical-timeline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14.5px' }}>Timeline and symptoms</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) ? '#EF4444' : '#64748B' }}>
+              <span style={{ fontSize: '14px', fontWeight: 800 }}>Timeline and symptoms</span>
+              <span 
+                style={{ 
+                  fontSize: '11.5px', 
+                  fontWeight: 700, 
+                  color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) 
+                    ? '#EF4444' 
+                    : (history.trim().split(/\s+/).filter(w => w.length > 0).length > 650)
+                    ? '#D97706'
+                    : '#64748B',
+                  background: '#F1F5F9',
+                  padding: '2px 8px',
+                  borderRadius: '999px'
+                }}
+              >
                 {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 800 words
               </span>
             </label>
@@ -816,24 +960,36 @@ AI-generated preparation material. Verify against original records; this is not 
                 borderRadius: '16px', 
                 border: '1.5px solid #CBD5E1', 
                 resize: 'vertical', 
-                fontSize: '14.5px', 
+                fontSize: '14px', 
                 fontFamily: 'inherit', 
-                background: '#F8FAFC', 
-                transition: 'border-color 0.2s', 
+                background: '#FFFFFF', 
+                transition: 'border-color 0.2s ease, box-shadow 0.2s ease', 
                 outline: 'none',
-                lineHeight: 1.5
+                lineHeight: 1.55,
+                color: '#0F172A'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#F97316'}
-              onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#0D9488';
+                e.target.style.boxShadow = '0 0 0 3px rgba(13, 148, 136, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#CBD5E1';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 
           {/* Document Upload Area */}
           <div style={{ marginBottom: '28px' }}>
-            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14.5px' }}>Medical Records & Lab Work (Optional)</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>PDF / Images</span>
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label style={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                Medical Records & Lab Work (Optional)
+              </label>
+              <div style={{ display: 'inline-flex', gap: '4px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', border: '1px solid #CCFBF1', padding: '1px 6px', borderRadius: '999px' }}>PDF</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '999px' }}>Images</span>
+              </div>
+            </div>
 
             <input 
               type="file" 
@@ -851,34 +1007,41 @@ AI-generated preparation material. Verify against original records; this is not 
               aria-label="Upload PDFs or photos of medical records"
               style={{ 
                 width: '100%', 
-                padding: '24px 16px', 
-                background: '#FFFDFB', 
-                border: '2px dashed #FDBA74', 
+                padding: '24px 18px', 
+                background: 'linear-gradient(135deg, #F8FAFC 0%, #F0FDFA 100%)', 
+                border: '1.5px dashed #99F6E4', 
                 borderRadius: '16px', 
-                color: '#9A3412', 
+                color: '#0F766E', 
                 fontWeight: 700, 
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'center', 
                 gap: '10px', 
                 cursor: 'pointer', 
-                transition: 'all 0.2s' 
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = '#EA580C';
-                e.currentTarget.style.background = '#FFF7ED';
+                e.currentTarget.style.borderColor = '#0D9488';
+                e.currentTarget.style.background = '#E6FFFA';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = '#FDBA74';
-                e.currentTarget.style.background = '#FFFDFB';
+                e.currentTarget.style.borderColor = '#99F6E4';
+                e.currentTarget.style.background = 'linear-gradient(135deg, #F8FAFC 0%, #F0FDFA 100%)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
-              <div style={{ background: '#FFEDD5', padding: '12px', borderRadius: '50%' }}>
-                <FileUp size={22} color="#C2410C" />
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.15)' }}>
+                <UploadCloud size={22} color="#0D9488" />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '14.5px', color: '#0F172A', display: 'block' }}>Upload Lab Reports, Discharge Summaries, or Imaging</span>
-                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>PDF, JPG, PNG or WebP · up to 10 files · 3 MB per file</span>
+                <span style={{ fontSize: '14.5px', color: '#0F172A', display: 'block', fontWeight: 800 }}>
+                  Upload Lab Reports, Discharge Summaries, or Imaging
+                </span>
+                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500, marginTop: '2px', display: 'block' }}>
+                  PDF, JPG, PNG or WebP · up to 10 files · 3 MB per file
+                </span>
               </div>
             </button>
 
@@ -889,7 +1052,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   padding: '8px 12px',
                   background: '#F0FDF4',
                   border: '1px solid #BBF7D0',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   fontSize: '11.5px',
                   color: '#166534',
                   display: 'flex',
@@ -907,17 +1070,20 @@ AI-generated preparation material. Verify against original records; this is not 
                       alignItems: 'center', 
                       justifyContent: 'space-between', 
                       padding: '10px 14px', 
-                      background: '#FFF7ED', 
-                      border: '1px solid #FED7AA', 
-                      borderRadius: '10px' 
+                      background: '#FFFFFF', 
+                      border: '1px solid #E2E8F0', 
+                      borderRadius: '12px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                      <FileText size={15} color="#C2410C" />
+                      <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <FileText size={15} color="#0D9488" />
+                      </div>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {f.file.name}
                       </span>
-                      <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      <span style={{ fontSize: '11px', color: '#64748B', flexShrink: 0 }}>
                         ({Math.round(f.size / 1024)} KB)
                       </span>
                     </div>
@@ -926,18 +1092,29 @@ AI-generated preparation material. Verify against original records; this is not 
                       onClick={() => removeFile(idx)} 
                       aria-label={`Remove uploaded file ${f.file.name}`} 
                       style={{ 
-                        background: '#FFF', 
-                        border: '1px solid #FED7AA', 
-                        borderRadius: '6px', 
-                        color: '#EF4444', 
+                        background: '#F8FAFC', 
+                        border: '1px solid #E2E8F0', 
+                        borderRadius: '8px', 
+                        color: '#64748B', 
                         cursor: 'pointer', 
-                        padding: '4px', 
+                        padding: '6px', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center' 
+                        justifyContent: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.color = '#DC2626';
+                        e.currentTarget.style.borderColor = '#FCA5A5';
+                        e.currentTarget.style.background = '#FEF2F2';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.color = '#64748B';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.background = '#F8FAFC';
                       }}
                     >
-                      <X size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 ))}
@@ -949,9 +1126,9 @@ AI-generated preparation material. Verify against original records; this is not 
               const activeCase = selectedCaseId ? getCase(selectedCaseId) : null;
               if (!activeCase?.medicalRecords || activeCase.medicalRecords.length === 0) return null;
               return (
-                <div style={{ marginTop: '16px', borderTop: '1px dashed #FED7AA', paddingTop: '14px' }}>
+                <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                       Attached Case Documents ({activeCase.medicalRecords.length})
                     </span>
                     <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -966,15 +1143,15 @@ AI-generated preparation material. Verify against original records; this is not 
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          background: '#FFFDFB',
-                          border: '1px solid #FED7AA',
-                          borderRadius: '8px',
+                          padding: '9px 12px',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '10px',
                           fontSize: '12px',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                          <FileText size={14} color="#EA580C" />
+                          <FileText size={14} color="#0D9488" />
                           <span style={{ fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
                             {rec.filename}
                           </span>
@@ -1002,12 +1179,12 @@ AI-generated preparation material. Verify against original records; this is not 
                             });
                           }}
                           style={{
-                            background: 'rgba(2, 132, 199, 0.08)',
-                            border: '1px solid rgba(2, 132, 199, 0.3)',
+                            background: 'rgba(13, 148, 136, 0.08)',
+                            border: '1px solid rgba(13, 148, 136, 0.25)',
                             borderRadius: '6px',
                             padding: '3px 8px',
                             fontSize: '11px',
-                            color: '#0284C7',
+                            color: '#0F766E',
                             fontWeight: 700,
                             cursor: 'pointer',
                           }}
@@ -1030,19 +1207,20 @@ AI-generated preparation material. Verify against original records; this is not 
                 padding: '14px 18px', 
                 background: '#F8FAFC', 
                 border: '1px solid #E2E8F0', 
-                borderRadius: '14px', 
+                borderRadius: '16px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between', 
                 flexWrap: 'wrap', 
-                gap: '10px' 
+                gap: '12px' 
               }}
             >
-              <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
-                  Isolated Investigation Mode
+              <div style={{ flex: '1 1 240px' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sliders size={14} color="#0D9488" />
+                  <span>Isolated Investigation Mode</span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
                   {isIsolated 
                     ? 'Analyzes strictly what you typed and uploaded above (ignores background profile conditions).' 
                     : 'Correlates your input with your known medical profile conditions.'}
@@ -1056,22 +1234,23 @@ AI-generated preparation material. Verify against original records; this is not 
                   setIsIsolated(!isIsolated);
                 }}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  border: isIsolated ? '1px solid #F97316' : '1px solid #CBD5E1',
-                  background: isIsolated ? '#FFF7ED' : '#FFF',
-                  color: isIsolated ? '#C2410C' : '#475569',
+                  padding: '7px 14px',
+                  borderRadius: '10px',
+                  border: isIsolated ? '1.5px solid #0D9488' : '1px solid #CBD5E1',
+                  background: isIsolated ? '#F0FDFA' : '#FFFFFF',
+                  color: isIsolated ? '#0F766E' : '#475569',
                   fontSize: '12.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer'
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {isIsolated ? 'Isolate (On)' : 'Include Profile (Off)'}
+                {isIsolated ? '✓ Isolated (On)' : 'Correlate Profile (Default)'}
               </button>
             </div>
           )}
 
-          {/* Primary Amber CTA Button */}
+          {/* Primary Clinical CTA Button */}
           <button
             type="button"
             onClick={handleRunInvestigation}
@@ -1081,20 +1260,32 @@ AI-generated preparation material. Verify against original records; this is not 
               padding: '16px',
               borderRadius: '16px',
               border: 'none',
-              background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-              color: '#FFFFFF',
-              fontSize: '16px',
+              background: (isReadingFiles || (!history.trim() && !files.length))
+                ? '#E2E8F0'
+                : 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+              color: (isReadingFiles || (!history.trim() && !files.length))
+                ? '#94A3B8'
+                : '#FFFFFF',
+              fontSize: '15.5px',
               fontWeight: 800,
-              cursor: 'pointer',
+              cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 8px 24px rgba(249, 115, 22, 0.3)',
-              transition: 'transform 0.15s ease'
+              boxShadow: (isReadingFiles || (!history.trim() && !files.length))
+                ? 'none'
+                : '0 8px 24px rgba(13, 148, 136, 0.32)',
+              transition: 'all 0.15s ease'
             }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.99)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseDown={(e) => {
+              if (!isReadingFiles && (history.trim() || files.length)) {
+                e.currentTarget.style.transform = 'scale(0.99)';
+              }
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
           >
             <Sparkles size={18} />
             <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
