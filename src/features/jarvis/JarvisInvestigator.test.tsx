@@ -50,4 +50,26 @@ describe('Clinical Review case continuity', () => {
     await waitFor(() => expect(mocks.session).toHaveBeenCalled());
     expect(mocks.run).not.toHaveBeenCalled();
   });
+
+  it('navigates seamlessly across the 3 visual intake steps and supports onset chips', async () => {
+    open();
+    // Step 1: Click an onset chip
+    fireEvent.click(screen.getByRole('button', { name: 'Past few days' }));
+    const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
+    expect(textarea.value).toContain('Onset: Past few days.');
+
+    // Advance to Step 2
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Add Evidence (Step 2)' }));
+    expect(screen.getByRole('heading', { name: 'Lab Reports & Medical Evidence' })).toBeTruthy();
+
+    // Advance to Step 3
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Scope & Run (Step 3)' }));
+    expect(screen.getByRole('heading', { name: 'Review Scope & Launchpad' })).toBeTruthy();
+    expect(screen.getByText('Evidence Readiness Checklist')).toBeTruthy();
+    expect(screen.getByRole('combobox', { name: 'Where should this review be saved?' })).toBeTruthy();
+
+    // Navigate back to Step 2
+    fireEvent.click(screen.getByRole('button', { name: '← Back to Evidence' }));
+    expect(screen.getByRole('heading', { name: 'Lab Reports & Medical Evidence' })).toBeTruthy();
+  });
 });
