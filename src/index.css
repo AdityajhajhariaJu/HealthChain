@@ -266,6 +266,17 @@ textarea {
   padding-left: 9px;
 }
 
+.sidebar__link.active[href*="/app/consult"] {
+  background: linear-gradient(90deg, #FFE4E6, transparent);
+  color: #E11D48;
+  border-left: 3px solid #E11D48;
+}
+
+.mobile-tab.active[href*="/app/consult"] {
+  color: #E11D48;
+}
+
+
 .sidebar__footer {
   padding: 16px;
   background: var(--surface-hover);
