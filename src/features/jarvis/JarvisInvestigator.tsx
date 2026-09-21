@@ -570,11 +570,19 @@ AI-generated preparation material. Verify against original records; this is not 
         setReport(result);
         
         const primaryTitle = result.primaryHypothesis || result.topDiagnoses?.[0]?.condition || history.slice(0, 32);
+        if (linkedCase && linkedCase.intakeData) {
+          if (selectedSymptoms.length > 0) linkedCase.intakeData.symptoms = selectedSymptoms;
+          if (selectedOnset) linkedCase.intakeData.onset = selectedOnset;
+          if (selectedProgression) linkedCase.intakeData.progression = selectedProgression;
+        }
         const newCase = linkedCase || createCaseDraft({
           title: `Clinical Review: ${primaryTitle.slice(0, 36)}`,
           mode: 'jarvis',
           intakeData: { 
             chiefComplaint: history || "Clinical Review investigation",
+            symptoms: selectedSymptoms,
+            onset: selectedOnset,
+            progression: selectedProgression,
             filesCount: mappedFiles.length,
             analyzedAt: new Date().toISOString()
           }
@@ -622,6 +630,9 @@ AI-generated preparation material. Verify against original records; this is not 
             dominoChain: result.dominoChain,
             topDiagnoses: result.topDiagnoses || [],
             missingLinks: result.missingLinks || [],
+            symptoms: selectedSymptoms,
+            onset: selectedOnset,
+            progression: selectedProgression,
             documentCount: mappedFiles.length
           },
           dedupeKey: `jarvis:${newCase.id}`
@@ -1051,53 +1062,15 @@ AI-generated preparation material. Verify against original records; this is not 
               ))}
             </div>
 
-            {/* Step Sub-label & Interactive Pill Navigators */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingTop: '2px' }}>
+            {/* Step Sub-label & Status Indicator */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', paddingTop: '2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#BE123C' }}>
-                  Step {intakeStep} of 6 · {STEP_META[intakeStep]?.label}
+                <span style={{ fontSize: '12px', fontWeight: 850, color: '#BE123C', letterSpacing: '0.3px' }}>
+                  Step {intakeStep} of 6
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#BE123C', background: '#FFF1F2', padding: '1px 8px', borderRadius: '999px', border: '1px solid #FECDD3' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#BE123C', background: '#FFF1F2', padding: '2px 9px', borderRadius: '999px', border: '1px solid #FECDD3' }}>
                   {STEP_META[intakeStep]?.badge}
                 </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
-                {[
-                  { step: 1, label: '1. Symptoms', isDone: Boolean(selectedSymptoms.length > 0) },
-                  { step: 2, label: '2. Timeline', isDone: Boolean(selectedOnset || history.includes('Onset:')) },
-                  { step: 3, label: '3. Pattern', isDone: Boolean(selectedProgression || history.includes('Progression:')) },
-                  { step: 4, label: '4. Story', isDone: Boolean(history.trim().length > 20) },
-                  { step: 5, label: '5. Evidence', isDone: files.length > 0 },
-                  { step: 6, label: '6. Launch', isDone: Boolean(history.trim() || files.length > 0) }
-                ].map((item) => (
-                  <button
-                    key={item.step}
-                    type="button"
-                    onClick={() => {
-                      triggerHapticSelection();
-                      setIntakeStep(item.step as any);
-                    }}
-                    style={{
-                      padding: '4px 9px',
-                      borderRadius: '999px',
-                      border: intakeStep === item.step ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
-                      background: intakeStep === item.step ? '#FFF1F2' : '#FFFFFF',
-                      color: intakeStep === item.step ? '#BE123C' : '#64748B',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '3px',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {item.isDone ? <Check size={11} color="#E11D48" strokeWidth={2.5} /> : null}
-                    <span>{item.label}</span>
-                  </button>
-                ))}
               </div>
             </div>
           </div>
