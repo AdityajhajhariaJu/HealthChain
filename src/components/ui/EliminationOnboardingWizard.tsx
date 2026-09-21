@@ -155,8 +155,8 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
   const isMobile = useIsMobile();
   const handleBrowseCatalog = onBrowseProtocols || onBrowseCatalog;
   
-  // Step sequence: 0 = orientation, 1 = symptoms, 2 = safety, 3 = clinician_stop, 4 = recommendations, 5 = baseline
-  const [step, setStep] = useState<number>(isRetake ? 1 : 0);
+  // Step sequence: 1 = symptoms, 2 = safety, 3 = clinician_stop, 4 = recommendations, 5 = baseline
+  const [step, setStep] = useState<number>(1);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(initialSymptoms);
   const [selectedPhenotype, setSelectedPhenotype] = useState<string>(initialSymptoms[0] || '');
   const [suspectedFoods, setSuspectedFoods] = useState<string[]>([]);
@@ -403,7 +403,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
       {/* Top Progress Tracker */}
       <div
         style={{
-          padding: isMobile ? '14px 16px' : '16px 24px',
+          padding: isMobile ? '12px 16px' : '14px 24px',
           borderBottom: '1px solid #E2E8F0',
           background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
           display: 'flex',
@@ -412,42 +412,19 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FFFFFF',
-              flexShrink: 0,
-            }}
-          >
-            <Compass size={17} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Elimination Suite Onboarding
-            </div>
-            <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
-              {step === 0 && 'Clinical Orientation'}
-              {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
-              {step === 2 && 'Step 2 of 4: Safety & Exclusions'}
-              {step === 3 && 'Clinical Safety Notice'}
-              {step === 4 && 'Step 3 of 4: Matched Protocol'}
-              {step === 5 && 'Step 4 of 4: Baseline & Activation'}
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+            {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
+            {step === 2 && 'Step 2 of 4: Safety Screening'}
+            {step === 3 && 'Clinical Safety Notice'}
+            {step === 4 && 'Step 3 of 4: Matched Protocol'}
+            {step === 5 && 'Step 4 of 4: Baseline & Activation'}
           </div>
         </div>
 
-        {/* Step dots */}
+        {/* Step dots (4 steps) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {[0, 1, 2, 4, 5].map((sIndex, idx) => {
+          {[1, 2, 4, 5].map((sIndex, idx) => {
             const isCompleted = step > sIndex;
             const isCurrent = step === sIndex || (step === 3 && sIndex === 2);
             return (
@@ -478,124 +455,6 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
         }}
       >
         <AnimatePresence mode="wait">
-          {/* STEP 0: ORIENTATION & PHILOSOPHY */}
-          {step === 0 && (
-            <motion.div
-              key="step-0"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-            >
-              <div
-                style={{
-                  background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
-                  borderRadius: '22px',
-                  padding: isMobile ? '18px' : '24px',
-                  border: '1.5px solid #99F6E4',
-                  boxShadow: '0 8px 24px -6px rgba(13, 148, 136, 0.08)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                }}
-              >
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', width: 'fit-content', background: '#FFFFFF', padding: '3.5px 10px', borderRadius: '999px', border: '1px solid #5EEAD4' }}>
-                  <Sparkles size={13} color="#0D9488" />
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
-                    Evidence-Based Clinical Science
-                  </span>
-                </div>
-                <h3 style={{ fontSize: isMobile ? '18px' : '21px', fontWeight: 800, color: '#064E3B', margin: 0, letterSpacing: '-0.3px', lineHeight: 1.25 }}>
-                  A Scientific Investigation, Not a Permanent Diet
-                </h3>
-                <p style={{ fontSize: '13px', color: '#065F46', margin: 0, lineHeight: 1.55 }}>
-                  Food intolerances are often temporary responses to gut mucosal inflammation or dysbiosis. An elimination reset temporarily removes suspected irritants to calm your gut, then systematically challenges single foods to pinpoint your true triggers.
-                </p>
-              </div>
-
-              {/* 3-Phase Roadmap */}
-              <div>
-                <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '0 0 12px' }}>
-                  The 3-Phase Clinical Journey
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
-                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 4px 14px rgba(13, 148, 136, 0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>1</span>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Washout Reset</span>
-                    </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
-                      Days 1–7: Strictly eliminate suspected culprits. Mucosal inflammation calms down.
-                    </p>
-                  </div>
-
-                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>2</span>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Food Challenge</span>
-                    </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
-                      Days 8–14: Test single items 1-by-1 in isolation. Quantify latency and flare response.
-                    </p>
-                  </div>
-
-                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 800 }}>3</span>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Food Freedom</span>
-                    </div>
-                    <p style={{ fontSize: '11.5px', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
-                      Days 15–28: Safely reintroduce tolerated foods. Preserve microbiome diversity for life.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monash safe staples guarantee & abundance framing */}
-              <div style={{ background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)', borderRadius: '16px', padding: '14px 16px', border: '1.5px solid #BBF7D0', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.06)' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Apple size={20} color="#059669" />
-                </div>
-                <span style={{ fontSize: '12px', color: '#14532D', lineHeight: 1.45 }}>
-                  <strong>Abundance Guarantee (Zero Starvation):</strong> You will receive a verified <strong>Safe Staples List</strong> tailored to your cuisine (e.g. moong dal khichdi, sourdough, garlic-infused oils, cumin-tempered rice, lactose-free chaas) so every meal is deeply satisfying.
-                </span>
-              </div>
-
-              {/* Optional browse catalog shortcut */}
-              {handleBrowseCatalog && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    handleBrowseCatalog();
-                  }}
-                  style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#0D9488',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    padding: '10px 16px',
-                    borderRadius: '10px',
-                    width: 'fit-content',
-                    alignSelf: 'center',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <Layers size={14} />
-                  <span>Browse All 11 Protocols Instead</span>
-                  <ArrowRight size={13} />
-                </button>
-              )}
-            </motion.div>
-          )}
-
           {/* STEP 1: SYMPTOM & LATENCY TRIAGE (A + C FUSION) */}
           {step === 1 && (
             <motion.div
@@ -780,6 +639,27 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     );
                   })}
                 </div>
+              </div>
+
+              {/* 100% Safe Exploration Reassurance */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)',
+                  borderRadius: '14px',
+                  padding: '12px 14px',
+                  border: '1px solid #BBF7D0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.04)',
+                }}
+              >
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Apple size={16} color="#059669" />
+                </div>
+                <span style={{ fontSize: '11.5px', color: '#14532D', lineHeight: 1.45 }}>
+                  <strong>100% Safe Exploration:</strong> Never a starvation diet. You will receive a verified <strong>Safe Staples List</strong> (khichdi, sourdough, cumin rice, lactose-free curd) tailored to your meals.
+                </span>
               </div>
             </motion.div>
           )}
@@ -1162,6 +1042,44 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 </div>
               </div>
 
+              {/* 3-Phase Clinical Roadmap for Matched Protocol */}
+              <div>
+                <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '4px 0 10px' }}>
+                  Your 3-Phase Clinical Roadmap
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #CCFBF1', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.04)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>1</span>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Washout Reset</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                      Days 1–7: Temporarily pause suspect culprits with safe staples. Gut calms down.
+                    </p>
+                  </div>
+
+                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>2</span>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Challenge</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                      Days 8–14: Test isolated foods 1-by-1 to pinpoint exact flare response.
+                    </p>
+                  </div>
+
+                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>3</span>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Freedom</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                      Days 15–28: Safely expand diet with verified safe foods for life.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Alternative Options */}
               {matched.alternatives.length > 0 && (
                 <div>
@@ -1425,14 +1343,15 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
         }}
       >
         {/* Back Button */}
-        {step > 0 ? (
+        {step > 1 ? (
           <button
             type="button"
             onClick={() => {
               triggerHapticLight();
               if (step === 3) setStep(2);
               else if (step === 4) setStep(2);
-              else setStep((prev) => Math.max(0, prev - 1));
+              else if (step === 5) setStep(4);
+              else setStep((prev) => Math.max(1, prev - 1));
             }}
             style={{
               display: 'inline-flex',
@@ -1472,36 +1391,6 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
             Close
           </button>
         ) : <div />}
-
-        {/* Primary Action Button */}
-        {step === 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              triggerHapticMedium();
-              setStep(1);
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '12px 24px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-              color: '#FFFFFF',
-              border: 'none',
-              fontSize: '13.5px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              minHeight: '46px',
-              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <span>Begin Symptom Triage</span>
-            <ArrowRight size={16} />
-          </button>
-        )}
 
         {step === 1 && (
           <button

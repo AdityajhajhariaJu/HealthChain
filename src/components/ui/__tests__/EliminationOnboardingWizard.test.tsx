@@ -39,7 +39,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     }
   });
 
-  it('renders Step 0 clinical philosophy and navigates to Step 1', () => {
+  it('renders directly into Step 1 symptom selection with safe staples reassurance', () => {
     render(
       <EliminationOnboardingWizard
         onComplete={mockOnComplete}
@@ -50,21 +50,12 @@ describe('EliminationOnboardingWizard Tests', () => {
       { container: containerDiv }
     );
 
-    // Step 0 orientation
-    expect(screen.getByText(/Elimination Suite Onboarding/i)).toBeTruthy();
-    expect(screen.getByText(/A Scientific Investigation, Not a Permanent Diet/i)).toBeTruthy();
-    expect(screen.getByText(/Washout Reset/i)).toBeTruthy();
-    expect(screen.getByText(/Food Challenge/i)).toBeTruthy();
-    expect(screen.getByText(/Food Freedom/i)).toBeTruthy();
-
-    // Advance to Step 1
-    const nextBtn = screen.getByText(/Begin Symptom Triage/i);
-    fireEvent.click(nextBtn);
-
-    // Should now be on Step 1
+    // Direct Step 1 landing (zero academic text wall)
+    expect(screen.getByText(/Step 1 of 4: Symptoms & Timing/i)).toBeTruthy();
     expect(screen.getByText(/What symptoms are you experiencing most frequently\?/i)).toBeTruthy();
     expect(screen.getByText(/Bloating & Abdominal Distension/i)).toBeTruthy();
     expect(screen.getByText(/Post-Wheat Fatigue & Joint Stiffness/i)).toBeTruthy();
+    expect(screen.getByText(/100% Safe Exploration/i)).toBeTruthy();
   });
 
   it('progresses through symptom selection and latency to safety screening', () => {
@@ -75,9 +66,6 @@ describe('EliminationOnboardingWizard Tests', () => {
       />,
       { container: containerDiv }
     );
-
-    // Step 0 -> Step 1
-    fireEvent.click(screen.getByText(/Begin Symptom Triage/i));
 
     // Next button disabled before symptom selection
     const nextBtn = screen.getByText(/Continue to Safety Check/i);
@@ -94,6 +82,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     fireEvent.click(nextBtn);
 
     // Step 2 Safety Screening rendered
+    expect(screen.getByText(/Step 2 of 4: Safety Screening/i)).toBeTruthy();
     expect(screen.getByText(/Clinical Safety & Contraindications Check/i)).toBeTruthy();
     expect(screen.getByText(/None of the exclusions apply/i)).toBeTruthy();
   });
@@ -107,8 +96,6 @@ describe('EliminationOnboardingWizard Tests', () => {
       { container: containerDiv }
     );
 
-    // Step 0 -> Step 1
-    fireEvent.click(screen.getByText(/Begin Symptom Triage/i));
     fireEvent.click(screen.getByText(/Heartburn, Reflux & Throat Burning/i));
     fireEvent.click(screen.getByText(/Continue to Safety Check/i));
 
@@ -137,9 +124,6 @@ describe('EliminationOnboardingWizard Tests', () => {
       { container: containerDiv }
     );
 
-    // Step 0 -> Step 1
-    fireEvent.click(screen.getByText(/Begin Symptom Triage/i));
-
     // Step 1: Select Histamine symptom
     fireEvent.click(screen.getByText(/Flushing, Hives & Sudden Warmth/i));
     fireEvent.click(screen.getByText(/Continue to Safety Check/i));
@@ -147,9 +131,13 @@ describe('EliminationOnboardingWizard Tests', () => {
     // Step 2: Confirm no exclusions & proceed
     fireEvent.click(screen.getByText(/View Matched Protocols/i));
 
-    // Step 4: Algorithmic Matcher shows Histamine Reset
+    // Step 4: Algorithmic Matcher shows Histamine Reset & 3-Phase Roadmap
     expect(screen.getByText(/Personalized Clinical Match/i)).toBeTruthy();
     expect(screen.getByText(/28-Day Histamine & Mast Cell Flare Hunt/i)).toBeTruthy();
+    expect(screen.getByText(/Your 3-Phase Clinical Roadmap/i)).toBeTruthy();
+    expect(screen.getByText(/Washout Reset/i)).toBeTruthy();
+    expect(screen.getByText(/Food Challenge/i)).toBeTruthy();
+    expect(screen.getByText(/Food Freedom/i)).toBeTruthy();
 
     // Advance to Step 5 Baseline Calibration
     fireEvent.click(screen.getByText(/Calibrate & Commit/i));
@@ -180,7 +168,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     expect(canonicalTrial?.intakeAssessment?.matchedProtocolId).toBe('hunt_histamine');
   });
 
-  it('allows browsing all protocols directly from onboarding', () => {
+  it('allows browsing all protocols directly from matched step', () => {
     render(
       <EliminationOnboardingWizard
         onComplete={mockOnComplete}
@@ -190,10 +178,14 @@ describe('EliminationOnboardingWizard Tests', () => {
       { container: containerDiv }
     );
 
-    // Click Browse All Protocols in Step 0
-    const browseBtn = screen.getByText(/Browse All 11 Protocols Instead/i);
-    fireEvent.click(browseBtn);
+    // Advance to matched protocol step
+    fireEvent.click(screen.getByText(/Bloating & Abdominal Distension/i));
+    fireEvent.click(screen.getByText(/Continue to Safety Check/i));
+    fireEvent.click(screen.getByText(/View Matched Protocols/i));
 
+    // Click Browse All Protocols
+    const browseBtn = screen.getByText(/Explore all 11 protocols in the medical directory/i);
+    fireEvent.click(browseBtn);
     expect(mockOnBrowseProtocols).toHaveBeenCalled();
   });
 });
