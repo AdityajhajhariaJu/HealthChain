@@ -147,6 +147,7 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
         <button
           onClick={handleDismiss}
           title="Dismiss if not charged"
+          aria-label="Dismiss banner"
           style={{
             background: 'transparent',
             border: 'none',
