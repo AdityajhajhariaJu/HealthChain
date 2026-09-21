@@ -801,7 +801,7 @@ AI-generated preparation material. Verify against original records; this is not 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          gap: '12px',
+          gap: isMobile ? '8px' : '12px',
           marginBottom: '16px',
           padding: '0 4px'
         }}
@@ -851,7 +851,7 @@ AI-generated preparation material. Verify against original records; this is not 
         </button>
 
         {/* 6-segment minimal progress bar */}
-        <div style={{ flex: '1 1 auto', maxWidth: '360px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ flex: '1 1 auto', maxWidth: '360px', display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '6px' }}>
           {[1, 2, 3, 4, 5, 6].map((s) => (
             <div 
               key={s}
@@ -867,21 +867,21 @@ AI-generated preparation material. Verify against original records; this is not 
         </div>
 
         {/* Right utility: Step badge and Save & Exit */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', flexShrink: 0 }}>
           <div style={{ 
             display: 'inline-flex', 
             alignItems: 'center', 
             gap: '5px', 
             background: '#FFFFFF', 
             border: '1px solid #E4E4E7', 
-            padding: '5px 12px', 
+            padding: isMobile ? '4px 8px' : '5px 12px', 
             borderRadius: '9999px', 
-            fontSize: '12px', 
+            fontSize: isMobile ? '11px' : '12px', 
             fontWeight: 700, 
             color: '#BE123C', 
             boxShadow: '0 1px 2px rgba(0,0,0,0.02)' 
           }}>
-            <span>Step {intakeStep} of 6</span>
+            <span>{isMobile ? `Step ${intakeStep}/6` : `Step ${intakeStep} of 6`}</span>
           </div>
 
           <button
@@ -895,17 +895,18 @@ AI-generated preparation material. Verify against original records; this is not 
               background: 'none',
               border: 'none',
               color: '#71717A',
-              fontSize: '12.5px',
+              fontSize: isMobile ? '11.5px' : '12.5px',
               fontWeight: 600,
               cursor: 'pointer',
-              padding: '5px 8px',
+              padding: isMobile ? '4px 6px' : '5px 8px',
               borderRadius: '6px',
-              transition: 'color 0.15s ease'
+              transition: 'color 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
             onMouseOver={(e) => (e.currentTarget.style.color = '#18181B')}
             onMouseOut={(e) => (e.currentTarget.style.color = '#71717A')}
           >
-            Save & Exit
+            {isMobile ? 'Exit' : 'Save & Exit'}
           </button>
         </div>
       </div>
@@ -939,26 +940,27 @@ AI-generated preparation material. Verify against original records; this is not 
             zIndex: 1
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: isMobile ? 'nowrap' : 'wrap', gap: isMobile ? '8px' : '12px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', minWidth: 0 }}>
               <div 
                 style={{ 
-                  width: '38px', 
-                  height: '38px', 
-                  borderRadius: '12px', 
+                  width: isMobile ? '32px' : '38px', 
+                  height: isMobile ? '32px' : '38px', 
+                  borderRadius: isMobile ? '10px' : '12px', 
                   background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)'
+                  boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
+                  flexShrink: 0
                 }}
               >
-                <BrainCircuit size={20} color="#FFFFFF" />
+                <BrainCircuit size={isMobile ? 16 : 20} color="#FFFFFF" />
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FFF1F2', border: '1px solid #FECDD3', padding: '3px 10px', borderRadius: '9999px' }}>
-                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E11D48' }} />
-                <span style={{ color: '#BE123C', fontWeight: 800, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                  Clinical Review Workstation
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FFF1F2', border: '1px solid #FECDD3', padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: '9999px', minWidth: 0 }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E11D48', flexShrink: 0 }} />
+                <span style={{ color: '#BE123C', fontWeight: 800, fontSize: isMobile ? '10px' : '11px', letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {isMobile ? 'Clinical Review' : 'Clinical Review Workstation'}
                 </span>
               </div>
             </div>
@@ -972,21 +974,23 @@ AI-generated preparation material. Verify against original records; this is not 
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '5px 12px',
+                gap: '5px',
+                padding: isMobile ? '4px 10px' : '5px 12px',
                 borderRadius: '9999px',
                 background: '#FFF1F2',
                 border: '1px solid #FECDD3',
                 color: '#BE123C',
-                fontSize: '11.5px',
+                fontSize: isMobile ? '11px' : '11.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                flexShrink: 0,
+                whiteSpace: 'nowrap'
               }}
               title="Review how data is stored and processed"
             >
-              <ShieldCheck size={13} />
-              <span>Zero-Knowledge Privacy</span>
+              <ShieldCheck size={isMobile ? 12 : 13} />
+              <span>{isMobile ? 'Private & Encrypted' : 'Zero-Knowledge Privacy'}</span>
             </button>
           </div>
 
@@ -1253,7 +1257,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 </div>
 
                 {/* 3. CATEGORIZED SYMPTOM CLOUD (from Reference Image) */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '9px', marginBottom: '22px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '6px' : '9px', marginBottom: '22px' }}>
                   {PRESET_SYMPTOMS.filter(sym => 
                     !symptomSearch.trim() || sym.name.toLowerCase().includes(symptomSearch.trim().toLowerCase())
                   ).map((sym) => {
@@ -1270,22 +1274,23 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          padding: '9px 16px',
+                          gap: isMobile ? '6px' : '8px',
+                          padding: isMobile ? '7px 12px' : '9px 16px',
                           borderRadius: '9999px',
                           border: isSelected ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
                           background: '#FFFFFF',
                           color: isSelected ? '#18181B' : '#27272A',
-                          fontSize: '13px',
+                          fontSize: isMobile ? '12px' : '13px',
                           fontWeight: isSelected ? 700 : 500,
                           cursor: 'pointer',
                           boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
-                          transition: 'all 0.15s ease'
+                          transition: 'all 0.15s ease',
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        <IconComp size={15} color={isSelected ? '#E11D48' : '#71717A'} />
+                        <IconComp size={isMobile ? 14 : 15} color={isSelected ? '#E11D48' : '#71717A'} />
                         <span>{sym.name}</span>
-                        {isSelected && <Check size={14} color="#E11D48" strokeWidth={2.5} />}
+                        {isSelected && <Check size={isMobile ? 13 : 14} color="#E11D48" strokeWidth={2.5} />}
                       </motion.button>
                     );
                   })}

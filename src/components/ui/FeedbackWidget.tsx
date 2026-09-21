@@ -39,7 +39,8 @@ export default function FeedbackWidget() {
   if (
     location.pathname.startsWith('/app/ava') || 
     location.pathname.startsWith('/app/war-room') || 
-    location.pathname.startsWith('/app/onboarding')
+    location.pathname.startsWith('/app/onboarding') ||
+    location.pathname.startsWith('/app/consult')
   ) {
     return null;
   }

@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 import JarvisInvestigator from '../jarvis/JarvisInvestigator';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function ConsultPage() {
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     // Dynamic theme background for Clinical Review Symptom Workstation
     const mainContent = document.getElementById('main-content');
@@ -23,8 +26,8 @@ export default function ConsultPage() {
         backgroundColor: '#F8F9FB',
         minHeight: '100%',
         paddingBottom: '80px',
-        margin: '-24px -16px',
-        padding: '16px 16px 80px 16px',
+        margin: isMobile ? '0 -16px' : '-24px -16px',
+        padding: isMobile ? '12px 12px 120px 12px' : '16px 16px 80px 16px',
         position: 'relative',
         overflow: 'hidden'
       }}
