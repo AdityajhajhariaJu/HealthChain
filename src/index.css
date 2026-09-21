@@ -265,11 +265,6 @@ textarea {
   border-left: 3px solid var(--teal);
   padding-left: 9px;
 }
-.sidebar__link.active[href*="/app/consult"] {
-  background: linear-gradient(90deg, #FFEDD5, transparent);
-  color: #EA580C;
-  border-left: 3px solid #F97316;
-}
 
 .sidebar__footer {
   padding: 16px;
@@ -1217,9 +1212,6 @@ html.dark-theme body {
   
   .mobile-tab.active {
     color: #0F766E;
-  }
-  .mobile-tab.active[href*="/app/consult"] {
-    color: #EA580C;
   }
   
   .mobile-tab.active svg {
