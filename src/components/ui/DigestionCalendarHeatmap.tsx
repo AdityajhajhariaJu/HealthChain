@@ -670,7 +670,21 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Optimal Calm</span>
-              <span style={{ fontSize: '13px' }}>🟢</span>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '7px',
+                  background: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#059669',
+                }}
+              >
+                <CheckCircle2 size={13} strokeWidth={2.5} />
+              </div>
             </div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#065F46' }}>
               {monthlyStats.optimalCount} <span style={{ fontSize: '12px', fontWeight: 600, color: '#059669' }}>({monthlyStats.optimalPct}%)</span>
@@ -689,7 +703,21 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#D97706' }}>Mild Gas / Bloat</span>
-              <span style={{ fontSize: '13px' }}>🟡</span>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '7px',
+                  background: '#FEF3C7',
+                  border: '1px solid #FDE68A',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#D97706',
+                }}
+              >
+                <Activity size={13} strokeWidth={2.5} />
+              </div>
             </div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#92400E' }}>
               {monthlyStats.mildCount} <span style={{ fontSize: '12px', fontWeight: 600, color: '#D97706' }}>({monthlyStats.mildPct}%)</span>
@@ -708,7 +736,21 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#E11D48' }}>Distress / Reflux</span>
-              <span style={{ fontSize: '13px' }}>🔴</span>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '7px',
+                  background: '#FFF1F2',
+                  border: '1px solid #FECDD3',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#E11D48',
+                }}
+              >
+                <Flame size={13} strokeWidth={2.5} />
+              </div>
             </div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#9F1239' }}>
               {monthlyStats.severeCount} <span style={{ fontSize: '12px', fontWeight: 600, color: '#E11D48' }}>({monthlyStats.severePct}%)</span>
@@ -1056,43 +1098,132 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                 </div>
 
                 <div style={{ width: '100%', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {activeSubTab === 'summary' && (
-                    <>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2px' }}>
-                        <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
-                          {entry.status === 'optimal' ? '🟢' : entry.status === 'mild_flare' ? '🟡' : '🔴'}
-                        </span>
-                        <span
+                  {activeSubTab === 'summary' && (() => {
+                    const statusConfig = {
+                      optimal: {
+                        label: 'Optimal',
+                        Icon: CheckCircle2,
+                        iconColor: '#059669',
+                        badgeBg: '#ECFDF5',
+                        badgeBorder: '#A7F3D0',
+                        textColor: '#047857',
+                        scoreColor: '#065F46',
+                        trackBg: 'rgba(16, 185, 129, 0.16)',
+                        barGradient: 'linear-gradient(90deg, #34D399, #059669)',
+                      },
+                      mild_flare: {
+                        label: 'Mild Gas',
+                        Icon: Activity,
+                        iconColor: '#D97706',
+                        badgeBg: '#FEF3C7',
+                        badgeBorder: '#FDE68A',
+                        textColor: '#B45309',
+                        scoreColor: '#92400E',
+                        trackBg: 'rgba(245, 158, 11, 0.16)',
+                        barGradient: 'linear-gradient(90deg, #FBBF24, #D97706)',
+                      },
+                      severe_flare: {
+                        label: 'Flare',
+                        Icon: Flame,
+                        iconColor: '#E11D48',
+                        badgeBg: '#FFF1F2',
+                        badgeBorder: '#FECDD3',
+                        textColor: '#BE123C',
+                        scoreColor: '#9F1239',
+                        trackBg: 'rgba(225, 29, 72, 0.16)',
+                        barGradient: 'linear-gradient(90deg, #FB7185, #E11D48)',
+                      },
+                    }[entry.status];
+
+                    return (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3px' }}>
+                          <div
+                            style={{
+                              width: isMobile ? '18px' : '20px',
+                              height: isMobile ? '18px' : '20px',
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: statusConfig.badgeBg,
+                              border: `1px solid ${statusConfig.badgeBorder}`,
+                              color: statusConfig.iconColor,
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <statusConfig.Icon size={isMobile ? 10 : 12} strokeWidth={2.5} />
+                          </div>
+                          <span
+                            style={{
+                              fontSize: isMobile ? '10px' : '11.5px',
+                              fontWeight: 800,
+                              color: statusConfig.scoreColor,
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {entry.equilibriumScore}%
+                          </span>
+                        </div>
+
+                        <div
                           style={{
-                            fontSize: isMobile ? '10px' : '11px',
-                            fontWeight: 800,
-                            color: entry.status === 'optimal' ? '#059669' : entry.status === 'mild_flare' ? '#D97706' : '#E11D48',
+                            fontSize: isMobile ? '8.5px' : '9.5px',
+                            color: statusConfig.textColor,
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            letterSpacing: '0.2px',
                           }}
                         >
-                          {entry.equilibriumScore}%
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: isMobile ? '9px' : '10px',
-                          color: '#64748B',
-                          fontWeight: 600,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {entry.status === 'optimal' ? 'Optimal' : entry.status === 'mild_flare' ? 'Mild Gas' : 'Flare'}
-                      </div>
-                    </>
-                  )}
+                          {statusConfig.label}
+                        </div>
+
+                        <div
+                          style={{
+                            width: '100%',
+                            height: isMobile ? '2.5px' : '3.5px',
+                            background: statusConfig.trackBg,
+                            borderRadius: '999px',
+                            overflow: 'hidden',
+                            marginTop: '1px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${Math.min(100, Math.max(0, entry.equilibriumScore))}%`,
+                              height: '100%',
+                              borderRadius: '999px',
+                              background: statusConfig.barGradient,
+                              transition: 'width 0.3s ease',
+                            }}
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   {activeSubTab === 'stomach' && (
                     <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3px' }}>
+                        <div
+                          style={{
+                            width: isMobile ? '18px' : '20px',
+                            height: isMobile ? '18px' : '20px',
+                            borderRadius: '6px',
+                            background: STOMACH_COMFORT_INFO[entry.stomachComfort].bg,
+                            border: `1px solid ${STOMACH_COMFORT_INFO[entry.stomachComfort].border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: isMobile ? '10px' : '11px',
+                            flexShrink: 0,
+                          }}
+                        >
                           {STOMACH_COMFORT_INFO[entry.stomachComfort].icon}
-                        </span>
+                        </div>
                         <span
                           style={{
                             fontSize: isMobile ? '9.5px' : '11px',
@@ -1110,6 +1241,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                         style={{
                           fontSize: isMobile ? '8.5px' : '9.5px',
                           color: '#64748B',
+                          fontWeight: 600,
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -1123,7 +1255,21 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                   {activeSubTab === 'bloating' && (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: isMobile ? '11px' : '13px' }}>💨</span>
+                        <div
+                          style={{
+                            width: isMobile ? '18px' : '20px',
+                            height: isMobile ? '18px' : '20px',
+                            borderRadius: '6px',
+                            background: entry.bloatingScore >= 7 ? '#FFF1F2' : entry.bloatingScore >= 4 ? '#FEF3C7' : '#ECFDF5',
+                            border: `1px solid ${entry.bloatingScore >= 7 ? '#FECDD3' : entry.bloatingScore >= 4 ? '#FDE68A' : '#A7F3D0'}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Wind size={isMobile ? 10 : 12} color={entry.bloatingScore >= 7 ? '#E11D48' : entry.bloatingScore >= 4 ? '#D97706' : '#059669'} strokeWidth={2.5} />
+                        </div>
                         <span
                           style={{
                             fontSize: isMobile ? '10px' : '11.5px',
@@ -1148,10 +1294,23 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
 
                   {activeSubTab === 'bowel' && (
                     <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <span style={{ fontSize: isMobile ? '12px' : '13px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3px' }}>
+                        <div
+                          style={{
+                            width: isMobile ? '18px' : '20px',
+                            height: isMobile ? '18px' : '20px',
+                            borderRadius: '6px',
+                            background: BRISTOL_STOOL_INFO[entry.bristolType].badgeBg,
+                            border: `1px solid ${BRISTOL_STOOL_INFO[entry.bristolType].borderColor}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: isMobile ? '10px' : '11px',
+                            flexShrink: 0,
+                          }}
+                        >
                           {BRISTOL_STOOL_INFO[entry.bristolType].icon}
-                        </span>
+                        </div>
                         <span
                           style={{
                             fontSize: isMobile ? '9.5px' : '11px',
@@ -1166,6 +1325,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                         style={{
                           fontSize: isMobile ? '8.5px' : '9.5px',
                           color: '#64748B',
+                          fontWeight: 600,
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
