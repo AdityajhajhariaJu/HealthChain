@@ -68,6 +68,44 @@ const PRESET_SYMPTOMS: SymptomItem[] = [
   { id: 'sleep-disturbance', name: 'Sleep Disturbance', category: 'systemic', icon: Moon }
 ];
 
+const STEP_META: Record<number, { title: string; subtitle: string; label: string; badge: string }> = {
+  1: {
+    title: "Which symptoms bother you?",
+    subtitle: "Start with a few that matter most. You can search or pick from common clinical concerns below.",
+    label: "1. Symptoms",
+    badge: "Symptom Cloud ✨"
+  },
+  2: {
+    title: "When did you first notice this?",
+    subtitle: "Knowing when this began helps distinguish acute episodes from chronic conditions.",
+    label: "2. Timeline",
+    badge: "Onset Chronology ⏱️"
+  },
+  3: {
+    title: "How is the symptom behaving?",
+    subtitle: "Trajectory helps clinicians evaluate urgency and inflammatory or mechanical patterns.",
+    label: "3. Pattern",
+    badge: "Dynamics & Trend ↗️"
+  },
+  4: {
+    title: "Describe what you are experiencing",
+    subtitle: "Your timeline narrative, symptom sensations, triggers, and questions in your own voice.",
+    label: "4. Story",
+    badge: "Clinical Narrative 📝"
+  },
+  5: {
+    title: "Lab Reports & Medical Evidence",
+    subtitle: "Upload PDFs, lab panels, or discharge summaries. Files remain encrypted on your device.",
+    label: "5. Evidence",
+    badge: "Evidence Vault 📄"
+  },
+  6: {
+    title: "Review Scope & Launchpad",
+    subtitle: "Confirm evidence readiness, set your clinical objective, and launch your clinical review.",
+    label: "6. Launch",
+    badge: "Review & Run 🚀"
+  }
+};
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
@@ -94,7 +132,7 @@ export default function JarvisInvestigator() {
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
   const [missingCaseId, setMissingCaseId] = useState<string | null>(null);
   const [addedQuestionIndexes, setAddedQuestionIndexes] = useState<Record<number, boolean>>({});
-  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3>(1);
+  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [reviewFocus, setReviewFocus] = useState<'differential' | 'doctor_prep' | 'lab_second_opinion'>('differential');
   const [selectedOnset, setSelectedOnset] = useState<string | null>(() => {
     try {
@@ -594,12 +632,14 @@ AI-generated preparation material. Verify against original records; this is not 
       } else {
         if (!isMounted.current) return;
         toast.error("Analysis Disrupted", "Clinical Review encountered a network disruption. Please try again.");
+        setIntakeStep(4);
         setPhase('input');
       }
     } catch (e) {
       console.error(e);
       if (isMounted.current) {
         toast.error("Analysis Error", "An error occurred during analysis. Please try again.");
+        setIntakeStep(4);
         setPhase('input');
       }
     } finally {
@@ -769,7 +809,14 @@ AI-generated preparation material. Verify against original records; this is not 
         {/* Back navigation button */}
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (intakeStep > 1) {
+              triggerHapticLight();
+              setIntakeStep((prev) => (prev - 1) as any);
+            } else {
+              navigate(-1);
+            }
+          }}
           style={{
             background: '#FFFFFF',
             border: '1px solid #E4E4E7',
@@ -803,51 +850,63 @@ AI-generated preparation material. Verify against original records; this is not 
           ←
         </button>
 
-        {/* Minimal segmented progress bar from reference */}
-        <div style={{ flex: '1 1 auto', maxWidth: '320px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div 
-            style={{ 
-              flex: 1, 
-              height: '4px', 
-              borderRadius: '999px', 
-              background: '#E11D48',
-              transition: 'background 0.2s ease' 
-            }} 
-          />
-          <div 
-            style={{ 
-              flex: 1, 
-              height: '4px', 
-              borderRadius: '999px', 
-              background: intakeStep >= 2 || files.length > 0 ? '#E11D48' : '#E4E4E7',
-              transition: 'background 0.2s ease' 
-            }} 
-          />
-          <div 
-            style={{ 
-              flex: 1, 
-              height: '4px', 
-              borderRadius: '999px', 
-              background: intakeStep === 3 ? '#E11D48' : '#E4E4E7',
-              transition: 'background 0.2s ease' 
-            }} 
-          />
+        {/* 6-segment minimal progress bar */}
+        <div style={{ flex: '1 1 auto', maxWidth: '360px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {[1, 2, 3, 4, 5, 6].map((s) => (
+            <div 
+              key={s}
+              style={{ 
+                flex: 1, 
+                height: '4px', 
+                borderRadius: '999px', 
+                background: intakeStep >= s ? '#E11D48' : '#E4E4E7',
+                transition: 'background 0.2s ease' 
+              }} 
+            />
+          ))}
         </div>
 
-        {/* Right utility indicators from reference */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#FFFFFF', border: '1px solid #E4E4E7', padding: '5px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600, color: '#18181B', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-            <span>🇬🇧 EN</span>
-            <ChevronDown size={12} color="#71717A" />
+        {/* Right utility: Step badge and Save & Exit */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '5px', 
+            background: '#FFFFFF', 
+            border: '1px solid #E4E4E7', 
+            padding: '5px 12px', 
+            borderRadius: '9999px', 
+            fontSize: '12px', 
+            fontWeight: 700, 
+            color: '#BE123C', 
+            boxShadow: '0 1px 2px rgba(0,0,0,0.02)' 
+          }}>
+            <span>Step {intakeStep} of 6</span>
           </div>
 
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#FFFFFF', border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525B', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-            <Moon size={14} />
-          </div>
-
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#FFFFFF', border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525B', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-            <Volume2 size={14} />
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              toast.success("Draft Preserved", "Your clinical review progress is saved on this device.");
+              navigate('/app/cases');
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#71717A',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '5px 8px',
+              borderRadius: '6px',
+              transition: 'color 0.15s ease'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.color = '#18181B')}
+            onMouseOut={(e) => (e.currentTarget.style.color = '#71717A')}
+          >
+            Save & Exit
+          </button>
         </div>
       </div>
 
@@ -934,7 +993,7 @@ AI-generated preparation material. Verify against original records; this is not 
           <h1 
             style={{ 
               fontFamily: '"Newsreader", "Playfair Display", "Merriweather", "Georgia", serif',
-              fontSize: isMobile ? '24px' : '30px', 
+              fontSize: isMobile ? '23px' : '29px', 
               fontWeight: 800, 
               color: '#18181B', 
               margin: '0 0 6px 0', 
@@ -942,23 +1001,23 @@ AI-generated preparation material. Verify against original records; this is not 
               lineHeight: 1.25 
             }}
           >
-            Which symptoms bother you?
+            {STEP_META[intakeStep]?.title || "Clinical Review Workstation"}
           </h1>
 
           <p 
             style={{ 
               color: '#64748B', 
-              fontSize: isMobile ? '14px' : '15.5px', 
+              fontSize: isMobile ? '13.5px' : '15px', 
               margin: 0, 
               lineHeight: 1.5, 
               maxWidth: '720px' 
             }}
           >
-            Start with a few that matter most.
+            {STEP_META[intakeStep]?.subtitle || ""}
           </p>
         </div>
 
-        {/* 3-Step Guided Progress Track */}
+        {/* 6-Step Guided Progress Track */}
         <div 
           style={{ 
             padding: '16px 24px 14px', 
@@ -969,86 +1028,69 @@ AI-generated preparation material. Verify against original records; this is not 
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* 3 Gradient Progress Capsules in Raspberry Rose */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div 
-                onClick={() => { triggerHapticSelection(); setIntakeStep(1); }}
-                style={{ 
-                  flex: 1, 
-                  height: '7px', 
-                  borderRadius: '999px', 
-                  background: 'linear-gradient(90deg, #E11D48, #FB7185)',
-                  boxShadow: intakeStep === 1 ? '0 0 10px rgba(225, 29, 72, 0.45)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.25s ease'
-                }} 
-              />
-              <div 
-                onClick={() => { triggerHapticSelection(); setIntakeStep(2); }}
-                style={{ 
-                  flex: 1, 
-                  height: '7px', 
-                  borderRadius: '999px', 
-                  background: intakeStep >= 2 || files.length > 0 ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
-                  boxShadow: intakeStep === 2 ? '0 0 10px rgba(225, 29, 72, 0.45)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.25s ease'
-                }} 
-              />
-              <div 
-                onClick={() => { triggerHapticSelection(); setIntakeStep(3); }}
-                style={{ 
-                  flex: 1, 
-                  height: '7px', 
-                  borderRadius: '999px', 
-                  background: intakeStep === 3 ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
-                  boxShadow: intakeStep === 3 ? '0 0 10px rgba(225, 29, 72, 0.45)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.25s ease'
-                }} 
-              />
+            {/* 6 Gradient Progress Capsules in Raspberry Rose */}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[1, 2, 3, 4, 5, 6].map((s) => (
+                <div 
+                  key={s}
+                  onClick={() => { triggerHapticSelection(); setIntakeStep(s as any); }}
+                  style={{ 
+                    flex: 1, 
+                    height: '6px', 
+                    borderRadius: '999px', 
+                    background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
+                    boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease'
+                  }} 
+                />
+              ))}
             </div>
 
             {/* Step Sub-label & Interactive Pill Navigators */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingTop: '2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#BE123C' }}>
-                  Step {intakeStep} of 3 · {intakeStep === 1 ? 'Symptom Discovery & Timeline' : intakeStep === 2 ? 'Lab Reports & Medical Evidence' : 'Scope, Context & Launchpad'}
+                  Step {intakeStep} of 6 · {STEP_META[intakeStep]?.label}
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#BE123C', background: '#FFF1F2', padding: '1px 8px', borderRadius: '999px', border: '1px solid #FECDD3' }}>
-                  {intakeStep === 1 ? 'Select symptoms ✨' : intakeStep === 2 ? 'Evidence Vault 📄' : 'Final Step 🚀'}
+                  {STEP_META[intakeStep]?.badge}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                 {[
-                  { step: 1, label: '1. Symptoms', isDone: Boolean(selectedSymptoms.length > 0 || history.trim()) },
-                  { step: 2, label: '2. Evidence', isDone: files.length > 0 },
-                  { step: 3, label: '3. Scope', isDone: Boolean(history.trim() || files.length > 0) }
+                  { step: 1, label: '1. Symptoms', isDone: Boolean(selectedSymptoms.length > 0) },
+                  { step: 2, label: '2. Timeline', isDone: Boolean(selectedOnset || history.includes('Onset:')) },
+                  { step: 3, label: '3. Pattern', isDone: Boolean(selectedProgression || history.includes('Progression:')) },
+                  { step: 4, label: '4. Story', isDone: Boolean(history.trim().length > 20) },
+                  { step: 5, label: '5. Evidence', isDone: files.length > 0 },
+                  { step: 6, label: '6. Launch', isDone: Boolean(history.trim() || files.length > 0) }
                 ].map((item) => (
                   <button
                     key={item.step}
                     type="button"
                     onClick={() => {
                       triggerHapticSelection();
-                      setIntakeStep(item.step as 1 | 2 | 3);
+                      setIntakeStep(item.step as any);
                     }}
                     style={{
-                      padding: '4px 11px',
+                      padding: '4px 9px',
                       borderRadius: '999px',
                       border: intakeStep === item.step ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
                       background: intakeStep === item.step ? '#FFF1F2' : '#FFFFFF',
                       color: intakeStep === item.step ? '#BE123C' : '#64748B',
-                      fontSize: '11.5px',
+                      fontSize: '11px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px',
+                      gap: '3px',
+                      whiteSpace: 'nowrap',
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {item.isDone ? <Check size={12} color="#E11D48" strokeWidth={2.5} /> : null}
+                    {item.isDone ? <Check size={11} color="#E11D48" strokeWidth={2.5} /> : null}
                     <span>{item.label}</span>
                   </button>
                 ))}
@@ -1249,28 +1291,106 @@ AI-generated preparation material. Verify against original records; this is not 
                   })}
                 </div>
 
-                {/* CARD 1: When did you first notice this? */}
+                {/* Step 1 Action Bar */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    flexWrap: 'wrap', 
+                    gap: '12px', 
+                    paddingTop: '16px', 
+                    borderTop: '1px solid #F4F4F5' 
+                  }}
+                >
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>
+                    Step 1 of 6 · Choose symptoms to personalize your clinical review
+                  </span>
+
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setIntakeStep(2);
+                      }}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: '#FFF1F2',
+                        color: '#BE123C',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: '1.5px solid #FECDD3',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>
+                        {selectedSymptoms.length > 0 
+                          ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
+                          : 'Next: Timeline (Step 2)'}
+                      </span>
+                      <ArrowRight size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRunInvestigation}
+                      disabled={isReadingFiles || (!history.trim() && !files.length)}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: 'none',
+                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Sparkles size={15} />
+                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* STEP 2: ONSET & TIMELINE (DEDICATED ONBOARDING SCREEN)                    */}
+            {/* ========================================================================= */}
+            {intakeStep === 2 && (
+              <div key="step2">
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.96)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
-                    padding: isMobile ? '18px 16px' : '22px 24px',
+                    padding: isMobile ? '20px 16px' : '28px 28px',
                     border: '1.5px solid #F4F4F5',
                     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
-                    marginBottom: '16px'
+                    gap: '16px',
+                    marginBottom: '20px'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div 
                       style={{ 
-                        width: '36px', 
-                        height: '36px', 
-                        borderRadius: '12px', 
+                        width: '42px', 
+                        height: '42px', 
+                        borderRadius: '14px', 
                         background: 'linear-gradient(135deg, #FFE4E6 0%, #FECDD3 100%)', 
                         border: '1px solid #FDA4AF',
                         display: 'flex', 
@@ -1280,27 +1400,27 @@ AI-generated preparation material. Verify against original records; this is not 
                         flexShrink: 0
                       }}
                     >
-                      <CalendarClock size={19} />
+                      <CalendarClock size={22} />
                     </div>
                     <div>
-                      <h2 style={{ fontSize: '15.5px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                        When did you first notice this?
+                      <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#18181B', margin: 0 }}>
+                        Onset Timing & Chronology
                       </h2>
-                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                      <p style={{ fontSize: '13px', color: '#64748B', margin: 0, marginTop: '2px' }}>
                         Tap an onset timeframe to anchor your clinical chronology
                       </p>
                     </div>
                   </div>
 
-                  {/* 6 Tactile Capsule Pills with Emojis & Active Crimson Highlight */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {/* 6 Tactile Onboarding Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                     {[
-                      { name: 'Today (< 24h)', emoji: '🌅', label: 'Today (< 24h)' },
-                      { name: 'Past few days', emoji: '⏱️', label: 'Past few days' },
-                      { name: '1–2 weeks', emoji: '🗓️', label: '1–2 weeks' },
-                      { name: '1–3 months', emoji: '⏳', label: '1–3 months' },
-                      { name: '6+ months (chronic)', emoji: '🌊', label: '6+ months (chronic)' },
-                      { name: 'Several years', emoji: '📅', label: 'Several years' },
+                      { name: 'Today (< 24h)', emoji: '🌅', label: 'Today (< 24h)', desc: 'Acute symptom onset within the last 24 hours' },
+                      { name: 'Past few days', emoji: '⏱️', label: 'Past few days', desc: 'Started 2 to 6 days ago' },
+                      { name: '1–2 weeks', emoji: '🗓️', label: '1–2 weeks', desc: 'Developing over the past couple weeks' },
+                      { name: '1–3 months', emoji: '⏳', label: '1–3 months', desc: 'Subacute condition present for several weeks' },
+                      { name: '6+ months (chronic)', emoji: '🌊', label: '6+ months (chronic)', desc: 'Long-standing or recurring chronic concern' },
+                      { name: 'Several years', emoji: '📅', label: 'Several years', desc: 'Multi-year chronic medical history' },
                     ].map((opt) => {
                       const isSelected = selectedOnset === opt.name || history.includes(`Onset: ${opt.name}`);
                       return (
@@ -1308,56 +1428,153 @@ AI-generated preparation material. Verify against original records; this is not 
                           key={opt.name}
                           type="button"
                           aria-label={opt.name}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectOnset(opt.name)}
                           style={{
-                            display: 'inline-flex',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: '7px',
-                            padding: '8px 15px',
-                            borderRadius: '999px',
-                            fontSize: '12.5px',
-                            fontWeight: 700,
+                            justifyContent: 'space-between',
+                            padding: '14px 18px',
+                            borderRadius: '16px',
                             cursor: 'pointer',
+                            textAlign: 'left',
                             border: isSelected ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
                             background: isSelected ? '#FFF1F2' : '#FFFFFF',
-                            color: isSelected ? '#BE123C' : '#334155',
-                            boxShadow: isSelected ? '0 2px 8px rgba(225, 29, 72, 0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
+                            boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <span style={{ fontSize: '13px' }}>{opt.emoji}</span>
-                          <span>{opt.name}</span>
-                          {isSelected && <Check size={13} color="#E11D48" strokeWidth={2.5} />}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '20px' }}>{opt.emoji}</span>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: 800, color: isSelected ? '#BE123C' : '#18181B' }}>
+                                {opt.name}
+                              </div>
+                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
+                                {opt.desc}
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && <Check size={16} color="#E11D48" strokeWidth={2.5} />}
                         </motion.button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* CARD 2: How is the symptom behaving? */}
+                {/* Step 2 Action Bar */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    flexWrap: 'wrap', 
+                    gap: '12px', 
+                    paddingTop: '16px', 
+                    borderTop: '1px solid #F4F4F5' 
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setIntakeStep(1);
+                    }}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: '12px',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      fontWeight: 700,
+                      fontSize: '13.5px',
+                      border: '1px solid #E4E4E7',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← Back to Symptoms
+                  </button>
+
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setIntakeStep(3);
+                      }}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: '#FFF1F2',
+                        color: '#BE123C',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: '1.5px solid #FECDD3',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>Next: Pattern (Step 3)</span>
+                      <ArrowRight size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRunInvestigation}
+                      disabled={isReadingFiles || (!history.trim() && !files.length)}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: 'none',
+                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Sparkles size={15} />
+                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* STEP 3: SYMPTOM PROGRESSION & DYNAMICS (DEDICATED ONBOARDING SCREEN)      */}
+            {/* ========================================================================= */}
+            {intakeStep === 3 && (
+              <div key="step3">
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.96)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
-                    padding: isMobile ? '18px 16px' : '22px 24px',
+                    padding: isMobile ? '20px 16px' : '28px 28px',
                     border: '1.5px solid #F4F4F5',
                     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
-                    marginBottom: '16px'
+                    gap: '16px',
+                    marginBottom: '20px'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div 
                       style={{ 
-                        width: '36px', 
-                        height: '36px', 
-                        borderRadius: '12px', 
+                        width: '42px', 
+                        height: '42px', 
+                        borderRadius: '14px', 
                         background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', 
                         border: '1px solid #FCD34D',
                         display: 'flex', 
@@ -1367,25 +1584,25 @@ AI-generated preparation material. Verify against original records; this is not 
                         flexShrink: 0
                       }}
                     >
-                      <Activity size={19} />
+                      <Activity size={22} />
                     </div>
                     <div>
-                      <h2 style={{ fontSize: '15.5px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                        How is the symptom behaving?
+                      <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#18181B', margin: 0 }}>
+                        Symptom Dynamics & Trajectory
                       </h2>
-                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                      <p style={{ fontSize: '13px', color: '#64748B', margin: 0, marginTop: '2px' }}>
                         Progression pattern helps clinicians evaluate trajectory and urgency
                       </p>
                     </div>
                   </div>
 
-                  {/* 4 Distinct Trend Capsule Pills */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {/* 4 Distinct Trend Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                     {[
-                      { name: 'Getting worse ↗', label: 'Getting worse', emoji: '↗️', activeBg: '#FFF1F2', activeBorder: '#FDA4AF', activeColor: '#BE123C' },
-                      { name: 'Fluctuating / Comes & Goes ∿', label: 'Fluctuating', emoji: '∿', activeBg: '#F5F3FF', activeBorder: '#DDD6FE', activeColor: '#7E22CE' },
-                      { name: 'Constant / Unchanged →', label: 'Constant', emoji: '→', activeBg: '#F8FAFC', activeBorder: '#CBD5E1', activeColor: '#334155' },
-                      { name: 'Gradually improving ↘', label: 'Gradually improving', emoji: '↘️', activeBg: '#ECFDF5', activeBorder: '#A7F3D0', activeColor: '#047857' },
+                      { name: 'Getting worse ↗', label: 'Getting worse', emoji: '↗️', desc: 'Intensity or frequency is steadily increasing over time', activeBg: '#FFF1F2', activeBorder: '#FDA4AF', activeColor: '#BE123C' },
+                      { name: 'Fluctuating / Comes & Goes ∿', label: 'Fluctuating', emoji: '∿', desc: 'Flares up intermittently with quiet symptom-free periods', activeBg: '#F5F3FF', activeBorder: '#DDD6FE', activeColor: '#7E22CE' },
+                      { name: 'Constant / Unchanged →', label: 'Constant', emoji: '→', desc: 'Stays at the same steady level without clear change', activeBg: '#F8FAFC', activeBorder: '#CBD5E1', activeColor: '#334155' },
+                      { name: 'Gradually improving ↘', label: 'Gradually improving', emoji: '↘️', desc: 'Severity is subsiding or symptoms are resolving', activeBg: '#ECFDF5', activeBorder: '#A7F3D0', activeColor: '#047857' },
                     ].map((opt) => {
                       const isSelected = selectedProgression === opt.name || history.includes(`Progression: ${opt.name}`);
                       return (
@@ -1393,57 +1610,154 @@ AI-generated preparation material. Verify against original records; this is not 
                           key={opt.name}
                           type="button"
                           aria-label={opt.name}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectProgression(opt.name)}
                           style={{
-                            display: 'inline-flex',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: '7px',
-                            padding: '8px 15px',
-                            borderRadius: '999px',
-                            fontSize: '12.5px',
-                            fontWeight: 700,
+                            justifyContent: 'space-between',
+                            padding: '14px 18px',
+                            borderRadius: '16px',
                             cursor: 'pointer',
+                            textAlign: 'left',
                             border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid #E4E4E7',
                             background: isSelected ? opt.activeBg : '#FFFFFF',
-                            color: isSelected ? opt.activeColor : '#334155',
-                            boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
+                            boxShadow: isSelected ? '0 2px 10px rgba(0, 0, 0, 0.08)' : '0 1px 3px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <span style={{ fontSize: '13px' }}>{opt.emoji}</span>
-                          <span>{opt.name}</span>
-                          {isSelected && <Check size={13} color={opt.activeColor} strokeWidth={2.5} />}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '20px' }}>{opt.emoji}</span>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: 800, color: isSelected ? opt.activeColor : '#18181B' }}>
+                                {opt.name}
+                              </div>
+                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
+                                {opt.desc}
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && <Check size={16} color={opt.activeColor} strokeWidth={2.5} />}
                         </motion.button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* CARD 3: Describe what you're experiencing */}
+                {/* Step 3 Action Bar */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    flexWrap: 'wrap', 
+                    gap: '12px', 
+                    paddingTop: '16px', 
+                    borderTop: '1px solid #F4F4F5' 
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setIntakeStep(2);
+                    }}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: '12px',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      fontWeight: 700,
+                      fontSize: '13.5px',
+                      border: '1px solid #E4E4E7',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← Back to Timeline
+                  </button>
+
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setIntakeStep(4);
+                      }}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: '#FFF1F2',
+                        color: '#BE123C',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: '1.5px solid #FECDD3',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>Next: Tell Your Story (Step 4)</span>
+                      <ArrowRight size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRunInvestigation}
+                      disabled={isReadingFiles || (!history.trim() && !files.length)}
+                      style={{
+                        padding: '11px 22px',
+                        borderRadius: '12px',
+                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '13.5px',
+                        border: 'none',
+                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Sparkles size={15} />
+                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* STEP 4: CLINICAL STORY & NARRATIVE CANVAS (DEDICATED ONBOARDING SCREEN)  */}
+            {/* ========================================================================= */}
+            {intakeStep === 4 && (
+              <div key="step4">
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.96)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '20px',
-                    padding: isMobile ? '18px 16px' : '22px 24px',
+                    padding: isMobile ? '20px 16px' : '26px 28px',
                     border: '1.5px solid #F4F4F5',
                     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
+                    gap: '14px',
                     marginBottom: '20px'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div 
                         style={{ 
-                          width: '36px', 
-                          height: '36px', 
-                          borderRadius: '12px', 
+                          width: '42px', 
+                          height: '42px', 
+                          borderRadius: '14px', 
                           background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)', 
                           border: '1px solid #FECDD3',
                           display: 'flex', 
@@ -1453,13 +1767,13 @@ AI-generated preparation material. Verify against original records; this is not 
                           flexShrink: 0
                         }}
                       >
-                        <FileText size={19} />
+                        <FileText size={22} />
                       </div>
                       <div>
-                        <h2 style={{ fontSize: '15.5px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                          Describe what you are experiencing
+                        <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#18181B', margin: 0 }}>
+                          Clinical Story & Timeline Notes
                         </h2>
-                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                        <p style={{ fontSize: '13px', color: '#64748B', margin: 0, marginTop: '2px' }}>
                           Your timeline narrative, symptom sensations, and questions in your own voice
                         </p>
                       </div>
@@ -1476,7 +1790,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           : '#BE123C',
                         background: '#FFF1F2',
                         border: '1px solid #FECDD3',
-                        padding: '3px 9px',
+                        padding: '4px 10px',
                         borderRadius: '999px'
                       }}
                     >
@@ -1486,7 +1800,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
                   {/* Magic Prompt Pills */}
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Sparkles size={12} color="#E11D48" />
                       <span>Tap to insert structured clinical prompts:</span>
                     </div>
@@ -1508,12 +1822,12 @@ AI-generated preparation material. Verify against original records; this is not 
                           }}
                           style={{
                             flexShrink: 0,
-                            padding: '6px 12px',
+                            padding: '7px 13px',
                             borderRadius: '999px',
                             background: '#FFFFFF',
                             border: '1px solid #E4E4E7',
                             color: '#27272A',
-                            fontSize: '11.5px',
+                            fontSize: '12px',
                             fontWeight: 700,
                             cursor: 'pointer',
                             display: 'inline-flex',
@@ -1555,17 +1869,17 @@ AI-generated preparation material. Verify against original records; this is not 
                     aria-label="Clinical timeline and symptom notes"
                     style={{ 
                       width: '100%', 
-                      height: '170px', 
-                      padding: '16px', 
+                      height: '210px', 
+                      padding: '18px', 
                       borderRadius: '16px', 
                       border: '1.5px solid #E4E4E7', 
                       resize: 'vertical', 
-                      fontSize: '13.5px', 
+                      fontSize: '14px', 
                       fontFamily: 'inherit', 
                       background: '#FFFFFF', 
                       transition: 'border-color 0.2s ease, box-shadow 0.2s ease', 
                       outline: 'none',
-                      lineHeight: 1.55,
+                      lineHeight: 1.6,
                       color: '#18181B'
                     }}
                     onFocus={(e) => {
@@ -1579,7 +1893,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   />
                 </div>
 
-                {/* Step 1 Action Bar */}
+                {/* Step 4 Action Bar */}
                 <div 
                   style={{ 
                     display: 'flex', 
@@ -1591,16 +1905,32 @@ AI-generated preparation material. Verify against original records; this is not 
                     borderTop: '1px solid #F4F4F5' 
                   }}
                 >
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>
-                    Step 1 of 3 · Documents are optional if notes are provided
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setIntakeStep(3);
+                    }}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: '12px',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      fontWeight: 700,
+                      fontSize: '13.5px',
+                      border: '1px solid #E4E4E7',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← Back to Pattern
+                  </button>
 
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
-                        setIntakeStep(2);
+                        setIntakeStep(5);
                       }}
                       style={{
                         padding: '11px 22px',
@@ -1617,11 +1947,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <span>
-                        {selectedSymptoms.length > 0 
-                          ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
-                          : 'Next: Add Evidence (Step 2)'}
-                      </span>
+                      <span>Next: Add Evidence (Step 5)</span>
                       <ArrowRight size={15} />
                     </button>
 
@@ -1655,10 +1981,10 @@ AI-generated preparation material. Verify against original records; this is not 
 
 
             {/* ========================================================================= */}
-            {/* STEP 2: LAB & EVIDENCE VAULT                                              */}
+            {/* STEP 5: LAB & EVIDENCE VAULT                                              */}
             {/* ========================================================================= */}
-            {intakeStep === 2 && (
-              <div key="step2">
+            {intakeStep === 5 && (
+              <div key="step5">
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.96)',
@@ -1690,7 +2016,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     </div>
                     <div>
                       <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                        Lab Reports & Medical Evidence
+                        Uploaded Evidence & Panels
                       </h2>
                       <p style={{ fontSize: '12.5px', color: '#64748B', margin: 0 }}>
                         Upload PDFs, lab panels, or discharge summaries. The engine extracts documented facts and audits contradictions.
@@ -1935,7 +2261,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      setIntakeStep(1);
+                      setIntakeStep(4);
                     }}
                     style={{
                       padding: '11px 18px',
@@ -1948,7 +2274,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       cursor: 'pointer'
                     }}
                   >
-                    ← Back to Timeline
+                    ← Back to Story
                   </button>
 
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1956,7 +2282,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
-                        setIntakeStep(3);
+                        setIntakeStep(6);
                       }}
                       style={{
                         padding: '11px 22px',
@@ -1973,7 +2299,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <span>Next: Scope & Run (Step 3)</span>
+                      <span>Next: Scope & Run (Step 6)</span>
                       <ArrowRight size={15} />
                     </button>
 
@@ -2006,10 +2332,10 @@ AI-generated preparation material. Verify against original records; this is not 
             )}
 
             {/* ========================================================================= */}
-            {/* STEP 3: REVIEW SCOPE, CASE ROUTING & LAUNCHPAD                            */}
+            {/* STEP 6: REVIEW SCOPE, CASE ROUTING & LAUNCHPAD                            */}
             {/* ========================================================================= */}
-            {intakeStep === 3 && (
-              <div key="step3">
+            {intakeStep === 6 && (
+              <div key="step6">
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.96)',
@@ -2041,7 +2367,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     </div>
                     <div>
                       <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                        Review Scope & Launchpad
+                        Review Scope & Destination
                       </h2>
                       <p style={{ fontSize: '12.5px', color: '#64748B', margin: 0 }}>
                         Confirm evidence readiness, case routing, and launch your multisystem clinical review.
@@ -2281,7 +2607,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      setIntakeStep(2);
+                      setIntakeStep(5);
                     }}
                     style={{
                       padding: '14px 20px',
