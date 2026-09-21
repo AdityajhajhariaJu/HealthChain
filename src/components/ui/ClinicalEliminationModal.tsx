@@ -116,7 +116,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     }
     return 'hunt_histamine';
   });
-  type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols' | 'verdict';
+  type EliminationTab = 'guardrails' | 'rechallenge' | 'outcomes' | 'dossier' | 'protocols' | 'verdict' | 'onboarding_tab';
   type ProtocolCategory = 'all' | 'popular' | 'gut' | 'systemic';
   const [activeTab, setActiveTab] = useState<EliminationTab>(() => {
     if (trialV2?.status === 'completed' || trialV2?.verdict) return 'verdict';
@@ -210,8 +210,17 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       refreshTrialState();
       const current = getActiveTrial();
       const currentV2 = getActiveTrialV2();
-      if (currentV2?.status === 'completed' || currentV2?.verdict) {
+      if (initialMode) {
+        setSuiteMode(initialMode);
+      } else if (currentV2?.status === 'completed' || currentV2?.verdict) {
         setSuiteMode('active_trial');
+      } else if (current) {
+        setSuiteMode('active_trial');
+      } else {
+        setSuiteMode('onboarding');
+      }
+
+      if (currentV2?.status === 'completed' || currentV2?.verdict) {
         setActiveTab('verdict');
         setTabHistory(['verdict']);
       } else if (current) {
@@ -225,7 +234,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setSosApplied(false);
       setSelectedExposure(null);
     }
-  }, [isOpen, inline]);
+  }, [isOpen, inline, initialMode]);
 
   useEffect(() => {
     if (initialProtocolId && ELIMINATION_PROTOCOLS.some((p) => p.id === initialProtocolId)) {
@@ -256,6 +265,11 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   }, []);
 
   const handleTabChange = (nextTab: EliminationTab) => {
+    if (nextTab === 'onboarding_tab') {
+      triggerHapticSelection();
+      setSuiteMode('onboarding');
+      return;
+    }
     if (nextTab === activeTab) return;
     triggerHapticSelection();
     setTabHistory((prev) => [...prev, nextTab]);
@@ -898,6 +912,37 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              {(trial || trialV2?.status === 'completed' || trialV2?.verdict) && suiteMode !== 'onboarding' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticSelection();
+                    setSuiteMode('onboarding');
+                  }}
+                  aria-label="Open intake onboarding wizard"
+                  title="Retake Guided Intake"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    height: '38px',
+                    padding: isMobile ? '0 10px' : '0 13px',
+                    borderRadius: '12px',
+                    background: '#F0FDFA',
+                    border: '1.5px solid #99F6E4',
+                    color: '#0D9488',
+                    fontSize: isMobile ? '11px' : '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 1px 3px rgba(13, 148, 136, 0.08)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Compass size={14} strokeWidth={2.4} />
+                  <span>Retake Intake</span>
+                </button>
+              )}
               {(trial || trialV2?.status === 'completed' || trialV2?.verdict) && (
                 <div style={{ position: 'relative' }}>
                   <button
@@ -1258,6 +1303,7 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       { id: 'outcomes', label: 'My Progress', icon: TrendingDown },
                       { id: 'dossier', label: 'Doctor Report', icon: FileText },
                     ]),
+                { id: 'onboarding_tab' as const, label: 'Intake Wizard', icon: Compass },
                 { id: 'protocols', label: 'All Protocols', icon: Layers },
               ].map((tab) => {
                 const Icon = tab.icon;

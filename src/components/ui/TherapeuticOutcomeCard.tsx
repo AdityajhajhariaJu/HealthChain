@@ -109,9 +109,12 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     setTimeout(() => setJustLogged(false), 2500);
   };
 
-  const handleOpenModal = (e: React.MouseEvent) => {
+  const [modalMode, setModalMode] = useState<'onboarding' | 'active_trial'>('active_trial');
+
+  const handleOpenModal = (e: React.MouseEvent, mode?: 'onboarding' | 'active_trial') => {
     e.stopPropagation();
     triggerHapticSelection();
+    setModalMode(mode || (isGraduated || trial ? 'active_trial' : 'onboarding'));
     setIsModalOpen(true);
   };
 
@@ -406,40 +409,96 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                     >
                       Edit
                     </motion.button>
+                    <motion.button
+                      type="button"
+                      data-micro="true"
+                      className="btn-micro"
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => handleOpenModal(e, 'onboarding')}
+                      title="Open Intake Onboarding Wizard"
+                      style={{
+                        background: '#F0FDFA',
+                        border: '1px solid #99F6E4',
+                        color: '#0D9488',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 10px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        lineHeight: 1
+                      }}
+                    >
+                      <Compass size={11} strokeWidth={2.4} />
+                      <span>Intake</span>
+                    </motion.button>
                   </div>
                 ) : (
-                  <motion.button
-                    type="button"
-                    data-micro="true"
-                    className="btn-micro"
-                    whileTap={{ scale: 0.92 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerHapticLight();
-                      setIsLogging(true);
-                    }}
-                    aria-label="Log today symptom severity"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '999px',
-                      height: isMobile ? '24px' : '26px',
-                      padding: isMobile ? '0 12px' : '0 14px',
-                      fontSize: isMobile ? '10.5px' : '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
-                      whiteSpace: 'nowrap',
-                      lineHeight: 1
-                    }}
-                  >
-                    <Activity size={11} strokeWidth={2.6} />
-                    <span>Check-In</span>
-                  </motion.button>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <motion.button
+                      type="button"
+                      data-micro="true"
+                      className="btn-micro"
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHapticLight();
+                        setIsLogging(true);
+                      }}
+                      aria-label="Log today symptom severity"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 12px' : '0 14px',
+                        fontSize: isMobile ? '10.5px' : '11px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1
+                      }}
+                    >
+                      <Activity size={11} strokeWidth={2.6} />
+                      <span>Check-In</span>
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      data-micro="true"
+                      className="btn-micro"
+                      whileTap={{ scale: 0.92 }}
+                      onClick={(e) => handleOpenModal(e, 'onboarding')}
+                      title="Open Intake Onboarding Wizard"
+                      style={{
+                        background: '#F0FDFA',
+                        border: '1px solid #99F6E4',
+                        color: '#0D9488',
+                        borderRadius: '999px',
+                        height: isMobile ? '24px' : '26px',
+                        padding: isMobile ? '0 9px' : '0 10px',
+                        fontSize: isMobile ? '10px' : '10.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        lineHeight: 1
+                      }}
+                    >
+                      <Compass size={11} strokeWidth={2.4} />
+                      <span>Intake</span>
+                    </motion.button>
+                  </div>
                 )
               ) : (
                 <div
@@ -535,7 +594,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       {isModalOpen && (
         <ClinicalEliminationModal
           isOpen={isModalOpen}
-          initialMode={isGraduated || trial ? 'active_trial' : 'onboarding'}
+          initialMode={modalMode}
           onClose={() => setIsModalOpen(false)}
           onTrialUpdated={(updated) => setTrial(updated)}
         />
