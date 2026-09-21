@@ -1202,20 +1202,55 @@ AI-generated preparation material. Verify against original records; this is not 
               <div key="step1">
                 {/* 1. TOP SELECTED SHELF & COUNTER (from Reference Image) */}
                 {selectedSymptoms.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                    <span 
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '12px' : '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <span 
+                        style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 850, 
+                          color: '#71717A', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '0.08em' 
+                        }}
+                      >
+                        {selectedSymptoms.length} SELECTED
+                      </span>
+                      {selectedSymptoms.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setSelectedSymptoms([]);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#BE123C',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: '2px 4px',
+                            borderRadius: '4px'
+                          }}
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+
+                    <div 
                       style={{ 
-                        fontSize: '11px', 
-                        fontWeight: 800, 
-                        color: '#71717A', 
-                        textTransform: 'uppercase', 
-                        letterSpacing: '0.08em' 
+                        display: 'flex', 
+                        flexWrap: isMobile ? 'nowrap' : 'wrap', 
+                        overflowX: isMobile ? 'auto' : 'visible',
+                        WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        gap: isMobile ? '6px' : '8px',
+                        paddingBottom: isMobile ? '4px' : '0',
+                        alignItems: 'center'
                       }}
                     >
-                      {selectedSymptoms.length} SELECTED
-                    </span>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {selectedSymptoms.map((sym) => {
                         const found = PRESET_SYMPTOMS.find(p => p.name.toLowerCase() === sym.toLowerCase());
                         const IconComponent = found?.icon || Heart;
@@ -1229,19 +1264,22 @@ AI-generated preparation material. Verify against original records; this is not 
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '8px',
-                              padding: '7px 14px',
+                              flexShrink: 0,
+                              width: 'fit-content',
+                              gap: isMobile ? '5px' : '7px',
+                              padding: isMobile ? '4px 10px' : '6px 12px',
                               borderRadius: '9999px',
                               border: '1.5px solid #E11D48',
-                              background: '#FFFFFF',
-                              color: '#18181B',
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.08)'
+                              background: '#FFF1F2',
+                              color: '#9F1239',
+                              fontSize: isMobile ? '12px' : '13px',
+                              fontWeight: 700,
+                              boxShadow: '0 1px 4px rgba(225, 29, 72, 0.08)',
+                              whiteSpace: 'nowrap'
                             }}
                           >
-                            <IconComponent size={15} color="#E11D48" />
-                            <span>{sym}</span>
+                            <IconComponent size={isMobile ? 12 : 14} color="#E11D48" style={{ flexShrink: 0 }} />
+                            <span style={{ whiteSpace: 'nowrap' }}>{sym}</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveSymptom(sym)}
@@ -1250,13 +1288,16 @@ AI-generated preparation material. Verify against original records; this is not 
                                 border: 'none',
                                 background: 'transparent',
                                 cursor: 'pointer',
-                                padding: '2px',
+                                padding: '1px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                color: '#E11D48'
+                                justifyContent: 'center',
+                                color: '#BE123C',
+                                marginLeft: '2px',
+                                flexShrink: 0
                               }}
                             >
-                              <X size={14} />
+                              <X size={isMobile ? 12 : 13} strokeWidth={2.5} />
                             </button>
                           </motion.div>
                         );
