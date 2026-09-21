@@ -7,7 +7,8 @@ import {
   AlertTriangle, ShieldCheck, Stethoscope, CalendarClock,
   FileText, Zap, ChevronRight, AlertCircle, Plus,
   Activity, Sliders, MessageCircle, Folder, ChevronDown, Lock,
-  UploadCloud, Trash2, Heart, Wind, Droplets, Flower2, Focus, Pill, Moon, Volume2, Globe
+  UploadCloud, Trash2, Heart, Wind, Droplets, Flower2, Focus, Pill, Moon, Volume2, Globe,
+  Thermometer, Flame, Eye, HeartPulse, ShieldAlert
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
@@ -41,31 +42,103 @@ const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${c
 interface SymptomItem {
   id: string;
   name: string;
-  category: 'gut' | 'respiratory' | 'pain' | 'systemic' | 'skin';
+  category: 'gut' | 'neuro' | 'respiratory' | 'cardio' | 'pain' | 'skin' | 'systemic' | 'sleep_mental';
   icon: any;
+  isCommon?: boolean;
 }
 
 const PRESET_SYMPTOMS: SymptomItem[] = [
-  { id: 'post-nasal-drip', name: 'Post-nasal Drip', category: 'respiratory', icon: Wind },
-  { id: 'sinus-pressure', name: 'Sinus Pressure', category: 'respiratory', icon: Wind },
-  { id: 'abdomen', name: 'Abdomen', category: 'gut', icon: Focus },
-  { id: 'abdominal-pain', name: 'Abdominal Pain', category: 'gut', icon: Pill },
-  { id: 'acid-reflux', name: 'Acid Reflux/Heartburn', category: 'gut', icon: Pill },
-  { id: 'acne-breakout', name: 'Acne Breakout', category: 'skin', icon: Droplets },
-  { id: 'allergic-reaction', name: 'Allergic Reaction', category: 'skin', icon: Flower2 },
-  { id: 'anxiety', name: 'Anxiety', category: 'systemic', icon: Heart },
-  { id: 'asthma-symptoms', name: 'Asthma Symptoms', category: 'respiratory', icon: Wind },
-  { id: 'back', name: 'Back', category: 'pain', icon: Focus },
-  { id: 'belching', name: 'Belching', category: 'gut', icon: Pill },
-  { id: 'bloating', name: 'Bloating', category: 'gut', icon: Pill },
-  { id: 'bowel', name: 'Bowel', category: 'gut', icon: Focus },
-  { id: 'bowel-issues', name: 'Bowel Issues', category: 'gut', icon: Pill },
-  { id: 'headache', name: 'Headache', category: 'pain', icon: Zap },
-  { id: 'fatigue', name: 'Fatigue / Brain Fog', category: 'systemic', icon: Activity },
-  { id: 'joint-pain', name: 'Joint Pain', category: 'pain', icon: Activity },
-  { id: 'cough', name: 'Cough', category: 'respiratory', icon: Wind },
-  { id: 'nausea', name: 'Nausea', category: 'gut', icon: AlertTriangle },
-  { id: 'sleep-disturbance', name: 'Sleep Disturbance', category: 'systemic', icon: Moon }
+  // --- MOST COMMON & HIGH-YIELD PRESENTING CONCERNS ---
+  { id: 'fatigue', name: 'Fatigue / Chronic Exhaustion', category: 'systemic', icon: Activity, isCommon: true },
+  { id: 'brain-fog', name: 'Brain Fog / Cognitive Lag', category: 'neuro', icon: BrainCircuit, isCommon: true },
+  { id: 'headache', name: 'Headache / Migraine', category: 'neuro', icon: Zap, isCommon: true },
+  { id: 'bloating', name: 'Abdominal Bloating & Gas', category: 'gut', icon: Pill, isCommon: true },
+  { id: 'acid-reflux', name: 'Acid Reflux / Heartburn', category: 'gut', icon: Flame, isCommon: true },
+  { id: 'abdominal-pain', name: 'Abdominal Cramping & Pain', category: 'gut', icon: Pill, isCommon: true },
+  { id: 'joint-pain', name: 'Joint Pain & Stiffness', category: 'pain', icon: Activity, isCommon: true },
+  { id: 'insomnia', name: 'Insomnia / Sleep Disruption', category: 'sleep_mental', icon: Moon, isCommon: true },
+  { id: 'anxiety', name: 'Anxiety & Restlessness', category: 'sleep_mental', icon: Heart, isCommon: true },
+  { id: 'shortness-of-breath', name: 'Shortness of Breath', category: 'respiratory', icon: Wind, isCommon: true },
+  { id: 'chronic-cough', name: 'Chronic or Dry Cough', category: 'respiratory', icon: Wind, isCommon: true },
+  { id: 'nausea', name: 'Nausea & Queasiness', category: 'gut', icon: AlertTriangle, isCommon: true },
+  { id: 'palpitations', name: 'Heart Palpitations & Racing', category: 'cardio', icon: HeartPulse, isCommon: true },
+  { id: 'low-back-pain', name: 'Low Back Pain / Sciatica', category: 'pain', icon: Focus, isCommon: true },
+  { id: 'skin-rash', name: 'Skin Rash & Itching', category: 'skin', icon: Flower2, isCommon: true },
+
+  // --- GASTROINTESTINAL & DIGESTION ---
+  { id: 'constipation', name: 'Constipation & Hard Stools', category: 'gut', icon: Pill },
+  { id: 'diarrhea', name: 'Diarrhea / Loose Stools', category: 'gut', icon: Droplets },
+  { id: 'belching', name: 'Excessive Belching & Gas', category: 'gut', icon: Wind },
+  { id: 'indigestion', name: 'Indigestion / Dyspepsia', category: 'gut', icon: Flame },
+  { id: 'early-satiety', name: 'Early Satiety (Quick Fullness)', category: 'gut', icon: Focus },
+  { id: 'loss-of-appetite', name: 'Loss of Appetite', category: 'gut', icon: Focus },
+  { id: 'food-intolerance', name: 'Food Sensitivity Reaction', category: 'gut', icon: Flower2 },
+  { id: 'difficulty-swallowing', name: 'Difficulty Swallowing (Dysphagia)', category: 'gut', icon: AlertCircle },
+  { id: 'ibs-flare', name: 'Irritable Bowel Episodes (IBS)', category: 'gut', icon: Activity },
+  { id: 'vomiting', name: 'Vomiting Episodes', category: 'gut', icon: AlertTriangle },
+
+  // --- BRAIN & NEUROLOGICAL ---
+  { id: 'dizziness-vertigo', name: 'Dizziness & Vertigo (Spinning)', category: 'neuro', icon: Focus },
+  { id: 'lightheadedness', name: 'Lightheadedness / Near-Fainting', category: 'neuro', icon: Activity },
+  { id: 'tingling-numbness', name: 'Tingling / Numbness (Neuropathy)', category: 'neuro', icon: Zap },
+  { id: 'tremors', name: 'Tremors / Involuntary Twitching', category: 'neuro', icon: Activity },
+  { id: 'tinnitus', name: 'Tinnitus (Ear Ringing)', category: 'neuro', icon: Volume2 },
+  { id: 'photophobia', name: 'Light or Sound Sensitivity', category: 'neuro', icon: Eye },
+  { id: 'blurry-vision', name: 'Blurry or Fluctuating Vision', category: 'neuro', icon: Eye },
+  { id: 'memory-lapses', name: 'Memory Lapses / Forgetfulness', category: 'neuro', icon: BrainCircuit },
+  { id: 'neck-stiffness', name: 'Neck Stiffness & Tension', category: 'neuro', icon: Focus },
+
+  // --- RESPIRATORY & ENT ---
+  { id: 'sinus-pressure', name: 'Sinus Pressure & Facial Pain', category: 'respiratory', icon: Wind },
+  { id: 'post-nasal-drip', name: 'Post-Nasal Drip', category: 'respiratory', icon: Wind },
+  { id: 'nasal-congestion', name: 'Nasal Congestion & Sneezing', category: 'respiratory', icon: Wind },
+  { id: 'sore-throat', name: 'Sore Throat & Scratchiness', category: 'respiratory', icon: Flame },
+  { id: 'wheezing', name: 'Wheezing / Asthmatic Rales', category: 'respiratory', icon: Wind },
+  { id: 'chest-tightness', name: 'Chest Tightness', category: 'respiratory', icon: Focus },
+  { id: 'productive-cough', name: 'Productive Cough with Phlegm', category: 'respiratory', icon: Droplets },
+  { id: 'loss-of-smell', name: 'Loss of Smell or Taste', category: 'respiratory', icon: Focus },
+  { id: 'hoarseness', name: 'Hoarseness & Voice Strain', category: 'respiratory', icon: Wind },
+
+  // --- HEART & CIRCULATION ---
+  { id: 'tachycardia', name: 'Rapid Pulse (Tachycardia)', category: 'cardio', icon: HeartPulse },
+  { id: 'chest-pressure', name: 'Chest Pressure or Discomfort', category: 'cardio', icon: ShieldAlert, isCommon: true },
+  { id: 'swollen-ankles', name: 'Swollen Ankles or Legs (Edema)', category: 'cardio', icon: Droplets },
+  { id: 'cold-hands-feet', name: 'Cold Hands & Feet (Poor Circulation)', category: 'cardio', icon: Thermometer },
+  { id: 'orthostatic-dizzy', name: 'Dizziness When Standing Up', category: 'cardio', icon: Activity },
+
+  // --- MUSCULOSKELETAL & PAIN ---
+  { id: 'neck-shoulder-pain', name: 'Neck & Upper Shoulder Pain', category: 'pain', icon: Focus },
+  { id: 'muscle-cramps', name: 'Muscle Cramps & Spasms', category: 'pain', icon: Zap },
+  { id: 'muscle-weakness', name: 'Muscle Weakness & Heaviness', category: 'pain', icon: Activity },
+  { id: 'morning-stiffness', name: 'Morning Stiffness (> 30 mins)', category: 'pain', icon: CalendarClock },
+  { id: 'joint-swelling', name: 'Joint Swelling & Warmth', category: 'pain', icon: Droplets },
+  { id: 'knee-pain', name: 'Knee Pain & Discomfort', category: 'pain', icon: Focus },
+  { id: 'body-aches', name: 'Generalized Body Aches (Myalgia)', category: 'pain', icon: Activity },
+
+  // --- SKIN, HAIR & ALLERGIES ---
+  { id: 'itching', name: 'Intense Skin Itching (Pruritus)', category: 'skin', icon: Sparkles },
+  { id: 'eczema', name: 'Eczema / Dry Inflamed Skin', category: 'skin', icon: Droplets },
+  { id: 'acne-breakout', name: 'Acne Breakouts & Cystic Spots', category: 'skin', icon: Droplets },
+  { id: 'facial-flushing', name: 'Facial Flushing & Burning', category: 'skin', icon: Flame },
+  { id: 'hair-loss', name: 'Excessive Hair Shedding / Thinning', category: 'skin', icon: Sparkles },
+  { id: 'easy-bruising', name: 'Unexplained Easy Bruising', category: 'skin', icon: AlertTriangle },
+  { id: 'angioedema', name: 'Swollen Lips, Eyes, or Face', category: 'skin', icon: ShieldAlert },
+
+  // --- SYSTEMIC, METABOLIC & IMMUNE ---
+  { id: 'fever-chills', name: 'Low-Grade Fever & Chills', category: 'systemic', icon: Thermometer },
+  { id: 'night-sweats', name: 'Night Sweats / Drenching', category: 'systemic', icon: Droplets },
+  { id: 'unexplained-weight-loss', name: 'Unexplained Weight Loss', category: 'systemic', icon: Activity },
+  { id: 'unexplained-weight-gain', name: 'Unexplained Rapid Weight Gain', category: 'systemic', icon: Activity },
+  { id: 'swollen-lymph-nodes', name: 'Swollen Lymph Nodes (Neck/Groin)', category: 'systemic', icon: ShieldAlert },
+  { id: 'heat-cold-intolerance', name: 'Heat or Cold Intolerance', category: 'systemic', icon: Thermometer },
+  { id: 'excessive-thirst', name: 'Excessive Thirst & Dry Mouth', category: 'systemic', icon: Droplets },
+
+  // --- SLEEP & MENTAL WELLBEING ---
+  { id: 'frequent-waking', name: 'Frequent Nighttime Waking', category: 'sleep_mental', icon: Moon },
+  { id: 'daytime-sleepiness', name: 'Daytime Exhaustion & Drowsiness', category: 'sleep_mental', icon: Moon },
+  { id: 'panic-episodes', name: 'Panic Attacks / Air Hunger', category: 'sleep_mental', icon: HeartPulse },
+  { id: 'low-mood', name: 'Depressed Mood & Low Drive', category: 'sleep_mental', icon: Moon },
+  { id: 'chronic-stress', name: 'Chronic Overwhelm & Stress', category: 'sleep_mental', icon: BrainCircuit }
 ];
 
 const STEP_META: Record<number, { title: string; subtitle: string; label: string; badge: string }> = {
@@ -156,13 +229,15 @@ export default function JarvisInvestigator() {
     return [];
   });
   const [symptomSearch, setSymptomSearch] = useState('');
+  const [symptomCategoryFilter, setSymptomCategoryFilter] = useState<string>('all');
+  const [customSymptoms, setCustomSymptoms] = useState<string[]>([]);
 
   const handleToggleSymptom = (symptomName: string) => {
     triggerHapticSelection();
     setSelectedSymptoms(prev => {
-      const isSelected = prev.includes(symptomName);
+      const isSelected = prev.some(s => s.toLowerCase() === symptomName.toLowerCase());
       const updated = isSelected 
-        ? prev.filter(s => s !== symptomName)
+        ? prev.filter(s => s.toLowerCase() !== symptomName.toLowerCase())
         : [...prev, symptomName];
       
       setHistory(currentHistory => {
@@ -186,11 +261,30 @@ export default function JarvisInvestigator() {
   };
 
   const handleAddCustomSymptom = () => {
-    const trimmed = symptomSearch.trim();
-    if (!trimmed) return;
-    if (!selectedSymptoms.includes(trimmed)) {
-      handleToggleSymptom(trimmed);
+    const raw = symptomSearch.trim();
+    if (!raw) return;
+    
+    // Check if matches an existing preset case-insensitively
+    const existingPreset = PRESET_SYMPTOMS.find(
+      p => p.name.toLowerCase() === raw.toLowerCase()
+    );
+
+    const symptomNameToUse = existingPreset 
+      ? existingPreset.name 
+      : raw.charAt(0).toUpperCase() + raw.slice(1);
+
+    if (!existingPreset && !customSymptoms.some(c => c.toLowerCase() === symptomNameToUse.toLowerCase())) {
+      setCustomSymptoms(prev => [symptomNameToUse, ...prev]);
     }
+
+    if (!selectedSymptoms.some(s => s.toLowerCase() === symptomNameToUse.toLowerCase())) {
+      handleToggleSymptom(symptomNameToUse);
+      triggerHapticSuccess();
+      toast.success('Symptom Added', `"${symptomNameToUse}" has been added to your clinical intake.`);
+    } else {
+      toast.info('Already Selected', `"${symptomNameToUse}" is already in your selected symptoms.`);
+    }
+
     setSymptomSearch('');
   };
 
@@ -1171,7 +1265,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 )}
 
-                {/* 2. CAPSULE SEARCH BAR (from Reference Image) */}
+                {/* 2. CAPSULE SEARCH BAR */}
                 <div 
                   style={{
                     display: 'flex',
@@ -1179,10 +1273,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     background: '#FFFFFF',
                     border: '1.5px solid #E4E4E7',
                     borderRadius: '9999px',
-                    padding: '11px 18px',
+                    padding: '10px 16px',
                     gap: '10px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    marginBottom: '16px',
+                    marginBottom: '12px',
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
@@ -1197,7 +1291,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         handleAddCustomSymptom();
                       }
                     }}
-                    placeholder="Search or add symptom"
+                    placeholder="Search 70+ symptoms or type a custom symptom…"
                     aria-label="Search or add symptom"
                     style={{
                       border: 'none',
@@ -1217,24 +1311,122 @@ AI-generated preparation material. Verify against original records; this is not 
                         color: '#E11D48',
                         border: '1px solid #FDA4AF',
                         borderRadius: '9999px',
-                        padding: '4px 11px',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
+                        padding: '5px 12px',
+                        fontSize: isMobile ? '11px' : '12px',
+                        fontWeight: 800,
                         cursor: 'pointer',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        whiteSpace: 'nowrap'
                       }}
                     >
-                      + Add
+                      <Plus size={13} strokeWidth={3} />
+                      <span>Add &quot;{symptomSearch.trim().slice(0, 16)}{symptomSearch.trim().length > 16 ? '…' : ''}&quot;</span>
                     </button>
                   )}
                 </div>
 
-                {/* 3. CATEGORIZED SYMPTOM CLOUD (from Reference Image) */}
+                {/* 3. ORGAN SYSTEM CATEGORY FILTER TABS */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    gap: '6px', 
+                    overflowX: 'auto', 
+                    paddingBottom: '8px', 
+                    marginBottom: '14px', 
+                    scrollbarWidth: 'none', 
+                    WebkitOverflowScrolling: 'touch' 
+                  }}
+                >
+                  {[
+                    { id: 'all', label: 'All (70+)' },
+                    { id: 'common', label: '⭐ Most Common' },
+                    { id: 'gut', label: '🥗 Gut & Digestion' },
+                    { id: 'neuro', label: '🧠 Head & Neuro' },
+                    { id: 'respiratory', label: '🫁 Lungs & ENT' },
+                    { id: 'cardio', label: '🫀 Heart & Chest' },
+                    { id: 'pain', label: '🦴 Pain & Joints' },
+                    { id: 'skin', label: '🧴 Skin & Allergies' },
+                    { id: 'systemic', label: '⚡ Energy & Fever' },
+                    { id: 'sleep_mental', label: '🌙 Sleep & Mood' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setSymptomCategoryFilter(cat.id);
+                      }}
+                      style={{
+                        flexShrink: 0,
+                        padding: isMobile ? '5px 11px' : '6px 13px',
+                        borderRadius: '999px',
+                        border: symptomCategoryFilter === cat.id ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
+                        background: symptomCategoryFilter === cat.id ? '#FFF1F2' : '#FFFFFF',
+                        color: symptomCategoryFilter === cat.id ? '#BE123C' : '#64748B',
+                        fontSize: isMobile ? '11px' : '12px',
+                        fontWeight: symptomCategoryFilter === cat.id ? 800 : 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.15s ease',
+                        boxShadow: symptomCategoryFilter === cat.id ? '0 1px 4px rgba(225, 29, 72, 0.1)' : 'none'
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 4. CLINICAL SYMPTOM CLOUD */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '6px' : '9px', marginBottom: '22px' }}>
-                  {PRESET_SYMPTOMS.filter(sym => 
-                    !symptomSearch.trim() || sym.name.toLowerCase().includes(symptomSearch.trim().toLowerCase())
-                  ).map((sym) => {
-                    const isSelected = selectedSymptoms.includes(sym.name);
+                  {/* User-added Custom Symptoms */}
+                  {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
+                    const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
+                    return (
+                      <motion.button
+                        key={`custom-${cs}`}
+                        type="button"
+                        aria-label={cs}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => handleToggleSymptom(cs)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: isMobile ? '6px' : '8px',
+                          padding: isMobile ? '7px 12px' : '9px 16px',
+                          borderRadius: '9999px',
+                          border: isSelected ? '1.5px solid #E11D48' : '1.5px dashed #FDA4AF',
+                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
+                          color: '#18181B',
+                          fontSize: isMobile ? '12px' : '13px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
+                          transition: 'all 0.15s ease',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        <Sparkles size={isMobile ? 14 : 15} color="#E11D48" />
+                        <span>{cs}</span>
+                        {isSelected && <Check size={isMobile ? 13 : 14} color="#E11D48" strokeWidth={2.5} />}
+                      </motion.button>
+                    );
+                  })}
+
+                  {/* Preset Symptoms filtered by search and category */}
+                  {PRESET_SYMPTOMS.filter(sym => {
+                    const matchesSearch = !symptomSearch.trim() || sym.name.toLowerCase().includes(symptomSearch.trim().toLowerCase());
+                    const matchesCat = symptomCategoryFilter === 'all' 
+                      ? true 
+                      : symptomCategoryFilter === 'common' 
+                      ? Boolean(sym.isCommon)
+                      : sym.category === symptomCategoryFilter;
+                    return matchesSearch && matchesCat;
+                  }).map((sym) => {
+                    const isSelected = selectedSymptoms.some(s => s.toLowerCase() === sym.name.toLowerCase());
                     const IconComp = sym.icon;
                     return (
                       <motion.button
@@ -1251,10 +1443,10 @@ AI-generated preparation material. Verify against original records; this is not 
                           padding: isMobile ? '7px 12px' : '9px 16px',
                           borderRadius: '9999px',
                           border: isSelected ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
-                          background: '#FFFFFF',
-                          color: isSelected ? '#18181B' : '#27272A',
+                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
+                          color: isSelected ? '#BE123C' : '#27272A',
                           fontSize: isMobile ? '12px' : '13px',
-                          fontWeight: isSelected ? 700 : 500,
+                          fontWeight: isSelected ? 800 : 500,
                           cursor: 'pointer',
                           boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
                           transition: 'all 0.15s ease',
@@ -1268,6 +1460,36 @@ AI-generated preparation material. Verify against original records; this is not 
                     );
                   })}
                 </div>
+
+                {/* Empty State when Search has no matches */}
+                {symptomSearch.trim() && PRESET_SYMPTOMS.filter(sym => sym.name.toLowerCase().includes(symptomSearch.trim().toLowerCase())).length === 0 && customSymptoms.filter(cs => cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).length === 0 && (
+                  <div style={{ padding: '18px 20px', background: '#FFF1F2', border: '1.5px dashed #FDA4AF', borderRadius: '16px', textAlign: 'center', marginBottom: '22px' }}>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#9F1239', fontWeight: 600 }}>
+                      No preset symptom matched &quot;{symptomSearch.trim()}&quot;
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomSymptom}
+                      style={{
+                        background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '9999px',
+                        padding: '9px 20px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(225, 29, 72, 0.25)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Plus size={15} strokeWidth={3} />
+                      <span>Add &quot;{symptomSearch.trim()}&quot; to My Symptoms</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* Step 1 Action Bar */}
                 <div 

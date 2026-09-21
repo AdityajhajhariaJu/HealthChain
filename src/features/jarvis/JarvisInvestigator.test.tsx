@@ -84,4 +84,28 @@ describe('Clinical Review case continuity', () => {
     fireEvent.click(screen.getByRole('button', { name: '← Back to Evidence' }));
     expect(screen.getByRole('heading', { name: 'Lab Reports & Medical Evidence' })).toBeTruthy();
   });
+
+  it('allows adding custom symptoms and filtering categories properly', async () => {
+    open();
+    // Verify clinical symptom cloud renders
+    expect(screen.getByRole('button', { name: 'Fatigue / Chronic Exhaustion' })).toBeTruthy();
+
+    // Type a custom symptom in the search box
+    const searchInput = screen.getByRole('textbox', { name: 'Search or add symptom' });
+    fireEvent.change(searchInput, { target: { value: 'Sudden left ear fullness' } });
+    
+    // Click add custom symptom button
+    fireEvent.click(screen.getAllByRole('button', { name: /Add "Sudden left ear/i })[0]);
+
+    // Verify it is added to selected symptoms shelf
+    expect(screen.getByText('1 SELECTED')).toBeTruthy();
+    expect(screen.getAllByText('Sudden left ear fullness').length).toBeGreaterThanOrEqual(1);
+
+    // Advance to Step 4 (Story notes) and check it was appended into history
+    fireEvent.click(screen.getByRole('button', { name: /Continue with 1 symptom/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Pattern (Step 3)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }));
+    const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
+    expect(textarea.value).toContain('Primary symptoms: Sudden left ear fullness.');
+  });
 });
