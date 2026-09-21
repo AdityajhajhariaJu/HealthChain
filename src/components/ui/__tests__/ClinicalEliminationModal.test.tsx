@@ -313,7 +313,6 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     // Onboarding header badge and direct Step 1 intake rendered
     expect(screen.getAllByText(/ELIMINATION SUITE ONBOARDING/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/What symptoms are you experiencing most frequently\?/i)).toBeTruthy();
-    expect(screen.getByText(/100% Safe Exploration/i)).toBeTruthy();
   });
 
   it('allows retaking intake, viewing assessment, and resetting protocol from overflow menu', () => {

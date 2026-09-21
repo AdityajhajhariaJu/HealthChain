@@ -39,7 +39,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     }
   });
 
-  it('renders directly into Step 1 symptom selection with safe staples reassurance', () => {
+  it('renders directly into Step 1 symptom selection', () => {
     render(
       <EliminationOnboardingWizard
         onComplete={mockOnComplete}
@@ -55,7 +55,6 @@ describe('EliminationOnboardingWizard Tests', () => {
     expect(screen.getByText(/What symptoms are you experiencing most frequently\?/i)).toBeTruthy();
     expect(screen.getByText(/Bloating & Abdominal Distension/i)).toBeTruthy();
     expect(screen.getByText(/Post-Wheat Fatigue & Joint Stiffness/i)).toBeTruthy();
-    expect(screen.getByText(/100% Safe Exploration/i)).toBeTruthy();
   });
 
   it('progresses through symptom selection and latency to safety screening', () => {
@@ -82,7 +81,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     fireEvent.click(nextBtn);
 
     // Step 2 Safety Screening rendered
-    expect(screen.getByText(/Step 2 of 4: Safety Screening/i)).toBeTruthy();
+    expect(screen.getByText(/Step 2 of 4: Safety & Exclusions/i)).toBeTruthy();
     expect(screen.getByText(/Clinical Safety & Contraindications Check/i)).toBeTruthy();
     expect(screen.getByText(/None of the exclusions apply/i)).toBeTruthy();
   });
@@ -131,13 +130,9 @@ describe('EliminationOnboardingWizard Tests', () => {
     // Step 2: Confirm no exclusions & proceed
     fireEvent.click(screen.getByText(/View Matched Protocols/i));
 
-    // Step 4: Algorithmic Matcher shows Histamine Reset & 3-Phase Roadmap
+    // Step 4: Algorithmic Matcher shows Histamine Reset
     expect(screen.getByText(/Personalized Clinical Match/i)).toBeTruthy();
     expect(screen.getByText(/28-Day Histamine & Mast Cell Flare Hunt/i)).toBeTruthy();
-    expect(screen.getByText(/Your 3-Phase Clinical Roadmap/i)).toBeTruthy();
-    expect(screen.getByText(/Washout Reset/i)).toBeTruthy();
-    expect(screen.getByText(/Food Challenge/i)).toBeTruthy();
-    expect(screen.getByText(/Food Freedom/i)).toBeTruthy();
 
     // Advance to Step 5 Baseline Calibration
     fireEvent.click(screen.getByText(/Calibrate & Commit/i));

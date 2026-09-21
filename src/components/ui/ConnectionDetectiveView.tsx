@@ -952,191 +952,194 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
             {/* Active Protocol / Track Food Triggers Hero Card */}
             <TherapeuticOutcomeCard />
 
-            {/* 2 CLINICAL TOOLS GRID */}
+            {/* DOMAIN CARDS GRID */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gridTemplateColumns: '1fr',
                 gap: isMobile ? '12px' : '16px',
                 alignItems: 'stretch',
               }}
             >
-              {ALL_12_STATIONS.map((station) => (
-                <motion.div
-                  id={`cd-card-${station.id}`}
-                  key={station.id}
-                  whileHover={{ y: -3, scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setOpenedPillarId('gut');
-                    setCardActiveStations({ gut: station.id });
-                    trackButtonClick('clinical_station_open', station.id);
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Open ${station.title}`}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
+              {PARENT_PILLAR_CARDS.map((pillar) => {
+                const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+                const isGut = pillar.id === 'gut';
+
+                return (
+                  <motion.div
+                    id={`cd-card-${pillar.id}`}
+                    key={pillar.id}
+                    whileHover={{ y: -3, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                    onClick={() => {
                       triggerHapticSelection();
-                      setOpenedPillarId('gut');
-                      setCardActiveStations({ gut: station.id });
-                    }
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
-                    border: '1px solid #99F6E4',
-                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                    borderRadius: isMobile ? '24px' : '28px',
-                    padding: isMobile ? '14px 16px' : '16px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: isMobile ? '135px' : '148px',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
-                >
-                  <div>
-                    {/* Top Row: Circular Icon + Micro Badge */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <div
-                        style={{
-                          width: isMobile ? '34px' : '38px',
-                          height: isMobile ? '34px' : '38px',
-                          minWidth: isMobile ? '34px' : '38px',
-                          minHeight: isMobile ? '34px' : '38px',
-                          flexShrink: 0,
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)',
-                          boxShadow: '0 2px 6px rgba(13, 148, 136, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)',
-                          border: '1px solid rgba(255,255,255,0.6)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: isMobile ? '17px' : '19px',
-                        }}
-                      >
-                        {station.icon}
+                      setOpenedPillarId(pillar.id);
+                      setCardActiveStations((prev) => ({ ...prev, [pillar.id]: 'overview' }));
+                      trackButtonClick('clinical_parent_pillar_open', pillar.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${pillar.title}`}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleSelectPillar(pillar.id);
+                      }
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
+                      border: '1px solid #99F6E4',
+                      boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                      borderRadius: isMobile ? '24px' : '28px',
+                      padding: isMobile ? '14px 16px' : '16px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: isMobile ? '135px' : '148px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  >
+                    <div>
+                      {/* Top Row: Circular Icon + Micro Badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div
+                          style={{
+                            width: isMobile ? '34px' : '38px',
+                            height: isMobile ? '34px' : '38px',
+                            minWidth: isMobile ? '34px' : '38px',
+                            minHeight: isMobile ? '34px' : '38px',
+                            flexShrink: 0,
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)',
+                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.24), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                            border: '1px solid rgba(255,255,255,0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: isMobile ? '17px' : '19px',
+                          }}
+                        >
+                          {pillar.icon}
+                        </div>
+
+                        <div
+                          className="micro-badge"
+                          style={{
+                            background: '#ECFDF5',
+                            color: '#047857',
+                            border: '1px solid #A7F3D0',
+                            padding: isMobile ? '3px 8px' : '3.5px 10px',
+                            borderRadius: '999px',
+                            fontSize: isMobile ? '9.5px' : '10.5px',
+                            fontWeight: 800,
+                            letterSpacing: '0.4px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Sparkles size={11} color="#059669" />
+                          <span>{`${pillarStations.length} CLINICAL TOOLS`}</span>
+                        </div>
                       </div>
 
+                      {/* Title & Subtitle */}
+                      <div>
+                        <h4
+                          className="serif-heading"
+                          style={{
+                            fontSize: isMobile ? '16.5px' : '18px',
+                            fontWeight: 800,
+                            margin: '0 0 3px',
+                            color: '#0F172A',
+                            lineHeight: 1.25,
+                            letterSpacing: '-0.3px',
+                          }}
+                        >
+                          {pillar.title}
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: isMobile ? '12px' : '12.5px',
+                            color: '#475569',
+                            margin: 0,
+                            fontWeight: 500,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {pillar.desc}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Telemetry Pill & Compact Action Button */}
+                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                       <div
-                        className="micro-badge"
                         style={{
-                          background: '#ECFDF5',
-                          color: '#047857',
-                          border: '1px solid #A7F3D0',
-                          padding: isMobile ? '3px 8px' : '3.5px 10px',
-                          borderRadius: '999px',
-                          fontSize: isMobile ? '9.5px' : '10.5px',
-                          fontWeight: 800,
-                          letterSpacing: '0.4px',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
+                          fontSize: isMobile ? '10px' : '10.5px',
+                          fontWeight: 700,
+                          color: '#047857',
+                          background: '#ECFDF5',
+                          border: '1px solid #A7F3D0',
+                          padding: '3px 9px',
+                          borderRadius: '999px',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <Sparkles size={11} color="#059669" />
-                        <span>{station.statusBadge}</span>
+                        <span
+                          style={{
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: '#10B981',
+                          }}
+                        />
+                        <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
                       </div>
-                    </div>
 
-                    {/* Title & Subtitle */}
-                    <div>
-                      <h4
-                        className="serif-heading"
+                      <button
+                        type="button"
+                        data-compact="true"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerHapticSelection();
+                          setOpenedPillarId(pillar.id);
+                          setCardActiveStations((prev) => ({ ...prev, [pillar.id]: 'overview' }));
+                        }}
                         style={{
-                          fontSize: isMobile ? '16.5px' : '18px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '999px',
+                          height: isMobile ? '24px' : '26px',
+                          padding: isMobile ? '0 12px' : '0 14px',
+                          fontSize: isMobile ? '10.5px' : '11px',
                           fontWeight: 800,
-                          margin: '0 0 3px',
-                          color: '#0F172A',
-                          lineHeight: 1.25,
-                          letterSpacing: '-0.3px',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                          whiteSpace: 'nowrap',
+                          lineHeight: 1,
                         }}
                       >
-                        {station.title}
-                      </h4>
-                      <p
-                        style={{
-                          fontSize: isMobile ? '12px' : '12.5px',
-                          color: '#475569',
-                          margin: 0,
-                          fontWeight: 500,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {station.subtitle}
-                      </p>
+                        <span>Open</span>
+                        <ArrowRight size={11} strokeWidth={2.6} />
+                      </button>
                     </div>
-                  </div>
-
-                  {/* Bottom Row: Telemetry Pill & Compact Action Button */}
-                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: isMobile ? '10px' : '10.5px',
-                        fontWeight: 700,
-                        color: '#047857',
-                        background: '#ECFDF5',
-                        border: '1px solid #A7F3D0',
-                        padding: '3px 9px',
-                        borderRadius: '999px',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '5px',
-                          height: '5px',
-                          borderRadius: '50%',
-                          background: '#10B981',
-                        }}
-                      />
-                      <span>{station.id === 'postmeal' ? 'Digestion Heatmap' : dynamicPillarData.gut.telemetry}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      data-compact="true"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerHapticSelection();
-                        setOpenedPillarId('gut');
-                        setCardActiveStations({ gut: station.id });
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: '999px',
-                        height: isMobile ? '24px' : '26px',
-                        padding: isMobile ? '0 12px' : '0 14px',
-                        fontSize: isMobile ? '10.5px' : '11px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1,
-                      }}
-                    >
-                      <span>Open Tool</span>
-                      <ArrowRight size={11} strokeWidth={2.6} />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         ) : (
@@ -1188,6 +1191,28 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setOpenedPillarId(null);
+                          }}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <ArrowLeft size={13} /> Back
+                        </button>
                         <div
                           style={{
                             width: isMobile ? '40px' : '46px',
@@ -1321,8 +1346,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                           type="button"
                           onClick={() => {
                             triggerHapticLight();
-                            setOpenedPillarId(null);
-                            setCardActiveStations({ gut: 'overview' });
+                            setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: 'overview' }));
                           }}
                           style={{
                             background: '#F1F5F9',
@@ -1338,7 +1362,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             gap: '5px',
                           }}
                         >
-                          <ArrowLeft size={13} /> Back to Overview
+                          <ArrowLeft size={13} /> Back to {openedPillar.title}
                         </button>
                         <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
                           Station {activeStation?.stationNumber} of {String(ALL_12_STATIONS.length).padStart(2, '0')}

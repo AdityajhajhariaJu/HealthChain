@@ -403,7 +403,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
       {/* Top Progress Tracker */}
       <div
         style={{
-          padding: isMobile ? '12px 16px' : '14px 24px',
+          padding: isMobile ? '14px 16px' : '16px 24px',
           borderBottom: '1px solid #E2E8F0',
           background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
           display: 'flex',
@@ -412,17 +412,39 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
-            {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
-            {step === 2 && 'Step 2 of 4: Safety Screening'}
-            {step === 3 && 'Clinical Safety Notice'}
-            {step === 4 && 'Step 3 of 4: Matched Protocol'}
-            {step === 5 && 'Step 4 of 4: Baseline & Activation'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #059669 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              flexShrink: 0,
+            }}
+          >
+            <Compass size={17} strokeWidth={2.4} />
+          </div>
+          <div>
+            <div style={{ fontSize: '10px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Elimination Suite Onboarding
+            </div>
+            <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+              {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
+              {step === 2 && 'Step 2 of 4: Safety & Exclusions'}
+              {step === 3 && 'Clinical Safety Notice'}
+              {step === 4 && 'Step 3 of 4: Matched Protocol'}
+              {step === 5 && 'Step 4 of 4: Baseline & Activation'}
+            </div>
           </div>
         </div>
 
-        {/* Step dots (4 steps) */}
+        {/* Step dots */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {[1, 2, 4, 5].map((sIndex, idx) => {
             const isCompleted = step > sIndex;
@@ -434,9 +456,8 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                   width: isCurrent ? '22px' : '7px',
                   height: '7px',
                   borderRadius: '999px',
-                  background: isCurrent ? '#0D9488' : isCompleted ? '#5EEAD4' : '#E2E8F0',
-                  boxShadow: isCurrent ? '0 1px 4px rgba(13, 148, 136, 0.3)' : 'none',
-                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                  background: isCurrent ? '#0D9488' : isCompleted ? '#10B981' : '#E2E8F0',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
             );
@@ -639,27 +660,6 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                     );
                   })}
                 </div>
-              </div>
-
-              {/* 100% Safe Exploration Reassurance */}
-              <div
-                style={{
-                  background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)',
-                  borderRadius: '14px',
-                  padding: '12px 14px',
-                  border: '1px solid #BBF7D0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.04)',
-                }}
-              >
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Apple size={16} color="#059669" />
-                </div>
-                <span style={{ fontSize: '11.5px', color: '#14532D', lineHeight: 1.45 }}>
-                  <strong>100% Safe Exploration:</strong> Never a starvation diet. You will receive a verified <strong>Safe Staples List</strong> (khichdi, sourdough, cumin rice, lactose-free curd) tailored to your meals.
-                </span>
               </div>
             </motion.div>
           )}
@@ -1039,44 +1039,6 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                   <span style={{ fontSize: '11.5px', color: '#0D9488', fontWeight: 800 }}>
                     Selected ✓
                   </span>
-                </div>
-              </div>
-
-              {/* 3-Phase Clinical Roadmap for Matched Protocol */}
-              <div>
-                <h4 style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '4px 0 10px' }}>
-                  Your 3-Phase Clinical Roadmap
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #CCFBF1', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.04)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>1</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Washout Reset</span>
-                    </div>
-                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
-                      Days 1–7: Temporarily pause suspect culprits with safe staples. Gut calms down.
-                    </p>
-                  </div>
-
-                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>2</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Challenge</span>
-                    </div>
-                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
-                      Days 8–14: Test isolated foods 1-by-1 to pinpoint exact flare response.
-                    </p>
-                  </div>
-
-                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F8FAFC', color: '#475569', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 800 }}>3</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Food Freedom</span>
-                    </div>
-                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
-                      Days 15–28: Safely expand diet with verified safe foods for life.
-                    </p>
-                  </div>
                 </div>
               </div>
 
