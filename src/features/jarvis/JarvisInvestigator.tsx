@@ -205,7 +205,11 @@ export default function JarvisInvestigator() {
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
   const [missingCaseId, setMissingCaseId] = useState<string | null>(null);
   const [addedQuestionIndexes, setAddedQuestionIndexes] = useState<Record<number, boolean>>({});
-  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(() => {
+    const s = searchParams.get('step');
+    const parsed = s ? parseInt(s, 10) : 1;
+    return (parsed >= 1 && parsed <= 6) ? (parsed as any) : 1;
+  });
   const [reviewFocus, setReviewFocus] = useState<'differential' | 'doctor_prep' | 'lab_second_opinion'>('differential');
   const [selectedOnset, setSelectedOnset] = useState<string | null>(() => {
     try {
@@ -1140,13 +1144,17 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* 6 Gradient Progress Capsules in Raspberry Rose */}
             <div style={{ display: 'flex', gap: '6px' }}>
               {[1, 2, 3, 4, 5, 6].map((s) => (
-                <div 
+                <button 
                   key={s}
+                  type="button"
+                  aria-label={`Go to Step ${s}`}
                   onClick={() => { triggerHapticSelection(); setIntakeStep(s as any); }}
                   style={{ 
                     flex: 1, 
                     height: '6px', 
                     borderRadius: '999px', 
+                    border: 'none',
+                    padding: 0,
                     background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
                     boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
                     cursor: 'pointer',
@@ -1199,7 +1207,7 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* STEP 1: CLINICAL TIMELINE & SYMPTOMS (EDITORIAL CLOUD WORKSTATION)        */}
             {/* ========================================================================= */}
             {intakeStep === 1 && (
-              <div key="step1">
+              <div key="step1" style={{ paddingBottom: isMobile ? '90px' : '90px' }}>
                 {/* 1. TOP SELECTED SHELF & COUNTER (from Reference Image) */}
                 {selectedSymptoms.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '12px' : '16px' }}>
@@ -1532,23 +1540,40 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 )}
 
-                {/* Step 1 Action Bar */}
+                {/* Step 1 Action Bar - Permanently Docked at Bottom */}
                 <div 
                   style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '12px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 50,
+                    background: 'rgba(255, 255, 255, 0.96)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderTop: '1px solid rgba(228, 228, 231, 0.9)',
+                    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.07)',
+                    padding: isMobile ? '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))' : '14px 24px',
+                    display: 'flex',
+                    justifyContent: 'center'
                   }}
                 >
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>
-                    Step 1 of 6 · Choose symptoms to personalize your clinical review
-                  </span>
+                  <div 
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: '920px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: isMobile ? 'center' : 'space-between', 
+                      gap: '16px' 
+                    }}
+                  >
+                    {!isMobile && (
+                      <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                        Step 1 of 6 · Choose symptoms to personalize your clinical review
+                      </span>
+                    )}
 
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => {
@@ -1556,17 +1581,21 @@ AI-generated preparation material. Verify against original records; this is not 
                         setIntakeStep(2);
                       }}
                       style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: '#FFF1F2',
-                        color: '#BE123C',
+                        width: isMobile ? '100%' : 'auto',
+                        minWidth: isMobile ? '100%' : '260px',
+                        padding: isMobile ? '14px 24px' : '13px 28px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                        color: '#FFFFFF',
                         fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: '1.5px solid #FECDD3',
+                        fontSize: isMobile ? '15px' : '15px',
+                        border: 'none',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -1575,31 +1604,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
                           : 'Next: Timeline (Step 2)'}
                       </span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleRunInvestigation}
-                      disabled={isReadingFiles || (!history.trim() && !files.length)}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: 'none',
-                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Sparkles size={15} />
-                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
+                      <ArrowRight size={17} strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>

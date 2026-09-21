@@ -20,11 +20,11 @@ vi.mock('../../components/ui/CompilingAnimation', () => ({ CompilingAnimation: (
 
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.session.mockResolvedValue({ user: { id: 'user' } }); });
 afterEach(cleanup);
-const open = () => render(<MemoryRouter initialEntries={['/app/consult?caseId=existing&review=new']}><JarvisInvestigator /></MemoryRouter>);
+const open = (step = 1) => render(<MemoryRouter initialEntries={[`/app/consult?caseId=existing&review=new${step > 1 ? `&step=${step}` : ''}`]}><JarvisInvestigator /></MemoryRouter>);
 describe('Clinical Review case continuity', () => {
   it('includes selected evidence and saves the result into the same case', async () => {
     mocks.run.mockResolvedValue({ executiveSummary: 'Review summary', primaryHypothesis: 'Reported concern', questionsForClinician: ['What history is missing?'] });
-    open();
+    open(6);
     fireEvent.click(screen.getByRole('button', { name: 'Review and save to My Cases' }));
     await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ caseId: 'existing', type: 'jarvis' })));
     expect(mocks.create).not.toHaveBeenCalled();
@@ -37,7 +37,7 @@ describe('Clinical Review case continuity', () => {
   }, 15000);
   it('keeps the input and case selection after a failed review', async () => {
     mocks.run.mockResolvedValue(null);
-    open();
+    open(6);
     fireEvent.click(screen.getByRole('button', { name: 'Review and save to My Cases' }));
     await waitFor(() => expect(mocks.error).toHaveBeenCalled());
     expect((screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement).value).toBe('My actual symptom history');
@@ -45,7 +45,7 @@ describe('Clinical Review case continuity', () => {
   });
   it('awaits authentication and never invokes AI for a missing session', async () => {
     mocks.session.mockResolvedValue(null);
-    open();
+    open(6);
     fireEvent.click(screen.getByRole('button', { name: 'Review and save to My Cases' }));
     await waitFor(() => expect(mocks.session).toHaveBeenCalled());
     expect(mocks.run).not.toHaveBeenCalled();
