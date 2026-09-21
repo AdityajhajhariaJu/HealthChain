@@ -1144,17 +1144,13 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* 6 Gradient Progress Capsules in Raspberry Rose */}
             <div style={{ display: 'flex', gap: '6px' }}>
               {[1, 2, 3, 4, 5, 6].map((s) => (
-                <button 
+                <div 
                   key={s}
-                  type="button"
-                  aria-label={`Go to Step ${s}`}
                   onClick={() => { triggerHapticSelection(); setIntakeStep(s as any); }}
                   style={{ 
                     flex: 1, 
                     height: '6px', 
                     borderRadius: '999px', 
-                    border: 'none',
-                    padding: 0,
                     background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
                     boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
                     cursor: 'pointer',
