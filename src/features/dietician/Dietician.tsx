@@ -75,7 +75,7 @@ import {
   generateNutritionalGuardrails,
   generateGroceryList,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
@@ -249,11 +249,41 @@ function calculateTargets(p: any) {
   return { targetCalories, targetProtein, targetCarbs, targetFat };
 }
 
+export function getInitialDietProfile(): any {
+  try {
+    const core = getCoreProfile();
+    if (core?.dietician?.profile) {
+      return { ...core.dietician.profile, ...calculateTargets(core.dietician.profile) };
+    }
+    if (core?.dietProfile) {
+      return { ...core.dietProfile, ...calculateTargets(core.dietProfile) };
+    }
+    if (core?.demographics && (core.demographics.name || core.demographics.age || core.demographics.weight)) {
+      const demo = core.demographics;
+      const derived = {
+        weight: demo.weight || 70,
+        weightUnit: 'kg',
+        height: demo.height || 170,
+        heightUnit: 'cm',
+        age: demo.age || 30,
+        gender: (demo.gender || 'male').toLowerCase(),
+        goal: 'Maintain',
+        activityLevel: 'moderate',
+        medicalConditions: core.conditions || [],
+        restrictions: core.allergies || [],
+        cuisine: 'Mediterranean',
+      };
+      return { ...derived, ...calculateTargets(derived) };
+    }
+  } catch (e) {}
+  return null;
+}
+
 export const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
 export type DietTab = typeof validTabs[number];
 
-export const resolveTabKey = (raw?: string | null): DietTab | null => {
-  if (!raw) return null;
+export const resolveTabKey = (raw?: string | null): DietTab => {
+  if (!raw) return 'dashboard';
   const clean = raw.trim().toLowerCase();
   if (clean === 'food-detective') return 'sensitivities';
   if (clean === 'elimination' || clean === 'elimination-suite') {
@@ -261,7 +291,7 @@ export const resolveTabKey = (raw?: string | null): DietTab | null => {
   }
   if (clean === 'diet-plan') return 'mealplan';
   if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
-  return null;
+  return 'dashboard';
 };
 
 // --- Main Component ---
@@ -274,7 +304,7 @@ export default function Dietician() {
 
   const searchTab = searchParams.get('tab');
   const stateTab = (location.state as { tab?: string } | null)?.tab;
-  const initialTab: DietTab = resolveTabKey(searchTab) || resolveTabKey(stateTab) || 'dashboard';
+  const initialTab: DietTab = searchTab ? resolveTabKey(searchTab) : (stateTab ? resolveTabKey(stateTab) : 'dashboard');
   const [activeTab, setActiveTabState] = useState<DietTab>(initialTab);
   const [isEliminationModalOpen, setIsEliminationModalOpen] = useState<boolean>(() => {
     const rawSearch = searchTab?.trim().toLowerCase();
@@ -325,8 +355,8 @@ export default function Dietician() {
       setIsEliminationModalOpen(true);
     }
 
-    const resolved = resolveTabKey(currentSearchTab) || resolveTabKey(currentStateTab);
-    if (resolved && resolved !== activeTab) {
+    const resolved = currentSearchTab ? resolveTabKey(currentSearchTab) : (currentStateTab ? resolveTabKey(currentStateTab) : 'dashboard');
+    if (resolved !== activeTab) {
       setActiveTabState(resolved);
     }
   }, [searchParams, location.state, activeTab]);
@@ -335,7 +365,7 @@ export default function Dietician() {
   const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
   const returnLabel = (location.state as any)?.returnLabel || searchParams.get('returnLabel');
 
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => getInitialDietProfile());
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
   const [mealPlan, setMealPlan] = useState<FullMealPlan | null>(null);
@@ -510,27 +540,28 @@ export default function Dietician() {
       }
     };
     load().finally(() => setIsHydrated(true));
-    window.addEventListener('hc_profile_updated', load);
     return () => { 
       cancelled = true; 
-      window.removeEventListener('hc_profile_updated', load);
     };
   }, [activeCaseScope.caseId]);
 
-  // Save state to local storage when it changes
+  // Save state to local storage when it changes (Single atomic write, no recursive loops)
   useEffect(() => {
     if (!isHydrated) return;
     try {
       const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans };
-      updateProfileFeatureData('dietician', data);
-      
-      if (profile) updateProfileFeatureData('dietProfile', profile);
-      updateProfileFeatureData('dietFoodLogs', foodLogs);
-      updateProfileFeatureData('dietHydration', hydration);
-      if (mealPlan) updateProfileFeatureData('dietMealPlan', mealPlan);
-      if (archivedPlans.length > 0) updateProfileFeatureData('dietArchivedPlans', archivedPlans);
-      if (advice) updateProfileFeatureData('dietAdvice', advice);
-      if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
+      const core = getCoreProfile();
+      if (core) {
+        core.dietician = data;
+        if (profile) core.dietProfile = profile;
+        core.dietFoodLogs = foodLogs;
+        core.dietHydration = hydration;
+        if (mealPlan) core.dietMealPlan = mealPlan;
+        if (archivedPlans.length > 0) core.dietArchivedPlans = archivedPlans;
+        if (advice) core.dietAdvice = advice;
+        if (groceryList) core.dietGrocery = groceryList;
+        saveProfile(core);
+      }
     } catch(e) {}
   }, [isHydrated, profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
 
@@ -674,6 +705,14 @@ export default function Dietician() {
     window.addEventListener('hc_hydration_updated', refreshHydration);
     return () => window.removeEventListener('hc_hydration_updated', refreshHydration);
   }, [currentDate]);
+
+  if (!isHydrated && !profile) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', color: '#059669' }}>
+        <Loader2 className="spin" size={32} />
+      </div>
+    );
+  }
 
   if (!profile) {
     return <OnboardingWizard onComplete={handleSaveProfile} />;

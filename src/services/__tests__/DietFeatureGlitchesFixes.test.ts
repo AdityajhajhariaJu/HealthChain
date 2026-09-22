@@ -16,7 +16,7 @@ import {
   getProfile,
   getProfileKey,
 } from '../ProfileEngine';
-import { resolveTabKey, validTabs } from '../../features/dietician/Dietician';
+import { resolveTabKey, validTabs, getInitialDietProfile } from '../../features/dietician/Dietician';
 
 describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
   beforeEach(() => {
@@ -255,11 +255,22 @@ describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
       }
     });
 
-    it('returns null on invalid or missing tab strings', () => {
-      expect(resolveTabKey(null)).toBeNull();
-      expect(resolveTabKey(undefined)).toBeNull();
-      expect(resolveTabKey('')).toBeNull();
-      expect(resolveTabKey('nonexistent-tab')).toBeNull();
+    it('defaults to dashboard on invalid or missing tab strings for deterministic root navigation', () => {
+      expect(resolveTabKey(null)).toBe('dashboard');
+      expect(resolveTabKey(undefined)).toBe('dashboard');
+      expect(resolveTabKey('')).toBe('dashboard');
+      expect(resolveTabKey('nonexistent-tab')).toBe('dashboard');
+    });
+
+    it('getInitialDietProfile synchronously derives profile from demographics to prevent OnboardingWizard flash', () => {
+      const profile = getProfile();
+      profile.demographics = { name: 'Aditya', age: 28, weight: 72, height: 175, gender: 'male' };
+      saveProfile(profile);
+
+      const initialDiet = getInitialDietProfile();
+      expect(initialDiet).not.toBeNull();
+      expect(initialDiet.weight).toBe(72);
+      expect(initialDiet.targetCalories).toBeGreaterThan(1200);
     });
   });
 });
