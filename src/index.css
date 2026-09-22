@@ -259,14 +259,20 @@ textarea {
   color: var(--text-main);
 }
 .sidebar__link.active {
-  background: linear-gradient(90deg, #FFF1F2, transparent);
-  color: #E11D48;
+  background: linear-gradient(90deg, var(--teal-light), transparent);
+  color: var(--teal);
   font-weight: 600;
-  border-left: 3px solid #E11D48;
+  border-left: 3px solid var(--teal);
   padding-left: 9px;
 }
 
-.mobile-tab.active {
+.sidebar__link.active[href*="/app/consult"] {
+  background: linear-gradient(90deg, #FFE4E6, transparent);
+  color: #E11D48;
+  border-left: 3px solid #E11D48;
+}
+
+.mobile-tab.active[href*="/app/consult"] {
   color: #E11D48;
 }
 
@@ -1216,6 +1222,10 @@ html.dark-theme body {
   }
   
   .mobile-tab.active {
+    color: #0F766E;
+  }
+  
+  .mobile-tab.active[href*="/app/consult"] {
     color: #E11D48;
   }
   
@@ -1380,17 +1390,17 @@ html.dark-theme body {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: #FFF1F2;
+    background: #FDF6EA;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #E11D48;
+    color: #0F766E;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
     flex-shrink: 0;
   }
 
   .more-menu-icon svg {
-    color: #E11D48;
+    color: #0F766E;
     width: 22px;
     height: 22px;
     stroke-width: 2.2px;
@@ -1401,7 +1411,7 @@ html.dark-theme body {
 
   .more-menu-item:active .more-menu-icon {
     transform: scale(1.1);
-    background: #FFE4E6;
+    background: #F3E7D3;
   }
 }
 
