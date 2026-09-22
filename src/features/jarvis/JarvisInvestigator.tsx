@@ -1603,7 +1603,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 </div>
 
                 {/* 4. CLINICAL SYMPTOM CLOUD */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '7px 8px' : '9px 10px', marginBottom: '22px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '7px 8px' : '9px 10px', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', marginBottom: '22px' }}>
                   {/* User-added Custom Symptoms */}
                   {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
                     const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
@@ -1629,7 +1629,9 @@ AI-generated preparation material. Verify against original records; this is not 
                           cursor: 'pointer',
                           boxShadow: isSelected ? '0 3px 14px rgba(225, 29, 72, 0.16)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-                          textAlign: 'left'
+                          textAlign: 'left',
+                          flexShrink: 0,
+                          maxWidth: '100%'
                         }}
                       >
                         <ClassySymptomBadge 
@@ -1638,7 +1640,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           size={isMobile ? 28 : 32} 
                           isSelected={isSelected} 
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '12.5px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700,
@@ -1680,8 +1682,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   {PRESET_SYMPTOMS.filter(sym => {
                     const q = symptomSearch.trim().toLowerCase();
                     const matchesSearch = !q || 
-                      sym.name.toLowerCase().includes(q) || 
-                      Boolean(sym.aliases?.some(a => a.toLowerCase().includes(q)));
+                       sym.name.toLowerCase().includes(q) || 
+                       Boolean(sym.aliases?.some(a => a.toLowerCase().includes(q)));
                     const matchesCat = symptomCategoryFilter === 'all' 
                       ? true 
                       : symptomCategoryFilter === 'common' 
@@ -1719,7 +1721,9 @@ AI-generated preparation material. Verify against original records; this is not 
                             ? `0 3px 14px ${theme.shadow}` 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-                          textAlign: 'left'
+                          textAlign: 'left',
+                          flexShrink: 0,
+                          maxWidth: '100%'
                         }}
                       >
                         <ClassySymptomBadge 
@@ -1728,7 +1732,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           size={isMobile ? 28 : 32} 
                           isSelected={isSelected} 
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '12.5px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700,
