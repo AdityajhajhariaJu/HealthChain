@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles } from 'lucide-react';
@@ -55,6 +56,7 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
 export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => void }) => {
   const navigate = useNavigate();
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -72,33 +74,46 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
+    let isCancelled = false;
 
     // Start camera
-    navigator.mediaDevices?.getUserMedia?.({ video: { facingMode: 'environment' } })
-      .then((s) => {
-        activeStream = s;
-        setStream(s);
-        setCameraError(null);
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-        }
-      })
-      .catch((err) => {
-        console.error("Camera access denied or unavailable", err);
-        setCameraError("Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.");
-      });
+    if (navigator.mediaDevices?.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } } })
+        .then((s) => {
+          if (isCancelled) {
+            s.getTracks().forEach(t => t.stop());
+            return;
+          }
+          activeStream = s;
+          setStream(s);
+          setCameraError(null);
+          if (videoRef.current) {
+            videoRef.current.srcObject = s;
+          }
+        })
+        .catch((err) => {
+          if (isCancelled) return;
+          console.error("Camera access denied or unavailable", err);
+          setCameraError("Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.");
+        });
+    } else {
+      setCameraError("Camera is unavailable on this device. You can upload a photo from your gallery.");
+    }
 
+    document.body.classList.add('lens-active');
     document.body.style.overflow = 'hidden';
     document.body.style.touchAction = 'none';
 
     return () => {
+      isCancelled = true;
+      document.body.classList.remove('lens-active');
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
       if (activeStream) {
         activeStream.getTracks().forEach(t => t.stop());
       }
     };
-  }, []);
+  }, [facingMode]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -239,7 +254,17 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     }
   };
 
+  const handleToggleFacingMode = () => {
+    triggerHapticLight();
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      setStream(null);
+    }
+    setFacingMode(prev => (prev === 'environment' ? 'user' : 'environment'));
+  };
+
   const handleClose = () => {
+    document.body.classList.remove('lens-active');
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
     }
@@ -257,14 +282,24 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [stream]);
 
-  return (
+  return createPortal(
     <div 
       role="dialog"
       aria-modal="true"
-      aria-label="AR Grocery Nutrition Scanner"
+      aria-label="Clinical AR Food & Nutrition Scanner"
       style={{
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        background: '#000', zIndex: 9999, display: 'flex', flexDirection: 'column'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100dvh',
+        background: '#000000',
+        zIndex: 999999,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
       }}
     >
       {/* Live Camera Feed */}
@@ -281,23 +316,167 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       {/* Header */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, padding: '24px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)'
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingBottom: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 10,
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 8px #10B981' }} />
-          <span style={{ color: '#FFF', fontWeight: 600, fontSize: '14px', letterSpacing: '0.5px' }}>HEALTHCHAIN LENS</span>
+          <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 10px #10B981' }} />
+          <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '13.5px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+            Clinical Lens
+          </span>
         </div>
         <button 
           type="button"
-          aria-label="Close AR Grocery Lens"
+          aria-label="Close Clinical Lens"
           onClick={handleClose}
-          style={{ width: '44px', height: '44px', borderRadius: '22px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '21px',
+            background: 'rgba(255, 255, 255, 0.18)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            color: '#FFFFFF',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
         >
           <X size={20} />
         </button>
       </div>
+
+      {/* Themed Minimal Guidance Pill */}
+      {!showResults && (
+        <div style={{
+          position: 'absolute',
+          top: 'max(68px, calc(env(safe-area-inset-top, 16px) + 52px))',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '7px',
+          background: 'rgba(15, 23, 42, 0.82)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(52, 211, 153, 0.35)',
+          borderRadius: '999px',
+          padding: '6px 14px',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
+          maxWidth: 'calc(100% - 32px)',
+          pointerEvents: 'none'
+        }}>
+          <Sparkles size={13} color="#34D399" style={{ flexShrink: 0 }} />
+          <span style={{
+            color: '#F1F5F9',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '0.15px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}>
+            Scan packaged food, ingredient labels, or fresh meals
+          </span>
+        </div>
+      )}
+
+      {/* Center AR Reticle Viewfinder */}
+      {!showResults && !cameraError && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -55%)',
+          width: 'min(270px, 72vw)',
+          height: 'min(270px, 72vw)',
+          pointerEvents: 'none',
+          zIndex: 5,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {/* Top-Left Corner */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '28px',
+            height: '28px',
+            borderTop: '3px solid #34D399',
+            borderLeft: '3px solid #34D399',
+            borderTopLeftRadius: '14px',
+            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
+          }} />
+          {/* Top-Right Corner */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '28px',
+            height: '28px',
+            borderTop: '3px solid #34D399',
+            borderRight: '3px solid #34D399',
+            borderTopRightRadius: '14px',
+            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
+          }} />
+          {/* Bottom-Left Corner */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '28px',
+            height: '28px',
+            borderBottom: '3px solid #34D399',
+            borderLeft: '3px solid #34D399',
+            borderBottomLeftRadius: '14px',
+            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
+          }} />
+          {/* Bottom-Right Corner */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            width: '28px',
+            height: '28px',
+            borderBottom: '3px solid #34D399',
+            borderRight: '3px solid #34D399',
+            borderBottomRightRadius: '14px',
+            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
+          }} />
+
+          {/* Frame Label */}
+          <span style={{
+            color: 'rgba(255, 255, 255, 0.75)',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            background: 'rgba(0, 0, 0, 0.35)',
+            padding: '4px 10px',
+            borderRadius: '999px',
+            backdropFilter: 'blur(6px)'
+          }}>
+            {isScanning ? 'Analyzing...' : 'Align Item Inside'}
+          </span>
+        </div>
+      )}
 
       {/* Scanning Animation */}
       {isScanning && (
@@ -320,10 +499,19 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             style={{
-              position: 'absolute', bottom: '40px', left: '20px', right: '20px', zIndex: 20,
-              display: 'flex', flexDirection: 'column', gap: '12px',
-              maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',
-              paddingBottom: '20px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch'
+              position: 'absolute',
+              bottom: 'max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
+              left: '16px',
+              right: '16px',
+              zIndex: 30,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              maxHeight: 'calc(100vh - 120px)',
+              overflowY: 'auto',
+              paddingBottom: '24px',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch'
             }}
           >
             {/* Non-Detection / Error Guidance Card */}
@@ -642,41 +830,117 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       {/* Capture & Upload Bar */}
       {!showResults && !cameraError && (
-        <div style={{ position: 'absolute', bottom: '40px', left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', zIndex: 10 }}>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            title="Upload from Gallery"
-            style={{
-              width: '48px', height: '48px', borderRadius: '24px',
-              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
-              color: '#FFF'
-            }}
-          >
-            <ImageIcon size={20} />
-          </button>
-          
-          <button 
-            onClick={handleScan}
-            disabled={isScanning}
-            style={{
-              width: '72px', height: '72px', borderRadius: '36px',
-              background: isScanning ? 'rgba(255,255,255,0.5)' : '#FFF',
-              border: '6px solid rgba(255,255,255,0.3)',
-              backgroundClip: 'padding-box',
-              display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
-              transition: 'all 0.2s', transform: isScanning ? 'scale(0.95)' : 'scale(1)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-            }}
-          >
-            {!isScanning && <Scan size={28} color="#0F172A" />}
-          </button>
+        <div style={{
+          position: 'absolute',
+          bottom: 'max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '36px',
+          zIndex: 20,
+          padding: '0 24px'
+        }}>
+          {/* Left: Gallery Upload Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Upload food or label image from gallery"
+              title="Upload from Gallery"
+              style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.18)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1.5px solid rgba(255, 255, 255, 0.3)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: 'pointer',
+                color: '#FFFFFF',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <ImageIcon size={22} />
+            </motion.button>
+            <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.2px' }}>
+              Gallery
+            </span>
+          </div>
 
-          <div style={{ width: '48px' }} />
+          {/* Center: Tactile Capture Shutter Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <motion.button 
+              type="button"
+              onClick={handleScan}
+              disabled={isScanning}
+              whileTap={{ scale: 0.92 }}
+              aria-label={isScanning ? "Scanning..." : "Capture and analyze food"}
+              style={{
+                width: '76px',
+                height: '76px',
+                borderRadius: '50%',
+                background: isScanning ? 'rgba(255, 255, 255, 0.3)' : '#FFFFFF',
+                border: '4px solid rgba(255, 255, 255, 0.45)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: isScanning ? 'default' : 'pointer',
+                boxShadow: isScanning
+                  ? '0 0 24px rgba(16, 185, 129, 0.6)'
+                  : '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(16, 185, 129, 0.25)',
+                position: 'relative'
+              }}
+            >
+              {isScanning ? (
+                <RefreshCw size={28} color="#0D9488" className="animate-spin" />
+              ) : (
+                <Scan size={30} color="#0F172A" strokeWidth={2.4} />
+              )}
+            </motion.button>
+            <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: 700, letterSpacing: '0.3px' }}>
+              {isScanning ? 'Scanning...' : 'Capture'}
+            </span>
+          </div>
+
+          {/* Right: Camera Flip Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              onClick={handleToggleFacingMode}
+              aria-label="Switch between front and back camera"
+              title="Flip Camera"
+              style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.18)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1.5px solid rgba(255, 255, 255, 0.3)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: 'pointer',
+                color: '#FFFFFF',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <RefreshCw size={20} />
+            </motion.button>
+            <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.2px' }}>
+              Flip
+            </span>
+          </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1175,6 +1175,10 @@ html.dark-theme body {
     pointer-events: none;
     box-shadow: 0 0 0 rgba(15, 23, 42, 0);
   }
+
+  body.lens-active .mobile-tab-bar {
+    display: none !important;
+  }
   
   .mobile-tab {
     flex: 1 1 0;
