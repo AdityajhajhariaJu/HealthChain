@@ -88,7 +88,7 @@ describe('Clinical Review case continuity', () => {
   it('allows adding custom symptoms and filtering categories properly', async () => {
     open();
     // Verify clinical symptom cloud renders
-    expect(screen.getByRole('button', { name: 'Fatigue / Chronic Exhaustion' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Fatigue' })).toBeTruthy();
 
     // Type a custom symptom in the search box
     const searchInput = screen.getByRole('textbox', { name: 'Search or add symptom' });
@@ -107,5 +107,17 @@ describe('Clinical Review case continuity', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }));
     const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
     expect(textarea.value).toContain('Primary symptoms: Sudden left ear fullness.');
+  });
+
+  it('searches symptoms using clinical synonym aliases', () => {
+    open();
+    const searchInput = screen.getByRole('textbox', { name: 'Search or add symptom' });
+    // Search by alias 'migraine'
+    fireEvent.change(searchInput, { target: { value: 'migraine' } });
+    expect(screen.getByRole('button', { name: 'Headache' })).toBeTruthy();
+    
+    // Search by alias 'dysphagia'
+    fireEvent.change(searchInput, { target: { value: 'dysphagia' } });
+    expect(screen.getByRole('button', { name: 'Difficulty Swallowing' })).toBeTruthy();
   });
 });
