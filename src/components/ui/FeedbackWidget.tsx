@@ -35,8 +35,10 @@ export default function FeedbackWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Hide floating feedback on full-screen chats and onboarding to prevent input obstruction
+  // Hide floating feedback on today section, full-screen chats, onboarding, and consult to prevent input obstruction
   if (
+    location.pathname === '/app' ||
+    location.pathname.startsWith('/app/today') ||
     location.pathname.startsWith('/app/ava') || 
     location.pathname.startsWith('/app/war-room') || 
     location.pathname.startsWith('/app/onboarding') ||
