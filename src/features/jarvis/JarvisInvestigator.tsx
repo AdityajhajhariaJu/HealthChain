@@ -8,7 +8,8 @@ import {
   FileText, Zap, ChevronRight, AlertCircle, Plus,
   Activity, Sliders, MessageCircle, Folder, ChevronDown, Lock,
   UploadCloud, Trash2, Heart, Wind, Droplets, Flower2, Focus, Pill, Moon, Volume2, Globe,
-  Thermometer, Flame, Eye, HeartPulse, ShieldAlert
+  Thermometer, Flame, Eye, HeartPulse, ShieldAlert,
+  BatteryLow, Brain, Bone, Waves
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
@@ -39,107 +40,249 @@ import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
 const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;
 
-interface SymptomItem {
+export interface SymptomTheme {
+  bgStart: string;
+  bgEnd: string;
+  border: string;
+  activeBorder: string;
+  activeBgStart: string;
+  activeBgEnd: string;
+  iconColor: string;
+  textColor: string;
+  shadow: string;
+}
+
+export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
+  gut: {
+    bgStart: '#ECFDF5',
+    bgEnd: '#D1FAE5',
+    border: '#A7F3D0',
+    activeBorder: '#059669',
+    activeBgStart: '#ECFDF5',
+    activeBgEnd: '#D1FAE5',
+    iconColor: '#059669',
+    textColor: '#065F46',
+    shadow: 'rgba(16, 185, 129, 0.18)',
+  },
+  neuro: {
+    bgStart: '#F5F3FF',
+    bgEnd: '#EDE9FE',
+    border: '#DDD6FE',
+    activeBorder: '#7C3AED',
+    activeBgStart: '#F5F3FF',
+    activeBgEnd: '#EDE9FE',
+    iconColor: '#7C3AED',
+    textColor: '#5B21B6',
+    shadow: 'rgba(124, 58, 237, 0.18)',
+  },
+  respiratory: {
+    bgStart: '#F0F9FF',
+    bgEnd: '#E0F2FE',
+    border: '#BAE6FD',
+    activeBorder: '#0284C7',
+    activeBgStart: '#F0F9FF',
+    activeBgEnd: '#E0F2FE',
+    iconColor: '#0284C7',
+    textColor: '#0369A1',
+    shadow: 'rgba(2, 132, 199, 0.18)',
+  },
+  cardio: {
+    bgStart: '#FFF1F2',
+    bgEnd: '#FFE4E6',
+    border: '#FECDD3',
+    activeBorder: '#E11D48',
+    activeBgStart: '#FFF1F2',
+    activeBgEnd: '#FFE4E6',
+    iconColor: '#E11D48',
+    textColor: '#9F1239',
+    shadow: 'rgba(225, 29, 72, 0.18)',
+  },
+  pain: {
+    bgStart: '#F0FDFA',
+    bgEnd: '#CCFBF1',
+    border: '#99F6E4',
+    activeBorder: '#0D9488',
+    activeBgStart: '#F0FDFA',
+    activeBgEnd: '#CCFBF1',
+    iconColor: '#0D9488',
+    textColor: '#115E59',
+    shadow: 'rgba(13, 148, 136, 0.18)',
+  },
+  skin: {
+    bgStart: '#FDF2F8',
+    bgEnd: '#FCE7F3',
+    border: '#FBCFE8',
+    activeBorder: '#DB2777',
+    activeBgStart: '#FDF2F8',
+    activeBgEnd: '#FCE7F3',
+    iconColor: '#DB2777',
+    textColor: '#9D174D',
+    shadow: 'rgba(219, 39, 119, 0.18)',
+  },
+  systemic: {
+    bgStart: '#FFFBEB',
+    bgEnd: '#FEF3C7',
+    border: '#FDE68A',
+    activeBorder: '#D97706',
+    activeBgStart: '#FFFBEB',
+    activeBgEnd: '#FEF3C7',
+    iconColor: '#D97706',
+    textColor: '#92400E',
+    shadow: 'rgba(217, 119, 6, 0.18)',
+  },
+  sleep_mental: {
+    bgStart: '#EEF2FF',
+    bgEnd: '#E0E7FF',
+    border: '#C7D2FE',
+    activeBorder: '#4F46E5',
+    activeBgStart: '#EEF2FF',
+    activeBgEnd: '#E0E7FF',
+    iconColor: '#4F46E5',
+    textColor: '#3730A3',
+    shadow: 'rgba(79, 70, 229, 0.18)',
+  },
+};
+
+export const ClassySymptomBadge: React.FC<{
+  icon: any;
+  category?: string;
+  size?: number;
+  isSelected?: boolean;
+}> = ({
+  icon: IconComp = Activity,
+  category = 'systemic',
+  size = 32,
+  isSelected = false
+}) => {
+  const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: '50%',
+        background: `linear-gradient(135deg, ${theme.bgStart} 0%, ${theme.bgEnd} 100%)`,
+        border: `1.5px solid ${theme.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: `0 2px 8px ${theme.shadow}, inset 0 1px 0 rgba(255, 255, 255, 0.85)`,
+        flexShrink: 0,
+        transition: 'all 0.18s ease'
+      }}
+    >
+      <IconComp 
+        size={Math.round(size * 0.54)} 
+        color={theme.iconColor} 
+        strokeWidth={2.4} 
+        style={{ filter: isSelected ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.12))' : 'none' }}
+      />
+    </div>
+  );
+};
+
+export interface SymptomItem {
   id: string;
   name: string;
+  subtitle?: string;
   aliases?: string[];
   category: 'gut' | 'neuro' | 'respiratory' | 'cardio' | 'pain' | 'skin' | 'systemic' | 'sleep_mental';
   icon: any;
   isCommon?: boolean;
 }
 
-const PRESET_SYMPTOMS: SymptomItem[] = [
+export const PRESET_SYMPTOMS: SymptomItem[] = [
   // --- MOST COMMON & HIGH-YIELD PRESENTING CONCERNS ---
-  { id: 'fatigue', name: 'Fatigue', aliases: ['Fatigue / Chronic Exhaustion', 'chronic exhaustion', 'exhaustion', 'tiredness', 'low energy', 'lethargy'], category: 'systemic', icon: Activity, isCommon: true },
-  { id: 'brain-fog', name: 'Brain Fog', aliases: ['Brain Fog / Cognitive Lag', 'cognitive lag', 'cloudy thinking', 'poor focus', 'sluggish mind', 'concentration'], category: 'neuro', icon: BrainCircuit, isCommon: true },
-  { id: 'headache', name: 'Headache', aliases: ['Headache / Migraine', 'migraine', 'head tension', 'cephalalgia', 'temple throbbing', 'cluster headache'], category: 'neuro', icon: Zap, isCommon: true },
-  { id: 'bloating', name: 'Bloating', aliases: ['Abdominal Bloating & Gas', 'bloating', 'gas', 'distension', 'swollen stomach', 'belly fullness'], category: 'gut', icon: Pill, isCommon: true },
-  { id: 'acid-reflux', name: 'Acid Reflux', aliases: ['Acid Reflux / Heartburn', 'heartburn', 'gerd', 'indigestion', 'burning chest', 'sour taste'], category: 'gut', icon: Flame, isCommon: true },
-  { id: 'abdominal-pain', name: 'Abdominal Pain', aliases: ['Abdominal Cramping & Pain', 'stomach cramps', 'belly pain', 'cramping', 'gut ache', 'stomach ache'], category: 'gut', icon: Pill, isCommon: true },
-  { id: 'joint-pain', name: 'Joint Pain', aliases: ['Joint Pain & Stiffness', 'joint stiffness', 'arthralgia', 'stiff joints', 'achy joints', 'arthritis'], category: 'pain', icon: Activity, isCommon: true },
-  { id: 'insomnia', name: 'Insomnia', aliases: ['Insomnia / Sleep Disruption', 'sleep disruption', 'poor sleep', 'cant sleep', 'trouble sleeping', 'sleeplessness'], category: 'sleep_mental', icon: Moon, isCommon: true },
-  { id: 'anxiety', name: 'Anxiety', aliases: ['Anxiety & Restlessness', 'restlessness', 'nervousness', 'worry', 'panic', 'apprehension'], category: 'sleep_mental', icon: Heart, isCommon: true },
-  { id: 'shortness-of-breath', name: 'Shortness of Breath', aliases: ['dyspnea', 'breathlessness', 'shallow breathing', 'air hunger', 'winded'], category: 'respiratory', icon: Wind, isCommon: true },
-  { id: 'chronic-cough', name: 'Chronic Cough', aliases: ['Chronic or Dry Cough', 'dry cough', 'persistent cough', 'hacking cough', 'throat tickle'], category: 'respiratory', icon: Wind, isCommon: true },
-  { id: 'nausea', name: 'Nausea', aliases: ['Nausea & Queasiness', 'queasiness', 'upset stomach', 'sick to stomach', 'gagging'], category: 'gut', icon: AlertTriangle, isCommon: true },
-  { id: 'palpitations', name: 'Palpitations', aliases: ['Heart Palpitations & Racing', 'heart palpitations', 'palpitations', 'racing heart', 'fluttering', 'pounding heart', 'tachycardia'], category: 'cardio', icon: HeartPulse, isCommon: true },
-  { id: 'low-back-pain', name: 'Low Back Pain', aliases: ['Low Back Pain / Sciatica', 'sciatica', 'lumbar pain', 'back stiffness', 'pinched nerve', 'sacral pain'], category: 'pain', icon: Focus, isCommon: true },
-  { id: 'skin-rash', name: 'Skin Rash', aliases: ['Skin Rash & Itching', 'itching', 'hives', 'urticaria', 'dermatitis', 'red skin'], category: 'skin', icon: Flower2, isCommon: true },
+  { id: 'fatigue', name: 'Fatigue', subtitle: 'Chronic Exhaustion & Low Energy', aliases: ['Fatigue / Chronic Exhaustion', 'chronic exhaustion', 'exhaustion', 'tiredness', 'low energy', 'lethargy'], category: 'systemic', icon: BatteryLow, isCommon: true },
+  { id: 'brain-fog', name: 'Brain Fog', subtitle: 'Cognitive Lag & Cloudy Focus', aliases: ['Brain Fog / Cognitive Lag', 'cognitive lag', 'cloudy thinking', 'poor focus', 'sluggish mind', 'concentration'], category: 'neuro', icon: Brain, isCommon: true },
+  { id: 'headache', name: 'Headache', subtitle: 'Migraine & Cranial Tension', aliases: ['Headache / Migraine', 'migraine', 'head tension', 'cephalalgia', 'temple throbbing', 'cluster headache'], category: 'neuro', icon: Zap, isCommon: true },
+  { id: 'bloating', name: 'Bloating', subtitle: 'Abdominal Gas & Distension', aliases: ['Abdominal Bloating & Gas', 'bloating', 'gas', 'distension', 'swollen stomach', 'belly fullness'], category: 'gut', icon: Waves, isCommon: true },
+  { id: 'acid-reflux', name: 'Acid Reflux', subtitle: 'Heartburn & Gastric Burning', aliases: ['Acid Reflux / Heartburn', 'heartburn', 'gerd', 'indigestion', 'burning chest', 'sour taste'], category: 'gut', icon: Flame, isCommon: true },
+  { id: 'abdominal-pain', name: 'Abdominal Pain', subtitle: 'Cramping & Visceral Spasms', aliases: ['Abdominal Cramping & Pain', 'stomach cramps', 'belly pain', 'cramping', 'gut ache', 'stomach ache'], category: 'gut', icon: AlertCircle, isCommon: true },
+  { id: 'joint-pain', name: 'Joint Pain', subtitle: 'Stiffness & Arthralgia', aliases: ['Joint Pain & Stiffness', 'joint stiffness', 'arthralgia', 'stiff joints', 'achy joints', 'arthritis'], category: 'pain', icon: Bone, isCommon: true },
+  { id: 'insomnia', name: 'Insomnia', subtitle: 'Sleep Disruption & Restless Nights', aliases: ['Insomnia / Sleep Disruption', 'sleep disruption', 'poor sleep', 'cant sleep', 'trouble sleeping', 'sleeplessness'], category: 'sleep_mental', icon: Moon, isCommon: true },
+  { id: 'anxiety', name: 'Anxiety', subtitle: 'Restlessness & High Tension', aliases: ['Anxiety & Restlessness', 'restlessness', 'nervousness', 'worry', 'panic', 'apprehension'], category: 'sleep_mental', icon: Heart, isCommon: true },
+  { id: 'shortness-of-breath', name: 'Shortness of Breath', subtitle: 'Air Hunger & Shallow Respiration', aliases: ['dyspnea', 'breathlessness', 'shallow breathing', 'air hunger', 'winded'], category: 'respiratory', icon: Wind, isCommon: true },
+  { id: 'chronic-cough', name: 'Chronic Cough', subtitle: 'Dry Cough & Throat Tickle', aliases: ['Chronic or Dry Cough', 'dry cough', 'persistent cough', 'hacking cough', 'throat tickle'], category: 'respiratory', icon: Wind, isCommon: true },
+  { id: 'nausea', name: 'Nausea', subtitle: 'Queasiness & Gastric Unrest', aliases: ['Nausea & Queasiness', 'queasiness', 'upset stomach', 'sick to stomach', 'gagging'], category: 'gut', icon: AlertTriangle, isCommon: true },
+  { id: 'palpitations', name: 'Palpitations', subtitle: 'Heart Palpitations & Racing Pulse', aliases: ['Heart Palpitations & Racing', 'heart palpitations', 'palpitations', 'racing heart', 'fluttering', 'pounding heart', 'tachycardia'], category: 'cardio', icon: HeartPulse, isCommon: true },
+  { id: 'low-back-pain', name: 'Low Back Pain', subtitle: 'Sciatica & Lumbar Stiffness', aliases: ['Low Back Pain / Sciatica', 'sciatica', 'lumbar pain', 'back stiffness', 'pinched nerve', 'sacral pain'], category: 'pain', icon: Bone, isCommon: true },
+  { id: 'skin-rash', name: 'Skin Rash', subtitle: 'Itching & Dermatitis Flare', aliases: ['Skin Rash & Itching', 'itching', 'hives', 'urticaria', 'dermatitis', 'red skin'], category: 'skin', icon: Flower2, isCommon: true },
 
   // --- GASTROINTESTINAL & DIGESTION ---
-  { id: 'constipation', name: 'Constipation', aliases: ['Constipation & Hard Stools', 'hard stools', 'irregular bowel', 'straining', 'infrequent stools'], category: 'gut', icon: Pill },
-  { id: 'diarrhea', name: 'Diarrhea', aliases: ['Diarrhea / Loose Stools', 'loose stools', 'watery stools', 'frequent bowel movements', 'stomach bug'], category: 'gut', icon: Droplets },
-  { id: 'belching', name: 'Belching', aliases: ['Excessive Belching & Gas', 'burping', 'eructation', 'gas'], category: 'gut', icon: Wind },
-  { id: 'indigestion', name: 'Indigestion', aliases: ['Indigestion / Dyspepsia', 'dyspepsia', 'sour stomach', 'heavy digestion', 'upper gut fullness'], category: 'gut', icon: Flame },
-  { id: 'early-satiety', name: 'Early Satiety', aliases: ['Early Satiety (Quick Fullness)', 'quick fullness', 'feeling full fast', 'gastric fullness'], category: 'gut', icon: Focus },
-  { id: 'loss-of-appetite', name: 'Loss of Appetite', aliases: ['anorexia', 'poor appetite', 'food aversion', 'not hungry'], category: 'gut', icon: Focus },
-  { id: 'food-intolerance', name: 'Food Sensitivity', aliases: ['Food Sensitivity Reaction', 'food reaction', 'food allergy', 'histamine', 'diet reaction'], category: 'gut', icon: Flower2 },
-  { id: 'difficulty-swallowing', name: 'Difficulty Swallowing', aliases: ['Difficulty Swallowing (Dysphagia)', 'dysphagia', 'throat lump', 'food sticking', 'globus'], category: 'gut', icon: AlertCircle },
-  { id: 'ibs-flare', name: 'IBS / Bowel Spasms', aliases: ['Irritable Bowel Episodes (IBS)', 'ibs', 'irritable bowel', 'gut flare', 'spastic colon', 'crampy gut'], category: 'gut', icon: Activity },
-  { id: 'vomiting', name: 'Vomiting', aliases: ['Vomiting Episodes', 'throwing up', 'emesis', 'dry heaving'], category: 'gut', icon: AlertTriangle },
+  { id: 'constipation', name: 'Constipation', subtitle: 'Hard Stools & Straining', aliases: ['Constipation & Hard Stools', 'hard stools', 'irregular bowel', 'straining', 'infrequent stools'], category: 'gut', icon: Activity },
+  { id: 'diarrhea', name: 'Diarrhea', subtitle: 'Loose & Watery Stools', aliases: ['Diarrhea / Loose Stools', 'loose stools', 'watery stools', 'frequent bowel movements', 'stomach bug'], category: 'gut', icon: Droplets },
+  { id: 'belching', name: 'Belching', subtitle: 'Excessive Gas & Burping', aliases: ['Excessive Belching & Gas', 'burping', 'eructation', 'gas'], category: 'gut', icon: Wind },
+  { id: 'indigestion', name: 'Indigestion', subtitle: 'Dyspepsia & Upper Fullness', aliases: ['Indigestion / Dyspepsia', 'dyspepsia', 'sour stomach', 'heavy digestion', 'upper gut fullness'], category: 'gut', icon: Flame },
+  { id: 'early-satiety', name: 'Early Satiety', subtitle: 'Quick Gastric Fullness', aliases: ['Early Satiety (Quick Fullness)', 'quick fullness', 'feeling full fast', 'gastric fullness'], category: 'gut', icon: Focus },
+  { id: 'loss-of-appetite', name: 'Loss of Appetite', subtitle: 'Food Aversion & Poor Hunger', aliases: ['anorexia', 'poor appetite', 'food aversion', 'not hungry'], category: 'gut', icon: Focus },
+  { id: 'food-intolerance', name: 'Food Sensitivity', subtitle: 'Histamine & Dietary Flare', aliases: ['Food Sensitivity Reaction', 'food reaction', 'food allergy', 'histamine', 'diet reaction'], category: 'gut', icon: Flower2 },
+  { id: 'difficulty-swallowing', name: 'Difficulty Swallowing', subtitle: 'Dysphagia & Throat Sensation', aliases: ['Difficulty Swallowing (Dysphagia)', 'dysphagia', 'throat lump', 'food sticking', 'globus'], category: 'gut', icon: AlertCircle },
+  { id: 'ibs-flare', name: 'IBS / Bowel Spasms', subtitle: 'Spastic Colon & Gut Flares', aliases: ['Irritable Bowel Episodes (IBS)', 'ibs', 'irritable bowel', 'gut flare', 'spastic colon', 'crampy gut'], category: 'gut', icon: Activity },
+  { id: 'vomiting', name: 'Vomiting', subtitle: 'Emesis & Sudden Nausea Episodes', aliases: ['Vomiting Episodes', 'throwing up', 'emesis', 'dry heaving'], category: 'gut', icon: AlertTriangle },
 
   // --- BRAIN & NEUROLOGICAL ---
-  { id: 'dizziness-vertigo', name: 'Dizziness', aliases: ['Dizziness & Vertigo (Spinning)', 'vertigo', 'spinning', 'unsteadiness', 'room spinning', 'loss of balance'], category: 'neuro', icon: Focus },
-  { id: 'lightheadedness', name: 'Lightheadedness', aliases: ['Lightheadedness / Near-Fainting', 'faintness', 'presyncope', 'near fainting', 'wooziness'], category: 'neuro', icon: Activity },
-  { id: 'tingling-numbness', name: 'Tingling / Numbness', aliases: ['Tingling / Numbness (Neuropathy)', 'neuropathy', 'pins and needles', 'paresthesia', 'numb hands', 'numb feet'], category: 'neuro', icon: Zap },
-  { id: 'tremors', name: 'Tremors / Twitching', aliases: ['Tremors / Involuntary Twitching', 'tremors', 'shaking', 'fasciculations', 'involuntary twitch', 'hand tremor'], category: 'neuro', icon: Activity },
-  { id: 'tinnitus', name: 'Tinnitus', aliases: ['Tinnitus (Ear Ringing)', 'ear ringing', 'buzzing in ears', 'ear whooshing', 'pulsatile'], category: 'neuro', icon: Volume2 },
-  { id: 'photophobia', name: 'Light Sensitivity', aliases: ['Light or Sound Sensitivity', 'photophobia', 'sound sensitivity', 'hyperacusis', 'sensory overload'], category: 'neuro', icon: Eye },
-  { id: 'blurry-vision', name: 'Blurry Vision', aliases: ['Blurry or Fluctuating Vision', 'vision fluctuation', 'diplopia', 'double vision', 'eye strain'], category: 'neuro', icon: Eye },
-  { id: 'memory-lapses', name: 'Memory Lapses', aliases: ['Memory Lapses / Forgetfulness', 'forgetfulness', 'short term memory loss', 'absentminded'], category: 'neuro', icon: BrainCircuit },
-  { id: 'neck-stiffness', name: 'Neck Stiffness', aliases: ['Neck Stiffness & Tension', 'cervical tension', 'stiff neck', 'restricted neck movement'], category: 'neuro', icon: Focus },
+  { id: 'dizziness-vertigo', name: 'Dizziness', subtitle: 'Vertigo & Room Spinning', aliases: ['Dizziness & Vertigo (Spinning)', 'vertigo', 'spinning', 'unsteadiness', 'room spinning', 'loss of balance'], category: 'neuro', icon: Focus },
+  { id: 'lightheadedness', name: 'Lightheadedness', subtitle: 'Presyncope & Faintness', aliases: ['Lightheadedness / Near-Fainting', 'faintness', 'presyncope', 'near fainting', 'wooziness'], category: 'neuro', icon: Activity },
+  { id: 'tingling-numbness', name: 'Tingling / Numbness', subtitle: 'Neuropathy & Pins and Needles', aliases: ['Tingling / Numbness (Neuropathy)', 'neuropathy', 'pins and needles', 'paresthesia', 'numb hands', 'numb feet'], category: 'neuro', icon: Zap },
+  { id: 'tremors', name: 'Tremors / Twitching', subtitle: 'Involuntary Muscle Fasciculations', aliases: ['Tremors / Involuntary Twitching', 'tremors', 'shaking', 'fasciculations', 'involuntary twitch', 'hand tremor'], category: 'neuro', icon: Activity },
+  { id: 'tinnitus', name: 'Tinnitus', subtitle: 'Ear Ringing & Buzzing Sound', aliases: ['Tinnitus (Ear Ringing)', 'ear ringing', 'buzzing in ears', 'ear whooshing', 'pulsatile'], category: 'neuro', icon: Volume2 },
+  { id: 'photophobia', name: 'Light Sensitivity', subtitle: 'Photophobia & Sensory Overload', aliases: ['Light or Sound Sensitivity', 'photophobia', 'sound sensitivity', 'hyperacusis', 'sensory overload'], category: 'neuro', icon: Eye },
+  { id: 'blurry-vision', name: 'Blurry Vision', subtitle: 'Diplopia & Eye Strain', aliases: ['Blurry or Fluctuating Vision', 'vision fluctuation', 'diplopia', 'double vision', 'eye strain'], category: 'neuro', icon: Eye },
+  { id: 'memory-lapses', name: 'Memory Lapses', subtitle: 'Forgetfulness & Absentmindedness', aliases: ['Memory Lapses / Forgetfulness', 'forgetfulness', 'short term memory loss', 'absentminded'], category: 'neuro', icon: Brain },
+  { id: 'neck-stiffness', name: 'Neck Stiffness', subtitle: 'Cervical Tension & Limited Motion', aliases: ['Neck Stiffness & Tension', 'cervical tension', 'stiff neck', 'restricted neck movement'], category: 'neuro', icon: Focus },
 
   // --- RESPIRATORY & ENT ---
-  { id: 'sinus-pressure', name: 'Sinus Pressure', aliases: ['Sinus Pressure & Facial Pain', 'facial pain', 'sinusitis', 'forehead pressure', 'sinus congestion'], category: 'respiratory', icon: Wind },
-  { id: 'post-nasal-drip', name: 'Post-Nasal Drip', aliases: ['mucus in throat', 'throat clearing', 'catarrh'], category: 'respiratory', icon: Wind },
-  { id: 'nasal-congestion', name: 'Nasal Congestion', aliases: ['Nasal Congestion & Sneezing', 'stuffy nose', 'sneezing', 'blocked nose', 'rhinitis'], category: 'respiratory', icon: Wind },
-  { id: 'sore-throat', name: 'Sore Throat', aliases: ['Sore Throat & Scratchiness', 'pharyngitis', 'scratchy throat', 'throat irritation'], category: 'respiratory', icon: Flame },
-  { id: 'wheezing', name: 'Wheezing', aliases: ['Wheezing / Asthmatic Rales', 'asthma', 'asthmatic rales', 'bronchospasm', 'noisy breathing'], category: 'respiratory', icon: Wind },
-  { id: 'chest-tightness', name: 'Chest Tightness', aliases: ['constricted chest', 'respiratory tightness', 'bronchial pressure'], category: 'respiratory', icon: Focus },
-  { id: 'productive-cough', name: 'Productive Cough', aliases: ['Productive Cough with Phlegm', 'cough with phlegm', 'mucus cough', 'sputum'], category: 'respiratory', icon: Droplets },
-  { id: 'loss-of-smell', name: 'Loss of Smell', aliases: ['Loss of Smell or Taste', 'anosmia', 'loss of taste', 'ageusia', 'taste loss'], category: 'respiratory', icon: Focus },
-  { id: 'hoarseness', name: 'Hoarseness', aliases: ['Hoarseness & Voice Strain', 'voice strain', 'raspy voice', 'laryngitis'], category: 'respiratory', icon: Wind },
+  { id: 'sinus-pressure', name: 'Sinus Pressure', subtitle: 'Facial Congestion & Pain', aliases: ['Sinus Pressure & Facial Pain', 'facial pain', 'sinusitis', 'forehead pressure', 'sinus congestion'], category: 'respiratory', icon: Wind },
+  { id: 'post-nasal-drip', name: 'Post-Nasal Drip', subtitle: 'Throat Clearing & Catarrh', aliases: ['mucus in throat', 'throat clearing', 'catarrh'], category: 'respiratory', icon: Wind },
+  { id: 'nasal-congestion', name: 'Nasal Congestion', subtitle: 'Stuffy Nose & Rhinitis', aliases: ['Nasal Congestion & Sneezing', 'stuffy nose', 'sneezing', 'blocked nose', 'rhinitis'], category: 'respiratory', icon: Wind },
+  { id: 'sore-throat', name: 'Sore Throat', subtitle: 'Pharyngitis & Scratchiness', aliases: ['Sore Throat & Scratchiness', 'pharyngitis', 'scratchy throat', 'throat irritation'], category: 'respiratory', icon: Flame },
+  { id: 'wheezing', name: 'Wheezing', subtitle: 'Bronchospasm & Asthmatic Rales', aliases: ['Wheezing / Asthmatic Rales', 'asthma', 'asthmatic rales', 'bronchospasm', 'noisy breathing'], category: 'respiratory', icon: Wind },
+  { id: 'chest-tightness', name: 'Chest Tightness', subtitle: 'Bronchial & Airway Restriction', aliases: ['constricted chest', 'respiratory tightness', 'bronchial pressure'], category: 'respiratory', icon: Focus },
+  { id: 'productive-cough', name: 'Productive Cough', subtitle: 'Mucus & Phlegm Clearance', aliases: ['Productive Cough with Phlegm', 'cough with phlegm', 'mucus cough', 'sputum'], category: 'respiratory', icon: Droplets },
+  { id: 'loss-of-smell', name: 'Loss of Smell', subtitle: 'Anosmia & Ageusia (Taste Loss)', aliases: ['Loss of Smell or Taste', 'anosmia', 'loss of taste', 'ageusia', 'taste loss'], category: 'respiratory', icon: Focus },
+  { id: 'hoarseness', name: 'Hoarseness', subtitle: 'Voice Strain & Laryngitis', aliases: ['Hoarseness & Voice Strain', 'voice strain', 'raspy voice', 'laryngitis'], category: 'respiratory', icon: Wind },
 
   // --- HEART & CIRCULATION ---
-  { id: 'tachycardia', name: 'Rapid Pulse', aliases: ['Rapid Pulse (Tachycardia)', 'tachycardia', 'fast heart rate', 'bounding pulse'], category: 'cardio', icon: HeartPulse },
-  { id: 'chest-pressure', name: 'Chest Pressure', aliases: ['Chest Pressure or Discomfort', 'angina', 'chest discomfort', 'chest pain', 'substernal pain'], category: 'cardio', icon: ShieldAlert, isCommon: true },
-  { id: 'swollen-ankles', name: 'Swollen Ankles', aliases: ['Swollen Ankles or Legs (Edema)', 'edema', 'leg swelling', 'fluid retention', 'puffy ankles'], category: 'cardio', icon: Droplets },
-  { id: 'cold-hands-feet', name: 'Cold Extremities', aliases: ['Cold Hands & Feet (Poor Circulation)', 'cold hands', 'cold feet', 'raynauds', 'poor circulation'], category: 'cardio', icon: Thermometer },
-  { id: 'orthostatic-dizzy', name: 'Postural Dizziness', aliases: ['Dizziness When Standing Up', 'orthostatic hypotension', 'standing dizzy', 'pots'], category: 'cardio', icon: Activity },
+  { id: 'tachycardia', name: 'Rapid Pulse', subtitle: 'Resting Tachycardia & Bounding', aliases: ['Rapid Pulse (Tachycardia)', 'tachycardia', 'fast heart rate', 'bounding pulse'], category: 'cardio', icon: HeartPulse },
+  { id: 'chest-pressure', name: 'Chest Pressure', subtitle: 'Substernal Discomfort & Angina', aliases: ['Chest Pressure or Discomfort', 'angina', 'chest discomfort', 'chest pain', 'substernal pain'], category: 'cardio', icon: ShieldAlert, isCommon: true },
+  { id: 'swollen-ankles', name: 'Swollen Ankles', subtitle: 'Peripheral Edema & Fluid Retention', aliases: ['Swollen Ankles or Legs (Edema)', 'edema', 'leg swelling', 'fluid retention', 'puffy ankles'], category: 'cardio', icon: Droplets },
+  { id: 'cold-hands-feet', name: 'Cold Extremities', subtitle: 'Raynaud’s & Sluggish Circulation', aliases: ['Cold Hands & Feet (Poor Circulation)', 'cold hands', 'cold feet', 'raynauds', 'poor circulation'], category: 'cardio', icon: Thermometer },
+  { id: 'orthostatic-dizzy', name: 'Postural Dizziness', subtitle: 'POTS & Standing Blood Drop', aliases: ['Dizziness When Standing Up', 'orthostatic hypotension', 'standing dizzy', 'pots'], category: 'cardio', icon: Activity },
 
   // --- MUSCULOSKELETAL & PAIN ---
-  { id: 'neck-shoulder-pain', name: 'Neck & Shoulder', aliases: ['Neck & Upper Shoulder Pain', 'trapezius pain', 'cervical pain', 'shoulder stiffness'], category: 'pain', icon: Focus },
-  { id: 'muscle-cramps', name: 'Muscle Cramps', aliases: ['Muscle Cramps & Spasms', 'spasms', 'charley horse', 'calf cramps', 'twitching'], category: 'pain', icon: Zap },
-  { id: 'muscle-weakness', name: 'Muscle Weakness', aliases: ['Muscle Weakness & Heaviness', 'heaviness', 'loss of strength', 'limb weakness'], category: 'pain', icon: Activity },
-  { id: 'morning-stiffness', name: 'Morning Stiffness', aliases: ['Morning Stiffness (> 30 mins)', 'early morning ache', 'prolonged stiffness', 'stiff joints AM'], category: 'pain', icon: CalendarClock },
-  { id: 'joint-swelling', name: 'Joint Swelling', aliases: ['Joint Swelling & Warmth', 'effusion', 'warm joints', 'puffy joints', 'synovitis'], category: 'pain', icon: Droplets },
-  { id: 'knee-pain', name: 'Knee Pain', aliases: ['Knee Pain & Discomfort', 'patellar pain', 'meniscus', 'knee ache', 'runner knee'], category: 'pain', icon: Focus },
-  { id: 'body-aches', name: 'Body Aches', aliases: ['Generalized Body Aches (Myalgia)', 'myalgia', 'generalized pain', 'fibromyalgia aches', 'flu-like aches'], category: 'pain', icon: Activity },
+  { id: 'neck-shoulder-pain', name: 'Neck & Shoulder', subtitle: 'Trapezius Tension & Stiffness', aliases: ['Neck & Upper Shoulder Pain', 'trapezius pain', 'cervical pain', 'shoulder stiffness'], category: 'pain', icon: Bone },
+  { id: 'muscle-cramps', name: 'Muscle Cramps', subtitle: 'Nocturnal Spasms & Charley Horse', aliases: ['Muscle Cramps & Spasms', 'spasms', 'charley horse', 'calf cramps', 'twitching'], category: 'pain', icon: Zap },
+  { id: 'muscle-weakness', name: 'Muscle Weakness', subtitle: 'Loss of Strength & Heaviness', aliases: ['Muscle Weakness & Heaviness', 'heaviness', 'loss of strength', 'limb weakness'], category: 'pain', icon: Activity },
+  { id: 'morning-stiffness', name: 'Morning Stiffness', subtitle: 'Prolonged AM Joint Rigidity', aliases: ['Morning Stiffness (> 30 mins)', 'early morning ache', 'prolonged stiffness', 'stiff joints AM'], category: 'pain', icon: CalendarClock },
+  { id: 'joint-swelling', name: 'Joint Swelling', subtitle: 'Synovial Effusion & Warmth', aliases: ['Joint Swelling & Warmth', 'effusion', 'warm joints', 'puffy joints', 'synovitis'], category: 'pain', icon: Droplets },
+  { id: 'knee-pain', name: 'Knee Pain', subtitle: 'Patellar & Meniscal Ache', aliases: ['Knee Pain & Discomfort', 'patellar pain', 'meniscus', 'knee ache', 'runner knee'], category: 'pain', icon: Bone },
+  { id: 'body-aches', name: 'Body Aches', subtitle: 'Diffuse Myalgia & Flu-like Pain', aliases: ['Generalized Body Aches (Myalgia)', 'myalgia', 'generalized pain', 'fibromyalgia aches', 'flu-like aches'], category: 'pain', icon: Activity },
 
   // --- SKIN, HAIR & ALLERGIES ---
-  { id: 'itching', name: 'Skin Itching', aliases: ['Intense Skin Itching (Pruritus)', 'pruritus', 'severe itch', 'scratching'], category: 'skin', icon: Sparkles },
-  { id: 'eczema', name: 'Eczema', aliases: ['Eczema / Dry Inflamed Skin', 'dermatitis', 'dry inflamed skin', 'flaking skin', 'patchy skin'], category: 'skin', icon: Droplets },
-  { id: 'acne-breakout', name: 'Acne', aliases: ['Acne Breakouts & Cystic Spots', 'cystic acne', 'breakouts', 'pimples', 'blemishes'], category: 'skin', icon: Droplets },
-  { id: 'facial-flushing', name: 'Facial Flushing', aliases: ['Facial Flushing & Burning', 'rosacea', 'red face', 'burning face', 'hot flashes'], category: 'skin', icon: Flame },
-  { id: 'hair-loss', name: 'Hair Loss', aliases: ['Excessive Hair Shedding / Thinning', 'alopecia', 'hair thinning', 'shedding hair', 'telogen effluvium'], category: 'skin', icon: Sparkles },
-  { id: 'easy-bruising', name: 'Easy Bruising', aliases: ['Unexplained Easy Bruising', 'unexplained hematoma', 'ecchymosis', 'purpura'], category: 'skin', icon: AlertTriangle },
-  { id: 'angioedema', name: 'Facial Swelling', aliases: ['Swollen Lips, Eyes, or Face', 'swollen lips', 'swollen eyes', 'angioedema', 'puffiness'], category: 'skin', icon: ShieldAlert },
+  { id: 'itching', name: 'Skin Itching', subtitle: 'Intense Pruritus & Scratching', aliases: ['Intense Skin Itching (Pruritus)', 'pruritus', 'severe itch', 'scratching'], category: 'skin', icon: Sparkles },
+  { id: 'eczema', name: 'Eczema', subtitle: 'Dry Flaking & Inflamed Patches', aliases: ['Eczema / Dry Inflamed Skin', 'dermatitis', 'dry inflamed skin', 'flaking skin', 'patchy skin'], category: 'skin', icon: Droplets },
+  { id: 'acne-breakout', name: 'Acne', subtitle: 'Cystic Spots & Inflammatory Blemishes', aliases: ['Acne Breakouts & Cystic Spots', 'cystic acne', 'breakouts', 'pimples', 'blemishes'], category: 'skin', icon: Droplets },
+  { id: 'facial-flushing', name: 'Facial Flushing', subtitle: 'Rosacea & Sudden Burning Heat', aliases: ['Facial Flushing & Burning', 'rosacea', 'red face', 'burning face', 'hot flashes'], category: 'skin', icon: Flame },
+  { id: 'hair-loss', name: 'Hair Loss', subtitle: 'Alopecia & Telogen Shedding', aliases: ['Excessive Hair Shedding / Thinning', 'alopecia', 'hair thinning', 'shedding hair', 'telogen effluvium'], category: 'skin', icon: Sparkles },
+  { id: 'easy-bruising', name: 'Easy Bruising', subtitle: 'Ecchymosis & Hematoma Susceptibility', aliases: ['Unexplained Easy Bruising', 'unexplained hematoma', 'ecchymosis', 'purpura'], category: 'skin', icon: AlertTriangle },
+  { id: 'angioedema', name: 'Facial Swelling', subtitle: 'Angioedema of Lips, Eyes, Face', aliases: ['Swollen Lips, Eyes, or Face', 'swollen lips', 'swollen eyes', 'angioedema', 'puffiness'], category: 'skin', icon: ShieldAlert },
 
   // --- SYSTEMIC, METABOLIC & IMMUNE ---
-  { id: 'fever-chills', name: 'Fever / Chills', aliases: ['Low-Grade Fever & Chills', 'low-grade fever', 'pyrexia', 'shivering', 'temperature spike'], category: 'systemic', icon: Thermometer },
-  { id: 'night-sweats', name: 'Night Sweats', aliases: ['Night Sweats / Drenching', 'drenching sweats', 'nocturnal diaphoresis', 'waking up sweaty'], category: 'systemic', icon: Droplets },
-  { id: 'unexplained-weight-loss', name: 'Weight Loss', aliases: ['Unexplained Weight Loss', 'unexplained weight loss', 'rapid slimming', 'dropping pounds'], category: 'systemic', icon: Activity },
-  { id: 'unexplained-weight-gain', name: 'Weight Gain', aliases: ['Unexplained Rapid Weight Gain', 'rapid weight gain', 'water weight', 'sudden gain'], category: 'systemic', icon: Activity },
-  { id: 'swollen-lymph-nodes', name: 'Swollen Lymph Nodes', aliases: ['Swollen Lymph Nodes (Neck/Groin)', 'lymphadenopathy', 'neck lumps', 'swollen glands', 'groin nodes'], category: 'systemic', icon: ShieldAlert },
-  { id: 'heat-cold-intolerance', name: 'Temp Intolerance', aliases: ['Heat or Cold Intolerance', 'heat intolerance', 'cold intolerance', 'thyroid chill'], category: 'systemic', icon: Thermometer },
-  { id: 'excessive-thirst', name: 'Excessive Thirst', aliases: ['Excessive Thirst & Dry Mouth', 'polydipsia', 'dry mouth', 'constant thirst'], category: 'systemic', icon: Droplets },
+  { id: 'fever-chills', name: 'Fever / Chills', subtitle: 'Low-Grade Pyrexia & Shivering', aliases: ['Low-Grade Fever & Chills', 'low-grade fever', 'pyrexia', 'shivering', 'temperature spike'], category: 'systemic', icon: Thermometer },
+  { id: 'night-sweats', name: 'Night Sweats', subtitle: 'Drenching Nocturnal Diaphoresis', aliases: ['Night Sweats / Drenching', 'drenching sweats', 'nocturnal diaphoresis', 'waking up sweaty'], category: 'systemic', icon: Droplets },
+  { id: 'unexplained-weight-loss', name: 'Weight Loss', subtitle: 'Rapid Involuntary Slimming', aliases: ['Unexplained Weight Loss', 'unexplained weight loss', 'rapid slimming', 'dropping pounds'], category: 'systemic', icon: Activity },
+  { id: 'unexplained-weight-gain', name: 'Weight Gain', subtitle: 'Fluid Retention & Rapid Shifts', aliases: ['Unexplained Rapid Weight Gain', 'rapid weight gain', 'water weight', 'sudden gain'], category: 'systemic', icon: Activity },
+  { id: 'swollen-lymph-nodes', name: 'Swollen Lymph Nodes', subtitle: 'Neck & Groin Lymphadenopathy', aliases: ['Swollen Lymph Nodes (Neck/Groin)', 'lymphadenopathy', 'neck lumps', 'swollen glands', 'groin nodes'], category: 'systemic', icon: ShieldAlert },
+  { id: 'heat-cold-intolerance', name: 'Temp Intolerance', subtitle: 'Thyroid Chill & Heat Overload', aliases: ['Heat or Cold Intolerance', 'heat intolerance', 'cold intolerance', 'thyroid chill'], category: 'systemic', icon: Thermometer },
+  { id: 'excessive-thirst', name: 'Excessive Thirst', subtitle: 'Polydipsia & Persistent Dry Mouth', aliases: ['Excessive Thirst & Dry Mouth', 'polydipsia', 'dry mouth', 'constant thirst'], category: 'systemic', icon: Droplets },
 
   // --- SLEEP & MENTAL WELLBEING ---
-  { id: 'frequent-waking', name: 'Night Waking', aliases: ['Frequent Nighttime Waking', 'broken sleep', 'waking up often', 'fragmented sleep', 'nocturia'], category: 'sleep_mental', icon: Moon },
-  { id: 'daytime-sleepiness', name: 'Daytime Drowsiness', aliases: ['Daytime Exhaustion & Drowsiness', 'somnolence', 'daytime fatigue', 'dozing off', 'sleepy during day'], category: 'sleep_mental', icon: Moon },
-  { id: 'panic-episodes', name: 'Panic Episodes', aliases: ['Panic Attacks / Air Hunger', 'panic attacks', 'hyperventilation', 'acute panic', 'air hunger'], category: 'sleep_mental', icon: HeartPulse },
-  { id: 'low-mood', name: 'Low Mood', aliases: ['Depressed Mood & Low Drive', 'depression', 'low drive', 'sadness', 'anhedonia'], category: 'sleep_mental', icon: Moon },
-  { id: 'chronic-stress', name: 'Chronic Stress', aliases: ['Chronic Overwhelm & Stress', 'overwhelm', 'burnout', 'high tension', 'stress'], category: 'sleep_mental', icon: BrainCircuit }
+  { id: 'frequent-waking', name: 'Night Waking', subtitle: 'Broken Sleep & Nocturia', aliases: ['Frequent Nighttime Waking', 'broken sleep', 'waking up often', 'fragmented sleep', 'nocturia'], category: 'sleep_mental', icon: Moon },
+  { id: 'daytime-sleepiness', name: 'Daytime Drowsiness', subtitle: 'Excessive Daytime Somnolence', aliases: ['Daytime Exhaustion & Drowsiness', 'somnolence', 'daytime fatigue', 'dozing off', 'sleepy during day'], category: 'sleep_mental', icon: Moon },
+  { id: 'panic-episodes', name: 'Panic Episodes', subtitle: 'Acute Panic & Air Hunger Surges', aliases: ['Panic Attacks / Air Hunger', 'panic attacks', 'hyperventilation', 'acute panic', 'air hunger'], category: 'sleep_mental', icon: HeartPulse },
+  { id: 'low-mood', name: 'Low Mood', subtitle: 'Depressed Affect & Low Motivation', aliases: ['Depressed Mood & Low Drive', 'depression', 'low drive', 'sadness', 'anhedonia'], category: 'sleep_mental', icon: Moon },
+  { id: 'chronic-stress', name: 'Chronic Stress', subtitle: 'Burnout & Nervous Overwhelm', aliases: ['Chronic Overwhelm & Stress', 'overwhelm', 'burnout', 'high tension', 'stress'], category: 'sleep_mental', icon: BrainCircuit }
 ];
 
 const STEP_META: Record<number, { title: string; subtitle: string; label: string; badge: string }> = {
@@ -1281,6 +1424,8 @@ AI-generated preparation material. Verify against original records; this is not 
                       {selectedSymptoms.map((sym) => {
                         const found = PRESET_SYMPTOMS.find(p => p.name.toLowerCase() === sym.toLowerCase() || Boolean(p.aliases?.some(a => a.toLowerCase() === sym.toLowerCase())));
                         const IconComponent = found?.icon || Heart;
+                        const category = found?.category || 'systemic';
+                        const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
                         return (
                           <motion.div
                             key={sym}
@@ -1293,19 +1438,24 @@ AI-generated preparation material. Verify against original records; this is not 
                               alignItems: 'center',
                               flexShrink: 0,
                               width: 'fit-content',
-                              gap: isMobile ? '5px' : '7px',
-                              padding: isMobile ? '4px 10px' : '6px 12px',
+                              gap: isMobile ? '6px' : '8px',
+                              padding: isMobile ? '4px 10px 4px 6px' : '5px 12px 5px 7px',
                               borderRadius: '9999px',
-                              border: '1.5px solid #E11D48',
-                              background: '#FFF1F2',
-                              color: '#9F1239',
+                              border: `1.5px solid ${theme.activeBorder}`,
+                              background: theme.bgStart,
+                              color: theme.textColor,
                               fontSize: isMobile ? '12px' : '13px',
                               fontWeight: 700,
-                              boxShadow: '0 1px 4px rgba(225, 29, 72, 0.08)',
+                              boxShadow: `0 2px 8px ${theme.shadow}`,
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            <IconComponent size={isMobile ? 12 : 14} color="#E11D48" style={{ flexShrink: 0 }} />
+                            <ClassySymptomBadge 
+                              icon={IconComponent} 
+                              category={category} 
+                              size={isMobile ? 22 : 24} 
+                              isSelected 
+                            />
                             <span style={{ whiteSpace: 'nowrap' }}>{sym}</span>
                             <button
                               type="button"
@@ -1315,14 +1465,19 @@ AI-generated preparation material. Verify against original records; this is not 
                                 border: 'none',
                                 background: 'transparent',
                                 cursor: 'pointer',
-                                padding: '1px',
+                                padding: '2px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#BE123C',
+                                color: theme.textColor,
                                 marginLeft: '2px',
-                                flexShrink: 0
+                                flexShrink: 0,
+                                opacity: 0.75,
+                                borderRadius: '50%',
+                                transition: 'opacity 0.15s ease'
                               }}
+                              onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.75'; }}
                             >
                               <X size={isMobile ? 12 : 13} strokeWidth={2.5} />
                             </button>
@@ -1448,7 +1603,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 </div>
 
                 {/* 4. CLINICAL SYMPTOM CLOUD */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '6px 8px' : '8px 10px', marginBottom: '22px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '7px 8px' : '9px 10px', marginBottom: '22px' }}>
                   {/* User-added Custom Symptoms */}
                   {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
                     const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
@@ -1457,29 +1612,66 @@ AI-generated preparation material. Verify against original records; this is not 
                         key={`custom-${cs}`}
                         type="button"
                         aria-label={cs}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleToggleSymptom(cs)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: isMobile ? '5px' : '7px',
-                          padding: isMobile ? '6px 11px' : '8px 15px',
-                          borderRadius: '9999px',
+                          gap: isMobile ? '8px' : '10px',
+                          padding: isMobile ? '6px 12px 6px 8px' : '8px 15px 8px 10px',
+                          borderRadius: '999px',
                           border: isSelected ? '1.5px solid #E11D48' : '1.5px dashed #FDA4AF',
-                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
-                          color: '#18181B',
-                          fontSize: isMobile ? '12px' : '13px',
-                          fontWeight: 700,
+                          background: isSelected 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                            : '#FFFFFF',
+                          color: isSelected ? '#9F1239' : '#1E293B',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
-                          transition: 'all 0.15s ease',
-                          whiteSpace: 'nowrap'
+                          boxShadow: isSelected ? '0 3px 14px rgba(225, 29, 72, 0.16)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                          textAlign: 'left'
                         }}
                       >
-                        <Sparkles size={isMobile ? 13 : 15} color="#E11D48" />
-                        <span>{cs}</span>
-                        {isSelected && <Check size={isMobile ? 12 : 14} color="#E11D48" strokeWidth={2.5} />}
+                        <ClassySymptomBadge 
+                          icon={Sparkles} 
+                          category="cardio" 
+                          size={isMobile ? 28 : 32} 
+                          isSelected={isSelected} 
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+                          <span style={{ 
+                            fontSize: isMobile ? '12.5px' : '13.5px', 
+                            fontWeight: isSelected ? 800 : 700,
+                            color: isSelected ? '#9F1239' : '#1E293B',
+                            letterSpacing: '-0.1px'
+                          }}>
+                            {cs}
+                          </span>
+                          <span style={{ 
+                            fontSize: isMobile ? '10px' : '11px', 
+                            fontWeight: 500, 
+                            color: isSelected ? '#E11D48' : '#64748B' 
+                          }}>
+                            Custom Symptom Note
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <div style={{
+                            width: isMobile ? '16px' : '18px',
+                            height: isMobile ? '16px' : '18px',
+                            borderRadius: '50%',
+                            background: '#E11D48',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#FFFFFF',
+                            marginLeft: '2px',
+                            flexShrink: 0,
+                            boxShadow: '0 1px 4px rgba(225, 29, 72, 0.3)'
+                          }}>
+                            <Check size={isMobile ? 10 : 11} strokeWidth={3.5} />
+                          </div>
+                        )}
                       </motion.button>
                     );
                   })}
@@ -1502,34 +1694,77 @@ AI-generated preparation material. Verify against original records; this is not 
                       Boolean(sym.aliases?.some(a => a.toLowerCase() === s.toLowerCase()))
                     );
                     const IconComp = sym.icon || Activity;
+                    const theme = SYMPTOM_CATEGORY_THEMES[sym.category] || SYMPTOM_CATEGORY_THEMES.systemic;
                     return (
                       <motion.button
                         key={sym.id}
                         type="button"
                         aria-label={sym.name}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleToggleSymptom(sym.name)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: isMobile ? '5px' : '7px',
-                          padding: isMobile ? '6px 11px' : '8px 15px',
-                          borderRadius: '9999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
-                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
-                          color: isSelected ? '#BE123C' : '#27272A',
-                          fontSize: isMobile ? '12px' : '13px',
-                          fontWeight: isSelected ? 800 : 500,
+                          gap: isMobile ? '8px' : '10px',
+                          padding: isMobile ? '6px 12px 6px 8px' : '8px 15px 8px 10px',
+                          borderRadius: '999px',
+                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          background: isSelected 
+                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            : '#FFFFFF',
+                          color: isSelected ? theme.textColor : '#1E293B',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 2px 10px rgba(225, 29, 72, 0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
-                          transition: 'all 0.15s ease',
-                          whiteSpace: 'nowrap'
+                          boxShadow: isSelected 
+                            ? `0 3px 14px ${theme.shadow}` 
+                            : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                          textAlign: 'left'
                         }}
                       >
-                        <IconComp size={isMobile ? 13 : 15} color={isSelected ? '#E11D48' : '#71717A'} />
-                        <span>{sym.name}</span>
-                        {isSelected && <Check size={isMobile ? 12 : 14} color="#E11D48" strokeWidth={2.5} />}
+                        <ClassySymptomBadge 
+                          icon={IconComp} 
+                          category={sym.category} 
+                          size={isMobile ? 28 : 32} 
+                          isSelected={isSelected} 
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+                          <span style={{ 
+                            fontSize: isMobile ? '12.5px' : '13.5px', 
+                            fontWeight: isSelected ? 800 : 700,
+                            color: isSelected ? theme.textColor : '#1E293B',
+                            letterSpacing: '-0.1px'
+                          }}>
+                            {sym.name}
+                          </span>
+                          {sym.subtitle && (
+                            <span style={{ 
+                              fontSize: isMobile ? '10px' : '11px', 
+                              fontWeight: 500,
+                              color: isSelected ? theme.textColor : '#64748B',
+                              opacity: isSelected ? 0.9 : 0.85
+                            }}>
+                              {sym.subtitle}
+                            </span>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div style={{
+                            width: isMobile ? '16px' : '18px',
+                            height: isMobile ? '16px' : '18px',
+                            borderRadius: '50%',
+                            background: theme.activeBorder,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#FFFFFF',
+                            marginLeft: '2px',
+                            flexShrink: 0,
+                            boxShadow: `0 1px 4px ${theme.shadow}`
+                          }}>
+                            <Check size={isMobile ? 10 : 11} strokeWidth={3.5} />
+                          </div>
+                        )}
                       </motion.button>
                     );
                   })}
