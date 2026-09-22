@@ -369,7 +369,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           zIndex: 10,
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '7px',
+          gap: '6px',
           background: 'rgba(15, 23, 42, 0.82)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
@@ -377,20 +377,22 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           borderRadius: '999px',
           padding: '6px 14px',
           boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
+          width: 'max-content',
           maxWidth: 'calc(100% - 32px)',
+          boxSizing: 'border-box',
           pointerEvents: 'none'
         }}>
           <Sparkles size={13} color="#34D399" style={{ flexShrink: 0 }} />
           <span style={{
             color: '#F1F5F9',
-            fontSize: '12px',
+            fontSize: '11.5px',
             fontWeight: 600,
-            letterSpacing: '0.15px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            letterSpacing: '0.1px',
+            textAlign: 'center',
+            lineHeight: 1.3,
+            whiteSpace: 'normal'
           }}>
-            Scan packaged food, ingredient labels, or fresh meals
+            Scan packaged food, labels, or meals
           </span>
         </div>
       )}
