@@ -329,7 +329,7 @@ export default function Dietician() {
     };
   }, []);
 
-  // Sync state ONLY when URL searchParams change externally (e.g. browser back/forward or external links)
+  // Sync state when URL searchParams change (e.g. browser back/forward, external links, or root tab navigation)
   useEffect(() => {
     const currentSearchTab = searchParams.get('tab');
     if (currentSearchTab) {
@@ -337,9 +337,9 @@ export default function Dietician() {
       if (cleanSearch === 'elimination' || cleanSearch === 'elimination-suite') {
         setIsEliminationModalOpen(true);
       }
-      const resolved = resolveTabKey(currentSearchTab);
-      setActiveTabState(resolved);
     }
+    const resolved = resolveTabKey(currentSearchTab);
+    setActiveTabState(resolved);
   }, [searchParams]);
   const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
   const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
@@ -1647,7 +1647,7 @@ export default function Dietician() {
                   7-day meal plan
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {profile.cuisine} · about {profile.targetCalories} kcal/day
+                  Editable example · {profile?.cuisine || 'Healthy'} · about {profile?.targetCalories || 2000} kcal/day
                 </p>
               </div>
 
@@ -2267,7 +2267,7 @@ export default function Dietician() {
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || (currentSelectedDayObj as any).totalCalories || profile.targetCalories} kcal
+                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || (currentSelectedDayObj as any).totalCalories || profile?.targetCalories || 2000} kcal
                         </span>
                         
                         <button
