@@ -67,35 +67,35 @@ const CircularProgress = ({
   title: string;
   subtitle: string;
 }) => {
-  const radius = 28;
+  const radius = 27;
   const circumference = 2 * Math.PI * radius;
   const percent = max > 0 ? Math.min(Math.max(value, 0) / max, 1) : 0;
   const offset = circumference - percent * circumference;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0, minWidth: '72px' }}>
-      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
-      <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" strokeOpacity="0.2" />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flexShrink: 0, minWidth: '74px' }}>
+      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', letterSpacing: '-0.2px' }}>{title}</div>
+      <div style={{ position: 'relative', width: '74px', height: '74px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="74" height="74" viewBox="0 0 74 74" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+          <circle cx="37" cy="37" r={radius} fill="none" stroke={color} strokeWidth="5.5" strokeOpacity="0.2" />
           <circle
-            cx="40"
-            cy="40"
+            cx="37"
+            cy="37"
             r={radius}
             fill="none"
             stroke={color}
-            strokeWidth="6"
+            strokeWidth="5.5"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
             style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
         </svg>
-        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>
+        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', lineHeight: '1.1' }}>
             {Math.round(value * 10) / 10}
           </span>
-          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>{subtitle}</span>
+          <span style={{ fontSize: '9.5px', color: '#64748B', fontWeight: 600 }}>{subtitle}</span>
         </div>
       </div>
     </div>
@@ -193,6 +193,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             }
 
             const result = await analyzeFoodImage(base64, profile);
+            if (videoRef.current) {
+              videoRef.current.pause();
+            }
             if (!result.detected || !result.foodName) {
               setScanError({
                 title: 'No Food Detected',
@@ -213,6 +216,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             setShowResults(true);
           } catch (scanErr) {
             console.error('Analysis error:', scanErr);
+            if (videoRef.current) {
+              videoRef.current.pause();
+            }
             setScanError({
               title: 'Scan Inconclusive',
               message: 'Failed to analyze photo. Please try another angle or a clearer image.'
@@ -225,6 +231,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         };
         img.onerror = () => {
           setIsScanning(false);
+          if (videoRef.current) {
+            videoRef.current.pause();
+          }
           setScanError({
             title: 'Image Load Error',
             message: 'Unable to process this image file. Please try a different photo.'
@@ -238,6 +247,12 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleResumeCamera = () => {
+    if (videoRef.current && stream) {
+      videoRef.current.play().catch(() => {});
+    }
   };
 
   const handleScan = async () => {
@@ -263,6 +278,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       const brightness = checkCanvasBrightness(canvas);
       if (brightness < 16) {
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
         setScanError({
           title: 'Camera View is Too Dark',
           message: 'The captured frame is too dark to analyze food or labels. Please aim directly at your meal or nutrition panel in good lighting.'
@@ -273,6 +291,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       }
       
       const result = await analyzeFoodImage(base64, profile);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+
       if (!result.detected || !result.foodName) {
         setScanError({
           title: 'No Food Detected',
@@ -293,6 +315,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       setShowResults(true);
     } catch (e) {
       console.error(e);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
       setScanError({
         title: 'Scan Inconclusive',
         message: 'Could not analyze this frame. Please try again or upload a photo from your gallery.'
@@ -377,7 +402,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        zIndex: 10,
+        zIndex: 40,
         background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -543,39 +568,64 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         />
       )}
 
+      {/* Background Dim / Frosted Scrim when showing Results */}
+      <AnimatePresence>
+        {showResults && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(11, 15, 25, 0.80)',
+              backdropFilter: 'blur(28px)',
+              WebkitBackdropFilter: 'blur(28px)',
+              zIndex: 25
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Results Overlay */}
       <AnimatePresence>
         {showResults && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             style={{
               position: 'absolute',
-              bottom: 'max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
-              left: '16px',
-              right: '16px',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               zIndex: 30,
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
-              maxHeight: 'calc(100vh - 120px)',
               overflowY: 'auto',
-              paddingBottom: '24px',
-              scrollbarWidth: 'none',
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
+              paddingTop: 'max(76px, calc(env(safe-area-inset-top, 0px) + 60px))',
+              paddingBottom: 'max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              scrollbarWidth: 'none'
             }}
           >
             {/* Non-Detection / Error Guidance Card */}
             {scanError ? (
               <div style={{
                 position: 'relative',
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0.42) 100%)',
+                flexShrink: 0,
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.65) 100%)',
                 backdropFilter: 'blur(36px)',
                 WebkitBackdropFilter: 'blur(36px)',
-                borderRadius: '32px',
+                borderRadius: '28px',
                 padding: '24px 20px',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.85), inset 0 0 30px rgba(255, 255, 255, 0.35)',
+                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.16), inset 0 2px 0 rgba(255, 255, 255, 0.9)',
                 border: '1.5px solid rgba(255, 255, 255, 0.85)',
                 textAlign: 'center',
                 overflow: 'hidden'
@@ -599,16 +649,17 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     <AlertTriangle size={28} />
                   </div>
                   <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
-                    No Food or Label Detected
+                    {scanError.title || 'No Food or Label Detected'}
                   </h3>
                   <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#78716C', lineHeight: 1.5 }}>
-                    Position the camera directly in front of the grocery item, barcode, or ingredient table.
+                    {scanError.message || 'Position the camera directly in front of the grocery item, barcode, or ingredient table.'}
                   </p>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                     <button
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
+                        handleResumeCamera();
                         setScanError(null);
                         setShowResults(false);
                         setAnalysis(null);
@@ -657,15 +708,16 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               </div>
             ) : analysis && (
               <>
-                {/* The Clinical Result Card with Sheer Glass Theme from Diet Section */}
+                {/* The Clinical Result Card with Sheer Glass Theme */}
                 <div style={{
                   position: 'relative',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 100%)',
+                  flexShrink: 0,
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%)',
                   backdropFilter: 'blur(36px)',
                   WebkitBackdropFilter: 'blur(36px)',
-                  borderRadius: '32px',
-                  padding: '22px 20px',
-                  boxShadow: '0 24px 50px rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.85), inset 0 0 35px rgba(255, 255, 255, 0.35)',
+                  borderRadius: '28px',
+                  padding: '20px 18px',
+                  boxShadow: '0 20px 48px rgba(0, 0, 0, 0.16), inset 0 2px 0 rgba(255, 255, 255, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.35)',
                   border: '1.5px solid rgba(255, 255, 255, 0.85)',
                   overflow: 'hidden'
                 }}>
@@ -681,29 +733,29 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: '8px',
-                        background: 'rgba(255, 241, 242, 0.85)',
+                        background: 'rgba(255, 241, 242, 0.92)',
                         backdropFilter: 'blur(12px)',
                         border: '1px solid #FECDD3',
-                        padding: '12px',
+                        padding: '10px 14px',
                         borderRadius: '16px',
                         width: '100%',
-                        marginBottom: '14px',
+                        marginBottom: '12px',
                         boxSizing: 'border-box'
                       }}>
-                        <AlertTriangle size={15} color="#E11D48" style={{ flexShrink: 0, marginTop: '1px' }} />
-                        <span style={{ color: '#BE123C', fontSize: '12px', fontWeight: 800, letterSpacing: '0.3px', lineHeight: 1.4 }}>
+                        <AlertTriangle size={15} color="#E11D48" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span style={{ color: '#BE123C', fontSize: '12px', fontWeight: 700, letterSpacing: '0.2px', lineHeight: 1.4 }}>
                           {analysis.warning}
                         </span>
                       </div>
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
-                      <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px', lineHeight: 1.25 }}>
                         {analysis?.foodName || 'Identified Dish'}
                       </h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         <span style={{
-                          padding: '3px 10px',
+                          padding: '4px 10px',
                           borderRadius: '999px',
                           background: 'rgba(239, 68, 68, 0.1)',
                           border: '1px solid rgba(239, 68, 68, 0.25)',
@@ -718,7 +770,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           <span style={{
                             fontSize: '10.5px',
                             fontWeight: 800,
-                            padding: '3px 9px',
+                            padding: '4px 9px',
                             borderRadius: '999px',
                             background: 'rgba(236, 253, 245, 0.85)',
                             color: '#059669',
@@ -731,51 +783,29 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       </div>
                     </div>
 
-                    <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#78716C' }}>
-                      AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
+                    <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
+                      AI-estimated from image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify package label before saving.
                     </p>
 
-                    {/* Nutrition context — sheer glass styling */}
-                    {analysis?.sugar !== undefined && (
-                      <div style={{
-                        marginBottom: '16px',
-                        padding: '14px 16px',
-                        background: 'rgba(255, 255, 255, 0.55)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        borderRadius: '20px',
-                        border: '1px solid rgba(255, 255, 255, 0.85)',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)'
-                      }}>
-                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
-                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
-                          Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
-                        </div>
-                      </div>
-                    )}
+                    {/* Main Sheer Glass Macro Card */}
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '100px', height: '100px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.75, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '110px', height: '110px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.75, pointerEvents: 'none' }} />
 
-                    {/* 2. Main Sheer Glass Macro Card (Exact Diet Section Theme from Image 1) */}
-                    <div style={{ position: 'relative', marginBottom: '16px' }}>
-                      {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
-                      <div style={{ position: 'absolute', top: '10%', left: '8%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', bottom: '10%', right: '8%', width: '140px', height: '140px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', top: '35%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.65, pointerEvents: 'none' }} />
-                      
                       <div className="hide-scrollbar scrollable-row" style={{
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.22) 100%)',
                         backdropFilter: 'blur(32px)',
                         WebkitBackdropFilter: 'blur(32px)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
-                        borderRadius: '32px',
-                        padding: '24px 16px',
+                        border: '1px solid rgba(255, 255, 255, 0.85)',
+                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.7)',
+                        borderRadius: '24px',
+                        padding: '16px 14px 18px',
                         display: 'flex',
                         flexWrap: 'nowrap',
                         overflowX: 'auto',
                         position: 'relative',
                         zIndex: 1,
-                        gap: '16px',
-                        paddingBottom: '16px',
+                        gap: '14px',
                         scrollbarWidth: 'none',
                         WebkitOverflowScrolling: 'touch'
                       }}>
@@ -793,16 +823,30 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 {/* Better Alternative Card */}
                 {analysis?.betterAlternative && (
                   <div style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #F0FDFA 100%)',
-                    backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '16px',
-                    display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 12px 24px rgba(13, 148, 136, 0.08)'
+                    flexShrink: 0,
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, #F0FDFA 100%)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    borderRadius: '24px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    border: '1.5px solid #CCFBF1',
+                    boxShadow: '0 8px 24px rgba(13, 148, 136, 0.08)'
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', marginBottom: '4px' }}>OPTION TO CONSIDER · AI SUGGESTION</div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>{analysis.betterAlternative.name}</div>
-                      <div style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>{analysis.betterAlternative.reason}</div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                        Option to Consider · AI Suggestion
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>
+                        {analysis.betterAlternative.name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
+                        {analysis.betterAlternative.reason}
+                      </div>
                     </div>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F0FDFA', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0D9488' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#ECFDF5', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#059669', flexShrink: 0 }}>
                       <ArrowRight size={16} />
                     </div>
                   </div>
@@ -818,6 +862,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     navigate('/app/ava', { state: { initialPrompt: prompt } });
                   }}
                   style={{
+                    flexShrink: 0,
                     width: '100%',
                     background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFF',
@@ -831,26 +876,26 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     justifyContent: 'center',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.35)',
-                    marginBottom: '10px'
+                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.35)'
                   }}
                 >
                   <Sparkles size={16} /> Review estimates with Ava
                 </button>
 
                 {/* Action Buttons: Scan Another & Log Food */}
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexShrink: 0, paddingBottom: '8px' }}>
                   <button
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
+                      handleResumeCamera();
                       setShowResults(false);
                       setAnalysis(null);
                     }}
                     style={{
                       flex: 1,
-                      background: 'rgba(255,255,255,0.95)',
-                      color: '#57534E',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      color: '#475569',
                       border: '1.5px solid #E2E8F0',
                       padding: '14px',
                       borderRadius: '16px',
@@ -869,6 +914,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   {onLogFood && analysis?.foodName && (
                     <button 
                       onClick={() => {
+                        triggerHapticSuccess();
                         onLogFood({
                           name: analysis.foodName,
                           calories: analysis.calories,
@@ -879,14 +925,25 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           fibre: analysis.fibre,
                           type: 'Snack'
                         });
+                        handleClose();
                       }}
                       style={{
                         flex: 1.5,
-                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px', borderRadius: '16px', 
-                        fontSize: '15px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        color: '#FFF',
+                        border: 'none',
+                        padding: '14px',
+                        borderRadius: '16px', 
+                        fontSize: '14.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '8px',
                         boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)'
                       }}>
-                      <Scan size={18} />
+                      <Scan size={17} />
                       Log {analysis.foodName}
                     </button>
                   )}
