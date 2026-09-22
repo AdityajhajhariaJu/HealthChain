@@ -164,61 +164,83 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
   },
 };
 
-// Bespoke, handcrafted Luxury SVG Symptom Capsule matching the Meds pill artwork
-export const ClassyCapsuleIcon: React.FC<{
+// 3D Tactile Skeuomorphic Symptom Badge with Specular Gloss Glare & Drop Shadow
+export const ClassySymptomBadge: React.FC<{
+  icon?: any;
   category?: string;
+  size?: number;
+  isSelected?: boolean;
   color1?: string;
   color2?: string;
-  size?: number;
+  shadow?: string;
 }> = ({
-  category,
+  icon: IconComp = Activity,
+  category = 'systemic',
+  size = 22,
+  isSelected = false,
   color1,
   color2,
-  size = 22
+  shadow,
 }) => {
-  const catTheme = category && SYMPTOM_CATEGORY_THEMES[category] ? SYMPTOM_CATEGORY_THEMES[category] : undefined;
-  const c1 = color1 || catTheme?.color2 || '#E11D48';
-  const c2 = color2 || catTheme?.color1 || '#FECDD3';
-  const c1Clean = c1.replace(/[^a-zA-Z0-9]/g, '');
-  const c2Clean = c2.replace(/[^a-zA-Z0-9]/g, '');
-  const gradId1 = `sympCapsuleG1_${c1Clean}_${size}`;
-  const gradId2 = `sympCapsuleG2_${c2Clean}_${size}`;
+  const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
+  const c1 = color1 || theme.color1;
+  const c2 = color2 || theme.color2;
+  const sColor = shadow || theme.shadow;
+  const iconSize = Math.max(11, Math.round(size * 0.54));
 
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 36 36" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg" 
-      style={{ flexShrink: 0 }}
-      aria-hidden="true"
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        minWidth: `${size}px`,
+        minHeight: `${size}px`,
+        borderRadius: '50%',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        boxShadow: `0 2px 6px ${sColor}, inset 0 1px 1px rgba(255, 255, 255, 0.75)`,
+        background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
+        transition: 'all 0.18s ease'
+      }}
     >
-      <defs>
-        <linearGradient id={gradId1} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={c1} />
-          <stop offset="100%" stopColor={c1} stopOpacity="0.85" />
-        </linearGradient>
-        <linearGradient id={gradId2} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="100%" stopColor={c2} />
-        </linearGradient>
-      </defs>
-      <g transform="rotate(-35 18 18)">
-        {/* Full Capsule Shell */}
-        <rect x="6" y="11" width="24" height="14" rx="7" fill={`url(#${gradId2})`} stroke="rgba(0,0,0,0.06)" strokeWidth="0.5" />
-        {/* Left Colored Half */}
-        <path d="M6 18C6 14.134 9.134 11 13 11H18V25H13C9.134 25 6 21.866 6 18Z" fill={`url(#${gradId1})`} />
-        {/* Seam Band */}
-        <line x1="18" y1="11" x2="18" y2="25" stroke="rgba(255,255,255,0.75)" strokeWidth="1" />
-        {/* Specular Highlight Glare */}
-        <path d="M9 13C9 12.45 11 12 13 12H23C25 12 27 12.45 27 13C27 13.55 25 14 23 14H13C11 14 9 13.55 9 13Z" fill="#FFFFFF" fillOpacity="0.75" />
-      </g>
-    </svg>
+      {/* 3D Specular Gloss Highlight Overlay (Skeuomorphic glass glare) */}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none'
+        }}
+      >
+        <ellipse cx="12" cy="4.5" rx="7" ry="2.2" fill="#FFFFFF" fillOpacity="0.65" />
+        <circle cx="12" cy="12" r="11" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="1" />
+      </svg>
+
+      <IconComp 
+        size={iconSize} 
+        color="#FFFFFF" 
+        strokeWidth={2.8} 
+        style={{ 
+          position: 'relative',
+          zIndex: 1,
+          filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35))'
+        }}
+      />
+    </div>
   );
 };
 
-export const ClassySymptomBadge = ClassyCapsuleIcon;
+export const ClassyCapsuleIcon = ClassySymptomBadge;
 
 export interface SymptomItem {
   id: string;
@@ -1487,26 +1509,12 @@ AI-generated preparation material. Verify against original records; this is not 
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            <div
-                              style={{
-                                width: isMobile ? '22px' : '24px',
-                                height: isMobile ? '22px' : '24px',
-                                borderRadius: '50%',
-                                background: '#FFFFFF',
-                                border: `1px solid ${theme.border}`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
-                              }}
-                            >
-                              <ClassyCapsuleIcon 
-                                size={isMobile ? 16 : 18} 
-                                color1={theme.color2} 
-                                color2={theme.color1} 
-                              />
-                            </div>
+                            <ClassySymptomBadge 
+                              icon={IconComponent} 
+                              category={category} 
+                              size={isMobile ? 18 : 20} 
+                              isSelected 
+                            />
                             <span style={{ whiteSpace: 'nowrap' }}>{sym}</span>
                             <button
                               type="button"
@@ -1658,7 +1666,6 @@ AI-generated preparation material. Verify against original records; this is not 
                   {/* User-added Custom Symptoms */}
                   {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
                     const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
-                    const theme = SYMPTOM_CATEGORY_THEMES.cardio;
                     return (
                       <motion.button
                         key={`custom-${cs}`}
@@ -1670,57 +1677,42 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '9px',
-                          padding: isMobile ? '6px 12px 6px 8px' : '7px 14px 7px 9px',
+                          gap: '8px',
+                          padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? theme.textColor : '#1C1917',
+                          color: isSelected ? '#9F1239' : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? `0 3px 12px ${theme.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? '0 3px 12px rgba(225, 29, 72, 0.18)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
                           maxWidth: '100%'
                         }}
                       >
-                        <div
-                          style={{
-                            width: isMobile ? '26px' : '28px',
-                            height: isMobile ? '26px' : '28px',
-                            borderRadius: '50%',
-                            background: isSelected ? '#FFFFFF' : theme.bgStart,
-                            border: `1px solid ${theme.border}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.06)' : 'none'
-                          }}
-                        >
-                          <ClassyCapsuleIcon 
-                            size={isMobile ? 18 : 20} 
-                            color1={theme.color2} 
-                            color2={theme.color1} 
-                          />
-                        </div>
+                        <ClassySymptomBadge 
+                          icon={Sparkles} 
+                          category="cardio" 
+                          size={isMobile ? 22 : 24} 
+                          isSelected={isSelected} 
+                        />
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? theme.textColor : '#1C1917',
+                            color: isSelected ? '#9F1239' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
                             {cs}
                           </span>
                           <span style={{ 
-                            fontSize: isMobile ? '10px' : '10.5px', 
+                            fontSize: isMobile ? '10.5px' : '11px', 
                             fontWeight: 500, 
-                            color: isSelected ? theme.textColor : '#78716C',
-                            opacity: isSelected ? 0.85 : 1,
+                            color: isSelected ? '#BE123C' : '#78716C',
                             display: 'block'
                           }}>
                             Custom Symptom Note
@@ -1728,17 +1720,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: '18px',
-                            height: '18px',
+                            width: '17px',
+                            height: '17px',
                             borderRadius: '50%',
-                            background: theme.activeBorder,
+                            background: '#E11D48',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: `0 2px 6px ${theme.shadow}`
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1764,7 +1756,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       s.toLowerCase() === sym.name.toLowerCase() || 
                       Boolean(sym.aliases?.some(a => a.toLowerCase() === s.toLowerCase()))
                     );
-                    const theme = SYMPTOM_CATEGORY_THEMES[sym.category] || SYMPTOM_CATEGORY_THEMES.systemic;
+                    const IconComp = sym.icon || Activity;
                     return (
                       <motion.button
                         key={sym.id}
@@ -1776,17 +1768,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '9px',
-                          padding: isMobile ? '6px 12px 6px 8px' : '7px 14px 7px 9px',
+                          gap: '8px',
+                          padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? theme.textColor : '#1C1917',
+                          color: isSelected ? '#9F1239' : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? `0 3px 12px ${theme.shadow}` 
+                            ? `0 3px 12px rgba(225, 29, 72, 0.18)` 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1794,31 +1786,17 @@ AI-generated preparation material. Verify against original records; this is not 
                           maxWidth: '100%'
                         }}
                       >
-                        <div
-                          style={{
-                            width: isMobile ? '26px' : '28px',
-                            height: isMobile ? '26px' : '28px',
-                            borderRadius: '50%',
-                            background: isSelected ? '#FFFFFF' : theme.bgStart,
-                            border: `1px solid ${theme.border}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.06)' : 'none'
-                          }}
-                        >
-                          <ClassyCapsuleIcon 
-                            size={isMobile ? 18 : 20} 
-                            color1={theme.color2} 
-                            color2={theme.color1} 
-                          />
-                        </div>
+                        <ClassySymptomBadge 
+                          icon={IconComp} 
+                          category={sym.category} 
+                          size={isMobile ? 22 : 24} 
+                          isSelected={isSelected} 
+                        />
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? theme.textColor : '#1C1917',
+                            color: isSelected ? '#9F1239' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1826,10 +1804,9 @@ AI-generated preparation material. Verify against original records; this is not 
                           </span>
                           {sym.subtitle && (
                             <span style={{ 
-                              fontSize: isMobile ? '10px' : '10.5px', 
-                              fontWeight: 500, 
-                              color: isSelected ? theme.textColor : '#78716C',
-                              opacity: isSelected ? 0.85 : 1,
+                              fontSize: isMobile ? '10.5px' : '11px', 
+                              fontWeight: 500,
+                              color: isSelected ? '#BE123C' : '#78716C',
                               display: 'block'
                             }}>
                               {sym.subtitle}
@@ -1838,17 +1815,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: '18px',
-                            height: '18px',
+                            width: '17px',
+                            height: '17px',
                             borderRadius: '50%',
-                            background: theme.activeBorder,
+                            background: '#E11D48',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: `0 2px 6px ${theme.shadow}`
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
