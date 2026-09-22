@@ -23,7 +23,7 @@ import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { generateCaseConnectionMap, parseModelJson, analyzeLabReport } from '../../services/geminiService';
-import { getProfile, updateVitals } from '../../services/ProfileEngine';
+import { getProfile, getProfileKey, updateVitals } from '../../services/ProfileEngine';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -107,19 +107,29 @@ export default function QuickConsult() {
     setActiveCase(null);
     const nextRunId = makeRunId();
     setQuickRunId(nextRunId);
-    sessionStorage.setItem(getQuickRunIdKey(), nextRunId);
-    sessionStorage.removeItem(getQuickPhaseKey());
-    sessionStorage.removeItem(getQuickSpecialistKey());
-    sessionStorage.removeItem(getQuickCaseKey());
+    try {
+      sessionStorage.setItem(getQuickRunIdKey(), nextRunId);
+      sessionStorage.removeItem(getQuickPhaseKey());
+      sessionStorage.removeItem(getQuickSpecialistKey());
+      sessionStorage.removeItem(getQuickCaseKey());
+    } catch {}
   };
 
+  const profileScopeRef = useRef(getProfileKey());
   useEffect(() => {
-    const handleProfileChange = () => resetConsult();
+    const handleProfileChange = () => {
+      const nextKey = getProfileKey();
+      if (nextKey !== profileScopeRef.current) {
+        profileScopeRef.current = nextKey;
+        resetConsult();
+      }
+    };
+    const handleLogout = () => resetConsult();
     window.addEventListener('hc_profile_updated', handleProfileChange);
-    window.addEventListener('hc_logout', handleProfileChange);
+    window.addEventListener('hc_logout', handleLogout);
     return () => {
       window.removeEventListener('hc_profile_updated', handleProfileChange);
-      window.removeEventListener('hc_logout', handleProfileChange);
+      window.removeEventListener('hc_logout', handleLogout);
     };
   }, []);
 
@@ -188,19 +198,26 @@ export default function QuickConsult() {
       } else {
         setPhase('select');
       }
-      searchParams.delete('new');
-      setSearchParams(searchParams);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('new');
+      setSearchParams(nextParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => { sessionStorage.setItem(getQuickPhaseKey(), phase); }, [phase]);
+  useEffect(() => { 
+    try { sessionStorage.setItem(getQuickPhaseKey(), phase); } catch {}
+  }, [phase]);
   useEffect(() => {
-    if (selectedSpecialist) sessionStorage.setItem(getQuickSpecialistKey(), selectedSpecialist.id);
-    else sessionStorage.removeItem(getQuickSpecialistKey());
+    try {
+      if (selectedSpecialist) sessionStorage.setItem(getQuickSpecialistKey(), selectedSpecialist.id);
+      else sessionStorage.removeItem(getQuickSpecialistKey());
+    } catch {}
   }, [selectedSpecialist]);
   useEffect(() => {
-    if (activeCase) sessionStorage.setItem(getQuickCaseKey(), JSON.stringify(activeCase));
-    else sessionStorage.removeItem(getQuickCaseKey());
+    try {
+      if (activeCase) sessionStorage.setItem(getQuickCaseKey(), JSON.stringify(activeCase));
+      else sessionStorage.removeItem(getQuickCaseKey());
+    } catch {}
   }, [activeCase]);
 
   const [profile, setProfile] = useState(() => getProfile());

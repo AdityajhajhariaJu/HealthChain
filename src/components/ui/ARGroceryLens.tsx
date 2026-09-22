@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles } from 'lucide-react';
+import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, ShieldCheck, Leaf } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
@@ -676,7 +676,135 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   <div style={{ position: 'absolute', bottom: '25%', left: '10%', width: '120px', height: '120px', background: '#FAE8FF', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.45, pointerEvents: 'none' }} />
 
                   <div style={{ position: 'relative', zIndex: 1 }}>
-                    {analysis?.warning && (
+                    {/* Traffic-Light Health Verdict Banner */}
+                    {analysis?.healthVerdict && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        padding: '12px 14px',
+                        borderRadius: '18px',
+                        marginBottom: '14px',
+                        background: analysis.healthVerdict === 'clean_choice'
+                          ? 'linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.85) 100%)'
+                          : analysis.healthVerdict === 'moderate_treat'
+                          ? 'linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.85) 100%)'
+                          : 'linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(254, 205, 211, 0.85) 100%)',
+                        border: `1.5px solid ${
+                          analysis.healthVerdict === 'clean_choice'
+                            ? '#6EE7B7'
+                            : analysis.healthVerdict === 'moderate_treat'
+                            ? '#FCD34D'
+                            : '#FCA5A5'
+                        }`,
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.04)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                          {analysis.healthVerdict === 'clean_choice' ? (
+                            <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0 }} />
+                          ) : (
+                            <AlertTriangle
+                              size={18}
+                              color={analysis.healthVerdict === 'moderate_treat' ? '#D97706' : '#DC2626'}
+                              style={{ flexShrink: 0 }}
+                            />
+                          )}
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              letterSpacing: '0.6px',
+                              color: analysis.healthVerdict === 'clean_choice'
+                                ? '#065F46'
+                                : analysis.healthVerdict === 'moderate_treat'
+                                ? '#92400E'
+                                : '#991B1B'
+                            }}>
+                              {analysis.healthVerdict === 'clean_choice'
+                                ? 'CLEAN FUEL · BALANCED CHOICE'
+                                : analysis.healthVerdict === 'moderate_treat'
+                                ? 'MODERATE TREAT · ENJOY MINDFULLY'
+                                : 'ULTRA-PROCESSED · SWAP RECOMMENDED'}
+                            </div>
+                            {analysis.verdictHeadline && (
+                              <div style={{
+                                fontSize: '13px',
+                                fontWeight: 800,
+                                color: '#1C1917',
+                                marginTop: '1px'
+                              }}>
+                                {analysis.verdictHeadline}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {analysis.novaGrade && (
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '4px 8px',
+                            borderRadius: '999px',
+                            whiteSpace: 'nowrap',
+                            background: analysis.novaGrade === 1
+                              ? '#10B981'
+                              : analysis.novaGrade === 2
+                              ? '#059669'
+                              : analysis.novaGrade === 3
+                              ? '#F59E0B'
+                              : '#EF4444',
+                            color: '#FFFFFF',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                          }}>
+                            NOVA {analysis.novaGrade}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Clinical Rationale & Ingredient Flags */}
+                    {analysis?.clinicalRationale && (
+                      <div style={{
+                        marginBottom: '14px',
+                        padding: '12px 14px',
+                        background: 'rgba(255, 255, 255, 0.75)',
+                        backdropFilter: 'blur(16px)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.9)',
+                        fontSize: '12.5px',
+                        color: '#334155',
+                        lineHeight: 1.45
+                      }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.5px', marginBottom: '3px' }}>
+                          CLINICAL PERSPECTIVE
+                        </div>
+                        {analysis.clinicalRationale}
+
+                        {analysis.flags && analysis.flags.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '8px' }}>
+                            {analysis.flags.map((flag, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  color: '#BE123C',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)'
+                                }}
+                              >
+                                ⚠ {flag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {analysis?.warning && !analysis?.clinicalRationale && (
                       <div style={{
                         display: 'flex',
                         alignItems: 'flex-start',
@@ -790,21 +918,151 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   </div>
                 </div>
 
-                {/* Better Alternative Card */}
-                {analysis?.betterAlternative && (
+                {/* Craving-Matched Better Alternatives Section */}
+                {((analysis?.betterAlternatives && analysis.betterAlternatives.length > 0) || analysis?.betterAlternative) && (
                   <div style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #F0FDFA 100%)',
-                    backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '16px',
-                    display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 12px 24px rgba(13, 148, 136, 0.08)'
+                    marginBottom: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', marginBottom: '4px' }}>OPTION TO CONSIDER · AI SUGGESTION</div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>{analysis.betterAlternative.name}</div>
-                      <div style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>{analysis.betterAlternative.reason}</div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0 4px'
+                    }}>
+                      <div style={{
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        color: '#059669',
+                        letterSpacing: '0.6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <Sparkles size={14} color="#059669" /> CRAVING-MATCHED BETTER ALTERNATIVES
+                      </div>
+                      <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>
+                        Same Craving · Clean Nutrition
+                      </span>
                     </div>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F0FDFA', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0D9488' }}>
-                      <ArrowRight size={16} />
-                    </div>
+
+                    {(analysis.betterAlternatives && analysis.betterAlternatives.length > 0
+                      ? analysis.betterAlternatives
+                      : [
+                          {
+                            name: analysis.betterAlternative?.name || 'Clean Alternative',
+                            reason: analysis.betterAlternative?.reason || 'Nutrient-dense alternative',
+                            swapType: 'whole_food' as const,
+                            satisfactionMatch: 'Satisfies craving with superior nutrient density'
+                          }
+                        ]
+                    ).map((alt, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, #F0FDFA 100%)',
+                          backdropFilter: 'blur(20px)',
+                          borderRadius: '20px',
+                          padding: '16px',
+                          border: '1.5px solid #CCFBF1',
+                          boxShadow: '0 12px 28px rgba(13, 148, 136, 0.08)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <span style={{
+                                fontSize: '9.5px',
+                                fontWeight: 800,
+                                letterSpacing: '0.4px',
+                                padding: '2px 8px',
+                                borderRadius: '999px',
+                                background: alt.swapType === 'packaged' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.12)',
+                                color: alt.swapType === 'packaged' ? '#1D4ED8' : '#047857',
+                                border: alt.swapType === 'packaged' ? '1px solid #BFDBFE' : '1px solid #A7F3D0'
+                              }}>
+                                {alt.swapType === 'packaged' ? '📦 CLEAN PACKAGED SWAP' : '🌱 WHOLE-FOOD SWAP'}
+                              </span>
+                              {alt.estimatedCalories && (
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                                  ~{alt.estimatedCalories} kcal {alt.protein ? `• ${alt.protein}g protein` : ''}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.2px' }}>
+                              {alt.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px', lineHeight: 1.4 }}>
+                              <strong>Why better:</strong> {alt.reason}
+                            </div>
+                            {alt.satisfactionMatch && (
+                              <div style={{ fontSize: '11.5px', color: '#0F766E', marginTop: '3px', fontWeight: 600 }}>
+                                ✨ {alt.satisfactionMatch}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '17px',
+                            background: '#F0FDFA',
+                            border: '1px solid #99F6E4',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            color: '#0D9488',
+                            flexShrink: 0
+                          }}>
+                            {alt.swapType === 'packaged' ? <ShieldCheck size={17} /> : <Leaf size={17} />}
+                          </div>
+                        </div>
+
+                        {/* One-tap Log Alternative Action */}
+                        {onLogFood && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticSuccess();
+                              onLogFood({
+                                name: alt.name,
+                                calories: alt.estimatedCalories || Math.round((analysis?.calories || 200) * 0.6),
+                                protein: alt.protein || 4,
+                                carbs: alt.carbs || 15,
+                                fat: alt.fats || 3,
+                                sugar: alt.sugar || 1,
+                                fibre: alt.fibre || 3,
+                                type: 'Snack'
+                              });
+                              awardPoints(15, 'Chose Smart Alternative 🌟', 'lifestyle');
+                              handleClose();
+                            }}
+                            style={{
+                              width: '100%',
+                              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              padding: '9px 14px',
+                              borderRadius: '12px',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              boxShadow: '0 3px 10px rgba(5, 150, 105, 0.25)'
+                            }}
+                          >
+                            <Sparkles size={14} /> Log Healthy Swap Instead (+15 pts)
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
 

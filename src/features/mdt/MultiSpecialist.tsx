@@ -228,8 +228,12 @@ export default function MultiSpecialist() {
     clearRunStorage('parallel', activeCase?.id);
   };
 
+  const currentRunScopeRef = useRef(getRunScope('parallel'));
   useEffect(() => {
     const handleProfileChange = () => {
+      const nextScope = getRunScope('parallel');
+      if (nextScope === currentRunScopeRef.current) return;
+      currentRunScopeRef.current = nextScope;
       cachedMultiSpecialistState = null;
       setPhase('select');
       setSelected([]);
@@ -244,11 +248,26 @@ export default function MultiSpecialist() {
       clearRunStorage('parallel');
       setActiveCase(getUnifiedCaseScope().caseItem);
     };
+    const handleLogout = () => {
+      cachedMultiSpecialistState = null;
+      setPhase('select');
+      setSelected([]);
+      setActiveSpecialistId(null);
+      setSymptomInput('');
+      setCompletedSpecialists({});
+      setSpecialistTranscripts({});
+      setFinalReport(null);
+      setWorkingCaseId(null);
+      setSavedCaseId(null);
+      setAiSuggestion(null);
+      clearRunStorage('parallel');
+      setActiveCase(null);
+    };
     window.addEventListener('hc_profile_updated', handleProfileChange);
-    window.addEventListener('hc_logout', handleProfileChange);
+    window.addEventListener('hc_logout', handleLogout);
     return () => {
       window.removeEventListener('hc_profile_updated', handleProfileChange);
-      window.removeEventListener('hc_logout', handleProfileChange);
+      window.removeEventListener('hc_logout', handleLogout);
     };
   }, []);
 

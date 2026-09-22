@@ -48,12 +48,16 @@ export function MDTHubDashboard({
   // Clear memory cache if case changes
   React.useEffect(() => {
     if (activeCase?.id) {
-      const lastCaseKey = getRunScope('mdt', 'draft', 'last-case');
-      const lastCaseId = sessionStorage.getItem(lastCaseKey);
-      if (lastCaseId !== activeCase.id) {
-        Object.keys(cachedMDTSpecialistStreams).forEach(k => delete cachedMDTSpecialistStreams[k]);
-        clearRunStorage('mdt');
-        sessionStorage.setItem(lastCaseKey, activeCase.id);
+      try {
+        const lastCaseKey = getRunScope('mdt', 'draft', 'last-case');
+        const lastCaseId = sessionStorage.getItem(lastCaseKey);
+        if (lastCaseId !== activeCase.id) {
+          Object.keys(cachedMDTSpecialistStreams).forEach(k => delete cachedMDTSpecialistStreams[k]);
+          clearRunStorage('mdt');
+          sessionStorage.setItem(lastCaseKey, activeCase.id);
+        }
+      } catch (e) {
+        // Safe fallback when sessionStorage is restricted or quota exceeded
       }
     }
   }, [activeCase?.id]);
@@ -194,7 +198,9 @@ export function MDTHubDashboard({
               
               // 2. Wipe the sessionStorage streams so the LLM doesn't hallucinate past cases
               clearRunStorage('mdt', activeCase?.id);
-              sessionStorage.removeItem('hc_mdt_intake_draft');
+              try {
+                sessionStorage.removeItem('hc_mdt_intake_draft');
+              } catch {}
 
               setActiveCase(null);
               setPhase('intake');

@@ -21,9 +21,28 @@ export default function MedicineLabPage() {
     return 'pharmacy';
   });
 
+  const handleTabSwitch = (tab: 'pharmacy' | 'reports') => {
+    triggerHapticLight();
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      if (tab === 'reports') {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + '#clinical-report-analyzer');
+        setTimeout(() => {
+          const el = document.getElementById('clinical-report-analyzer');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150);
+      } else {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  };
+
   useEffect(() => {
     const handleHash = () => {
-      if (location.hash === '#clinical-report-analyzer' || (typeof window !== 'undefined' && window.location.hash === '#clinical-report-analyzer')) {
+      const isReportHash = location.hash === '#clinical-report-analyzer' || (typeof window !== 'undefined' && window.location.hash === '#clinical-report-analyzer');
+      if (isReportHash) {
         setActiveTab('reports');
         setTimeout(() => {
           const el = document.getElementById('clinical-report-analyzer');
@@ -112,7 +131,7 @@ export default function MedicineLabPage() {
             type="button"
             role="tab"
             aria-selected={activeTab === 'pharmacy'}
-            onClick={() => { triggerHapticLight(); setActiveTab('pharmacy'); }}
+            onClick={() => handleTabSwitch('pharmacy')}
             style={{
               padding: isMobile ? '8px 14px' : '10px 20px',
               borderRadius: '99px',
@@ -134,11 +153,7 @@ export default function MedicineLabPage() {
             type="button"
             role="tab"
             aria-selected={activeTab === 'reports'}
-            onClick={() => { 
-              triggerHapticLight(); 
-              setActiveTab('reports'); 
-              window.location.hash = 'clinical-report-analyzer';
-            }}
+            onClick={() => handleTabSwitch('reports')}
             style={{
               padding: isMobile ? '8px 14px' : '10px 20px',
               borderRadius: '99px',
