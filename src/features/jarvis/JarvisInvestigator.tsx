@@ -1030,7 +1030,7 @@ AI-generated preparation material. Verify against original records; this is not 
           />
 
           <details style={{ marginTop: 18, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
-            <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+            <summary style={{ cursor: 'pointer', color: '#BE123C', fontSize: 14, fontWeight: 800 }}>
               Review reasoning
             </summary>
             <ClinicalReasoningPipelineView
@@ -1068,7 +1068,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
           {perspectives.length > 0 && (
             <details style={{ marginTop: 14, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
-              <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+              <summary style={{ cursor: 'pointer', color: '#BE123C', fontSize: 14, fontWeight: 800 }}>
                 Perspectives ({perspectives.length})
               </summary>
               <MeaningfulMultiPerspectiveView
@@ -1170,7 +1170,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 flex: 1, 
                 height: '4px', 
                 borderRadius: '999px', 
-                background: intakeStep >= s ? '#0D9488' : '#E4E4E7',
+                background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
                 transition: 'background 0.2s ease' 
               }} 
             />
@@ -1183,14 +1183,14 @@ AI-generated preparation material. Verify against original records; this is not 
             display: 'inline-flex', 
             alignItems: 'center', 
             gap: '5px', 
-            background: '#F0FDFA', 
-            border: '1px solid #CCFBF1', 
+            background: '#FFF1F2', 
+            border: '1px solid #FECDD3', 
             padding: isMobile ? '4px 8px' : '5px 12px', 
             borderRadius: '9999px', 
             fontSize: isMobile ? '11px' : '12px', 
             fontWeight: 700, 
-            color: '#0F766E', 
-            boxShadow: '0 1px 2px rgba(0,0,0,0.02)' 
+            color: '#BE123C', 
+            boxShadow: '0 1px 2px rgba(225, 29, 72, 0.04)' 
           }}>
             <span>{isMobile ? `${intakeStep}/6` : `${intakeStep} of 6`}</span>
           </div>
@@ -1341,7 +1341,7 @@ AI-generated preparation material. Verify against original records; this is not 
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* 6 Gradient Progress Capsules in Clinical Teal */}
+            {/* 6 Gradient Progress Capsules in Clinical Crimson */}
             <div style={{ display: 'flex', gap: '6px' }}>
               {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div 
@@ -1351,8 +1351,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     flex: 1, 
                     height: '6px', 
                     borderRadius: '999px', 
-                    background: intakeStep >= s ? 'linear-gradient(90deg, #0D9488, #14B8A6)' : '#E4E4E7',
-                    boxShadow: intakeStep === s ? '0 0 8px rgba(13, 148, 136, 0.45)' : 'none',
+                    background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
+                    boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
                     cursor: 'pointer',
                     transition: 'all 0.25s ease'
                   }} 
@@ -1363,10 +1363,10 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* Stage Title & Status Indicator */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', paddingTop: '2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.2px' }}>
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#BE123C', letterSpacing: '0.2px' }}>
                   {STEP_META[intakeStep]?.title}
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', padding: '2px 9px', borderRadius: '999px', border: '1px solid #CCFBF1' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#BE123C', background: '#FFF1F2', padding: '2px 9px', borderRadius: '999px', border: '1px solid #FECDD3' }}>
                   {STEP_META[intakeStep]?.badge}
                 </span>
               </div>
@@ -1473,20 +1473,20 @@ AI-generated preparation material. Verify against original records; this is not 
                               gap: isMobile ? '6px' : '8px',
                               padding: isMobile ? '4px 10px 4px 6px' : '5px 12px 5px 7px',
                               borderRadius: '9999px',
-                              border: '1.5px solid #0D9488',
-                              background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                              color: '#0F766E',
+                              border: '1.5px solid #E11D48',
+                              background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
+                              color: '#BE123C',
                               fontSize: isMobile ? '12px' : '13px',
                               fontWeight: 700,
-                              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.2)',
+                              boxShadow: '0 2px 8px rgba(225, 29, 72, 0.2)',
                               whiteSpace: 'nowrap'
                             }}
                           >
                             <ClassySymptomBadge 
                               icon={IconComponent} 
-                              color1="#0D9488"
-                              color2="#14B8A6"
-                              shadow="rgba(13, 148, 136, 0.28)"
+                              color1="#E11D48"
+                              color2="#FB7185"
+                              shadow="rgba(225, 29, 72, 0.28)"
                               size={isMobile ? 18 : 20} 
                               isSelected 
                             />
@@ -1503,7 +1503,7 @@ AI-generated preparation material. Verify against original records; this is not 
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#0F766E',
+                                color: '#BE123C',
                                 marginLeft: '2px',
                                 flexShrink: 0,
                                 opacity: 0.75,
@@ -1611,10 +1611,10 @@ AI-generated preparation material. Verify against original records; this is not 
                   ].map((cat) => {
                     const tabTheme = SYMPTOM_CATEGORY_THEMES[cat.id];
                     const isActive = symptomCategoryFilter === cat.id;
-                    const activeBorder = tabTheme ? tabTheme.activeBorder : (cat.id === 'common' ? '#D97706' : '#0D9488');
-                    const activeBg = tabTheme ? tabTheme.bgStart : (cat.id === 'common' ? '#FFFBEB' : '#F0FDFA');
-                    const activeColor = tabTheme ? tabTheme.textColor : (cat.id === 'common' ? '#92400E' : '#0F766E');
-                    const activeShadow = tabTheme ? tabTheme.shadow : 'rgba(13, 148, 136, 0.2)';
+                    const activeBorder = tabTheme ? tabTheme.activeBorder : (cat.id === 'common' ? '#D97706' : '#E11D48');
+                    const activeBg = tabTheme ? tabTheme.bgStart : (cat.id === 'common' ? '#FFFBEB' : '#FFF1F2');
+                    const activeColor = tabTheme ? tabTheme.textColor : (cat.id === 'common' ? '#92400E' : '#BE123C');
+                    const activeShadow = tabTheme ? tabTheme.shadow : 'rgba(225, 29, 72, 0.2)';
                     return (
                       <button
                         key={cat.id}
@@ -1664,13 +1664,13 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)' 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? '#0F766E' : '#1C1917',
+                          color: isSelected ? '#BE123C' : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 3px 12px rgba(13, 148, 136, 0.22)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? '0 3px 12px rgba(225, 29, 72, 0.22)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
@@ -1680,9 +1680,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={Sparkles} 
                           category="systemic" 
-                          color1={isSelected ? '#0D9488' : undefined}
-                          color2={isSelected ? '#14B8A6' : undefined}
-                          shadow={isSelected ? 'rgba(13, 148, 136, 0.28)' : undefined}
+                          color1={isSelected ? '#E11D48' : undefined}
+                          color2={isSelected ? '#FB7185' : undefined}
+                          shadow={isSelected ? 'rgba(225, 29, 72, 0.28)' : undefined}
                           size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
@@ -1690,7 +1690,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#0F766E' : '#1C1917',
+                            color: isSelected ? '#BE123C' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1699,7 +1699,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '10.5px' : '11px', 
                             fontWeight: 500, 
-                            color: isSelected ? '#0D9488' : '#78716C',
+                            color: isSelected ? '#E11D48' : '#78716C',
                             display: 'block'
                           }}>
                             Custom Symptom Note
@@ -1710,14 +1710,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: '#0D9488',
+                            background: '#E11D48',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.28)'
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.28)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1759,14 +1759,14 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)' 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? '#0F766E' : '#1C1917',
+                          color: isSelected ? '#BE123C' : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? '0 3px 12px rgba(13, 148, 136, 0.22)' 
+                            ? '0 3px 12px rgba(225, 29, 72, 0.22)' 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1777,9 +1777,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={IconComp} 
                           category={sym.category} 
-                          color1={isSelected ? '#0D9488' : undefined}
-                          color2={isSelected ? '#14B8A6' : undefined}
-                          shadow={isSelected ? 'rgba(13, 148, 136, 0.28)' : undefined}
+                          color1={isSelected ? '#E11D48' : undefined}
+                          color2={isSelected ? '#FB7185' : undefined}
+                          shadow={isSelected ? 'rgba(225, 29, 72, 0.28)' : undefined}
                           size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
@@ -1787,7 +1787,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#0F766E' : '#1C1917',
+                            color: isSelected ? '#BE123C' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1797,7 +1797,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <span style={{ 
                               fontSize: isMobile ? '10.5px' : '11px', 
                               fontWeight: 500, 
-                              color: isSelected ? '#0D9488' : '#78716C',
+                              color: isSelected ? '#E11D48' : '#78716C',
                               display: 'block'
                             }}>
                               {sym.subtitle}
@@ -1809,14 +1809,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: '#0D9488',
+                            background: '#E11D48',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.28)'
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.28)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -2399,10 +2399,10 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{ 
                         width: '100%', 
                         padding: '28px 20px', 
-                        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)', 
-                        border: '2px dashed #99F6E4', 
+                        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF1F2 100%)', 
+                        border: '2px dashed #FDA4AF', 
                         borderRadius: '18px', 
-                        color: '#0F766E', 
+                        color: '#BE123C', 
                         fontWeight: 700, 
                         display: 'flex', 
                         flexDirection: 'column', 
@@ -2410,21 +2410,21 @@ AI-generated preparation material. Verify against original records; this is not 
                         gap: '12px', 
                         cursor: 'pointer', 
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 8px rgba(13, 148, 136, 0.04)'
+                        boxShadow: '0 2px 8px rgba(225, 29, 72, 0.04)'
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.borderColor = '#0D9488';
-                        e.currentTarget.style.background = '#F0FDFA';
+                        e.currentTarget.style.borderColor = '#E11D48';
+                        e.currentTarget.style.background = '#FFF1F2';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseOut={(e) => {
-                        e.currentTarget.style.borderColor = '#99F6E4';
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)';
+                        e.currentTarget.style.borderColor = '#FDA4AF';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #FFF1F2 100%)';
                         e.currentTarget.style.transform = 'none';
                       }}
                     >
-                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.15)' }}>
-                        <UploadCloud size={25} color="#0D9488" />
+                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFE4E6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.15)' }}>
+                        <UploadCloud size={25} color="#E11D48" />
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '15px', color: '#18181B', display: 'block', fontWeight: 800 }}>
@@ -2747,7 +2747,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
                       <div style={{ padding: '12px 14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0D9488', flexShrink: 0 }}>
+                          <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#FFF1F2', border: '1px solid #FECDD3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E11D48', flexShrink: 0 }}>
                             <Folder size={14} strokeWidth={2.2} />
                           </div>
                           <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>Destination Case</span>
@@ -2971,9 +2971,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           padding: '7px 14px',
                           borderRadius: '10px',
-                          border: isIsolated ? '1.5px solid #0D9488' : '1px solid #E4E4E7',
-                          background: isIsolated ? '#F0FDFA' : '#FFFFFF',
-                          color: isIsolated ? '#0F766E' : '#475569',
+                          border: isIsolated ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
+                          background: isIsolated ? '#FFF1F2' : '#FFFFFF',
+                          color: isIsolated ? '#BE123C' : '#475569',
                           fontSize: '12.5px',
                           fontWeight: 800,
                           cursor: 'pointer',
@@ -3039,9 +3039,9 @@ AI-generated preparation material. Verify against original records; this is not 
                     style={{
                       padding: '5px 12px',
                       borderRadius: '999px',
-                      background: selectedSymptoms.length > 0 ? '#F0FDFA' : '#F4F4F5',
-                      border: selectedSymptoms.length > 0 ? '1px solid #CCFBF1' : '1px solid #E4E4E7',
-                      color: selectedSymptoms.length > 0 ? '#0F766E' : '#71717A',
+                      background: selectedSymptoms.length > 0 ? '#FFF1F2' : '#F4F4F5',
+                      border: selectedSymptoms.length > 0 ? '1px solid #FECDD3' : '1px solid #E4E4E7',
+                      color: selectedSymptoms.length > 0 ? '#BE123C' : '#71717A',
                       fontSize: '12px',
                       fontWeight: 700,
                       whiteSpace: 'nowrap'
