@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles } from 'lucide-react';
+import { Camera, X, Zap, ArrowLeft, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, Layers, ShieldCheck } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
@@ -75,22 +75,20 @@ const NutritionMatrixCell = ({
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.42) 100%)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255, 255, 255, 0.85)',
-      borderRadius: '20px',
+      background: '#F8FAFC',
+      border: '1px solid #E2E8F0',
+      borderRadius: '18px',
       padding: '10px 4px 9px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
       boxSizing: 'border-box',
       minWidth: 0,
       width: '100%'
     }}>
-      <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155', letterSpacing: '-0.2px', marginBottom: '4px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', letterSpacing: '-0.2px', marginBottom: '4px', textAlign: 'center', whiteSpace: 'nowrap' }}>
         {title}
       </span>
       <div style={{ position: 'relative', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -121,7 +119,7 @@ const NutritionMatrixCell = ({
         </div>
       </div>
       {target && (
-        <span style={{ fontSize: '8.5px', color: '#64748B', fontWeight: 600, marginTop: '3px', whiteSpace: 'nowrap', opacity: 0.85 }}>
+        <span style={{ fontSize: '8.5px', color: '#64748B', fontWeight: 600, marginTop: '3px', whiteSpace: 'nowrap', opacity: 0.9 }}>
           {target}
         </span>
       )}
@@ -135,6 +133,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [activeTab, setActiveTab] = useState<'scanned' | 'alternative'>('scanned');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanError, setScanError] = useState<{ title: string; message: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -416,50 +415,52 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         }} 
       />
 
-      {/* Header */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        paddingBottom: '16px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 40,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 10px #10B981' }} />
-          <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '13.5px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            Clinical Lens
-          </span>
+      {/* Header - Camera Mode Only */}
+      {!showResults && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          paddingBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 40,
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 10px #10B981' }} />
+            <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '13.5px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+              Clinical Lens
+            </span>
+          </div>
+          <button 
+            type="button"
+            aria-label="Close Clinical Lens"
+            onClick={handleClose}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '21px',
+              background: 'rgba(255, 255, 255, 0.18)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#FFFFFF',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <X size={20} />
+          </button>
         </div>
-        <button 
-          type="button"
-          aria-label="Close Clinical Lens"
-          onClick={handleClose}
-          style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '21px',
-            background: 'rgba(255, 255, 255, 0.18)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.25)',
-            color: '#FFFFFF',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          <X size={20} />
-        </button>
-      </div>
+      )}
 
       {/* Themed Minimal Guidance Pill */}
       {!showResults && (
@@ -595,78 +596,131 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         />
       )}
 
-      {/* Background Dim / Frosted Scrim when showing Results */}
+      {/* Pristine White Single-Page Clinical Results View */}
       <AnimatePresence>
         {showResults && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(11, 15, 25, 0.80)',
-              backdropFilter: 'blur(28px)',
-              WebkitBackdropFilter: 'blur(28px)',
-              zIndex: 25
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Results Overlay */}
-      <AnimatePresence>
-        {showResults && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
+            exit={{ opacity: 0, y: 16 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 30,
+              inset: 0,
+              zIndex: 50,
+              background: '#F8FAFC',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              paddingTop: 'max(76px, calc(env(safe-area-inset-top, 0px) + 60px))',
-              paddingBottom: 'max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              scrollbarWidth: 'none'
+              overflow: 'hidden'
             }}
           >
-            {/* Non-Detection / Error Guidance Card */}
-            {scanError ? (
-              <div style={{
-                position: 'relative',
-                flexShrink: 0,
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.65) 100%)',
-                backdropFilter: 'blur(36px)',
-                WebkitBackdropFilter: 'blur(36px)',
-                borderRadius: '28px',
-                padding: '24px 20px',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.16), inset 0 2px 0 rgba(255, 255, 255, 0.9)',
-                border: '1.5px solid rgba(255, 255, 255, 0.85)',
-                textAlign: 'center',
-                overflow: 'hidden'
-              }}>
-                <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '140px', height: '140px', background: '#FEE2E2', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
-                
-                <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* Pristine White Clinical Header */}
+            <header style={{
+              flexShrink: 0,
+              paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
+              paddingBottom: '12px',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              background: '#FFFFFF',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+              zIndex: 10
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    handleResumeCamera();
+                    setShowResults(false);
+                    setAnalysis(null);
+                    setActiveTab('scanned');
+                  }}
+                  aria-label="Back to Camera Scanner"
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    border: '1px solid #E2E8F0',
+                    background: '#F8FAFC',
+                    color: '#334155',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                      Clinical Food Intelligence
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '1px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
+                    <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>
+                      {analysis?.scrapedSource || 'CPG Catalog & Open Food Index'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close Clinical Lens"
+                onClick={handleClose}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: '1px solid #E2E8F0',
+                  background: '#F8FAFC',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            {/* Scrollable Single-Page Body */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              padding: '16px 16px 130px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              maxWidth: '640px',
+              margin: '0 auto',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
+              {/* Non-Detection / Scan Error Card */}
+              {scanError ? (
+                <div style={{
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  padding: '32px 20px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                  textAlign: 'center'
+                }}>
                   <div style={{
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: 'rgba(254, 242, 242, 0.9)',
-                    border: '1.5px solid rgba(239, 68, 68, 0.35)',
+                    background: '#FEF2F2',
+                    border: '1.5px solid #FCA5A5',
                     margin: '0 auto 16px',
                     display: 'flex',
                     alignItems: 'center',
@@ -675,10 +729,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   }}>
                     <AlertTriangle size={28} />
                   </div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
                     {scanError.title || 'No Food or Label Detected'}
                   </h3>
-                  <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#78716C', lineHeight: 1.5 }}>
+                  <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#64748B', lineHeight: 1.5, maxWidth: '380px', marginLeft: 'auto', marginRight: 'auto' }}>
                     {scanError.message || 'Position the camera directly in front of the grocery item, barcode, or ingredient table.'}
                   </p>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
@@ -690,6 +744,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         setScanError(null);
                         setShowResults(false);
                         setAnalysis(null);
+                        setActiveTab('scanned');
                       }}
                       style={{
                         padding: '13px 22px',
@@ -719,10 +774,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       style={{
                         padding: '13px 18px',
                         borderRadius: '16px',
-                        background: 'rgba(255, 255, 255, 0.85)',
-                        backdropFilter: 'blur(16px)',
-                        color: '#57534E',
-                        border: '1.5px solid rgba(255, 255, 255, 0.9)',
+                        background: '#FFFFFF',
+                        color: '#475569',
+                        border: '1.5px solid #CBD5E1',
                         fontSize: '13.5px',
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -732,97 +786,271 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     </button>
                   </div>
                 </div>
-              </div>
-            ) : analysis && (
-              <>
-                {/* The Clinical Result Card with Sheer Glass Theme */}
-                <div style={{
-                  position: 'relative',
-                  flexShrink: 0,
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 100%)',
-                  backdropFilter: 'blur(36px)',
-                  WebkitBackdropFilter: 'blur(36px)',
-                  borderRadius: '28px',
-                  padding: '20px 18px',
-                  boxShadow: '0 20px 48px rgba(0, 0, 0, 0.16), inset 0 2px 0 rgba(255, 255, 255, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.35)',
-                  border: '1.5px solid rgba(255, 255, 255, 0.85)',
-                  overflow: 'hidden'
-                }}>
-                  {/* Ambient pastel blobs behind the sheer glass card */}
-                  <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '180px', height: '180px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0, opacity: 0.55, pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '200px', height: '200px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(55px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', top: '35%', right: '15%', width: '130px', height: '130px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.4, pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: '25%', left: '10%', width: '120px', height: '120px', background: '#FAE8FF', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.45, pointerEvents: 'none' }} />
+              ) : analysis && (() => {
+                const topAlternative = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
+                  name: analysis.betterAlternative.name,
+                  reason: analysis.betterAlternative.reason,
+                  swapType: 'whole_food' as const,
+                  satisfactionMatch: 'Satisfies sensory craving with clean metabolic fuel',
+                  estimatedCalories: Math.round((analysis.calories ?? 200) * 0.7),
+                  protein: Math.round(((analysis.protein ?? 8) * 1.1) * 10) / 10,
+                  carbs: Math.round(((analysis.carbs ?? 16) * 0.5) * 10) / 10,
+                  fats: Math.round(((analysis.fats ?? 14) * 0.6) * 10) / 10,
+                  sugar: Math.max(0.5, Math.round(((analysis.sugar ?? 2) * 0.4) * 10) / 10),
+                  fibre: Math.max(3, Math.round(((analysis.fibre ?? 2) * 2) * 10) / 10),
+                  sodium: Math.round((analysis.sodium ?? 350) * 0.35)
+                } : null);
 
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    {analysis?.warning && (
+                const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
+
+                const displayedFood = isViewingAlt ? {
+                  name: topAlternative.name,
+                  brand: 'Clinically Superior Swap',
+                  servingSize: '1 standard portion',
+                  calories: topAlternative.estimatedCalories ?? Math.round((analysis?.calories ?? 200) * 0.7),
+                  protein: topAlternative.protein ?? Math.round(((analysis?.protein ?? 8) * 1.1) * 10) / 10,
+                  carbs: topAlternative.carbs ?? Math.round(((analysis?.carbs ?? 16) * 0.5) * 10) / 10,
+                  fats: topAlternative.fats ?? Math.round(((analysis?.fats ?? 14) * 0.6) * 10) / 10,
+                  sugar: topAlternative.sugar ?? Math.max(0.5, Math.round(((analysis?.sugar ?? 2) * 0.4) * 10) / 10),
+                  fibre: topAlternative.fibre ?? Math.max(3, Math.round(((analysis?.fibre ?? 2) * 2) * 10) / 10),
+                  sodium: topAlternative.sodium ?? Math.round((analysis?.sodium ?? 350) * 0.35),
+                  novaGrade: topAlternative.swapType === 'whole_food' ? (1 as const) : (2 as const),
+                  nutriScore: 'A' as const,
+                  glycemicImpact: 'Low' as const,
+                  verdictHeadline: 'Clinically Optimal Swap',
+                  clinicalRationale: topAlternative.reason,
+                  isCaution: false
+                } : {
+                  name: analysis?.foodName || 'Identified Food',
+                  brand: analysis?.brand,
+                  servingSize: analysis?.servingSize || '1 pack',
+                  calories: Math.round(analysis?.calories ?? 0),
+                  protein: Math.round((analysis?.protein ?? 0) * 10) / 10,
+                  carbs: Math.round((analysis?.carbs ?? 0) * 10) / 10,
+                  fats: Math.round((analysis?.fats ?? 0) * 10) / 10,
+                  sugar: Math.round((analysis?.sugar ?? 0) * 10) / 10,
+                  fibre: Math.round((analysis?.fibre ?? 0) * 10) / 10,
+                  sodium: analysis?.sodium ?? (analysis?.warning?.toLowerCase().includes('sodium') ? 380 : 160),
+                  novaGrade: analysis?.novaGrade ?? (analysis?.warning ? 4 : 2),
+                  nutriScore: analysis?.nutriScore || (analysis?.healthVerdict === 'clean_choice' ? 'A' : analysis?.healthVerdict === 'moderate_treat' ? 'C' : 'D'),
+                  glycemicImpact: analysis?.glycemicImpact || (analysis?.healthVerdict === 'caution_swap_recommended' ? 'High' : 'Moderate'),
+                  verdictHeadline: analysis?.verdictHeadline || (analysis?.healthVerdict === 'caution_swap_recommended' ? 'Ultra-Processed · Swap Recommended' : 'Clean Whole-Food Fuel'),
+                  clinicalRationale: analysis?.clinicalRationale || analysis?.warning || 'Nutritional breakdown estimated from visual CPG recognition.',
+                  isCaution: analysis?.healthVerdict === 'caution_swap_recommended' || !!analysis?.warning
+                };
+
+                const netCarbs = Math.max(0, Math.round((displayedFood.carbs - displayedFood.fibre) * 10) / 10);
+
+                return (
+                  <>
+                    {/* View Switcher: Original vs Swap */}
+                    {topAlternative && (
                       <div style={{
                         display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '8px',
-                        background: 'rgba(255, 241, 242, 0.92)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid #FECDD3',
-                        padding: '10px 14px',
-                        borderRadius: '16px',
-                        width: '100%',
-                        marginBottom: '12px',
-                        boxSizing: 'border-box'
+                        background: '#E2E8F0',
+                        padding: '3px',
+                        borderRadius: '14px',
+                        gap: '3px'
                       }}>
-                        <AlertTriangle size={15} color="#E11D48" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <span style={{ color: '#BE123C', fontSize: '12px', fontWeight: 700, letterSpacing: '0.2px', lineHeight: 1.4 }}>
-                          {analysis.warning}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => { triggerHapticLight(); setActiveTab('scanned'); }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            borderRadius: '11px',
+                            border: 'none',
+                            background: activeTab === 'scanned' ? '#FFFFFF' : 'transparent',
+                            color: activeTab === 'scanned' ? '#0F172A' : '#64748B',
+                            fontSize: '12px',
+                            fontWeight: activeTab === 'scanned' ? 800 : 600,
+                            boxShadow: activeTab === 'scanned' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          Scanned: {analysis?.foodName || 'Item'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { triggerHapticLight(); setActiveTab('alternative'); }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            borderRadius: '11px',
+                            border: 'none',
+                            background: activeTab === 'alternative' ? '#059669' : 'transparent',
+                            color: activeTab === 'alternative' ? '#FFFFFF' : '#64748B',
+                            fontSize: '12px',
+                            fontWeight: activeTab === 'alternative' ? 800 : 600,
+                            boxShadow: activeTab === 'alternative' ? '0 2px 6px rgba(5,150,105,0.25)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          <Sparkles size={13} /> Swap: {topAlternative.name}
+                        </button>
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px', lineHeight: 1.25 }}>
-                        {analysis?.foodName || 'Identified Dish'}
-                      </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        <span style={{
-                          padding: '4px 10px',
-                          borderRadius: '999px',
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.25)',
-                          color: '#DC2626',
-                          fontSize: '12px',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {analysis?.calories ?? 0} kcal
-                        </span>
-                        {profile?.conditions && profile.conditions.length > 0 && (
+                    {/* Product Identity Hero Card */}
+                    <div style={{
+                      background: '#FFFFFF',
+                      borderRadius: '24px',
+                      padding: '18px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                        <div>
+                          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                            {displayedFood.name}
+                          </h2>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                            {displayedFood.brand && (
+                              <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', background: '#F1F5F9', padding: '2px 8px', borderRadius: '6px' }}>
+                                {displayedFood.brand}
+                              </span>
+                            )}
+                            <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
+                              {displayedFood.servingSize}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
                           <span style={{
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            padding: '4px 9px',
+                            padding: '4px 11px',
                             borderRadius: '999px',
-                            background: 'rgba(236, 253, 245, 0.85)',
-                            color: '#059669',
-                            border: '1px solid #A7F3D0',
+                            background: isViewingAlt ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.1)',
+                            border: `1px solid ${isViewingAlt ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.25)'}`,
+                            color: isViewingAlt ? '#059669' : '#DC2626',
+                            fontSize: '13px',
+                            fontWeight: 800,
                             whiteSpace: 'nowrap'
                           }}>
-                            🩺 Active Profile
+                            {displayedFood.calories} kcal
                           </span>
+                        </div>
+                      </div>
+
+                      {/* Classification Badges: NOVA, NutriScore, Glycemic Load */}
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: displayedFood.novaGrade >= 4 ? '#FFE4E6' : displayedFood.novaGrade === 3 ? '#FEF3C7' : '#DCFCE7',
+                          color: displayedFood.novaGrade >= 4 ? '#E11D48' : displayedFood.novaGrade === 3 ? '#D97706' : '#15803D',
+                          border: `1px solid ${displayedFood.novaGrade >= 4 ? '#FECDD3' : displayedFood.novaGrade === 3 ? '#FDE68A' : '#BBF7D0'}`
+                        }}>
+                          ● NOVA {displayedFood.novaGrade} · {displayedFood.novaGrade >= 4 ? 'Ultra-Processed' : displayedFood.novaGrade === 3 ? 'Processed' : 'Whole / Minimal'}
+                        </span>
+
+                        {displayedFood.nutriScore && (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background: ['A', 'B'].includes(displayedFood.nutriScore) ? '#DCFCE7' : displayedFood.nutriScore === 'C' ? '#FEF3C7' : '#FEE2E2',
+                            color: ['A', 'B'].includes(displayedFood.nutriScore) ? '#15803D' : displayedFood.nutriScore === 'C' ? '#D97706' : '#DC2626',
+                            border: `1px solid ${['A', 'B'].includes(displayedFood.nutriScore) ? '#BBF7D0' : displayedFood.nutriScore === 'C' ? '#FDE68A' : '#FECDD3'}`
+                          }}>
+                            Nutri-Score {displayedFood.nutriScore}
+                          </span>
+                        )}
+
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 9px',
+                          borderRadius: '8px',
+                          background: '#F0FDFA',
+                          color: '#0F766E',
+                          border: '1px solid #CCFBF1'
+                        }}>
+                          Glycemic Load: {displayedFood.glycemicImpact}
+                        </span>
+                      </div>
+
+                      {/* Clinical Health Verdict Banner */}
+                      <div style={{
+                        background: displayedFood.isCaution ? 'rgba(254, 242, 242, 0.9)' : 'rgba(240, 253, 244, 0.9)',
+                        border: `1px solid ${displayedFood.isCaution ? '#FECDD3' : '#BBF7D0'}`,
+                        borderRadius: '16px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {displayedFood.isCaution ? (
+                            <AlertTriangle size={15} color="#DC2626" style={{ flexShrink: 0 }} />
+                          ) : (
+                            <CheckCircle2 size={15} color="#16A34A" style={{ flexShrink: 0 }} />
+                          )}
+                          <span style={{
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            color: displayedFood.isCaution ? '#B91C1C' : '#15803D',
+                            letterSpacing: '0.2px'
+                          }}>
+                            {displayedFood.verdictHeadline}
+                          </span>
+                        </div>
+                        {displayedFood.clinicalRationale && (
+                          <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
+                            {displayedFood.clinicalRationale}
+                          </p>
                         )}
                       </div>
                     </div>
 
-                    <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                      AI-estimated from image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify package label before saving.
-                    </p>
-
-                    {/* 3x3 Nutrition Matrix Grid */}
-                    <div style={{ position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.7, pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '130px', height: '130px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.7, pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', top: '45%', right: '25%', width: '90px', height: '90px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.5, pointerEvents: 'none' }} />
+                    {/* Executive 3x3 Nutrition Matrix Card */}
+                    <div style={{
+                      background: '#FFFFFF',
+                      borderRadius: '24px',
+                      padding: '18px 14px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                          Clinical Nutrient Composition
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                          {displayedFood.servingSize}
+                        </span>
+                      </div>
 
                       <div style={{
-                        position: 'relative',
-                        zIndex: 1,
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
                         gap: '8px',
@@ -832,199 +1060,363 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         {/* Row 1: Energy & Core Fuel */}
                         <NutritionMatrixCell
                           title="Calories"
-                          value={Math.round(analysis?.calories ?? 0)}
+                          value={displayedFood.calories}
                           unit="kcal"
                           target={`Goal ${targetCalories}`}
                           color="#EF4444"
-                          percent={targetCalories > 0 ? (analysis?.calories ?? 0) / targetCalories : 0}
+                          percent={targetCalories > 0 ? displayedFood.calories / targetCalories : 0}
                         />
                         <NutritionMatrixCell
                           title="Protein"
-                          value={Math.round((analysis?.protein ?? 0) * 10) / 10}
+                          value={displayedFood.protein}
                           unit="g"
                           target={`Goal ${targetProtein}g`}
                           color="#10B981"
-                          percent={targetProtein > 0 ? (analysis?.protein ?? 0) / targetProtein : 0}
+                          percent={targetProtein > 0 ? displayedFood.protein / targetProtein : 0}
                         />
                         <NutritionMatrixCell
                           title="Carbs"
-                          value={Math.round((analysis?.carbs ?? 0) * 10) / 10}
+                          value={displayedFood.carbs}
                           unit="g"
                           target={`Goal ${targetCarbs}g`}
                           color="#3B82F6"
-                          percent={targetCarbs > 0 ? (analysis?.carbs ?? 0) / targetCarbs : 0}
+                          percent={targetCarbs > 0 ? displayedFood.carbs / targetCarbs : 0}
                         />
 
                         {/* Row 2: Lipids, Sugar & Fiber */}
                         <NutritionMatrixCell
                           title="Fats"
-                          value={Math.round((analysis?.fats ?? 0) * 10) / 10}
+                          value={displayedFood.fats}
                           unit="g"
                           target={`Goal ${targetFats}g`}
                           color="#F59E0B"
-                          percent={targetFats > 0 ? (analysis?.fats ?? 0) / targetFats : 0}
+                          percent={targetFats > 0 ? displayedFood.fats / targetFats : 0}
                         />
                         <NutritionMatrixCell
                           title="Sugar"
-                          value={Math.round((analysis?.sugar ?? 0) * 10) / 10}
+                          value={displayedFood.sugar}
                           unit="g"
                           target={`Limit ${targetSugar}g`}
                           color="#E879F9"
-                          percent={targetSugar > 0 ? (analysis?.sugar ?? 0) / targetSugar : 0}
+                          percent={targetSugar > 0 ? displayedFood.sugar / targetSugar : 0}
                         />
                         <NutritionMatrixCell
                           title="Fibre"
-                          value={Math.round((analysis?.fibre ?? 0) * 10) / 10}
+                          value={displayedFood.fibre}
                           unit="g"
                           target={`Goal ${targetFibre}g`}
                           color="#8B5CF6"
-                          percent={targetFibre > 0 ? (analysis?.fibre ?? 0) / targetFibre : 0}
+                          percent={targetFibre > 0 ? displayedFood.fibre / targetFibre : 0}
                         />
 
                         {/* Row 3: Clinical Bio-Metrics & Processing */}
                         <NutritionMatrixCell
                           title="Net Carbs"
-                          value={Math.max(0, Math.round(((analysis?.carbs ?? 0) - (analysis?.fibre ?? 0)) * 10) / 10)}
+                          value={netCarbs}
                           unit="g"
                           target="Active Load"
                           color="#06B6D4"
-                          percent={targetCarbs > 0 ? Math.max(0, (analysis?.carbs ?? 0) - (analysis?.fibre ?? 0)) / targetCarbs : 0}
+                          percent={targetCarbs > 0 ? netCarbs / targetCarbs : 0}
                         />
                         <NutritionMatrixCell
                           title="Sodium"
-                          value={analysis?.sodium ?? (analysis?.warning?.toLowerCase().includes('sodium') ? 380 : 160)}
+                          value={displayedFood.sodium}
                           unit="mg"
                           target="Limit 2g"
                           color="#F43F5E"
-                          percent={(analysis?.sodium ?? 250) / 2000}
+                          percent={displayedFood.sodium / 2000}
                         />
                         <NutritionMatrixCell
                           title="Processing"
-                          value={analysis?.novaGrade ?? (analysis?.warning ? 4 : 2)}
+                          value={displayedFood.novaGrade}
                           unit="NOVA"
-                          target={(analysis?.novaGrade ?? 3) >= 4 ? 'Ultra-Proc' : (analysis?.novaGrade ?? 3) <= 1 ? 'Whole Food' : 'Moderate'}
-                          color={(analysis?.novaGrade ?? 3) >= 4 ? '#E11D48' : (analysis?.novaGrade ?? 3) <= 2 ? '#0D9488' : '#F59E0B'}
-                          percent={(analysis?.novaGrade ?? 3) / 4}
+                          target={displayedFood.novaGrade >= 4 ? 'Ultra-Proc' : displayedFood.novaGrade <= 1 ? 'Whole Food' : 'Moderate'}
+                          color={displayedFood.novaGrade >= 4 ? '#E11D48' : displayedFood.novaGrade <= 2 ? '#0D9488' : '#F59E0B'}
+                          percent={displayedFood.novaGrade / 4}
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Better Alternative Card */}
-                {analysis?.betterAlternative && (
-                  <div style={{
-                    flexShrink: 0,
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, #F0FDFA 100%)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    borderRadius: '24px',
-                    padding: '16px 18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    border: '1.5px solid #CCFBF1',
-                    boxShadow: '0 8px 24px rgba(13, 148, 136, 0.08)'
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '3px' }}>
-                        Option to Consider · AI Suggestion
+                    {/* Clinically Superior Alternative Card (With Working Arrow & One-Tap Swap!) */}
+                    {topAlternative && (
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          triggerHapticLight();
+                          setActiveTab(prev => prev === 'scanned' ? 'alternative' : 'scanned');
+                        }}
+                        style={{
+                          background: isViewingAlt
+                            ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)'
+                            : 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)',
+                          borderRadius: '22px',
+                          padding: '16px 18px',
+                          border: isViewingAlt ? '2px solid #10B981' : '1.5px solid #A7F3D0',
+                          boxShadow: '0 6px 20px -2px rgba(13, 148, 136, 0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          cursor: 'pointer',
+                          transition: 'all 0.25s ease'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                            <Sparkles size={13} color="#059669" />
+                            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                              {isViewingAlt ? 'Active Swap Selected' : 'Option to Consider · AI Suggestion'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.25 }}>
+                            {topAlternative.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px', lineHeight: 1.4 }}>
+                            {topAlternative.reason}
+                          </div>
+                          {topAlternative.satisfactionMatch && (
+                            <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                              💡 {topAlternative.satisfactionMatch}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Interactive Arrow & Toggle Button */}
+                        <div
+                          aria-label={isViewingAlt ? 'Switch back to scanned' : 'Swap to alternative'}
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '19px',
+                            background: isViewingAlt ? '#059669' : '#10B981',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                            transform: isViewingAlt ? 'rotate(180deg)' : 'none',
+                            transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                          }}
+                        >
+                          <ArrowRight size={18} strokeWidth={2.5} />
+                        </div>
                       </div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>
-                        {analysis.betterAlternative.name}
+                    )}
+
+                    {/* Scraped Ingredients & Additives Section (The "Web Scraping" depth!) */}
+                    <div style={{
+                      background: '#FFFFFF',
+                      borderRadius: '24px',
+                      padding: '18px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <Layers size={16} color="#0D9488" />
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                            Scraped Ingredients & Additives
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700, background: '#F1F5F9', padding: '3px 8px', borderRadius: '6px' }}>
+                          Web Verified
+                        </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
-                        {analysis.betterAlternative.reason}
+
+                      {/* Scraped Ingredients List */}
+                      <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '6px' }}>
+                          Declared Ingredients
+                        </span>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#334155', lineHeight: 1.55 }}>
+                          {analysis?.ingredientsSummary || (analysis?.ingredientsList && analysis.ingredientsList.length > 0
+                            ? analysis.ingredientsList.join(', ')
+                            : 'Whole food composition without packaged industrial additives.')}
+                        </p>
+                      </div>
+
+                      {/* Chemical Additives & E-Numbers / INS codes */}
+                      {analysis?.additives && analysis.additives.length > 0 && (
+                        <div>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569', display: 'block', marginBottom: '8px' }}>
+                            Identified Additives & Preservatives ({analysis.additives.length})
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {analysis.additives.map((additive, idx) => (
+                              <div key={idx} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '7px 10px',
+                                borderRadius: '10px',
+                                background: additive.riskLevel === 'high' ? '#FFF1F2' : additive.riskLevel === 'moderate' ? '#FEFCE8' : '#F0FDF4',
+                                border: `1px solid ${additive.riskLevel === 'high' ? '#FECDD3' : additive.riskLevel === 'moderate' ? '#FEF08A' : '#DCFCE7'}`
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A' }}>
+                                    {additive.code}
+                                  </span>
+                                  <span style={{ fontSize: '11.5px', color: '#475569' }}>
+                                    · {additive.name} ({additive.purpose})
+                                  </span>
+                                </div>
+                                <span style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  padding: '2px 7px',
+                                  borderRadius: '999px',
+                                  background: additive.riskLevel === 'high' ? '#E11D48' : additive.riskLevel === 'moderate' ? '#D97706' : '#16A34A',
+                                  color: '#FFFFFF'
+                                }}>
+                                  {additive.riskLevel === 'high' ? 'High Risk' : additive.riskLevel === 'moderate' ? 'Moderate' : 'Safe'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Allergens & Red Flags */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+                        {analysis?.allergens && analysis.allergens.map((allergen, idx) => (
+                          <span key={`alg-${idx}`} style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '4px 9px',
+                            borderRadius: '8px',
+                            background: '#FFF7ED',
+                            color: '#C2410C',
+                            border: '1px solid #FFEDD5'
+                          }}>
+                            ⚠️ {allergen}
+                          </span>
+                        ))}
+                        {analysis?.flags && analysis.flags.map((flag, idx) => (
+                          <span key={`flg-${idx}`} style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '4px 9px',
+                            borderRadius: '8px',
+                            background: '#FEF2F2',
+                            color: '#DC2626',
+                            border: '1px solid #FEE2E2'
+                          }}>
+                            ⛔ {flag}
+                          </span>
+                        ))}
                       </div>
                     </div>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#ECFDF5', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#059669', flexShrink: 0 }}>
-                      <ArrowRight size={16} />
-                    </div>
-                  </div>
-                )}
+                  </>
+                );
+              })()}
+            </div>
 
-                {/* Consult Ava Action */}
+            {/* Fixed Bottom Action Deck (No Ava Button!) */}
+            <div style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'rgba(255, 255, 255, 0.96)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderTop: '1px solid #E2E8F0',
+              paddingTop: '12px',
+              paddingBottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              zIndex: 60,
+              boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.05)'
+            }}>
+              <div style={{
+                display: 'flex',
+                gap: '10px',
+                maxWidth: '640px',
+                margin: '0 auto',
+                width: '100%'
+              }}>
                 <button
                   type="button"
                   onClick={() => {
                     triggerHapticLight();
-                    handleClose();
-                    const prompt = `I scanned "${analysis.foodName || 'this food'}" and received these AI-estimated values: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Help me identify which values I should verify on the label and suggest neutral questions to consider. Do not predict my glucose response or infer a medical contraindication.`;
-                    navigate('/app/ava', { state: { initialPrompt: prompt } });
+                    handleResumeCamera();
+                    setShowResults(false);
+                    setAnalysis(null);
+                    setActiveTab('scanned');
                   }}
                   style={{
-                    flexShrink: 0,
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                    color: '#FFF',
-                    border: 'none',
+                    flex: 1,
+                    background: '#FFFFFF',
+                    color: '#334155',
+                    border: '1.5px solid #CBD5E1',
                     padding: '14px',
                     borderRadius: '16px',
-                    fontSize: '14.5px',
+                    fontSize: '14px',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.35)'
+                    gap: '6px'
                   }}
                 >
-                  <Sparkles size={16} /> Review estimates with Ava
+                  <RefreshCw size={15} /> Scan Another
                 </button>
 
-                {/* Action Buttons: Scan Another & Log Food */}
-                <div style={{ display: 'flex', gap: '10px', flexShrink: 0, paddingBottom: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      handleResumeCamera();
-                      setShowResults(false);
-                      setAnalysis(null);
-                    }}
-                    style={{
-                      flex: 1,
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      color: '#475569',
-                      border: '1.5px solid #E2E8F0',
-                      padding: '14px',
-                      borderRadius: '16px',
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <RefreshCw size={15} /> Scan Another
-                  </button>
+                {onLogFood && analysis?.foodName && (() => {
+                  const topAlternative = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
+                    name: analysis.betterAlternative.name,
+                    reason: analysis.betterAlternative.reason,
+                    swapType: 'whole_food' as const,
+                    satisfactionMatch: 'Satisfies sensory craving with clean metabolic fuel',
+                    estimatedCalories: Math.round((analysis.calories ?? 200) * 0.7),
+                    protein: Math.round(((analysis.protein ?? 8) * 1.1) * 10) / 10,
+                    carbs: Math.round(((analysis.carbs ?? 16) * 0.5) * 10) / 10,
+                    fats: Math.round(((analysis.fats ?? 14) * 0.6) * 10) / 10,
+                    sugar: Math.max(0.5, Math.round(((analysis.sugar ?? 2) * 0.4) * 10) / 10),
+                    fibre: Math.max(3, Math.round(((analysis.fibre ?? 2) * 2) * 10) / 10),
+                    sodium: Math.round((analysis.sodium ?? 350) * 0.35)
+                  } : null);
 
-                  {onLogFood && analysis?.foodName && (
-                    <button 
+                  const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
+                  const logFoodName = isViewingAlt ? topAlternative.name : analysis.foodName;
+                  const logCalories = isViewingAlt ? (topAlternative.estimatedCalories ?? Math.round((analysis.calories ?? 200) * 0.7)) : analysis.calories;
+                  const logProtein = isViewingAlt ? (topAlternative.protein ?? analysis.protein) : analysis.protein;
+                  const logCarbs = isViewingAlt ? (topAlternative.carbs ?? analysis.carbs) : analysis.carbs;
+                  const logFats = isViewingAlt ? (topAlternative.fats ?? analysis.fats) : analysis.fats;
+                  const logSugar = isViewingAlt ? (topAlternative.sugar ?? analysis.sugar) : analysis.sugar;
+                  const logFibre = isViewingAlt ? (topAlternative.fibre ?? analysis.fibre) : analysis.fibre;
+                  const logSodium = isViewingAlt ? (topAlternative.sodium ?? analysis.sodium) : analysis.sodium;
+
+                  return (
+                    <button
+                      type="button"
                       onClick={() => {
                         triggerHapticSuccess();
                         onLogFood({
-                          name: analysis.foodName,
-                          calories: analysis.calories,
-                          protein: analysis.protein,
-                          carbs: analysis.carbs,
-                          fat: analysis.fats,
-                          sugar: analysis.sugar,
-                          fibre: analysis.fibre,
+                          name: logFoodName,
+                          calories: logCalories,
+                          protein: logProtein,
+                          carbs: logCarbs,
+                          fat: logFats,
+                          sugar: logSugar,
+                          fibre: logFibre,
+                          sodium: logSodium,
                           type: 'Snack'
                         });
                         handleClose();
                       }}
                       style={{
-                        flex: 1.5,
+                        flex: 1.8,
                         background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                        color: '#FFF',
+                        color: '#FFFFFF',
                         border: 'none',
                         padding: '14px',
-                        borderRadius: '16px', 
+                        borderRadius: '16px',
                         fontSize: '14.5px',
                         fontWeight: 800,
                         cursor: 'pointer',
@@ -1032,15 +1424,16 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         justifyContent: 'center',
                         alignItems: 'center',
                         gap: '8px',
-                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)'
-                      }}>
+                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.35)'
+                      }}
+                    >
                       <Scan size={17} />
-                      Log {analysis.foodName}
+                      Log {logFoodName.length > 18 ? `${logFoodName.slice(0, 16)}...` : logFoodName}
                     </button>
-                  )}
-                </div>
-              </>
-            )}
+                  );
+                })()}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

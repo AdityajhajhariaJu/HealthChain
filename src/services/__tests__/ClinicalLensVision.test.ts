@@ -82,6 +82,83 @@ describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
     expect(result.betterAlternative?.name).toBe('Herb Roasted Makhana');
   });
 
+  it('correctly maps web-scraped ingredients, chemical additives, and Nutri-Score ratings', async () => {
+    const mockScrapedResponse = {
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  detected: true,
+                  foodName: 'Karare Peanuts',
+                  brand: "Haldiram's",
+                  servingSize: '1 pack (40g)',
+                  calories: 220,
+                  protein: 8.0,
+                  carbs: 16.0,
+                  fats: 14.0,
+                  sugar: 2.0,
+                  fibre: 2.0,
+                  sodium: 380,
+                  healthVerdict: 'caution_swap_recommended',
+                  verdictHeadline: 'Ultra-Processed · High Sodium & Inflammatory Fats',
+                  clinicalRationale: 'Contains palm oil coating and 380mg sodium per pack. Spikes blood pressure and gut inflammation.',
+                  novaGrade: 4,
+                  nutriScore: 'D',
+                  glycemicImpact: 'High',
+                  flags: ['Palm Oil', 'Refined Maida', 'High Sodium'],
+                  ingredientsList: ['Peanuts (65%)', 'Palmolein Oil', 'Refined Wheat Flour (Maida)', 'Spices & Condiments', 'Iodised Salt', 'Acidity Regulator (INS 330)'],
+                  additives: [
+                    { code: 'INS 330', name: 'Citric Acid', purpose: 'Acidity Regulator', riskLevel: 'low' },
+                    { code: 'INS 627', name: 'Disodium Guanylate', purpose: 'Flavor Enhancer', riskLevel: 'moderate' }
+                  ],
+                  allergens: ['Peanuts', 'Gluten (Wheat)'],
+                  betterAlternatives: [
+                    {
+                      name: 'Dry Roasted Salted Peanuts',
+                      swapType: 'whole_food',
+                      reason: 'Zero palm oil, 60% less sodium, no maida coating',
+                      satisfactionMatch: 'Same savory, crunchy peanut bite',
+                      estimatedCalories: 160,
+                      protein: 7.5,
+                      carbs: 6,
+                      fats: 12,
+                      sugar: 1,
+                      fibre: 3,
+                      sodium: 120
+                    }
+                  ]
+                })
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockScrapedResponse
+    } as any);
+
+    const result = await analyzeFoodImage('data:image/jpeg;base64,mockKarare', {
+      conditions: ['Hypertension'],
+      healthFocus: 'Cardiovascular Health'
+    });
+
+    expect(result.detected).toBe(true);
+    expect(result.foodName).toBe('Karare Peanuts');
+    expect(result.sodium).toBe(380);
+    expect(result.nutriScore).toBe('D');
+    expect(result.glycemicImpact).toBe('High');
+    expect(result.ingredientsList?.length).toBe(6);
+    expect(result.additives?.length).toBe(2);
+    expect(result.additives?.[0].code).toBe('INS 330');
+    expect(result.allergens).toContain('Peanuts');
+    expect(result.betterAlternatives?.[0].sodium).toBe(120);
+  });
+
   it('handles non-food detection gracefully', async () => {
     const mockModelResponse = {
       candidates: [
