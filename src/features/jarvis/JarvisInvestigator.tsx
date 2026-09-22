@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { 
@@ -1247,9 +1248,7 @@ AI-generated preparation material. Verify against original records; this is not 
         style={{ 
           width: '100%', 
           maxWidth: '920px', 
-          background: 'rgba(255, 255, 255, 0.98)', 
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          background: '#FFFFFF', 
           borderRadius: '24px', 
           boxShadow: '0 20px 60px -15px rgba(225, 29, 72, 0.05), 0 1px 3px rgba(0,0,0,0.02)', 
           border: '1.5px solid rgba(228, 228, 231, 0.9)', 
@@ -1868,74 +1867,6 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 )}
 
-                {/* Step 1 Action Bar - Permanently Docked at Bottom */}
-                <div 
-                  style={{ 
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 50,
-                    background: 'rgba(255, 255, 255, 0.96)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    borderTop: '1px solid rgba(228, 228, 231, 0.9)',
-                    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.07)',
-                    padding: isMobile ? '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))' : '14px 24px',
-                    display: 'flex',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <div 
-                    style={{ 
-                      width: '100%', 
-                      maxWidth: '920px', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: isMobile ? 'center' : 'space-between', 
-                      gap: '16px' 
-                    }}
-                  >
-                    {!isMobile && (
-                      <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
-                        Step 1 of 6 · Choose symptoms to personalize your clinical review
-                      </span>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setIntakeStep(2);
-                      }}
-                      style={{
-                        width: isMobile ? '100%' : 'auto',
-                        minWidth: isMobile ? '100%' : '260px',
-                        padding: isMobile ? '14px 24px' : '13px 28px',
-                        borderRadius: '14px',
-                        background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: isMobile ? '15px' : '15px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span>
-                        {selectedSymptoms.length > 0 
-                          ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
-                          : 'Next: Timeline (Step 2)'}
-                      </span>
-                      <ArrowRight size={17} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2075,89 +2006,6 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 </div>
 
-                {/* Step 2 Action Bar */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '12px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setIntakeStep(1);
-                    }}
-                    style={{
-                      padding: '11px 18px',
-                      borderRadius: '12px',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      fontWeight: 700,
-                      fontSize: '13.5px',
-                      border: '1px solid #E4E4E7',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to Symptoms
-                  </button>
-
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setIntakeStep(3);
-                      }}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: '#FFF1F2',
-                        color: '#BE123C',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: '1.5px solid #FECDD3',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span>Next: Pattern (Step 3)</span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleRunInvestigation}
-                      disabled={isReadingFiles || (!history.trim() && !files.length)}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: 'none',
-                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Sparkles size={15} />
-                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2291,89 +2139,6 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 </div>
 
-                {/* Step 3 Action Bar */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '12px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setIntakeStep(2);
-                    }}
-                    style={{
-                      padding: '11px 18px',
-                      borderRadius: '12px',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      fontWeight: 700,
-                      fontSize: '13.5px',
-                      border: '1px solid #E4E4E7',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to Timeline
-                  </button>
-
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setIntakeStep(4);
-                      }}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: '#FFF1F2',
-                        color: '#BE123C',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: '1.5px solid #FECDD3',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span>Next: Tell Your Story (Step 4)</span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleRunInvestigation}
-                      disabled={isReadingFiles || (!history.trim() && !files.length)}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: 'none',
-                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Sparkles size={15} />
-                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2548,89 +2313,6 @@ AI-generated preparation material. Verify against original records; this is not 
                   />
                 </div>
 
-                {/* Step 4 Action Bar */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '12px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setIntakeStep(3);
-                    }}
-                    style={{
-                      padding: '11px 18px',
-                      borderRadius: '12px',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      fontWeight: 700,
-                      fontSize: '13.5px',
-                      border: '1px solid #E4E4E7',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to Pattern
-                  </button>
-
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setIntakeStep(5);
-                      }}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: '#FFF1F2',
-                        color: '#BE123C',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: '1.5px solid #FECDD3',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span>Next: Add Evidence (Step 5)</span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleRunInvestigation}
-                      disabled={isReadingFiles || (!history.trim() && !files.length)}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: 'none',
-                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Sparkles size={15} />
-                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2947,90 +2629,6 @@ AI-generated preparation material. Verify against original records; this is not 
                       </div>
                     );
                   })()}
-                </div>
-
-                {/* Step 2 Action Bar */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '12px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setIntakeStep(4);
-                    }}
-                    style={{
-                      padding: '11px 18px',
-                      borderRadius: '12px',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      fontWeight: 700,
-                      fontSize: '13.5px',
-                      border: '1px solid #E4E4E7',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to Story
-                  </button>
-
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setIntakeStep(6);
-                      }}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: '#FFF1F2',
-                        color: '#BE123C',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: '1.5px solid #FECDD3',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <span>Next: Scope & Run (Step 6)</span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleRunInvestigation}
-                      disabled={isReadingFiles || (!history.trim() && !files.length)}
-                      style={{
-                        padding: '11px 22px',
-                        borderRadius: '12px',
-                        background: (isReadingFiles || (!history.trim() && !files.length)) ? '#E4E4E7' : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                        color: (isReadingFiles || (!history.trim() && !files.length)) ? '#A1A1AA' : '#FFFFFF',
-                        fontWeight: 800,
-                        fontSize: '13.5px',
-                        border: 'none',
-                        cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: (isReadingFiles || (!history.trim() && !files.length)) ? 'none' : '0 6px 18px rgba(225, 29, 72, 0.3)',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Sparkles size={15} />
-                      <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
@@ -3350,85 +2948,377 @@ AI-generated preparation material. Verify against original records; this is not 
                     </div>
                   )}
                 </div>
-
-                {/* Step 3 Action Bar & Primary Launch CTA */}
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    flexWrap: 'wrap', 
-                    gap: '14px', 
-                    paddingTop: '16px', 
-                    borderTop: '1px solid #F4F4F5' 
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setIntakeStep(5);
-                    }}
-                    style={{
-                      padding: '14px 20px',
-                      borderRadius: '14px',
-                      background: '#FFFFFF',
-                      color: '#475569',
-                      fontWeight: 700,
-                      fontSize: '14px',
-                      border: '1px solid #E4E4E7',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ← Back to Evidence
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleRunInvestigation}
-                    disabled={isReadingFiles || (!history.trim() && !files.length)}
-                    style={{
-                      flex: '1 1 280px',
-                      padding: '16px 28px',
-                      borderRadius: '16px',
-                      border: 'none',
-                      background: (isReadingFiles || (!history.trim() && !files.length))
-                        ? '#E4E4E7'
-                        : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
-                      color: (isReadingFiles || (!history.trim() && !files.length))
-                        ? '#A1A1AA'
-                        : '#FFFFFF',
-                      fontSize: '15.5px',
-                      fontWeight: 800,
-                      cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      boxShadow: (isReadingFiles || (!history.trim() && !files.length))
-                        ? 'none'
-                        : '0 10px 30px -4px rgba(225, 29, 72, 0.4)',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseDown={(e) => {
-                      if (!isReadingFiles && (history.trim() || files.length)) {
-                        e.currentTarget.style.transform = 'scale(0.99)';
-                      }
-                    }}
-                    onMouseUp={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <Sparkles size={18} />
-                    <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
               </div>
             )}
 
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* ALWAYS-ON-DISPLAY FLOATING ACTION DOCK (PORTAL TO DOCUMENT.BODY)          */}
+      {/* Pinned to viewport bottom across all scroll states on mobile & desktop    */}
+      {/* ========================================================================= */}
+      {typeof document !== 'undefined' && document.body && createPortal(
+        <div
+          id="jarvis-always-on-display-dock"
+          role="region"
+          aria-label="Action Navigation Dock"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            background: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(226, 232, 240, 0.85)',
+            boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.07), 0 -1px 3px rgba(0, 0, 0, 0.04)',
+            padding: isMobile ? '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))' : '14px 24px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            pointerEvents: 'auto'
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '920px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}
+          >
+            {intakeStep === 1 && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <div
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '999px',
+                      background: selectedSymptoms.length > 0 ? '#FFF1F2' : '#F4F4F5',
+                      border: selectedSymptoms.length > 0 ? '1px solid #FECDD3' : '1px solid #E4E4E7',
+                      color: selectedSymptoms.length > 0 ? '#BE123C' : '#71717A',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {selectedSymptoms.length > 0
+                      ? `${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'} selected`
+                      : 'Step 1 of 6'}
+                  </div>
+                  {!isMobile && (
+                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      Choose symptoms or proceed directly to clinical timeline
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(2);
+                  }}
+                  style={{
+                    width: isMobile ? 'auto' : 'auto',
+                    minWidth: isMobile ? '180px' : '260px',
+                    padding: isMobile ? '12px 20px' : '12px 28px',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: isMobile ? '14px' : '15px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '9px',
+                    boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0
+                  }}
+                >
+                  <span>
+                    {selectedSymptoms.length > 0
+                      ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
+                      : 'Next: Timeline (Step 2)'}
+                  </span>
+                  <ArrowRight size={17} strokeWidth={2.5} />
+                </button>
+              </>
+            )}
+
+            {intakeStep === 2 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(1);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    borderRadius: '12px',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    border: '1px solid #E4E4E7',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ← Back to Symptoms
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(3);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>Next: Pattern (Step 3)</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+
+            {intakeStep === 3 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(2);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    borderRadius: '12px',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    border: '1px solid #E4E4E7',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ← Back to Timeline
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(4);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>Next: Tell Your Story (Step 4)</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+
+            {intakeStep === 4 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(3);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    borderRadius: '12px',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    border: '1px solid #E4E4E7',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ← Back to Pattern
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(5);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>Next: Add Evidence (Step 5)</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+
+            {intakeStep === 5 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(4);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    borderRadius: '12px',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    border: '1px solid #E4E4E7',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ← Back to Story
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(6);
+                  }}
+                  style={{
+                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>Next: Scope & Run (Step 6)</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+
+            {intakeStep === 6 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setIntakeStep(5);
+                  }}
+                  style={{
+                    padding: isMobile ? '12px 16px' : '13px 20px',
+                    borderRadius: '14px',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontWeight: 700,
+                    fontSize: '13.5px',
+                    border: '1px solid #E4E4E7',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ← Back to Evidence
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRunInvestigation}
+                  disabled={isReadingFiles || (!history.trim() && !files.length)}
+                  style={{
+                    flex: isMobile ? '1 1 auto' : '0 1 340px',
+                    padding: isMobile ? '13px 18px' : '13px 28px',
+                    borderRadius: '14px',
+                    border: 'none',
+                    background: (isReadingFiles || (!history.trim() && !files.length))
+                      ? '#E4E4E7'
+                      : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    color: (isReadingFiles || (!history.trim() && !files.length))
+                      ? '#A1A1AA'
+                      : '#FFFFFF',
+                    fontSize: isMobile ? '14px' : '15px',
+                    fontWeight: 800,
+                    cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '9px',
+                    boxShadow: (isReadingFiles || (!history.trim() && !files.length))
+                      ? 'none'
+                      : '0 8px 24px rgba(225, 29, 72, 0.38)',
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <Sparkles size={17} />
+                  <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
+                  <ArrowRight size={17} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
 
       {sourceModalData && (
         <SourcePassageModal
