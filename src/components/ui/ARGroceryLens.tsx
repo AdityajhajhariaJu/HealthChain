@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, ShieldCheck, Leaf } from 'lucide-react';
-import { getProfile } from '../../services/ProfileEngine';
+import { getProfile, addNutritionLog } from '../../services/ProfileEngine';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -1237,44 +1237,61 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         </div>
 
                         {/* One-tap Log Alternative Action */}
-                        {onLogFood && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              triggerHapticSuccess();
-                              onLogFood({
-                                name: alt.name,
-                                calories: alt.estimatedCalories || Math.round((analysis?.calories || 200) * 0.6),
-                                protein: alt.protein || 4,
-                                carbs: alt.carbs || 15,
-                                fat: alt.fats || 3,
-                                sugar: alt.sugar || 1,
-                                fibre: alt.fibre || 3,
-                                type: 'Snack'
-                              });
-                              awardPoints(15, 'Chose Smart Alternative 🌟', 'lifestyle');
-                              handleClose();
-                            }}
-                            style={{
-                              width: '100%',
-                              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              padding: '9px 14px',
-                              borderRadius: '12px',
-                              fontSize: '12.5px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                              boxShadow: '0 3px 10px rgba(5, 150, 105, 0.25)'
-                            }}
-                          >
-                            <Sparkles size={14} /> Log Healthy Swap Instead (+15 pts)
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticSuccess();
+                            const itemToLog = {
+                              name: alt.name,
+                              calories: alt.estimatedCalories || Math.round((analysis?.calories || 200) * 0.6),
+                              protein: alt.protein || 4,
+                              carbs: alt.carbs || 15,
+                              fat: alt.fats || 3,
+                              sugar: alt.sugar || 1,
+                              fibre: alt.fibre || 3,
+                              type: 'Snack'
+                            };
+                            if (onLogFood) {
+                              onLogFood(itemToLog);
+                            } else {
+                              try {
+                                addNutritionLog({
+                                  meal: itemToLog.name,
+                                  calories: itemToLog.calories,
+                                  protein: itemToLog.protein,
+                                  carbs: itemToLog.carbs,
+                                  fat: itemToLog.fat,
+                                  sugar: itemToLog.sugar,
+                                  fibre: itemToLog.fibre,
+                                  type: itemToLog.type,
+                                  date: new Date().toISOString().split('T')[0]
+                                });
+                              } catch (e) {
+                                console.warn('Failed to add nutrition log:', e);
+                              }
+                            }
+                            awardPoints(15, 'Chose Smart Alternative 🌟', 'lifestyle');
+                            handleClose();
+                          }}
+                          style={{
+                            width: '100%',
+                            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '9px 14px',
+                            borderRadius: '12px',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            boxShadow: '0 3px 10px rgba(5, 150, 105, 0.25)'
+                          }}
+                        >
+                          <Sparkles size={14} /> Log Healthy Swap Instead (+15 pts)
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1286,7 +1303,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   onClick={() => {
                     triggerHapticLight();
                     handleClose();
-                    const prompt = `I scanned "${analysis.foodName || 'this food'}" and received these AI-estimated values: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Help me identify which values I should verify on the label and suggest neutral questions to consider. Do not predict my glucose response or infer a medical contraindication.`;
+                    const prompt = `Hi Ava, I just scanned "${analysis.foodName || 'this food'}" in the grocery aisle: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Does this food spike insulin or conflict with my active metabolic profile, glycemic goals, and condition history?`;
                     navigate('/app/ava', { state: { initialPrompt: prompt } });
                   }}
                   style={{
@@ -1338,19 +1355,41 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     <RefreshCw size={15} /> Scan Another
                   </button>
 
-                  {onLogFood && analysis?.foodName && (
+                  {analysis?.foodName && (
                     <button 
                       onClick={() => {
-                        onLogFood({
+                        triggerHapticSuccess();
+                        const itemToLog = {
                           name: analysis.foodName,
-                          calories: analysis.calories,
-                          protein: analysis.protein,
-                          carbs: analysis.carbs,
-                          fat: analysis.fats,
-                          sugar: analysis.sugar,
-                          fibre: analysis.fibre,
+                          calories: analysis.calories || 0,
+                          protein: analysis.protein || 0,
+                          carbs: analysis.carbs || 0,
+                          fat: analysis.fats || 0,
+                          sugar: analysis.sugar || 0,
+                          fibre: analysis.fibre || 0,
                           type: 'Snack'
-                        });
+                        };
+                        if (onLogFood) {
+                          onLogFood(itemToLog);
+                        } else {
+                          try {
+                            addNutritionLog({
+                              meal: itemToLog.name,
+                              calories: itemToLog.calories,
+                              protein: itemToLog.protein,
+                              carbs: itemToLog.carbs,
+                              fat: itemToLog.fat,
+                              sugar: itemToLog.sugar,
+                              fibre: itemToLog.fibre,
+                              type: itemToLog.type,
+                              date: new Date().toISOString().split('T')[0]
+                            });
+                          } catch (e) {
+                            console.warn('Failed to add nutrition log:', e);
+                          }
+                        }
+                        awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
+                        handleClose();
                       }}
                       style={{
                         flex: 1.5,

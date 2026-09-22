@@ -56,7 +56,7 @@ import { VitalityNav } from '../../components/ui/FitnessNav';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getHabitStorageKey } from '../../services/profileScope';
 
-import { getProfile } from '../../services/ProfileEngine';
+import { getProfile, addNutritionLog } from '../../services/ProfileEngine';
 
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
@@ -1714,7 +1714,31 @@ export default function CaseDashboard() {
         }}
       />
 
-      {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
+      {showARLens && (
+        <ARGroceryLens
+          onClose={() => setShowARLens(false)}
+          onLogFood={(food) => {
+            triggerHapticSuccess();
+            try {
+              addNutritionLog({
+                meal: food.name,
+                calories: food.calories || 0,
+                protein: food.protein || 0,
+                carbs: food.carbs || 0,
+                fat: food.fat || 0,
+                sugar: food.sugar || 0,
+                fibre: food.fibre || 0,
+                type: food.type || 'Snack',
+                date: new Date().toISOString().split('T')[0],
+              });
+              awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
+            } catch (e) {
+              console.warn('Failed to log food from dashboard:', e);
+            }
+            setShowARLens(false);
+          }}
+        />
+      )}
 
     </div>
   );
