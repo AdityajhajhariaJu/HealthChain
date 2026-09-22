@@ -164,80 +164,61 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
   },
 };
 
-export const ClassySymptomBadge: React.FC<{
-  icon: any;
+// Bespoke, handcrafted Luxury SVG Symptom Capsule matching the Meds pill artwork
+export const ClassyCapsuleIcon: React.FC<{
   category?: string;
-  size?: number;
-  isSelected?: boolean;
   color1?: string;
   color2?: string;
-  shadow?: string;
+  size?: number;
 }> = ({
-  icon: IconComp = Activity,
-  category = 'systemic',
-  size = 20,
-  isSelected = false,
+  category,
   color1,
   color2,
-  shadow,
+  size = 22
 }) => {
-  const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
-  const c1 = color1 || theme.color1;
-  const c2 = color2 || theme.color2;
-  const sColor = shadow || theme.shadow;
-  const iconSize = Math.max(10, Math.round(size * 0.54));
+  const catTheme = category && SYMPTOM_CATEGORY_THEMES[category] ? SYMPTOM_CATEGORY_THEMES[category] : undefined;
+  const c1 = color1 || catTheme?.color2 || '#E11D48';
+  const c2 = color2 || catTheme?.color1 || '#FECDD3';
+  const c1Clean = c1.replace(/[^a-zA-Z0-9]/g, '');
+  const c2Clean = c2.replace(/[^a-zA-Z0-9]/g, '');
+  const gradId1 = `sympCapsuleG1_${c1Clean}_${size}`;
+  const gradId2 = `sympCapsuleG2_${c2Clean}_${size}`;
 
   return (
-    <div
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        minWidth: `${size}px`,
-        minHeight: `${size}px`,
-        borderRadius: '50%',
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        boxShadow: `0 2px 6px ${sColor}, inset 0 1px 1px rgba(255, 255, 255, 0.75)`,
-        background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
-        transition: 'all 0.18s ease'
-      }}
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 36 36" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      style={{ flexShrink: 0 }}
+      aria-hidden="true"
     >
-      {/* 3D Specular Gloss Highlight Overlay (Skeuomorphic glass glare matching Meds capsule) */}
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none'
-        }}
-      >
-        <ellipse cx="12" cy="4.5" rx="7" ry="2.2" fill="#FFFFFF" fillOpacity="0.65" />
-        <circle cx="12" cy="12" r="11" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="1" />
-      </svg>
-
-      <IconComp 
-        size={iconSize} 
-        color="#FFFFFF" 
-        strokeWidth={2.8} 
-        style={{ 
-          position: 'relative',
-          zIndex: 1,
-          filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35))'
-        }}
-      />
-    </div>
+      <defs>
+        <linearGradient id={gradId1} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={c1} />
+          <stop offset="100%" stopColor={c1} stopOpacity="0.85" />
+        </linearGradient>
+        <linearGradient id={gradId2} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor={c2} />
+        </linearGradient>
+      </defs>
+      <g transform="rotate(-35 18 18)">
+        {/* Full Capsule Shell */}
+        <rect x="6" y="11" width="24" height="14" rx="7" fill={`url(#${gradId2})`} stroke="rgba(0,0,0,0.06)" strokeWidth="0.5" />
+        {/* Left Colored Half */}
+        <path d="M6 18C6 14.134 9.134 11 13 11H18V25H13C9.134 25 6 21.866 6 18Z" fill={`url(#${gradId1})`} />
+        {/* Seam Band */}
+        <line x1="18" y1="11" x2="18" y2="25" stroke="rgba(255,255,255,0.75)" strokeWidth="1" />
+        {/* Specular Highlight Glare */}
+        <path d="M9 13C9 12.45 11 12 13 12H23C25 12 27 12.45 27 13C27 13.55 25 14 23 14H13C11 14 9 13.55 9 13Z" fill="#FFFFFF" fillOpacity="0.75" />
+      </g>
+    </svg>
   );
 };
+
+export const ClassySymptomBadge = ClassyCapsuleIcon;
 
 export interface SymptomItem {
   id: string;
@@ -1498,7 +1479,7 @@ AI-generated preparation material. Verify against original records; this is not 
                               padding: isMobile ? '4px 10px 4px 6px' : '5px 12px 5px 7px',
                               borderRadius: '9999px',
                               border: `1.5px solid ${theme.activeBorder}`,
-                              background: theme.bgStart,
+                              background: `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)`,
                               color: theme.textColor,
                               fontSize: isMobile ? '12px' : '13px',
                               fontWeight: 700,
@@ -1506,12 +1487,26 @@ AI-generated preparation material. Verify against original records; this is not 
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            <ClassySymptomBadge 
-                              icon={IconComponent} 
-                              category={category} 
-                              size={isMobile ? 18 : 20} 
-                              isSelected 
-                            />
+                            <div
+                              style={{
+                                width: isMobile ? '22px' : '24px',
+                                height: isMobile ? '22px' : '24px',
+                                borderRadius: '50%',
+                                background: '#FFFFFF',
+                                border: `1px solid ${theme.border}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                              }}
+                            >
+                              <ClassyCapsuleIcon 
+                                size={isMobile ? 16 : 18} 
+                                color1={theme.color2} 
+                                color2={theme.color1} 
+                              />
+                            </div>
                             <span style={{ whiteSpace: 'nowrap' }}>{sym}</span>
                             <button
                               type="button"
@@ -1663,6 +1658,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   {/* User-added Custom Symptoms */}
                   {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
                     const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
+                    const theme = SYMPTOM_CATEGORY_THEMES.cardio;
                     return (
                       <motion.button
                         key={`custom-${cs}`}
@@ -1674,42 +1670,57 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          padding: isMobile ? '7px 13px' : '8px 14px',
+                          gap: '9px',
+                          padding: isMobile ? '6px 12px 6px 8px' : '7px 14px 7px 9px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
                             : '#FFFFFF',
-                          color: isSelected ? '#9F1239' : '#1C1917',
+                          color: isSelected ? theme.textColor : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 3px 12px rgba(225, 29, 72, 0.18)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? `0 3px 12px ${theme.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
                           maxWidth: '100%'
                         }}
                       >
-                        <ClassySymptomBadge 
-                          icon={Sparkles} 
-                          category="cardio" 
-                          size={isMobile ? 20 : 22} 
-                          isSelected={isSelected} 
-                        />
+                        <div
+                          style={{
+                            width: isMobile ? '26px' : '28px',
+                            height: isMobile ? '26px' : '28px',
+                            borderRadius: '50%',
+                            background: isSelected ? '#FFFFFF' : theme.bgStart,
+                            border: `1px solid ${theme.border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.06)' : 'none'
+                          }}
+                        >
+                          <ClassyCapsuleIcon 
+                            size={isMobile ? 18 : 20} 
+                            color1={theme.color2} 
+                            color2={theme.color1} 
+                          />
+                        </div>
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#9F1239' : '#1C1917',
+                            color: isSelected ? theme.textColor : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
                             {cs}
                           </span>
                           <span style={{ 
-                            fontSize: isMobile ? '10.5px' : '11px', 
+                            fontSize: isMobile ? '10px' : '10.5px', 
                             fontWeight: 500, 
-                            color: isSelected ? '#BE123C' : '#78716C',
+                            color: isSelected ? theme.textColor : '#78716C',
+                            opacity: isSelected ? 0.85 : 1,
                             display: 'block'
                           }}>
                             Custom Symptom Note
@@ -1717,17 +1728,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: '17px',
-                            height: '17px',
+                            width: '18px',
+                            height: '18px',
                             borderRadius: '50%',
-                            background: '#E11D48',
+                            background: theme.activeBorder,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                            boxShadow: `0 2px 6px ${theme.shadow}`
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1753,7 +1764,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       s.toLowerCase() === sym.name.toLowerCase() || 
                       Boolean(sym.aliases?.some(a => a.toLowerCase() === s.toLowerCase()))
                     );
-                    const IconComp = sym.icon || Activity;
+                    const theme = SYMPTOM_CATEGORY_THEMES[sym.category] || SYMPTOM_CATEGORY_THEMES.systemic;
                     return (
                       <motion.button
                         key={sym.id}
@@ -1765,17 +1776,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          padding: isMobile ? '7px 13px' : '8px 14px',
+                          gap: '9px',
+                          padding: isMobile ? '6px 12px 6px 8px' : '7px 14px 7px 9px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
                             : '#FFFFFF',
-                          color: isSelected ? '#9F1239' : '#1C1917',
+                          color: isSelected ? theme.textColor : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? `0 3px 12px rgba(225, 29, 72, 0.18)` 
+                            ? `0 3px 12px ${theme.shadow}` 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1783,17 +1794,31 @@ AI-generated preparation material. Verify against original records; this is not 
                           maxWidth: '100%'
                         }}
                       >
-                        <ClassySymptomBadge 
-                          icon={IconComp} 
-                          category={sym.category} 
-                          size={isMobile ? 20 : 22} 
-                          isSelected={isSelected} 
-                        />
+                        <div
+                          style={{
+                            width: isMobile ? '26px' : '28px',
+                            height: isMobile ? '26px' : '28px',
+                            borderRadius: '50%',
+                            background: isSelected ? '#FFFFFF' : theme.bgStart,
+                            border: `1px solid ${theme.border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.06)' : 'none'
+                          }}
+                        >
+                          <ClassyCapsuleIcon 
+                            size={isMobile ? 18 : 20} 
+                            color1={theme.color2} 
+                            color2={theme.color1} 
+                          />
+                        </div>
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#9F1239' : '#1C1917',
+                            color: isSelected ? theme.textColor : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1801,9 +1826,10 @@ AI-generated preparation material. Verify against original records; this is not 
                           </span>
                           {sym.subtitle && (
                             <span style={{ 
-                              fontSize: isMobile ? '10.5px' : '11px', 
-                              fontWeight: 500,
-                              color: isSelected ? '#BE123C' : '#78716C',
+                              fontSize: isMobile ? '10px' : '10.5px', 
+                              fontWeight: 500, 
+                              color: isSelected ? theme.textColor : '#78716C',
+                              opacity: isSelected ? 0.85 : 1,
                               display: 'block'
                             }}>
                               {sym.subtitle}
@@ -1812,17 +1838,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: '17px',
-                            height: '17px',
+                            width: '18px',
+                            height: '18px',
                             borderRadius: '50%',
-                            background: '#E11D48',
+                            background: theme.activeBorder,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                            boxShadow: `0 2px 6px ${theme.shadow}`
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1920,12 +1946,12 @@ AI-generated preparation material. Verify against original records; this is not 
                   {/* 6 Tactile Onboarding Cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                     {[
-                      { name: 'Today (< 24h)', icon: Sun, color1: '#FB7185', color2: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', label: 'Today (< 24h)', desc: 'Acute symptom onset within the last 24 hours' },
-                      { name: 'Past few days', icon: Clock, color1: '#38BDF8', color2: '#0284C7', shadow: 'rgba(2, 132, 199, 0.28)', label: 'Past few days', desc: 'Started 2 to 6 days ago' },
-                      { name: '1–2 weeks', icon: Calendar, color1: '#818CF8', color2: '#4F46E5', shadow: 'rgba(79, 70, 229, 0.28)', label: '1–2 weeks', desc: 'Developing over the past couple weeks' },
-                      { name: '1–3 months', icon: Hourglass, color1: '#FBBF24', color2: '#D97706', shadow: 'rgba(217, 119, 6, 0.28)', label: '1–3 months', desc: 'Subacute condition present for several weeks' },
-                      { name: '6+ months (chronic)', icon: Waves, color1: '#A78BFA', color2: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.28)', label: '6+ months (chronic)', desc: 'Long-standing or recurring chronic concern' },
-                      { name: 'Several years', icon: CalendarDays, color1: '#2DD4BF', color2: '#0D9488', shadow: 'rgba(13, 148, 136, 0.28)', label: 'Several years', desc: 'Multi-year chronic medical history' },
+                      { name: 'Today (< 24h)', icon: Sun, bg: '#FFF1F2', border: '#FDA4AF', color: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', label: 'Today (< 24h)', desc: 'Acute symptom onset within the last 24 hours' },
+                      { name: 'Past few days', icon: Clock, bg: '#F0F9FF', border: '#BAE6FD', color: '#0284C7', shadow: 'rgba(2, 132, 199, 0.28)', label: 'Past few days', desc: 'Started 2 to 6 days ago' },
+                      { name: '1–2 weeks', icon: Calendar, bg: '#EEF2FF', border: '#C7D2FE', color: '#4F46E5', shadow: 'rgba(79, 70, 229, 0.28)', label: '1–2 weeks', desc: 'Developing over the past couple weeks' },
+                      { name: '1–3 months', icon: Hourglass, bg: '#FFFBEB', border: '#FDE68A', color: '#D97706', shadow: 'rgba(217, 119, 6, 0.28)', label: '1–3 months', desc: 'Subacute condition present for several weeks' },
+                      { name: '6+ months (chronic)', icon: Waves, bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.28)', label: '6+ months (chronic)', desc: 'Long-standing or recurring chronic concern' },
+                      { name: 'Several years', icon: CalendarDays, bg: '#F0FDFA', border: '#99F6E4', color: '#0D9488', shadow: 'rgba(13, 148, 136, 0.28)', label: 'Several years', desc: 'Multi-year chronic medical history' },
                     ].map((opt) => {
                       const isSelected = selectedOnset === opt.name || history.includes(`Onset: ${opt.name}`);
                       return (
@@ -1944,30 +1970,38 @@ AI-generated preparation material. Verify against original records; this is not 
                             borderRadius: '16px',
                             cursor: 'pointer',
                             textAlign: 'left',
-                            border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                            border: isSelected ? `1.5px solid ${opt.color}` : '1px solid #E2E8F0',
                             background: isSelected 
-                              ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                              ? `linear-gradient(135deg, ${opt.bg} 0%, #FFFFFF 100%)` 
                               : '#FFFFFF',
                             boxShadow: isSelected 
-                              ? '0 4px 14px rgba(225, 29, 72, 0.15)' 
+                              ? `0 4px 14px ${opt.shadow}` 
                               : '0 2px 6px rgba(0, 0, 0, 0.02)',
                             transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <ClassySymptomBadge 
-                              icon={opt.icon} 
-                              size={isMobile ? 22 : 24} 
-                              color1={opt.color1} 
-                              color2={opt.color2} 
-                              shadow={opt.shadow} 
-                              isSelected={isSelected} 
-                            />
+                            <div style={{
+                              width: isMobile ? '34px' : '38px',
+                              height: isMobile ? '34px' : '38px',
+                              borderRadius: '12px',
+                              background: isSelected ? '#FFFFFF' : opt.bg,
+                              border: isSelected ? `1.5px solid ${opt.color}` : `1px solid ${opt.border}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: opt.color,
+                              flexShrink: 0,
+                              boxShadow: isSelected ? `0 2px 8px ${opt.color}25` : 'none',
+                              transition: 'all 0.18s ease'
+                            }}>
+                              <opt.icon size={isMobile ? 18 : 20} strokeWidth={2.4} />
+                            </div>
                             <div>
                               <div style={{ 
                                 fontSize: isMobile ? '13px' : '13.5px', 
                                 fontWeight: isSelected ? 800 : 700, 
-                                color: isSelected ? '#9F1239' : '#1C1917',
+                                color: isSelected ? opt.color : '#1C1917',
                                 letterSpacing: '-0.1px'
                               }}>
                                 {opt.name}
@@ -1975,7 +2009,8 @@ AI-generated preparation material. Verify against original records; this is not 
                               <div style={{ 
                                 fontSize: '11.5px', 
                                 fontWeight: 500, 
-                                color: isSelected ? '#BE123C' : '#78716C', 
+                                color: isSelected ? opt.color : '#78716C', 
+                                opacity: isSelected ? 0.9 : 1,
                                 marginTop: '2px',
                                 lineHeight: 1.25
                               }}>
@@ -1988,14 +2023,14 @@ AI-generated preparation material. Verify against original records; this is not 
                               width: '18px',
                               height: '18px',
                               borderRadius: '50%',
-                              background: '#E11D48',
+                              background: opt.color,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               color: '#FFFFFF',
                               marginLeft: '8px',
                               flexShrink: 0,
-                              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                              boxShadow: `0 2px 6px ${opt.shadow}`
                             }}>
                               <Check size={11} strokeWidth={3.5} />
                             </div>
@@ -2059,10 +2094,10 @@ AI-generated preparation material. Verify against original records; this is not 
                   {/* 4 Distinct Trend Cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                     {[
-                      { name: 'Getting worse ↗', icon: TrendingUp, label: 'Getting worse', color1: '#FB7185', color2: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', desc: 'Intensity or frequency is steadily increasing over time', activeBg: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)', activeBorder: '#E11D48', activeColor: '#9F1239' },
-                      { name: 'Fluctuating / Comes & Goes ∿', icon: Activity, label: 'Fluctuating', color1: '#A78BFA', color2: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.28)', desc: 'Flares up intermittently with quiet symptom-free periods', activeBg: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)', activeBorder: '#7C3AED', activeColor: '#5B21B6' },
-                      { name: 'Constant / Unchanged →', icon: Minus, label: 'Constant', color1: '#94A3B8', color2: '#475569', shadow: 'rgba(71, 85, 105, 0.28)', desc: 'Stays at the same steady level without clear change', activeBg: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)', activeBorder: '#475569', activeColor: '#1E293B' },
-                      { name: 'Gradually improving ↘', icon: TrendingDown, label: 'Gradually improving', color1: '#34D399', color2: '#059669', shadow: 'rgba(5, 150, 105, 0.28)', desc: 'Severity is subsiding or symptoms are resolving', activeBg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', activeBorder: '#059669', activeColor: '#065F46' },
+                      { name: 'Getting worse ↗', icon: TrendingUp, label: 'Getting worse', bg: '#FFF1F2', border: '#FDA4AF', color: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', desc: 'Intensity or frequency is steadily increasing over time', activeBg: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)', activeBorder: '#E11D48', activeColor: '#9F1239' },
+                      { name: 'Fluctuating / Comes & Goes ∿', icon: Activity, label: 'Fluctuating', bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.28)', desc: 'Flares up intermittently with quiet symptom-free periods', activeBg: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)', activeBorder: '#7C3AED', activeColor: '#5B21B6' },
+                      { name: 'Constant / Unchanged →', icon: Minus, label: 'Constant', bg: '#F8FAFC', border: '#CBD5E1', color: '#475569', shadow: 'rgba(71, 85, 105, 0.28)', desc: 'Stays at the same steady level without clear change', activeBg: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)', activeBorder: '#475569', activeColor: '#1E293B' },
+                      { name: 'Gradually improving ↘', icon: TrendingDown, label: 'Gradually improving', bg: '#ECFDF5', border: '#A7F3D0', color: '#059669', shadow: 'rgba(5, 150, 105, 0.28)', desc: 'Severity is subsiding or symptoms are resolving', activeBg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', activeBorder: '#059669', activeColor: '#065F46' },
                     ].map((opt) => {
                       const isSelected = selectedProgression === opt.name || history.includes(`Progression: ${opt.name}`);
                       return (
@@ -2083,19 +2118,27 @@ AI-generated preparation material. Verify against original records; this is not 
                             textAlign: 'left',
                             border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid #E2E8F0',
                             background: isSelected ? opt.activeBg : '#FFFFFF',
-                            boxShadow: isSelected ? '0 4px 14px rgba(0, 0, 0, 0.08)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                            boxShadow: isSelected ? `0 4px 14px ${opt.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.02)',
                             transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <ClassySymptomBadge 
-                              icon={opt.icon} 
-                              size={isMobile ? 22 : 24} 
-                              color1={opt.color1} 
-                              color2={opt.color2} 
-                              shadow={opt.shadow} 
-                              isSelected={isSelected} 
-                            />
+                            <div style={{
+                              width: isMobile ? '34px' : '38px',
+                              height: isMobile ? '34px' : '38px',
+                              borderRadius: '12px',
+                              background: isSelected ? '#FFFFFF' : opt.bg,
+                              border: isSelected ? `1.5px solid ${opt.activeBorder}` : `1px solid ${opt.border}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: opt.color,
+                              flexShrink: 0,
+                              boxShadow: isSelected ? `0 2px 8px ${opt.color}25` : 'none',
+                              transition: 'all 0.18s ease'
+                            }}>
+                              <opt.icon size={isMobile ? 18 : 20} strokeWidth={2.6} />
+                            </div>
                             <div>
                               <div style={{ 
                                 fontSize: isMobile ? '13px' : '13.5px', 
@@ -2109,6 +2152,7 @@ AI-generated preparation material. Verify against original records; this is not 
                                 fontSize: '11.5px', 
                                 fontWeight: 500, 
                                 color: isSelected ? opt.activeColor : '#78716C', 
+                                opacity: isSelected ? 0.9 : 1,
                                 marginTop: '2px',
                                 lineHeight: 1.25
                               }}>
@@ -2218,11 +2262,11 @@ AI-generated preparation material. Verify against original records; this is not 
 
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                       {[
-                        { label: 'Onset & Duration', icon: Clock, color1: '#38BDF8', color2: '#0284C7', shadow: 'rgba(2, 132, 199, 0.28)', text: 'When this started and how it has changed: ' },
-                        { label: 'Symptoms & Frequency', icon: Stethoscope, color1: '#FB7185', color2: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', text: 'Symptoms I have noticed, how often they happen, and daily impact: ' },
-                        { label: 'Triggers & Relief', icon: Zap, color1: '#FBBF24', color2: '#D97706', shadow: 'rgba(217, 119, 6, 0.28)', text: 'Things that seem to improve or worsen symptoms: ' },
-                        { label: 'Prior Tests & Care', icon: ClipboardList, color1: '#818CF8', color2: '#4F46E5', shadow: 'rgba(79, 70, 229, 0.28)', text: 'Appointments, tests, treatments, and prior doctor opinions: ' },
-                        { label: 'Questions for Doctor', icon: HelpCircle, color1: '#A78BFA', color2: '#7C3AED', shadow: 'rgba(124, 58, 237, 0.28)', text: 'What I most want help understanding from my clinician: ' }
+                        { label: 'Onset & Duration', icon: Clock, bg: '#F0F9FF', border: '#BAE6FD', color: '#0284C7', text: 'When this started and how it has changed: ' },
+                        { label: 'Symptoms & Frequency', icon: Stethoscope, bg: '#FFF1F2', border: '#FDA4AF', color: '#E11D48', text: 'Symptoms I have noticed, how often they happen, and daily impact: ' },
+                        { label: 'Triggers & Relief', icon: Zap, bg: '#FFFBEB', border: '#FDE68A', color: '#D97706', text: 'Things that seem to improve or worsen symptoms: ' },
+                        { label: 'Prior Tests & Care', icon: ClipboardList, bg: '#EEF2FF', border: '#C7D2FE', color: '#4F46E5', text: 'Appointments, tests, treatments, and prior doctor opinions: ' },
+                        { label: 'Questions for Doctor', icon: HelpCircle, bg: '#F5F3FF', border: '#DDD6FE', color: '#7C3AED', text: 'What I most want help understanding from my clinician: ' }
                       ].map((cluster, cIdx) => (
                         <motion.button
                           key={cIdx}
@@ -2235,8 +2279,8 @@ AI-generated preparation material. Verify against original records; this is not 
                           }}
                           style={{
                             flexShrink: 0,
-                            padding: '6px 13px',
-                            height: '34px',
+                            padding: '5px 12px 5px 8px',
+                            height: '32px',
                             borderRadius: '999px',
                             background: '#FFFFFF',
                             border: '1px solid #E2E8F0',
@@ -2248,12 +2292,12 @@ AI-generated preparation material. Verify against original records; this is not 
                             alignItems: 'center',
                             gap: '7px',
                             transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)'
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)'
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#FFF1F2';
-                            e.currentTarget.style.borderColor = '#FDA4AF';
-                            e.currentTarget.style.color = '#BE123C';
+                            e.currentTarget.style.background = cluster.bg;
+                            e.currentTarget.style.borderColor = cluster.border;
+                            e.currentTarget.style.color = cluster.color;
                           }}
                           onMouseOut={(e) => {
                             e.currentTarget.style.background = '#FFFFFF';
@@ -2261,13 +2305,20 @@ AI-generated preparation material. Verify against original records; this is not 
                             e.currentTarget.style.color = '#1C1917';
                           }}
                         >
-                          <ClassySymptomBadge 
-                            icon={cluster.icon} 
-                            size={18} 
-                            color1={cluster.color1} 
-                            color2={cluster.color2} 
-                            shadow={cluster.shadow} 
-                          />
+                          <div style={{
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: cluster.bg,
+                            border: `1px solid ${cluster.border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: cluster.color,
+                            flexShrink: 0
+                          }}>
+                            <cluster.icon size={11} strokeWidth={2.4} />
+                          </div>
                           <span>{cluster.label}</span>
                         </motion.button>
                       ))}
@@ -2429,7 +2480,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           borderRadius: '999px',
                           boxShadow: '0 1px 3px rgba(225, 29, 72, 0.08)'
                         }}>
-                          <ClassySymptomBadge icon={FileText} size={16} color1="#FB7185" color2="#E11D48" shadow="rgba(225, 29, 72, 0.2)" />
+                          <FileText size={13} color="#E11D48" strokeWidth={2.2} />
                           <span>PDF Lab Panels</span>
                         </span>
                         <span style={{ 
@@ -2445,7 +2496,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           borderRadius: '999px',
                           boxShadow: '0 1px 3px rgba(2, 132, 199, 0.08)'
                         }}>
-                          <ClassySymptomBadge icon={Camera} size={16} color1="#38BDF8" color2="#0284C7" shadow="rgba(2, 132, 199, 0.2)" />
+                          <Camera size={13} color="#0284C7" strokeWidth={2.2} />
                           <span>Photos & Scans</span>
                         </span>
                         <span style={{ 
@@ -2461,7 +2512,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           borderRadius: '999px',
                           boxShadow: '0 1px 3px rgba(124, 58, 237, 0.08)'
                         }}>
-                          <ClassySymptomBadge icon={FlaskConical} size={16} color1="#A78BFA" color2="#7C3AED" shadow="rgba(124, 58, 237, 0.2)" />
+                          <FlaskConical size={13} color="#7C3AED" strokeWidth={2.2} />
                           <span>Imaging Reports</span>
                         </span>
                       </div>
@@ -2500,13 +2551,20 @@ AI-generated preparation material. Verify against original records; this is not 
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                            <ClassySymptomBadge 
-                              icon={FileText} 
-                              size={22} 
-                              color1="#FB7185" 
-                              color2="#E11D48" 
-                              shadow="rgba(225, 29, 72, 0.2)" 
-                            />
+                            <div style={{
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '8px',
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#E11D48',
+                              flexShrink: 0
+                            }}>
+                              <FileText size={15} strokeWidth={2.2} />
+                            </div>
                             <span style={{ fontSize: '13px', fontWeight: 700, color: '#1C1917', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {f.file.name}
                             </span>
@@ -2696,8 +2754,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
                       <div style={{ padding: '12px 14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <ClassySymptomBadge icon={Clock} size={18} color1="#38BDF8" color2="#0284C7" shadow="rgba(2, 132, 199, 0.2)" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#F0F9FF', border: '1px solid #BAE6FD', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284C7', flexShrink: 0 }}>
+                            <Clock size={14} strokeWidth={2.2} />
+                          </div>
                           <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>Clinical Timeline</span>
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: (selectedSymptoms.length > 0 || history.trim()) ? '#1C1917' : '#78716C', marginTop: '2px' }}>
@@ -2706,8 +2766,10 @@ AI-generated preparation material. Verify against original records; this is not 
                       </div>
 
                       <div style={{ padding: '12px 14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <ClassySymptomBadge icon={UploadCloud} size={18} color1="#FB7185" color2="#E11D48" shadow="rgba(225, 29, 72, 0.2)" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#FFF1F2', border: '1px solid #FECDD3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E11D48', flexShrink: 0 }}>
+                            <UploadCloud size={14} strokeWidth={2.2} />
+                          </div>
                           <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>Attached Evidence</span>
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: files.length > 0 ? '#1C1917' : '#78716C', marginTop: '2px' }}>
@@ -2716,8 +2778,10 @@ AI-generated preparation material. Verify against original records; this is not 
                       </div>
 
                       <div style={{ padding: '12px 14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <ClassySymptomBadge icon={Folder} size={18} color1="#2DD4BF" color2="#0D9488" shadow="rgba(13, 148, 136, 0.2)" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#F0FDFA', border: '1px solid #99F6E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0D9488', flexShrink: 0 }}>
+                            <Folder size={14} strokeWidth={2.2} />
+                          </div>
                           <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>Destination Case</span>
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: selectedCaseId ? '#9F1239' : '#1C1917', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -2814,9 +2878,9 @@ AI-generated preparation material. Verify against original records; this is not 
                     </span>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
                       {[
-                        { id: 'differential', icon: Stethoscope, color1: '#FB7185', color2: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', label: 'Differential Diagnosis', desc: 'Multisystem scan for primary & alternative hypotheses' },
-                        { id: 'doctor_prep', icon: ClipboardCheck, color1: '#818CF8', color2: '#4F46E5', shadow: 'rgba(79, 70, 229, 0.28)', label: 'Doctor Visit Prep (SBAR)', desc: 'Prioritize questions and appointment briefing notes' },
-                        { id: 'lab_second_opinion', icon: FlaskConical, color1: '#2DD4BF', color2: '#0D9488', shadow: 'rgba(13, 148, 136, 0.28)', label: 'Biomarker Synthesis', desc: 'Cross-reference lab ranges and contradictory findings' }
+                        { id: 'differential', icon: Stethoscope, bg: '#FFF1F2', border: '#FECDD3', activeBorder: '#E11D48', activeBg: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)', color: '#E11D48', shadow: 'rgba(225, 29, 72, 0.28)', label: 'Differential Diagnosis', desc: 'Multisystem scan for primary & alternative hypotheses' },
+                        { id: 'doctor_prep', icon: ClipboardCheck, bg: '#EEF2FF', border: '#C7D2FE', activeBorder: '#4F46E5', activeBg: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)', color: '#4F46E5', shadow: 'rgba(79, 70, 229, 0.28)', label: 'Doctor Visit Prep (SBAR)', desc: 'Prioritize questions and appointment briefing notes' },
+                        { id: 'lab_second_opinion', icon: FlaskConical, bg: '#F0FDFA', border: '#99F6E4', activeBorder: '#0D9488', activeBg: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)', color: '#0D9488', shadow: 'rgba(13, 148, 136, 0.28)', label: 'Biomarker Synthesis', desc: 'Cross-reference lab ranges and contradictory findings' }
                       ].map(opt => {
                         const isSelected = reviewFocus === opt.id;
                         return (
@@ -2833,9 +2897,9 @@ AI-generated preparation material. Verify against original records; this is not 
                               padding: '14px 16px',
                               borderRadius: '16px',
                               textAlign: 'left',
-                              border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
-                              background: isSelected ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' : '#FFFFFF',
-                              boxShadow: isSelected ? '0 4px 14px rgba(225, 29, 72, 0.15)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                              border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid #E2E8F0',
+                              background: isSelected ? opt.activeBg : '#FFFFFF',
+                              boxShadow: isSelected ? `0 4px 14px ${opt.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.02)',
                               cursor: 'pointer',
                               transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                               display: 'flex',
@@ -2844,26 +2908,34 @@ AI-generated preparation material. Verify against original records; this is not 
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <ClassySymptomBadge 
-                                icon={opt.icon} 
-                                size={24} 
-                                color1={opt.color1} 
-                                color2={opt.color2} 
-                                shadow={opt.shadow} 
-                                isSelected={isSelected} 
-                              />
+                              <div style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '10px',
+                                background: isSelected ? '#FFFFFF' : opt.bg,
+                                border: isSelected ? `1.5px solid ${opt.activeBorder}` : `1px solid ${opt.border}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: opt.color,
+                                flexShrink: 0,
+                                boxShadow: isSelected ? `0 2px 8px ${opt.color}25` : 'none',
+                                transition: 'all 0.18s ease'
+                              }}>
+                                <opt.icon size={18} strokeWidth={2.4} />
+                              </div>
                               {isSelected && (
                                 <div style={{
                                   width: '18px',
                                   height: '18px',
                                   borderRadius: '50%',
-                                  background: '#E11D48',
+                                  background: opt.activeBorder,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   color: '#FFFFFF',
                                   flexShrink: 0,
-                                  boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                                  boxShadow: `0 2px 6px ${opt.shadow}`
                                 }}>
                                   <Check size={11} strokeWidth={3.5} />
                                 </div>
@@ -2873,7 +2945,7 @@ AI-generated preparation material. Verify against original records; this is not 
                               <div style={{ 
                                 fontSize: '13px', 
                                 fontWeight: isSelected ? 800 : 700, 
-                                color: isSelected ? '#9F1239' : '#1C1917',
+                                color: isSelected ? opt.color : '#18181B',
                                 letterSpacing: '-0.1px'
                               }}>
                                 {opt.label}
@@ -2881,7 +2953,8 @@ AI-generated preparation material. Verify against original records; this is not 
                               <div style={{ 
                                 fontSize: '11px', 
                                 fontWeight: 500,
-                                color: isSelected ? '#BE123C' : '#78716C', 
+                                color: isSelected ? opt.color : '#78716C', 
+                                opacity: isSelected ? 0.9 : 1,
                                 marginTop: '3px', 
                                 lineHeight: 1.35 
                               }}>
