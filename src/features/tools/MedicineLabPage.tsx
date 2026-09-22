@@ -150,7 +150,7 @@ export default function MedicineLabPage() {
               gap: '6px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              background: activeTab === 'reports' ? '#2563EB' : 'transparent',
+              background: activeTab === 'reports' ? '#0D9488' : 'transparent',
               color: activeTab === 'reports' ? '#FFFFFF' : '#64748B',
             }}
           >

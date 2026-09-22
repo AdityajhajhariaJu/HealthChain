@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Search, ChevronDown, ChevronUp, Mail, MessageCircle, Phone, Sparkles, Star, Send, CheckCircle2, Copy } from 'lucide-react';
+import { ArrowLeft, Search, ChevronDown, ChevronUp, Mail, MessageCircle, Phone, Sparkles, Star, Send, CheckCircle2, Copy, Lightbulb, Bug, Stethoscope, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
@@ -248,30 +248,37 @@ export default function HelpCenter() {
               <label style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Category</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {[
-                  { id: 'feature', label: '💡 Feature Suggestion' },
-                  { id: 'bug', label: '🐛 Bug Report' },
-                  { id: 'clinical', label: '🩺 Clinical Accuracy' },
-                  { id: 'general', label: '💬 General Query' }
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategory(cat.id)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 10,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: category === cat.id ? '2px solid #8B5CF6' : '1px solid #E2E8F0',
-                      background: category === cat.id ? '#EDE9FE' : '#FFFFFF',
-                      color: category === cat.id ? '#6D28D9' : '#475569',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
+                  { id: 'feature', label: 'Feature Suggestion', icon: Lightbulb },
+                  { id: 'bug', label: 'Bug Report', icon: Bug },
+                  { id: 'clinical', label: 'Clinical Accuracy', icon: Stethoscope },
+                  { id: 'general', label: 'General Query', icon: MessageSquare }
+                ].map(cat => {
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategory(cat.id)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        border: category === cat.id ? '2px solid #8B5CF6' : '1px solid #E2E8F0',
+                        background: category === cat.id ? '#EDE9FE' : '#FFFFFF',
+                        color: category === cat.id ? '#6D28D9' : '#475569',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Icon size={14} />
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -699,8 +699,9 @@ export default function Landing() {
       {/* 2.5 Product Video Demos */}
       <section className={styles.videoShowcaseSection}>
         <div className={styles.sectionHeader}>
-          <div className={styles.categoryBadge}>
-            🎬 MULTI-SPECIALIST AI DEMO
+          <div className={styles.categoryBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Play size={12} fill="#059669" color="#059669" />
+            <span>MULTI-SPECIALIST AI DEMO</span>
           </div>
           <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
           <p className={styles.sectionSubtitle}>
@@ -1123,7 +1124,10 @@ export default function Landing() {
 
                 <div className={styles.caseCardFooter}>
                   <div className={styles.caseSpecialistMeta}>
-                    <span className={styles.caseSpecialistLabel}>🔬 {item.specialistTag}</span>
+                    <span className={styles.caseSpecialistLabel} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Microscope size={13} color="#059669" />
+                      <span>{item.specialistTag}</span>
+                    </span>
                     <span>•</span>
                     <span>Case Simulation</span>
                   </div>

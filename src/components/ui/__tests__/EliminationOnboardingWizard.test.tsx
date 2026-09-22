@@ -51,7 +51,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     );
 
     // Direct Step 1 landing (zero academic text wall)
-    expect(screen.getByText(/Step 1 of 4: Symptoms & Timing/i)).toBeTruthy();
+    expect(screen.getByText(/Symptoms & Timing/i)).toBeTruthy();
     expect(screen.getByText(/What symptoms are you experiencing most frequently\?/i)).toBeTruthy();
     expect(screen.getByText(/Bloating & Abdominal Distension/i)).toBeTruthy();
     expect(screen.getByText(/Post-Wheat Fatigue & Joint Stiffness/i)).toBeTruthy();
@@ -81,7 +81,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     fireEvent.click(nextBtn);
 
     // Step 2 Safety Screening rendered
-    expect(screen.getByText(/Step 2 of 4: Safety & Exclusions/i)).toBeTruthy();
+    expect(screen.getByText(/Safety & Exclusions/i)).toBeTruthy();
     expect(screen.getByText(/Clinical Safety & Contraindications Check/i)).toBeTruthy();
     expect(screen.getByText(/None of the exclusions apply/i)).toBeTruthy();
   });
@@ -138,7 +138,7 @@ describe('EliminationOnboardingWizard Tests', () => {
     fireEvent.click(screen.getByText(/Calibrate & Commit/i));
 
     // Step 5: Baseline Severity slider and informed consent
-    expect(screen.getByText(/Step 4 of 4: Baseline & Activation/i)).toBeTruthy();
+    expect(screen.getByText(/Baseline & Activation/i)).toBeTruthy();
 
     // Check informed consent button
     fireEvent.click(screen.getByText(/I understand this protocol is a structured/i));

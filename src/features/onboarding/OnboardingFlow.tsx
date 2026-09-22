@@ -1213,7 +1213,7 @@ export default function OnboardingFlow() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
                   <span>3 of 3 · Medicines &amp; allergies</span>
-                  <span style={{ color: '#059669', fontWeight: 800 }}>Final Step!</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>100% complete</span>
                 </div>
               </div>
 

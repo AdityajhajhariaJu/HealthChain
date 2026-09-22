@@ -2093,17 +2093,17 @@ export default function AvaHealthBuddy() {
                   borderRadius: '999px',
                   background: '#FFFFFF',
                   border: '1.5px solid #CCFBF1',
-                  color: '#E11D48',
+                  color: '#0D9488',
                   fontSize: '13px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.12)',
                   transition: 'transform 0.15s ease',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
               >
-                <Activity size={14} color="#E11D48" /> Whole Health
+                <Activity size={14} color="#0D9488" /> Whole Health
               </button>
             </div>
           </div>

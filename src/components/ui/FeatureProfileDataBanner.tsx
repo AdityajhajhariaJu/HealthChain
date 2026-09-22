@@ -15,7 +15,9 @@ import {
   Ruler, 
   AlertTriangle,
   ChevronRight,
-  Info
+  Info,
+  Stethoscope,
+  Shield
 } from 'lucide-react';
 import { 
   getProfile, 
@@ -306,8 +308,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {/* 1. Biometrics & Demographics */}
           {(demographics.age || demographics.height || demographics.weight) && (
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px' }}>
-                <span>🧬</span> Vitals
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px' }}>
+                <Activity size={12} strokeWidth={2.4} /> Vitals
               </span>
               <span
                 style={{
@@ -338,8 +340,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {/* 2. Diagnosed Conditions */}
           {conditions.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
-                <span>🩺</span> Conditions
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+                <Stethoscope size={12} strokeWidth={2.4} /> Conditions
               </span>
               <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
                 {conditions.map((cName) => {
@@ -400,8 +402,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {/* 3. Chrono-Medications & Supplements */}
           {medications.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
-                <span>💊</span> Meds / Vit
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+                <Pill size={12} strokeWidth={2.4} /> Meds / Vit
               </span>
               <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
                 {medications.map((m) => {
@@ -464,8 +466,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {/* 4. Allergies & Sensitivities */}
           {allergies.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
-                <span>🛡️</span> Allergies
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+                <Shield size={12} strokeWidth={2.4} /> Allergies
               </span>
               <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
                 {allergies.map((a) => (

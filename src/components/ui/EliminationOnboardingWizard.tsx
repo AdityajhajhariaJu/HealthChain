@@ -447,11 +447,11 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
               Elimination Suite Onboarding
             </div>
             <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
-              {step === 1 && 'Step 1 of 4: Symptoms & Timing'}
-              {step === 2 && 'Step 2 of 4: Safety & Exclusions'}
+              {step === 1 && 'Symptoms & Timing'}
+              {step === 2 && 'Safety & Exclusions'}
               {step === 3 && 'Clinical Safety Notice'}
-              {step === 4 && 'Step 3 of 4: Matched Protocol'}
-              {step === 5 && 'Step 4 of 4: Baseline & Activation'}
+              {step === 4 && 'Matched Protocol'}
+              {step === 5 && 'Baseline & Activation'}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight, Info } from 'lucide-react';
+import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight, Info, Lightbulb, Calendar } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
 
@@ -315,8 +315,8 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F3E8FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-            💡
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F3E8FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Lightbulb size={18} color="#9333EA" />
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Insights</div>
@@ -352,8 +352,8 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-            📅
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Calendar size={18} color="#0284C7" />
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Digestion Cal</div>
@@ -389,8 +389,8 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-            ⏱️
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Clock size={18} color="#059669" />
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Timeline</div>

@@ -19,6 +19,7 @@ import {
   FileText,
   Clock,
   ArrowRight,
+  BarChart2,
 } from 'lucide-react';
 import { getProfile, getDigestionLogs, saveDigestionLog } from '../../services/ProfileEngine';
 import { getSuspectFoodsLeaderboard } from '../../services/TriggerEngine';
@@ -827,12 +828,13 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
           }}
         >
           {[
-            { id: 'summary' as DigestionSubTab, label: 'Day Summary', icon: '📊' },
-            { id: 'stomach' as DigestionSubTab, label: 'Stomach', icon: '🔥' },
-            { id: 'bloating' as DigestionSubTab, label: 'Bloating', icon: '💨' },
-            { id: 'bowel' as DigestionSubTab, label: 'Bowel', icon: '🪵' },
+            { id: 'summary' as DigestionSubTab, label: 'Day Summary', icon: BarChart2 },
+            { id: 'stomach' as DigestionSubTab, label: 'Stomach', icon: Flame },
+            { id: 'bloating' as DigestionSubTab, label: 'Bloating', icon: Wind },
+            { id: 'bowel' as DigestionSubTab, label: 'Bowel', icon: Activity },
           ].map((tab) => {
             const isActive = activeSubTab === tab.id;
+            const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
@@ -859,7 +861,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                   flexShrink: 0,
                 }}
               >
-                <span>{tab.icon}</span>
+                <Icon size={13} color={isActive ? '#0D9488' : '#64748B'} />
                 <span>{tab.label}</span>
               </button>
             );

@@ -115,12 +115,12 @@ export function AuthModal() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                backgroundColor: '#EFF6FF',
+                backgroundColor: '#F0FDFA',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '24px',
-                color: '#3B82F6',
+                color: '#0D9488',
               }}
             >
               <ShieldAlert size={32} strokeWidth={1.5} />
@@ -139,17 +139,18 @@ export function AuthModal() {
                 style={{
                   width: '100%',
                   padding: '12px',
-                  backgroundColor: '#3B82F6',
+                  backgroundColor: '#0D9488',
                   color: 'white',
                   border: 'none',
                   borderRadius: '12px',
                   fontSize: '15px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(13, 148, 136, 0.25)',
                   transition: 'background-color 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563EB')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3B82F6')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0F766E')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0D9488')}
               >
                 Create Free Account
               </button>

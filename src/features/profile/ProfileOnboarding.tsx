@@ -22,7 +22,9 @@ import {
   Clock,
   Dna,
   Scale,
-  Ruler
+  Ruler,
+  Stethoscope,
+  Shield
 } from 'lucide-react';
 import { completeProfileOnboarding, getProfileKey } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -742,7 +744,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>🩺 Chronic Health Conditions</span>
+                        <Stethoscope size={14} color="#0D9488" />
+                        <span>Chronic Health Conditions</span>
                       </label>
                       <span style={{ fontSize: 11.5, color: '#0D9488', fontWeight: 700 }}>
                         {conditions.length} active
@@ -797,7 +800,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>💊 Regular Prescriptions & Circadian Clock</span>
+                        <Pill size={14} color="#0D9488" />
+                        <span>Regular Prescriptions & Circadian Clock</span>
                       </label>
                       <span style={{ fontSize: 11.5, color: '#0D9488', fontWeight: 700 }}>
                         {medications.length} scheduled
@@ -919,7 +923,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>🛡️ Allergy and medication context</span>
+                        <Shield size={14} color="#0D9488" />
+                        <span>Allergy and medication context</span>
                       </label>
                       <button
                         type="button"
@@ -1054,8 +1059,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Family History */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
-                      🧬 Relevant Family History
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                      <Dna size={14} color="#0D9488" />
+                      <span>Relevant Family History</span>
                     </label>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                       {FAMILY_CONDITIONS.map((f) => {
@@ -1177,7 +1183,13 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   cursor: canContinue ? 'pointer' : 'not-allowed',
                 }}
               >
-                {step === 2 ? 'Launch HealthChain360 Record ✨' : 'Continue'}{' '}
+                {step === 2 ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    Launch HealthChain360 Record <Sparkles size={16} />
+                  </span>
+                ) : (
+                  'Continue'
+                )}{' '}
                 <ArrowRight size={17} />
               </button>
             </div>

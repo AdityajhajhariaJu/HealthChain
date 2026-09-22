@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   HelpCircle,
   Clock,
+  Calendar,
   ArrowRight,
   ArrowLeft,
   X,
@@ -828,7 +829,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <span style={{ flexShrink: 0 }}>⏱️</span>
+                          <Clock size={13} color={timelineViewMode === 'timeline' ? '#0D9488' : '#64748B'} style={{ flexShrink: 0 }} />
                           <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? '2h & 6h Windows' : '2h & 6h Reaction Windows'}</span>
                         </button>
 
@@ -857,7 +858,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <span style={{ flexShrink: 0 }}>📅</span>
+                          <Calendar size={13} color={timelineViewMode === 'heatmap' ? '#0D9488' : '#64748B'} style={{ flexShrink: 0 }} />
                           <span style={{ whiteSpace: 'nowrap' }}>{isMobile ? '30-Day Calendar' : '30-Day Digestion Calendar'}</span>
                         </button>
                       </div>

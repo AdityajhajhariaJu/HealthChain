@@ -10,7 +10,7 @@ export function MDTWarRoom() {
     setAgents([
       { id: 'ava', role: 'Ava (Core)', x: 50, y: 50, color: '#0F9488' },
       { id: 'cardio', role: 'Cardiology', x: 20, y: 25, color: '#E11D48' },
-      { id: 'endo', role: 'Endocrinology', x: 80, y: 25, color: '#3B82F6' },
+      { id: 'endo', role: 'Endocrinology', x: 80, y: 25, color: '#EC4899' },
       { id: 'neuro', role: 'Neurology', x: 50, y: 85, color: '#8B5CF6' }
     ]);
 

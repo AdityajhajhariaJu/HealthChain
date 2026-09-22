@@ -102,7 +102,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         <div style={{ padding: '24px 32px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '24px 24px 0 0' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: 20, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <GitMerge color="#3b82f6" />
+              <GitMerge color="#0D9488" />
               Appointment Discussion Guide
             </h2>
             <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>
@@ -122,8 +122,8 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         <div style={{ padding: '20px', flex: 1 }}>
           {!simulation && !isSimulating && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ width: 80, height: 80, background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                <Sparkles size={40} color="#3b82f6" />
+              <div style={{ width: 80, height: 80, background: '#F0FDFA', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <Sparkles size={40} color="#0D9488" />
               </div>
               <h3 style={{ fontSize: 18, margin: '0 0 12px', color: '#0f172a' }}>Prepare this discussion</h3>
               <p style={{ color: '#64748b', fontSize: 15, maxWidth: 400, margin: '0 auto 32px', lineHeight: 1.5 }}>
@@ -132,7 +132,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
               <button 
                 onClick={runSimulation}
                 aria-label="Create clinician discussion guide"
-                style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}
+                style={{ background: '#0D9488', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)' }}
               >
                 <GitMerge size={18} />
                 Create discussion guide
@@ -145,7 +145,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                style={{ width: 48, height: 48, border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', margin: '0 auto 24px' }}
+                style={{ width: 48, height: 48, border: '3px solid #e2e8f0', borderTopColor: '#0D9488', borderRadius: '50%', margin: '0 auto 24px' }}
               />
               <p style={{ color: '#64748b', fontSize: 15 }}>Organizing questions and cautions...</p>
             </div>
@@ -170,9 +170,9 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                   <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: 2, background: '#e2e8f0', borderRadius: 2 }} />
                   {(simulation.milestones || []).map((ms: any, i: number) => (
                     <div key={i} style={{ position: 'relative', marginBottom: i === (simulation.milestones || []).length - 1 ? 0 : 24 }}>
-                      <div style={{ position: 'absolute', left: -24, top: 4, width: 12, height: 12, background: '#3b82f6', borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 0 0 1px #e2e8f0' }} />
+                      <div style={{ position: 'absolute', left: -24, top: 4, width: 12, height: 12, background: '#0D9488', borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 0 0 1px #e2e8f0' }} />
                       <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: 16, borderRadius: 12 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>DAY {ms.day || i + 1}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#0F766E', marginBottom: 4 }}>DAY {ms.day || i + 1}</div>
                         <div style={{ color: '#0f172a', fontSize: 14 }}>{ms.description}</div>
                       </div>
                     </div>

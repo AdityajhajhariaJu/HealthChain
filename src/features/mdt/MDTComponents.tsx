@@ -26,7 +26,14 @@ import {
   Sparkles,
   Upload,
   GitMerge,
-  X
+  X,
+  AlertTriangle,
+  FlaskConical,
+  Zap,
+  Heart,
+  Pill,
+  Dna,
+  Brain
 } from 'lucide-react';
 import {
   chatWithMDTSpecialist,
@@ -41,12 +48,12 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticSelection } from '../../services/haptics';
 
 const REEVAL_STARTERS = [
-  '⚠️ Symptoms Worsen Post-Meal',
-  '🦴 Pain Radiates to Shoulder/Neck',
-  '💊 New Medication Started Recently',
-  '🧪 Recent Bloodwork Abnormal',
-  '⚡ Severe Fatigue / Crash (PEM)',
-  '🫀 Tachycardia / Palpitations',
+  { label: 'Symptoms Worsen Post-Meal', icon: AlertTriangle, text: 'Symptoms worsen post-meal' },
+  { label: 'Pain Radiates to Shoulder/Neck', icon: Activity, text: 'Pain radiates to shoulder/neck' },
+  { label: 'New Medication Started Recently', icon: Pill, text: 'New medication started recently' },
+  { label: 'Recent Bloodwork Abnormal', icon: FlaskConical, text: 'Recent bloodwork abnormal' },
+  { label: 'Severe Fatigue / Crash (PEM)', icon: Zap, text: 'Severe fatigue / crash (PEM)' },
+  { label: 'Tachycardia / Palpitations', icon: Heart, text: 'Tachycardia / palpitations' },
 ];
 
 export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
@@ -464,48 +471,51 @@ New Information / Changes in Symptoms since last evaluation:
               </div>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                 {[
-                  { label: 'Joint Stiffness', icon: '🩺', text: 'Experiencing bilateral small joint stiffness for >45 minutes each morning, fatigue, and intermittent low-grade fevers for 8 weeks.' },
-                  { label: 'Fatigue & Crash', icon: '⚡', text: 'Severe unrefreshing sleep and post-exertional malaise crashing 24-48 hours after minor physical activity, with cognitive sluggishness.' },
-                  { label: 'Palpitations & POTS', icon: '🫀', text: 'Resting tachycardia and lightheadedness when transitioning from lying to standing, accompanied by shortness of breath.' },
-                  { label: 'Flushing & Hives', icon: '🧬', text: 'Recurrent dermatographia, facial flushing after meals or temperature changes, accompanied by abdominal cramping.' },
-                  { label: 'Brain Fog', icon: '🧠', text: 'Progressive cognitive slowing, word-finding difficulty, and severe afternoon concentration lapses despite 8+ hours of sleep.' }
-                ].map((starter, sIdx) => (
-                  <button
-                    key={sIdx}
-                    type="button"
-                    onClick={() => {
-                      triggerHapticSelection();
-                      setComplaint(prev => prev ? `${prev}\n\n${starter.text}` : starter.text);
-                    }}
-                    style={{
-                      flexShrink: 0,
-                      padding: '7px 12px',
-                      borderRadius: '10px',
-                      background: '#F0FDFA',
-                      border: '1px solid #CCFBF1',
-                      color: '#0F766E',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                      boxShadow: '0 1px 3px rgba(13, 148, 136, 0.08)'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = '#CCFBF1';
-                      e.currentTarget.style.borderColor = '#99F6E4';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = '#F0FDFA';
-                      e.currentTarget.style.borderColor = '#CCFBF1';
-                    }}
-                  >
-                    <span>{starter.icon}</span>
-                    <span>{starter.label}</span>
-                  </button>
-                ))}
+                  { label: 'Joint Stiffness', icon: Stethoscope, text: 'Experiencing bilateral small joint stiffness for >45 minutes each morning, fatigue, and intermittent low-grade fevers for 8 weeks.' },
+                  { label: 'Fatigue & Crash', icon: Zap, text: 'Severe unrefreshing sleep and post-exertional malaise crashing 24-48 hours after minor physical activity, with cognitive sluggishness.' },
+                  { label: 'Palpitations & POTS', icon: Heart, text: 'Resting tachycardia and lightheadedness when transitioning from lying to standing, accompanied by shortness of breath.' },
+                  { label: 'Flushing & Hives', icon: Dna, text: 'Recurrent dermatographia, facial flushing after meals or temperature changes, accompanied by abdominal cramping.' },
+                  { label: 'Brain Fog', icon: Brain, text: 'Progressive cognitive slowing, word-finding difficulty, and severe afternoon concentration lapses despite 8+ hours of sleep.' }
+                ].map((starter, sIdx) => {
+                  const Icon = starter.icon;
+                  return (
+                    <button
+                      key={sIdx}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSelection();
+                        setComplaint(prev => prev ? `${prev}\n\n${starter.text}` : starter.text);
+                      }}
+                      style={{
+                        flexShrink: 0,
+                        padding: '7px 12px',
+                        borderRadius: '10px',
+                        background: '#F0FDFA',
+                        border: '1px solid #CCFBF1',
+                        color: '#0F766E',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                        boxShadow: '0 1px 3px rgba(13, 148, 136, 0.08)'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = '#CCFBF1';
+                        e.currentTarget.style.borderColor = '#99F6E4';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = '#F0FDFA';
+                        e.currentTarget.style.borderColor = '#CCFBF1';
+                      }}
+                    >
+                      <Icon size={12} />
+                      <span>{starter.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -2353,37 +2363,41 @@ export function MDTReportPanel({
                     <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tap to append</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {REEVAL_STARTERS.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          triggerHapticSelection();
-                          setFeedback((prev) => {
-                            const trimmed = prev.trim();
-                            if (!trimmed) return chip;
-                            if (trimmed.toLowerCase().includes(chip.toLowerCase())) return prev;
-                            return `${trimmed}. ${chip}`;
-                          });
-                        }}
-                        style={{
-                          background: '#F0FDFA',
-                          border: '1px solid #CCFBF1',
-                          color: '#0F766E',
-                          padding: '6px 12px',
-                          borderRadius: '999px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <span>{chip}</span>
-                      </button>
-                    ))}
+                    {REEVAL_STARTERS.map((chip, idx) => {
+                      const Icon = chip.icon;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setFeedback((prev) => {
+                              const trimmed = prev.trim();
+                              if (!trimmed) return chip.text;
+                              if (trimmed.toLowerCase().includes(chip.text.toLowerCase())) return prev;
+                              return `${trimmed}. ${chip.text}`;
+                            });
+                          }}
+                          style={{
+                            background: '#F0FDFA',
+                            border: '1px solid #CCFBF1',
+                            color: '#0F766E',
+                            padding: '6px 12px',
+                            borderRadius: '999px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Icon size={12} />
+                          <span>{chip.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

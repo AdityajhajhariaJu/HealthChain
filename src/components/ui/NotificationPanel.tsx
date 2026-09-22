@@ -46,7 +46,7 @@ const REMINDER_PRESETS = [
 
 const QUICK_SEVERITIES = [
   { label: 'None', desc: 'Zero', score: 0, color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0' },
-  { label: 'Mild', desc: 'Slight', score: 1, color: '#3B82F6', bg: '#EFF6FF', border: '#BFDBFE' },
+  { label: 'Mild', desc: 'Slight', score: 1, color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
   { label: 'Moderate', desc: 'Noticeable', score: 2, color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A' },
   { label: 'Severe', desc: 'Intense', score: 3, color: '#EF4444', bg: '#FEF2F2', border: '#FECACA' },
 ];
@@ -70,9 +70,9 @@ function getCategoryConfig(category: NotificationCategory) {
       return {
         label: 'Clinical Alert',
         icon: BriefcaseBusiness,
-        color: '#2563EB',
-        bg: '#EFF6FF',
-        border: '#BFDBFE',
+        color: '#0D9488',
+        bg: '#F0FDFA',
+        border: '#99F6E4',
       };
     case 'appointment_prep':
       return {
