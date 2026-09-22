@@ -73,42 +73,45 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           role="dialog"
           aria-modal="true"
           aria-label="Clinical Connections"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            background: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}
-          onClick={onClose}
-        >
-          <motion.div
-            id="connection-detective-modal-sheet"
-            tabIndex={-1}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            onClick={(e) => e.stopPropagation()}
             style={{
-              width: '100%',
-              maxWidth: '960px',
-              height: '92vh',
-              maxHeight: '92vh',
-              background: '#FFFFFF',
-              borderTopLeftRadius: '28px',
-              borderTopRightRadius: '28px',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99999,
               display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
-              overflow: 'hidden',
+              alignItems: isMobile ? 'flex-end' : 'center',
+              justifyContent: 'center',
+              background: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              padding: isMobile ? '0' : '20px',
             }}
+            onClick={onClose}
           >
+            <motion.div
+              id="connection-detective-modal-sheet"
+              tabIndex={-1}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                maxWidth: isMobile ? '100%' : '680px',
+                height: 'auto',
+                maxHeight: isMobile ? '88vh' : '82vh',
+                background: '#FFFFFF',
+                borderTopLeftRadius: '28px',
+                borderTopRightRadius: '28px',
+                borderBottomLeftRadius: isMobile ? '0' : '28px',
+                borderBottomRightRadius: isMobile ? '0' : '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                overflow: 'hidden',
+              }}
+            >
             {/* Grab Handle */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
               <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#CBD5E1' }} />
@@ -196,9 +199,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             {/* Scrollable Content */}
             <div
               style={{
-                flex: 1,
+                flex: '0 1 auto',
                 overflowY: 'auto',
-                padding: '0 14px 32px 14px',
+                maxHeight: isMobile ? 'calc(88vh - 75px)' : 'calc(82vh - 75px)',
+                padding: isMobile ? '8px 14px calc(20px + env(safe-area-inset-bottom, 0px)) 14px' : '10px 18px 24px 18px',
               }}
             >
               <ConnectionDetectiveView
