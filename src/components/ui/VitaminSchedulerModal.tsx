@@ -68,7 +68,7 @@ export const ClassyPillIcon: React.FC<{
   kind?: 'capsule' | 'tablet' | 'droplet' | 'leaf' | 'syringe' | 'inhaler';
 }> = ({
   color1 = '#F43F5E',
-  color2 = '#CCFBF1',
+  color2 = '#FECDD3',
   size = 28,
   kind = 'capsule'
 }) => {
@@ -704,13 +704,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             width: '100%',
             maxWidth: '520px',
             maxHeight: 'calc(100vh - max(36px, env(safe-area-inset-top, 36px)))',
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 45%, #F0FDFA 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFDFD 45%, #FFF1F2 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 -20px 60px rgba(13, 148, 136, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+            boxShadow: '0 -20px 60px rgba(225, 29, 72, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
             borderTop: '1px solid rgba(255, 255, 255, 0.95)'
           }}
           onClick={(e) => e.stopPropagation()}
@@ -744,14 +744,14 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 width: '44px',
                 height: '44px',
                 borderRadius: '14px',
-                background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                border: '1.5px solid rgba(13, 148, 136, 0.35)',
+                background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
+                border: '1.5px solid rgba(225, 29, 72, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(13, 148, 136, 0.15), inset 0 1px 0 rgba(255,255,255,0.8)'
+                boxShadow: '0 4px 14px rgba(225, 29, 72, 0.15), inset 0 1px 0 rgba(255,255,255,0.8)'
               }}>
-                <ClassyPillIcon size={30} color1="#0D9488" color2="#CCFBF1" />
+                <ClassyPillIcon size={30} color1="#E11D48" color2="#FECDD3" />
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -802,13 +802,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
             {/* Frosted Clinical Regimen Card */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 250, 0.9) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 241, 242, 0.9) 100%)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '22px',
               padding: '14px 16px',
-              border: '1.5px solid #CCFBF1',
-              boxShadow: '0 8px 24px rgba(13, 148, 136, 0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+              border: '1.5px solid #FECDD3',
+              boxShadow: '0 8px 24px rgba(225, 29, 72, 0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -821,11 +821,11 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   <span style={{
                     fontSize: '11.5px',
                     fontWeight: 800,
-                    color: allTaken ? '#065F46' : '#C2410C',
-                    background: allTaken ? '#DCFCE7' : '#FFF1EB',
+                    color: allTaken ? '#065F46' : '#BE123C',
+                    background: allTaken ? '#DCFCE7' : '#FFF1F2',
                     padding: '2px 9px',
                     borderRadius: '999px',
-                    border: allTaken ? '1px solid #A7F3D0' : '1px solid #FED7AA'
+                    border: allTaken ? '1px solid #A7F3D0' : '1px solid #FECDD3'
                   }}>
                     {takenCount} of {vitamins.length} taken
                   </span>
@@ -842,20 +842,20 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 onClick={handleTestPillNotification}
                 style={{
                   background: 'rgba(255, 255, 255, 0.95)',
-                  border: '1.5px solid #10B981',
+                  border: '1.5px solid #FDA4AF',
                   borderRadius: '999px',
                   padding: '7px 13px',
-                  color: '#059669',
+                  color: '#BE123C',
                   fontSize: '11.5px',
                   fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '5px',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)'
+                  boxShadow: '0 2px 8px rgba(225, 29, 72, 0.12)'
                 }}
               >
-                <Sparkles size={13} color="#10B981" /> Test Alert
+                <Sparkles size={13} color="#E11D48" /> Test Alert
               </button>
             </div>
 
@@ -863,18 +863,18 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             {!hasNotificationPermission && (
               <div style={{
                 background: 'rgba(255, 255, 255, 0.92)',
-                border: '1.5px solid #CCFBF1',
+                border: '1.5px solid #FECDD3',
                 borderRadius: '16px',
                 padding: '10px 14px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '8px',
-                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)'
+                boxShadow: '0 2px 8px rgba(225, 29, 72, 0.08)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Bell size={15} color="#0D9488" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F766E' }}>
+                  <Bell size={15} color="#E11D48" />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#9F1239' }}>
                     Enable device notifications for alarms
                   </span>
                 </div>
@@ -884,12 +884,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   style={{
                     padding: '5px 12px',
                     borderRadius: '8px',
-                    background: '#0D9488',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
                     color: '#FFFFFF',
                     border: 'none',
                     fontSize: '11px',
                     fontWeight: 800,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)'
                   }}
                 >
                   Enable
@@ -900,15 +901,15 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             {/* Evidence-Based Drug-Nutrient & Chronotherapy Interaction Alerts */}
             {interactionAlerts.length > 0 && (
               <div style={{
-                background: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)',
-                border: '1.5px solid #FDE68A',
+                background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
+                border: '1.5px solid #FECDD3',
                 borderRadius: '20px',
                 padding: '14px 16px',
-                boxShadow: '0 4px 16px rgba(217, 119, 6, 0.08)'
+                boxShadow: '0 4px 16px rgba(225, 29, 72, 0.08)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <AlertTriangle size={16} color="#D97706" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  <AlertTriangle size={16} color="#E11D48" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                     CHRONOTHERAPY & DRUG-NUTRIENT ALERTS ({interactionAlerts.length})
                   </span>
                 </div>
@@ -918,13 +919,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       key={alert.id}
                       style={{
                         background: '#FFFFFF',
-                        border: '1px solid #FDE68A',
+                        border: '1px solid #FECDD3',
                         borderRadius: '12px',
                         padding: '10px 12px'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#92400E' }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#9F1239' }}>
                           {alert.title}
                         </span>
                         <span style={{
@@ -932,9 +933,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                           fontWeight: 800,
                           padding: '2px 7px',
                           borderRadius: '999px',
-                          background: alert.severity === 'timing_buffer' ? '#FEE2E2' : '#FEF3C7',
-                          color: alert.severity === 'timing_buffer' ? '#DC2626' : '#B45309',
-                          border: `1px solid ${alert.severity === 'timing_buffer' ? '#FECDD3' : '#FDE68A'}`,
+                          background: '#FFF1F2',
+                          color: alert.severity === 'timing_buffer' ? '#DC2626' : '#BE123C',
+                          border: `1px solid ${alert.severity === 'timing_buffer' ? '#FECDD3' : '#FDA4AF'}`,
                           whiteSpace: 'nowrap'
                         }}>
                           {alert.severity === 'timing_buffer' ? '4h Buffer Required' : alert.severity === 'depletion' ? 'Nutrient Depletion' : 'Lipid Absorption'}
@@ -946,11 +947,11 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       <div style={{
                         fontSize: '11.5px',
                         fontWeight: 700,
-                        color: '#0D9488',
-                        background: '#F0FDFA',
+                        color: '#BE123C',
+                        background: '#FFF1F2',
                         padding: '6px 10px',
                         borderRadius: '8px',
-                        border: '1px solid #CCFBF1'
+                        border: '1px solid #FECDD3'
                       }}>
                         💡 Clinical Protocol: {alert.recommendation}
                       </div>
@@ -968,11 +969,11 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 </span>
                 <span
                   style={{
-                    background: '#F0FDFA',
-                    border: '1px solid #CCFBF1',
+                    background: '#FFF1F2',
+                    border: '1px solid #FECDD3',
                     borderRadius: '999px',
                     padding: '3px 9px',
-                    color: '#0D9488',
+                    color: '#E11D48',
                     fontSize: '11px',
                     fontWeight: 700,
                     display: 'flex',
@@ -1010,13 +1011,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                         whiteSpace: 'nowrap',
                         padding: '7px 14px',
                         borderRadius: '999px',
-                        border: isActive ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                        background: isActive ? '#F0FDFA' : '#FFFFFF',
-                        color: isActive ? '#0F766E' : '#57534E',
+                        border: isActive ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                        background: isActive ? '#FFF1F2' : '#FFFFFF',
+                        color: isActive ? '#BE123C' : '#57534E',
                         fontSize: '12px',
                         fontWeight: isActive ? 800 : 600,
                         cursor: 'pointer',
-                        boxShadow: isActive ? '0 2px 8px rgba(13, 148, 136, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
+                        boxShadow: isActive ? '0 2px 8px rgba(225, 29, 72, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -1033,8 +1034,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   background: 'rgba(255, 255, 255, 0.95)',
                   borderRadius: '20px',
                   padding: '14px',
-                  border: '1.5px solid #CCFBF1',
-                  boxShadow: '0 6px 20px rgba(13, 148, 136, 0.08)',
+                  border: '1.5px solid #FECDD3',
+                  boxShadow: '0 6px 20px rgba(225, 29, 72, 0.08)',
                   marginBottom: '12px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1044,9 +1045,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '14px' }}>💊</span>
-                    <strong style={{ fontSize: '12.5px', color: '#134E4A' }}>Write Custom Tablet / Prescription</strong>
+                    <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
                   </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#0F766E', background: '#CCFBF1', padding: '1px 6px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFE4E6', padding: '1px 6px', borderRadius: '6px' }}>
                     Quick Add
                   </span>
                 </div>
@@ -1104,13 +1105,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   style={{
                     padding: '11px',
                     borderRadius: '12px',
-                    background: newName.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#E2E8F0',
+                    background: newName.trim() ? 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)' : '#E2E8F0',
                     color: newName.trim() ? '#FFF' : '#94A3B8',
                     border: 'none',
                     fontWeight: 800,
                     fontSize: '13px',
                     cursor: newName.trim() ? 'pointer' : 'default',
-                    boxShadow: newName.trim() ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none'
+                    boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
                   }}
                 >
                   + Add to Daily Regimen
@@ -1220,7 +1221,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   textAlign: 'center',
                   background: 'rgba(255, 255, 255, 0.7)',
                   borderRadius: '24px',
-                  border: '1.5px dashed #CCFBF1',
+                  border: '1.5px dashed #FECDD3',
                   color: '#78716C',
                   fontSize: '13px'
                 }}>
@@ -1264,8 +1265,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                             }}>
                               <ClassyPillIcon 
                                 size={26}
-                                color1={meta?.color1 || '#0D9488'}
-                                color2={meta?.color2 || '#CCFBF1'}
+                                color1={meta?.color1 || '#E11D48'}
+                                color2={meta?.color2 || '#FECDD3'}
                                 kind={meta?.iconKind || 'capsule'}
                               />
                             </div>
@@ -1337,7 +1338,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                               borderRadius: '10px',
                               padding: '4px 8px'
                             }}>
-                              <Clock size={12} color="#0D9488" />
+                              <Clock size={12} color="#E11D48" />
                               <input
                                 type="time"
                                 value={item.time}
@@ -1362,8 +1363,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                background: item.enabled ? '#CCFBF1' : '#F5F5F4',
-                                color: item.enabled ? '#0F766E' : '#A8A29E',
+                                background: item.enabled ? '#FFE4E6' : '#F5F5F4',
+                                color: item.enabled ? '#BE123C' : '#A8A29E',
                                 border: 'none',
                                 borderRadius: '10px',
                                 padding: '5px 9px',
@@ -1408,7 +1409,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             </div>
           </div>
 
-          {/* Reference Strawberry Rose-Coral Bottom Action Button */}
+          {/* Reference Execution Button: Harmonized to Clinical Vibrant Rose */}
           <div style={{
             padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
             borderTop: '1px solid #E2E8F0',
@@ -1419,15 +1420,19 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               onClick={handleSaveAndClose}
               style={{
                 width: '100%',
-                padding: '15px',
-                borderRadius: '18px',
-                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                height: '52px',
+                borderRadius: '12px',
+                background: '#E84A6C',
                 color: '#FFFFFF',
                 border: 'none',
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: '15px',
-                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.28), inset 0 1px 0 rgba(255,255,255,0.25)',
-                cursor: 'pointer'
+                boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
               }}
             >
               {vitamins.length > 0 
