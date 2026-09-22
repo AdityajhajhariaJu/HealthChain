@@ -16,10 +16,14 @@ import {
   Clock,
   Apple,
   Info,
-  ChevronRight,
   Stethoscope,
-  BookOpen
+  BookOpen,
+  Waves,
+  Flame,
+  Zap,
+  HeartPulse
 } from 'lucide-react';
+import { CalmBadge } from './CalmApothecaryCapsule';
 import {
   ELIMINATION_PROTOCOLS,
   EliminationTrialProtocol,
@@ -54,6 +58,14 @@ interface SafetyFlags {
   untestedCeliac: boolean;
   recentAntibiotics: boolean;
 }
+
+const PRIMARY_PHENOTYPE_ICONS: Record<string, { icon: any; category: 'gastro' | 'kinetic' | 'cardio' | 'neuro' }> = {
+  bloating: { icon: Waves, category: 'gastro' },
+  motility: { icon: Clock, category: 'kinetic' },
+  heartburn: { icon: Flame, category: 'cardio' },
+  histamine: { icon: Zap, category: 'neuro' },
+  pots: { icon: HeartPulse, category: 'cardio' },
+};
 
 // 1. PRIMARY DIGESTIVE PHENOTYPES (Layer 1: Anatomical / Physiological Anchor)
 const PRIMARY_PHENOTYPES = [
@@ -505,6 +517,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                   {PRIMARY_PHENOTYPES.map((item) => {
                     const isSelected = selectedPhenotype === item.id || selectedSymptoms.includes(item.id);
+                    const phenoMeta = PRIMARY_PHENOTYPE_ICONS[item.id] || { icon: Waves, category: 'gastro' as const };
                     return (
                       <button
                         key={item.id}
@@ -525,7 +538,12 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <span style={{ fontSize: '22px', lineHeight: 1 }}>{item.icon}</span>
+                        <CalmBadge
+                          category={phenoMeta.category}
+                          icon={phenoMeta.icon}
+                          size={28}
+                          shape="squircle"
+                        />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                             <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
@@ -567,13 +585,19 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           borderRadius: '14px',
                           border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                           background: isSelected ? '#F0FDFA' : '#FFFFFF',
+                          boxShadow: isSelected ? '0 3px 10px rgba(13, 148, 136, 0.08)' : 'none',
                           cursor: 'pointer',
                           textAlign: 'left',
                           minHeight: '48px',
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                        <CalmBadge
+                          category="kinetic"
+                          icon={item.icon}
+                          size={24}
+                          shape="circle"
+                        />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#0F766E' : '#1E293B' }}>
                             {item.label}

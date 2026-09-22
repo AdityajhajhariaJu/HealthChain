@@ -1,13 +1,40 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, HeartPulse, CheckCircle2, BellRing, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { 
+  Flame, 
+  HeartPulse, 
+  CheckCircle2, 
+  BellRing, 
+  Sparkles, 
+  Check, 
+  AlertCircle,
+  Brain,
+  BatteryLow,
+  Zap,
+  Bone,
+  Wind,
+  Activity
+} from 'lucide-react';
+import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackFeatureUsed } from '../../services/analytics';
 import { recordConfirmedTrigger } from '../../services/TriggerEngine';
+
+const getSymptomMeta = (symptom: string): { category: CalmCategoryKey; icon: any } => {
+  const lower = symptom.toLowerCase();
+  if (lower.includes('headache') || lower.includes('migraine')) return { category: 'neuro', icon: Brain };
+  if (lower.includes('dizz') || lower.includes('vertigo')) return { category: 'neuro', icon: Zap };
+  if (lower.includes('sinus') || lower.includes('rhinit')) return { category: 'respiratory', icon: Wind };
+  if (lower.includes('neck') || lower.includes('back') || lower.includes('spine') || lower.includes('bone') || lower.includes('joint')) return { category: 'kinetic', icon: Bone };
+  if (lower.includes('fatigue') || lower.includes('fog') || lower.includes('tired')) return { category: 'sleep', icon: BatteryLow };
+  if (lower.includes('digest') || lower.includes('nausea') || lower.includes('reflux') || lower.includes('gut')) return { category: 'gastro', icon: Flame };
+  if (lower.includes('energy') || lower.includes('vital')) return { category: 'vitality', icon: HeartPulse };
+  return { category: 'systemic', icon: Activity };
+};
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
@@ -330,9 +357,9 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
       <div
         style={{
           display: 'flex',
-          gap: '6px',
+          gap: '8px',
           overflowX: 'auto',
-          paddingBottom: '2px',
+          paddingBottom: '6px',
           marginBottom: '14px',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
@@ -341,36 +368,21 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
         {suggestedSymptoms.map((symptom) => {
           const isSelected = selectedSymptom === symptom;
           const hasLogForThis = todayCheckin?.symptom === symptom;
+          const meta = getSymptomMeta(symptom);
           return (
-            <button
+            <CalmApothecaryCapsule
               key={symptom}
-              type="button"
+              label={symptom}
+              subtitle={hasLogForThis ? '✓ Logged' : undefined}
+              category={meta.category}
+              icon={meta.icon}
+              isSelected={isSelected}
+              size="sm"
               onClick={() => {
                 triggerHapticLight();
                 setSelectedSymptom(symptom);
               }}
-              aria-label={`Select symptom focus: ${symptom}`}
-              style={{
-                background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : (hasLogForThis ? '#ECFDF5' : '#F8FAFC'),
-                color: isSelected ? '#FFFFFF' : (hasLogForThis ? '#0F766E' : '#475569'),
-                border: isSelected ? '1px solid #0D9488' : (hasLogForThis ? '1px solid #99F6E4' : '1px solid #E2E8F0'),
-                boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.28)' : 'none',
-                padding: '5px 12px',
-                borderRadius: '999px',
-                fontSize: '12px',
-                fontWeight: isSelected ? 700 : (hasLogForThis ? 600 : 500),
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease',
-                flexShrink: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <span>{symptom}</span>
-              {hasLogForThis && <span style={{ fontSize: '10px' }}>✓</span>}
-            </button>
+            />
           );
         })}
       </div>

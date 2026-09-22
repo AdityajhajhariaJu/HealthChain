@@ -27,8 +27,12 @@ import {
   Activity, 
   Loader2,
   Plus,
-  X
+  X,
+  Sun,
+  Sunrise,
+  Sunset
 } from 'lucide-react';
+import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
 
 interface GoalOption {
   title: string;
@@ -106,6 +110,19 @@ const COMMON_CONDITIONS = [
   { name: 'Celiac Disease', category: 'Immune', icon: '🌾' },
   { name: 'Lower Back Strain', category: 'Kinetic', icon: '🦴' },
 ];
+
+const CONDITION_CATEGORY_MAP: Record<string, CalmCategoryKey> = {
+  Cardiovascular: 'cardio',
+  Metabolic: 'metabolic',
+  Gastrointestinal: 'gastro',
+  Endocrine: 'endocrine',
+  Autonomic: 'cardio',
+  Neurological: 'neuro',
+  Respiratory: 'respiratory',
+  Hepatic: 'metabolic',
+  Immune: 'immune_allergy',
+  Kinetic: 'kinetic',
+};
 
 const PRESET_MEDICATIONS: { name: string; defaultSlot: CircadianSlot; hint: string }[] = [
   { name: 'Metformin', defaultSlot: 'midday', hint: 'Glucose' },
@@ -1024,38 +1041,21 @@ export default function OnboardingFlow() {
                   </button>
                 </div>
 
-                {/* Emoji Pills Grid */}
+                {/* Calm Apothecary Conditions Pills */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {COMMON_CONDITIONS.map((c) => {
                     const isSelected = conditions.includes(c.name);
+                    const catKey = CONDITION_CATEGORY_MAP[c.category] || 'systemic';
                     return (
-                      <motion.button
+                      <CalmApothecaryCapsule
                         key={c.name}
-                        type="button"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.95 }}
+                        label={c.name}
+                        subtitle={c.category}
+                        category={catKey}
+                        icon={c.icon}
+                        isSelected={isSelected}
                         onClick={() => toggleCondition(c.name)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 14px',
-                          borderRadius: '999px',
-                          fontSize: '12.5px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                          color: isSelected ? '#0F766E' : '#334155',
-                          boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.18)' : '0 1px 2px rgba(0,0,0,0.02)',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <span style={{ fontSize: '15px' }}>{c.icon}</span>
-                        <span>{c.name}</span>
-                        <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: 600 }}>({c.category})</span>
-                        {isSelected && <Check size={13} color="#0F766E" />}
-                      </motion.button>
+                      />
                     );
                   })}
                 </div>
@@ -1268,36 +1268,20 @@ export default function OnboardingFlow() {
                   </button>
                 </div>
 
-                {/* Preset Meds */}
+                {/* Calm Apothecary Preset Meds */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {PRESET_MEDICATIONS.map((m) => {
                     const isSelected = medications.some((item) => item.name === m.name);
                     return (
-                      <motion.button
+                      <CalmApothecaryCapsule
                         key={m.name}
-                        type="button"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.95 }}
+                        label={m.name}
+                        subtitle={m.hint}
+                        category="medication"
+                        icon={Pill}
+                        isSelected={isSelected}
                         onClick={() => toggleMedication(m.name, m.defaultSlot)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '7px 13px',
-                          borderRadius: '999px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                          color: isSelected ? '#0F766E' : '#334155',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <Pill size={13} color={isSelected ? '#0D9488' : '#64748B'} />
-                        <span>{m.name}</span>
-                        {isSelected && <Check size={13} color="#0D9488" />}
-                      </motion.button>
+                      />
                     );
                   })}
                 </div>
@@ -1377,26 +1361,33 @@ export default function OnboardingFlow() {
                         <div style={{ display: 'flex', gap: '4px' }}>
                           {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
                             const isSlot = m.slot === slot;
-                            const slotColor = slot === 'morning' ? '#F59E0B' : slot === 'midday' ? '#F97316' : slot === 'evening' ? '#8B5CF6' : '#6366F1';
-                            const slotEmoji = slot === 'morning' ? '🌅' : slot === 'midday' ? '☀️' : slot === 'evening' ? '🌇' : '🌙';
+                            const slotMeta = CIRCADIAN_SLOT_META[slot];
+                            const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
                             return (
                               <button
                                 key={slot}
                                 type="button"
                                 onClick={() => updateMedSlot(m.name, slot)}
+                                title={slotMeta.label}
+                                aria-label={slotMeta.label}
                                 style={{
                                   fontSize: '11px',
                                   fontWeight: 700,
-                                  padding: '4px 8px',
+                                  padding: '5px 8px',
                                   borderRadius: '8px',
-                                  border: isSlot ? `1.5px solid ${slotColor}` : '1px solid #E2E8F0',
-                                  background: isSlot ? '#FFFFFF' : '#F1F5F9',
-                                  color: isSlot ? slotColor : '#64748B',
-                                  boxShadow: isSlot ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
-                                  cursor: 'pointer'
+                                  border: isSlot ? `1.5px solid ${slotMeta.color}` : '1px solid #E2E8F0',
+                                  background: isSlot ? slotMeta.bg : '#F8FAFC',
+                                  color: isSlot ? slotMeta.color : '#64748B',
+                                  boxShadow: isSlot ? `0 2px 8px ${slotMeta.color}35` : 'none',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  transition: 'all 0.15s ease'
                                 }}
                               >
-                                {slotEmoji}
+                                <SlotIcon size={13} strokeWidth={2.2} />
+                                <span style={{ textTransform: 'capitalize' }}>{slot}</span>
                               </button>
                             );
                           })}
@@ -1452,32 +1443,15 @@ export default function OnboardingFlow() {
                   {COMMON_ALLERGIES.map((a) => {
                     const isSelected = allergies.some((item) => item.name === a.name);
                     return (
-                      <motion.button
+                      <CalmApothecaryCapsule
                         key={a.name}
-                        type="button"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.95 }}
+                        label={a.name}
+                        subtitle={a.defaultSeverity}
+                        category="immune_allergy"
+                        icon={a.icon}
+                        isSelected={isSelected}
                         onClick={() => toggleAllergy(a.name, a.defaultSeverity)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '7px 13px',
-                          borderRadius: '999px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
-                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
-                          color: isSelected ? '#BE123C' : '#334155',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <span>{a.icon}</span>
-                        <span>{a.name}</span>
-                        <span style={{ fontSize: '10px', opacity: 0.65 }}>({a.defaultSeverity})</span>
-                        {isSelected && <Check size={13} color="#BE123C" />}
-                      </motion.button>
+                      />
                     );
                   })}
                 </div>

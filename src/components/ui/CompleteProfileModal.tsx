@@ -33,9 +33,24 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
+import { CalmApothecaryCapsule, CalmCategoryKey } from './CalmApothecaryCapsule';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';
+
+const CONDITION_CATEGORY_MAP: Record<string, CalmCategoryKey> = {
+  Cardiovascular: 'cardio',
+  Metabolic: 'metabolic',
+  Gastrointestinal: 'gastro',
+  Neurovascular: 'neuro',
+  Neuropsychiatric: 'neuro',
+  Respiratory: 'respiratory',
+  Endocrine: 'endocrine',
+  Kinetic: 'kinetic',
+  Immune: 'immune_allergy',
+  Autonomic: 'cardio',
+  Hepatic: 'metabolic',
+};
 
 export interface ProfileMedicationItem {
   name: string;
@@ -1874,31 +1889,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {COMMON_CONDITIONS.map(cond => {
                           const isSelected = selectedConditions.includes(cond.name);
+                          const categoryKey = CONDITION_CATEGORY_MAP[cond.category] || 'systemic';
                           return (
-                            <button
+                            <CalmApothecaryCapsule
                               key={cond.name}
-                              type="button"
+                              label={cond.name}
+                              category={categoryKey}
+                              icon={cond.icon}
+                              isSelected={isSelected}
                               onClick={() => toggleCondition(cond.name)}
-                              style={{
-                                padding: '9px 15px',
-                                borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                                background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                                color: isSelected ? '#FFFFFF' : '#1E293B',
-                                fontWeight: isSelected ? 800 : 600,
-                                fontSize: '13px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: isSelected ? '0 4px 12px rgba(13, 148, 136, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <span>{cond.icon}</span>
-                              <span>{cond.name}</span>
-                              {isSelected && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                            </button>
+                            />
                           );
                         })}
                       </div>
@@ -1964,30 +1964,13 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         </span>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
                           {selectedConditions.map(c => (
-                            <span
+                            <CalmApothecaryCapsule
                               key={c}
-                              style={{
-                                padding: '6px 12px',
-                                borderRadius: '999px',
-                                background: '#FFFFFF',
-                                border: '1px solid #99F6E4',
-                                color: '#0F766E',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                              }}
-                            >
-                              <span>{c}</span>
-                              <button
-                                type="button"
-                                onClick={() => toggleCondition(c)}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: '#0F766E', display: 'flex' }}
-                              >
-                                <X size={12} strokeWidth={2.5} />
-                              </button>
-                            </span>
+                              label={c}
+                              category="metabolic"
+                              size="sm"
+                              onRemove={() => toggleCondition(c)}
+                            />
                           ))}
                         </div>
                       </div>
@@ -2067,32 +2050,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {PRESET_MEDICATIONS.map(med => {
                           const isSelected = medicationsList.some(m => m.name.toLowerCase() === med.name.toLowerCase());
-                          const slotMeta = CIRCADIAN_SLOT_META[med.defaultSlot];
                           return (
-                            <button
+                            <CalmApothecaryCapsule
                               key={med.name}
-                              type="button"
+                              label={med.name}
+                              subtitle={med.dosage}
+                              category="medication"
+                              icon={Pill}
+                              isSelected={isSelected}
                               onClick={() => handleTogglePresetMedication(med)}
-                              style={{
-                                padding: '9px 14px',
-                                borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
-                                background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : 'rgba(255, 255, 255, 0.95)',
-                                color: isSelected ? '#FFFFFF' : '#1E293B',
-                                fontWeight: isSelected ? 800 : 600,
-                                fontSize: '12.5px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: isSelected ? '0 4px 12px rgba(13, 148, 136, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <span>{slotMeta.icon}</span>
-                              <span>{med.name}</span>
-                              {isSelected && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                            </button>
+                            />
                           );
                         })}
                       </div>
@@ -2152,6 +2119,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(slot => {
                               const meta = CIRCADIAN_SLOT_META[slot];
                               const isCur = medSlot === slot;
+                              const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
                               return (
                                 <button
                                   key={slot}
@@ -2163,9 +2131,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                   style={{
                                     padding: '8px 4px',
                                     borderRadius: '12px',
-                                    border: isCur ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
-                                    background: isCur ? '#F0FDFA' : '#FFFFFF',
-                                    color: isCur ? '#0F766E' : '#64748B',
+                                    border: isCur ? `1.5px solid ${meta.color}` : '1px solid #E2E8F0',
+                                    background: isCur ? meta.bg : '#FFFFFF',
+                                    color: isCur ? meta.color : '#64748B',
                                     fontSize: '11px',
                                     fontWeight: isCur ? 800 : 600,
                                     cursor: 'pointer',
@@ -2173,10 +2141,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '2px',
-                                    boxShadow: isCur ? '0 2px 6px rgba(13, 148, 136, 0.15)' : 'none'
+                                    boxShadow: isCur ? `0 2px 6px ${meta.color}25` : 'none',
+                                    transition: 'all 0.15s ease'
                                   }}
                                 >
-                                  <span>{meta.icon}</span>
+                                  <SlotIcon size={14} strokeWidth={2.2} />
                                   <span>{meta.label}</span>
                                   <span style={{ fontSize: '9px', opacity: 0.75 }}>{meta.time}</span>
                                 </button>
@@ -2253,6 +2222,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                   {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(slot => {
                                     const meta = CIRCADIAN_SLOT_META[slot];
                                     const isActive = m.circadianSlot === slot;
+                                    const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
                                     return (
                                       <button
                                         key={slot}
@@ -2262,19 +2232,20 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                           flex: 1,
                                           padding: '6px 4px',
                                           borderRadius: '10px',
-                                          border: isActive ? `1.5px solid #0D9488` : '1px solid #E2E8F0',
-                                          background: isActive ? '#F0FDFA' : '#FFFFFF',
-                                          color: isActive ? '#0F766E' : '#64748B',
+                                          border: isActive ? `1.5px solid ${meta.color}` : '1px solid #E2E8F0',
+                                          background: isActive ? meta.bg : '#FFFFFF',
+                                          color: isActive ? meta.color : '#64748B',
                                           fontSize: '10.5px',
                                           fontWeight: isActive ? 800 : 600,
                                           cursor: 'pointer',
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
-                                          gap: '3px'
+                                          gap: '3px',
+                                          transition: 'all 0.15s ease'
                                         }}
                                       >
-                                        <span>{meta.icon}</span>
+                                        <SlotIcon size={12} strokeWidth={2.2} />
                                         <span>{meta.label}</span>
                                       </button>
                                     );
@@ -2363,29 +2334,15 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         {COMMON_ALLERGIES.map(all => {
                           const isSelected = selectedAllergies.some(a => a.name.toLowerCase() === all.name.toLowerCase());
                           return (
-                            <button
+                            <CalmApothecaryCapsule
                               key={all.name}
-                              type="button"
+                              label={all.name}
+                              subtitle={all.defaultSeverity}
+                              category="immune_allergy"
+                              icon={ShieldCheck}
+                              isSelected={isSelected}
                               onClick={() => togglePresetAllergy(all)}
-                              style={{
-                                padding: '9px 14px',
-                                borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #E11D48' : '1.5px solid #E2E8F0',
-                                background: isSelected ? '#FFF1F2' : 'rgba(255, 255, 255, 0.95)',
-                                color: isSelected ? '#E11D48' : '#1E293B',
-                                fontWeight: isSelected ? 800 : 600,
-                                fontSize: '13px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: isSelected ? '0 3px 10px rgba(225, 29, 72, 0.2)' : '0 1px 3px rgba(0,0,0,0.02)',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <span>{all.name}</span>
-                              {isSelected ? <X size={13} color="#E11D48" strokeWidth={3} /> : <Plus size={13} color="#94A3B8" />}
-                            </button>
+                            />
                           );
                         })}
                       </div>

@@ -32,8 +32,23 @@ import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '.
 import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
 import { HCLogo } from '../../components/ui/HCLogo';
 
+import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
+
 type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 type AllergySeverity = 'mild' | 'moderate' | 'severe';
+
+const CONDITION_CATEGORY_MAP: Record<string, CalmCategoryKey> = {
+  Cardiovascular: 'cardio',
+  Metabolic: 'metabolic',
+  Gastrointestinal: 'gastro',
+  Neurological: 'neuro',
+  Respiratory: 'respiratory',
+  Endocrine: 'endocrine',
+  Kinetic: 'kinetic',
+  Immune: 'immune_allergy',
+  Autonomic: 'cardio',
+  Hepatic: 'metabolic',
+};
 
 const AGE_BRACKETS = [
   { label: '18–25 Gen Z', min: 18, max: 25, defaultAge: 22, hint: 'Metabolic Velocity' },
@@ -733,30 +748,19 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         {conditions.length} active
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                       {COMMON_CONDITIONS.map((c) => {
                         const isSelected = conditions.includes(c.name);
+                        const categoryKey = CONDITION_CATEGORY_MAP[c.category] || 'systemic';
                         return (
-                          <button
+                          <CalmApothecaryCapsule
                             key={c.name}
-                            type="button"
+                            label={c.name}
+                            category={categoryKey}
+                            icon={c.icon}
+                            isSelected={isSelected}
                             onClick={() => toggleCondition(c.name)}
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: 999,
-                              border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                              color: isSelected ? '#0F766E' : '#334155',
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <span>{c.icon}</span> {c.name}
-                          </button>
+                          />
                         );
                       })}
                     </div>
@@ -800,27 +804,18 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                       {PRESET_MEDICATIONS.map((m) => {
                         const isSelected = Boolean(medications.find((med) => med.name === m.name));
                         return (
-                          <button
+                          <CalmApothecaryCapsule
                             key={m.name}
-                            type="button"
+                            label={m.name}
+                            category="medication"
+                            icon={Pill}
+                            isSelected={isSelected}
                             onClick={() => toggleMedication(m.name, m.defaultSlot)}
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: 999,
-                              border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected ? '#0D9488' : '#FFFFFF',
-                              color: isSelected ? '#FFFFFF' : '#334155',
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            + {m.name}
-                          </button>
+                          />
                         );
                       })}
                     </div>
@@ -846,23 +841,29 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                               {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
                                 const meta = CIRCADIAN_SLOT_META[slot];
                                 const isCur = m.slot === slot;
+                                const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
                                 return (
                                   <button
                                     key={slot}
                                     type="button"
                                     onClick={() => updateMedSlot(m.name, slot)}
+                                    title={meta.label}
                                     style={{
                                       padding: '4px 8px',
-                                      borderRadius: 6,
-                                      border: isCur ? '1px solid #0D9488' : '1px solid #E2E8F0',
+                                      borderRadius: 8,
+                                      border: isCur ? `1.5px solid ${meta.color}` : '1px solid #E2E8F0',
                                       background: isCur ? meta.bg : '#FFFFFF',
                                       color: isCur ? meta.color : '#64748B',
                                       fontSize: 11,
                                       fontWeight: 700,
                                       cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      transition: 'all 0.15s ease',
                                     }}
                                   >
-                                    {meta.icon} {meta.label}
+                                    <SlotIcon size={12} strokeWidth={2.2} /> {meta.label}
                                   </button>
                                 );
                               })}
@@ -944,27 +945,19 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                     {!nkda && (
                       <>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                           {COMMON_ALLERGIES.map((a) => {
                             const isSelected = Boolean(allergies.find((item) => item.name === a.name));
                             return (
-                              <button
+                              <CalmApothecaryCapsule
                                 key={a.name}
-                                type="button"
+                                label={a.name}
+                                subtitle={a.defaultSeverity}
+                                category="immune_allergy"
+                                icon={ShieldCheck}
+                                isSelected={isSelected}
                                 onClick={() => toggleAllergy(a.name, a.defaultSeverity)}
-                                style={{
-                                  padding: '6px 12px',
-                                  borderRadius: 999,
-                                  border: isSelected ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
-                                  background: isSelected ? '#FEF2F2' : '#FFFFFF',
-                                  color: isSelected ? '#DC2626' : '#334155',
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                + {a.name}
-                              </button>
+                              />
                             );
                           })}
                         </div>
@@ -1064,27 +1057,18 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
                       🧬 Relevant Family History
                     </label>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                       {FAMILY_CONDITIONS.map((f) => {
                         const isSelected = familyHistory.includes(f);
                         return (
-                          <button
+                          <CalmApothecaryCapsule
                             key={f}
-                            type="button"
+                            label={f}
+                            category="systemic"
+                            icon={Dna}
+                            isSelected={isSelected}
                             onClick={() => toggleFamily(f)}
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: 999,
-                              border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                              color: isSelected ? '#0F766E' : '#334155',
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {isSelected ? '✓ ' : '+ '} {f}
-                          </button>
+                          />
                         );
                       })}
                     </div>

@@ -41,7 +41,13 @@ import {
   Mail,
   MessageSquare,
   Lock,
+  Pill,
+  Sun,
+  Sunrise,
+  Sunset,
+  Moon,
 } from 'lucide-react';
+import { CalmApothecaryCapsule, CalmBadge } from '../../components/ui/CalmApothecaryCapsule';
 import {
   getProfile,
   updateDemographics,
@@ -997,42 +1003,19 @@ export default function MedicalProfile() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
-                    className={`badge ${isSevere ? 'badge-red' : 'badge-amber'}`}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '13.5px',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      whiteSpace: 'nowrap',
-                      background: isSevere ? '#FFE4E6' : '#FEF3C7',
-                      color: isSevere ? '#BE123C' : '#B45309',
-                      border: isSevere ? '1px solid #FDA4AF' : '1px solid #FDE68A'
-                    }}
                   >
-                    <AlertTriangle size={15} />
-                    <span>Allergy: {aName}</span>
-                    <span style={{
-                      fontSize: '10px',
-                      textTransform: 'uppercase',
-                      fontWeight: 800,
-                      padding: '1px 6px',
-                      borderRadius: '999px',
-                      background: 'rgba(255,255,255,0.7)',
-                      letterSpacing: '0.4px'
-                    }}>
-                      {aSev}
-                    </span>
-                    <button
-                      onClick={() => {
+                    <CalmApothecaryCapsule
+                      label={aName}
+                      subtitle={`Allergy • ${aSev}`}
+                      category={isSevere ? 'immune_allergy' : 'kinetic'}
+                      icon={AlertTriangle}
+                      isSelected={true}
+                      onRemove={() => {
                         triggerHapticLight();
                         removeAllergy(aName);
                         toast.info('Allergy Removed', `"${aName}" removed from profile.`);
                       }}
-                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px', opacity: 0.7 }}
-                    >
-                      <X size={14} />
-                    </button>
+                    />
                   </motion.div>
                 );
               })}
@@ -1166,45 +1149,18 @@ export default function MedicalProfile() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      style={{
-                        background: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
-                        padding: '6px 12px',
-                        borderRadius: 999,
-                        fontSize: '13px',
-                        fontWeight: 650,
-                        color: '#0F172A',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'all 0.2s ease'
-                      }}
                     >
-                      <Activity size={13} color="var(--teal)" style={{ flexShrink: 0 }} />
-                      <span>{cleanClinicalText(condition)}</span>
-                      <button
-                        onClick={() => {
+                      <CalmApothecaryCapsule
+                        label={cleanClinicalText(condition)}
+                        category="metabolic"
+                        icon={Activity}
+                        size="sm"
+                        onRemove={() => {
                           triggerHapticLight();
                           removeCondition(condition);
                           toast.info('Condition Removed', `"${condition}" removed from profile.`);
                         }}
-                        aria-label={`Remove condition ${condition}`}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#94A3B8',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '2px',
-                          borderRadius: '50%',
-                          marginLeft: '2px'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
-                      >
-                        <X size={13} />
-                      </button>
+                      />
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -1684,7 +1640,7 @@ export default function MedicalProfile() {
                   const mName = typeof m === 'string' ? m : m.name;
                   const mDosage = typeof m === 'object' && m.dosage ? m.dosage : '';
                   const mSlot = typeof m === 'object' && m.circadianSlot ? m.circadianSlot : 'morning';
-                  const slotIcon = mSlot === 'bedtime' ? '🌙' : mSlot === 'evening' ? '🌇' : mSlot === 'midday' ? '☀️' : '🌅';
+                  const SlotIcon = mSlot === 'bedtime' ? Moon : mSlot === 'evening' ? Sunset : mSlot === 'midday' ? Sun : Sunrise;
                   const slotTime = typeof m === 'object' && m.time ? m.time : (mSlot === 'bedtime' ? '21:30' : mSlot === 'evening' ? '18:30' : mSlot === 'midday' ? '13:00' : '08:30');
                   
                   return (
@@ -1694,46 +1650,59 @@ export default function MedicalProfile() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       style={{
-                        padding: '16px',
-                        background: 'var(--surface-hover)',
-                        borderRadius: 'var(--radius-lg)',
-                        borderLeft: '3px solid #8B5CF6',
+                        padding: '14px 16px',
+                        background: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
                         position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
                       }}
                     >
-                      <div
-                        style={{
-                          color: 'var(--text-main)',
-                          fontWeight: 700,
-                          fontSize: '15px',
-                          marginBottom: '4px',
-                          paddingRight: '24px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          flexWrap: 'wrap'
-                        }}
-                      >
-                        <span>{mName}</span>
-                        {mDosage && <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>({mDosage})</span>}
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          background: '#ECFDF5',
-                          color: '#065F46',
-                          border: '1px solid #A7F3D0',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <span>{slotIcon}</span>
-                          <span style={{ textTransform: 'capitalize' }}>{mSlot} ({slotTime})</span>
-                        </span>
-                      </div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-                        {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : m.source === 'onboarding' ? 'Profile Dossier' : 'Manually added'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                        <CalmBadge
+                          category="medication"
+                          icon={Pill}
+                          size={28}
+                          shape="circle"
+                        />
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              color: '#1C1917',
+                              fontWeight: 700,
+                              fontSize: '14.5px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              flexWrap: 'wrap'
+                            }}
+                          >
+                            <span style={{ fontWeight: 800 }}>{mName}</span>
+                            {mDosage && <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>({mDosage})</span>}
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                              background: '#F5F3FF',
+                              color: '#6D28D9',
+                              border: '1px solid #DDD6FE',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <SlotIcon size={11} strokeWidth={2.2} />
+                              <span style={{ textTransform: 'capitalize' }}>{mSlot} ({slotTime})</span>
+                            </span>
+                          </div>
+                          <div style={{ color: '#78716C', fontSize: '11.5px', marginTop: '2px' }}>
+                            {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : m.source === 'onboarding' ? 'Profile Dossier' : 'Manually added'}
+                          </div>
+                        </div>
                       </div>
                       <button
                         onClick={() => {
@@ -1743,14 +1712,20 @@ export default function MedicalProfile() {
                         }}
                         aria-label={`Remove medication ${mName}`}
                         style={{
-                          position: 'absolute',
-                          top: '16px',
-                          right: '16px',
                           background: 'none',
                           border: 'none',
-                          color: 'var(--text-muted)',
+                          color: '#94A3B8',
                           cursor: 'pointer',
+                          padding: '6px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'color 0.15s ease',
+                          flexShrink: 0
                         }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
                       >
                         <X size={16} />
                       </button>
