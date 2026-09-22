@@ -54,28 +54,28 @@ describe('Clinical Review case continuity', () => {
   it('navigates seamlessly across the 6 visual onboarding steps and supports onset chips', async () => {
     open();
     // Step 1: Advance to Step 2 (Timeline)
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Timeline (Step 2)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Timeline' }));
     expect(screen.getByRole('heading', { name: 'When did you first notice this?' })).toBeTruthy();
 
     // Step 2: Click an onset chip
     fireEvent.click(screen.getByRole('button', { name: 'Past few days' }));
 
     // Advance to Step 3 (Pattern)
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Pattern (Step 3)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Pattern' }));
     expect(screen.getByRole('heading', { name: 'How is the symptom behaving?' })).toBeTruthy();
 
     // Advance to Step 4 (Story)
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Story' }));
     expect(screen.getByRole('heading', { name: 'Describe what you are experiencing' })).toBeTruthy();
     const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
     expect(textarea.value).toContain('Onset: Past few days.');
 
     // Advance to Step 5 (Evidence)
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Evidence' }));
     expect(screen.getByRole('heading', { name: 'Lab Reports & Medical Evidence' })).toBeTruthy();
 
     // Advance to Step 6 (Launchpad)
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review Scope & Launch' }));
     expect(screen.getByRole('heading', { name: 'Review Scope & Launchpad' })).toBeTruthy();
     expect(screen.getByText('Evidence Readiness Checklist')).toBeTruthy();
     expect(screen.getByRole('combobox', { name: 'Where should this review be saved?' })).toBeTruthy();
@@ -103,8 +103,8 @@ describe('Clinical Review case continuity', () => {
 
     // Advance to Step 4 (Story notes) and check it was appended into history
     fireEvent.click(screen.getByRole('button', { name: /Continue with 1 symptom/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Pattern (Step 3)' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Pattern' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to Story' }));
     const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
     expect(textarea.value).toContain('Primary symptoms: Sudden left ear fullness.');
   });

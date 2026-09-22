@@ -557,8 +557,8 @@ export function SpecialistPill({ specialist, isSelected, onToggle, isMobile }) {
       whileTap={{ scale: 0.95 }}
       onClick={() => onToggle(specialist.id)}
       style={{
-        background: isSelected ? specialist.color : '#FFFFFF',
-        border: isSelected ? `1px solid ${specialist.color}` : '1px solid #E2E8F0',
+        background: isSelected ? `linear-gradient(135deg, ${specialist.bg} 0%, #FFFFFF 100%)` : '#FFFFFF',
+        border: isSelected ? `1.5px solid ${specialist.color}` : '1px solid #E2E8F0',
         borderRadius: '999px',
         padding: isMobile ? '8px 10px 8px 6px' : '8px 16px 8px 12px',
         cursor: 'pointer',
@@ -569,7 +569,7 @@ export function SpecialistPill({ specialist, isSelected, onToggle, isMobile }) {
         width: '100%',
         minWidth: 0,
         transition: 'all 0.2s ease',
-        boxShadow: isSelected ? `0 4px 12px ${specialist.color}40` : '0 2px 4px rgba(0,0,0,0.02)',
+        boxShadow: isSelected ? `0 4px 14px ${specialist.color}25` : '0 2px 4px rgba(0,0,0,0.02)',
       }}
     >
       <div
@@ -577,18 +577,19 @@ export function SpecialistPill({ specialist, isSelected, onToggle, isMobile }) {
           width: '24px',
           height: '24px',
           borderRadius: '50%',
-          background: isSelected ? '#FFFFFF' : specialist.bg,
+          background: isSelected ? specialist.color : specialist.bg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          boxShadow: isSelected ? `0 2px 6px ${specialist.color}40` : 'none',
         }}
       >
-        <Icon size={14} color={isSelected ? specialist.color : '#64748B'} />
+        <Icon size={14} color={isSelected ? '#FFFFFF' : '#64748B'} />
       </div>
       <div style={{ 
         fontSize: isMobile ? '12px' : '13px', 
-        fontWeight: 600, 
-        color: isSelected ? '#FFFFFF' : '#475569',
+        fontWeight: isSelected ? 800 : 600, 
+        color: isSelected ? (specialist.color === '#EAB308' || specialist.color === '#F59E0B' ? '#B45309' : specialist.color) : '#475569',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap'

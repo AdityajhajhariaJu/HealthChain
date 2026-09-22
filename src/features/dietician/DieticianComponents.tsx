@@ -305,7 +305,7 @@ export function OnboardingWizard({
                 Food Planner Setup
               </div>
               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
-                Editable Food Planner · Step {step} of 8
+                Editable Food Planner · Clinical Protocol
               </div>
             </div>
           </div>
@@ -868,19 +868,19 @@ export function OnboardingWizard({
                       padding: '14px 20px',
                       borderRadius: '999px',
                       border: `1.5px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
-                      background: isSelected ? '#059669' : '#FFFFFF',
-                      color: isSelected ? '#FFFFFF' : '#475569',
+                      background: isSelected ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)' : '#FFFFFF',
+                      color: isSelected ? '#047857' : '#475569',
                       fontWeight: 700,
                       fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      boxShadow: isSelected ? '0 4px 14px rgba(5, 150, 105, 0.25)' : 'none',
+                      boxShadow: isSelected ? '0 4px 14px rgba(5, 150, 105, 0.16)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   >
-                    {isSelected && <Check size={15} />}
+                    {isSelected && <Check size={15} color="#059669" strokeWidth={2.8} />}
                     {r}
                   </motion.button>
                 );
@@ -941,20 +941,20 @@ export function OnboardingWizard({
                     style={{
                       padding: '14px 20px',
                       borderRadius: '999px',
-                      border: `1.5px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
-                      background: isSelected ? '#3B82F6' : '#FFFFFF',
-                      color: isSelected ? '#FFFFFF' : '#475569',
+                      border: `1.5px solid ${isSelected ? '#2563EB' : '#E2E8F0'}`,
+                      background: isSelected ? 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)' : '#FFFFFF',
+                      color: isSelected ? '#1D4ED8' : '#475569',
                       fontWeight: 700,
                       fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      boxShadow: isSelected ? '0 4px 14px rgba(59, 130, 246, 0.25)' : 'none',
+                      boxShadow: isSelected ? '0 4px 14px rgba(37, 99, 235, 0.16)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   >
-                    {isSelected && <Check size={15} />}
+                    {isSelected && <Check size={15} color="#2563EB" strokeWidth={2.8} />}
                     {c}
                   </motion.button>
                 );

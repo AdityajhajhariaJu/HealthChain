@@ -2195,10 +2195,10 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       {/* 4 Discrete Reaction Cards */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
                         {[
-                          { score: 2, label: 'Calm', emoji: '😊' },
-                          { score: 4, label: 'Good', emoji: '🙂' },
-                          { score: 6, label: 'Mild', emoji: '😐' },
-                          { score: 8, label: 'Flare', emoji: '😣' },
+                          { score: 2, label: 'Calm', emoji: '😊', border: '#059669', bg: '#ECFDF5', text: '#065F46', shadow: 'rgba(5, 150, 105, 0.15)', tag: '#059669' },
+                          { score: 4, label: 'Good', emoji: '🙂', border: '#0D9488', bg: '#F0FDFA', text: '#0F766E', shadow: 'rgba(13, 148, 136, 0.15)', tag: '#0D9488' },
+                          { score: 6, label: 'Mild', emoji: '😐', border: '#D97706', bg: '#FFFBEB', text: '#92400E', shadow: 'rgba(217, 119, 6, 0.15)', tag: '#D97706' },
+                          { score: 8, label: 'Flare', emoji: '😣', border: '#E11D48', bg: '#FFF1F2', text: '#BE123C', shadow: 'rgba(225, 29, 72, 0.15)', tag: '#E11D48' },
                         ].map((btn) => {
                           const isSelected = severityScore !== null && Math.abs(severityScore - btn.score) <= 1;
                           return (
@@ -2212,8 +2212,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                               style={{
                                 padding: '12px 6px',
                                 borderRadius: '12px',
-                                border: isSelected ? '2px solid #0D9488' : '1.5px solid #E2E8F0',
-                                background: isSelected ? '#F0FDFA' : '#FAFAFA',
+                                border: isSelected ? `2px solid ${btn.border}` : '1.5px solid #E2E8F0',
+                                background: isSelected ? btn.bg : '#FAFAFA',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -2221,14 +2221,14 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                 gap: '3px',
                                 transition: 'all 0.15s ease',
                                 minHeight: '52px',
-                                boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
+                                boxShadow: isSelected ? `0 2px 8px ${btn.shadow}` : 'none',
                               }}
                             >
                               <span style={{ fontSize: '20px' }}>{btn.emoji}</span>
-                              <span style={{ fontSize: '11.5px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#0F766E' : '#334155' }}>
+                              <span style={{ fontSize: '11.5px', fontWeight: isSelected ? 800 : 600, color: isSelected ? btn.text : '#334155' }}>
                                 {btn.label}
                               </span>
-                              <span style={{ fontSize: '9.5px', fontWeight: 600, color: isSelected ? '#0D9488' : '#94A3B8' }}>{btn.score}/10</span>
+                              <span style={{ fontSize: '9.5px', fontWeight: 600, color: isSelected ? btn.tag : '#94A3B8' }}>{btn.score}/10</span>
                             </button>
                           );
                         })}
@@ -2307,9 +2307,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                               </div>
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 {[
-                                  { id: 'followed', label: 'Followed' },
-                                  { id: 'partially_followed', label: 'Partly followed' },
-                                  { id: 'not_followed', label: 'Did not follow' },
+                                  { id: 'followed', label: 'Followed', border: '#059669', bg: '#ECFDF5', text: '#065F46' },
+                                  { id: 'partially_followed', label: 'Partly followed', border: '#D97706', bg: '#FFFBEB', text: '#92400E' },
+                                  { id: 'not_followed', label: 'Did not follow', border: '#E11D48', bg: '#FFF1F2', text: '#BE123C' },
                                 ].map((lvl) => {
                                   const isSelected = adherenceLevel === lvl.id;
                                   return (
@@ -2324,9 +2324,9 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                                         flex: 1,
                                         padding: '8px 4px',
                                         borderRadius: '8px',
-                                        border: isSelected ? '2px solid #0D9488' : '1px solid #E2E8F0',
-                                        background: isSelected ? '#F0FDFA' : '#FFFFFF',
-                                        color: isSelected ? '#0F766E' : '#64748B',
+                                        border: isSelected ? `2px solid ${lvl.border}` : '1px solid #E2E8F0',
+                                        background: isSelected ? lvl.bg : '#FFFFFF',
+                                        color: isSelected ? lvl.text : '#64748B',
                                         fontSize: '11.5px',
                                         fontWeight: isSelected ? 800 : 600,
                                         cursor: 'pointer',

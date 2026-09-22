@@ -1121,8 +1121,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             padding: '10px 4px',
                             borderRadius: '12px',
                             border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#F8FAFC',
-                            color: isSelected ? '#FFFFFF' : '#334155',
+                            background: isSelected ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)' : '#F8FAFC',
+                            color: isSelected ? '#0F766E' : '#334155',
                             fontWeight: isSelected ? 800 : 600,
                             fontSize: '13px',
                             cursor: 'pointer',
@@ -1130,11 +1130,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '4px',
-                            boxShadow: isSelected ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none',
+                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          {isSelected && <Check size={11} strokeWidth={3} />}
+                          {isSelected && <Check size={11} strokeWidth={3} color="#0D9488" />}
                           <span>{bg}</span>
                         </button>
                       );

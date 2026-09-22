@@ -484,7 +484,7 @@ export function CaseConnectionMap({
                     <motion.circle
                       r={isMobile ? 24 : 28}
                       fill="none"
-                      stroke="#F43F5E"
+                      stroke="#0D9488"
                       strokeWidth="2.5"
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: [1, 1.2, 1], opacity: [0.8, 0.4, 0.8] }}
@@ -493,8 +493,8 @@ export function CaseConnectionMap({
                   )}
                   <circle
                     r={isMobile ? 18 : 22}
-                    fill={isSelected ? '#FFF1F2' : '#FFFFFF'}
-                    stroke={isSelected ? '#F43F5E' : '#CBD5E1'}
+                    fill={isSelected ? '#F0FDFA' : '#FFFFFF'}
+                    stroke={isSelected ? '#0D9488' : '#CBD5E1'}
                     strokeWidth={isSelected ? 2.5 : 1.8}
                     style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.06))' }}
                   />
@@ -558,7 +558,7 @@ export function CaseConnectionMap({
                     height={pillHeight + 8}
                     rx={pillRx + 4}
                     fill="none"
-                    stroke="#F43F5E"
+                    stroke={categoryConfig.dot}
                     strokeWidth="2.5"
                     strokeDasharray="4 4"
                     animate={{ rotate: 360 }}
@@ -573,15 +573,15 @@ export function CaseConnectionMap({
                   width={pillWidth}
                   height={pillHeight}
                   rx={pillRx}
-                  fill={isSelected ? '#FFF1F2' : categoryConfig.bg}
-                  stroke={isSelected ? '#F43F5E' : categoryConfig.border}
-                  strokeWidth={isSelected ? 2.5 : 1.5}
+                  fill={isSelected ? categoryConfig.bg : '#FFFFFF'}
+                  stroke={isSelected ? categoryConfig.dot : categoryConfig.border}
+                  strokeWidth={isSelected ? 2 : 1.5}
                   initial={{ scale: 0 }}
                   animate={{ scale: (isActive && hoveredNode === node.id) || isSelected ? 1.05 : 1 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                   style={{
                     filter: isSelected
-                      ? 'drop-shadow(0 6px 16px rgba(244, 63, 94, 0.3))'
+                      ? `drop-shadow(0 6px 16px ${categoryConfig.dot}35)`
                       : 'drop-shadow(0 3px 8px rgba(0, 0, 0, 0.04))',
                   }}
                 />
@@ -640,7 +640,7 @@ export function CaseConnectionMap({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F43F5E' }} />
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F59E0B' }} />
             <span>Metabolic</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

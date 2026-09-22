@@ -23,8 +23,8 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
     emoji: '🎈',
     durationLabel: '4 weeks',
     description: 'Systematic Low-FODMAP washout of fermentable gas & SIBO triggers',
-    badgeBg: '#F3E8FF',
-    badgeColor: '#7E22CE',
+    badgeBg: '#ECFDF5',
+    badgeColor: '#059669',
   },
   {
     id: 'heartburn_hunt',
@@ -41,8 +41,8 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
     emoji: '💩',
     durationLabel: '4 weeks',
     description: 'Soluble fiber & motility pacing normalizing stool transit to Bristol Type 4',
-    badgeBg: '#F3E8FF',
-    badgeColor: '#7E22CE',
+    badgeBg: '#FEF3C7',
+    badgeColor: '#D97706',
   },
   {
     id: 'vagal_hunt',
@@ -50,8 +50,8 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
     emoji: '😰',
     durationLabel: '4 weeks',
     description: 'Gut-brain axis restoration calming postprandial visceral hypersensitivity',
-    badgeBg: '#F3E8FF',
-    badgeColor: '#7E22CE',
+    badgeBg: '#EEF2FF',
+    badgeColor: '#4F46E5',
   },
 ];
 
@@ -171,9 +171,9 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
                 justifyContent: 'space-between',
                 padding: '14px 16px',
                 borderRadius: '18px',
-                background: isSelected ? '#FAF5FF' : '#FFFFFF',
-                border: isSelected ? '2px solid #A855F7' : '1.5px solid #F1F5F9',
-                boxShadow: isSelected ? '0 4px 16px rgba(168, 85, 247, 0.14)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                background: isSelected ? `linear-gradient(135deg, ${goal.badgeBg} 0%, #FFFFFF 100%)` : '#FFFFFF',
+                border: isSelected ? `2px solid ${goal.badgeColor}` : '1.5px solid #F1F5F9',
+                boxShadow: isSelected ? `0 4px 16px ${goal.badgeColor}25` : '0 2px 6px rgba(0, 0, 0, 0.02)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.15s ease',
@@ -186,7 +186,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
                     width: '46px',
                     height: '46px',
                     borderRadius: '50%',
-                    background: '#F3E8FF',
+                    background: goal.badgeBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -210,7 +210,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
                         color: goal.badgeColor,
                         background: goal.badgeBg,
                         padding: '2px 8px',
-                        borderRadius: '999px',
+                        borderRadius: '6px',
                       }}
                     >
                       {goal.durationLabel}
@@ -220,7 +220,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
                         style={{
                           fontSize: '11px',
                           fontWeight: 800,
-                          color: '#059669',
+                          color: goal.badgeColor,
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '3px',
@@ -236,7 +236,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
               {/* Chevron */}
               <div
                 style={{
-                  color: isSelected ? '#A855F7' : '#94A3B8',
+                  color: isSelected ? goal.badgeColor : '#94A3B8',
                   display: 'flex',
                   alignItems: 'center',
                 }}

@@ -639,10 +639,10 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                       setSelectedMealForReaction(isSelected ? null : item.id);
                     }}
                     style={{
-                      background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                      background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)' : '#FFFFFF',
                       borderRadius: '16px',
                       padding: '12px 14px',
-                      border: isSelected ? '1.5px solid #3B82F6' : '1.5px dashed #CBD5E1',
+                      border: isSelected ? '1.5px solid #0D9488' : '1.5px dashed #CBD5E1',
                       minHeight: '82px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -650,12 +650,24 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                       justifyContent: 'center',
                       cursor: 'pointer',
                       textAlign: 'center',
-                      gap: '4px',
+                      gap: '5px',
+                      boxShadow: isSelected ? '0 4px 12px rgba(13, 148, 136, 0.12)' : 'none',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    <span style={{ fontSize: '16px' }}>🤔</span>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                    <div style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      background: isSelected ? '#CCFBF1' : '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: isSelected ? '#0D9488' : '#94A3B8'
+                    }}>
+                      <Clock size={14} />
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: isSelected ? '#0F766E' : '#64748B' }}>
                       {isSelected ? 'Select reaction below' : 'Tap to log reaction'}
                     </span>
                   </button>

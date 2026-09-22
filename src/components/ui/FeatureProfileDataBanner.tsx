@@ -722,12 +722,13 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             minHeight: 'unset',
                             height: 'auto',
                             border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected ? '#CCFBF1' : '#F8FAFC',
+                            background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)' : '#F8FAFC',
                             color: isSelected ? '#0F766E' : '#475569',
+                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                           }}
                         >
                           <span>{meta.icon}</span> {name}
-                          {isSelected && <Check size={12} />}
+                          {isSelected && <Check size={12} color="#0D9488" strokeWidth={2.8} />}
                         </button>
                       );
                     })}
@@ -803,12 +804,13 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                               minHeight: 'unset',
                               height: 'auto',
                               border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected ? '#CCFBF1' : '#F8FAFC',
+                              background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)' : '#F8FAFC',
                               color: isSelected ? '#0F766E' : '#475569',
+                              boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                             }}
                           >
                             <Pill size={11} /> {m.name}
-                            {isSelected && <Check size={11} />}
+                            {isSelected && <Check size={11} color="#0D9488" strokeWidth={2.8} />}
                           </button>
                           {isSelected && active && (
                             <div style={{ display: 'flex', gap: 2 }}>
@@ -885,13 +887,14 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             minWidth: 'unset',
                             minHeight: 'unset',
                             height: 'auto',
-                            border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
-                            background: isSelected ? '#FFF1F2' : '#F8FAFC',
+                            border: isSelected ? '1.5px solid #F43F5E' : '1px solid #E2E8F0',
+                            background: isSelected ? 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)' : '#F8FAFC',
                             color: isSelected ? '#BE123C' : '#475569',
+                            boxShadow: isSelected ? '0 2px 8px rgba(244, 63, 94, 0.15)' : 'none',
                           }}
                         >
                           <span>{a.icon}</span> {a.name}
-                          {isSelected && <Check size={11} />}
+                          {isSelected && <Check size={11} color="#E11D48" strokeWidth={2.8} />}
                         </button>
                       );
                     })}

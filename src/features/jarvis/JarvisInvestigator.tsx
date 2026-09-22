@@ -1170,7 +1170,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 flex: 1, 
                 height: '4px', 
                 borderRadius: '999px', 
-                background: intakeStep >= s ? '#E11D48' : '#E4E4E7',
+                background: intakeStep >= s ? '#0D9488' : '#E4E4E7',
                 transition: 'background 0.2s ease' 
               }} 
             />
@@ -1183,16 +1183,16 @@ AI-generated preparation material. Verify against original records; this is not 
             display: 'inline-flex', 
             alignItems: 'center', 
             gap: '5px', 
-            background: '#FFFFFF', 
-            border: '1px solid #E4E4E7', 
+            background: '#F0FDFA', 
+            border: '1px solid #CCFBF1', 
             padding: isMobile ? '4px 8px' : '5px 12px', 
             borderRadius: '9999px', 
             fontSize: isMobile ? '11px' : '12px', 
             fontWeight: 700, 
-            color: '#BE123C', 
+            color: '#0F766E', 
             boxShadow: '0 1px 2px rgba(0,0,0,0.02)' 
           }}>
-            <span>{isMobile ? `Step ${intakeStep}/6` : `Step ${intakeStep} of 6`}</span>
+            <span>{isMobile ? `${intakeStep}/6` : `${intakeStep} of 6`}</span>
           </div>
 
           <button
@@ -1341,7 +1341,7 @@ AI-generated preparation material. Verify against original records; this is not 
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* 6 Gradient Progress Capsules in Raspberry Rose */}
+            {/* 6 Gradient Progress Capsules in Clinical Teal */}
             <div style={{ display: 'flex', gap: '6px' }}>
               {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div 
@@ -1351,8 +1351,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     flex: 1, 
                     height: '6px', 
                     borderRadius: '999px', 
-                    background: intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
-                    boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
+                    background: intakeStep >= s ? 'linear-gradient(90deg, #0D9488, #14B8A6)' : '#E4E4E7',
+                    boxShadow: intakeStep === s ? '0 0 8px rgba(13, 148, 136, 0.45)' : 'none',
                     cursor: 'pointer',
                     transition: 'all 0.25s ease'
                   }} 
@@ -1360,13 +1360,13 @@ AI-generated preparation material. Verify against original records; this is not 
               ))}
             </div>
 
-            {/* Step Sub-label & Status Indicator */}
+            {/* Stage Title & Status Indicator */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', paddingTop: '2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 850, color: '#BE123C', letterSpacing: '0.3px' }}>
-                  Step {intakeStep} of 6
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.2px' }}>
+                  {STEP_META[intakeStep]?.title}
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#BE123C', background: '#FFF1F2', padding: '2px 9px', borderRadius: '999px', border: '1px solid #FECDD3' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', padding: '2px 9px', borderRadius: '999px', border: '1px solid #CCFBF1' }}>
                   {STEP_META[intakeStep]?.badge}
                 </span>
               </div>
@@ -2393,10 +2393,10 @@ AI-generated preparation material. Verify against original records; this is not 
                       style={{ 
                         width: '100%', 
                         padding: '28px 20px', 
-                        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F6 100%)', 
-                        border: '2px dashed #FDA4AF', 
+                        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)', 
+                        border: '2px dashed #99F6E4', 
                         borderRadius: '18px', 
-                        color: '#BE123C', 
+                        color: '#0F766E', 
                         fontWeight: 700, 
                         display: 'flex', 
                         flexDirection: 'column', 
@@ -2404,21 +2404,21 @@ AI-generated preparation material. Verify against original records; this is not 
                         gap: '12px', 
                         cursor: 'pointer', 
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 8px rgba(225, 29, 72, 0.04)'
+                        boxShadow: '0 2px 8px rgba(13, 148, 136, 0.04)'
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.borderColor = '#E11D48';
-                        e.currentTarget.style.background = '#FFF1F2';
+                        e.currentTarget.style.borderColor = '#0D9488';
+                        e.currentTarget.style.background = '#F0FDFA';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseOut={(e) => {
-                        e.currentTarget.style.borderColor = '#FDA4AF';
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F6 100%)';
+                        e.currentTarget.style.borderColor = '#99F6E4';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)';
                         e.currentTarget.style.transform = 'none';
                       }}
                     >
-                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFE4E6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.2)' }}>
-                        <UploadCloud size={25} color="#E11D48" />
+                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.15)' }}>
+                        <UploadCloud size={25} color="#0D9488" />
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '15px', color: '#18181B', display: 'block', fontWeight: 800 }}>
@@ -2965,9 +2965,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           padding: '7px 14px',
                           borderRadius: '10px',
-                          border: isIsolated ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
-                          background: isIsolated ? '#FFF1F2' : '#FFFFFF',
-                          color: isIsolated ? '#BE123C' : '#475569',
+                          border: isIsolated ? '1.5px solid #0D9488' : '1px solid #E4E4E7',
+                          background: isIsolated ? '#F0FDFA' : '#FFFFFF',
+                          color: isIsolated ? '#0F766E' : '#475569',
                           fontSize: '12.5px',
                           fontWeight: 800,
                           cursor: 'pointer',
@@ -3033,9 +3033,9 @@ AI-generated preparation material. Verify against original records; this is not 
                     style={{
                       padding: '5px 12px',
                       borderRadius: '999px',
-                      background: selectedSymptoms.length > 0 ? '#FFF1F2' : '#F4F4F5',
-                      border: selectedSymptoms.length > 0 ? '1px solid #FECDD3' : '1px solid #E4E4E7',
-                      color: selectedSymptoms.length > 0 ? '#BE123C' : '#71717A',
+                      background: selectedSymptoms.length > 0 ? '#F0FDFA' : '#F4F4F5',
+                      border: selectedSymptoms.length > 0 ? '1px solid #CCFBF1' : '1px solid #E4E4E7',
+                      color: selectedSymptoms.length > 0 ? '#0F766E' : '#71717A',
                       fontSize: '12px',
                       fontWeight: 700,
                       whiteSpace: 'nowrap'
@@ -3043,7 +3043,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   >
                     {selectedSymptoms.length > 0
                       ? `${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'} selected`
-                      : 'Step 1 of 6'}
+                      : 'Clinical Intake'}
                   </div>
                   {!isMobile && (
                     <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -3063,7 +3063,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     minWidth: isMobile ? '180px' : '260px',
                     padding: isMobile ? '12px 20px' : '12px 28px',
                     borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: isMobile ? '14px' : '15px',
@@ -3073,7 +3073,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '9px',
-                    boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
+                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.3)',
                     transition: 'all 0.15s ease',
                     flexShrink: 0
                   }}
@@ -3081,7 +3081,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   <span>
                     {selectedSymptoms.length > 0
                       ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
-                      : 'Next: Timeline (Step 2)'}
+                      : 'Continue to Timeline'}
                   </span>
                   <ArrowRight size={17} strokeWidth={2.5} />
                 </button>
@@ -3120,7 +3120,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3129,11 +3129,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Next: Pattern (Step 3)</span>
+                  <span>Continue to Pattern</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3171,7 +3171,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3180,11 +3180,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Next: Tell Your Story (Step 4)</span>
+                  <span>Continue to Story</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3222,7 +3222,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3231,11 +3231,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Next: Add Evidence (Step 5)</span>
+                  <span>Continue to Evidence</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3273,7 +3273,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3282,11 +3282,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Next: Scope & Run (Step 6)</span>
+                  <span>Review Scope & Launch</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3326,7 +3326,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     border: 'none',
                     background: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#E4E4E7'
-                      : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                      : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#A1A1AA'
                       : '#FFFFFF',
@@ -3339,7 +3339,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     gap: '9px',
                     boxShadow: (isReadingFiles || (!history.trim() && !files.length))
                       ? 'none'
-                      : '0 8px 24px rgba(225, 29, 72, 0.38)',
+                      : '0 8px 24px rgba(13, 148, 136, 0.35)',
                     transition: 'all 0.15s ease',
                     whiteSpace: 'nowrap'
                   }}

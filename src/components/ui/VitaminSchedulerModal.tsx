@@ -1010,13 +1010,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                         whiteSpace: 'nowrap',
                         padding: '7px 14px',
                         borderRadius: '999px',
-                        border: isActive ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                        background: isActive ? '#ECFDF5' : '#FFFFFF',
-                        color: isActive ? '#065F46' : '#57534E',
+                        border: isActive ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                        background: isActive ? '#F0FDFA' : '#FFFFFF',
+                        color: isActive ? '#0F766E' : '#57534E',
                         fontSize: '12px',
                         fontWeight: isActive ? 800 : 600,
                         cursor: 'pointer',
-                        boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
+                        boxShadow: isActive ? '0 2px 8px rgba(13, 148, 136, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -1121,6 +1121,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {filteredCatalog.map((pill) => {
                   const isScheduled = vitamins.some(v => v.name.toLowerCase() === pill.name.toLowerCase());
+                  const isWarmAmber = pill.color1 === '#EAB308' || pill.color1 === '#F59E0B' || pill.color1 === '#D97706';
                   return (
                     <motion.button
                       key={pill.name}
@@ -1130,17 +1131,17 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       style={{
                         padding: '8px 14px',
                         borderRadius: '999px',
-                        border: isScheduled ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                        border: isScheduled ? `1.5px solid ${pill.color1}` : '1px solid #E2E8F0',
                         background: isScheduled 
-                          ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)' 
+                          ? `linear-gradient(135deg, ${pill.color2} 0%, #FFFFFF 100%)` 
                           : '#FFFFFF',
-                        color: isScheduled ? '#065F46' : '#1C1917',
+                        color: isScheduled ? (isWarmAmber ? '#92400E' : '#0F172A') : '#1C1917',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
                         cursor: 'pointer',
                         boxShadow: isScheduled 
-                          ? '0 3px 12px rgba(16, 185, 129, 0.2)' 
+                          ? `0 3px 12px ${pill.color1}30` 
                           : '0 2px 6px rgba(0, 0, 0, 0.03)',
                         transition: 'all 0.18s ease'
                       }}
@@ -1157,7 +1158,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                         <span style={{ fontSize: '13px', fontWeight: isScheduled ? 800 : 700, display: 'block' }}>
                           {pill.name}
                         </span>
-                        <span style={{ fontSize: '10.5px', color: isScheduled ? '#047857' : '#78716C', fontWeight: 500 }}>
+                        <span style={{ fontSize: '10.5px', color: isScheduled ? (isWarmAmber ? '#B45309' : pill.color1) : '#78716C', fontWeight: isScheduled ? 700 : 500 }}>
                           {pill.benefit}
                         </span>
                       </div>
@@ -1167,12 +1168,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                           width: '18px',
                           height: '18px',
                           borderRadius: '50%',
-                          background: '#10B981',
+                          background: pill.color1,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           color: '#FFFFFF',
                           marginLeft: '2px',
+                          boxShadow: `0 2px 6px ${pill.color1}40`,
                           flexShrink: 0
                         }}>
                           <Check size={11} strokeWidth={3.5} />

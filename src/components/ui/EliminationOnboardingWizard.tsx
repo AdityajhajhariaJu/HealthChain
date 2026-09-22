@@ -23,7 +23,7 @@ import {
   Zap,
   HeartPulse
 } from 'lucide-react';
-import { CalmBadge } from './CalmApothecaryCapsule';
+import { CalmBadge, CALM_CLINICAL_THEMES } from './CalmApothecaryCapsule';
 import {
   ELIMINATION_PROTOCOLS,
   EliminationTrialProtocol,
@@ -518,6 +518,7 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                   {PRIMARY_PHENOTYPES.map((item) => {
                     const isSelected = selectedPhenotype === item.id || selectedSymptoms.includes(item.id);
                     const phenoMeta = PRIMARY_PHENOTYPE_ICONS[item.id] || { icon: Waves, category: 'gastro' as const };
+                    const theme = CALM_CLINICAL_THEMES[phenoMeta.category] || CALM_CLINICAL_THEMES.gastro;
                     return (
                       <button
                         key={item.id}
@@ -529,9 +530,9 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                           gap: '12px',
                           padding: '13px 15px',
                           borderRadius: '16px',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)' : '#FFFFFF',
-                          boxShadow: isSelected ? '0 4px 14px rgba(13, 148, 136, 0.08)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
+                          border: isSelected ? `1.5px solid ${theme.color1}` : '1px solid #E2E8F0',
+                          background: isSelected ? `linear-gradient(135deg, ${theme.color2} 0%, #FFFFFF 100%)` : '#FFFFFF',
+                          boxShadow: isSelected ? `0 4px 14px ${theme.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.02)',
                           cursor: 'pointer',
                           textAlign: 'left',
                           minHeight: '64px',
@@ -546,12 +547,12 @@ export const EliminationOnboardingWizard: React.FC<EliminationOnboardingWizardPr
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#0F766E' : '#0F172A' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? theme.text : '#0F172A' }}>
                               {item.label}
                             </span>
-                            {isSelected && <Check size={15} color="#0D9488" strokeWidth={2.8} />}
+                            {isSelected && <Check size={15} color={theme.color1} strokeWidth={2.8} />}
                           </div>
-                          <span style={{ fontSize: '11px', color: isSelected ? '#065F46' : '#64748B', lineHeight: 1.35, marginTop: '3px', display: 'block' }}>
+                          <span style={{ fontSize: '11px', color: isSelected ? theme.color1 : '#64748B', lineHeight: 1.35, marginTop: '3px', display: 'block', fontWeight: isSelected ? 600 : 400 }}>
                             {item.desc}
                           </span>
                         </div>

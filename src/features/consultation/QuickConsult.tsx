@@ -570,9 +570,9 @@ export default function QuickConsult() {
                         width: '120px',
                         padding: '12px',
                         borderRadius: '16px',
-                        border: `1.5px solid ${isSelected ? '#0D9488' : '#E2E8F0'}`,
+                        border: `1.5px solid ${isSelected ? s.color : '#E2E8F0'}`,
                         background: isSelected 
-                          ? '#F0FDFA' 
+                          ? `linear-gradient(135deg, ${s.bg} 0%, #FFFFFF 100%)` 
                           : '#FFFFFF',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -580,7 +580,7 @@ export default function QuickConsult() {
                         flexDirection: 'column',
                         alignItems: 'flex-start',
                         boxShadow: isSelected 
-                          ? '0 8px 16px rgba(13, 148, 136, 0.18)' 
+                          ? `0 8px 16px ${s.color}25` 
                           : '0 2px 6px rgba(0,0,0,0.02)'
                       }}
                       onMouseOver={(e) => { 
@@ -609,9 +609,9 @@ export default function QuickConsult() {
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center', 
-                            background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : s.bg, 
+                            background: isSelected ? `linear-gradient(135deg, ${s.color} 0%, ${s.color}DD 100%)` : s.bg, 
                             color: isSelected ? '#FFFFFF' : s.color,
-                            boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
+                            boxShadow: isSelected ? `0 2px 8px ${s.color}40` : 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
                           }}
                         >
                           <Icon size={16} />
@@ -626,7 +626,7 @@ export default function QuickConsult() {
                            <Sparkles size={14} color="#A855F7" />
                         </div>
                       </div>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', fontWeight: 700, color: isSelected ? s.color : '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
                       <p style={{ margin: 0, fontSize: '10px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
                     </div>
                   );
