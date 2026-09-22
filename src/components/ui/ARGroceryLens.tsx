@@ -676,7 +676,46 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   <div style={{ position: 'absolute', bottom: '25%', left: '10%', width: '120px', height: '120px', background: '#FAE8FF', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.45, pointerEvents: 'none' }} />
 
                   <div style={{ position: 'relative', zIndex: 1 }}>
-                    {/* Traffic-Light Health Verdict Banner */}
+                    {/* 1. Food Header (Prominent Top Hierarchy) */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
+                      <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
+                        {analysis?.foodName || 'Identified Dish'}
+                      </h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <span style={{
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          color: '#DC2626',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {analysis?.calories ?? 0} kcal
+                        </span>
+                        {profile?.conditions && profile.conditions.length > 0 && (
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: 800,
+                            padding: '3px 9px',
+                            borderRadius: '999px',
+                            background: 'rgba(236, 253, 245, 0.85)',
+                            color: '#059669',
+                            border: '1px solid #A7F3D0',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            🩺 Active Profile
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p style={{ margin: '0 0 14px', fontSize: '12.5px', color: '#78716C' }}>
+                      AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
+                    </p>
+
+                    {/* 2. Traffic-Light Health Verdict Banner */}
                     {analysis?.healthVerdict && (
                       <div style={{
                         display: 'flex',
@@ -763,7 +802,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       </div>
                     )}
 
-                    {/* Clinical Rationale & Ingredient Flags */}
+                    {/* 3. Clinical Rationale & Ingredient Flags */}
                     {analysis?.clinicalRationale && (
                       <div style={{
                         marginBottom: '14px',
@@ -825,66 +864,222 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
-                      <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
-                        {analysis?.foodName || 'Identified Dish'}
-                      </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        <span style={{
-                          padding: '3px 10px',
-                          borderRadius: '999px',
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.25)',
-                          color: '#DC2626',
-                          fontSize: '12px',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {analysis?.calories ?? 0} kcal
-                        </span>
-                        {profile?.conditions && profile.conditions.length > 0 && (
-                          <span style={{
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            padding: '3px 9px',
-                            borderRadius: '999px',
-                            background: 'rgba(236, 253, 245, 0.85)',
-                            color: '#059669',
-                            border: '1px solid #A7F3D0',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            🩺 Active Profile
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#78716C' }}>
-                      AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
-                    </p>
-
-                    {/* Nutrition context — sheer glass styling */}
+                    {/* 4. Glycemic Response Graph */}
                     {analysis?.sugar !== undefined && (
                       <div style={{
-                        marginBottom: '16px',
+                        marginBottom: '14px',
                         padding: '14px 16px',
-                        background: 'rgba(255, 255, 255, 0.55)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
+                        background: 'rgba(255, 255, 255, 0.75)',
+                        backdropFilter: 'blur(16px)',
                         borderRadius: '20px',
-                        border: '1px solid rgba(255, 255, 255, 0.85)',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)'
+                        border: '1px solid rgba(255, 255, 255, 0.9)',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)'
                       }}>
-                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
-                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
-                          Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px' }}>
+                            GLYCEMIC RESPONSE
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            background: (analysis.sugar || 0) > 15 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                            color: (analysis.sugar || 0) > 15 ? '#DC2626' : '#059669',
+                            border: `1px solid ${(analysis.sugar || 0) > 15 ? '#FCA5A5' : '#A7F3D0'}`
+                          }}>
+                            {(analysis.sugar || 0) > 15 ? 'High Spike ⚠️' : 'Glycemic Stable ✓'}
+                          </span>
+                        </div>
+                        <div style={{ height: '54px', width: '100%', position: 'relative' }}>
+                          <svg viewBox="0 0 100 40" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <path
+                              d={(analysis.sugar || 0) > 15 ? "M0,35 Q30,35 45,6 T55,6 Q70,35 100,35" : "M0,35 Q50,30 100,35"}
+                              fill="none"
+                              stroke={(analysis.sugar || 0) > 15 ? "url(#spikeGradient)" : "url(#stableGradient)"}
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+                            <defs>
+                              <linearGradient id="spikeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#EF4444" stopOpacity="0.25" />
+                                <stop offset="50%" stopColor="#EF4444" stopOpacity="1" />
+                                <stop offset="100%" stopColor="#EF4444" stopOpacity="0.25" />
+                              </linearGradient>
+                              <linearGradient id="stableGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                                <stop offset="50%" stopColor="#10B981" stopOpacity="1" />
+                                <stop offset="100%" stopColor="#10B981" stopOpacity="0.25" />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px', textAlign: 'center', fontWeight: 600 }}>
+                          Estimated Sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving
                         </div>
                       </div>
                     )}
 
-                    {/* 2. Main Sheer Glass Macro Card (Exact Diet Section Theme from Image 1) */}
+                    {/* 5. Functional Gut & Metabolic Integrity Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                      {/* Insulin Surge / Stable Chip */}
+                      {(analysis?.sugar || 0) > 15 ? (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          color: '#B91C1C',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          ⚡ High Insulin Surge (&gt;15g)
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          color: '#047857',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          ✓ Glycemic Balance Stable
+                        </span>
+                      )}
+
+                      {/* Protein Density Chip */}
+                      {(analysis?.protein || 0) >= 8 && (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          color: '#1D4ED8',
+                          border: '1px solid rgba(59, 130, 246, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          💪 High Protein Density ({analysis?.protein}g)
+                        </span>
+                      )}
+
+                      {/* Refined Seed Oil / Palm Oil Chip */}
+                      {(
+                        (analysis?.flags && analysis.flags.some(f => /oil|palm|fried|trans fat/i.test(f))) ||
+                        (analysis?.clinicalRationale && /seed oil|palm oil|deep fried|trans fat/i.test(analysis.clinicalRationale)) ||
+                        (analysis?.foodName && /chips|fries|crisps|biscuit|cookie|noodle|wafer/i.test(analysis.foodName))
+                      ) && (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          color: '#B45309',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          ⚠️ Refined Seed Oil Alert
+                        </span>
+                      )}
+
+                      {/* Mucosal Emulsifier Scan */}
+                      {(
+                        analysis?.novaGrade === 4 ||
+                        (analysis?.flags && analysis.flags.some(f => /emulsifier|thickener|preservative|additive|carrageenan/i.test(f))) ||
+                        (analysis?.clinicalRationale && /emulsifier|gut lining|microbiome|mucosal/i.test(analysis.clinicalRationale)) ||
+                        (analysis?.foodName && /sauce|mayo|dressing|ice cream|energy bar/i.test(analysis.foodName))
+                      ) && (
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(139, 92, 246, 0.1)',
+                          color: '#6D28D9',
+                          border: '1px solid rgba(139, 92, 246, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          🛡️ Mucosal Emulsifier Scan
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 6. Macro Grid (High-Contrast 2x2 Cards) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(12px)',
+                        padding: '12px 14px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(226, 232, 240, 0.9)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Calories</div>
+                        <div style={{ fontSize: '18px', color: '#1C1917', fontWeight: 800, marginTop: '2px' }}>
+                          {analysis?.calories ?? 0} <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>kcal</span>
+                        </div>
+                      </div>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(12px)',
+                        padding: '12px 14px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(226, 232, 240, 0.9)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Protein</div>
+                        <div style={{ fontSize: '18px', color: '#059669', fontWeight: 800, marginTop: '2px' }}>
+                          {analysis?.protein ?? 0}<span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>g</span>
+                        </div>
+                      </div>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(12px)',
+                        padding: '12px 14px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(226, 232, 240, 0.9)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                          Carbs (Sugar: {analysis?.sugar ?? 0}g)
+                        </div>
+                        <div style={{ fontSize: '18px', color: '#2563EB', fontWeight: 800, marginTop: '2px' }}>
+                          {analysis?.carbs ?? 0}<span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>g</span>
+                        </div>
+                      </div>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(12px)',
+                        padding: '12px 14px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(226, 232, 240, 0.9)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Fats</div>
+                        <div style={{ fontSize: '18px', color: '#D97706', fontWeight: 800, marginTop: '2px' }}>
+                          {analysis?.fats ?? 0}<span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>g</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 7. Circular Macro Progress Rings Carousel (Exact Sheer Glass Diet Theme) */}
                     <div style={{ position: 'relative', marginBottom: '16px' }}>
-                      {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
+                      {/* Aesthetic background blobs */}
                       <div style={{ position: 'absolute', top: '10%', left: '8%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
                       <div style={{ position: 'absolute', bottom: '10%', right: '8%', width: '140px', height: '140px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
                       <div style={{ position: 'absolute', top: '35%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.65, pointerEvents: 'none' }} />
@@ -915,6 +1110,25 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         <CircularProgress value={analysis?.calories ?? 0} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} />
                       </div>
                     </div>
+
+                    {/* 8. Nutrition context — sheer glass styling */}
+                    {analysis?.sugar !== undefined && (
+                      <div style={{
+                        marginBottom: '16px',
+                        padding: '14px 16px',
+                        background: 'rgba(255, 255, 255, 0.55)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(255, 255, 255, 0.85)',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
+                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                          Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
