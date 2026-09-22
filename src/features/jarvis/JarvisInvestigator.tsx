@@ -59,8 +59,8 @@ export interface SymptomTheme {
 
 export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
   gut: {
-    color1: '#34D399',
-    color2: '#059669',
+    color1: '#10B981',
+    color2: '#D1FAE5',
     bgStart: '#ECFDF5',
     bgEnd: '#D1FAE5',
     border: '#A7F3D0',
@@ -69,11 +69,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#D1FAE5',
     iconColor: '#059669',
     textColor: '#065F46',
-    shadow: 'rgba(16, 185, 129, 0.28)',
+    shadow: 'rgba(16, 185, 129, 0.25)',
   },
   neuro: {
-    color1: '#A78BFA',
-    color2: '#6D28D9',
+    color1: '#8B5CF6',
+    color2: '#EDE9FE',
     bgStart: '#F5F3FF',
     bgEnd: '#EDE9FE',
     border: '#DDD6FE',
@@ -82,11 +82,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#EDE9FE',
     iconColor: '#7C3AED',
     textColor: '#5B21B6',
-    shadow: 'rgba(124, 58, 237, 0.28)',
+    shadow: 'rgba(139, 92, 246, 0.25)',
   },
   respiratory: {
-    color1: '#38BDF8',
-    color2: '#0284C7',
+    color1: '#0284C7',
+    color2: '#E0F2FE',
     bgStart: '#F0F9FF',
     bgEnd: '#E0F2FE',
     border: '#BAE6FD',
@@ -95,11 +95,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#E0F2FE',
     iconColor: '#0284C7',
     textColor: '#0369A1',
-    shadow: 'rgba(2, 132, 199, 0.28)',
+    shadow: 'rgba(2, 132, 199, 0.25)',
   },
   cardio: {
     color1: '#FB7185',
-    color2: '#E11D48',
+    color2: '#FFE4E6',
     bgStart: '#FFF1F2',
     bgEnd: '#FFE4E6',
     border: '#FECDD3',
@@ -108,11 +108,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FFE4E6',
     iconColor: '#E11D48',
     textColor: '#9F1239',
-    shadow: 'rgba(225, 29, 72, 0.28)',
+    shadow: 'rgba(251, 113, 133, 0.25)',
   },
   pain: {
-    color1: '#2DD4BF',
-    color2: '#0D9488',
+    color1: '#0D9488',
+    color2: '#CCFBF1',
     bgStart: '#F0FDFA',
     bgEnd: '#CCFBF1',
     border: '#99F6E4',
@@ -121,11 +121,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#CCFBF1',
     iconColor: '#0D9488',
     textColor: '#115E59',
-    shadow: 'rgba(13, 148, 136, 0.28)',
+    shadow: 'rgba(13, 148, 136, 0.25)',
   },
   skin: {
-    color1: '#F472B6',
-    color2: '#DB2777',
+    color1: '#EC4899',
+    color2: '#FCE7F3',
     bgStart: '#FDF2F8',
     bgEnd: '#FCE7F3',
     border: '#FBCFE8',
@@ -134,11 +134,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FCE7F3',
     iconColor: '#DB2777',
     textColor: '#9D174D',
-    shadow: 'rgba(219, 39, 119, 0.28)',
+    shadow: 'rgba(236, 72, 153, 0.25)',
   },
   systemic: {
-    color1: '#FBBF24',
-    color2: '#D97706',
+    color1: '#F59E0B',
+    color2: '#FEF3C7',
     bgStart: '#FFFBEB',
     bgEnd: '#FEF3C7',
     border: '#FDE68A',
@@ -147,11 +147,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FEF3C7',
     iconColor: '#D97706',
     textColor: '#92400E',
-    shadow: 'rgba(217, 119, 6, 0.28)',
+    shadow: 'rgba(245, 158, 11, 0.25)',
   },
   sleep_mental: {
-    color1: '#818CF8',
-    color2: '#4338CA',
+    color1: '#6366F1',
+    color2: '#E0E7FF',
     bgStart: '#EEF2FF',
     bgEnd: '#E0E7FF',
     border: '#C7D2FE',
@@ -160,11 +160,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#E0E7FF',
     iconColor: '#4F46E5',
     textColor: '#3730A3',
-    shadow: 'rgba(79, 70, 229, 0.28)',
+    shadow: 'rgba(99, 102, 241, 0.25)',
   },
 };
 
-// 3D Tactile Skeuomorphic Symptom Badge with Specular Gloss Glare & Drop Shadow
+// Calm, Luminous Apothecary Symptom Badge matching Meds Aesthetic (no glare, no bevel, soft gradient & glow)
 export const ClassySymptomBadge: React.FC<{
   icon?: any;
   category?: string;
@@ -185,8 +185,8 @@ export const ClassySymptomBadge: React.FC<{
   const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
   const c1 = color1 || theme.color1;
   const c2 = color2 || theme.color2;
-  const sColor = shadow || theme.shadow;
-  const iconSize = Math.max(11, Math.round(size * 0.54));
+  const sColor = shadow || `${c1}35`;
+  const iconSize = Math.max(11, Math.round(size * 0.56));
 
   return (
     <div
@@ -196,45 +196,20 @@ export const ClassySymptomBadge: React.FC<{
         minWidth: `${size}px`,
         minHeight: `${size}px`,
         borderRadius: '50%',
-        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        boxShadow: `0 2px 6px ${sColor}, inset 0 1px 1px rgba(255, 255, 255, 0.75)`,
         background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
+        boxShadow: `0 2px 8px ${sColor}`,
+        color: '#FFFFFF',
         transition: 'all 0.18s ease'
       }}
     >
-      {/* 3D Specular Gloss Highlight Overlay (Skeuomorphic glass glare) */}
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none'
-        }}
-      >
-        <ellipse cx="12" cy="4.5" rx="7" ry="2.2" fill="#FFFFFF" fillOpacity="0.65" />
-        <circle cx="12" cy="12" r="11" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="1" />
-      </svg>
-
       <IconComp 
         size={iconSize} 
         color="#FFFFFF" 
-        strokeWidth={2.8} 
-        style={{ 
-          position: 'relative',
-          zIndex: 1,
-          filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35))'
-        }}
+        strokeWidth={2.2} 
       />
     </div>
   );
@@ -1696,7 +1671,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={Sparkles} 
                           category="cardio" 
-                          size={isMobile ? 22 : 24} 
+                          size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
@@ -1789,7 +1764,7 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={IconComp} 
                           category={sym.category} 
-                          size={isMobile ? 22 : 24} 
+                          size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
                         <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
