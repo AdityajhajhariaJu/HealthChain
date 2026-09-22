@@ -83,6 +83,7 @@ export interface MealPlanItem {
   originalName?: string;
   swapRationale?: string;
   userEdited?: boolean;
+  macrosNeedReview?: boolean;
 }
 
 export interface DayPlanItem {
@@ -103,6 +104,8 @@ export interface FullMealPlan {
   lifecycle: PlanLifecycleMetadata;
   createdAt: string;
   updatedAt: string;
+  archivedFromId?: string;
+  archivedAt?: string;
   startedAt?: string;
   pausedAt?: string;
   stoppedAt?: string;
@@ -122,6 +125,15 @@ export interface FullMealPlan {
   targetFat?: number;
 }
 
+function getStableMealId(rawMeal: any, index: number): string {
+  if (rawMeal.id && typeof rawMeal.id === 'string' && rawMeal.id.trim()) {
+    return rawMeal.id.trim();
+  }
+  const cleanName = String(rawMeal.name || 'meal').toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const cleanType = String(rawMeal.type || 'item').toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `meal_${index}_${cleanName}_${cleanType}`;
+}
+
 /**
  * Normalizes raw meal object into a MealPlanItem with base macros and serving multipliers.
  */
@@ -136,7 +148,7 @@ export function normalizeMealItem(rawMeal: any, index: number): MealPlanItem {
   const baseFat = Number(rawMeal.baseFat || rawMeal.fat) || 10;
 
   return {
-    id: rawMeal.id || `meal_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 7)}`,
+    id: getStableMealId(rawMeal, index),
     name: rawMeal.name || 'Balanced Meal',
     type: rawMeal.type || 'Meal',
     portion: rawMeal.portion || '1 serving',
@@ -155,6 +167,7 @@ export function normalizeMealItem(rawMeal: any, index: number): MealPlanItem {
     originalName: rawMeal.originalName || rawMeal.swappedFrom,
     swapRationale: rawMeal.swapRationale,
     userEdited: Boolean(rawMeal.userEdited),
+    macrosNeedReview: Boolean(rawMeal.macrosNeedReview),
   };
 }
 
@@ -193,7 +206,7 @@ export function normalizeFullMealPlan(rawPlan: any, options?: { caseId?: string;
   const id = rawPlan?.id || `plan_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const status: PlanLifecycleStatus = rawPlan?.lifecycle?.status || rawPlan?.status || 'draft';
   const createdAt = rawPlan?.lifecycle?.createdAt || rawPlan?.createdAt || new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const updatedAt = rawPlan?.lifecycle?.updatedAt || rawPlan?.updatedAt || createdAt;
   const startedAt = rawPlan?.lifecycle?.startedAt || rawPlan?.startedAt;
   const pausedAt = rawPlan?.lifecycle?.pausedAt || rawPlan?.pausedAt;
   const stoppedAt = rawPlan?.lifecycle?.stoppedAt || rawPlan?.stoppedAt;
@@ -287,11 +300,13 @@ export function updateMealServing(
     };
   });
 
+  const nowIso = new Date().toISOString();
   return {
     ...plan,
     days: updatedDays,
     plan: updatedDays,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowIso,
+    lifecycle: { ...(plan.lifecycle || {}), updatedAt: nowIso },
   };
 }
 
@@ -347,11 +362,13 @@ export function editMealContent(
     };
   });
 
+  const nowIso = new Date().toISOString();
   return {
     ...plan,
     days: updatedDays,
     plan: updatedDays,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowIso,
+    lifecycle: { ...(plan.lifecycle || {}), updatedAt: nowIso },
   };
 }
 
@@ -379,6 +396,7 @@ export function applyMealClinicalSwap(
         originalName: meal.name,
         swapRationale: swap.biologicalMechanism,
         userEdited: true,
+        macrosNeedReview: true,
       };
     });
 
@@ -388,11 +406,13 @@ export function applyMealClinicalSwap(
     };
   });
 
+  const nowIso = new Date().toISOString();
   return {
     ...plan,
     days: updatedDays,
     plan: updatedDays,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowIso,
+    lifecycle: { ...(plan.lifecycle || {}), updatedAt: nowIso },
   };
 }
 
@@ -462,9 +482,30 @@ export function archiveCurrentPlan(
   currentPlan: FullMealPlan,
   existingArchive: FullMealPlan[] = []
 ): FullMealPlan[] {
-  // Do not duplicate if already archived
-  const filtered = existingArchive.filter((p) => p.id !== currentPlan.id);
-  return [currentPlan, ...filtered];
+  if (!currentPlan) return existingArchive;
+
+  // Transform existing items with same ID but older updatedAt into distinct revision entries
+  const sanitizedArchive = existingArchive.map((p) => {
+    if (p.id === currentPlan.id && p.updatedAt !== currentPlan.updatedAt) {
+      return {
+        ...p,
+        id: `${p.id}_rev_${new Date(p.updatedAt || p.createdAt || Date.now()).getTime()}`,
+        archivedFromId: p.id,
+        archivedAt: p.archivedAt || new Date().toISOString(),
+      };
+    }
+    return p;
+  });
+
+  // Filter out exact duplicate of this exact plan state
+  const filtered = sanitizedArchive.filter((p) => !(p.id === currentPlan.id && p.updatedAt === currentPlan.updatedAt));
+
+  const archivedCurrent: FullMealPlan = {
+    ...currentPlan,
+    archivedAt: new Date().toISOString(),
+  };
+
+  return [archivedCurrent, ...filtered.slice(0, 19)];
 }
 
 export interface FactualDietObservationSummary {
@@ -554,15 +595,21 @@ export function exportDietObservationsToCase(
       'Dietary Observation Brief'
     );
 
-    // 2. Add clinical discussion questions
-    summaryData.questions.forEach((q) => {
-      addCaseQuestion(caseId, {
-        questionText: q,
-        status: 'open',
-        raisedBySpecialty: 'Dietitian / Nutrition',
-        supportingEvidenceIds: [],
+    // 2. Add clinical discussion questions defensively
+    if (Array.isArray(summaryData.questions)) {
+      summaryData.questions.forEach((q) => {
+        try {
+          addCaseQuestion(caseId, {
+            questionText: q,
+            status: 'open',
+            raisedBySpecialty: 'Dietitian / Nutrition',
+            supportingEvidenceIds: [],
+          });
+        } catch (qErr) {
+          console.warn('Failed to add discussion question to case:', qErr);
+        }
       });
-    });
+    }
 
     return true;
   } catch (e) {

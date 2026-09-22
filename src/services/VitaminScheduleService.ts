@@ -89,6 +89,12 @@ export async function saveVitaminSchedule(items: VitaminItem[]): Promise<void> {
 
   await rescheduleVitaminNotifications(items);
 
+  // Re-fetch latest logs to avoid racing with synchronous toggleVitaminTaken operations during async scheduling
+  try {
+    const latestRawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
+    if (latestRawLogs) takenMap = JSON.parse(latestRawLogs);
+  } catch {}
+
   const updatedWithLogs = items.map(item => ({
     ...item,
     takenToday: !!takenMap[item.id]

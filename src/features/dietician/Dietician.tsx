@@ -290,7 +290,7 @@ export default function Dietician() {
     if (resolved && resolved !== activeTab) {
       setActiveTabState(resolved);
     }
-  }, [searchParams, location.state]);
+  }, [searchParams, location.state, activeTab]);
   const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
   const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
   const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
@@ -371,18 +371,6 @@ export default function Dietician() {
     }
     return triggers;
   }, [foodInput]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showResetDietConfirm) setShowResetDietConfirm(false);
-        if (showSavedMealsModal) setShowSavedMealsModal(false);
-        if (showARLens) setShowARLens(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showResetDietConfirm, showSavedMealsModal, showARLens]);
 
   // Hydrate diet state
   useEffect(() => {
@@ -505,7 +493,7 @@ export default function Dietician() {
       if (advice) updateProfileFeatureData('dietAdvice', advice);
       if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
     } catch(e) {}
-  }, [profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
+  }, [isHydrated, profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
 
   // Record Health Memory snapshots
   useEffect(() => {
@@ -973,13 +961,19 @@ export default function Dietician() {
   const handleSaveEditMeal = () => {
     if (!mealPlan || !editingMeal) return;
     triggerHapticSuccess();
+
+    const parseMacro = (val: any, fallback: number) => {
+      const num = Number(val);
+      return !isNaN(num) && val !== '' && val !== null ? num : fallback;
+    };
+
     const updated = editMealContent(mealPlan, editingMeal.day, editingMeal.meal.id, {
       name: editMealForm.name.trim() || editingMeal.meal.name,
       portion: editMealForm.portion.trim() || editingMeal.meal.portion,
-      calories: Number(editMealForm.calories) || editingMeal.meal.calories,
-      protein: Number(editMealForm.protein) || editingMeal.meal.protein,
-      carbs: Number(editMealForm.carbs) || editingMeal.meal.carbs,
-      fat: Number(editMealForm.fat) || editingMeal.meal.fat,
+      calories: parseMacro(editMealForm.calories, editingMeal.meal.calories),
+      protein: parseMacro(editMealForm.protein, editingMeal.meal.protein),
+      carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs),
+      fat: parseMacro(editMealForm.fat, editingMeal.meal.fat),
       description: editMealForm.description,
     });
     setMealPlan(updated);
@@ -1035,12 +1029,17 @@ export default function Dietician() {
 
   const toggleGroceryItem = (catIndex: number, itemId: string) => {
     triggerHapticLight();
-    const updated = [...groceryList];
-    const cat = updated[catIndex];
-    if (cat && cat.items) {
-      cat.items = cat.items.map((item: any) => item.id === itemId ? { ...item, checked: !item.checked } : item);
-      setGroceryList(updated);
-    }
+    setGroceryList((prev) =>
+      prev.map((cat, idx) => {
+        if (idx !== catIndex || !cat.items) return cat;
+        return {
+          ...cat,
+          items: cat.items.map((item: any) =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          ),
+        };
+      })
+    );
   };
 
   const copyGroceryListText = async () => {

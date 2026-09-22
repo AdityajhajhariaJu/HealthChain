@@ -136,6 +136,18 @@ export function getProfileEngineState() {
     }
     
     if (!parsed || !parsed.profiles) {
+      // Check if we have a rolling backup before falling back to empty profile
+      try {
+        const backupData = getItemSync(getProfileKey() + '_backup');
+        if (backupData) {
+          const parsedBackup = JSON.parse(backupData);
+          if (parsedBackup && parsedBackup.profiles) {
+            console.warn('Recovered ProfileEngine state from rolling backup');
+            return parsedBackup;
+          }
+        }
+      } catch (be) {}
+
       const defaultId = 'profile_1';
       return {
         activeId: defaultId,
@@ -165,6 +177,25 @@ export function getProfileEngineState() {
     return parsed;
   } catch(e) {
     console.error('Failed to parse ProfileEngine state', e);
+    // PERSIST-001: Quarantine corrupted string to prevent permanent data loss
+    try {
+      const rawData = getItemSync(getProfileKey());
+      if (rawData) {
+        setItemSync('hc_profile_corrupted_backup_' + Date.now(), rawData);
+      }
+      // Attempt recovery from rolling backup
+      const backupData = getItemSync(getProfileKey() + '_backup');
+      if (backupData) {
+        const parsedBackup = JSON.parse(backupData);
+        if (parsedBackup && parsedBackup.profiles) {
+          console.warn('Recovered ProfileEngine state from rolling backup after parse error');
+          return parsedBackup;
+        }
+      }
+    } catch(recoverErr) {
+      console.error('Failed to recover from backup', recoverErr);
+    }
+
     const defaultId = 'profile_1';
     return {
       activeId: defaultId,
@@ -294,14 +325,26 @@ export async function saveProfile(profile) {
   try {
     const state = getProfileEngineState();
     
-    if (profile.demographics) {
-      profile.demographics.updatedAt = new Date().toISOString();
+    const nowIso = new Date().toISOString();
+    if (!profile.demographics) {
+      profile.demographics = {};
     }
+    profile.demographics.updatedAt = nowIso;
+    profile.updatedAt = nowIso;
 
     state.profiles[state.activeId] = profile;
     const stateStr = JSON.stringify(state);
     
     pushToHistory(stateStr);
+
+    // Maintain rolling backup before overwrite
+    try {
+      const currentRaw = getItemSync(getProfileKey());
+      if (currentRaw) {
+        setItemSync(getProfileKey() + '_backup', currentRaw);
+      }
+    } catch (bErr) {}
+
     setItemSync(getProfileKey(), stateStr);
     
     // Dispatch event so UI can react globally
@@ -982,16 +1025,57 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
           updated_at: new Date().toISOString()
         });
       } else {
+        const localNutrition = localPrimary?.nutrition || {};
+        const remoteNutrition = data.nutrition || {};
+
+        // Merge recentLogs: union by ID or loggedAt, preserving local reactions and offline logs
+        const logMap = new Map();
+        (remoteNutrition.recentLogs || []).forEach((l) => {
+          if (l && (l.id || l.loggedAt)) logMap.set(l.id || l.loggedAt, l);
+        });
+        (localNutrition.recentLogs || []).forEach((l) => {
+          if (l && (l.id || l.loggedAt)) {
+            const key = l.id || l.loggedAt;
+            const existing = logMap.get(key);
+            if (!existing || (l.reaction && !existing.reaction)) {
+              logMap.set(key, { ...(existing || {}), ...l });
+            }
+          }
+        });
+        const mergedRecentLogs = Array.from(logMap.values());
+
+        // Merge digestion logs and elimination protocols safely
+        const mergedDigestionLogs = {
+          ...(data.digestion_logs || data.digestionLogs || {}),
+          ...(localPrimary?.digestionLogs || {})
+        };
+        const mergedElimination = {
+          ...(data.elimination_protocols || data.eliminationProtocols || {}),
+          ...(localPrimary?.eliminationProtocols || {})
+        };
+
         state.profiles.profile_1 = {
-          ...(state.profiles.profile_1 || DEFAULT_PROFILE), id: 'profile_1',
-          profileName: data.full_name || 'My Profile', isPro: data.is_pro || false,
-          proExpiresAt: data.pro_expires_at || null, demographics: data.demographics || {},
-          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || (data.demographics?.age ? new Date().toISOString() : null),
-          conditions: data.conditions || [], medications: data.medications || [],
-          allergies: data.allergies || [], familyHistory: data.family_history || [],
-          timeline: data.timeline || [], vitals: data.vitals || { latestLabValues: {}, historicalLabs: [] },
-          nutrition: data.nutrition || { targetCalories: 2000, avgProtein: 0, recentLogs: [] },
-          healthFocus: data.health_focus || ''
+          ...(state.profiles.profile_1 || DEFAULT_PROFILE),
+          id: 'profile_1',
+          profileName: data.full_name || localPrimary?.profileName || 'My Profile',
+          isPro: data.is_pro ?? localPrimary?.isPro ?? false,
+          proExpiresAt: data.pro_expires_at || localPrimary?.proExpiresAt || null,
+          demographics: { ...(localPrimary?.demographics || {}), ...(data.demographics || {}) },
+          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || localPrimary?.onboardingCompletedAt || (data.demographics?.age ? new Date().toISOString() : null),
+          conditions: Array.isArray(data.conditions) && data.conditions.length > 0 ? data.conditions : (localPrimary?.conditions || []),
+          medications: Array.isArray(data.medications) && data.medications.length > 0 ? data.medications : (localPrimary?.medications || []),
+          allergies: Array.isArray(data.allergies) && data.allergies.length > 0 ? data.allergies : (localPrimary?.allergies || []),
+          familyHistory: data.family_history || localPrimary?.familyHistory || [],
+          timeline: Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : (localPrimary?.timeline || []),
+          vitals: data.vitals || localPrimary?.vitals || { latestLabValues: {}, historicalLabs: [] },
+          nutrition: {
+            targetCalories: remoteNutrition.targetCalories || localNutrition.targetCalories || 2000,
+            avgProtein: remoteNutrition.avgProtein || localNutrition.avgProtein || 0,
+            recentLogs: mergedRecentLogs
+          },
+          digestionLogs: mergedDigestionLogs,
+          eliminationProtocols: mergedElimination,
+          healthFocus: data.health_focus || localPrimary?.healthFocus || ''
         };
         changed = true;
       }
@@ -1013,9 +1097,34 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       const existingPro = state.profiles[row.profile_id]?.isPro;
       const existingProExpiresAt = state.profiles[row.profile_id]?.proExpiresAt;
       
+      // Merge local and remote nutrition logs to avoid clobbering offline entries
+      const localNut = local?.nutrition || {};
+      const remoteNut = row.data.nutrition || {};
+      const snapLogMap = new Map();
+      (remoteNut.recentLogs || []).forEach((l) => {
+        if (l && (l.id || l.loggedAt)) snapLogMap.set(l.id || l.loggedAt, l);
+      });
+      (localNut.recentLogs || []).forEach((l) => {
+        if (l && (l.id || l.loggedAt)) {
+          const key = l.id || l.loggedAt;
+          const existing = snapLogMap.get(key);
+          if (!existing || (l.reaction && !existing.reaction)) {
+            snapLogMap.set(key, { ...(existing || {}), ...l });
+          }
+        }
+      });
+
       state.profiles[row.profile_id] = {
-        ...row.data, id: row.profile_id,
-        profileName: row.profile_name || row.data.profileName || 'My Profile'
+        ...(local || {}),
+        ...row.data,
+        id: row.profile_id,
+        profileName: row.profile_name || row.data.profileName || local?.profileName || 'My Profile',
+        nutrition: {
+          ...(row.data.nutrition || local?.nutrition || {}),
+          recentLogs: Array.from(snapLogMap.values())
+        },
+        digestionLogs: { ...(row.data.digestionLogs || {}), ...(local?.digestionLogs || {}) },
+        eliminationProtocols: { ...(row.data.eliminationProtocols || {}), ...(local?.eliminationProtocols || {}) }
       };
       
       if (row.profile_id === 'profile_1' || row.profile_id === state.activeId) {

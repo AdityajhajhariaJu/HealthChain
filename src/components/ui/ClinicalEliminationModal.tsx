@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -104,6 +104,70 @@ const COMMON_CULPRITS = [
   'Artificial Sweeteners',
 ];
 
+const ActiveChallengeTimeHeader = memo(function ActiveChallengeTimeHeader({
+  activeChallenge,
+}: {
+  activeChallenge: FoodChallenge;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const challengeStartedMs = new Date(activeChallenge.startedAt).getTime();
+  const challengeWindowMs = (activeChallenge.observationWindowHours || 48) * 3600 * 1000;
+  const elapsedMs = Math.max(0, now - challengeStartedMs);
+  const remainingMs = Math.max(0, challengeWindowMs - elapsedMs);
+  const isWindowExpired = remainingMs === 0;
+  const hoursLeft = Math.floor(remainingMs / (3600 * 1000));
+  const minsLeft = Math.floor((remainingMs % (3600 * 1000)) / (60 * 1000));
+  const progressPct = Math.min(100, Math.round((elapsedMs / challengeWindowMs) * 100));
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Active Food Reintroduction
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+            {activeChallenge.displayName}
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
+            Dose: {activeChallenge.doseDescription}
+          </div>
+        </div>
+        <div>
+          {isWindowExpired ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#065F46' }}>
+              <CheckCircle2 size={13} color="#059669" /> 48h Window Complete
+            </span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+              <Clock size={13} color="#0D9488" /> {hoursLeft}h {minsLeft}m remaining
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 48-Hour Progress Bar */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginBottom: '4px', fontWeight: 600 }}>
+          <span>48-Hour Observation Timeline</span>
+          <span>{progressPct}% elapsed</span>
+        </div>
+        <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
+          <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #14B8A6 0%, #0D9488 100%)', borderRadius: '999px', transition: 'width 0.5s ease' }} />
+        </div>
+      </div>
+    </>
+  );
+});
+
 export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> = ({
   isOpen = true,
   onClose,
@@ -185,7 +249,6 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [readiness, setReadiness] = useState<ReturnType<typeof evaluateChallengeReadiness> | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<FoodChallenge | null>(null);
   const [allChallenges, setAllChallenges] = useState<FoodChallenge[]>([]);
-  const [currentTime, setCurrentTime] = useState<number>(() => Date.now());
   const [isLoggingReaction, setIsLoggingReaction] = useState<boolean>(false);
   const [reactionSeverity, setReactionSeverity] = useState<number>(5);
   const [reactionNote, setReactionNote] = useState<string>('');
@@ -265,14 +328,6 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       setSelectedProtocolId(initialProtocolId);
     }
   }, [initialProtocolId]);
-
-  useEffect(() => {
-    if (!activeChallenge) return;
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [activeChallenge]);
 
   useEffect(() => {
     const handleTrialUpdated = () => refreshTrialState();
@@ -2584,53 +2639,14 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                 {readiness && readiness.ready && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {activeChallenge ? (() => {
+                      const hasReactionLogged = activeChallenge.observations?.some((o: any) => o.hasReaction) || false;
                       const challengeStartedMs = new Date(activeChallenge.startedAt).getTime();
                       const challengeWindowMs = (activeChallenge.observationWindowHours || 48) * 3600 * 1000;
-                      const elapsedMs = Math.max(0, currentTime - challengeStartedMs);
-                      const remainingMs = Math.max(0, challengeWindowMs - elapsedMs);
-                      const isWindowExpired = remainingMs === 0;
-                      const hoursLeft = Math.floor(remainingMs / (3600 * 1000));
-                      const minsLeft = Math.floor((remainingMs % (3600 * 1000)) / (60 * 1000));
-                      const progressPct = Math.min(100, Math.round((elapsedMs / challengeWindowMs) * 100));
-                      const hasReactionLogged = activeChallenge.observations?.some((o: any) => o.hasReaction) || false;
+                      const isWindowExpired = (Date.now() - challengeStartedMs) >= challengeWindowMs;
 
                       return (
                         <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '16px', border: '1.5px solid #0D9488', boxShadow: '0 4px 16px rgba(13, 148, 136, 0.08)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                            <div>
-                              <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                Active Food Reintroduction
-                              </div>
-                              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
-                                {activeChallenge.displayName}
-                              </div>
-                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
-                                Dose: {activeChallenge.doseDescription}
-                              </div>
-                            </div>
-                            <div>
-                              {isWindowExpired ? (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#065F46' }}>
-                                  <CheckCircle2 size={13} color="#059669" /> 48h Window Complete
-                                </span>
-                              ) : (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
-                                  <Clock size={13} color="#0D9488" /> {hoursLeft}h {minsLeft}m remaining
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* 48-Hour Progress Bar */}
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginBottom: '4px', fontWeight: 600 }}>
-                              <span>48-Hour Observation Timeline</span>
-                              <span>{progressPct}% elapsed</span>
-                            </div>
-                            <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
-                              <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #14B8A6 0%, #0D9488 100%)', borderRadius: '999px', transition: 'width 0.5s ease' }} />
-                            </div>
-                          </div>
+                          <ActiveChallengeTimeHeader activeChallenge={activeChallenge} />
 
                           {/* Observation Logger Form */}
                           {!isLoggingReaction ? (

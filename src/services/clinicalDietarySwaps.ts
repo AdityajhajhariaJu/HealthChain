@@ -174,7 +174,14 @@ export function getClinicalDietarySwap(foodName: string): DietarySwap | null {
   }
 
   for (const [key, data] of Object.entries(DIETARY_SWAPS_DATABASE)) {
-    if (clean.includes(key) || data.triggerName.toLowerCase().includes(clean)) {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const keyRegex = new RegExp(`(^|[^a-z0-9])${escapedKey}([^a-z0-9]|$)`, 'i');
+
+    const triggerClean = data.triggerName.trim().toLowerCase();
+    const escapedTrigger = triggerClean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const triggerRegex = new RegExp(`(^|[^a-z0-9])${escapedTrigger}([^a-z0-9]|$)`, 'i');
+
+    if (keyRegex.test(clean) || triggerRegex.test(clean)) {
       return data;
     }
   }
