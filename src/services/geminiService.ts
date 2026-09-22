@@ -1973,6 +1973,7 @@ export interface FoodAnalysisResult {
   fats?: number;
   sugar?: number;
   fibre?: number;
+  sodium?: number;
   healthVerdict?: 'clean_choice' | 'moderate_treat' | 'caution_swap_recommended';
   verdictHeadline?: string;
   clinicalRationale?: string;
@@ -2050,6 +2051,7 @@ Return ONLY valid JSON matching this schema:
   "fats": <number grams>,
   "sugar": <number grams>,
   "fibre": <number grams>,
+  "sodium": <number milligrams>,
   "healthVerdict": "clean_choice" | "moderate_treat" | "caution_swap_recommended",
   "verdictHeadline": "Punchy 3-6 word summary (e.g. Ultra-Processed · High Glycemic Spike, or Clean Whole-Food Fuel)",
   "clinicalRationale": "1-2 crisp clinical sentences explaining why and how it impacts metabolic health/energy/gut.",

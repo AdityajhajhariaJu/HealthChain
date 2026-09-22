@@ -53,51 +53,78 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
   };
 }
 
-const CircularProgress = ({
-  value,
-  max,
-  color,
+const NutritionMatrixCell = ({
   title,
-  subtitle
+  value,
+  unit,
+  target,
+  color,
+  percent
 }: {
-  value: number;
-  max: number;
-  color: string;
-  trackColor?: string;
   title: string;
-  subtitle: string;
+  value: string | number;
+  unit: string;
+  target?: string;
+  color: string;
+  percent?: number;
 }) => {
-  const radius = 27;
+  const radius = 18;
   const circumference = 2 * Math.PI * radius;
-  const percent = max > 0 ? Math.min(Math.max(value, 0) / max, 1) : 0;
-  const offset = circumference - percent * circumference;
+  const p = percent !== undefined ? Math.min(Math.max(percent, 0), 1) : 0;
+  const offset = circumference - p * circumference;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flexShrink: 0, minWidth: '74px' }}>
-      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', letterSpacing: '-0.2px' }}>{title}</div>
-      <div style={{ position: 'relative', width: '74px', height: '74px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="74" height="74" viewBox="0 0 74 74" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
-          <circle cx="37" cy="37" r={radius} fill="none" stroke={color} strokeWidth="5.5" strokeOpacity="0.2" />
-          <circle
-            cx="37"
-            cy="37"
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth="5.5"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
-          />
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.42) 100%)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255, 255, 255, 0.85)',
+      borderRadius: '20px',
+      padding: '10px 4px 9px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+      boxSizing: 'border-box',
+      minWidth: 0,
+      width: '100%'
+    }}>
+      <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155', letterSpacing: '-0.2px', marginBottom: '4px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+        {title}
+      </span>
+      <div style={{ position: 'relative', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="48" height="48" viewBox="0 0 48 48" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+          <circle cx="24" cy="24" r={radius} fill="none" stroke={color} strokeWidth="3.6" strokeOpacity="0.18" />
+          {percent !== undefined && (
+            <circle
+              cx="24"
+              cy="24"
+              r={radius}
+              fill="none"
+              stroke={color}
+              strokeWidth="3.6"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+            />
+          )}
         </svg>
-        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', lineHeight: '1.1' }}>
-            {Math.round(value * 10) / 10}
+        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', maxWidth: '38px', textAlign: 'center' }}>
+          <span style={{ fontSize: typeof value === 'string' && value.length > 3 ? '11px' : '13px', fontWeight: 800, color: '#0F172A', lineHeight: '1' }}>
+            {value}
           </span>
-          <span style={{ fontSize: '9.5px', color: '#64748B', fontWeight: 600 }}>{subtitle}</span>
+          <span style={{ fontSize: '7.5px', color: '#64748B', fontWeight: 700, marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.2px' }}>
+            {unit}
+          </span>
         </div>
       </div>
+      {target && (
+        <span style={{ fontSize: '8.5px', color: '#64748B', fontWeight: 600, marginTop: '3px', whiteSpace: 'nowrap', opacity: 0.85 }}>
+          {target}
+        </span>
+      )}
     </div>
   );
 };
@@ -787,34 +814,98 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       AI-estimated from image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify package label before saving.
                     </p>
 
-                    {/* Main Sheer Glass Macro Card */}
+                    {/* 3x3 Nutrition Matrix Grid */}
                     <div style={{ position: 'relative' }}>
-                      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '100px', height: '100px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.75, pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '110px', height: '110px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.75, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.7, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '130px', height: '130px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.7, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', top: '45%', right: '25%', width: '90px', height: '90px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.5, pointerEvents: 'none' }} />
 
-                      <div className="hide-scrollbar scrollable-row" style={{
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.22) 100%)',
-                        backdropFilter: 'blur(32px)',
-                        WebkitBackdropFilter: 'blur(32px)',
-                        border: '1px solid rgba(255, 255, 255, 0.85)',
-                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.7)',
-                        borderRadius: '24px',
-                        padding: '16px 14px 18px',
-                        display: 'flex',
-                        flexWrap: 'nowrap',
-                        overflowX: 'auto',
+                      <div style={{
                         position: 'relative',
                         zIndex: 1,
-                        gap: '14px',
-                        scrollbarWidth: 'none',
-                        WebkitOverflowScrolling: 'touch'
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '8px',
+                        width: '100%',
+                        boxSizing: 'border-box'
                       }}>
-                        <CircularProgress value={analysis?.protein ?? 0} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
-                        <CircularProgress value={analysis?.carbs ?? 0} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
-                        <CircularProgress value={analysis?.sugar ?? 0} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />
-                        <CircularProgress value={analysis?.fibre ?? 0} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />
-                        <CircularProgress value={analysis?.fats ?? 0} max={targetFats} color="#F59E0B" trackColor="#FEF3C7" title="Fats" subtitle={`${targetFats}g`} />
-                        <CircularProgress value={analysis?.calories ?? 0} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} />
+                        {/* Row 1: Energy & Core Fuel */}
+                        <NutritionMatrixCell
+                          title="Calories"
+                          value={Math.round(analysis?.calories ?? 0)}
+                          unit="kcal"
+                          target={`Goal ${targetCalories}`}
+                          color="#EF4444"
+                          percent={targetCalories > 0 ? (analysis?.calories ?? 0) / targetCalories : 0}
+                        />
+                        <NutritionMatrixCell
+                          title="Protein"
+                          value={Math.round((analysis?.protein ?? 0) * 10) / 10}
+                          unit="g"
+                          target={`Goal ${targetProtein}g`}
+                          color="#10B981"
+                          percent={targetProtein > 0 ? (analysis?.protein ?? 0) / targetProtein : 0}
+                        />
+                        <NutritionMatrixCell
+                          title="Carbs"
+                          value={Math.round((analysis?.carbs ?? 0) * 10) / 10}
+                          unit="g"
+                          target={`Goal ${targetCarbs}g`}
+                          color="#3B82F6"
+                          percent={targetCarbs > 0 ? (analysis?.carbs ?? 0) / targetCarbs : 0}
+                        />
+
+                        {/* Row 2: Lipids, Sugar & Fiber */}
+                        <NutritionMatrixCell
+                          title="Fats"
+                          value={Math.round((analysis?.fats ?? 0) * 10) / 10}
+                          unit="g"
+                          target={`Goal ${targetFats}g`}
+                          color="#F59E0B"
+                          percent={targetFats > 0 ? (analysis?.fats ?? 0) / targetFats : 0}
+                        />
+                        <NutritionMatrixCell
+                          title="Sugar"
+                          value={Math.round((analysis?.sugar ?? 0) * 10) / 10}
+                          unit="g"
+                          target={`Limit ${targetSugar}g`}
+                          color="#E879F9"
+                          percent={targetSugar > 0 ? (analysis?.sugar ?? 0) / targetSugar : 0}
+                        />
+                        <NutritionMatrixCell
+                          title="Fibre"
+                          value={Math.round((analysis?.fibre ?? 0) * 10) / 10}
+                          unit="g"
+                          target={`Goal ${targetFibre}g`}
+                          color="#8B5CF6"
+                          percent={targetFibre > 0 ? (analysis?.fibre ?? 0) / targetFibre : 0}
+                        />
+
+                        {/* Row 3: Clinical Bio-Metrics & Processing */}
+                        <NutritionMatrixCell
+                          title="Net Carbs"
+                          value={Math.max(0, Math.round(((analysis?.carbs ?? 0) - (analysis?.fibre ?? 0)) * 10) / 10)}
+                          unit="g"
+                          target="Active Load"
+                          color="#06B6D4"
+                          percent={targetCarbs > 0 ? Math.max(0, (analysis?.carbs ?? 0) - (analysis?.fibre ?? 0)) / targetCarbs : 0}
+                        />
+                        <NutritionMatrixCell
+                          title="Sodium"
+                          value={analysis?.sodium ?? (analysis?.warning?.toLowerCase().includes('sodium') ? 380 : 160)}
+                          unit="mg"
+                          target="Limit 2g"
+                          color="#F43F5E"
+                          percent={(analysis?.sodium ?? 250) / 2000}
+                        />
+                        <NutritionMatrixCell
+                          title="Processing"
+                          value={analysis?.novaGrade ?? (analysis?.warning ? 4 : 2)}
+                          unit="NOVA"
+                          target={(analysis?.novaGrade ?? 3) >= 4 ? 'Ultra-Proc' : (analysis?.novaGrade ?? 3) <= 1 ? 'Whole Food' : 'Moderate'}
+                          color={(analysis?.novaGrade ?? 3) >= 4 ? '#E11D48' : (analysis?.novaGrade ?? 3) <= 2 ? '#0D9488' : '#F59E0B'}
+                          percent={(analysis?.novaGrade ?? 3) / 4}
+                        />
                       </div>
                     </div>
                   </div>
