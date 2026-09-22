@@ -414,5 +414,76 @@ describe('ClinicalEliminationModal Patient-First Overhaul Tests', () => {
     expect(persistedV2?.verdict?.clearedFoods).toBeDefined();
     expect(persistedV2?.verdict?.inconclusiveFoods).toBeDefined();
   });
+
+  it('supports world-class accidental exposure relief with robust triggers, calming protocol, and breathwork', () => {
+    startTrial('dairy_free');
+    startNewTrialV2({
+      protocolId: 'dairy_free',
+      durationDays: 10,
+    });
+
+    render(
+      <ClinicalEliminationModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTrialUpdated={mockOnTrialUpdated}
+      />,
+      { container: containerDiv }
+    );
+
+    // 1. Verify Safety Valve Card is rendered prominently
+    expect(screen.getByText(/Ate an Off-Track Trigger\?/i)).toBeTruthy();
+    expect(screen.getByText(/Safety Valve/i)).toBeTruthy();
+    expect(screen.getByText(/1-tap motility steps • Log exposure with no streak penalty/i)).toBeTruthy();
+
+    const quickReliefBtn = screen.getByRole('button', { name: /Quick Relief/i });
+    expect(quickReliefBtn).toBeTruthy();
+    fireEvent.click(quickReliefBtn);
+
+    // 2. Verify Accidental Exposure Relief sheet opens with reassurance
+    expect(screen.getAllByText(/Accidental Exposure Relief/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Your reset timeline is preserved/i)).toBeTruthy();
+
+    // 3. Verify protocol-eliminated foods and common culprits are rendered (never empty!)
+    expect(screen.getByText('Cow Milk')).toBeTruthy();
+    expect(screen.getByText('Commercial Cheeses')).toBeTruthy();
+    expect(screen.getByText('Wheat / Bread / Maida')).toBeTruthy();
+
+    // 4. Verify the 4 Clinical Calming Pillars are rendered
+    expect(screen.getByText(/Warm Herbal Motility Sip/i)).toBeTruthy();
+    expect(screen.getByText(/Osmolar Hydration Balance/i)).toBeTruthy();
+    expect(screen.getByText(/Upright 10-Minute Paced Walk/i)).toBeTruthy();
+    expect(screen.getByText(/Vagal Downregulation \(4-7-8 Breathing\)/i)).toBeTruthy();
+
+    // 5. Test selecting a trigger and portion
+    const triggerChip = screen.getByText('Cow Milk');
+    fireEvent.click(triggerChip);
+
+    const moderatePortionBtn = screen.getByRole('button', { name: /Moderate/i });
+    fireEvent.click(moderatePortionBtn);
+
+    const recordExposureBtn = screen.getByRole('button', { name: /Record Exposure in Trial Notes/i });
+    expect(recordExposureBtn).toBeTruthy();
+    fireEvent.click(recordExposureBtn);
+
+    // Verify confirmation badge
+    expect(screen.getByText(/Logged: Cow Milk \(Moderate\)\. Progress timeline maintained!/i)).toBeTruthy();
+
+    // 6. Test breathwork toggle
+    const startBreathBtn = screen.getByRole('button', { name: /Start 2-Min Breath/i });
+    fireEvent.click(startBreathBtn);
+    expect(screen.getByRole('button', { name: /Stop Breath/i })).toBeTruthy();
+    expect(screen.getByText(/Inhale gently through nose/i)).toBeTruthy();
+
+    // 7. Test closing sheet
+    const returnBtn = screen.getByRole('button', { name: /Understood • Return to Today/i });
+    fireEvent.click(returnBtn);
+
+    // Verify exposure was recorded on active trial
+    const activeTrial = getActiveTrial();
+    expect(activeTrial?.exposures).toBeDefined();
+    expect(activeTrial?.exposures?.length).toBeGreaterThanOrEqual(1);
+    expect(activeTrial?.exposures?.[0].trigger).toBe('Cow Milk');
+  });
 });
 

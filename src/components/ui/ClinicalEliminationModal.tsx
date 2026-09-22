@@ -52,6 +52,7 @@ import {
   ELIMINATION_PROTOCOLS,
   CLINICAL_SENSITIVITIES,
   getSuspectFoodsLeaderboard,
+  recordGardenAction,
 } from '../../services/TriggerEngine';
 import { GuidedStartModal } from './GuidedStartModal';
 import { EliminationOnboardingWizard } from './EliminationOnboardingWizard';
@@ -71,6 +72,7 @@ import {
   getFoodChallenges,
   recordDailyObservation,
   completeTrialWithVerdict,
+  appendHealthEvent,
 } from '../../services/TrialWorkflowService';
 import { AdherenceLevel, TrialV2, FoodChallenge, ClinicalVerdictData, FoodVerdictItem } from '../../domain/trials/types';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection, triggerHapticHeavy } from '../../services/haptics';
@@ -86,6 +88,21 @@ export interface ClinicalEliminationModalProps {
   initialProtocolId?: string | null;
   initialMode?: 'onboarding' | 'active_trial' | 'directory';
 }
+
+const COMMON_CULPRITS = [
+  'Dairy / Milk / Cheese',
+  'Wheat / Bread / Maida',
+  'Onion & Garlic Gravy',
+  'Beans / Rajma / Chana',
+  'Spicy Food / Achaar',
+  'Deep Fried Snacks',
+  'Coffee / Energy Drink',
+  'Alcohol / Beer / Wine',
+  'Refined Sweets / Dessert',
+  'Ghee / Hidden Dairy',
+  'Soy Sauce / Condiments',
+  'Artificial Sweeteners',
+];
 
 export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> = ({
   isOpen = true,
@@ -140,6 +157,13 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [showSos, setShowSos] = useState<boolean>(false);
   const [selectedExposure, setSelectedExposure] = useState<string | null>(null);
   const [sosApplied, setSosApplied] = useState<boolean>(false);
+  const [sosCustomInput, setSosCustomInput] = useState<string>('');
+  const [sosPortion, setSosPortion] = useState<'bite' | 'moderate' | 'full'>('bite');
+  const [sosTiming, setSosTiming] = useState<'just_now' | '1_2h' | 'earlier'>('just_now');
+  const [isCalmingBreathActive, setIsCalmingBreathActive] = useState<boolean>(false);
+  const [calmingBreathPhase, setCalmingBreathPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
+  const [calmingBreathSeconds, setCalmingBreathSeconds] = useState<number>(4);
+  const [calmingBreathCycles, setCalmingBreathCycles] = useState<number>(0);
 
   // Protocol directory categorization & filtering
   const [directoryCategory, setDirectoryCategory] = useState<ProtocolCategory>('all');
@@ -392,6 +416,42 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, inline, showSos, showSwapDrawer, showOverflowMenu, showAssessmentModal, showResetConfirm, suiteMode, trial, activeTab, onClose]);
 
+  // Vagal calming 4-7-8 breathwork timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    if (isCalmingBreathActive) {
+      interval = setInterval(() => {
+        setCalmingBreathSeconds((prev) => {
+          if (prev > 1) return prev - 1;
+          if (calmingBreathPhase === 'inhale') {
+            setCalmingBreathPhase('hold');
+            return 7;
+          } else if (calmingBreathPhase === 'hold') {
+            setCalmingBreathPhase('exhale');
+            return 8;
+          } else {
+            setCalmingBreathCycles((c) => {
+              const nextC = c + 1;
+              if (nextC >= 2) {
+                recordGardenAction('breathwork');
+                triggerHapticSuccess();
+              }
+              return nextC;
+            });
+            setCalmingBreathPhase('inhale');
+            return 4;
+          }
+        });
+      }, 1000);
+    } else {
+      setCalmingBreathPhase('inhale');
+      setCalmingBreathSeconds(4);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isCalmingBreathActive, calmingBreathPhase]);
+
   const activeProtocolDef = trial 
     ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
     : (trialV2?.protocolId ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trialV2.protocolId) || ELIMINATION_PROTOCOLS[0]) : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]));
@@ -549,10 +609,15 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       ];
 
   const sosOptions = (() => {
-    const fromElim = activeProtocolDef.eliminatedFoods || [];
-    const fromSuspect = suspectFoods.slice(0, 2).map((s) => s.name);
-    const combined = Array.from(new Set([...fromElim.slice(0, 2), ...fromSuspect]));
-    return combined.slice(0, 4);
+    const fromElim = (activeProtocolDef?.eliminatedFoods && activeProtocolDef.eliminatedFoods.length > 0)
+      ? activeProtocolDef.eliminatedFoods
+      : ['Dairy / Milk', 'Gluten / Wheat', 'Garlic & Onions', 'Legumes / Dal'];
+    const fromSuspect = (suspectFoods || []).map((s) => s.name);
+    const set = new Set<string>();
+    fromElim.forEach((f) => set.add(f));
+    fromSuspect.forEach((s) => set.add(s));
+    COMMON_CULPRITS.forEach((c) => set.add(c));
+    return Array.from(set);
   })();
 
   const handleToggleChecklist = (taskId: string) => {
@@ -656,13 +721,48 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   };
 
   const handleApplySosMitigation = (triggerName: string) => {
-    if (!trial) return;
+    if (!triggerName.trim()) return;
     triggerHapticSuccess();
     setSelectedExposure(triggerName);
     setSosApplied(true);
-    const updated = logTrialExposure(triggerName, `Accidental exposure recorded. Add a symptom score separately if symptoms change.`);
-    setTrial(updated);
-    onTrialUpdated?.(updated);
+
+    const portionLabel = sosPortion === 'bite' ? 'Trace bite / sip' : sosPortion === 'moderate' ? 'Moderate serving' : 'Full meal';
+    const timingLabel = sosTiming === 'just_now' ? 'Within past 30m' : sosTiming === '1_2h' ? '1–2h ago' : 'Earlier today';
+    const exposureNote = `Accidental exposure recorded: ${triggerName} (${portionLabel}, ${timingLabel}). Calming motility protocol initiated.`;
+
+    if (trial) {
+      try {
+        const updated = logTrialExposure(triggerName, exposureNote);
+        setTrial(updated);
+        onTrialUpdated?.(updated);
+      } catch (err) {
+        console.warn('Could not log legacy trial exposure:', err);
+      }
+    }
+
+    if (trialV2) {
+      try {
+        appendHealthEvent({
+          profileId: trialV2.profileId,
+          trialId: trialV2.id,
+          type: 'exposure_logged',
+          occurredAt: new Date().toISOString(),
+          timezone: trialV2.timezone,
+          source: 'trial',
+          payload: {
+            trigger: triggerName,
+            portion: sosPortion,
+            timing: sosTiming,
+            notes: exposureNote,
+          },
+        });
+      } catch (err) {
+        console.warn('Could not append trialV2 exposure event:', err);
+      }
+    }
+
+    // Append to checkin notes for clinical continuity
+    setCheckinNote((prev) => (prev ? `${prev} | [Accidental: ${triggerName}]` : `[Accidental Exposure: ${triggerName} (${portionLabel})]`));
   };
 
   const handleCopyDossier = () => {
@@ -838,69 +938,62 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
               >
                 <Target size={isMobile ? 18 : 20} />
               </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   <span
                     style={{
-                      fontSize: '9.5px',
+                      fontSize: '9px',
                       fontWeight: 800,
                       color: suiteMode === 'onboarding' ? '#0F766E' : '#475569',
                       background: suiteMode === 'onboarding' ? '#F0FDFA' : '#F1F5F9',
                       border: suiteMode === 'onboarding' ? '1px solid #99F6E4' : '1px solid #E2E8F0',
-                      padding: '2px 8px',
+                      padding: '2px 7px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
                       textTransform: 'uppercase',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
+                      flexShrink: 0,
                     }}
                   >
                     <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: suiteMode === 'onboarding' ? '#0D9488' : (trialV2?.status === 'completed' || trialV2?.verdict) ? '#10B981' : '#64748B' }} />
                     {suiteMode === 'onboarding'
-                      ? 'ELIMINATION SUITE ONBOARDING'
+                      ? 'ONBOARDING'
                       : isProtocolsTab
-                      ? '11 EVIDENCE-BASED PROTOCOLS'
+                      ? 'PROTOCOLS'
                       : trial
-                      ? 'ACTIVE HEALTH RESET'
+                      ? 'ACTIVE RESET'
                       : (trialV2?.status === 'completed' || trialV2?.verdict)
-                      ? 'TRIAL GRADUATED 🏆'
-                      : 'SELECT A RESET'}
+                      ? 'GRADUATED 🏆'
+                      : 'RESET'}
                   </span>
-                  {suiteMode === 'onboarding' ? (
-                    <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 700 }}>
-                      Step-by-Step Clinical Intake
-                    </span>
-                  ) : isProtocolsTab ? (
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      11 Protocols Available
-                    </span>
-                  ) : trial ? (
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}% Complete)
-                    </span>
-                  ) : (trialV2?.status === 'completed' || trialV2?.verdict) ? (
-                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
-                      Clinical Verdict Finalized
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      Choose your starting point
-                    </span>
-                  )}
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {suiteMode === 'onboarding'
+                      ? 'Clinical Intake'
+                      : isProtocolsTab
+                      ? '11 Protocols'
+                      : trial
+                      ? `Day ${trial.currentDay}/${trial.totalDays} (${Math.round((trial.currentDay / trial.totalDays) * 100)}%)`
+                      : (trialV2?.status === 'completed' || trialV2?.verdict)
+                      ? 'Verdict Finalized'
+                      : 'Choose starting point'}
+                  </span>
                 </div>
                 <h2
                   id="elimination-modal-title"
                   style={{
-                    fontSize: isMobile ? '16px' : '18px',
+                    fontSize: isMobile ? '14px' : '18px',
                     fontWeight: 800,
                     color: '#0F172A',
                     margin: '2px 0 0',
                     letterSpacing: '-0.3px',
+                    lineHeight: 1.25,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis'
+                    textOverflow: 'ellipsis',
                   }}
+                  title={suiteMode === 'onboarding' ? 'Track Food Triggers Intake' : isProtocolsTab ? 'Food Elimination & Reset Protocols' : activeProtocolDef.name}
                 >
                   {suiteMode === 'onboarding'
                     ? 'Track Food Triggers Intake'
@@ -919,19 +1012,22 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     triggerHapticSelection();
                     setSuiteMode('onboarding');
                   }}
-                  aria-label="Open intake onboarding wizard"
+                  aria-label="Retake Guided Intake"
                   title="Retake Guided Intake"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '5px',
                     height: '38px',
-                    padding: isMobile ? '0 10px' : '0 13px',
+                    width: isMobile ? '38px' : 'auto',
+                    minWidth: isMobile ? '38px' : 'auto',
+                    padding: isMobile ? '0' : '0 13px',
                     borderRadius: '12px',
                     background: '#F0FDFA',
                     border: '1.5px solid #99F6E4',
                     color: '#0D9488',
-                    fontSize: isMobile ? '11px' : '12px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -939,8 +1035,8 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  <Compass size={14} strokeWidth={2.4} />
-                  <span>Retake Intake</span>
+                  <Compass size={isMobile ? 18 : 14} strokeWidth={2.4} />
+                  {!isMobile && <span>Retake Intake</span>}
                 </button>
               )}
               {(trial || trialV2?.status === 'completed' || trialV2?.verdict) && (
@@ -2303,8 +2399,50 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                       </button>
                     </div>
 
-                    {/* Safety Valve Link (Accidental Exposure Relief) */}
-                    <div style={{ textAlign: 'center', padding: '6px 0 2px' }}>
+                    {/* Clinical Safety Valve Card (Accidental Exposure Relief) */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #F0FDFA 0%, #E6FFFA 100%)',
+                        borderRadius: '16px',
+                        border: '1.5px solid #99F6E4',
+                        padding: '13px 15px',
+                        margin: '10px 0 4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '11px', minWidth: 0 }}>
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '11px',
+                            background: '#CCFBF1',
+                            border: '1.5px solid #5EEAD4',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#0D9488',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <ShieldAlert size={19} strokeWidth={2.2} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span>Ate an Off-Track Trigger?</span>
+                            <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0D9488', background: '#CCFBF1', padding: '1px 6px', borderRadius: '5px', textTransform: 'uppercase' }}>
+                              Safety Valve
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0', lineHeight: 1.35 }}>
+                            1-tap motility steps • Log exposure with no streak penalty
+                          </p>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -2312,17 +2450,24 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                           setShowSos(true);
                         }}
                         style={{
-                          background: 'none',
+                          padding: '7px 13px',
+                          background: '#0D9488',
+                          color: '#FFFFFF',
                           border: 'none',
-                          color: '#0D9488',
-                          fontSize: '12px',
+                          borderRadius: '10px',
+                          fontSize: '11.5px',
                           fontWeight: 700,
                           cursor: 'pointer',
-                          textDecoration: 'underline',
-                          textUnderlineOffset: '3px',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                          boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        Ate an off-track trigger? View quick relief steps →
+                        <span>Quick Relief</span>
+                        <ArrowRight size={13} />
                       </button>
                     </div>
 
@@ -2376,235 +2521,6 @@ ${(trial.exposures || []).map((entry) => `• ${entry.date}: ${entry.trigger} - 
                         <StopCircle size={12} /> Stop Trial
                       </button>
                     </div>
-
-                    {/* Calming Accidental Exposure Bottom Sheet */}
-                    {showSos && (
-                      <div
-                        style={{
-                          position: 'fixed',
-                          inset: 0,
-                          background: 'rgba(15, 23, 42, 0.65)',
-                          backdropFilter: 'blur(8px)',
-                          WebkitBackdropFilter: 'blur(8px)',
-                          zIndex: 1000,
-                          display: 'flex',
-                          alignItems: 'flex-end',
-                          justifyContent: 'center',
-                        }}
-                        onClick={() => setShowSos(false)}
-                      >
-                        <div
-                          style={{
-                            width: '100%',
-                            maxWidth: '540px',
-                            background: '#FFFFFF',
-                            borderTopLeftRadius: '24px',
-                            borderTopRightRadius: '24px',
-                            padding: '24px 20px',
-                            boxShadow: '0 -10px 40px rgba(0,0,0,0.15)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '14px',
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                                Accidental Exposure Relief
-                              </h4>
-                              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0' }}>
-                                Accidental bites are useful data, not a failure.
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setShowSos(false)}
-                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-
-                          <p style={{ fontSize: '12.5px', color: '#334155', margin: '4px 0 0' }}>
-                            Select what you accidentally had to record the exposure and view calming relief steps:
-                          </p>
-
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            {sosOptions.map((trig) => (
-                              <button
-                                key={trig}
-                                type="button"
-                                onClick={() => handleApplySosMitigation(trig)}
-                                style={{
-                                  background: selectedExposure === trig ? '#0D9488' : '#F8FAFC',
-                                  color: selectedExposure === trig ? '#FFFFFF' : '#334155',
-                                  border: selectedExposure === trig ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
-                                  borderRadius: '10px',
-                                  padding: '8px 14px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  minHeight: '40px',
-                                  boxShadow: selectedExposure === trig ? '0 2px 8px rgba(13, 148, 136, 0.25)' : 'none',
-                                }}
-                              >
-                                {trig}
-                              </button>
-                            ))}
-                          </div>
-
-                          {sosApplied && (
-                            <div style={{ background: '#F0FDF4', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #BBF7D0' }}>
-                              <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#166534', marginBottom: '8px' }}>
-                                ✓ Calming steps recorded for {selectedExposure}:
-                              </div>
-                              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#15803D', lineHeight: 1.65 }}>
-                                <li><strong>Warm Herbal Sip:</strong> Drink warm peppermint or ginger tea to relax smooth gastrointestinal muscles.</li>
-                                <li><strong>Electrolyte Hydration:</strong> Slowly sip 300ml of water with a pinch of electrolytes to ease transit.</li>
-                                <li><strong>Gentle Paced Walking:</strong> A light 10-minute walk lowers visceral hypersensitivity.</li>
-                                <li><strong>Your Reset Continues:</strong> One exposure does not ruin your trial. Continue today as planned.</li>
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Monash Low-FODMAP / Food Swap Drawer */}
-                    {showSwapDrawer && (
-                      <div
-                        style={{
-                          position: 'fixed',
-                          inset: 0,
-                          background: 'rgba(15, 23, 42, 0.65)',
-                          backdropFilter: 'blur(8px)',
-                          WebkitBackdropFilter: 'blur(8px)',
-                          zIndex: 1000,
-                          display: 'flex',
-                          alignItems: 'flex-end',
-                          justifyContent: 'center',
-                        }}
-                        onClick={() => setShowSwapDrawer(false)}
-                      >
-                        <div
-                          style={{
-                            width: '100%',
-                            maxWidth: '560px',
-                            maxHeight: '82vh',
-                            background: '#FFFFFF',
-                            borderTopLeftRadius: '24px',
-                            borderTopRightRadius: '24px',
-                            padding: '22px 20px',
-                            boxShadow: '0 -10px 40px rgba(0,0,0,0.15)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '14px',
-                            overflowY: 'auto',
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                                Safe Swap Directory ({activeProtocolDef.name})
-                              </h4>
-                              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0' }}>
-                                Evidence-based substitutions for symptom-free cooking
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setShowSwapDrawer(false)}
-                              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-
-                          <div style={{ position: 'relative' }}>
-                            <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                            <input
-                              type="text"
-                              placeholder="Search swaps (e.g. oil, rice, milk)..."
-                              value={swapSearchQuery}
-                              onChange={(e) => setSwapSearchQuery(e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px 10px 36px',
-                                borderRadius: '10px',
-                                border: '1.5px solid #CBD5E1',
-                                fontSize: '12.5px',
-                                outline: 'none',
-                              }}
-                            />
-                          </div>
-
-                          {/* Indian Kitchen Translations Box */}
-                          <div style={{ background: '#F0FDFA', borderRadius: '12px', padding: '12px 14px', border: '1px solid #99F6E4' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
-                              🇮🇳 Indian Culinary Translations
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#134E4A' }}>
-                              <div>• <strong>Onion / Garlic Gravy</strong> → Asafoetida (Hing) & Garlic-Infused Mustard/Olive Oil</div>
-                              <div>• <strong>Wheat Roti / Naan</strong> → Moong Dal Chilla, Rice Roti, or Sourdough</div>
-                              <div>• <strong>Dairy Curd / Chaas</strong> → Lactose-Free Chaas with Roasted Cumin & Mint</div>
-                              <div>• <strong>High-FODMAP Lentils (Rajma/Chana)</strong> → Sprouted Yellow Moong Dal (Khichdi)</div>
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                              Allowed & Tolerated Alternatives
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                              {activeProtocolDef.allowedAlternatives
-                                .filter((alt) => !swapSearchQuery || alt.toLowerCase().includes(swapSearchQuery.toLowerCase()))
-                                .map((alt, idx) => (
-                                  <span
-                                    key={idx}
-                                    style={{
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      color: '#065F46',
-                                      background: '#ECFDF5',
-                                      border: '1px solid #A7F3D0',
-                                      padding: '5px 12px',
-                                      borderRadius: '8px',
-                                    }}
-                                  >
-                                    ✓ {alt}
-                                  </span>
-                                ))}
-                            </div>
-
-                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '8px' }}>
-                              Temporarily Eliminated Culprits
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                              {activeProtocolDef.eliminatedFoods
-                                .filter((food) => !swapSearchQuery || food.toLowerCase().includes(swapSearchQuery.toLowerCase()))
-                                .map((food, idx) => (
-                                  <span
-                                    key={idx}
-                                    style={{
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      color: '#991B1B',
-                                      background: '#FEF2F2',
-                                      border: '1px solid #FECACA',
-                                      padding: '5px 12px',
-                                      borderRadius: '8px',
-                                    }}
-                                  >
-                                    ✕ {food}
-                                  </span>
-                                ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -4218,6 +4134,620 @@ R (Recommendation):
 
   const sharedOverlays = (
     <>
+      {/* World-Class Clinical Accidental Exposure Relief Sheet */}
+      {showSos && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            zIndex: 1000000,
+            display: 'flex',
+            alignItems: isMobile ? 'flex-end' : 'center',
+            justifyContent: 'center',
+            padding: isMobile ? '0' : '20px',
+          }}
+          onClick={() => {
+            setShowSos(false);
+            setIsCalmingBreathActive(false);
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: isMobile ? '90vh' : '85vh',
+              background: '#FFFFFF',
+              borderRadius: isMobile ? '24px 24px 0 0' : '24px',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #E2E8F0',
+                background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                    border: '1.5px solid #99F6E4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0D9488',
+                    flexShrink: 0,
+                  }}
+                >
+                  <ShieldCheck size={20} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.2px' }}>
+                    Accidental Exposure Relief
+                  </h4>
+                  <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0', fontWeight: 600 }}>
+                    Clinical Protocol • Diagnostic data, never a failure
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSos(false);
+                  setIsCalmingBreathActive(false);
+                }}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                  flexShrink: 0,
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div
+              style={{
+                padding: '18px 20px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              {/* Level 1: Immediate Clinical Reassurance Banner */}
+              <div
+                style={{
+                  background: '#F0FDF4',
+                  borderRadius: '14px',
+                  border: '1.5px solid #BBF7D0',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                }}
+              >
+                <span style={{ fontSize: '18px', lineHeight: 1 }}>🌿</span>
+                <div style={{ fontSize: '12px', color: '#166534', lineHeight: 1.55 }}>
+                  <strong>Your reset timeline is preserved.</strong> One accidental exposure does <em>not</em> reset your trial progress or wipe out your gut microbiome adaptations. Transient gut reactivity usually peaks in 2–6 hours and resolves. Follow the rapid soothing steps below.
+                </div>
+              </div>
+
+              {/* Section 1: Culprit Exposure Logger */}
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '16px',
+                  border: '1.5px solid #E2E8F0',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ background: '#0D9488', color: '#FFF', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>1</span>
+                    <span>What was accidentally eaten or drunk?</span>
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>Tap or type below</span>
+                </div>
+
+                {/* Selectable Quick Chips */}
+                <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', maxHeight: '135px', overflowY: 'auto', padding: '2px 0' }}>
+                  {sosOptions.map((trig) => {
+                    const isSelected = selectedExposure === trig;
+                    const isProtocolFood = activeProtocolDef?.eliminatedFoods?.some((f) => f.toLowerCase() === trig.toLowerCase());
+                    return (
+                      <button
+                        key={trig}
+                        type="button"
+                        onClick={() => {
+                          setSelectedExposure(trig);
+                          setSosCustomInput(trig);
+                        }}
+                        style={{
+                          background: isSelected ? '#0D9488' : '#FFFFFF',
+                          color: isSelected ? '#FFFFFF' : '#334155',
+                          border: isSelected ? '1.5px solid #0D9488' : isProtocolFood ? '1.5px solid #CCFBF1' : '1.5px solid #E2E8F0',
+                          borderRadius: '9px',
+                          padding: '6px 12px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.25)' : '0 1px 2px rgba(0,0,0,0.03)',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {isProtocolFood && <span style={{ color: isSelected ? '#CCFBF1' : '#0D9488', fontSize: '9.5px', fontWeight: 800 }}>★</span>}
+                        <span>{trig}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Type-in Input */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+                    <input
+                      type="text"
+                      placeholder="Or type what you had (e.g., Paneer Makhani, Bread)..."
+                      value={sosCustomInput}
+                      onChange={(e) => {
+                        setSosCustomInput(e.target.value);
+                        setSelectedExposure(e.target.value);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px 8px 30px',
+                        borderRadius: '9px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: '12px',
+                        outline: 'none',
+                        background: '#FFFFFF',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Portion and Timing Selectors */}
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '4px', borderTop: '1px dashed #E2E8F0' }}>
+                  <div style={{ flex: 1, minWidth: '140px' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                      Portion
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {[
+                        { id: 'bite', label: 'Trace / Bite' },
+                        { id: 'moderate', label: 'Moderate' },
+                        { id: 'full', label: 'Full Meal' },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSosPortion(p.id as any)}
+                          style={{
+                            flex: 1,
+                            padding: '5px 4px',
+                            borderRadius: '7px',
+                            fontSize: '10.5px',
+                            fontWeight: sosPortion === p.id ? 800 : 600,
+                            background: sosPortion === p.id ? '#0F172A' : '#FFFFFF',
+                            color: sosPortion === p.id ? '#FFFFFF' : '#475569',
+                            border: sosPortion === p.id ? '1px solid #0F172A' : '1px solid #CBD5E1',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: '140px' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                      Timing
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {[
+                        { id: 'just_now', label: '< 30m ago' },
+                        { id: '1_2h', label: '1–2h ago' },
+                        { id: 'earlier', label: 'Earlier today' },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSosTiming(t.id as any)}
+                          style={{
+                            flex: 1,
+                            padding: '5px 4px',
+                            borderRadius: '7px',
+                            fontSize: '10.5px',
+                            fontWeight: sosTiming === t.id ? 800 : 600,
+                            background: sosTiming === t.id ? '#0F172A' : '#FFFFFF',
+                            color: sosTiming === t.id ? '#FFFFFF' : '#475569',
+                            border: sosTiming === t.id ? '1px solid #0F172A' : '1px solid #CBD5E1',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Log Button */}
+                <button
+                  type="button"
+                  disabled={!selectedExposure && !sosCustomInput.trim()}
+                  onClick={() => handleApplySosMitigation(selectedExposure || sosCustomInput.trim())}
+                  style={{
+                    padding: '9px 14px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: (!selectedExposure && !sosCustomInput.trim()) ? '#CBD5E1' : '#0D9488',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: (!selectedExposure && !sosCustomInput.trim()) ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: (!selectedExposure && !sosCustomInput.trim()) ? 'none' : '0 2px 6px rgba(13, 148, 136, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Activity size={14} />
+                  <span>Record Exposure in Trial Notes</span>
+                </button>
+
+                {sosApplied && (
+                  <div style={{ background: '#DCFCE7', borderRadius: '10px', padding: '9px 12px', border: '1px solid #86EFAC', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle2 size={16} color="#166534" />
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#166534' }}>
+                      Logged: {selectedExposure} ({sosPortion === 'bite' ? 'Trace' : sosPortion === 'moderate' ? 'Moderate' : 'Full meal'}). Progress timeline maintained!
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: The 4 Clinical Calming Action Pillars */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ background: '#0D9488', color: '#FFF', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>2</span>
+                  <span>Immediate Gut Motility & Calming Protocol</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Pillar 1 */}
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '11px 13px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '18px', lineHeight: 1 }}>🫖</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                        Warm Herbal Motility Sip
+                      </div>
+                      <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0', lineHeight: 1.45 }}>
+                        Sip warm peppermint, fresh ginger, or carom (ajwain) tea. Natural menthol and gingerols soothe enteric smooth muscles and prevent painful intestinal spasms.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pillar 2 */}
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '11px 13px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '18px', lineHeight: 1 }}>💧</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                        Osmolar Hydration Balance
+                      </div>
+                      <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0', lineHeight: 1.45 }}>
+                        Slowly drink 250–300ml of room-temperature water with a pinch of electrolytes or pink salt. Counteracts sudden osmotic fluid shifts into the bowel lumen.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pillar 3 */}
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '11px 13px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '18px', lineHeight: 1 }}>🚶</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                        Upright 10-Minute Paced Walk
+                      </div>
+                      <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0', lineHeight: 1.45 }}>
+                        Stay upright (avoid lying down or slouching for 90 mins). Gentle walking triggers the Migrating Motor Complex (MMC), accelerating gastric clearance by up to 25%.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pillar 4: Interactive Breathwork */}
+                  <div style={{ background: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)', borderRadius: '12px', border: '1.5px solid #DDD6FE', padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '18px', lineHeight: 1 }}>🫁</span>
+                        <div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#4C1D95' }}>
+                            Vagal Downregulation (4-7-8 Breathing)
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#6D28D9' }}>
+                            Shifts enteric nervous system into 'rest-and-digest'
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          setIsCalmingBreathActive(!isCalmingBreathActive);
+                        }}
+                        style={{
+                          padding: '5px 11px',
+                          borderRadius: '8px',
+                          background: isCalmingBreathActive ? '#4C1D95' : '#7C3AED',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 5px rgba(124, 58, 237, 0.25)',
+                        }}
+                      >
+                        {isCalmingBreathActive ? 'Stop Breath' : 'Start 2-Min Breath'}
+                      </button>
+                    </div>
+
+                    {isCalmingBreathActive && (
+                      <div style={{ marginTop: '10px', padding: '10px', background: '#FFFFFF', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
+                        <div
+                          style={{
+                            width: '46px',
+                            height: '46px',
+                            borderRadius: '50%',
+                            background: calmingBreathPhase === 'inhale' ? '#DDD6FE' : calmingBreathPhase === 'hold' ? '#C4B5FD' : '#8B5CF6',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: calmingBreathPhase === 'exhale' ? '#FFFFFF' : '#4C1D95',
+                            fontSize: '18px',
+                            fontWeight: 800,
+                            transition: 'all 0.5s ease',
+                          }}
+                        >
+                          {calmingBreathSeconds}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#4C1D95', textTransform: 'uppercase' }}>
+                            {calmingBreathPhase === 'inhale' ? 'Inhale gently through nose (4s)' : calmingBreathPhase === 'hold' ? 'Hold breath calmly (7s)' : 'Exhale completely via mouth (8s)'}
+                          </div>
+                          <div style={{ fontSize: '10.5px', color: '#6D28D9', marginTop: '2px' }}>
+                            Cycle {calmingBreathCycles + 1} • Relaxes splanchnic sympathetic tone
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Reaction Latency Guidance */}
+              <div style={{ background: '#F1F5F9', borderRadius: '12px', padding: '11px 13px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Clock size={16} color="#64748B" />
+                <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: 1.45 }}>
+                  <strong>Latency Window:</strong> Most postprandial food reactions emerge between <strong>2 to 6 hours</strong>. If symptoms arise, record your score in Today's Check-in to track diagnostic latency.
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Sheet Footer */}
+            <div
+              style={{
+                padding: '12px 20px',
+                borderTop: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                flexShrink: 0,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSos(false);
+                  setIsCalmingBreathActive(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '11px 18px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#0D9488',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
+                }}
+              >
+                <Check size={16} strokeWidth={2.4} />
+                <span>Understood • Return to Today</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monash Low-FODMAP / Food Swap Drawer */}
+      {showSwapDrawer && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            zIndex: 1000000,
+            display: 'flex',
+            alignItems: isMobile ? 'flex-end' : 'center',
+            justifyContent: 'center',
+            padding: isMobile ? '0' : '20px',
+          }}
+          onClick={() => setShowSwapDrawer(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: isMobile ? '88vh' : '82vh',
+              background: '#FFFFFF',
+              borderRadius: isMobile ? '24px 24px 0 0' : '24px',
+              padding: '22px 20px',
+              boxShadow: '0 25px 60px -15px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Safe Swap Directory ({activeProtocolDef.name})
+                </h4>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0' }}>
+                  Evidence-based substitutions for symptom-free cooking
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSwapDrawer(false)}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+              <input
+                type="text"
+                placeholder="Search swaps (e.g. oil, rice, milk)..."
+                value={swapSearchQuery}
+                onChange={(e) => setSwapSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px 10px 36px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #CBD5E1',
+                  fontSize: '12.5px',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Indian Kitchen Translations Box */}
+            <div style={{ background: '#F0FDFA', borderRadius: '12px', padding: '12px 14px', border: '1px solid #99F6E4' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
+                🇮🇳 Indian Culinary Translations
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#134E4A' }}>
+                <div>• <strong>Onion / Garlic Gravy</strong> → Asafoetida (Hing) & Garlic-Infused Mustard/Olive Oil</div>
+                <div>• <strong>Wheat Roti / Naan</strong> → Moong Dal Chilla, Rice Roti, or Sourdough</div>
+                <div>• <strong>Dairy Curd / Chaas</strong> → Lactose-Free Chaas with Roasted Cumin & Mint</div>
+                <div>• <strong>High-FODMAP Lentils (Rajma/Chana)</strong> → Sprouted Yellow Moong Dal (Khichdi)</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                Allowed & Tolerated Alternatives
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                {activeProtocolDef.allowedAlternatives
+                  .filter((alt) => !swapSearchQuery || alt.toLowerCase().includes(swapSearchQuery.toLowerCase()))
+                  .map((alt, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#065F46',
+                        background: '#ECFDF5',
+                        border: '1px solid #A7F3D0',
+                        padding: '5px 12px',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      ✓ {alt}
+                    </span>
+                  ))}
+              </div>
+
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '8px' }}>
+                Temporarily Eliminated Culprits
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                {activeProtocolDef.eliminatedFoods
+                  .filter((food) => !swapSearchQuery || food.toLowerCase().includes(swapSearchQuery.toLowerCase()))
+                  .map((food, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#991B1B',
+                        background: '#FEF2F2',
+                        border: '1px solid #FECACA',
+                        padding: '5px 12px',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      ✕ {food}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stop Trial Confirmation Dialog */}
       {showStopModal && (
         <div
