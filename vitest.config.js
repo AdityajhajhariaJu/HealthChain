@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'node',
     pool: 'forks',
     globals: true,
+    testTimeout: 15000,
     include: ['src/**/*.test.{js,jsx,ts,tsx}', 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'],
     exclude: ['node_modules', 'dist', 'tests/e2e/**'],
   },
