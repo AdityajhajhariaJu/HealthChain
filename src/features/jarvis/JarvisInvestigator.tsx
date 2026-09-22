@@ -41,6 +41,8 @@ const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeI
 const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;
 
 export interface SymptomTheme {
+  color1: string;
+  color2: string;
   bgStart: string;
   bgEnd: string;
   border: string;
@@ -54,6 +56,8 @@ export interface SymptomTheme {
 
 export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
   gut: {
+    color1: '#34D399',
+    color2: '#059669',
     bgStart: '#ECFDF5',
     bgEnd: '#D1FAE5',
     border: '#A7F3D0',
@@ -62,9 +66,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#D1FAE5',
     iconColor: '#059669',
     textColor: '#065F46',
-    shadow: 'rgba(16, 185, 129, 0.18)',
+    shadow: 'rgba(16, 185, 129, 0.28)',
   },
   neuro: {
+    color1: '#A78BFA',
+    color2: '#6D28D9',
     bgStart: '#F5F3FF',
     bgEnd: '#EDE9FE',
     border: '#DDD6FE',
@@ -73,9 +79,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#EDE9FE',
     iconColor: '#7C3AED',
     textColor: '#5B21B6',
-    shadow: 'rgba(124, 58, 237, 0.18)',
+    shadow: 'rgba(124, 58, 237, 0.28)',
   },
   respiratory: {
+    color1: '#38BDF8',
+    color2: '#0284C7',
     bgStart: '#F0F9FF',
     bgEnd: '#E0F2FE',
     border: '#BAE6FD',
@@ -84,9 +92,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#E0F2FE',
     iconColor: '#0284C7',
     textColor: '#0369A1',
-    shadow: 'rgba(2, 132, 199, 0.18)',
+    shadow: 'rgba(2, 132, 199, 0.28)',
   },
   cardio: {
+    color1: '#FB7185',
+    color2: '#E11D48',
     bgStart: '#FFF1F2',
     bgEnd: '#FFE4E6',
     border: '#FECDD3',
@@ -95,9 +105,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FFE4E6',
     iconColor: '#E11D48',
     textColor: '#9F1239',
-    shadow: 'rgba(225, 29, 72, 0.18)',
+    shadow: 'rgba(225, 29, 72, 0.28)',
   },
   pain: {
+    color1: '#2DD4BF',
+    color2: '#0D9488',
     bgStart: '#F0FDFA',
     bgEnd: '#CCFBF1',
     border: '#99F6E4',
@@ -106,9 +118,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#CCFBF1',
     iconColor: '#0D9488',
     textColor: '#115E59',
-    shadow: 'rgba(13, 148, 136, 0.18)',
+    shadow: 'rgba(13, 148, 136, 0.28)',
   },
   skin: {
+    color1: '#F472B6',
+    color2: '#DB2777',
     bgStart: '#FDF2F8',
     bgEnd: '#FCE7F3',
     border: '#FBCFE8',
@@ -117,9 +131,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FCE7F3',
     iconColor: '#DB2777',
     textColor: '#9D174D',
-    shadow: 'rgba(219, 39, 119, 0.18)',
+    shadow: 'rgba(219, 39, 119, 0.28)',
   },
   systemic: {
+    color1: '#FBBF24',
+    color2: '#D97706',
     bgStart: '#FFFBEB',
     bgEnd: '#FEF3C7',
     border: '#FDE68A',
@@ -128,9 +144,11 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#FEF3C7',
     iconColor: '#D97706',
     textColor: '#92400E',
-    shadow: 'rgba(217, 119, 6, 0.18)',
+    shadow: 'rgba(217, 119, 6, 0.28)',
   },
   sleep_mental: {
+    color1: '#818CF8',
+    color2: '#4338CA',
     bgStart: '#EEF2FF',
     bgEnd: '#E0E7FF',
     border: '#C7D2FE',
@@ -139,7 +157,7 @@ export const SYMPTOM_CATEGORY_THEMES: Record<string, SymptomTheme> = {
     activeBgEnd: '#E0E7FF',
     iconColor: '#4F46E5',
     textColor: '#3730A3',
-    shadow: 'rgba(79, 70, 229, 0.18)',
+    shadow: 'rgba(79, 70, 229, 0.28)',
   },
 };
 
@@ -151,31 +169,59 @@ export const ClassySymptomBadge: React.FC<{
 }> = ({
   icon: IconComp = Activity,
   category = 'systemic',
-  size = 32,
+  size = 20,
   isSelected = false
 }) => {
   const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
+  const iconSize = Math.max(10, Math.round(size * 0.54));
+
   return (
     <div
       style={{
         width: `${size}px`,
         height: `${size}px`,
+        minWidth: `${size}px`,
+        minHeight: `${size}px`,
         borderRadius: '50%',
-        background: `linear-gradient(135deg, ${theme.bgStart} 0%, ${theme.bgEnd} 100%)`,
-        border: `1.5px solid ${theme.border}`,
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: `0 2px 8px ${theme.shadow}, inset 0 1px 0 rgba(255, 255, 255, 0.85)`,
         flexShrink: 0,
+        boxShadow: `0 2px 6px ${theme.shadow}, inset 0 1px 1px rgba(255, 255, 255, 0.75)`,
+        background: `linear-gradient(135deg, ${theme.color1} 0%, ${theme.color2} 100%)`,
         transition: 'all 0.18s ease'
       }}
     >
+      {/* 3D Specular Gloss Highlight Overlay (Skeuomorphic glass glare matching Meds capsule) */}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none'
+        }}
+      >
+        <ellipse cx="12" cy="4.5" rx="7" ry="2.2" fill="#FFFFFF" fillOpacity="0.65" />
+        <circle cx="12" cy="12" r="11" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="1" />
+      </svg>
+
       <IconComp 
-        size={Math.round(size * 0.54)} 
-        color={theme.iconColor} 
-        strokeWidth={2.4} 
-        style={{ filter: isSelected ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.12))' : 'none' }}
+        size={iconSize} 
+        color="#FFFFFF" 
+        strokeWidth={2.8} 
+        style={{ 
+          position: 'relative',
+          zIndex: 1,
+          filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35))'
+        }}
       />
     </div>
   );
@@ -1453,7 +1499,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <ClassySymptomBadge 
                               icon={IconComponent} 
                               category={category} 
-                              size={isMobile ? 22 : 24} 
+                              size={isMobile ? 18 : 20} 
                               isSelected 
                             />
                             <span style={{ whiteSpace: 'nowrap' }}>{sym}</span>
@@ -1618,16 +1664,16 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: isMobile ? '8px' : '10px',
-                          padding: isMobile ? '6px 12px 6px 8px' : '8px 15px 8px 10px',
+                          gap: '8px',
+                          padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1.5px dashed #FDA4AF',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
                             ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? '#9F1239' : '#1E293B',
+                          color: isSelected ? '#9F1239' : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 3px 14px rgba(225, 29, 72, 0.16)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? '0 3px 12px rgba(225, 29, 72, 0.18)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
@@ -1637,30 +1683,32 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={Sparkles} 
                           category="cardio" 
-                          size={isMobile ? 28 : 32} 
+                          size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25, whiteSpace: 'nowrap' }}>
+                        <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
-                            fontSize: isMobile ? '12.5px' : '13.5px', 
-                            fontWeight: isSelected ? 800 : 700,
-                            color: isSelected ? '#9F1239' : '#1E293B',
+                            fontSize: isMobile ? '13px' : '13.5px', 
+                            fontWeight: isSelected ? 800 : 700, 
+                            color: isSelected ? '#9F1239' : '#1C1917',
+                            display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
                             {cs}
                           </span>
                           <span style={{ 
-                            fontSize: isMobile ? '10px' : '11px', 
+                            fontSize: isMobile ? '10.5px' : '11px', 
                             fontWeight: 500, 
-                            color: isSelected ? '#E11D48' : '#64748B' 
+                            color: isSelected ? '#BE123C' : '#78716C',
+                            display: 'block'
                           }}>
                             Custom Symptom Note
                           </span>
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: isMobile ? '16px' : '18px',
-                            height: isMobile ? '16px' : '18px',
+                            width: '17px',
+                            height: '17px',
                             borderRadius: '50%',
                             background: '#E11D48',
                             display: 'flex',
@@ -1669,9 +1717,9 @@ AI-generated preparation material. Verify against original records; this is not 
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 1px 4px rgba(225, 29, 72, 0.3)'
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
                           }}>
-                            <Check size={isMobile ? 10 : 11} strokeWidth={3.5} />
+                            <Check size={11} strokeWidth={3.5} />
                           </div>
                         )}
                       </motion.button>
@@ -1696,7 +1744,6 @@ AI-generated preparation material. Verify against original records; this is not 
                       Boolean(sym.aliases?.some(a => a.toLowerCase() === s.toLowerCase()))
                     );
                     const IconComp = sym.icon || Activity;
-                    const theme = SYMPTOM_CATEGORY_THEMES[sym.category] || SYMPTOM_CATEGORY_THEMES.systemic;
                     return (
                       <motion.button
                         key={sym.id}
@@ -1708,17 +1755,17 @@ AI-generated preparation material. Verify against original records; this is not 
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: isMobile ? '8px' : '10px',
-                          padding: isMobile ? '6px 12px 6px 8px' : '8px 15px 8px 10px',
+                          gap: '8px',
+                          padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? theme.textColor : '#1E293B',
+                          color: isSelected ? '#9F1239' : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? `0 3px 14px ${theme.shadow}` 
+                            ? `0 3px 12px rgba(225, 29, 72, 0.18)` 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1729,24 +1776,25 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={IconComp} 
                           category={sym.category} 
-                          size={isMobile ? 28 : 32} 
+                          size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25, whiteSpace: 'nowrap' }}>
+                        <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
                           <span style={{ 
-                            fontSize: isMobile ? '12.5px' : '13.5px', 
-                            fontWeight: isSelected ? 800 : 700,
-                            color: isSelected ? theme.textColor : '#1E293B',
+                            fontSize: isMobile ? '13px' : '13.5px', 
+                            fontWeight: isSelected ? 800 : 700, 
+                            color: isSelected ? '#9F1239' : '#1C1917',
+                            display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
                             {sym.name}
                           </span>
                           {sym.subtitle && (
                             <span style={{ 
-                              fontSize: isMobile ? '10px' : '11px', 
+                              fontSize: isMobile ? '10.5px' : '11px', 
                               fontWeight: 500,
-                              color: isSelected ? theme.textColor : '#64748B',
-                              opacity: isSelected ? 0.9 : 0.85
+                              color: isSelected ? '#BE123C' : '#78716C',
+                              display: 'block'
                             }}>
                               {sym.subtitle}
                             </span>
@@ -1754,19 +1802,19 @@ AI-generated preparation material. Verify against original records; this is not 
                         </div>
                         {isSelected && (
                           <div style={{
-                            width: isMobile ? '16px' : '18px',
-                            height: isMobile ? '16px' : '18px',
+                            width: '17px',
+                            height: '17px',
                             borderRadius: '50%',
-                            background: theme.activeBorder,
+                            background: '#E11D48',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: `0 1px 4px ${theme.shadow}`
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
                           }}>
-                            <Check size={isMobile ? 10 : 11} strokeWidth={3.5} />
+                            <Check size={11} strokeWidth={3.5} />
                           </div>
                         )}
                       </motion.button>
