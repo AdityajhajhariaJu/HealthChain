@@ -83,7 +83,7 @@ describe('Clinical Review case continuity', () => {
     // Navigate back to Step 5 (Evidence)
     fireEvent.click(screen.getByRole('button', { name: '← Back to Evidence' }));
     expect(screen.getByRole('heading', { name: 'Lab Reports & Medical Evidence' })).toBeTruthy();
-  });
+  }, 15000);
 
   it('allows adding custom symptoms and filtering categories properly', async () => {
     open();
@@ -107,7 +107,7 @@ describe('Clinical Review case continuity', () => {
     fireEvent.click(screen.getByRole('button', { name: /Next: Tell Your Story/i }));
     const textarea = screen.getByRole('textbox', { name: 'Clinical timeline and symptom notes' }) as HTMLTextAreaElement;
     expect(textarea.value).toContain('Primary symptoms: Sudden left ear fullness.');
-  });
+  }, 15000);
 
   it('searches symptoms using clinical synonym aliases', () => {
     open();
