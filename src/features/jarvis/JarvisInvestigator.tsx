@@ -1458,8 +1458,6 @@ AI-generated preparation material. Verify against original records; this is not 
                       {selectedSymptoms.map((sym) => {
                         const found = PRESET_SYMPTOMS.find(p => p.name.toLowerCase() === sym.toLowerCase() || Boolean(p.aliases?.some(a => a.toLowerCase() === sym.toLowerCase())));
                         const IconComponent = found?.icon || Heart;
-                        const category = found?.category || 'systemic';
-                        const theme = SYMPTOM_CATEGORY_THEMES[category] || SYMPTOM_CATEGORY_THEMES.systemic;
                         return (
                           <motion.div
                             key={sym}
@@ -1475,18 +1473,20 @@ AI-generated preparation material. Verify against original records; this is not 
                               gap: isMobile ? '6px' : '8px',
                               padding: isMobile ? '4px 10px 4px 6px' : '5px 12px 5px 7px',
                               borderRadius: '9999px',
-                              border: `1.5px solid ${theme.activeBorder}`,
-                              background: `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)`,
-                              color: theme.textColor,
+                              border: '1.5px solid #0D9488',
+                              background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                              color: '#0F766E',
                               fontSize: isMobile ? '12px' : '13px',
                               fontWeight: 700,
-                              boxShadow: `0 2px 8px ${theme.shadow}`,
+                              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.2)',
                               whiteSpace: 'nowrap'
                             }}
                           >
                             <ClassySymptomBadge 
                               icon={IconComponent} 
-                              category={category} 
+                              color1="#0D9488"
+                              color2="#14B8A6"
+                              shadow="rgba(13, 148, 136, 0.28)"
                               size={isMobile ? 18 : 20} 
                               isSelected 
                             />
@@ -1503,7 +1503,7 @@ AI-generated preparation material. Verify against original records; this is not 
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: theme.textColor,
+                                color: '#0F766E',
                                 marginLeft: '2px',
                                 flexShrink: 0,
                                 opacity: 0.75,
@@ -1664,13 +1664,13 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            ? 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? theme.textColor : '#1C1917',
+                          color: isSelected ? '#0F766E' : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? `0 3px 12px ${theme.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? '0 3px 12px rgba(13, 148, 136, 0.22)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
@@ -1680,6 +1680,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={Sparkles} 
                           category="systemic" 
+                          color1={isSelected ? '#0D9488' : undefined}
+                          color2={isSelected ? '#14B8A6' : undefined}
+                          shadow={isSelected ? 'rgba(13, 148, 136, 0.28)' : undefined}
                           size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
@@ -1687,7 +1690,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? theme.textColor : '#1C1917',
+                            color: isSelected ? '#0F766E' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1696,7 +1699,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '10.5px' : '11px', 
                             fontWeight: 500, 
-                            color: isSelected ? theme.color1 : '#78716C',
+                            color: isSelected ? '#0D9488' : '#78716C',
                             display: 'block'
                           }}>
                             Custom Symptom Note
@@ -1707,14 +1710,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: theme.color1,
+                            background: '#0D9488',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: `0 2px 6px ${theme.shadow}`
+                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.28)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1756,14 +1759,14 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
+                            ? 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)' 
                             : '#FFFFFF',
-                          color: isSelected ? theme.textColor : '#1C1917',
+                          color: isSelected ? '#0F766E' : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? `0 3px 12px ${theme.shadow}` 
+                            ? '0 3px 12px rgba(13, 148, 136, 0.22)' 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1774,6 +1777,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         <ClassySymptomBadge 
                           icon={IconComp} 
                           category={sym.category} 
+                          color1={isSelected ? '#0D9488' : undefined}
+                          color2={isSelected ? '#14B8A6' : undefined}
+                          shadow={isSelected ? 'rgba(13, 148, 136, 0.28)' : undefined}
                           size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
@@ -1781,7 +1787,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? theme.textColor : '#1C1917',
+                            color: isSelected ? '#0F766E' : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1791,7 +1797,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <span style={{ 
                               fontSize: isMobile ? '10.5px' : '11px', 
                               fontWeight: 500, 
-                              color: isSelected ? theme.color1 : '#78716C',
+                              color: isSelected ? '#0D9488' : '#78716C',
                               display: 'block'
                             }}>
                               {sym.subtitle}
@@ -1803,14 +1809,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: theme.color1,
+                            background: '#0D9488',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: `0 2px 6px ${theme.shadow}`
+                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.28)'
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -3063,7 +3069,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     minWidth: isMobile ? '180px' : '260px',
                     padding: isMobile ? '12px 20px' : '12px 28px',
                     borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: isMobile ? '14px' : '15px',
@@ -3073,7 +3079,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '9px',
-                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.3)',
+                    boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
                     transition: 'all 0.15s ease',
                     flexShrink: 0
                   }}
@@ -3081,7 +3087,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   <span>
                     {selectedSymptoms.length > 0
                       ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
-                      : 'Continue to Timeline'}
+                      : 'Next: Timeline (Step 2)'}
                   </span>
                   <ArrowRight size={17} strokeWidth={2.5} />
                 </button>
@@ -3120,7 +3126,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3129,11 +3135,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Continue to Pattern</span>
+                  <span>Next: Pattern (Step 3)</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3171,7 +3177,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3180,11 +3186,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Continue to Story</span>
+                  <span>Next: Tell Your Story (Step 4)</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3222,7 +3228,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3231,11 +3237,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Continue to Evidence</span>
+                  <span>Next: Add Evidence (Step 5)</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3273,7 +3279,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   style={{
                     padding: isMobile ? '11px 20px' : '12px 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '13.5px',
@@ -3282,11 +3288,11 @@ AI-generated preparation material. Verify against original records; this is not 
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 16px rgba(13, 148, 136, 0.28)',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>Review Scope & Launch</span>
+                  <span>Next: Scope & Run (Step 6)</span>
                   <ArrowRight size={16} />
                 </button>
               </>
@@ -3326,7 +3332,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     border: 'none',
                     background: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#E4E4E7'
-                      : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
                     color: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#A1A1AA'
                       : '#FFFFFF',
@@ -3339,7 +3345,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     gap: '9px',
                     boxShadow: (isReadingFiles || (!history.trim() && !files.length))
                       ? 'none'
-                      : '0 8px 24px rgba(13, 148, 136, 0.35)',
+                      : '0 8px 24px rgba(225, 29, 72, 0.38)',
                     transition: 'all 0.15s ease',
                     whiteSpace: 'nowrap'
                   }}
