@@ -1608,32 +1608,40 @@ AI-generated preparation material. Verify against original records; this is not 
                     { id: 'skin', label: '🧴 Skin & Allergies' },
                     { id: 'systemic', label: '⚡ Energy & Fever' },
                     { id: 'sleep_mental', label: '🌙 Sleep & Mood' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setSymptomCategoryFilter(cat.id);
-                      }}
-                      style={{
-                        flexShrink: 0,
-                        padding: isMobile ? '5px 11px' : '6px 13px',
-                        borderRadius: '999px',
-                        border: symptomCategoryFilter === cat.id ? '1.5px solid #E11D48' : '1px solid #E4E4E7',
-                        background: symptomCategoryFilter === cat.id ? '#FFF1F2' : '#FFFFFF',
-                        color: symptomCategoryFilter === cat.id ? '#BE123C' : '#64748B',
-                        fontSize: isMobile ? '11px' : '12px',
-                        fontWeight: symptomCategoryFilter === cat.id ? 800 : 600,
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                        boxShadow: symptomCategoryFilter === cat.id ? '0 1px 4px rgba(225, 29, 72, 0.1)' : 'none'
-                      }}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  ].map((cat) => {
+                    const tabTheme = SYMPTOM_CATEGORY_THEMES[cat.id];
+                    const isActive = symptomCategoryFilter === cat.id;
+                    const activeBorder = tabTheme ? tabTheme.activeBorder : (cat.id === 'common' ? '#D97706' : '#0D9488');
+                    const activeBg = tabTheme ? tabTheme.bgStart : (cat.id === 'common' ? '#FFFBEB' : '#F0FDFA');
+                    const activeColor = tabTheme ? tabTheme.textColor : (cat.id === 'common' ? '#92400E' : '#0F766E');
+                    const activeShadow = tabTheme ? tabTheme.shadow : 'rgba(13, 148, 136, 0.2)';
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          setSymptomCategoryFilter(cat.id);
+                        }}
+                        style={{
+                          flexShrink: 0,
+                          padding: isMobile ? '5px 11px' : '6px 13px',
+                          borderRadius: '999px',
+                          border: isActive ? `1.5px solid ${activeBorder}` : '1px solid #E4E4E7',
+                          background: isActive ? activeBg : '#FFFFFF',
+                          color: isActive ? activeColor : '#64748B',
+                          fontSize: isMobile ? '11px' : '12px',
+                          fontWeight: isActive ? 800 : 600,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          transition: 'all 0.15s ease',
+                          boxShadow: isActive ? `0 1px 6px ${activeShadow}` : 'none'
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* 4. CLINICAL SYMPTOM CLOUD */}
@@ -1641,6 +1649,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   {/* User-added Custom Symptoms */}
                   {customSymptoms.filter(cs => !symptomSearch.trim() || cs.toLowerCase().includes(symptomSearch.trim().toLowerCase())).map((cs) => {
                     const isSelected = selectedSymptoms.some(s => s.toLowerCase() === cs.toLowerCase());
+                    const theme = SYMPTOM_CATEGORY_THEMES.systemic;
                     return (
                       <motion.button
                         key={`custom-${cs}`}
@@ -1655,13 +1664,13 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
                             : '#FFFFFF',
-                          color: isSelected ? '#9F1239' : '#1C1917',
+                          color: isSelected ? theme.textColor : '#1C1917',
                           cursor: 'pointer',
-                          boxShadow: isSelected ? '0 3px 12px rgba(225, 29, 72, 0.18)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                          boxShadow: isSelected ? `0 3px 12px ${theme.shadow}` : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
                           flexShrink: 0,
@@ -1670,7 +1679,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       >
                         <ClassySymptomBadge 
                           icon={Sparkles} 
-                          category="cardio" 
+                          category="systemic" 
                           size={isMobile ? 20 : 22} 
                           isSelected={isSelected} 
                         />
@@ -1678,7 +1687,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#9F1239' : '#1C1917',
+                            color: isSelected ? theme.textColor : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1687,7 +1696,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '10.5px' : '11px', 
                             fontWeight: 500, 
-                            color: isSelected ? '#BE123C' : '#78716C',
+                            color: isSelected ? theme.color1 : '#78716C',
                             display: 'block'
                           }}>
                             Custom Symptom Note
@@ -1698,14 +1707,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: '#E11D48',
+                            background: theme.color1,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                            boxShadow: `0 2px 6px ${theme.shadow}`
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
@@ -1731,6 +1740,7 @@ AI-generated preparation material. Verify against original records; this is not 
                       s.toLowerCase() === sym.name.toLowerCase() || 
                       Boolean(sym.aliases?.some(a => a.toLowerCase() === s.toLowerCase()))
                     );
+                    const theme = SYMPTOM_CATEGORY_THEMES[sym.category] || SYMPTOM_CATEGORY_THEMES.systemic;
                     const IconComp = sym.icon || Activity;
                     return (
                       <motion.button
@@ -1746,14 +1756,14 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '8px',
                           padding: isMobile ? '7px 13px' : '8px 14px',
                           borderRadius: '999px',
-                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                          border: isSelected ? `1.5px solid ${theme.activeBorder}` : '1px solid #E2E8F0',
                           background: isSelected 
-                            ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)' 
+                            ? `linear-gradient(135deg, ${theme.activeBgStart} 0%, ${theme.activeBgEnd} 100%)` 
                             : '#FFFFFF',
-                          color: isSelected ? '#9F1239' : '#1C1917',
+                          color: isSelected ? theme.textColor : '#1C1917',
                           cursor: 'pointer',
                           boxShadow: isSelected 
-                            ? `0 3px 12px rgba(225, 29, 72, 0.18)` 
+                            ? `0 3px 12px ${theme.shadow}` 
                             : '0 2px 6px rgba(0, 0, 0, 0.03)',
                           transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                           textAlign: 'left',
@@ -1771,7 +1781,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <span style={{ 
                             fontSize: isMobile ? '13px' : '13.5px', 
                             fontWeight: isSelected ? 800 : 700, 
-                            color: isSelected ? '#9F1239' : '#1C1917',
+                            color: isSelected ? theme.textColor : '#1C1917',
                             display: 'block',
                             letterSpacing: '-0.1px'
                           }}>
@@ -1780,8 +1790,8 @@ AI-generated preparation material. Verify against original records; this is not 
                           {sym.subtitle && (
                             <span style={{ 
                               fontSize: isMobile ? '10.5px' : '11px', 
-                              fontWeight: 500,
-                              color: isSelected ? '#BE123C' : '#78716C',
+                              fontWeight: 500, 
+                              color: isSelected ? theme.color1 : '#78716C',
                               display: 'block'
                             }}>
                               {sym.subtitle}
@@ -1793,14 +1803,14 @@ AI-generated preparation material. Verify against original records; this is not 
                             width: '17px',
                             height: '17px',
                             borderRadius: '50%',
-                            background: '#E11D48',
+                            background: theme.color1,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#FFFFFF',
                             marginLeft: '2px',
                             flexShrink: 0,
-                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)'
+                            boxShadow: `0 2px 6px ${theme.shadow}`
                           }}>
                             <Check size={11} strokeWidth={3.5} />
                           </div>
