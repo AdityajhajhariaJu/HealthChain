@@ -16,6 +16,7 @@ import {
   getProfile,
   getProfileKey,
 } from '../ProfileEngine';
+import { resolveTabKey, validTabs } from '../../features/dietician/Dietician';
 
 describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
   beforeEach(() => {
@@ -233,6 +234,32 @@ describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
 
       const state = getProfileEngineState();
       expect(state.profiles.profile_1.profileName).toBe('Survivor User');
+    });
+  });
+
+  describe('Ticket 1-3: Diet Page-Switching & Navigation Fixes', () => {
+    it('safely maps elimination and elimination-suite to sensitivities without triggering navigation', () => {
+      expect(resolveTabKey('elimination')).toBe('sensitivities');
+      expect(resolveTabKey('elimination-suite')).toBe('sensitivities');
+      expect(resolveTabKey('ELIMINATION')).toBe('sensitivities');
+    });
+
+    it('maps legacy food-detective to sensitivities and diet-plan to mealplan', () => {
+      expect(resolveTabKey('food-detective')).toBe('sensitivities');
+      expect(resolveTabKey('diet-plan')).toBe('mealplan');
+    });
+
+    it('preserves all 8 valid tabs without alteration', () => {
+      for (const tab of validTabs) {
+        expect(resolveTabKey(tab)).toBe(tab);
+      }
+    });
+
+    it('returns null on invalid or missing tab strings', () => {
+      expect(resolveTabKey(null)).toBeNull();
+      expect(resolveTabKey(undefined)).toBeNull();
+      expect(resolveTabKey('')).toBeNull();
+      expect(resolveTabKey('nonexistent-tab')).toBeNull();
     });
   });
 });

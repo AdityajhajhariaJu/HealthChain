@@ -253,6 +253,8 @@ export function DieticianDashboardTracker({
             triggerHapticLight();
             navigate('/app/ava', {
               state: {
+                returnTo: '/app/dietician?tab=dashboard',
+                returnLabel: 'Back to Diet Dashboard',
                 initialPrompt: `Hi Ava, here is my daily nutrition intake for today: Consumed ${consumed} kcal (Target: ${targetCalories} kcal), Protein: ${Math.round(consumedProtein)}g / ${targetProtein}g, Carbs: ${Math.round(consumedCarbs)}g / ${targetCarbs}g, Fats: ${Math.round(consumedFats)}g / ${targetFats}g, Fibre: ${Math.round(consumedFibre)}g / ${targetFibre}g, Hydration: ${waterGlasses} / 8 glasses. What adjustments should I make for remaining meals according to my health goals?`
               }
             });
@@ -466,6 +468,8 @@ export function DieticianDashboardTracker({
                           triggerHapticLight();
                           navigate('/app/ava', {
                             state: {
+                              returnTo: '/app/dietician?tab=dashboard',
+                              returnLabel: 'Back to Diet Dashboard',
                               initialPrompt: `Hi Ava, I logged "${log.name}" (${log.calories} kcal, ${log.protein || 0}g protein, ${log.carbs || 0}g carbs, ${log.fat || log.fats || 0}g fat). What are its clinical glycemic index impact and micronutrient benefits for my metabolic profile?`
                             }
                           });

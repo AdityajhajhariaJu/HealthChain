@@ -3559,12 +3559,14 @@ R (Recommendation):
                         onClose?.();
                         const activeCaseId = getUnifiedCaseScope().caseId;
                         const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
+                        const isDietPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/app/dietician');
+                        const returnToUrl = isDietPage ? '/app/dietician?tab=elimination' : '/app/today?openElimination=true';
                         navigate(targetUrl, {
                           state: {
                             initialBriefNote: isGraduated && effectiveVerdict
                               ? `[Final Clinical Elimination SBAR Dossier]\nProtocol: ${activeProtocolDef.name} (Graduated 🏆)\nSymptom Relief: -${effectiveVerdict.symptomReductionPercentage}%\nConfirmed Triggers: ${effectiveVerdict.confirmedTriggers.map(t => t.name).join(', ') || 'None'}\nCleared Staples: ${effectiveVerdict.clearedFoods.map(c => c.name).join(', ') || 'None'}`
                               : `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${currentDay}/${totalDays}\nReduction: ${redPct !== null ? `-${redPct}%` : 'Baseline pending'}\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`,
-                            returnTo: '/app/today?openElimination=true',
+                            returnTo: returnToUrl,
                             returnLabel: 'Back to Elimination Suite'
                           }
                         });

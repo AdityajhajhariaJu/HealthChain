@@ -90,6 +90,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
 import { openEliminationSuiteModal } from '../../components/ui/TherapeuticOutcomeCard';
+import { ClinicalEliminationModal } from '../../components/ui/ClinicalEliminationModal';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 import { FeatureId } from '../../services/FeatureArchitectureContract';
 import {
@@ -248,6 +249,21 @@ function calculateTargets(p: any) {
   return { targetCalories, targetProtein, targetCarbs, targetFat };
 }
 
+export const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
+export type DietTab = typeof validTabs[number];
+
+export const resolveTabKey = (raw?: string | null): DietTab | null => {
+  if (!raw) return null;
+  const clean = raw.trim().toLowerCase();
+  if (clean === 'food-detective') return 'sensitivities';
+  if (clean === 'elimination' || clean === 'elimination-suite') {
+    return 'sensitivities';
+  }
+  if (clean === 'diet-plan') return 'mealplan';
+  if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
+  return null;
+};
+
 // --- Main Component ---
 export default function Dietician() {
   const isMobile = useIsMobile();
@@ -255,26 +271,17 @@ export default function Dietician() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
-  type DietTab = typeof validTabs[number];
-
-  const resolveTabKey = (raw?: string | null): DietTab | null => {
-    if (!raw) return null;
-    const clean = raw.trim().toLowerCase();
-    if (clean === 'food-detective') return 'sensitivities';
-    if (clean === 'elimination' || clean === 'elimination-suite') {
-      navigate('/app/today?openElimination=true', { replace: true });
-      return null;
-    }
-    if (clean === 'diet-plan') return 'mealplan';
-    if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
-    return null;
-  };
 
   const searchTab = searchParams.get('tab');
   const stateTab = (location.state as { tab?: string } | null)?.tab;
   const initialTab: DietTab = resolveTabKey(searchTab) || resolveTabKey(stateTab) || 'dashboard';
   const [activeTab, setActiveTabState] = useState<DietTab>(initialTab);
+  const [isEliminationModalOpen, setIsEliminationModalOpen] = useState<boolean>(() => {
+    const rawSearch = searchTab?.trim().toLowerCase();
+    const rawState = stateTab?.trim().toLowerCase();
+    return rawSearch === 'elimination' || rawSearch === 'elimination-suite' || rawState === 'elimination' || rawState === 'elimination-suite';
+  });
+  const consumedInitialStateRef = useRef<boolean>(false);
 
   const setActiveTab = (nextTab: DietTab) => {
     setActiveTabState(nextTab);
@@ -283,9 +290,41 @@ export default function Dietician() {
     setSearchParams(nextParams, { replace: true });
   };
 
+  // Listen for global hc_open_elimination_suite events so anything calling openEliminationSuiteModal() opens in-place
+  useEffect(() => {
+    const handleOpenElimination = () => setIsEliminationModalOpen(true);
+    window.addEventListener('hc_open_elimination_suite', handleOpenElimination);
+    return () => {
+      window.removeEventListener('hc_open_elimination_suite', handleOpenElimination);
+    };
+  }, []);
+
   useEffect(() => {
     const currentSearchTab = searchParams.get('tab');
-    const currentStateTab = (location.state as { tab?: string } | null)?.tab;
+    const currentStateTab = !consumedInitialStateRef.current
+      ? (location.state as { tab?: string } | null)?.tab
+      : null;
+
+    if (!consumedInitialStateRef.current && (location.state as any)?.tab) {
+      consumedInitialStateRef.current = true;
+      try {
+        const stateCopy = { ...(location.state as any) };
+        delete stateCopy.tab;
+        window.history.replaceState(stateCopy, document.title);
+      } catch (e) {}
+    }
+
+    const cleanSearch = currentSearchTab?.trim().toLowerCase();
+    const cleanState = currentStateTab?.trim().toLowerCase();
+    if (
+      cleanSearch === 'elimination' ||
+      cleanSearch === 'elimination-suite' ||
+      cleanState === 'elimination' ||
+      cleanState === 'elimination-suite'
+    ) {
+      setIsEliminationModalOpen(true);
+    }
+
     const resolved = resolveTabKey(currentSearchTab) || resolveTabKey(currentStateTab);
     if (resolved && resolved !== activeTab) {
       setActiveTabState(resolved);
@@ -932,7 +971,12 @@ export default function Dietician() {
     const summary = generateDietObservationsSummary(mealPlan, foodLogs, activeCaseScope.caseItem);
     if (!activeCaseScope.caseId) {
       toast.info('Select a case', 'Choose the case that should receive these dietary observations.');
-      navigate('/app/case-prep');
+      navigate('/app/case-prep', {
+        state: {
+          returnTo: '/app/dietician?tab=mealplan',
+          returnLabel: 'Back to Diet Plan',
+        }
+      });
       return;
     }
     const exported = exportDietObservationsToCase(activeCaseScope.caseId, summary);
@@ -942,7 +986,12 @@ export default function Dietician() {
     }
     triggerHapticSuccess();
     toast.success('Exported to Case Prep', 'Factual dietary observations added to your appointment visit brief.');
-    navigate(`/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`);
+    navigate(`/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`, {
+      state: {
+        returnTo: '/app/dietician?tab=mealplan',
+        returnLabel: 'Back to Diet Plan',
+      }
+    });
   };
 
   const handleStartEditMeal = (day: number, meal: MealPlanItem) => {
@@ -1378,7 +1427,11 @@ export default function Dietician() {
                   <Plus size={16} /> Log Meal
                 </button>
                 <button
-                  onClick={() => navigate('/app/nutrition-log')}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setSelectedMealType('Quick Meal');
+                    setIsLoggingFood(true);
+                  }}
                   style={{
                     background: '#0F172A',
                     color: '#FFF',
@@ -1395,7 +1448,7 @@ export default function Dietician() {
                     flex: isMobile ? 1 : 'unset',
                     justifyContent: 'center',
                   }}
-                  title="Ambient Natural Language & Voice Food Tracking"
+                  title="Quick Meal Logging"
                 >
                   <Sparkles size={16} color="#34D399" /> Quick Log
                 </button>
@@ -1611,6 +1664,8 @@ export default function Dietician() {
                       navigate(`/app/ava${caseQuery}`, {
                         state: {
                           caseId: activeCaseScope.caseId || undefined,
+                          returnTo: '/app/dietician?tab=mealplan',
+                          returnLabel: 'Back to Meal Plan',
                           initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: about ${mealPlan.targetCalories || profile?.targetCalories || 2000} kcal/day\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\n\n${planSummary}`
                         }
                       });
@@ -3934,6 +3989,11 @@ export default function Dietician() {
             awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
           }} 
         />}
+
+        <ClinicalEliminationModal
+          isOpen={isEliminationModalOpen}
+          onClose={() => setIsEliminationModalOpen(false)}
+        />
       </div>
     </div>
   );
