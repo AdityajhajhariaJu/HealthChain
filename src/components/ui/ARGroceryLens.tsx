@@ -53,6 +53,55 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
   };
 }
 
+const CircularProgress = ({
+  value,
+  max,
+  color,
+  title,
+  subtitle
+}: {
+  value: number;
+  max: number;
+  color: string;
+  trackColor?: string;
+  title: string;
+  subtitle: string;
+}) => {
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const percent = max > 0 ? Math.min(Math.max(value, 0) / max, 1) : 0;
+  const offset = circumference - percent * circumference;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0, minWidth: '72px' }}>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
+      <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" strokeOpacity="0.2" />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="6"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+          />
+        </svg>
+        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>
+            {Math.round(value * 10) / 10}
+          </span>
+          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>{subtitle}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => void }) => {
   const navigate = useNavigate();
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -71,6 +120,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const targetCarbs = Math.round((targetCalories * 0.4) / 4);
   const targetFats = Math.round((targetCalories * 0.3) / 9);
   const targetSugar = 36;
+  const targetFibre = 28;
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -519,170 +569,225 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             {/* Non-Detection / Error Guidance Card */}
             {scanError ? (
               <div style={{
-                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #F8FAFC 100%)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: '24px',
+                position: 'relative',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0.42) 100%)',
+                backdropFilter: 'blur(36px)',
+                WebkitBackdropFilter: 'blur(36px)',
+                borderRadius: '32px',
                 padding: '24px 20px',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08)',
-                border: '1.5px solid #E2E8F0',
-                textAlign: 'center'
+                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.85), inset 0 0 30px rgba(255, 255, 255, 0.35)',
+                border: '1.5px solid rgba(255, 255, 255, 0.85)',
+                textAlign: 'center',
+                overflow: 'hidden'
               }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
-                  border: '1.5px solid rgba(239, 68, 68, 0.35)',
-                  margin: '0 auto 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#DC2626'
-                }}>
-                  <AlertTriangle size={28} />
-                </div>
-                <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
-                  No Food or Label Detected
-                </h3>
-                <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#78716C', lineHeight: 1.5 }}>
-                  Position the camera directly in front of the grocery item, barcode, or ingredient table.
-                </p>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setScanError(null);
-                      setShowResults(false);
-                      setAnalysis(null);
-                    }}
-                    style={{
-                      padding: '13px 22px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontSize: '13.5px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 8px 24px rgba(13, 148, 136, 0.3)'
-                    }}
-                  >
-                    <RefreshCw size={16} /> Try Again
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowResults(false);
-                      setScanError(null);
-                      fileInputRef.current?.click();
-                    }}
-                    style={{
-                      padding: '13px 18px',
-                      borderRadius: '16px',
-                      background: '#FFFFFF',
-                      color: '#57534E',
-                      border: '1.5px solid #E2E8F0',
-                      fontSize: '13.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Upload Photo
-                  </button>
+                <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '140px', height: '140px', background: '#FEE2E2', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
+                
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    background: 'rgba(254, 242, 242, 0.9)',
+                    border: '1.5px solid rgba(239, 68, 68, 0.35)',
+                    margin: '0 auto 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#DC2626'
+                  }}>
+                    <AlertTriangle size={28} />
+                  </div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
+                    No Food or Label Detected
+                  </h3>
+                  <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#78716C', lineHeight: 1.5 }}>
+                    Position the camera directly in front of the grocery item, barcode, or ingredient table.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setScanError(null);
+                        setShowResults(false);
+                        setAnalysis(null);
+                      }}
+                      style={{
+                        padding: '13px 22px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '13.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: '0 8px 24px rgba(13, 148, 136, 0.3)'
+                      }}
+                    >
+                      <RefreshCw size={16} /> Try Again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setShowResults(false);
+                        setScanError(null);
+                        fileInputRef.current?.click();
+                      }}
+                      style={{
+                        padding: '13px 18px',
+                        borderRadius: '16px',
+                        background: 'rgba(255, 255, 255, 0.85)',
+                        backdropFilter: 'blur(16px)',
+                        color: '#57534E',
+                        border: '1.5px solid rgba(255, 255, 255, 0.9)',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Upload Photo
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : analysis && (
               <>
-                {/* The Clinical Result Card */}
+                {/* The Clinical Result Card with Sheer Glass Theme from Diet Section */}
                 <div style={{
-                  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #F8FAFC 100%)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  borderRadius: '24px',
-                  padding: '20px',
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08)',
-                  border: '1.5px solid #E2E8F0'
+                  position: 'relative',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 100%)',
+                  backdropFilter: 'blur(36px)',
+                  WebkitBackdropFilter: 'blur(36px)',
+                  borderRadius: '32px',
+                  padding: '22px 20px',
+                  boxShadow: '0 24px 50px rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.85), inset 0 0 35px rgba(255, 255, 255, 0.35)',
+                  border: '1.5px solid rgba(255, 255, 255, 0.85)',
+                  overflow: 'hidden'
                 }}>
-                  {analysis?.warning && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '8px',
-                      background: '#FFF1F2',
-                      border: '1px solid #FECDD3',
-                      padding: '12px',
-                      borderRadius: '14px',
-                      width: '100%',
-                      marginBottom: '14px',
-                      boxSizing: 'border-box'
-                    }}>
-                      <AlertTriangle size={15} color="#E11D48" style={{ flexShrink: 0, marginTop: '1px' }} />
-                      <span style={{ color: '#BE123C', fontSize: '12px', fontWeight: 800, letterSpacing: '0.3px', lineHeight: 1.4 }}>
-                        {analysis.warning}
-                      </span>
-                    </div>
-                  )}
+                  {/* Ambient pastel blobs behind the sheer glass card */}
+                  <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '180px', height: '180px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0, opacity: 0.55, pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '200px', height: '200px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(55px)', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', top: '35%', right: '15%', width: '130px', height: '130px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.4, pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', bottom: '25%', left: '10%', width: '120px', height: '120px', background: '#FAE8FF', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.45, pointerEvents: 'none' }} />
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                    <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
-                      {analysis?.foodName || 'Identified Dish'}
-                    </h3>
-                    {profile?.conditions && profile.conditions.length > 0 && (
-                      <span style={{
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        padding: '3px 9px',
-                        borderRadius: '999px',
-                        background: '#ECFDF5',
-                        color: '#059669',
-                        border: '1px solid #A7F3D0',
-                        whiteSpace: 'nowrap'
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    {analysis?.warning && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '8px',
+                        background: 'rgba(255, 241, 242, 0.85)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid #FECDD3',
+                        padding: '12px',
+                        borderRadius: '16px',
+                        width: '100%',
+                        marginBottom: '14px',
+                        boxSizing: 'border-box'
                       }}>
-                        🩺 Active Profile
-                      </span>
+                        <AlertTriangle size={15} color="#E11D48" style={{ flexShrink: 0, marginTop: '1px' }} />
+                        <span style={{ color: '#BE123C', fontSize: '12px', fontWeight: 800, letterSpacing: '0.3px', lineHeight: 1.4 }}>
+                          {analysis.warning}
+                        </span>
+                      </div>
                     )}
-                  </div>
 
-                  <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#78716C' }}>
-                    AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
-                  </p>
-
-                  {/* Nutrition context — never infer a personal glucose response from an image. */}
-                  {analysis?.sugar !== undefined && (
-                    <div style={{ marginBottom: '16px', padding: '14px 16px', background: '#F8FAFC', borderRadius: '16px', border: '1.5px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
-                      <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
-                        Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
+                      <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
+                        {analysis?.foodName || 'Identified Dish'}
+                      </h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <span style={{
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          color: '#DC2626',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {analysis?.calories ?? 0} kcal
+                        </span>
+                        {profile?.conditions && profile.conditions.length > 0 && (
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: 800,
+                            padding: '3px 9px',
+                            borderRadius: '999px',
+                            background: 'rgba(236, 253, 245, 0.85)',
+                            color: '#059669',
+                            border: '1px solid #A7F3D0',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            🩺 Active Profile
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Macro Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Calories</div>
-                      <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.calories ?? 0} kcal</div>
-                    </div>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Protein</div>
-                      <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.protein ?? 0}g</div>
-                    </div>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Carbs (Sugar: {analysis?.sugar ?? 0}g)</div>
-                      <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.carbs ?? 0}g</div>
-                    </div>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Fats</div>
-                      <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.fats ?? 0}g</div>
+                    <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#78716C' }}>
+                      AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
+                    </p>
+
+                    {/* Nutrition context — sheer glass styling */}
+                    {analysis?.sugar !== undefined && (
+                      <div style={{
+                        marginBottom: '16px',
+                        padding: '14px 16px',
+                        background: 'rgba(255, 255, 255, 0.55)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(255, 255, 255, 0.85)',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)'
+                      }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
+                        <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                          Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2. Main Sheer Glass Macro Card (Exact Diet Section Theme from Image 1) */}
+                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                      {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
+                      <div style={{ position: 'absolute', top: '10%', left: '8%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '10%', right: '8%', width: '140px', height: '140px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0, opacity: 0.8, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', top: '35%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0, opacity: 0.65, pointerEvents: 'none' }} />
+                      
+                      <div className="hide-scrollbar scrollable-row" style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        backdropFilter: 'blur(32px)',
+                        WebkitBackdropFilter: 'blur(32px)',
+                        border: '1px solid rgba(255, 255, 255, 0.8)',
+                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                        borderRadius: '32px',
+                        padding: '24px 16px',
+                        display: 'flex',
+                        flexWrap: 'nowrap',
+                        overflowX: 'auto',
+                        position: 'relative',
+                        zIndex: 1,
+                        gap: '16px',
+                        paddingBottom: '16px',
+                        scrollbarWidth: 'none',
+                        WebkitOverflowScrolling: 'touch'
+                      }}>
+                        <CircularProgress value={analysis?.protein ?? 0} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
+                        <CircularProgress value={analysis?.carbs ?? 0} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
+                        <CircularProgress value={analysis?.sugar ?? 0} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />
+                        <CircularProgress value={analysis?.fibre ?? 0} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />
+                        <CircularProgress value={analysis?.fats ?? 0} max={targetFats} color="#F59E0B" trackColor="#FEF3C7" title="Fats" subtitle={`${targetFats}g`} />
+                        <CircularProgress value={analysis?.calories ?? 0} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} />
+                      </div>
                     </div>
                   </div>
-
                 </div>
 
                 {/* Better Alternative Card */}
