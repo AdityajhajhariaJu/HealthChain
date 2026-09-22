@@ -3034,29 +3034,29 @@ AI-generated preparation material. Verify against original records; this is not 
           >
             {intakeStep === 1 && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  <div
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: '999px',
-                      background: selectedSymptoms.length > 0 ? '#FFF1F2' : '#F4F4F5',
-                      border: selectedSymptoms.length > 0 ? '1px solid #FECDD3' : '1px solid #E4E4E7',
-                      color: selectedSymptoms.length > 0 ? '#BE123C' : '#71717A',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {selectedSymptoms.length > 0
-                      ? `${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'} selected`
-                      : 'Clinical Intake'}
-                  </div>
-                  {!isMobile && (
+                {!isMobile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <div
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '999px',
+                        background: selectedSymptoms.length > 0 ? '#FFF1F2' : '#F4F4F5',
+                        border: selectedSymptoms.length > 0 ? '1px solid #FECDD3' : '1px solid #E4E4E7',
+                        color: selectedSymptoms.length > 0 ? '#BE123C' : '#71717A',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {selectedSymptoms.length > 0
+                        ? `${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'} selected`
+                        : 'Clinical Intake'}
+                    </div>
                     <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       Choose symptoms or proceed directly to clinical timeline
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -3065,21 +3065,22 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(2);
                   }}
                   style={{
-                    width: isMobile ? 'auto' : 'auto',
-                    minWidth: isMobile ? '180px' : '260px',
-                    padding: isMobile ? '12px 20px' : '12px 28px',
-                    borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    width: isMobile ? '100%' : 'auto',
+                    minWidth: isMobile ? '100%' : '260px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 24px' : '0 32px',
+                    borderRadius: '12px',
+                    background: '#E84A6C',
                     color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: isMobile ? '14px' : '15px',
+                    fontWeight: 700,
+                    fontSize: isMobile ? '15.5px' : '15px',
+                    letterSpacing: '-0.2px',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '9px',
-                    boxShadow: '0 6px 20px rgba(225, 29, 72, 0.35)',
+                    boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease',
                     flexShrink: 0
                   }}
@@ -3089,7 +3090,6 @@ AI-generated preparation material. Verify against original records; this is not 
                       ? `Continue with ${selectedSymptoms.length} symptom${selectedSymptoms.length === 1 ? '' : 's'}`
                       : 'Next: Timeline (Step 2)'}
                   </span>
-                  <ArrowRight size={17} strokeWidth={2.5} />
                 </button>
               </>
             )}
@@ -3103,7 +3103,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(1);
                   }}
                   style={{
-                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 16px' : '0 20px',
                     borderRadius: '12px',
                     background: '#FFFFFF',
                     color: '#475569',
@@ -3111,7 +3112,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     fontSize: '13.5px',
                     border: '1px solid #E4E4E7',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   ← Back to Symptoms
@@ -3124,23 +3128,24 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(3);
                   }}
                   style={{
-                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    flex: isMobile ? 1 : 'unset',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 20px' : '0 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: '#E84A6C',
                     color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    fontSize: isMobile ? '15px' : '14px',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <span>Next: Pattern (Step 3)</span>
-                  <ArrowRight size={16} />
                 </button>
               </>
             )}
@@ -3154,7 +3159,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(2);
                   }}
                   style={{
-                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 16px' : '0 20px',
                     borderRadius: '12px',
                     background: '#FFFFFF',
                     color: '#475569',
@@ -3162,7 +3168,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     fontSize: '13.5px',
                     border: '1px solid #E4E4E7',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   ← Back to Timeline
@@ -3175,23 +3184,24 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(4);
                   }}
                   style={{
-                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    flex: isMobile ? 1 : 'unset',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 20px' : '0 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: '#E84A6C',
                     color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    fontSize: isMobile ? '15px' : '14px',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <span>Next: Tell Your Story (Step 4)</span>
-                  <ArrowRight size={16} />
                 </button>
               </>
             )}
@@ -3205,7 +3215,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(3);
                   }}
                   style={{
-                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 16px' : '0 20px',
                     borderRadius: '12px',
                     background: '#FFFFFF',
                     color: '#475569',
@@ -3213,7 +3224,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     fontSize: '13.5px',
                     border: '1px solid #E4E4E7',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   ← Back to Pattern
@@ -3226,23 +3240,24 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(5);
                   }}
                   style={{
-                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    flex: isMobile ? 1 : 'unset',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 20px' : '0 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: '#E84A6C',
                     color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    fontSize: isMobile ? '15px' : '14px',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <span>Next: Add Evidence (Step 5)</span>
-                  <ArrowRight size={16} />
                 </button>
               </>
             )}
@@ -3256,7 +3271,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(4);
                   }}
                   style={{
-                    padding: isMobile ? '11px 16px' : '11px 20px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 16px' : '0 20px',
                     borderRadius: '12px',
                     background: '#FFFFFF',
                     color: '#475569',
@@ -3264,7 +3280,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     fontSize: '13.5px',
                     border: '1px solid #E4E4E7',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   ← Back to Story
@@ -3277,23 +3296,24 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(6);
                   }}
                   style={{
-                    padding: isMobile ? '11px 20px' : '12px 26px',
+                    flex: isMobile ? 1 : 'unset',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 20px' : '0 26px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                    background: '#E84A6C',
                     color: '#FFFFFF',
-                    fontWeight: 800,
-                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    fontSize: isMobile ? '15px' : '14px',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.28)',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <span>Next: Scope & Run (Step 6)</span>
-                  <ArrowRight size={16} />
                 </button>
               </>
             )}
@@ -3307,15 +3327,19 @@ AI-generated preparation material. Verify against original records; this is not 
                     setIntakeStep(5);
                   }}
                   style={{
-                    padding: isMobile ? '12px 16px' : '13px 20px',
-                    borderRadius: '14px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 16px' : '0 20px',
+                    borderRadius: '12px',
                     background: '#FFFFFF',
                     color: '#475569',
                     fontWeight: 700,
                     fontSize: '13.5px',
                     border: '1px solid #E4E4E7',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   ← Back to Evidence
@@ -3327,17 +3351,18 @@ AI-generated preparation material. Verify against original records; this is not 
                   disabled={isReadingFiles || (!history.trim() && !files.length)}
                   style={{
                     flex: isMobile ? '1 1 auto' : '0 1 340px',
-                    padding: isMobile ? '13px 18px' : '13px 28px',
-                    borderRadius: '14px',
+                    height: isMobile ? '52px' : '50px',
+                    padding: isMobile ? '0 20px' : '0 28px',
+                    borderRadius: '12px',
                     border: 'none',
                     background: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#E4E4E7'
-                      : 'linear-gradient(135deg, #E11D48 0%, #DE3558 50%, #BE123C 100%)',
+                      : '#E84A6C',
                     color: (isReadingFiles || (!history.trim() && !files.length))
                       ? '#A1A1AA'
                       : '#FFFFFF',
-                    fontSize: isMobile ? '14px' : '15px',
-                    fontWeight: 800,
+                    fontSize: isMobile ? '15px' : '15px',
+                    fontWeight: 700,
                     cursor: (isReadingFiles || (!history.trim() && !files.length)) ? 'not-allowed' : 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -3345,14 +3370,13 @@ AI-generated preparation material. Verify against original records; this is not 
                     gap: '9px',
                     boxShadow: (isReadingFiles || (!history.trim() && !files.length))
                       ? 'none'
-                      : '0 8px 24px rgba(225, 29, 72, 0.38)',
+                      : '0 4px 14px rgba(232, 74, 108, 0.22)',
                     transition: 'all 0.15s ease',
                     whiteSpace: 'nowrap'
                   }}
                 >
                   <Sparkles size={17} />
                   <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
-                  <ArrowRight size={17} />
                 </button>
               </>
             )}
