@@ -311,11 +311,11 @@ export default function Dietician() {
     const rawState = stateTab?.trim().toLowerCase();
     return rawSearch === 'elimination' || rawSearch === 'elimination-suite' || rawState === 'elimination' || rawState === 'elimination-suite';
   });
-  const consumedInitialStateRef = useRef<boolean>(false);
 
   const setActiveTab = (nextTab: DietTab) => {
+    triggerHapticLight();
     setActiveTabState(nextTab);
-    const nextParams = new URLSearchParams(searchParams);
+    const nextParams = new URLSearchParams(window.location.search);
     nextParams.set('tab', nextTab);
     setSearchParams(nextParams, { replace: true });
   };
@@ -329,37 +329,18 @@ export default function Dietician() {
     };
   }, []);
 
+  // Sync state ONLY when URL searchParams change externally (e.g. browser back/forward or external links)
   useEffect(() => {
     const currentSearchTab = searchParams.get('tab');
-    const currentStateTab = !consumedInitialStateRef.current
-      ? (location.state as { tab?: string } | null)?.tab
-      : null;
-
-    if (!consumedInitialStateRef.current && (location.state as any)?.tab) {
-      consumedInitialStateRef.current = true;
-      try {
-        const stateCopy = { ...(location.state as any) };
-        delete stateCopy.tab;
-        window.history.replaceState(stateCopy, document.title);
-      } catch (e) {}
-    }
-
-    const cleanSearch = currentSearchTab?.trim().toLowerCase();
-    const cleanState = currentStateTab?.trim().toLowerCase();
-    if (
-      cleanSearch === 'elimination' ||
-      cleanSearch === 'elimination-suite' ||
-      cleanState === 'elimination' ||
-      cleanState === 'elimination-suite'
-    ) {
-      setIsEliminationModalOpen(true);
-    }
-
-    const resolved = currentSearchTab ? resolveTabKey(currentSearchTab) : (currentStateTab ? resolveTabKey(currentStateTab) : 'dashboard');
-    if (resolved !== activeTab) {
+    if (currentSearchTab) {
+      const cleanSearch = currentSearchTab.trim().toLowerCase();
+      if (cleanSearch === 'elimination' || cleanSearch === 'elimination-suite') {
+        setIsEliminationModalOpen(true);
+      }
+      const resolved = resolveTabKey(currentSearchTab);
       setActiveTabState(resolved);
     }
-  }, [searchParams, location.state, activeTab]);
+  }, [searchParams]);
   const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
   const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
   const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
@@ -1258,8 +1239,8 @@ export default function Dietician() {
                 padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
-                background: (activeTab === 'dashboard' || activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') ? '#0F172A' : 'transparent',
-                color: (activeTab === 'dashboard' || activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') ? '#FFFFFF' : '#64748B',
+                background: activeTab === 'dashboard' ? '#0F172A' : 'transparent',
+                color: activeTab === 'dashboard' ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
                 fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
@@ -1273,6 +1254,32 @@ export default function Dietician() {
             >
               <Target size={15} /> Dashboard
             </button>
+            {(activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') && (
+              <button
+                onClick={() => setActiveTab(activeTab)}
+                style={{
+                  padding: isMobile ? '8px 12px' : '8px 16px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: isMobile ? '12.5px' : '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {activeTab === 'sensitivities' && <Activity size={15} color="#10B981" />}
+                {activeTab === 'calendar' && <Calendar size={15} color="#10B981" />}
+                {activeTab === 'insights' && <Brain size={15} color="#10B981" />}
+                {activeTab === 'sensitivities' ? 'Food Detective' : activeTab === 'calendar' ? 'Digestion Heatmap' : 'Smart Insights'}
+              </button>
+            )}
             <button
               onClick={() => setActiveTab('mealplan')}
               style={{
