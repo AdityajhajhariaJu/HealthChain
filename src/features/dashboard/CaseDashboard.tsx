@@ -577,7 +577,7 @@ export default function CaseDashboard() {
                     </span>
                   </div>
                   <p style={{ fontSize: isMobile ? '8.5px' : '9.5px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: isMobile ? '0.7px' : '1px', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    PAUSE · BREATHE · RESET
+                    Grow your own garden
                   </p>
                 </div>
               </motion.div>
