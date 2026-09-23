@@ -4027,10 +4027,17 @@ export default function Dietician() {
             const entry = {
               ...food,
               id: Date.now() + Math.random(),
+              date: currentDate,
             };
             updatedLogs[currentDate].push(entry);
             syncToUnifiedNutritionLogs(entry);
             setFoodLogs(updatedLogs);
+            updateProfileFeatureData('dietFoodLogs', updatedLogs);
+            const core = getCoreProfile();
+            if (core?.dietician) {
+              updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
+            }
+            toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary (+5 PTS).`);
             setShowARLens(false);
             awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
           }} 

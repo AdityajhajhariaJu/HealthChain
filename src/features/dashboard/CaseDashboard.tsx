@@ -55,7 +55,8 @@ import { VitalityNav } from '../../components/ui/FitnessNav';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getHabitStorageKey } from '../../services/profileScope';
 
-import { getProfile, addNutritionLog } from '../../services/ProfileEngine';
+import { getProfile, addNutritionLog, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
@@ -340,6 +341,7 @@ const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
 
 export default function CaseDashboard() {
   
+  const toast = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showFrictionModal, setShowFrictionModal] = useState(false);
@@ -1686,6 +1688,9 @@ export default function CaseDashboard() {
           onLogFood={(food) => {
             triggerHapticSuccess();
             try {
+              const todayStr = new Date().toISOString().split('T')[0];
+
+              // 1. Unified Nutrition Log for Ava & Clinical Engine
               addNutritionLog({
                 meal: food.name,
                 calories: food.calories || 0,
@@ -1694,9 +1699,29 @@ export default function CaseDashboard() {
                 fat: food.fat || 0,
                 sugar: food.sugar || 0,
                 fibre: food.fibre || 0,
-                type: food.type || 'Snack',
-                date: new Date().toISOString().split('T')[0],
+                type: food.type || 'Meal',
+                date: todayStr,
               });
+
+              // 2. Persist to Diet Diary so it immediately appears in /dietician
+              const core = getProfile();
+              if (core) {
+                const existingLogs = core.dietFoodLogs || core.dietician?.foodLogs || {};
+                const updatedLogs = { ...existingLogs };
+                updatedLogs[todayStr] = updatedLogs[todayStr] ? [...updatedLogs[todayStr]] : [];
+                updatedLogs[todayStr].push({
+                  ...food,
+                  id: Date.now() + Math.random(),
+                  date: todayStr,
+                });
+                updateProfileFeatureData('dietFoodLogs', updatedLogs);
+                if (core.dietician) {
+                  updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
+                }
+              }
+
+              window.dispatchEvent(new Event('hc_profile_updated'));
+              toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary (+5 PTS).`);
               awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
             } catch (e) {
               console.warn('Failed to log food from dashboard:', e);

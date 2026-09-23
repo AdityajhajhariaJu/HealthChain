@@ -88,10 +88,26 @@ export function DieticianDashboardTracker({
     { name: 'Dinner', percent: 0.25 }
   ];
 
+  const isLogForMeal = (l: any, mealName: string) => {
+    const t = (l.type || '').trim().toLowerCase();
+    const m = mealName.toLowerCase();
+    if (t === m) return true;
+    if (mealName === 'Breakfast' && t.includes('breakfast')) return true;
+    if (mealName === 'Morning Snack' && (t.includes('morning') || t === 'snack')) return true;
+    if (mealName === 'Evening Snack' && t.includes('evening')) return true;
+    if (mealName === 'Dinner' && (t.includes('dinner') || t.includes('supper'))) return true;
+    if (mealName === 'Lunch') {
+      if (t.includes('lunch') || t === 'meal' || t === 'quick meal' || !t) return true;
+      const matchesOther = t.includes('breakfast') || t.includes('morning') || t.includes('evening') || t.includes('dinner') || t.includes('supper');
+      if (!matchesOther) return true;
+    }
+    return false;
+  };
+
   const getConsumedForMeal = (mealName: string) => {
     if (!Array.isArray(foodLogs[currentDate])) return 0;
     return foodLogs[currentDate]
-      .filter((l: any) => l.type === mealName || (mealName === 'Morning Snack' && l.type === 'Snack'))
+      .filter((l: any) => isLogForMeal(l, mealName))
       .reduce((acc: number, l: any) => acc + (l.calories || 0), 0);
   };
 
@@ -450,7 +466,7 @@ export function DieticianDashboardTracker({
                 </div>
               )}
 
-              {mealConsumed > 0 && Array.isArray(foodLogs[currentDate]) && foodLogs[currentDate].filter((l: any) => l.type === meal.name || (meal.name === 'Morning Snack' && l.type === 'Snack')).map((log: any, idx2: number) => (
+              {mealConsumed > 0 && Array.isArray(foodLogs[currentDate]) && foodLogs[currentDate].filter((l: any) => isLogForMeal(l, meal.name)).map((log: any, idx2: number) => (
                   <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
                     <div style={{ flex: 1, minWidth: '160px' }}>
                       <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>

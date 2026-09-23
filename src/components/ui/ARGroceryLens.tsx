@@ -1353,22 +1353,23 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               })()}
             </div>
 
-            {/* Pinned Bottom Action Footer (Flex sibling, never obscures content) */}
+            {/* Pinned Bottom Action Footer (Sleek, Ergonomic, Non-Intrusive) */}
             <footer style={{
               flexShrink: 0,
               background: '#FFFFFF',
               borderTop: '1px solid #E2E8F0',
-              paddingTop: '12px',
-              paddingBottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+              paddingTop: '10px',
+              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
               paddingLeft: '16px',
               paddingRight: '16px',
               zIndex: 20,
-              boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.04)'
+              boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)'
             }}>
               <div style={{
                 display: 'flex',
+                alignItems: 'center',
                 gap: '10px',
-                maxWidth: '520px',
+                maxWidth: '480px',
                 margin: '0 auto',
                 width: '100%'
               }}>
@@ -1382,22 +1383,24 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     setActiveTab('scanned');
                   }}
                   style={{
-                    flex: 1,
-                    background: '#FFFFFF',
-                    color: '#334155',
-                    border: '1.5px solid #CBD5E1',
-                    padding: '14px',
-                    borderRadius: '16px',
-                    fontSize: '14px',
-                    fontWeight: 700,
+                    flex: '0 0 auto',
+                    height: '42px',
+                    padding: '0 16px',
+                    background: '#F8FAFC',
+                    color: '#475569',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    display: 'flex',
+                    display: 'inline-flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <RefreshCw size={15} /> Scan Another
+                  <RefreshCw size={14} /> Scan Another
                 </button>
 
                 {onLogFood && analysis?.foodName && (() => {
@@ -1444,6 +1447,15 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
                   const logFood = isViewingAlt && topAlternative ? topAlternative : scannedNormalized;
 
+                  // Auto-detect realistic meal slot from current time
+                  const currentHour = new Date().getHours();
+                  const detectedMealType = 
+                    currentHour < 11 ? 'Breakfast' :
+                    currentHour < 14 ? 'Lunch' :
+                    currentHour < 18 ? 'Evening Snack' : 'Dinner';
+
+                  const portionLabel = logFood.packSizeNote || analysis?.servingSize || '100g';
+
                   return (
                     <button
                       type="button"
@@ -1458,29 +1470,32 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           sugar: logFood.sugar,
                           fibre: logFood.fibre,
                           sodium: logFood.sodium,
-                          servingSize: '100g',
-                          type: 'Snack'
+                          servingSize: portionLabel,
+                          portion: portionLabel,
+                          type: detectedMealType
                         });
                         handleClose();
                       }}
                       style={{
-                        flex: 1.6,
-                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        flex: 1,
+                        height: '42px',
+                        padding: '0 16px',
+                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                         color: '#FFFFFF',
                         border: 'none',
-                        padding: '14px',
-                        borderRadius: '16px',
-                        fontSize: '14.5px',
-                        fontWeight: 800,
+                        borderRadius: '12px',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
                         cursor: 'pointer',
-                        display: 'flex',
+                        display: 'inline-flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.35)'
+                        gap: '7px',
+                        boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <Scan size={17} />
+                      <CheckCircle2 size={16} />
                       Log to Diet Diary (+5 PTS)
                     </button>
                   );
