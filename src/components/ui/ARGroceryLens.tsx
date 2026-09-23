@@ -221,6 +221,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isScanning, setIsScanning] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [shutterFlash, setShutterFlash] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState<'scanned' | 'alternative'>('scanned');
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -294,6 +296,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         img.onload = async () => {
           try {
             const { base64, canvas } = compressCanvas(img, img.naturalWidth || 1024, img.naturalHeight || 1024, 1024);
+            setCapturedPhoto(base64);
+            if (videoRef.current) {
+              videoRef.current.pause();
+            }
+
             const brightness = checkCanvasBrightness(canvas);
             if (brightness < 16) {
               setScanError({
@@ -306,9 +313,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             }
 
             const result = await analyzeFoodImage(base64, profile);
-            if (videoRef.current) {
-              videoRef.current.pause();
-            }
             if (!result.detected || !result.foodName) {
               setScanError({
                 title: 'No Food Detected',
@@ -329,9 +333,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             setShowResults(true);
           } catch (scanErr) {
             console.error('Analysis error:', scanErr);
-            if (videoRef.current) {
-              videoRef.current.pause();
-            }
             setScanError({
               title: 'Scan Inconclusive',
               message: 'Failed to analyze photo. Please try another angle or a clearer image.'
@@ -344,9 +345,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         };
         img.onerror = () => {
           setIsScanning(false);
-          if (videoRef.current) {
-            videoRef.current.pause();
-          }
           setScanError({
             title: 'Image Load Error',
             message: 'Unable to process this image file. Please try a different photo.'
@@ -363,6 +361,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   };
 
   const handleResumeCamera = () => {
+    setCapturedPhoto(null);
+    setIsScanning(false);
     if (videoRef.current && stream) {
       videoRef.current.play().catch(() => {});
     }
@@ -377,11 +377,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     }
     
     triggerHapticLight();
-    setIsScanning(true);
     setCameraError(null);
     setScanError(null);
     
     try {
+      // 1. Instant snapshot from current camera video frame
       const { base64, canvas } = compressCanvas(
         videoRef.current,
         videoRef.current.videoWidth,
@@ -389,11 +389,18 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         1024
       );
 
+      // 2. Immediate tactile shutter flash & photo freeze
+      // User does NOT need to hold the camera steady anymore; photo is already clicked!
+      setShutterFlash(true);
+      setTimeout(() => setShutterFlash(false), 220);
+      setCapturedPhoto(base64);
+      setIsScanning(true);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+
       const brightness = checkCanvasBrightness(canvas);
       if (brightness < 16) {
-        if (videoRef.current) {
-          videoRef.current.pause();
-        }
         setScanError({
           title: 'Camera View is Too Dark',
           message: 'The captured frame is too dark to analyze food or labels. Please aim directly at your meal or nutrition panel in good lighting.'
@@ -404,9 +411,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       }
       
       const result = await analyzeFoodImage(base64, profile);
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
 
       if (!result.detected || !result.foodName) {
         setScanError({
@@ -428,9 +432,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       setShowResults(true);
     } catch (e) {
       console.error(e);
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
       setScanError({
         title: 'Scan Inconclusive',
         message: 'Could not analyze this frame. Please try again or upload a photo from your gallery.'
@@ -453,6 +454,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
   const handleClose = () => {
     document.body.classList.remove('lens-active');
+    setCapturedPhoto(null);
+    setIsScanning(false);
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
     }
@@ -501,6 +504,42 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0
         }} 
       />
+
+      {/* Instant Frozen Snapshot Preview while analyzing */}
+      {capturedPhoto && !showResults && (
+        <img
+          src={capturedPhoto}
+          alt="Captured food snapshot"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1
+          }}
+        />
+      )}
+
+      {/* Tactile Shutter White Flash */}
+      <AnimatePresence>
+        {shutterFlash && (
+          <motion.div
+            initial={{ opacity: 0.85 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: '#FFFFFF',
+              zIndex: 35,
+              pointerEvents: 'none'
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Header - Camera Mode Only */}
       {!showResults && (
@@ -582,7 +621,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             lineHeight: 1.3,
             whiteSpace: 'normal'
           }}>
-            Scan packaged food, labels, or meals
+            {isScanning ? 'Snapshot captured · Analyzing nutrition...' : 'Scan packaged food, labels, or meals'}
           </span>
         </div>
       )}
@@ -665,7 +704,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             borderRadius: '999px',
             backdropFilter: 'blur(6px)'
           }}>
-            {isScanning ? 'Analyzing...' : 'Align Item Inside'}
+            {isScanning ? 'Snapshot Locked · Analyzing...' : 'Align Item Inside'}
           </span>
         </div>
       )}
