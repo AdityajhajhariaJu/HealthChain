@@ -2045,21 +2045,28 @@ CORE PROTOCOL:
         You MUST ALWAYS calculate and normalize ALL nutritional figures (calories, protein, carbs, fats, sugar, fibre, sodium) FOR EXACTLY 100 GRAMS (100g mark).
         Never output per-pack values (e.g. if a biscuit pack is 60g or peanut pack is 40g, mathematically scale all nutrients to 100g).
         Set servingSize to "Per 100g (Pack size: Xg)" or "Per 100g".
-    - For PLATED MEALS & HOME-COOKED FOOD (e.g. 2 Roti + Rice + Curry/Dal, Thali, Sabzi, Biryani, Idli-Sambar, Poha, Paratha, Salad Bowl):
-      * Accurately recognize every individual component visible on the plate:
-        - Count items: e.g. "2 Whole Wheat Rotis (~70g)", "1 Cup Steamed White Rice (~150g)", "1 Katori Dal/Curry (~150g)".
-        - Detect cooking medium & fats: Tadka in ghee/oil, oil used in curry, brushed ghee on roti.
-        - Calculate the full plate weight: e.g. ~370g total plate weight.
-        - Set servingSize to: "Per 100g (Full Plate: ~370g · Total ~510 kcal)".
-        - Name the dish clearly: e.g. "Indian Meal (2 Rotis, Rice & Curry)" or specific curry name (e.g. Dal Tadka / Paneer Curry).
-        - Normalize ALL 6 macro values to EXACTLY 100 GRAMS (100g mark).
-        - In topIngredients: List the primary components (e.g. ["Whole Wheat Atta (2 Rotis)", "Steamed White Rice", "Lentil Dal / Curry with Spices"]).
-        - In ingredientsList: List the detailed preparation components (e.g. ["Whole Wheat Flour", "Basmati Rice", "Yellow Lentils / Mixed Vegetables", "Onion & Tomato Gravy", "Mustard/Sunflower Oil / Ghee", "Turmeric, Cumin & Spices", "Salt"]).
-        - In positives: Highlight whole-food benefits (e.g. ["Fresh Whole Food (NOVA 1)", "Complete Amino Acid Balance (Dal + Rice)"]).
-        - In negatives: Call out glycemic or macronutrient imbalances if applicable (e.g. ["Double Starch Combination (Roti + Rice)", "Post-Meal Glucose Spike from White Rice"]).
-        - Set additives to [] (0 chemical E-numbers for home cooked food).
-        - Set deceptionAlert to null.
-        - For betterAlternatives: Recommend a clinical balancing swap (e.g. "Swap White Rice for an extra bowl of Dal or Green Vegetable Sabzi to double protein and fiber while halving glycemic spike").
+    - For PLATED MEALS, RESTAURANT DISHES, DESSERTS & BEVERAGES:
+      * This covers ALL prepared foods across home cooking, restaurants, cafés, bakeries, street food, and desserts:
+        - RESTAURANT & DINE-OUT DISHES (e.g. Dal Makhani, Butter Chicken, Biryani, Naan, Pizza, Pasta, Sushi, Burgers, Dosa):
+          Factor in commercial culinary practices: richer cooking fats (heavy cream, butter, restaurant oils), elevated sodium, and restaurant portion sizes (e.g. "Per 100g (Portion: ~420g · Total ~680 kcal)").
+        - DESSERTS, SWEETS & BAKERY (e.g. Gulab Jamun, Rasmalai, Jalebi, Kaju Katli, Brownie, Cheesecake, Pastry, Waffle, Ice Cream):
+          Recognize specific dessert units (e.g. "2 pieces Gulab Jamun [~100g]", "1 slice Cheesecake [~125g]").
+          Calculate concentrated sugar load, saturated fats, and rapid glycemic spike. Provide satisfying sweet craving swaps.
+        - HOME-COOKED MEALS (e.g. 2 Roti + Rice + Dal/Curry, Sabzi, Poha, Khichdi, Idli-Sambar, Paratha):
+          Accurately recognize every individual component: count rotis, rice portion, curry/dal katori, and cooking oil/ghee.
+          State servingSize as: "Per 100g (Full Plate: ~370g · Total ~510 kcal)".
+        - BEVERAGES & CAFÉ DRINKS (e.g. Masala Chai, Frappuccino, Bubble Tea, Mango Lassi, Fruit Smoothies):
+          Detect milk base, added sweeteners/syrups, and portion size (e.g. "Per 100g (Glass: 250ml)").
+      * PROTOCOL FOR ALL PREPARED FOODS:
+        - Name the dish clearly (e.g. "Restaurant Dal Makhani with Garlic Naan", "2 Gulab Jamun in Sugar Syrup", "Home Meal (2 Rotis, Rice & Curry)").
+        - ALWAYS normalize the 6 macro figures to EXACTLY 100 GRAMS (100g mark).
+        - State full plate or portion weight in servingSize: e.g. "Per 100g (Full Plate: ~380g · Total ~540 kcal)" or "Per 100g (Portion: 2 pcs [~100g] · Total ~330 kcal)".
+        - In topIngredients: List the 3 primary culinary ingredients (e.g. ["Whole Milk Mawa/Khoya", "Sugar Syrup", "Pure Ghee"] for Gulab Jamun).
+        - In positives: Highlight true nutritional benefits (e.g. ["Fresh Whole Food (NOVA 1)", "Complete Plant Protein", "Calcium Rich"]).
+        - In negatives: Highlight watchouts (e.g. ["Concentrated Sugar Spike (38g/100g)", "Heavy Saturated Cream Base", "Elevated Sodium"]).
+        - Set additives to [] unless industrial bakery or commercial syrups are evident.
+        - Set deceptionAlert to null for non-packaged foods.
+        - In betterAlternatives: Recommend a realistic swap that satisfies the exact same sensory craving (e.g. for Gulab Jamun -> "Date & Walnut Halwa or Roasted Makhana Kheer").
 
 2. CLINICAL VERDICT & PERSONALIZED HEALTH ASSESSMENT:
    Evaluate healthfulness objectively against the user's clinical profile:

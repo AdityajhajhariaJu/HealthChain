@@ -274,6 +274,77 @@ describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
     expect(normalized.servingSize).toBe('100g');
     expect(normalized.packSizeNote).toBe('Plate: ~370g');
   });
+
+  it('correctly analyzes desserts and restaurant dishes (e.g. 2 Gulab Jamun in syrup)', async () => {
+    const mockDessertResponse = {
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  detected: true,
+                  foodName: 'Gulab Jamun (2 pieces in Sugar Syrup)',
+                  brand: null,
+                  servingSize: 'Per 100g (Portion: 2 pcs [~100g] · Total ~330 kcal)',
+                  calories: 330,
+                  protein: 4.5,
+                  carbs: 52.0,
+                  fats: 11.8,
+                  sugar: 38.5,
+                  fibre: 0.4,
+                  sodium: 85,
+                  healthVerdict: 'caution_swap_recommended',
+                  verdictHeadline: 'High Glycemic Density · Concentrated Added Sugar',
+                  clinicalRationale: 'Deep-fried mawa soaked in refined sucrose syrup creates a severe spike in insulin and triglycerides. Best consumed in moderation.',
+                  novaGrade: 3,
+                  nutriScore: 'E',
+                  glycemicImpact: 'High',
+                  flags: ['Deep Fried', 'High Sugar', 'Refined Syrup'],
+                  deceptionAlert: null,
+                  positives: ['Traditional Milk Solid Base (Mawa)'],
+                  negatives: ['High Sugar Spike (38.5g/100g)', 'Deep Fried in Fat'],
+                  topIngredients: ['Whole Milk Mawa (Khoya)', 'Refined Sugar Syrup', 'Edible Cooking Oil / Ghee'],
+                  ingredientsList: ['Mawa (Condensed Milk Solids)', 'Refined Wheat Flour (Maida)', 'Sugar Syrup', 'Cardamom & Rose Water', 'Ghee / Oil for Frying'],
+                  additives: [],
+                  allergens: ['Dairy (Milk)', 'Gluten (Wheat)'],
+                  betterAlternatives: [
+                    {
+                      name: 'Date & Walnut Halwa or Baked Rasgulla',
+                      swapType: 'whole_food',
+                      reason: 'Sweetened with whole dates, 3x fiber, healthy omega fats from walnuts, zero refined sugar spike',
+                      satisfactionMatch: 'Rich, comforting sweet mouthfeel without the sugar crash',
+                      estimatedCalories: 190,
+                      protein: 5.2
+                    }
+                  ]
+                })
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockDessertResponse
+    } as any);
+
+    const result = await analyzeFoodImage('data:image/jpeg;base64,mockGulabJamun', {
+      conditions: ['Type 2 Diabetes'],
+      healthFocus: 'Blood Glucose Control'
+    });
+
+    expect(result.detected).toBe(true);
+    expect(result.foodName).toContain('Gulab Jamun');
+    expect(result.sugar).toBe(38.5);
+    expect(result.healthVerdict).toBe('caution_swap_recommended');
+    expect(result.nutriScore).toBe('E');
+    expect(result.glycemicImpact).toBe('High');
+    expect(result.negatives).toContain('High Sugar Spike (38.5g/100g)');
+    expect(result.betterAlternatives?.[0].name).toContain('Date & Walnut');
+  });
 });
 
 describe('100g Standardization Engine', () => {
