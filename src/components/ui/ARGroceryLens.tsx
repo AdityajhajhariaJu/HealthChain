@@ -164,13 +164,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
     document.body.classList.add('lens-active');
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
 
     return () => {
       isCancelled = true;
       document.body.classList.remove('lens-active');
       document.body.style.overflow = '';
-      document.body.style.touchAction = '';
       if (activeStream) {
         activeStream.getTracks().forEach(t => t.stop());
       }
@@ -597,7 +595,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               background: '#FFFFFF',
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              height: '100%',
+              width: '100%'
             }}
           >
             {/* Pristine White Header */}
@@ -642,15 +642,18 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               </button>
             </header>
 
-            {/* Scrollable Single-Page Body */}
+            {/* Scrollable Single-Page Body with Native Inertia & Pan-Y Touch Action */}
             <div style={{
-              flex: 1,
+              flex: '1 1 0%',
+              minHeight: 0,
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              padding: '16px 16px 100px',
+              touchAction: 'pan-y',
+              overscrollBehaviorY: 'contain',
+              padding: '14px 16px 20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
+              gap: '12px',
               maxWidth: '520px',
               margin: '0 auto',
               width: '100%',
@@ -781,13 +784,13 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     {/* The Clean Main Clinical Card */}
                     <div style={{
                       background: '#FFFFFF',
-                      borderRadius: '26px',
-                      padding: '20px 18px',
+                      borderRadius: '24px',
+                      padding: '16px 14px',
                       border: '1px solid #E2E8F0',
-                      boxShadow: '0 4px 18px -2px rgba(15, 23, 42, 0.05)',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '14px'
+                      gap: '12px'
                     }}>
                       {/* Warning Banner (Clean Pink/Red Box) */}
                       {displayedFood.warning && (
@@ -798,11 +801,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           background: '#FEF2F2',
                           border: '1px solid #FECDD3',
                           borderRadius: '14px',
-                          padding: '11px 14px',
+                          padding: '10px 12px',
                           boxSizing: 'border-box'
                         }}>
                           <AlertTriangle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
-                          <span style={{ color: '#991B1B', fontSize: '12.5px', fontWeight: 700, lineHeight: 1.45 }}>
+                          <span style={{ color: '#991B1B', fontSize: '12px', fontWeight: 700, lineHeight: 1.45 }}>
                             {displayedFood.warning}
                           </span>
                         </div>
@@ -811,10 +814,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       {/* Title & Calorie Pill on Same Line */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
                         <div style={{ flex: 1 }}>
-                          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', lineHeight: 1.25 }}>
+                          <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', lineHeight: 1.25 }}>
                             {displayedFood.name}
                           </h2>
-                          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 500, lineHeight: 1.4 }}>
+                          <p style={{ margin: '3px 0 0', fontSize: '11.5px', color: '#64748B', fontWeight: 500, lineHeight: 1.35 }}>
                             {displayedFood.subtitle}
                           </p>
                         </div>
@@ -837,12 +840,12 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       {/* The 6 Original 80px Circular Macro Rings arranged in a 3x2 Matrix */}
                       <div style={{
                         background: '#F8FAFC',
-                        borderRadius: '20px',
-                        padding: '16px 8px',
+                        borderRadius: '18px',
+                        padding: '12px 6px',
                         border: '1px solid #F1F5F9',
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '14px 4px',
+                        gap: '10px 4px',
                         justifyItems: 'center',
                         alignItems: 'center'
                       }}>
@@ -902,15 +905,16 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         }}
                         style={{
                           background: isViewingAlt ? '#ECFDF5' : '#F0FDFA',
-                          borderRadius: '22px',
-                          padding: '16px 18px',
+                          borderRadius: '20px',
+                          padding: '14px 16px',
                           border: isViewingAlt ? '2px solid #10B981' : '1.5px solid #CCFBF1',
                           boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '14px',
+                          gap: '12px',
                           cursor: 'pointer',
-                          transition: 'all 0.2s ease'
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
                         }}
                       >
                         <div style={{ flex: 1 }}>
@@ -925,7 +929,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                             {isViewingAlt ? 'ACTIVE SWAP SELECTED' : 'OPTION TO CONSIDER · AI SUGGESTION'}
                           </div>
                           <div style={{
-                            fontSize: '15.5px',
+                            fontSize: '15px',
                             fontWeight: 800,
                             color: '#0F172A',
                             lineHeight: 1.3
@@ -973,20 +977,17 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               })()}
             </div>
 
-            {/* Fixed Bottom Action Deck (No Ava Button!) */}
-            <div style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
+            {/* Pinned Bottom Action Footer (Flex sibling, never obscures content) */}
+            <footer style={{
+              flexShrink: 0,
               background: '#FFFFFF',
               borderTop: '1px solid #E2E8F0',
               paddingTop: '12px',
               paddingBottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
               paddingLeft: '16px',
               paddingRight: '16px',
-              zIndex: 60,
-              boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.04)'
+              zIndex: 20,
+              boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.04)'
             }}>
               <div style={{
                 display: 'flex',
@@ -1087,7 +1088,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   );
                 })()}
               </div>
-            </div>
+            </footer>
           </motion.div>
         )}
       </AnimatePresence>
