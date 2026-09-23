@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { analyzeFoodImage } from '../geminiService';
+import { normalizeNutritionTo100g } from '../../components/ui/ARGroceryLens';
 
 describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
   beforeEach(() => {
@@ -185,5 +186,60 @@ describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
     const result = await analyzeFoodImage('data:image/jpeg;base64,mockbase64', {});
     expect(result.detected).toBe(false);
     expect(result.errorMessage).toContain('No food or grocery item detected');
+  });
+});
+
+describe('100g Standardization Engine', () => {
+  it('correctly rescales packaged portion (e.g. 60g biscuits) to standard 100g benchmark', () => {
+    const raw60gFood = {
+      foodName: 'Sour Cream & Onion Biscuits',
+      servingSize: '1 pack (60g)',
+      calories: 290,
+      protein: 3.8,
+      carbs: 38.2,
+      fats: 12.5,
+      sugar: 1.8,
+      fibre: 1.2,
+      sodium: 210
+    };
+
+    const normalized = normalizeNutritionTo100g(raw60gFood);
+
+    // 100 / 60 = 1.66667
+    expect(normalized.calories).toBe(483);
+    expect(normalized.protein).toBe(6.3);
+    expect(normalized.carbs).toBe(63.7);
+    expect(normalized.fats).toBe(20.8);
+    expect(normalized.sugar).toBe(3.0);
+    expect(normalized.fibre).toBe(2.0);
+    expect(normalized.sodium).toBe(350);
+    expect(normalized.servingSize).toBe('100g');
+    expect(normalized.packSizeNote).toBe('Pack: 60g');
+  });
+
+  it('preserves values when already explicitly normalized to 100g', () => {
+    const per100gFood = {
+      foodName: 'Dark Chocolate Almonds',
+      servingSize: 'Per 100g (Pack size: 40g)',
+      calories: 540,
+      protein: 12.0,
+      carbs: 45.0,
+      fats: 36.0,
+      sugar: 22.0,
+      fibre: 8.0,
+      sodium: 80
+    };
+
+    const normalized = normalizeNutritionTo100g(per100gFood);
+
+    expect(normalized.calories).toBe(540);
+    expect(normalized.protein).toBe(12.0);
+    expect(normalized.carbs).toBe(45.0);
+    expect(normalized.fats).toBe(36.0);
+    expect(normalized.sugar).toBe(22.0);
+    expect(normalized.fibre).toBe(8.0);
+    expect(normalized.sodium).toBe(80);
+    expect(normalized.servingSize).toBe('100g');
+    expect(normalized.packSizeNote).toBe('Pack: 40g');
   });
 });

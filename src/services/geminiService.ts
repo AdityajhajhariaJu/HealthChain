@@ -2037,9 +2037,12 @@ CORE PROTOCOL:
      - Identify specific E-numbers and INS chemical additives (e.g. INS 330, INS 627, INS 631, INS 551) and assign clinical risk levels (low, moderate, high).
      - Calculate official Nutri-Score (A, B, C, D, or E) and NOVA Group (1 to 4).
      - Detect all direct allergens and trace risks (e.g. Peanuts, Gluten/Wheat, Soy, Dairy).
-     - Provide accurate per-serving portion size, calories, protein, carbs, fats, sugar, fibre, and sodium (mg).
-   - For PLATED MEALS & FRESH FOOD:
-     Identify the dish, main culinary components, cooking medium, portion size, and estimated nutrients.
+      - CRITICAL 100g STANDARDIZATION PROTOCOL:
+        You MUST ALWAYS calculate and normalize ALL nutritional figures (calories, protein, carbs, fats, sugar, fibre, sodium) FOR EXACTLY 100 GRAMS (100g mark).
+        Never output per-pack values (e.g. if a biscuit pack is 60g or peanut pack is 40g, mathematically scale all nutrients to 100g).
+        Set servingSize to "Per 100g (Pack size: Xg)" or "Per 100g".
+    - For PLATED MEALS & FRESH FOOD:
+      Identify the dish, main culinary components, cooking medium, portion size, and estimated nutrients normalized to 100g.
 
 2. CLINICAL VERDICT & PERSONALIZED HEALTH ASSESSMENT:
    Evaluate healthfulness objectively against the user's clinical profile:
@@ -2051,11 +2054,11 @@ CORE PROTOCOL:
    Assign one of three verdicts:
    - "clean_choice": Nutrient-dense, whole-food or minimally processed (NOVA 1-2, Nutri-Score A-B), balanced macros, high fiber/protein, zero/minimal palm oil or added sugar.
    - "moderate_treat": Moderately processed (NOVA 3, Nutri-Score C), higher caloric density, fine in moderation.
-   - "caution_swap_recommended": Ultra-processed (NOVA 4, Nutri-Score D-E), heavy refined maida, palm oil, high sodium (>350mg/serving), trans fats, high sugar, or conflicts with user conditions (e.g. Hypertension, Diabetes, Fatty Liver).
+   - "caution_swap_recommended": Ultra-processed (NOVA 4, Nutri-Score D-E), heavy refined maida, palm oil, high sodium (>350mg/100g), trans fats, high sugar, or conflicts with user conditions (e.g. Hypertension, Diabetes, Fatty Liver).
 
 3. CRAVING-MATCHED BETTER ALTERNATIVES:
-   If the food is "caution_swap_recommended" or "moderate_treat", provide 1 to 2 realistic, delicious swaps that satisfy the EXACT SAME sensory craving (texture and flavor) with FULL comparative nutrition estimates (calories, protein, carbs, fats, sugar, fibre, sodium).
-   Example: For Karare Peanuts or salted chips -> provide Dry Roasted Salted Peanuts or Herb Roasted Makhana (same savory crunch, zero palm oil, 60% less sodium, no maida).
+   If the food is "caution_swap_recommended" or "moderate_treat", provide 1 to 2 realistic, delicious swaps that satisfy the EXACT SAME sensory craving (texture and flavor) with FULL comparative nutrition estimates ALL NORMALIZED TO 100 GRAMS (estimatedCalories, protein, carbs, fats, sugar, fibre, sodium per 100g).
+   Example: For Karare Peanuts or salted chips -> provide Dry Roasted Salted Peanuts or Herb Roasted Makhana (same savory crunch, zero palm oil, 60% less sodium, no maida, values per 100g).
 
 If no food, grocery item, beverage, or dish is present (e.g., completely black, keyboard, wall, floor, clothes):
 Return {"detected": false, "errorMessage": "No food, beverage, or grocery item detected in frame. Please point the camera directly at a meal or food packet under good lighting."}
@@ -2065,14 +2068,14 @@ Return ONLY valid JSON matching this schema:
   "detected": true,
   "foodName": "Recognized Product or Dish Name (e.g. Karare Peanuts)",
   "brand": "Brand name if packaged (e.g. Haldiram's / Balaji) or null",
-  "servingSize": "Typical portion (e.g. 1 pack [40g], 1 plate, 1 bowl)",
-  "calories": <integer kcal>,
-  "protein": <number grams>,
-  "carbs": <number grams>,
-  "fats": <number grams>,
-  "sugar": <number grams>,
-  "fibre": <number grams>,
-  "sodium": <number milligrams>,
+  "servingSize": "Per 100g (Pack size: e.g. 60g) - ALWAYS NORMALIZED TO 100g MARK",
+  "calories": <integer kcal per 100g>,
+  "protein": <number grams per 100g>,
+  "carbs": <number grams per 100g>,
+  "fats": <number grams per 100g>,
+  "sugar": <number grams per 100g>,
+  "fibre": <number grams per 100g>,
+  "sodium": <number milligrams per 100g>,
   "healthVerdict": "clean_choice" | "moderate_treat" | "caution_swap_recommended",
   "verdictHeadline": "Punchy 3-6 word summary (e.g. Ultra-Processed · High Glycemic & Sodium Spike)",
   "clinicalRationale": "1-2 crisp clinical sentences explaining why and how it impacts metabolic health/energy/gut.",

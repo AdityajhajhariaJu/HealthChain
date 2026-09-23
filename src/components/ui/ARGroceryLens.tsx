@@ -53,6 +53,109 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
   };
 }
 
+export interface NormalizedNutrition {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  sugar: number;
+  fibre: number;
+  sodium: number;
+  servingSize: string;
+  packSizeNote?: string;
+  warning?: string | null;
+  subtitle?: string;
+}
+
+export function normalizeNutritionTo100g(food: {
+  foodName?: string;
+  name?: string;
+  servingSize?: string;
+  calories?: number;
+  estimatedCalories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+  sugar?: number;
+  fibre?: number;
+  sodium?: number;
+  warning?: string | null;
+  subtitle?: string;
+}): NormalizedNutrition {
+  const name = food.foodName || food.name || 'Identified Food';
+  const rawCalories = Number(food.calories ?? food.estimatedCalories ?? 0);
+  const rawProtein = Number(food.protein ?? 0);
+  const rawCarbs = Number(food.carbs ?? 0);
+  const rawFats = Number(food.fats ?? 0);
+  const rawSugar = Number(food.sugar ?? 0);
+  const rawFibre = Number(food.fibre ?? 0);
+  const rawSodium = Number(food.sodium ?? 0);
+
+  const serving = (food.servingSize || '').trim();
+  const lowerServing = serving.toLowerCase();
+
+  // Determine scaling factor to 100g
+  let factor = 1.0;
+  let packWeightGrams: number | null = null;
+
+  // Check if serving string is already normalized to 100g
+  const isAlreadyPer100g = lowerServing.includes('per 100g') || 
+                           lowerServing.includes('per 100 g') || 
+                           lowerServing.includes('/ 100g') ||
+                           lowerServing.includes('/100g') ||
+                           lowerServing.includes('100g mark') ||
+                           lowerServing.includes('100 g mark');
+
+  if (!isAlreadyPer100g) {
+    // If not explicitly per 100g, look for explicit pack gram weight like (60g), 40g, 55 gms, etc.
+    const gramMatch = lowerServing.match(/(\d+(?:\.\d+)?)\s*(?:g|gm|gms|gram|grams)\b/i);
+    if (gramMatch) {
+      const parsedGrams = parseFloat(gramMatch[1]);
+      if (parsedGrams > 0 && parsedGrams !== 100) {
+        packWeightGrams = parsedGrams;
+        factor = 100 / parsedGrams;
+      }
+    }
+  } else {
+    // If it is per 100g, check if pack size is noted inside parentheses (e.g., "(Pack size: 60g)")
+    const packMatch = lowerServing.match(/pack size:?\s*(\d+(?:\.\d+)?)\s*g/i);
+    if (packMatch) {
+      packWeightGrams = parseFloat(packMatch[1]);
+    }
+  }
+
+  // Cap factor within safe bounds (0.1x to 10x)
+  const safeFactor = Math.min(Math.max(factor, 0.1), 10);
+
+  const calories = Math.round(rawCalories * safeFactor);
+  const protein = Math.round(rawProtein * safeFactor * 10) / 10;
+  const carbs = Math.round(rawCarbs * safeFactor * 10) / 10;
+  const fats = Math.round(rawFats * safeFactor * 10) / 10;
+  const sugar = Math.round(rawSugar * safeFactor * 10) / 10;
+  const fibre = Math.round(rawFibre * safeFactor * 10) / 10;
+  const sodium = Math.round(rawSodium * safeFactor);
+
+  const packSizeNote = packWeightGrams 
+    ? `Pack: ${packWeightGrams}g` 
+    : (serving && !isAlreadyPer100g ? `Portion: ${serving}` : undefined);
+
+  return {
+    name,
+    calories,
+    protein,
+    carbs,
+    fats,
+    sugar,
+    fibre,
+    sodium,
+    servingSize: '100g',
+    packSizeNote,
+    warning: food.warning || null,
+    subtitle: food.subtitle
+  };
+}
+
 const CircularProgress = ({
   value,
   max,
@@ -741,42 +844,54 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   </div>
                 </div>
               ) : analysis && (() => {
-                const topAlternative = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
+                const scannedNormalized = normalizeNutritionTo100g({
+                  foodName: analysis.foodName,
+                  servingSize: analysis.servingSize,
+                  calories: analysis.calories,
+                  protein: analysis.protein,
+                  carbs: analysis.carbs,
+                  fats: analysis.fats,
+                  sugar: analysis.sugar,
+                  fibre: analysis.fibre,
+                  sodium: analysis.sodium,
+                  warning: analysis.warning
+                });
+
+                const rawAlt = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
                   name: analysis.betterAlternative.name,
                   reason: analysis.betterAlternative.reason,
-                  estimatedCalories: Math.round((analysis.calories ?? 200) * 0.7),
-                  protein: Math.round(((analysis.protein ?? 8) * 1.1) * 10) / 10,
-                  carbs: Math.round(((analysis.carbs ?? 16) * 0.5) * 10) / 10,
-                  fats: Math.round(((analysis.fats ?? 14) * 0.6) * 10) / 10,
-                  sugar: Math.max(0.5, Math.round(((analysis.sugar ?? 2) * 0.4) * 10) / 10),
-                  fibre: Math.max(3, Math.round(((analysis.fibre ?? 2) * 2) * 10) / 10),
-                  sodium: Math.round((analysis.sodium ?? 350) * 0.35)
+                  estimatedCalories: Math.round(scannedNormalized.calories * 0.7),
+                  protein: Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
+                  carbs: Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
+                  fats: Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
+                  sugar: Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
+                  fibre: Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
+                  sodium: Math.round((scannedNormalized.sodium ?? 350) * 0.35)
                 } : null);
+
+                const topAlternative = rawAlt ? {
+                  ...normalizeNutritionTo100g({
+                    name: rawAlt.name,
+                    servingSize: (rawAlt as any).servingSize || '100g',
+                    calories: (rawAlt as any).estimatedCalories ?? (rawAlt as any).calories ?? Math.round(scannedNormalized.calories * 0.7),
+                    protein: (rawAlt as any).protein ?? Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
+                    carbs: (rawAlt as any).carbs ?? Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
+                    fats: (rawAlt as any).fats ?? Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
+                    sugar: (rawAlt as any).sugar ?? Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
+                    fibre: (rawAlt as any).fibre ?? Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
+                    sodium: (rawAlt as any).sodium ?? Math.round((scannedNormalized.sodium ?? 350) * 0.35)
+                  }),
+                  reason: rawAlt.reason
+                } : null;
 
                 const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
 
-                const displayedFood = isViewingAlt ? {
-                  name: topAlternative.name,
-                  calories: topAlternative.estimatedCalories ?? Math.round((analysis?.calories ?? 200) * 0.7),
-                  protein: topAlternative.protein ?? Math.round(((analysis?.protein ?? 8) * 1.1) * 10) / 10,
-                  carbs: topAlternative.carbs ?? Math.round(((analysis?.carbs ?? 16) * 0.5) * 10) / 10,
-                  fats: topAlternative.fats ?? Math.round(((analysis?.fats ?? 14) * 0.6) * 10) / 10,
-                  sugar: topAlternative.sugar ?? Math.max(0.5, Math.round(((analysis?.sugar ?? 2) * 0.4) * 10) / 10),
-                  fibre: topAlternative.fibre ?? Math.max(3, Math.round(((analysis?.fibre ?? 2) * 2) * 10) / 10),
-                  sodium: topAlternative.sodium ?? Math.round((analysis?.sodium ?? 350) * 0.35),
-                  warning: null,
-                  subtitle: 'Clinically superior swap · Clean metabolic fuel'
+                const displayedFood = isViewingAlt && topAlternative ? {
+                  ...topAlternative,
+                  subtitle: 'Standardized to 100g mark • Clinically superior swap · Clean fuel'
                 } : {
-                  name: analysis?.foodName || 'Identified Dish',
-                  calories: Math.round(analysis?.calories ?? 0),
-                  protein: Math.round((analysis?.protein ?? 0) * 10) / 10,
-                  carbs: Math.round((analysis?.carbs ?? 0) * 10) / 10,
-                  fats: Math.round((analysis?.fats ?? 0) * 10) / 10,
-                  sugar: Math.round((analysis?.sugar ?? 0) * 10) / 10,
-                  fibre: Math.round((analysis?.fibre ?? 0) * 10) / 10,
-                  sodium: analysis?.sodium ?? 180,
-                  warning: analysis?.warning || null,
-                  subtitle: `AI-estimated from image • ${analysis?.servingSize || '1 pack'}. Verify package label before saving.`
+                  ...scannedNormalized,
+                  subtitle: `Standardized to 100g mark • ${scannedNormalized.packSizeNote ? `${scannedNormalized.packSizeNote} • ` : ''}AI-estimated from image.`
                 };
 
                 return (
@@ -823,18 +938,49 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         </div>
 
                         <div style={{
-                          padding: '4px 11px',
-                          borderRadius: '999px',
+                          padding: '4px 10px',
+                          borderRadius: '12px',
                           background: isViewingAlt ? '#ECFDF5' : '#FEF2F2',
                           border: `1px solid ${isViewingAlt ? '#A7F3D0' : '#FECDD3'}`,
                           color: isViewingAlt ? '#059669' : '#DC2626',
-                          fontSize: '13px',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           flexShrink: 0
                         }}>
-                          {displayedFood.calories} kcal
+                          <span style={{ fontSize: '13.5px', fontWeight: 800, lineHeight: 1.15 }}>
+                            {displayedFood.calories} kcal
+                          </span>
+                          <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.4px', textTransform: 'uppercase', opacity: 0.85 }}>
+                            per 100g
+                          </span>
                         </div>
+                      </div>
+
+                      {/* Section Header with Per 100g Standard Badge */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '2px 4px 0'
+                      }}>
+                        <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                          Nutrition Breakdown
+                        </span>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: '#059669',
+                          background: '#ECFDF5',
+                          padding: '3px 8px',
+                          borderRadius: '999px',
+                          border: '1px solid #A7F3D0',
+                          letterSpacing: '0.3px',
+                          textTransform: 'uppercase'
+                        }}>
+                          Per 100g Mark
+                        </span>
                       </div>
 
                       {/* The 6 Original 80px Circular Macro Rings arranged in a 3x2 Matrix */}
@@ -1025,27 +1171,48 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 </button>
 
                 {onLogFood && analysis?.foodName && (() => {
-                  const topAlternative = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
+                  const scannedNormalized = normalizeNutritionTo100g({
+                    foodName: analysis.foodName,
+                    servingSize: analysis.servingSize,
+                    calories: analysis.calories,
+                    protein: analysis.protein,
+                    carbs: analysis.carbs,
+                    fats: analysis.fats,
+                    sugar: analysis.sugar,
+                    fibre: analysis.fibre,
+                    sodium: analysis.sodium,
+                    warning: analysis.warning
+                  });
+
+                  const rawAlt = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
                     name: analysis.betterAlternative.name,
                     reason: analysis.betterAlternative.reason,
-                    estimatedCalories: Math.round((analysis.calories ?? 200) * 0.7),
-                    protein: Math.round(((analysis.protein ?? 8) * 1.1) * 10) / 10,
-                    carbs: Math.round(((analysis.carbs ?? 16) * 0.5) * 10) / 10,
-                    fats: Math.round(((analysis.fats ?? 14) * 0.6) * 10) / 10,
-                    sugar: Math.max(0.5, Math.round(((analysis.sugar ?? 2) * 0.4) * 10) / 10),
-                    fibre: Math.max(3, Math.round(((analysis.fibre ?? 2) * 2) * 10) / 10),
-                    sodium: Math.round((analysis.sodium ?? 350) * 0.35)
+                    estimatedCalories: Math.round(scannedNormalized.calories * 0.7),
+                    protein: Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
+                    carbs: Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
+                    fats: Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
+                    sugar: Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
+                    fibre: Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
+                    sodium: Math.round((scannedNormalized.sodium ?? 350) * 0.35)
                   } : null);
 
+                  const topAlternative = rawAlt ? {
+                    ...normalizeNutritionTo100g({
+                      name: rawAlt.name,
+                      servingSize: (rawAlt as any).servingSize || '100g',
+                      calories: (rawAlt as any).estimatedCalories ?? (rawAlt as any).calories ?? Math.round(scannedNormalized.calories * 0.7),
+                      protein: (rawAlt as any).protein ?? Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
+                      carbs: (rawAlt as any).carbs ?? Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
+                      fats: (rawAlt as any).fats ?? Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
+                      sugar: (rawAlt as any).sugar ?? Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
+                      fibre: (rawAlt as any).fibre ?? Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
+                      sodium: (rawAlt as any).sodium ?? Math.round((scannedNormalized.sodium ?? 350) * 0.35)
+                    }),
+                    reason: rawAlt.reason
+                  } : null;
+
                   const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
-                  const logFoodName = isViewingAlt ? topAlternative.name : analysis.foodName;
-                  const logCalories = isViewingAlt ? (topAlternative.estimatedCalories ?? Math.round((analysis.calories ?? 200) * 0.7)) : analysis.calories;
-                  const logProtein = isViewingAlt ? (topAlternative.protein ?? analysis.protein) : analysis.protein;
-                  const logCarbs = isViewingAlt ? (topAlternative.carbs ?? analysis.carbs) : analysis.carbs;
-                  const logFats = isViewingAlt ? (topAlternative.fats ?? analysis.fats) : analysis.fats;
-                  const logSugar = isViewingAlt ? (topAlternative.sugar ?? analysis.sugar) : analysis.sugar;
-                  const logFibre = isViewingAlt ? (topAlternative.fibre ?? analysis.fibre) : analysis.fibre;
-                  const logSodium = isViewingAlt ? (topAlternative.sodium ?? analysis.sodium) : analysis.sodium;
+                  const logFood = isViewingAlt && topAlternative ? topAlternative : scannedNormalized;
 
                   return (
                     <button
@@ -1053,14 +1220,15 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       onClick={() => {
                         triggerHapticSuccess();
                         onLogFood({
-                          name: logFoodName,
-                          calories: logCalories,
-                          protein: logProtein,
-                          carbs: logCarbs,
-                          fat: logFats,
-                          sugar: logSugar,
-                          fibre: logFibre,
-                          sodium: logSodium,
+                          name: logFood.name,
+                          calories: logFood.calories,
+                          protein: logFood.protein,
+                          carbs: logFood.carbs,
+                          fat: logFood.fats,
+                          sugar: logFood.sugar,
+                          fibre: logFood.fibre,
+                          sodium: logFood.sodium,
+                          servingSize: '100g',
                           type: 'Snack'
                         });
                         handleClose();
@@ -1083,7 +1251,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       }}
                     >
                       <Scan size={17} />
-                      Log {logFoodName.length > 18 ? `${logFoodName.slice(0, 16)}...` : logFoodName}
+                      Log {logFood.name.length > 18 ? `${logFood.name.slice(0, 16)}...` : logFood.name}
                     </button>
                   );
                 })()}
