@@ -533,7 +533,7 @@ export default function Landing() {
               <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
                 Log In
               </button>
-              <button className={styles.navButton} onClick={() => handleStartInvestigation('landing_nav')}>
+              <button className={styles.navButton} onClick={() => { handleStartInvestigation('landing_nav'); navigate('/app/onboarding'); }}>
                 Get Started
               </button>
             </>
