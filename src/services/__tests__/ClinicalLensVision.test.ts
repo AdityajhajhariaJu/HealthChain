@@ -190,6 +190,90 @@ describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
     expect(result.detected).toBe(false);
     expect(result.errorMessage).toContain('No food or grocery item detected');
   });
+
+  it('correctly deconstructs plated home-cooked Indian meals (2 roti, rice, curry)', async () => {
+    const mockPlatedResponse = {
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  detected: true,
+                  foodName: 'Indian Meal (2 Rotis, Steamed Rice & Dal Curry)',
+                  brand: null,
+                  servingSize: 'Per 100g (Full Plate: ~370g · Total ~510 kcal)',
+                  calories: 138,
+                  protein: 4.2,
+                  carbs: 25.8,
+                  fats: 2.3,
+                  sugar: 1.1,
+                  fibre: 2.9,
+                  sodium: 185,
+                  healthVerdict: 'clean_choice',
+                  verdictHeadline: 'Whole-Food Balanced Meal · High Starch Ratio',
+                  clinicalRationale: 'Nutrient-dense combination of whole wheat and lentils providing complete amino acids. Consider swapping white rice if managing postprandial glucose.',
+                  novaGrade: 1,
+                  nutriScore: 'A',
+                  glycemicImpact: 'Moderate',
+                  flags: ['Home Cooked', 'Zero Preservatives'],
+                  deceptionAlert: null,
+                  positives: ['Fresh Whole Food (NOVA 1)', 'Complete Plant Protein (Dal + Rice)'],
+                  negatives: ['Double Starch Load (Roti + Rice combo)'],
+                  topIngredients: ['Whole Wheat Atta (2 Rotis)', 'Steamed Basmati Rice', 'Yellow Lentil Dal Tadka'],
+                  ingredientsList: ['Whole Wheat Flour (Atta)', 'Basmati Rice', 'Toor Dal (Pigeon Peas)', 'Onion, Tomato, Ginger, Garlic', 'Mustard Oil / Ghee', 'Cumin, Turmeric, Salt'],
+                  additives: [],
+                  allergens: ['Gluten (Wheat)'],
+                  betterAlternatives: [
+                    {
+                      name: 'Roti & Dal Thali with Cucumber Salad',
+                      swapType: 'whole_food',
+                      reason: 'Drops white rice to slash glycemic spike by 45% and increase micronutrient density',
+                      satisfactionMatch: 'Full satiety with rotis and hearty bowl of dal',
+                      estimatedCalories: 115,
+                      protein: 4.8
+                    }
+                  ]
+                })
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockPlatedResponse
+    } as any);
+
+    const result = await analyzeFoodImage('data:image/jpeg;base64,mockRotiRiceCurry', {
+      conditions: ['Prediabetes'],
+      healthFocus: 'Metabolic Health'
+    });
+
+    expect(result.detected).toBe(true);
+    expect(result.foodName).toContain('2 Rotis');
+    expect(result.novaGrade).toBe(1);
+    expect(result.nutriScore).toBe('A');
+    expect(result.topIngredients?.length).toBe(3);
+    expect(result.topIngredients?.[0]).toContain('Rotis');
+    expect(result.additives?.length).toBe(0);
+    expect(result.deceptionAlert).toBeNull();
+    expect(result.positives).toContain('Fresh Whole Food (NOVA 1)');
+    expect(result.negatives).toContain('Double Starch Load (Roti + Rice combo)');
+
+    // Test 100g normalization extraction of the full plate
+    const normalized = normalizeNutritionTo100g({
+      foodName: result.foodName,
+      servingSize: result.servingSize,
+      calories: result.calories,
+      protein: result.protein
+    });
+
+    expect(normalized.servingSize).toBe('100g');
+    expect(normalized.packSizeNote).toBe('Plate: ~370g');
+  });
 });
 
 describe('100g Standardization Engine', () => {

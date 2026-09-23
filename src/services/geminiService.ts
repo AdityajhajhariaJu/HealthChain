@@ -2045,8 +2045,21 @@ CORE PROTOCOL:
         You MUST ALWAYS calculate and normalize ALL nutritional figures (calories, protein, carbs, fats, sugar, fibre, sodium) FOR EXACTLY 100 GRAMS (100g mark).
         Never output per-pack values (e.g. if a biscuit pack is 60g or peanut pack is 40g, mathematically scale all nutrients to 100g).
         Set servingSize to "Per 100g (Pack size: Xg)" or "Per 100g".
-    - For PLATED MEALS & FRESH FOOD:
-      Identify the dish, main culinary components, cooking medium, portion size, and estimated nutrients normalized to 100g.
+    - For PLATED MEALS & HOME-COOKED FOOD (e.g. 2 Roti + Rice + Curry/Dal, Thali, Sabzi, Biryani, Idli-Sambar, Poha, Paratha, Salad Bowl):
+      * Accurately recognize every individual component visible on the plate:
+        - Count items: e.g. "2 Whole Wheat Rotis (~70g)", "1 Cup Steamed White Rice (~150g)", "1 Katori Dal/Curry (~150g)".
+        - Detect cooking medium & fats: Tadka in ghee/oil, oil used in curry, brushed ghee on roti.
+        - Calculate the full plate weight: e.g. ~370g total plate weight.
+        - Set servingSize to: "Per 100g (Full Plate: ~370g · Total ~510 kcal)".
+        - Name the dish clearly: e.g. "Indian Meal (2 Rotis, Rice & Curry)" or specific curry name (e.g. Dal Tadka / Paneer Curry).
+        - Normalize ALL 6 macro values to EXACTLY 100 GRAMS (100g mark).
+        - In topIngredients: List the primary components (e.g. ["Whole Wheat Atta (2 Rotis)", "Steamed White Rice", "Lentil Dal / Curry with Spices"]).
+        - In ingredientsList: List the detailed preparation components (e.g. ["Whole Wheat Flour", "Basmati Rice", "Yellow Lentils / Mixed Vegetables", "Onion & Tomato Gravy", "Mustard/Sunflower Oil / Ghee", "Turmeric, Cumin & Spices", "Salt"]).
+        - In positives: Highlight whole-food benefits (e.g. ["Fresh Whole Food (NOVA 1)", "Complete Amino Acid Balance (Dal + Rice)"]).
+        - In negatives: Call out glycemic or macronutrient imbalances if applicable (e.g. ["Double Starch Combination (Roti + Rice)", "Post-Meal Glucose Spike from White Rice"]).
+        - Set additives to [] (0 chemical E-numbers for home cooked food).
+        - Set deceptionAlert to null.
+        - For betterAlternatives: Recommend a clinical balancing swap (e.g. "Swap White Rice for an extra bowl of Dal or Green Vegetable Sabzi to double protein and fiber while halving glycemic spike").
 
 2. CLINICAL VERDICT & PERSONALIZED HEALTH ASSESSMENT:
    Evaluate healthfulness objectively against the user's clinical profile:

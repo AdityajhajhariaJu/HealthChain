@@ -118,8 +118,8 @@ export function normalizeNutritionTo100g(food: {
       }
     }
   } else {
-    // If it is per 100g, check if pack size is noted inside parentheses (e.g., "(Pack size: 60g)")
-    const packMatch = lowerServing.match(/pack size:?\s*(\d+(?:\.\d+)?)\s*g/i);
+    // If it is per 100g, check if pack or plate size is noted inside parentheses (e.g., "(Pack size: 60g)" or "(Full Plate: ~370g)")
+    const packMatch = lowerServing.match(/(?:pack size|full plate|plate|portion|serving):?\s*~?\s*(\d+(?:\.\d+)?)\s*g/i);
     if (packMatch) {
       packWeightGrams = parseFloat(packMatch[1]);
     }
@@ -136,8 +136,9 @@ export function normalizeNutritionTo100g(food: {
   const fibre = Math.round(rawFibre * safeFactor * 10) / 10;
   const sodium = Math.round(rawSodium * safeFactor);
 
+  const isPlate = lowerServing.includes('plate') || lowerServing.includes('thali') || lowerServing.includes('meal');
   const packSizeNote = packWeightGrams 
-    ? `Pack: ${packWeightGrams}g` 
+    ? (isPlate ? `Plate: ~${packWeightGrams}g` : `Pack: ${packWeightGrams}g`) 
     : (serving && !isAlreadyPer100g ? `Portion: ${serving}` : undefined);
 
   return {
