@@ -8,7 +8,6 @@ import {
   Flame, 
   Gamepad2, 
   Heart, 
-  Play, 
   Waves, 
   Wind, 
   Share2, 
@@ -108,12 +107,11 @@ const AudioTrackCard: React.FC<{
       style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: isMobile ? '10px 12px' : '12px 16px',
+        padding: isMobile ? '8px 10px' : '12px 14px',
         background: isHovered
           ? 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)'
           : 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
-        borderRadius: isMobile ? '18px' : '20px',
+        borderRadius: isMobile ? '16px' : '20px',
         border: isHovered ? '1.5px solid rgba(13, 148, 136, 0.45)' : '1.5px solid rgba(226, 232, 240, 0.9)',
         cursor: 'pointer',
         boxShadow: isHovered
@@ -126,20 +124,20 @@ const AudioTrackCard: React.FC<{
         overflow: 'hidden'
       }}
     >
-      {/* Left: Thumbnail + Metadata */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', minWidth: 0, overflow: 'hidden' }}>
+      {/* Thumbnail + Metadata */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
         {/* Generative Visual Art Thumbnail */}
         <div
           style={{
             position: 'relative',
-            width: isMobile ? '48px' : '56px',
-            height: isMobile ? '48px' : '56px',
-            minWidth: isMobile ? '48px' : '56px',
-            borderRadius: isMobile ? '14px' : '16px',
+            width: isMobile ? '44px' : '52px',
+            height: isMobile ? '44px' : '52px',
+            minWidth: isMobile ? '44px' : '52px',
+            borderRadius: isMobile ? '12px' : '14px',
             overflow: 'hidden',
             flexShrink: 0,
             background: '#0F172A',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.2)'
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.2)'
           }}
         >
           <motion.img
@@ -170,11 +168,11 @@ const AudioTrackCard: React.FC<{
         </div>
 
         {/* Text Details & Category Micro-Pill */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <h3
             style={{
               margin: 0,
-              fontSize: isMobile ? '14px' : '15.5px',
+              fontSize: isMobile ? '14px' : '15px',
               fontWeight: 800,
               color: '#0F172A',
               lineHeight: 1.25,
@@ -210,38 +208,6 @@ const AudioTrackCard: React.FC<{
           </div>
         </div>
       </div>
-
-      {/* Right: Tactile Circular Play Action Button */}
-      <motion.div
-        animate={{
-          scale: isHovered ? 1.08 : 1,
-          backgroundColor: isHovered ? '#0D9488' : 'rgba(241, 245, 249, 0.95)',
-          borderColor: isHovered ? '#0D9488' : 'rgba(226, 232, 240, 0.95)',
-          boxShadow: isHovered
-            ? '0 4px 14px rgba(13, 148, 136, 0.35)'
-            : '0 2px 6px rgba(15, 23, 42, 0.04)'
-        }}
-        transition={{ duration: 0.2 }}
-        style={{
-          width: isMobile ? '32px' : '36px',
-          height: isMobile ? '32px' : '36px',
-          minWidth: isMobile ? '32px' : '36px',
-          borderRadius: '999px',
-          border: '1.5px solid rgba(226, 232, 240, 0.95)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          marginLeft: isMobile ? '6px' : '10px'
-        }}
-      >
-        <Play
-          size={isMobile ? 11 : 12}
-          fill={isHovered ? '#FFFFFF' : '#0D9488'}
-          color={isHovered ? '#FFFFFF' : '#0D9488'}
-          style={{ marginLeft: '1.5px' }}
-        />
-      </motion.div>
     </motion.div>
   );
 };
