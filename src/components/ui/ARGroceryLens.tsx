@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowLeft, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, Layers, ShieldCheck } from 'lucide-react';
+import { Camera, X, Zap, ArrowLeft, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, Layers, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
@@ -225,6 +225,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const [shutterFlash, setShutterFlash] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState<'scanned' | 'alternative'>('scanned');
+  const [showIngredientsDrawer, setShowIngredientsDrawer] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanError, setScanError] = useState<{ title: string; message: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -363,6 +364,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const handleResumeCamera = () => {
     setCapturedPhoto(null);
     setIsScanning(false);
+    setShowIngredientsDrawer(false);
     if (videoRef.current && stream) {
       videoRef.current.play().catch(() => {});
     }
@@ -456,6 +458,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     document.body.classList.remove('lens-active');
     setCapturedPhoto(null);
     setIsScanning(false);
+    setShowIngredientsDrawer(false);
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
     }
@@ -965,6 +968,26 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         </div>
                       )}
 
+                      {/* Deception & Label Reality Check */}
+                      {!isViewingAlt && analysis?.deceptionAlert && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          background: '#FFFBEB',
+                          border: '1.5px solid #FDE68A',
+                          borderRadius: '14px',
+                          padding: '10px 12px',
+                          boxSizing: 'border-box'
+                        }}>
+                          <span style={{ fontSize: '14px', lineHeight: 1, marginTop: '1px' }}>⚡</span>
+                          <div style={{ fontSize: '11.5px', color: '#92400E', lineHeight: 1.4 }}>
+                            <strong style={{ color: '#78350F' }}>Label Reality: </strong>
+                            {analysis.deceptionAlert}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Title & Calorie Pill on Same Line */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
                         <div style={{ flex: 1 }}>
@@ -972,7 +995,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                             {displayedFood.name}
                           </h2>
                           <p style={{ margin: '3px 0 0', fontSize: '11.5px', color: '#64748B', fontWeight: 500, lineHeight: 1.35 }}>
-                            {displayedFood.subtitle}
+                            {isViewingAlt ? displayedFood.subtitle : `Standardized to 100g mark • NOVA ${analysis?.novaGrade || 4} ${analysis?.nutriScore ? `· Nutri-Score ${analysis.nutriScore}` : ''}`}
                           </p>
                         </div>
 
@@ -1077,6 +1100,173 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           subtitle={`${targetCalories} kcal`}
                         />
                       </div>
+
+                      {/* Quick Health Pulse (Yuka-style 2-Second Decision Chips) */}
+                      {!isViewingAlt && Boolean((analysis?.positives && analysis.positives.length > 0) || (analysis?.negatives && analysis.negatives.length > 0)) && (
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          alignItems: 'center',
+                          padding: '2px 0'
+                        }}>
+                          {analysis?.positives?.map((pos, idx) => (
+                            <div key={`pos-${idx}`} style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3px 8px',
+                              borderRadius: '8px',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              color: '#059669',
+                              fontSize: '11px',
+                              fontWeight: 700
+                            }}>
+                              <CheckCircle2 size={12} strokeWidth={2.5} />
+                              <span>{pos}</span>
+                            </div>
+                          ))}
+                          {analysis?.negatives?.map((neg, idx) => (
+                            <div key={`neg-${idx}`} style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3px 8px',
+                              borderRadius: '8px',
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              color: '#E11D48',
+                              fontSize: '11px',
+                              fontWeight: 700
+                            }}>
+                              <span style={{ fontWeight: 900, fontSize: '11px' }}>✕</span>
+                              <span>{neg}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Top 3 Ingredients Micro-Bar (Label Padhega India) */}
+                      {!isViewingAlt && Boolean(analysis?.topIngredients && analysis.topIngredients.length > 0) && (
+                        <div style={{
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '12px',
+                          padding: '8px 11px',
+                          fontSize: '11.5px',
+                          color: '#334155',
+                          lineHeight: 1.45
+                        }}>
+                          <strong style={{ color: '#0F172A', fontWeight: 800 }}>Top 3 Ingredients: </strong>
+                          <span>{analysis?.topIngredients?.map((ing, i) => `${i + 1}. ${ing}`).join(' · ')}</span>
+                        </div>
+                      )}
+
+                      {/* Collapsible Ingredients & Chemical Additives Drawer (Progressive Disclosure) */}
+                      {!isViewingAlt && Boolean((analysis?.ingredientsList && analysis.ingredientsList.length > 0) || (analysis?.additives && analysis.additives.length > 0)) && (
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticLight();
+                              setShowIngredientsDrawer(prev => !prev);
+                            }}
+                            style={{
+                              width: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderRadius: '12px',
+                              background: showIngredientsDrawer ? '#F8FAFC' : '#FFFFFF',
+                              border: '1px solid #CBD5E1',
+                              color: '#475569',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>🔬</span>
+                              <span>
+                                {analysis?.additives?.length ? `${analysis.additives.length} Additive${analysis.additives.length > 1 ? 's' : ''} & ` : ''}Full Ingredients
+                              </span>
+                            </span>
+                            {showIngredientsDrawer ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                          </button>
+
+                          <AnimatePresence>
+                            {showIngredientsDrawer && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.22, ease: 'easeOut' }}
+                                style={{ overflow: 'hidden' }}
+                              >
+                                <div style={{
+                                  marginTop: '8px',
+                                  padding: '12px',
+                                  background: '#F8FAFC',
+                                  borderRadius: '14px',
+                                  border: '1px solid #E2E8F0',
+                                  fontSize: '11.5px',
+                                  color: '#475569',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '8px'
+                                }}>
+                                  {analysis?.ingredientsSummary && (
+                                    <div>
+                                      <strong style={{ color: '#0F172A', display: 'block', marginBottom: '2px' }}>Ingredients List:</strong>
+                                      <span style={{ lineHeight: 1.45 }}>{analysis.ingredientsSummary}</span>
+                                    </div>
+                                  )}
+
+                                  {analysis?.additives && analysis.additives.length > 0 && (
+                                    <div>
+                                      <strong style={{ color: '#0F172A', display: 'block', marginBottom: '4px' }}>Chemical Additives Identified:</strong>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        {analysis.additives.map((add, idx) => {
+                                          const isHigh = add.riskLevel === 'high';
+                                          const isMod = add.riskLevel === 'moderate';
+                                          const bg = isHigh ? '#FEF2F2' : isMod ? '#FFFBEB' : '#ECFDF5';
+                                          const border = isHigh ? '#FECDD3' : isMod ? '#FDE68A' : '#A7F3D0';
+                                          const textCol = isHigh ? '#DC2626' : isMod ? '#D97706' : '#059669';
+                                          return (
+                                            <span key={idx} style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              padding: '2px 7px',
+                                              borderRadius: '6px',
+                                              background: bg,
+                                              border: `1px solid ${border}`,
+                                              color: textCol,
+                                              fontSize: '10.5px',
+                                              fontWeight: 700
+                                            }}>
+                                              {add.code ? `${add.code}: ` : ''}{add.name} ({add.riskLevel === 'low' ? 'Safe' : add.riskLevel})
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {analysis?.allergens && analysis.allergens.length > 0 && (
+                                    <div style={{ fontSize: '11px', color: '#991B1B' }}>
+                                      <strong>Allergen Notice: </strong>
+                                      <span>Contains {analysis.allergens.join(', ')}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
                     </div>
 
                     {/* Better Alternative Card with Working Interactive Arrow Button */}

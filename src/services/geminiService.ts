@@ -1989,6 +1989,10 @@ export interface FoodAnalysisResult {
   nutriScore?: 'A' | 'B' | 'C' | 'D' | 'E';
   flags?: string[];
   warning?: string | null;
+  deceptionAlert?: string | null;
+  positives?: string[];
+  negatives?: string[];
+  topIngredients?: string[];
   ingredientsList?: string[];
   ingredientsSummary?: string;
   additives?: FoodAdditiveDetail[];
@@ -2084,6 +2088,10 @@ Return ONLY valid JSON matching this schema:
   "glycemicImpact": "Low" | "Moderate" | "High",
   "flags": ["Palm Oil", "Refined Maida", "High Sodium", "Deep Fried"],
   "warning": "Short warning string if high risk, or null",
+  "deceptionAlert": "If front-of-pack claims (e.g. 'Whole Wheat', 'Real Almonds', 'Zero Sugar', 'No Trans Fat') deceive the consumer compared to actual back-of-pack ingredients (e.g. 65% Maida & Palm oil; or Maltodextrin instead of sugar), state crisply: 'Claims X · Ingredients reveal Y'. Otherwise null.",
+  "positives": ["1-2 concise positive takeaways, e.g. 'High Protein (14g)', 'Good Fibre (6g)', 'Zero Added Sugar'"],
+  "negatives": ["1-2 concise clinical watchouts, e.g. 'Palmolein Oil Base', 'High Sodium Spike (580mg)', 'Refined Maida'"],
+  "topIngredients": ["Array of the top 3 ingredients, e.g. 'Peanuts (65%)', 'Palmolein Oil', 'Refined Wheat Flour'"],
   "ingredientsList": ["Peanuts (65%)", "Edible Vegetable Oil (Palmolein)", "Refined Wheat Flour (Maida)", "Corn Starch", "Spices & Condiments", "Iodised Salt", "Acidity Regulator (INS 330)"],
   "ingredientsSummary": "Continuous ingredients sentence",
   "additives": [
@@ -2215,6 +2223,36 @@ Return ONLY valid JSON matching this schema:
       ? parsed.allergens.map(String)
       : undefined;
 
+    const deceptionAlert = parsed.deceptionAlert ? String(parsed.deceptionAlert) : null;
+
+    // Positives with deterministic fallback if model omitted
+    let positives: string[] = Array.isArray(parsed.positives) && parsed.positives.length > 0
+      ? parsed.positives.map(String).slice(0, 2)
+      : [];
+    if (positives.length === 0) {
+      if ((parsed.protein || 0) >= 8) positives.push(`Protein Source (${Math.round(parsed.protein)}g)`);
+      if ((parsed.fibre || 0) >= 4) positives.push(`Dietary Fibre (${Math.round(parsed.fibre)}g)`);
+      if ((parsed.sugar || 0) <= 2 && (parsed.calories || 0) > 0) positives.push(`Low Sugar (≤2g)`);
+      if (positives.length === 0 && verdict === 'clean_choice') positives.push('Clean Macro Balance');
+    }
+
+    // Negatives with deterministic fallback if model omitted
+    let negatives: string[] = Array.isArray(parsed.negatives) && parsed.negatives.length > 0
+      ? parsed.negatives.map(String).slice(0, 2)
+      : [];
+    if (negatives.length === 0) {
+      if (parsed.flags?.some((f: string) => /palm/i.test(f))) negatives.push('Palmolein Oil Base');
+      if ((parsed.sodium || 0) >= 380) negatives.push(`High Sodium (${Math.round(parsed.sodium)}mg)`);
+      if (parsed.flags?.some((f: string) => /maida|refined/i.test(f))) negatives.push('Refined Flour (Maida)');
+      if ((parsed.sugar || 0) >= 15) negatives.push(`High Sugar (${Math.round(parsed.sugar)}g)`);
+      if (negatives.length === 0 && verdict === 'caution_swap_recommended') negatives.push('Ultra-Processed (NOVA 4)');
+    }
+
+    // Top 3 ingredients
+    const topIngredients: string[] = Array.isArray(parsed.topIngredients) && parsed.topIngredients.length > 0
+      ? parsed.topIngredients.map(String).slice(0, 3)
+      : (ingredientsList ? ingredientsList.slice(0, 3) : []);
+
     return {
       detected: true,
       foodName: String(parsed.foodName || 'Identified Food'),
@@ -2235,6 +2273,10 @@ Return ONLY valid JSON matching this schema:
       glycemicImpact: (['Low', 'Moderate', 'High'].includes(parsed.glycemicImpact) ? parsed.glycemicImpact : (verdict === 'caution_swap_recommended' ? 'High' : 'Moderate')) as 'Low' | 'Moderate' | 'High',
       flags: Array.isArray(parsed.flags) ? parsed.flags.map((f: any) => String(f)) : [],
       warning: parsed.warning || (verdict === 'caution_swap_recommended' ? 'High ultra-processing or refined carbs. Consider a healthier swap below.' : null),
+      deceptionAlert,
+      positives,
+      negatives,
+      topIngredients,
       ingredientsList,
       ingredientsSummary: parsed.ingredientsSummary ? String(parsed.ingredientsSummary) : (ingredientsList ? ingredientsList.join(', ') : undefined),
       additives,

@@ -158,6 +158,9 @@ describe('Clinical Lens Front-of-Pack Vision & Smart Alternatives', () => {
     expect(result.additives?.[0].code).toBe('INS 330');
     expect(result.allergens).toContain('Peanuts');
     expect(result.betterAlternatives?.[0].sodium).toBe(120);
+    expect(result.topIngredients?.length).toBe(3);
+    expect(result.topIngredients?.[0]).toContain('Peanuts');
+    expect(result.negatives).toContain('Palmolein Oil Base');
   });
 
   it('handles non-food detection gracefully', async () => {
