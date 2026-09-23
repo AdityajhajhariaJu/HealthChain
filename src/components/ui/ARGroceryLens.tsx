@@ -1481,7 +1481,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       }}
                     >
                       <Scan size={17} />
-                      Log {logFood.name.length > 18 ? `${logFood.name.slice(0, 16)}...` : logFood.name}
+                      Log to Diet Diary (+5 PTS)
                     </button>
                   );
                 })()}
