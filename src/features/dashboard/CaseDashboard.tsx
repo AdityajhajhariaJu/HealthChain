@@ -52,6 +52,7 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { VitalityNav } from '../../components/ui/FitnessNav';
+import { AnimatedTrackThumbnail } from '../../components/ui/AnimatedTrackThumbnail';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getHabitStorageKey } from '../../services/profileScope';
 
@@ -127,7 +128,7 @@ const AudioTrackCard: React.FC<{
     >
       {/* Thumbnail + Metadata */}
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
-        {/* Generative Visual Art Thumbnail */}
+        {/* Animated Headspace-Inspired Visual Art Thumbnail */}
         <div
           style={{
             position: 'relative',
@@ -138,33 +139,13 @@ const AudioTrackCard: React.FC<{
             overflow: 'hidden',
             flexShrink: 0,
             background: '#0F172A',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.2)'
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.15)'
           }}
         >
-          <motion.img
-            loading="lazy"
-            decoding="async"
-            src={item.img}
-            alt={item.title}
-            animate={{ scale: isHovered ? 1.08 : 1 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            onError={(e) => {
-              e.currentTarget.src = item.fallbackImg || '/images/calm_meditate_lotus.jpg';
-            }}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block'
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.22) 100%)',
-              pointerEvents: 'none'
-            }}
+          <AnimatedTrackThumbnail
+            trackId={item.id}
+            size={isMobile ? 44 : 52}
+            isHovered={isHovered}
           />
         </div>
 
