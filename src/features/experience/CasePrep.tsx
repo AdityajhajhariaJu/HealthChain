@@ -399,22 +399,24 @@ export default function CasePrep() {
 
   if (!selectedCase && !showPicker) {
     return (
-      <main style={{ maxWidth: 800, margin: '40px auto', padding: '0 20px', textAlign: 'center' }}>
-        
-        <div style={{ width: 80, height: 80, background: '#f0fdfa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto', color: '#0d9488' }}>
-          <Briefcase size={36} />
-        </div>
-        <h1 style={{ fontSize: 32, color: '#0f172a', marginBottom: 16 }}>Prepare appointment brief</h1>
-        <button className="btn btn-primary" onClick={() => setShowPicker(true)} style={{ padding: '14px 28px', fontSize: 16, borderRadius: 30 }}>
-          Select case <ArrowRight size={18} style={{ marginLeft: 8 }} />
-        </button>
-      </main>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' }}>
+        <main style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px', textAlign: 'center' }}>
+          <div style={{ width: 80, height: 80, background: '#f0fdfa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto', color: '#0d9488' }}>
+            <Briefcase size={36} />
+          </div>
+          <h1 style={{ fontSize: 32, color: '#0f172a', marginBottom: 16 }}>Prepare appointment brief</h1>
+          <button className="btn btn-primary" onClick={() => setShowPicker(true)} style={{ padding: '14px 28px', fontSize: 16, borderRadius: 30 }}>
+            Select case <ArrowRight size={18} style={{ marginLeft: 8 }} />
+          </button>
+        </main>
+      </div>
     );
   }
 
   if (showPicker) {
     return (
-      <main style={{ maxWidth: 600, margin: '40px auto', padding: '0 20px' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' }}>
+        <main style={{ maxWidth: 600, margin: '0 auto', padding: '40px 20px' }}>
         {caseNotFoundId && (
           <div
             role="alert"
@@ -459,7 +461,7 @@ export default function CasePrep() {
           <Briefcase size={24} color="#0d9488" /> Choose a case
         </h2>
         {cases.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', background: '#f8fafc', borderRadius: 16 }}>
+          <div style={{ padding: 40, textAlign: 'center', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 16 }}>
             <p>You don't have any active cases yet.</p>
             <button className="btn btn-primary" onClick={() => navigate('/app/my-cases?new=true')} style={{ marginTop: 16 }}>Start a case</button>
           </div>
@@ -479,9 +481,9 @@ export default function CasePrep() {
                     setShowPicker(false);
                   }
                 }}
-                style={{ padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'border 0.2s' }}
+                style={{ padding: 20, background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: 12, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'border 0.2s' }}
                 onMouseOver={e => e.currentTarget.style.borderColor = '#0d9488'}
-                onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                onMouseOut={e => e.currentTarget.style.borderColor = '#F1E5E7'}
               >
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#0f172a' }}>{c.title || 'Untitled Case'}</h3>
@@ -495,20 +497,22 @@ export default function CasePrep() {
           </div>
         )}
       </main>
+      </div>
     );
   }
 
   if (!displayedBrief) {
     return (
-      <main style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Loader2 size={32} className="spin" color="#0d9488" />
-      </main>
+      </div>
     );
   }
 
   const briefHistory = selectedCase?.appointmentBriefs?.history || [];
 
   return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' }}>
     <main style={{ maxWidth: 840, margin: '0 auto', padding: '40px 20px 80px' }}>
 
       <div className="print-hide">
@@ -661,7 +665,7 @@ export default function CasePrep() {
             marginBottom: '24px',
             background: '#FFFFFF',
             borderRadius: '16px',
-            border: '1.5px solid #E2E8F0',
+            border: '1.5px solid #F1E5E7',
             padding: '20px',
             boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
           }}
@@ -691,7 +695,7 @@ export default function CasePrep() {
           </div>
 
           {showQuestionSelector && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F1E5E7' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ fontSize: 12, color: '#64748B' }}>
                   Check questions to address during this visit:
@@ -733,8 +737,8 @@ export default function CasePrep() {
                       style={{
                         padding: '10px 14px',
                         borderRadius: 10,
-                        border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                        background: isSelected ? '#F0FDFA' : '#F8FAFC',
+                        border: isSelected ? '1.5px solid #0D9488' : '1px solid #F1E5E7',
+                        background: isSelected ? '#F0FDFA' : '#FFFAFA',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -803,7 +807,7 @@ export default function CasePrep() {
       )}
 
       {/* The Printable Brief */}
-      <div className="case-prep-printable-dossier" style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', padding: 40 }}>
+      <div className="case-prep-printable-dossier" style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #F1E5E7', padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.03)' }}>
 
         <header style={{ borderBottom: '2px solid #0f172a', paddingBottom: 20, marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
@@ -837,7 +841,7 @@ export default function CasePrep() {
 
         {/* Section 1: Chief Concern */}
         <section style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #F1E5E7', paddingBottom: 8, marginBottom: 16 }}>
             Why I'm here
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, color: '#0f172a', margin: 0 }}>
@@ -848,8 +852,8 @@ export default function CasePrep() {
         {/* Section 2: What Changed Since Last Visit (Phase 5 Step 23) */}
         {((displayedBrief.previousOutcomesReviewed && displayedBrief.previousOutcomesReviewed.length > 0) ||
           (displayedBrief.changesSinceLastVisit && displayedBrief.changesSinceLastVisit.length > 0)) && (
-          <section style={{ marginBottom: 28, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20 }}>
-            <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <section style={{ marginBottom: 28, background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 12, padding: 20 }}>
+            <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #F1E5E7', paddingBottom: 8, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Clock size={18} /> Since the last visit
             </h2>
 
@@ -861,7 +865,7 @@ export default function CasePrep() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {displayedBrief.previousOutcomesReviewed.map((po, i) => (
-                    <div key={po.questionId || i} style={{ padding: '10px 14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 13 }}>
+                    <div key={po.questionId || i} style={{ padding: '10px 14px', background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: 8, fontSize: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                         <span style={{ fontWeight: 600, color: '#0F172A' }}>{po.questionText}</span>
                         <span style={{
@@ -962,7 +966,7 @@ export default function CasePrep() {
           <div>{displayedBrief.safetyNotice || 'This brief is prepared for educational and doctor-discussion purposes only.'}</div>
         </section>
 
-        <footer style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: '#94A3B8', flexWrap: 'wrap', gap: 8 }}>
+        <footer style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: '#94A3B8', flexWrap: 'wrap', gap: 8 }}>
           <div>Data Provenance: Patient-reported clinician statement &middot; HealthChain Clinical Dossier</div>
           <div>Brief Version {displayedBrief.version || 1} &middot; Case ID: {selectedCase?.id}</div>
         </footer>
@@ -1012,7 +1016,7 @@ export default function CasePrep() {
             Outcome recording is disabled while inspecting an archived brief. Switch back to Current Brief to record outcomes.
           </div>
         ) : caseQuestions.length === 0 ? (
-          <div style={{ padding: '20px', background: '#F8FAFC', borderRadius: '12px', fontSize: '13px', color: '#64748B', textAlign: 'center', marginTop: '16px' }}>
+          <div style={{ padding: '20px', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: '12px', fontSize: '13px', color: '#64748B', textAlign: 'center', marginTop: '16px' }}>
             No specific clinical questions were extracted for this visit yet. Discuss the main concern with Ava to generate tailored questions.
           </div>
         ) : (
@@ -1027,8 +1031,8 @@ export default function CasePrep() {
                   style={{
                     padding: '18px',
                     borderRadius: '14px',
-                    border: isRecorded ? '1.5px solid #A7F3D0' : '1.5px solid #E2E8F0',
-                    background: isRecorded ? '#F0FDF4' : '#F8FAFC',
+                    border: isRecorded ? '1.5px solid #A7F3D0' : '1.5px solid #F1E5E7',
+                    background: isRecorded ? '#F0FDF4' : '#FFFAFA',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -1198,7 +1202,7 @@ export default function CasePrep() {
               aria-label="Supporting detail"
               style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '24px', borderBottom: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}><Info size={20} color="#0d9488" /> Supporting detail</h3>
                 <button 
                   type="button"
@@ -1215,7 +1219,7 @@ export default function CasePrep() {
                 </p>
                 <div style={{ display: 'grid', gap: 16 }}>
                   {(displayedBrief.priorPerspectives || []).map((p: any, i: number) => (
-                    <div key={i} style={{ padding: 16, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                    <div key={i} style={{ padding: 16, background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 8 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>{p?.title || 'Perspective'}</div>
                       <div style={{ fontSize: 14, color: '#0f172a', lineHeight: 1.5 }}>{p?.summary || ''}</div>
                     </div>
@@ -1229,5 +1233,6 @@ export default function CasePrep() {
       </AnimatePresence>
 
     </main>
+    </div>
   );
 }
