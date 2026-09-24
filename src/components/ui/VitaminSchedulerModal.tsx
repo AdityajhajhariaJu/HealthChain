@@ -1341,68 +1341,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               </div>
             )}
 
-            {/* Evidence-Based Drug-Nutrient & Chronotherapy Interaction Alerts */}
-            {interactionAlerts.length > 0 && (
-              <div style={{
-                background: 'linear-gradient(135deg, #FFF8F9 0%, #FFF5F6 100%)',
-                border: '1px solid #F1E5E7',
-                borderRadius: '20px',
-                padding: '14px 16px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <AlertTriangle size={15} color="#BE123C" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                    CHRONOTHERAPY & DRUG-NUTRIENT ALERTS ({interactionAlerts.length})
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {interactionAlerts.map(alert => (
-                    <div
-                      key={alert.id}
-                      style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #F1E5E7',
-                        borderRadius: '14px',
-                        padding: '12px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#9F1239' }}>
-                          {alert.title}
-                        </span>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          padding: '2px 7px',
-                          borderRadius: '999px',
-                          background: '#FFFAFA',
-                          color: alert.severity === 'timing_buffer' ? '#DC2626' : '#BE123C',
-                          border: '1px solid #F1E5E7',
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {alert.severity === 'timing_buffer' ? '4h Buffer Required' : alert.severity === 'depletion' ? 'Nutrient Depletion' : 'Lipid Absorption'}
-                        </span>
-                      </div>
-                      <p style={{ margin: '0 0 6px', fontSize: '11.5px', color: '#78716C', lineHeight: 1.4 }}>
-                        {alert.message}
-                      </p>
-                      <div style={{
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        color: '#9F1239',
-                        background: '#FFFAFA',
-                        padding: '6px 10px',
-                        borderRadius: '8px',
-                        border: '1px solid #F1E5E7'
-                      }}>
-                        💡 Clinical Protocol: {alert.recommendation}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* SECTION 1: Curated Clinical Medicine & Vitamin Selector (Zero Overlap) */}
             <div>
