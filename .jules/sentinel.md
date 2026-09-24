@@ -1,0 +1,4 @@
+## 2024-05-18 - Missing Admin Authorization in Admin Content API
+**Vulnerability:** The `/api/admin-content.js` serverless function lacked an explicit authorization check to verify that the authenticated user actually had admin privileges before allowing database mutations (insert, update, delete).
+**Learning:** A placeholder comment (`// TODO: Add strict admin role check here.`) indicated the intention to restrict access but it was not implemented, leaving a critical endpoint exposed to any authenticated user.
+**Prevention:** For security-sensitive and admin routes, employ a "fail-closed" approach: require strict role/identity validation (like checking `user.id` against `ADMIN_USER_ID`) and immediately deny access (403) if the required validation configuration is missing or the identity doesn't match.
