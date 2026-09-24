@@ -1140,7 +1140,11 @@ export default function Dietician() {
     'diet-plan';
 
   return (
-    <div style={{ paddingBottom: '100px' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+      paddingBottom: '100px',
+    }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         
 
@@ -1214,7 +1218,7 @@ export default function Dietician() {
               background: '#FFFFFF',
               padding: '4px 6px',
               borderRadius: '14px',
-              border: '1px solid #E2E8F0',
+              border: '1px solid #F1E5E7',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
               overflowX: 'auto', width: isMobile ? '100%' : 'auto', maxWidth: '100%', flexWrap: 'nowrap',
               WebkitOverflowScrolling: 'touch',
@@ -1821,7 +1825,7 @@ export default function Dietician() {
                     background: '#FFFFFF',
                     borderRadius: '20px',
                     padding: isMobile ? '16px' : '20px',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid #F1E5E7',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -1871,8 +1875,8 @@ export default function Dietician() {
                             gap: '5px',
                             padding: '4px 10px',
                             borderRadius: '8px',
-                            background: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
+                            background: '#FFFAFA',
+                            border: '1px solid #F1E5E7',
                             fontSize: '11.5px',
                             color: '#475569',
                             fontWeight: 600,
@@ -1893,8 +1897,8 @@ export default function Dietician() {
                             style={{
                               padding: '6px 14px',
                               borderRadius: '10px',
-                              background: '#F8FAFC',
-                              border: '1px solid #CBD5E1',
+                              background: '#FFFAFA',
+                              border: '1px solid #F1E5E7',
                               color: '#334155',
                               fontSize: '12.5px',
                               fontWeight: 700,
@@ -2129,8 +2133,8 @@ export default function Dietician() {
                           style={{
                             padding: '6px 12px',
                             borderRadius: '10px',
-                            background: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
+                            background: '#FFFAFA',
+                            border: '1px solid #F1E5E7',
                             color: '#475569',
                             fontSize: '12px',
                             fontWeight: 600,
@@ -2176,10 +2180,10 @@ export default function Dietician() {
                       gap: '8px',
                       fontSize: '11.5px',
                       color: '#64748B',
-                      background: '#F8FAFC',
+                      background: '#FFFAFA',
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: '1px solid #F1F5F9',
+                      border: '1px solid #F1E5E7',
                     }}
                   >
                     <ShieldCheck size={14} color="#059669" />
@@ -2309,10 +2313,10 @@ export default function Dietician() {
                           <div
                             key={meal.id || mIdx}
                             style={{
-                              background: '#F8FAFC',
+                              background: '#FFFAFA',
                               borderRadius: '16px',
                               padding: '18px',
-                              border: '1px solid #E2E8F0',
+                              border: '1px solid #F1E5E7',
                               display: 'flex',
                               flexDirection: 'column',
                               justifyContent: 'space-between',
@@ -2463,8 +2467,8 @@ export default function Dietician() {
                           display: 'flex',
                           alignItems: 'flex-start',
                           gap: '10px',
-                          background: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
+                          background: '#FFFAFA',
+                          border: '1px solid #F1E5E7',
                           borderRadius: '12px',
                           padding: '12px 16px',
                           fontSize: '12px',
@@ -2586,7 +2590,7 @@ export default function Dietician() {
                       background: '#FFFFFF',
                       borderRadius: '24px',
                       padding: '22px',
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid #F1E5E7',
                       boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                     }}
                   >
@@ -2619,9 +2623,9 @@ export default function Dietician() {
                             alignItems: 'center',
                             gap: '12px',
                             padding: '10px 14px',
-                            background: item.checked ? '#F8FAFC' : '#FFFFFF',
+                            background: item.checked ? '#FFFAFA' : '#FFFFFF',
                             borderRadius: '12px',
-                            border: `1px solid ${item.checked ? '#E2E8F0' : '#F1F5F9'}`,
+                            border: `1px solid ${item.checked ? '#F1E5E7' : '#F1E5E7'}`,
                             cursor: 'pointer',
                             transition: 'all 0.15s',
                           }}
@@ -2739,7 +2743,7 @@ export default function Dietician() {
                     if (gr.color === 'red') { bgColor = '#FEE2E2'; iconColor = '#DC2626'; targetColor = '#DC2626'; }
 
                     return (
-                      <div key={idx} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
+                      <div key={idx} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #F1E5E7' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                           <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor }}>
                             <IconComponent size={18} />
@@ -2752,7 +2756,7 @@ export default function Dietician() {
                         <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
                           {gr.description}
                         </p>
-                        <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
+                        <div style={{ fontSize: '12px', background: '#FFFAFA', padding: '10px 14px', borderRadius: '10px', color: '#334155', border: '1px solid #F1E5E7' }}>
                           <strong>Key Nutrients:</strong> {gr.keyNutrients}
                         </div>
                       </div>
@@ -2909,8 +2913,8 @@ export default function Dietician() {
                           onClick={() => handleAddPreset(preset)}
                           style={{
                             padding: '6px 10px',
-                            background: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
+                            background: '#FFFAFA',
+                            border: '1px solid #F1E5E7',
                             borderRadius: '8px',
                             fontSize: '11.5px',
                             fontWeight: 600,
@@ -2922,7 +2926,7 @@ export default function Dietician() {
                             transition: 'all 0.15s',
                           }}
                           onMouseEnter={(e) => (e.currentTarget.style.background = '#ECFDF5')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = '#F8FAFC')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = '#FFFAFA')}
                         >
                           <span>{preset.emoji}</span> {preset.name}
                         </button>
@@ -3033,7 +3037,7 @@ export default function Dietician() {
 
                   {/* Live Biochemical Trigger Sensitivity Warning */}
                   {foodInput.trim().length > 2 && (
-                    <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                    <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7' }}>
                       <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
                         TriggerBite Biochemical Guard
                       </div>
@@ -3294,8 +3298,8 @@ export default function Dietician() {
                         justifyContent: 'space-between',
                         padding: '14px 16px',
                         borderRadius: '16px',
-                        background: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
+                        background: '#FFFAFA',
+                        border: '1px solid #F1E5E7',
                         gap: '12px',
                       }}
                     >
@@ -3466,8 +3470,8 @@ export default function Dietician() {
                   {/* History Safety Assurance */}
                   <div
                     style={{
-                      background: '#F8FAFC',
-                      border: '1px solid #E2E8F0',
+                      background: '#FFFAFA',
+                      border: '1px solid #F1E5E7',
                       borderRadius: '12px',
                       padding: '12px 14px',
                       display: 'flex',
@@ -3877,7 +3881,7 @@ export default function Dietician() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFFAFA', border: '1px solid #F1E5E7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
                         <Archive size={18} />
                       </div>
                       <div>
@@ -3905,8 +3909,8 @@ export default function Dietician() {
                         style={{
                           padding: '14px',
                           borderRadius: '14px',
-                          border: '1px solid #E2E8F0',
-                          background: '#F8FAFC',
+                          border: '1px solid #F1E5E7',
+                          background: '#FFFAFA',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',

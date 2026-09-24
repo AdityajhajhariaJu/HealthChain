@@ -118,7 +118,7 @@ export function DieticianDashboardTracker({
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
         {/* Diet & Goals Card */}
         <div style={{
-          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9'
+          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7'
         }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
             <div style={{ background: '#ECFDF5', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -137,7 +137,7 @@ export function DieticianDashboardTracker({
 
         {/* Daily Hydration Card */}
         <div style={{
-          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9'
+          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7'
         }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
             <div style={{ background: '#EFF6FF', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -315,7 +315,7 @@ export function DieticianDashboardTracker({
             background: '#FFFFFF',
             padding: '12px 14px',
             borderRadius: '16px',
-            border: '1.5px solid #F1F5F9',
+            border: '1.5px solid #F1E5E7',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             alignItems: 'center',
@@ -329,7 +329,7 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#F1F5F9';
+            e.currentTarget.style.borderColor = '#F1E5E7';
             e.currentTarget.style.transform = 'none';
           }}
         >
@@ -352,7 +352,7 @@ export function DieticianDashboardTracker({
             background: '#FFFFFF',
             padding: '12px 14px',
             borderRadius: '16px',
-            border: '1.5px solid #F1F5F9',
+            border: '1.5px solid #F1E5E7',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             alignItems: 'center',
@@ -366,7 +366,7 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#F1F5F9';
+            e.currentTarget.style.borderColor = '#F1E5E7';
             e.currentTarget.style.transform = 'none';
           }}
         >
@@ -389,7 +389,7 @@ export function DieticianDashboardTracker({
             background: '#FFFFFF',
             padding: '12px 14px',
             borderRadius: '16px',
-            border: '1.5px solid #F1F5F9',
+            border: '1.5px solid #F1E5E7',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             alignItems: 'center',
@@ -403,7 +403,7 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#F1F5F9';
+            e.currentTarget.style.borderColor = '#F1E5E7';
             e.currentTarget.style.transform = 'none';
           }}
         >
@@ -452,8 +452,8 @@ export function DieticianDashboardTracker({
                       onLogMeal(meal.name);
                     }
                   }}
-                  style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #E2E8F0', color: '#94A3B8', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s, transform 0.1s' }} 
-                  onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'} 
+                  style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #F1E5E7', color: '#94A3B8', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s, transform 0.1s' }} 
+                  onMouseOver={(e) => e.currentTarget.style.background = '#FFFAFA'} 
                   onMouseOut={(e) => e.currentTarget.style.background = '#FFF'} 
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'} 
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -467,7 +467,7 @@ export function DieticianDashboardTracker({
               )}
 
               {mealConsumed > 0 && Array.isArray(foodLogs[currentDate]) && foodLogs[currentDate].filter((l: any) => isLogForMeal(l, meal.name)).map((log: any, idx2: number) => (
-                  <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
+                  <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
                     <div style={{ flex: 1, minWidth: '160px' }}>
                       <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>

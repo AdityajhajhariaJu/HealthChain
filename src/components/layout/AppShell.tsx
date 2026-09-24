@@ -306,8 +306,17 @@ const enforceSafeArea = () => {
     setTimeout(enforceSafeArea, 150);
   }, []);
 
+  const isWarmPorcelainRoute = [
+    '/app/dietician',
+    '/app/case-prep',
+    '/app/trials',
+    '/app/profile',
+    '/app/settings',
+    '/app/medicine-lab',
+  ].some(p => location.pathname.startsWith(p));
+
   return (
-    <div className="app-shell" style={{ backgroundColor: '#F8FAFC', transition: 'background-color 0.3s ease' }}>
+    <div className="app-shell" style={{ backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC', transition: 'background-color 0.3s ease' }}>
       
       <MedicalActionIsland />
       <a href="#main-content" className="skip-link">Skip to main content</a>
@@ -435,7 +444,7 @@ const enforceSafeArea = () => {
         </aside>
       )}
 
-        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: '#F8FAFC', overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC', background: isWarmPorcelainRoute ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' : undefined, overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px', margin: '0 auto' }}>
             {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
