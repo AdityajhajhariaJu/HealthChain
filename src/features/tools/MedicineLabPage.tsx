@@ -62,8 +62,8 @@ export default function MedicineLabPage() {
     <div 
       className="medicine-lab-page-wrapper"
       style={{
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #FDFBF7 25%, #FAF7F0 100%)',
-        minHeight: '100%',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+        minHeight: '100vh',
         paddingBottom: '60px',
         margin: '-24px -16px',
         padding: '24px 16px 60px 16px',
@@ -84,7 +84,7 @@ export default function MedicineLabPage() {
             }}
             style={{
               background: 'rgba(255, 255, 255, 0.9)',
-              border: '1px solid #E2E8F0',
+              border: '1px solid #F1E5E7',
               borderRadius: '999px',
               padding: '6px 14px',
               fontSize: '13px',
@@ -121,7 +121,7 @@ export default function MedicineLabPage() {
             WebkitBackdropFilter: 'blur(20px)',
             padding: '4px', 
             borderRadius: '99px', 
-            border: '1px solid #E2E8F0',
+            border: '1px solid #F1E5E7',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
             gap: '4px'
           }}

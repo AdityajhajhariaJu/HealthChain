@@ -259,8 +259,8 @@ export default function PharmacyHub() {
               position: 'relative',
               overflow: 'hidden',
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1px solid #f1f5f9',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 100%)',
+              border: '1px solid #F1E5E7',
               padding: isMobile ? '24px' : '32px',
               marginBottom: '32px',
               boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.05)'
@@ -662,7 +662,7 @@ export default function PharmacyHub() {
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                        <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ background: '#FFFAFA', padding: '12px 16px', borderRadius: '10px', border: '1px solid #F1E5E7' }}>
                           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
                             Best Time of Day
                           </div>
@@ -670,7 +670,7 @@ export default function PharmacyHub() {
                             {displayData.optimalTiming.bestTimeOfDay}
                           </div>
                         </div>
-                        <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ background: '#FFFAFA', padding: '12px 16px', borderRadius: '10px', border: '1px solid #F1E5E7' }}>
                           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
                             Food & Meal Pairing
                           </div>
@@ -1038,7 +1038,7 @@ export default function PharmacyHub() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {dynamicRegimen.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '20px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
+              <div style={{ textAlign: 'center', padding: '20px 12px', background: '#FFFAFA', borderRadius: '12px', border: '1px dashed #F1E5E7' }}>
                 <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 12px 0' }}>No active medications in profile.</p>
                 <button
                   type="button"
@@ -1076,11 +1076,11 @@ export default function PharmacyHub() {
                       }}
                       style={{
                         padding: '10px 12px',
-                        background: '#F8FAFC',
+                        background: '#FFFAFA',
                         borderRadius: '8px',
                         fontSize: '13px',
                         color: '#475569',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid #F1E5E7',
                         display: 'flex',
                         flexWrap: 'wrap',
                         gap: '12px',
@@ -1096,8 +1096,8 @@ export default function PharmacyHub() {
                         e.currentTarget.style.borderColor = '#CBD5E1';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#F8FAFC';
-                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.background = '#FFFAFA';
+                        e.currentTarget.style.borderColor = '#F1E5E7';
                       }}
                     >
                       <span style={{ fontWeight: 500, color: '#1E293B' }}>{med}</span>

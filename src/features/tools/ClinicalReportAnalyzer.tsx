@@ -385,8 +385,8 @@ export default function ClinicalReportAnalyzer() {
             position: 'relative',
             overflow: 'hidden',
             borderRadius: '24px',
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            border: '1px solid #f1f5f9',
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 100%)',
+            border: '1px solid #F1E5E7',
             padding: isMobile ? '24px' : '32px',
             marginBottom: '32px',
             boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.05)'
@@ -459,7 +459,7 @@ export default function ClinicalReportAnalyzer() {
         }}
         onMouseOver={(e) => {
           e.currentTarget.style.borderColor = '#2DD4BF';
-          e.currentTarget.style.background = '#F8FAFC';
+          e.currentTarget.style.background = '#FFFAFA';
         }}
         onMouseOut={(e) => {
           e.currentTarget.style.borderColor = '#CBD5E1';
