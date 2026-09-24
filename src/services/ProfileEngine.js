@@ -146,7 +146,9 @@ export function getProfileEngineState() {
             return parsedBackup;
           }
         }
-      } catch (be) {}
+      } catch {
+        // Ignore an unreadable backup and continue with a fresh profile state.
+      }
 
       const defaultId = 'profile_1';
       return {
@@ -343,7 +345,9 @@ export async function saveProfile(profile) {
       if (currentRaw) {
         setItemSync(getProfileKey() + '_backup', currentRaw);
       }
-    } catch (bErr) {}
+    } catch {
+      // A backup failure must not prevent saving the current profile.
+    }
 
     setItemSync(getProfileKey(), stateStr);
     
