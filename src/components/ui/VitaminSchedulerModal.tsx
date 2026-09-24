@@ -841,7 +841,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const [vitamins, setVitamins] = useState<VitaminItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<PillCategory>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCustomForm, setShowCustomForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDosage, setNewDosage] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
@@ -1353,31 +1352,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                     {CLINICAL_CATALOG.length} evidence-based formulations divided by category
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setShowCustomForm(prev => !prev);
-                  }}
-                  style={{
-                    background: showCustomForm ? '#BE123C' : '#FFFAFA',
-                    border: '1px solid #F1E5E7',
-                    borderRadius: '999px',
-                    padding: '4px 10px',
-                    color: showCustomForm ? '#FFFFFF' : '#BE123C',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
-                    boxShadow: showCustomForm ? '0 2px 6px rgba(190, 18, 60, 0.25)' : '0 1px 2px rgba(0,0,0,0.03)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {showCustomForm ? <X size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
-                  <span>{showCustomForm ? 'Hide Form' : 'Write Custom'}</span>
-                </button>
               </div>
 
               {/* Quick Search Bar */}
@@ -1492,38 +1466,54 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 })}
               </div>
 
-              {/* Custom Write-In Form (Collapsible/Quick Expand) */}
-              {(showCustomForm || newName.trim()) && (
-                <form
-                  onSubmit={handleAddCustom}
-                  style={{
-                    background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF8F9 100%)',
-                    borderRadius: '20px',
-                    padding: '14px',
-                    border: '1px solid #F1E5E7',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
-                    marginBottom: '14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>💊</span>
-                      <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
-                    </div>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFFAFA', border: '1px solid #F1E5E7', padding: '1px 6px', borderRadius: '6px' }}>
-                      Quick Add
-                    </span>
+              {/* Custom Write-In Form (Always On) */}
+              <form
+                onSubmit={handleAddCustom}
+                style={{
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF8F9 100%)',
+                  borderRadius: '20px',
+                  padding: '14px',
+                  border: '1px solid #F1E5E7',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '14px' }}>💊</span>
+                    <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
                   </div>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFFAFA', border: '1px solid #F1E5E7', padding: '1px 6px', borderRadius: '6px' }}>
+                    Quick Add
+                  </span>
+                </div>
 
+                <input
+                  type="text"
+                  placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid #E2D9D2',
+                    background: '#FFFDFB',
+                    fontSize: '13px',
+                    color: '#1C1917',
+                    outline: 'none'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
-                    placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
+                    value={newDosage}
+                    onChange={(e) => setNewDosage(e.target.value)}
                     style={{
+                      flex: 1,
                       padding: '10px 14px',
                       borderRadius: '12px',
                       border: '1px solid #E2D9D2',
@@ -1533,57 +1523,39 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       outline: 'none'
                     }}
                   />
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="text"
-                      placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
-                      value={newDosage}
-                      onChange={(e) => setNewDosage(e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '10px 14px',
-                        borderRadius: '12px',
-                        border: '1px solid #E2D9D2',
-                        background: '#FFFDFB',
-                        fontSize: '13px',
-                        color: '#1C1917',
-                        outline: 'none'
-                      }}
-                    />
-                    <input
-                      type="time"
-                      value={newTime}
-                      onChange={(e) => setNewTime(e.target.value)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: '12px',
-                        border: '1px solid #E2D9D2',
-                        background: '#FFFDFB',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        color: '#1C1917'
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={!newName.trim()}
+                  <input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
                     style={{
-                      padding: '10px',
+                      padding: '10px 12px',
                       borderRadius: '12px',
-                      background: newName.trim() ? 'linear-gradient(135deg, #DB4969 0%, #B32040 100%)' : '#E2E8F0',
-                      color: newName.trim() ? '#FFF' : '#94A3B8',
-                      border: 'none',
-                      fontWeight: 800,
-                      fontSize: '12.5px',
-                      cursor: newName.trim() ? 'pointer' : 'default',
-                      boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
+                      border: '1px solid #E2D9D2',
+                      background: '#FFFDFB',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#1C1917'
                     }}
-                  >
-                    + Add to Daily Regimen
-                  </button>
-                </form>
-              )}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!newName.trim()}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '12px',
+                    background: newName.trim() ? 'linear-gradient(135deg, #DB4969 0%, #B32040 100%)' : '#E2E8F0',
+                    color: newName.trim() ? '#FFF' : '#94A3B8',
+                    border: 'none',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    cursor: newName.trim() ? 'pointer' : 'default',
+                    boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
+                  }}
+                >
+                  + Add to Daily Regimen
+                </button>
+              </form>
 
               {/* Categorized Pills Rendering */}
               {searchFilteredCatalog.length === 0 ? (
@@ -1601,8 +1573,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   <button
                     type="button"
                     onClick={() => {
+                      triggerHapticLight();
                       setNewName(searchQuery);
-                      setShowCustomForm(true);
                     }}
                     style={{
                       background: '#FFFFFF',
