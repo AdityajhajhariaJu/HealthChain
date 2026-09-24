@@ -1,6 +1,8 @@
 ﻿import React from 'react';
 import { LucideProps } from 'lucide-react';
 
+// ⚡ Bolt: Wrapped with React.memo to prevent unnecessary re-renders when parent components update.
+// Expected Impact: Reduces render cycles in high-frequency navigational components like AppShell.
 export const NetworkHubIcon = React.memo<LucideProps>(({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
