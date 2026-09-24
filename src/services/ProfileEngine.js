@@ -146,7 +146,9 @@ export function getProfileEngineState() {
             return parsedBackup;
           }
         }
-      } catch (be) {}
+      } catch (be) {
+        console.warn('Failed to parse ProfileEngine backup state:', be);
+      }
 
       const defaultId = 'profile_1';
       return {
@@ -343,7 +345,9 @@ export async function saveProfile(profile) {
       if (currentRaw) {
         setItemSync(getProfileKey() + '_backup', currentRaw);
       }
-    } catch (bErr) {}
+    } catch (bErr) {
+      console.warn('Failed to backup previous ProfileEngine state:', bErr);
+    }
 
     setItemSync(getProfileKey(), stateStr);
     
