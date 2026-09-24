@@ -307,6 +307,7 @@ const enforceSafeArea = () => {
   }, []);
 
   const isWarmPorcelainRoute = [
+    '/app/today',
     '/app/dietician',
     '/app/case-prep',
     '/app/trials',

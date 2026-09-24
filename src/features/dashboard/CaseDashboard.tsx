@@ -424,8 +424,8 @@ export default function CaseDashboard() {
   return (
     <div style={{
       width: '100%',
-      background: 'linear-gradient(180deg, #F8FAFC 0%, #F0FDFA 35%, #F8FAFC 100%)',
-      backgroundColor: '#F8FAFC',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+      backgroundColor: '#FFFAFA',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -530,7 +530,7 @@ export default function CaseDashboard() {
                 }}
                 style={{
                   background: '#FFFFFF', 
-                  border: '1px solid #E2E8F0', 
+                  border: '1px solid #F1E5E7', 
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)', 
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
@@ -1477,7 +1477,7 @@ export default function CaseDashboard() {
             <div
               style={{
                 height: '1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(226, 232, 240, 0.9) 20%, rgba(203, 213, 225, 0.9) 50%, rgba(226, 232, 240, 0.9) 80%, transparent 100%)',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(241, 229, 231, 0.9) 20%, rgba(241, 229, 231, 0.9) 50%, rgba(241, 229, 231, 0.9) 80%, transparent 100%)',
                 margin: '8px 0 22px'
               }}
             />

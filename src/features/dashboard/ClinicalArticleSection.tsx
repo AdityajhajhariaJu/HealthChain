@@ -42,7 +42,7 @@ export function ClinicalArticleSection() {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '10px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid #F1E5E7',
                 borderRadius: '18px',
                 background: '#FFFFFF',
                 textAlign: 'left',
