@@ -1571,7 +1571,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                     style={{
                       padding: '10px',
                       borderRadius: '12px',
-                      background: newName.trim() ? 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)' : '#E2E8F0',
+                      background: newName.trim() ? 'linear-gradient(135deg, #DB4969 0%, #B32040 100%)' : '#E2E8F0',
                       color: newName.trim() ? '#FFF' : '#94A3B8',
                       border: 'none',
                       fontWeight: 800,
