@@ -120,10 +120,12 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               width: '100%',
               maxWidth: '580px',
               maxHeight: '92vh',
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
+              background: activeTab === 'garden'
+                ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)'
+                : 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
               borderTopLeftRadius: '32px',
               borderTopRightRadius: '32px',
-              border: '1.5px solid #CCFBF1',
+              border: activeTab === 'garden' ? '1.5px solid #F1E5E7' : '1.5px solid #CCFBF1',
               boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
               flexDirection: 'column',
@@ -132,7 +134,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
           >
             {/* Grab Handle */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
-              <div style={{ width: '40px', height: '4.5px', borderRadius: '999px', background: '#E2E8F0' }} />
+              <div style={{ width: '40px', height: '4.5px', borderRadius: '999px', background: activeTab === 'garden' ? '#F1E5E7' : '#E2E8F0' }} />
             </div>
 
             {/* Header */}
@@ -171,7 +173,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                   minHeight: '44px',
                   borderRadius: '50%',
                   background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1.5px solid #CCFBF1',
+                  border: activeTab === 'garden' ? '1.5px solid #F1E5E7' : '1.5px solid #CCFBF1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -626,10 +628,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                   {/* Calm Body & Mind CTA */}
                   <div
                     style={{
-                      background: '#F0FDFA',
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 50%, #FFF7F8 100%)',
                       borderRadius: '22px',
                       padding: '18px 20px',
-                      border: '1.5px solid #CCFBF1',
+                      border: '1.5px solid #F1E5E7',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',

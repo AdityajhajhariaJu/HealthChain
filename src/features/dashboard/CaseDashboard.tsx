@@ -111,10 +111,10 @@ const AudioTrackCard: React.FC<{
         alignItems: 'center',
         padding: isMobile ? '10px 12px' : '12px 16px',
         background: isHovered
-          ? 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)'
-          : 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
+          ? 'linear-gradient(135deg, #FFFFFF 0%, #FFF7F8 100%)'
+          : 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 100%)',
         borderRadius: isMobile ? '16px' : '18px',
-        border: isHovered ? '1.5px solid rgba(13, 148, 136, 0.45)' : '1.5px solid rgba(226, 232, 240, 0.9)',
+        border: isHovered ? '1.5px solid rgba(13, 148, 136, 0.45)' : '1.5px solid #F1E5E7',
         cursor: 'pointer',
         boxShadow: isHovered
           ? '0 10px 24px rgba(13, 148, 136, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)'
@@ -464,13 +464,13 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(240, 253, 244, 0.45) 78%, rgba(240, 253, 244, 0.92) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
+                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(255, 250, 250, 0.55) 78%, rgba(255, 247, 248, 0.95) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center 30%',
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.9)', 
-                  boxShadow: '0 24px 48px rgba(13, 148, 136, 0.16), inset 0 2px 0 rgba(255,255,255,0.8)',
+                  border: '1px solid rgba(241, 229, 231, 0.9)', 
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.8)',
                   gridRow: 'span 2',
                   borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px', 
                   position: 'relative',
@@ -488,16 +488,16 @@ export default function CaseDashboard() {
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', maxWidth: '100%' }}>
                   <div
                     style={{
-                      background: 'rgba(255, 255, 255, 0.94)',
+                      background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(167, 243, 208, 0.9)',
+                      border: '1px solid #F1E5E7',
                       borderRadius: '999px',
                       padding: isMobile ? '4px 10px' : '5px 13px',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      boxShadow: '0 4px 14px rgba(13, 148, 136, 0.12)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                     }}
@@ -1421,8 +1421,8 @@ export default function CaseDashboard() {
 
           <div
             style={{
-              background: '#FFFFFF',
-              border: '1px solid rgba(226, 232, 240, 0.85)',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+              border: '1px solid #F1E5E7',
               boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03)',
               position: 'relative',
               zIndex: 1,
