@@ -313,6 +313,7 @@ const enforceSafeArea = () => {
     '/app/profile',
     '/app/settings',
     '/app/medicine-lab',
+    '/app/my-cases',
   ].some(p => location.pathname.startsWith(p));
 
   return (

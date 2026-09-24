@@ -80,7 +80,12 @@ export default function MyCases() {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
   return (
-    <div className="connected-experience" style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+      paddingBottom: '40px',
+    }}>
+      <div className="connected-experience" style={{ maxWidth: 1020, margin: '0 auto', padding: isMobile ? '0 12px 24px' : '0 16px 24px' }}>
       <header style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <h1 style={{ fontSize: isMobile ? 26 : 32, margin: 0, letterSpacing: '-1.2px' }}>My Cases</h1>
         <button type="button" className="btn btn-primary" onClick={() => setShowNewCase(true)}>New case</button>
@@ -90,7 +95,7 @@ export default function MyCases() {
 
       {!isLoading && cases.length >= 1 && (
         <>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: '#F1F5F9', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: '#F1E5E7', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
             <button onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'} style={{ background: viewMode === 'list' ? '#FFFFFF' : 'transparent', color: viewMode === 'list' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>List</button>
             <button onClick={() => setViewMode('canvas')} aria-pressed={viewMode === 'canvas'} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Canvas</button>
           </div>
@@ -129,7 +134,7 @@ export default function MyCases() {
               width: '100%',
               padding: '12px 14px 12px 40px',
               borderRadius: 12,
-              border: '1px solid #e2e8f0',
+              border: '1px solid #F1E5E7',
               fontSize: 15,
               outline: 'none'
             }}
@@ -140,7 +145,7 @@ export default function MyCases() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 12 }}>
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card" style={{ padding: isMobile ? 12 : 16, border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF' }}>
+            <div key={i} className="card" style={{ padding: isMobile ? 12 : 16, border: '1px solid #F1E5E7', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF' }}>
               <Skeleton width={52} height={52} borderRadius={16} />
               <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                 <Skeleton width="60%" height={24} borderRadius={4} style={{ marginBottom: 8 }} />
@@ -198,9 +203,9 @@ export default function MyCases() {
                     if ((e.target as HTMLElement).closest('button')) return;
                     navigate(`/app/cases/${caseItem.id}`);
                  }}
-                 style={{ padding: isMobile ? 12 : 16, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF', boxShadow: '0 4px 12px rgba(15,23,42,.02)', minWidth: 0 }}
+                 style={{ padding: isMobile ? 12 : 16, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #F1E5E7', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF', boxShadow: '0 4px 12px rgba(15,23,42,.02)', minWidth: 0 }}
                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,.05)'; }}
-                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,.02)'; }}
+                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#F1E5E7'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,.02)'; }}
               >
                  <div style={{ width: 52, height: 52, borderRadius: 16, background: iconBg, color: iconColor, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <IconComponent size={24} />
@@ -276,7 +281,7 @@ export default function MyCases() {
             );
           })
         ) : (
-          <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e2e8f0' }}>
+          <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#FFFAFA', borderRadius: 16, border: '2px dashed #F1E5E7' }}>
             <Archive size={40} color="#cbd5e1" style={{ marginBottom: 16 }} />
             <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>{cases.length ? 'No matching cases' : 'No cases yet'}</h3>
             <p style={{ margin: '0 0 24px' }}>{cases.length ? 'Try a different title, condition, document name, or case filter.' : 'Record symptoms, documents, and clinician discussion questions to start a case.'}</p>
@@ -341,7 +346,7 @@ export default function MyCases() {
                 maxWidth: '440px',
                 width: '100%',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                border: '1px solid #F1F5F9'
+                border: '1px solid #F1E5E7'
               }}
             >
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
@@ -388,6 +393,7 @@ export default function MyCases() {
       </AnimatePresence>
 
 
+      </div>
     </div>
   );
 }
