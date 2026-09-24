@@ -19,7 +19,8 @@ import {
   Moon,
   Info,
   AlertTriangle,
-  ShieldAlert
+  ShieldAlert,
+  Search
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -43,7 +44,14 @@ interface VitaminSchedulerModalProps {
   onUpdated?: () => void;
 }
 
-export type PillCategory = 'All' | 'Daily Essentials' | 'Vitamins & Minerals' | 'Prescriptions (Rx)' | 'Sleep & Recovery';
+export type PillCategory = 
+  | 'All' 
+  | 'Daily Essentials' 
+  | 'Vitamins & Minerals' 
+  | 'Longevity & Energy' 
+  | 'Sleep & Calm' 
+  | 'Gut & Digestion' 
+  | 'Prescriptions (Rx)';
 
 export type CircadianSlot = 'Morning' | 'Midday' | 'Evening' | 'Bedtime';
 
@@ -250,12 +258,36 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     color2: '#FFF1F2',
     iconKind: 'droplet'
   },
+  {
+    name: 'Vitamin C (Liposomal)',
+    dosage: '1000mg with breakfast',
+    benefit: 'Collagen Synthesis & Immune Defense',
+    rationale: 'Water-soluble antioxidant; enhances non-heme iron absorption and collagen stability.',
+    timeSlot: 'Morning',
+    defaultTime: '08:30',
+    category: 'Daily Essentials',
+    color1: '#F59E0B',
+    color2: '#FEF3C7',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Electrolytes Complete',
+    dosage: '1 scoop in 500ml water',
+    benefit: 'Cellular Hydration & Nerve Conduction',
+    rationale: 'Maintains osmotic balance and athletic stamina; best taken early or intra-workout.',
+    timeSlot: 'Morning',
+    defaultTime: '09:00',
+    category: 'Daily Essentials',
+    color1: '#06B6D4',
+    color2: '#ECFEFF',
+    iconKind: 'droplet'
+  },
 
   // 2. Vitamins & Minerals
   {
     name: 'Vitamin D3 & K2',
     dosage: '2000 IU + 100mcg MK-7',
-    benefit: 'Immune Defense & Bone Health',
+    benefit: 'Immune Defense & Bone Mineralization',
     rationale: 'Fat-soluble; supports morning cortisol rhythm. Avoid at night (may disrupt melatonin).',
     timeSlot: 'Morning',
     defaultTime: '09:00',
@@ -268,7 +300,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     name: 'Zinc Picolinate',
     dosage: '15mg with food',
     benefit: 'T-Cell Immune Activation & Protein Synthesis',
-    rationale: 'Always take with a substantial meal to avoid gastric irritation.',
+    rationale: 'Always take with a substantial meal to avoid gastric irritation; separate from iron.',
     timeSlot: 'Midday',
     defaultTime: '13:30',
     category: 'Vitamins & Minerals',
@@ -279,7 +311,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   {
     name: 'Vitamin B-Complex',
     dosage: '1 active co-enzymated capsule',
-    benefit: 'Energy & Nerve Function',
+    benefit: 'Energy Metabolism & Nerve Function',
     rationale: 'Energizing; best taken early morning to prevent nocturnal stimulation.',
     timeSlot: 'Morning',
     defaultTime: '08:00',
@@ -289,10 +321,22 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     iconKind: 'capsule'
   },
   {
+    name: 'Methylcobalamin (B12)',
+    dosage: '1000mcg sublingual',
+    benefit: 'Homocysteine Clearance & Myelin Sheath',
+    rationale: 'Bioactive methylated form; supports neural transmission and red blood cell formation.',
+    timeSlot: 'Morning',
+    defaultTime: '08:30',
+    category: 'Vitamins & Minerals',
+    color1: '#E11D48',
+    color2: '#FFE4E6',
+    iconKind: 'tablet'
+  },
+  {
     name: 'Iron Bisglycinate',
     dosage: '25mg with citrus/water',
     benefit: 'Hemoglobin & Oxygen Transport',
-    rationale: 'Take with Vitamin C. Separate from calcium and tea by at least 2 hours.',
+    rationale: 'Gentle chelated iron. Take with Vitamin C; separate from calcium, eggs, and tea by 2 hours.',
     timeSlot: 'Morning',
     defaultTime: '10:00',
     category: 'Vitamins & Minerals',
@@ -301,50 +345,294 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     iconKind: 'tablet'
   },
   {
-    name: 'CoQ10 Ubiquinol',
-    dosage: '100mg with meal',
-    benefit: 'Energy & Heart Support',
-    rationale: 'Crucial for cellular energy and statin-induced depletion prevention.',
-    timeSlot: 'Midday',
-    defaultTime: '12:30',
-    category: 'Vitamins & Minerals',
-    color1: '#D97706',
-    color2: '#FEF3C7',
-    iconKind: 'capsule'
-  },
-
-  // 3. Sleep & Recovery
-  {
     name: 'Magnesium Glycinate',
     dosage: '200mg before bed',
     benefit: 'Deep Sleep Architecture & Muscular Relaxation',
-    rationale: 'Activates GABA receptors and relaxes striated muscle before sleep.',
+    rationale: 'Activates GABA receptors and relaxes striated muscle before sleep without laxative effect.',
     timeSlot: 'Bedtime',
     defaultTime: '21:30',
-    category: 'Sleep & Recovery',
+    category: 'Vitamins & Minerals',
     color1: '#818CF8',
     color2: '#EEF2FF',
     iconKind: 'capsule'
   },
   {
+    name: 'L-Methylfolate (5-MTHF)',
+    dosage: '400mcg morning',
+    benefit: 'Methylation Cycle & DNA Biosynthesis',
+    rationale: 'Crucial for MTHFR variant carriers; bypasses synthetic folic acid enzymatic bottleneck.',
+    timeSlot: 'Morning',
+    defaultTime: '08:30',
+    category: 'Vitamins & Minerals',
+    color1: '#10B981',
+    color2: '#D1FAE5',
+    iconKind: 'capsule'
+  },
+
+  // 3. Longevity & Energy
+  {
+    name: 'CoQ10 Ubiquinol',
+    dosage: '100mg with meal',
+    benefit: 'Mitochondrial ATP & Statin Defense',
+    rationale: 'Active reduced form; crucial for cardiac energetics and statin-induced depletion defense.',
+    timeSlot: 'Midday',
+    defaultTime: '12:30',
+    category: 'Longevity & Energy',
+    color1: '#D97706',
+    color2: '#FEF3C7',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Creatine Monohydrate',
+    dosage: '5g daily in water',
+    benefit: 'Phosphocreatine Cellular ATP & Cognitive Reserve',
+    rationale: 'Saturates muscle and neuronal phosphocreatine stores for acute energy reserve.',
+    timeSlot: 'Morning',
+    defaultTime: '09:30',
+    category: 'Longevity & Energy',
+    color1: '#3B82F6',
+    color2: '#EFF6FF',
+    iconKind: 'droplet'
+  },
+  {
+    name: 'NAC (N-Acetyl Cysteine)',
+    dosage: '600mg on empty stomach',
+    benefit: 'Master Glutathione Biosynthesis & Detox',
+    rationale: 'Rate-limiting precursor to glutathione; protects hepatocyte and cellular membranes.',
+    timeSlot: 'Morning',
+    defaultTime: '08:00',
+    category: 'Longevity & Energy',
+    color1: '#6366F1',
+    color2: '#EEF2FF',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Berberine HCl',
+    dosage: '500mg before main meal',
+    benefit: 'AMPK Activation & Glycemic Sensitivity',
+    rationale: 'Activates cellular metabolic master switch AMPK; take 15-20 min before highest carb meal.',
+    timeSlot: 'Midday',
+    defaultTime: '12:45',
+    category: 'Longevity & Energy',
+    color1: '#EAB308',
+    color2: '#FEF9C3',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Curcumin / Turmeric (95%)',
+    dosage: '500mg with Piperine',
+    benefit: 'Systemic Cytokine & Joint Inflammation Calm',
+    rationale: 'Black pepper piperine boosts systemic absorption by up to 2000%; best taken with food.',
+    timeSlot: 'Midday',
+    defaultTime: '13:30',
+    category: 'Longevity & Energy',
+    color1: '#F97316',
+    color2: '#FFEDD5',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'NMN (Nicotinamide Mononucleotide)',
+    dosage: '250mg sublingual morning',
+    benefit: 'Cellular NAD+ Salvage & Sirtuin Activation',
+    rationale: 'Direct NAD+ intermediate supporting cellular longevity enzymes and DNA repair mechanisms.',
+    timeSlot: 'Morning',
+    defaultTime: '07:30',
+    category: 'Longevity & Energy',
+    color1: '#EC4899',
+    color2: '#FDF2F8',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Alpha Lipoic Acid (ALA)',
+    dosage: '300mg before meal',
+    benefit: 'Mitochondrial Antioxidant & Nerve Health',
+    rationale: 'Both water and lipid soluble; recycles Vitamins C and E and supports insulin signaling.',
+    timeSlot: 'Morning',
+    defaultTime: '08:00',
+    category: 'Longevity & Energy',
+    color1: '#8B5CF6',
+    color2: '#F5F3FF',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Acetyl-L-Carnitine (ALCAR)',
+    dosage: '500mg morning',
+    benefit: 'Mitochondrial Beta-Oxidation & Neuro-Focus',
+    rationale: 'Crosses blood-brain barrier to shuttle long-chain fatty acids into mitochondria for cerebral ATP.',
+    timeSlot: 'Morning',
+    defaultTime: '08:15',
+    category: 'Longevity & Energy',
+    color1: '#06B6D4',
+    color2: '#ECFEFF',
+    iconKind: 'capsule'
+  },
+
+  // 4. Sleep & Calm
+  {
     name: 'Ashwagandha KSM-66',
     dosage: '600mg evening',
     benefit: 'Cortisol Modulation & Nervous System Calm',
-    rationale: 'Lowers evening salivary cortisol and balances HPA axis stress response.',
+    rationale: 'Lowers evening salivary cortisol and balances HPA axis hyperarousal.',
     timeSlot: 'Evening',
     defaultTime: '20:00',
-    category: 'Sleep & Recovery',
+    category: 'Sleep & Calm',
     color1: '#14B8A6',
     color2: '#CCFBF1',
     iconKind: 'leaf'
   },
+  {
+    name: 'Melatonin (Micro-dose)',
+    dosage: '1mg 30m before bed',
+    benefit: 'Circadian Phase Shift & Sleep Onset',
+    rationale: 'Physiological micro-dose mimics endogenous pineal surge without morning grogginess.',
+    timeSlot: 'Bedtime',
+    defaultTime: '22:00',
+    category: 'Sleep & Calm',
+    color1: '#6366F1',
+    color2: '#EEF2FF',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'L-Theanine',
+    dosage: '200mg as needed',
+    benefit: 'Alpha Brain Waves & Jitter-Free Relaxation',
+    rationale: 'Crosses blood-brain barrier; enhances GABA and glycine without daytime sedation.',
+    timeSlot: 'Evening',
+    defaultTime: '19:00',
+    category: 'Sleep & Calm',
+    color1: '#10B981',
+    color2: '#D1FAE5',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Magnesium L-Threonate',
+    dosage: '144mg elemental before bed',
+    benefit: 'Blood-Brain Barrier Synaptic Plasticity',
+    rationale: 'Unique chelate designed to elevate cerebrospinal fluid magnesium concentrations.',
+    timeSlot: 'Bedtime',
+    defaultTime: '21:45',
+    category: 'Sleep & Calm',
+    color1: '#8B5CF6',
+    color2: '#F5F3FF',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'GABA (PharmaGABA)',
+    dosage: '100mg bedtime',
+    benefit: 'Central Nervous System Parasympathetic Tone',
+    rationale: 'Promotes parasympathetic vagal tone and attenuates racing nocturnal thoughts.',
+    timeSlot: 'Bedtime',
+    defaultTime: '22:15',
+    category: 'Sleep & Calm',
+    color1: '#A855F7',
+    color2: '#FAF5FF',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Tart Cherry Extract',
+    dosage: '500mg evening',
+    benefit: 'Phytomelatonin & Muscle Recovery',
+    rationale: 'Natural source of exogenous phytomelatonin and anthocyanins that accelerate nocturnal tissue recovery.',
+    timeSlot: 'Evening',
+    defaultTime: '20:30',
+    category: 'Sleep & Calm',
+    color1: '#BE123C',
+    color2: '#FFF1F2',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Apigenin',
+    dosage: '50mg bedtime',
+    benefit: 'GABA-A Receptor Modulation & Sleep Architecture',
+    rationale: 'Chamomile flavonoid that binds benzodiazepine receptors gently, deepening slow-wave delta sleep.',
+    timeSlot: 'Bedtime',
+    defaultTime: '21:30',
+    category: 'Sleep & Calm',
+    color1: '#6366F1',
+    color2: '#EEF2FF',
+    iconKind: 'capsule'
+  },
 
-  // 4. Prescriptions (Rx)
+  // 5. Gut & Digestion
+  {
+    name: 'Digestive Enzymes Complex',
+    dosage: '1-2 capsules with meals',
+    benefit: 'Macronutrient Cleavage & Postprandial Comfort',
+    rationale: 'Broad-spectrum protease, lipase, and amylase reduce upper GI fullness and gas.',
+    timeSlot: 'Midday',
+    defaultTime: '13:00',
+    category: 'Gut & Digestion',
+    color1: '#0D9488',
+    color2: '#F0FDFA',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Probiotics (Spore & Bifido)',
+    dosage: '1 capsule morning on empty stomach',
+    benefit: 'Microbiome Diversity & Mucosal Immune Shield',
+    rationale: 'Colonizes mucosal brush border, competitive exclusion of pathobionts, and secretory IgA support.',
+    timeSlot: 'Morning',
+    defaultTime: '07:30',
+    category: 'Gut & Digestion',
+    color1: '#059669',
+    color2: '#ECFDF5',
+    iconKind: 'capsule'
+  },
+  {
+    name: 'Zinc Carnosine',
+    dosage: '75mg between meals',
+    benefit: 'Gastric Mucosal Healing & Tight Junction Repair',
+    rationale: 'Chelated zinc-carnosine adheres specifically to ulcerated mucosal areas, accelerating gastric tissue repair.',
+    timeSlot: 'Morning',
+    defaultTime: '08:30',
+    category: 'Gut & Digestion',
+    color1: '#D97706',
+    color2: '#FEF3C7',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Psyllium Husk Prebiotic',
+    dosage: '5g in tall glass of water',
+    benefit: 'Soluble Fiber & Short-Chain Fatty Acids',
+    rationale: 'Normalizes stool consistency and nourishes butyrate-producing colonic bacteria.',
+    timeSlot: 'Morning',
+    defaultTime: '08:00',
+    category: 'Gut & Digestion',
+    color1: '#84CC16',
+    color2: '#F7FEE7',
+    iconKind: 'leaf'
+  },
+  {
+    name: 'L-Glutamine',
+    dosage: '5g empty stomach in water',
+    benefit: 'Enterocyte Fuel & Intestinal Mucosal Barrier',
+    rationale: 'Primary metabolic fuel for small intestinal enterocytes; reinforces tight junctions.',
+    timeSlot: 'Morning',
+    defaultTime: '07:15',
+    category: 'Gut & Digestion',
+    color1: '#06B6D4',
+    color2: '#ECFEFF',
+    iconKind: 'droplet'
+  },
+  {
+    name: 'DGL Deglycyrrhizinated Licorice',
+    dosage: '400mg chewable before meals',
+    benefit: 'Gastric Mucosal Coating & Acid Defense',
+    rationale: 'Stimulates gastric mucosal prostaglandins without glycyrrhizin blood pressure elevation.',
+    timeSlot: 'Midday',
+    defaultTime: '12:45',
+    category: 'Gut & Digestion',
+    color1: '#D97706',
+    color2: '#FEF3C7',
+    iconKind: 'tablet'
+  },
+
+  // 6. Prescriptions (Rx)
   {
     name: 'Metformin',
     dosage: '500mg with dinner',
-    benefit: 'Glycemic Regulation & AMPK Activation',
-    rationale: 'Take with evening meal to minimize gastrointestinal discomfort.',
+    benefit: 'Glycemic Regulation & Hepatic AMPK Activation',
+    rationale: 'Take with evening meal to minimize gastrointestinal discomfort and morning dawn phenomenon.',
     timeSlot: 'Evening',
     defaultTime: '19:30',
     category: 'Prescriptions (Rx)',
@@ -356,7 +644,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     name: 'Lisinopril',
     dosage: '10mg morning',
     benefit: 'ACE Inhibition & Blood Pressure Stability',
-    rationale: 'Best taken consistently at the same morning hour daily.',
+    rationale: 'Best taken consistently at the same morning hour daily; monitor serum potassium.',
     timeSlot: 'Morning',
     defaultTime: '08:00',
     category: 'Prescriptions (Rx)',
@@ -368,7 +656,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     name: 'Atorvastatin',
     dosage: '20mg bedtime',
     benefit: 'HMG-CoA Reductase Lipid Management',
-    rationale: 'Hepatic cholesterol synthesis peaks during sleep; best at bedtime.',
+    rationale: 'Hepatic cholesterol synthesis peaks during sleep; best taken with evening water.',
     timeSlot: 'Bedtime',
     defaultTime: '22:00',
     category: 'Prescriptions (Rx)',
@@ -380,7 +668,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     name: 'Levothyroxine',
     dosage: '50mcg on empty stomach',
     benefit: 'Thyroid Hormone Baseline Replacement',
-    rationale: 'Must take with water 30-60 mins before breakfast. Do not take with food.',
+    rationale: 'Must take with water 30-60 mins before breakfast. Strict separation from iron & calcium.',
     timeSlot: 'Morning',
     defaultTime: '07:00',
     category: 'Prescriptions (Rx)',
@@ -389,7 +677,55 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     iconKind: 'tablet'
   },
   {
-    name: 'Insulin',
+    name: 'Amlodipine',
+    dosage: '5mg morning',
+    benefit: 'Dihydropyridine Calcium Channel Blockade',
+    rationale: 'Relaxes peripheral arterial smooth muscle; long 30-50h half-life maintains all-day control.',
+    timeSlot: 'Morning',
+    defaultTime: '08:30',
+    category: 'Prescriptions (Rx)',
+    color1: '#3B82F6',
+    color2: '#EFF6FF',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Pantoprazole',
+    dosage: '40mg 30m before breakfast',
+    benefit: 'Proton Pump H+/K+ ATPase Acid Inhibition',
+    rationale: 'Irreversibly inhibits active proton pumps; requires food stimulation shortly after.',
+    timeSlot: 'Morning',
+    defaultTime: '07:30',
+    category: 'Prescriptions (Rx)',
+    color1: '#D97706',
+    color2: '#FEF3C7',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Losartan',
+    dosage: '50mg morning',
+    benefit: 'Angiotensin II Type 1 Receptor Blocker (ARB)',
+    rationale: 'Cardiorenal protective; well-tolerated alternative for patients with ACE-inhibitor cough.',
+    timeSlot: 'Morning',
+    defaultTime: '08:15',
+    category: 'Prescriptions (Rx)',
+    color1: '#059669',
+    color2: '#ECFDF5',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Rosuvastatin',
+    dosage: '10mg bedtime',
+    benefit: 'High-Potency Hydrophilic Statin Therapy',
+    rationale: 'Potent hepatic LDL receptor upregulation; hydrophilic with low systemic muscle penetrance.',
+    timeSlot: 'Bedtime',
+    defaultTime: '21:30',
+    category: 'Prescriptions (Rx)',
+    color1: '#0284C7',
+    color2: '#F0F9FF',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Insulin (Basal)',
     dosage: 'Basal dose as directed',
     benefit: 'Exogenous Basal Glucose Control',
     rationale: 'Monitor continuous glucose levels and follow specialist titration instructions.',
@@ -440,12 +776,24 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     name: 'Spironolactone',
     dosage: '25mg morning',
     benefit: 'Aldosterone Receptor Antagonism',
-    rationale: 'Mild diuretic; take in morning to avoid waking at night to urinate.',
+    rationale: 'Mild potassium-sparing diuretic; take in morning to prevent nocturia.',
     timeSlot: 'Morning',
     defaultTime: '08:30',
     category: 'Prescriptions (Rx)',
     color1: '#10B981',
     color2: '#ECFDF5',
+    iconKind: 'tablet'
+  },
+  {
+    name: 'Cetirizine',
+    dosage: '10mg evening',
+    benefit: 'Selective H1 Receptor Antihistamine',
+    rationale: 'Controls chronic rhinitis, urticaria, and histaminergic flares with minimal sedation.',
+    timeSlot: 'Evening',
+    defaultTime: '20:30',
+    category: 'Prescriptions (Rx)',
+    color1: '#0284C7',
+    color2: '#F0F9FF',
     iconKind: 'tablet'
   },
   {
@@ -462,13 +810,25 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   }
 ];
 
-const CATEGORIES: PillCategory[] = [
+export const CATEGORIES: PillCategory[] = [
   'All',
   'Daily Essentials',
   'Vitamins & Minerals',
-  'Sleep & Recovery',
+  'Longevity & Energy',
+  'Sleep & Calm',
+  'Gut & Digestion',
   'Prescriptions (Rx)'
 ];
+
+export const CATEGORY_CONFIG: Record<PillCategory, { label: string; icon: string }> = {
+  'All': { label: 'All', icon: '✨' },
+  'Daily Essentials': { label: 'Daily Essentials', icon: '☀️' },
+  'Vitamins & Minerals': { label: 'Vitamins & Minerals', icon: '🧪' },
+  'Longevity & Energy': { label: 'Longevity & Energy', icon: '⚡' },
+  'Sleep & Calm': { label: 'Sleep & Calm', icon: '🌙' },
+  'Gut & Digestion': { label: 'Gut & Digestion', icon: '🥗' },
+  'Prescriptions (Rx)': { label: 'Prescriptions (Rx)', icon: '🩺' },
+};
 
 const CIRCADIAN_ICONS: Record<CircadianSlot, React.ReactNode> = {
   Morning: <Sun size={13} color="#D97706" />,
@@ -480,6 +840,8 @@ const CIRCADIAN_ICONS: Record<CircadianSlot, React.ReactNode> = {
 export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ isOpen, onClose, onUpdated }) => {
   const [vitamins, setVitamins] = useState<VitaminItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<PillCategory>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCustomForm, setShowCustomForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDosage, setNewDosage] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
@@ -657,9 +1019,21 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const takenCount = vitamins.filter(v => v.takenToday).length;
   const allTaken = vitamins.length > 0 && takenCount === vitamins.length;
 
-  const filteredCatalog = selectedCategory === 'All'
-    ? CLINICAL_CATALOG
-    : CLINICAL_CATALOG.filter(p => p.category === selectedCategory);
+  const query = searchQuery.trim().toLowerCase();
+  const searchFilteredCatalog = React.useMemo(() => {
+    if (!query) return CLINICAL_CATALOG;
+    return CLINICAL_CATALOG.filter(p => 
+      p.name.toLowerCase().includes(query) ||
+      p.benefit.toLowerCase().includes(query) ||
+      p.dosage.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query)
+    );
+  }, [query]);
+
+  const filteredCatalog = React.useMemo(() => {
+    if (selectedCategory === 'All') return searchFilteredCatalog;
+    return searchFilteredCatalog.filter(p => p.category === selectedCategory);
+  }, [selectedCategory, searchFilteredCatalog]);
 
   // Helper to match catalog metadata for any vitamin
   const getPillMeta = (vName: string): EnrichedPillMetadata | undefined => {
@@ -673,6 +1047,86 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     if (hour >= 12 && hour < 17) return 'Midday';
     if (hour >= 17 && hour < 21) return 'Evening';
     return 'Bedtime';
+  };
+
+  // Helper to render an individual pill chip with Collagen Peptides Signature Theme
+  const renderPillChip = (pill: EnrichedPillMetadata) => {
+    const isScheduled = vitamins.some(v => v.name.toLowerCase() === pill.name.toLowerCase());
+    
+    // Collagen Peptides Signature Rose Theme for All Selected Pills
+    const selectedTheme = {
+      color1: '#FB7185',
+      color2: '#FFF1F2',
+      border: '1.5px solid #FB7185',
+      shadow: '0 3px 12px rgba(251, 113, 133, 0.3)',
+      checkBg: '#FB7185',
+      checkShadow: '0 2px 6px rgba(251, 113, 133, 0.4)',
+      benefitColor: '#FB7185'
+    };
+
+    return (
+      <motion.button
+        key={pill.name}
+        whileTap={{ scale: 0.95 }}
+        type="button"
+        onClick={() => handleTogglePill(pill)}
+        style={{
+          padding: '8px 14px',
+          borderRadius: '999px',
+          border: isScheduled ? selectedTheme.border : '1px solid #E2E8F0',
+          background: isScheduled 
+            ? `linear-gradient(135deg, ${selectedTheme.color2} 0%, #FFFFFF 100%)` 
+            : '#FFFFFF',
+          color: isScheduled ? '#0F172A' : '#1C1917',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          boxShadow: isScheduled 
+            ? selectedTheme.shadow 
+            : '0 2px 6px rgba(0, 0, 0, 0.03)',
+          transition: 'all 0.18s ease'
+        }}
+      >
+        <ClassyPillIcon 
+          size={20} 
+          color1={isScheduled ? selectedTheme.color1 : pill.color1} 
+          color2={isScheduled ? selectedTheme.color2 : pill.color2} 
+          kind={pill.iconKind} 
+        />
+
+        <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+          <span style={{ fontSize: '13px', fontWeight: isScheduled ? 800 : 700, display: 'block' }}>
+            {pill.name}
+          </span>
+          <span style={{ 
+            fontSize: '10.5px', 
+            color: isScheduled ? selectedTheme.benefitColor : '#78716C', 
+            fontWeight: isScheduled ? 700 : 500 
+          }}>
+            {pill.benefit}
+          </span>
+        </div>
+
+        {isScheduled && (
+          <div style={{
+            width: '18px',
+            height: '18px',
+            borderRadius: '50%',
+            background: selectedTheme.checkBg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#FFFFFF',
+            marginLeft: '2px',
+            boxShadow: selectedTheme.checkShadow,
+            flexShrink: 0
+          }}>
+            <Check size={11} strokeWidth={3.5} />
+          </div>
+        )}
+      </motion.button>
+    );
   };
 
   return createPortal(
@@ -963,41 +1417,114 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
             {/* SECTION 1: Curated Clinical Medicine & Vitamin Selector (Zero Overlap) */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#44403C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Clinical Formulations & Supplements
-                </span>
-                <span
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#44403C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Clinical Formulations & Supplements
+                  </span>
+                  <div style={{ fontSize: '11px', color: '#78716C', marginTop: '1px' }}>
+                    {CLINICAL_CATALOG.length} evidence-based formulations divided by category
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setShowCustomForm(prev => !prev);
+                  }}
                   style={{
-                    background: '#FFF1F2',
+                    background: showCustomForm ? 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)' : '#FFF1F2',
                     border: '1px solid #FECDD3',
                     borderRadius: '999px',
-                    padding: '3px 9px',
-                    color: '#E11D48',
-                    fontSize: '11px',
+                    padding: '4px 10px',
+                    color: showCustomForm ? '#FFFFFF' : '#E11D48',
+                    fontSize: '11.5px',
                     fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
+                    cursor: 'pointer',
+                    boxShadow: showCustomForm ? '0 2px 8px rgba(225, 29, 72, 0.25)' : 'none',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <Plus size={12} /> Write Tablet
-                </span>
+                  {showCustomForm ? <X size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
+                  <span>{showCustomForm ? 'Hide Form' : 'Write Custom'}</span>
+                </button>
+              </div>
+
+              {/* Quick Search Bar */}
+              <div style={{ position: 'relative', marginBottom: '10px' }}>
+                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', display: 'flex', alignItems: 'center' }}>
+                  <Search size={14} />
+                </div>
+                <input
+                  type="text"
+                  placeholder={`Search ${CLINICAL_CATALOG.length}+ medications, vitamins & supplements...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 34px 9px 34px',
+                    borderRadius: '14px',
+                    border: '1px solid #E2E8F0',
+                    background: '#FFFFFF',
+                    fontSize: '12.5px',
+                    color: '#1C1917',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setSearchQuery('');
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0,
+                      color: '#64748B'
+                    }}
+                    aria-label="Clear search"
+                  >
+                    <X size={11} strokeWidth={2.5} />
+                  </button>
+                )}
               </div>
 
               {/* Category Filter Pills (Guaranteed flexShrink: 0 — ZERO Text Overlap!) */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '6px',
                 overflowX: 'auto',
                 paddingBottom: '8px',
-                marginBottom: '10px',
+                marginBottom: '12px',
                 scrollbarWidth: 'none',
                 WebkitOverflowScrolling: 'touch'
               }}>
                 {CATEGORIES.map((cat) => {
                   const isActive = selectedCategory === cat;
+                  const cfg = CATEGORY_CONFIG[cat];
+                  const count = cat === 'All' 
+                    ? CLINICAL_CATALOG.length 
+                    : CLINICAL_CATALOG.filter(p => p.category === cat).length;
+
                   return (
                     <button
                       key={cat}
@@ -1009,197 +1536,221 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       style={{
                         flexShrink: 0,
                         whiteSpace: 'nowrap',
-                        padding: '7px 14px',
+                        padding: '6px 12px',
                         borderRadius: '999px',
                         border: isActive ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                         background: isActive ? '#FFF1F2' : '#FFFFFF',
                         color: isActive ? '#BE123C' : '#57534E',
-                        fontSize: '12px',
+                        fontSize: '11.5px',
                         fontWeight: isActive ? 800 : 600,
                         cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
                         boxShadow: isActive ? '0 2px 8px rgba(225, 29, 72, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      {cat}
+                      <span>{cfg?.icon}</span>
+                      <span>{cat}</span>
+                      <span style={{ 
+                        fontSize: '10px', 
+                        opacity: isActive ? 0.95 : 0.6,
+                        fontWeight: 700 
+                      }}>
+                        ({count})
+                      </span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Custom Write-In Form (Always Open) */}
-              <form
-                onSubmit={handleAddCustom}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  borderRadius: '20px',
-                  padding: '14px',
-                  border: '1.5px solid #FECDD3',
-                  boxShadow: '0 6px 20px rgba(225, 29, 72, 0.08)',
-                  marginBottom: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '14px' }}>💊</span>
-                    <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
-                  </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFE4E6', padding: '1px 6px', borderRadius: '6px' }}>
-                    Quick Add
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+              {/* Custom Write-In Form (Collapsible/Quick Expand) */}
+              {(showCustomForm || newName.trim()) && (
+                <form
+                  onSubmit={handleAddCustom}
                   style={{
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    border: '1px solid #E2D9D2',
-                    background: '#FFFDFB',
-                    fontSize: '13.5px',
-                    color: '#1C1917',
-                    outline: 'none'
+                    background: 'rgba(255, 255, 255, 0.98)',
+                    borderRadius: '20px',
+                    padding: '14px',
+                    border: '1.5px solid #FECDD3',
+                    boxShadow: '0 6px 20px rgba(225, 29, 72, 0.08)',
+                    marginBottom: '14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
                   }}
-                />
-                <div style={{ display: 'flex', gap: '8px' }}>
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>💊</span>
+                      <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
+                    </div>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFE4E6', padding: '1px 6px', borderRadius: '6px' }}>
+                      Quick Add
+                    </span>
+                  </div>
+
                   <input
                     type="text"
-                    placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
-                    value={newDosage}
-                    onChange={(e) => setNewDosage(e.target.value)}
+                    placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
                     style={{
-                      flex: 1,
                       padding: '10px 14px',
                       borderRadius: '12px',
                       border: '1px solid #E2D9D2',
                       background: '#FFFDFB',
-                      fontSize: '13.5px',
+                      fontSize: '13px',
                       color: '#1C1917',
                       outline: 'none'
                     }}
                   />
-                  <input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      border: '1px solid #E2D9D2',
-                      background: '#FFFDFB',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      color: '#1C1917'
-                    }}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={!newName.trim()}
-                  style={{
-                    padding: '11px',
-                    borderRadius: '12px',
-                    background: newName.trim() ? 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)' : '#E2E8F0',
-                    color: newName.trim() ? '#FFF' : '#94A3B8',
-                    border: 'none',
-                    fontWeight: 800,
-                    fontSize: '13px',
-                    cursor: newName.trim() ? 'pointer' : 'default',
-                    boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
-                  }}
-                >
-                  + Add to Daily Regimen
-                </button>
-              </form>
-
-              {/* Informative, Cinematic Capsule Chips Grid */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {filteredCatalog.map((pill) => {
-                  const isScheduled = vitamins.some(v => v.name.toLowerCase() === pill.name.toLowerCase());
-                  
-                  // Collagen Peptides Signature Theme for All Selected Pills
-                  const selectedTheme = {
-                    color1: '#FB7185',
-                    color2: '#FFF1F2',
-                    border: '1.5px solid #FB7185',
-                    shadow: '0 3px 12px rgba(251, 113, 133, 0.3)',
-                    checkBg: '#FB7185',
-                    checkShadow: '0 2px 6px rgba(251, 113, 133, 0.4)',
-                    benefitColor: '#FB7185'
-                  };
-
-                  return (
-                    <motion.button
-                      key={pill.name}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => handleTogglePill(pill)}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
+                      value={newDosage}
+                      onChange={(e) => setNewDosage(e.target.value)}
                       style={{
-                        padding: '8px 14px',
-                        borderRadius: '999px',
-                        border: isScheduled ? selectedTheme.border : '1px solid #E2E8F0',
-                        background: isScheduled 
-                          ? `linear-gradient(135deg, ${selectedTheme.color2} 0%, #FFFFFF 100%)` 
-                          : '#FFFFFF',
-                        color: isScheduled ? '#0F172A' : '#1C1917',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        boxShadow: isScheduled 
-                          ? selectedTheme.shadow 
-                          : '0 2px 6px rgba(0, 0, 0, 0.03)',
-                        transition: 'all 0.18s ease'
+                        flex: 1,
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        border: '1px solid #E2D9D2',
+                        background: '#FFFDFB',
+                        fontSize: '13px',
+                        color: '#1C1917',
+                        outline: 'none'
                       }}
-                    >
-                      {/* Bespoke Classy Pill SVG Artwork */}
-                      <ClassyPillIcon 
-                        size={20} 
-                        color1={isScheduled ? selectedTheme.color1 : pill.color1} 
-                        color2={isScheduled ? selectedTheme.color2 : pill.color2} 
-                        kind={pill.iconKind} 
-                      />
+                    />
+                    <input
+                      type="time"
+                      value={newTime}
+                      onChange={(e) => setNewTime(e.target.value)}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid #E2D9D2',
+                        background: '#FFFDFB',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        color: '#1C1917'
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!newName.trim()}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '12px',
+                      background: newName.trim() ? 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)' : '#E2E8F0',
+                      color: newName.trim() ? '#FFF' : '#94A3B8',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '12.5px',
+                      cursor: newName.trim() ? 'pointer' : 'default',
+                      boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
+                    }}
+                  >
+                    + Add to Daily Regimen
+                  </button>
+                </form>
+              )}
 
-                      <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-                        <span style={{ fontSize: '13px', fontWeight: isScheduled ? 800 : 700, display: 'block' }}>
-                          {pill.name}
-                        </span>
-                        <span style={{ 
-                          fontSize: '10.5px', 
-                          color: isScheduled ? selectedTheme.benefitColor : '#78716C', 
-                          fontWeight: isScheduled ? 700 : 500 
-                        }}>
-                          {pill.benefit}
-                        </span>
-                      </div>
+              {/* Categorized Pills Rendering */}
+              {searchFilteredCatalog.length === 0 ? (
+                <div style={{
+                  padding: '24px 16px',
+                  textAlign: 'center',
+                  background: '#FFFFFF',
+                  borderRadius: '18px',
+                  border: '1px dashed #FECDD3',
+                  marginBottom: '10px'
+                }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#78716C' }}>
+                    No supplements found matching &ldquo;{searchQuery}&rdquo;
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewName(searchQuery);
+                      setShowCustomForm(true);
+                    }}
+                    style={{
+                      background: '#FFF1F2',
+                      border: '1px solid #FECDD3',
+                      borderRadius: '999px',
+                      padding: '6px 14px',
+                      color: '#E11D48',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Add &ldquo;{searchQuery}&rdquo; as Custom Tablet
+                  </button>
+                </div>
+              ) : selectedCategory === 'All' ? (
+                /* Divided According to Category (Exact User Request) */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {CATEGORIES.filter(c => c !== 'All').map((cat) => {
+                    const catPills = searchFilteredCatalog.filter(p => p.category === cat);
+                    if (catPills.length === 0) return null;
+                    const catCfg = CATEGORY_CONFIG[cat];
+                    const scheduledInCat = catPills.filter(p => 
+                      vitamins.some(v => v.name.toLowerCase() === p.name.toLowerCase())
+                    ).length;
 
-                      {isScheduled && (
+                    return (
+                      <div key={cat}>
+                        {/* Category Sub-header */}
                         <div style={{
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          background: selectedTheme.checkBg,
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#FFFFFF',
-                          marginLeft: '2px',
-                          boxShadow: selectedTheme.checkShadow,
-                          flexShrink: 0
+                          justifyContent: 'space-between',
+                          marginBottom: '8px',
+                          paddingBottom: '4px',
+                          borderBottom: '1px solid #F1F5F9'
                         }}>
-                          <Check size={11} strokeWidth={3.5} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '13px' }}>{catCfg?.icon}</span>
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', letterSpacing: '-0.1px' }}>
+                              {cat}
+                            </span>
+                            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8' }}>
+                              ({catPills.length})
+                            </span>
+                          </div>
+                          {scheduledInCat > 0 && (
+                            <span style={{
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              color: '#BE123C',
+                              background: '#FFF1F2',
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                              border: '1px solid #FECDD3'
+                            }}>
+                              {scheduledInCat} active
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
+
+                        {/* Pills in Category */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {catPills.map((pill) => renderPillChip(pill))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Specific Category Active */
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {filteredCatalog.map((pill) => renderPillChip(pill))}
+                </div>
+              )}
             </div>
 
             {/* SECTION 2: Active Scheduled Chrono-Doses (Cinematic, Classy Cards) */}
