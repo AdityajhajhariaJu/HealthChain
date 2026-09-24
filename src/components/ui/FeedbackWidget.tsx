@@ -155,6 +155,7 @@ export default function FeedbackWidget() {
                     <button
                       key={idx}
                       type="button"
+                      aria-label={`Add ${topic} topic to feedback`}
                       onClick={() => {
                         triggerHapticLight();
                         setFeedback(prev => {
