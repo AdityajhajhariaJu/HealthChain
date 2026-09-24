@@ -214,7 +214,12 @@ export default function Settings() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+      paddingBottom: '60px',
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', padding: isMobile ? '0 12px' : '0 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <div
           style={{
@@ -246,7 +251,7 @@ export default function Settings() {
 
 
 
-      <div className="card" style={{ padding: '20px' }}>
+      <div className="card" style={{ padding: '20px', background: '#FFFFFF', border: '1px solid #F1E5E7' }}>
         <h2
           style={{
             fontSize: '18px',
@@ -280,7 +285,7 @@ export default function Settings() {
               Manage health profiles for dependents.
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#F8FAFC', color: '#64748B', fontSize: '13px' }} aria-label="Caregiver Mode temporarily locked">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', border: '1px solid #F1E5E7', borderRadius: '8px', background: '#FFFAFA', color: '#64748B', fontSize: '13px' }} aria-label="Caregiver Mode temporarily locked">
             <User size={16} />
             <span>Temporarily locked</span>
           </div>
@@ -1134,6 +1139,8 @@ export default function Settings() {
                 maxWidth: '400px',
                 padding: '24px',
                 position: 'relative',
+                background: '#FFFFFF',
+                border: '1px solid #F1E5E7',
               }}
             >
             <button
@@ -1300,6 +1307,7 @@ export default function Settings() {
           </FocusTrap>
         </div>
       )}
+      </div>
     </div>
   );
 }
