@@ -1,17 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Observation } from '../../domain/observations/types';
 import type { GutDay, GutMeal } from '../GutHealthSummary';
 import type { GutQuestionThread } from '../GutResolutionService';
 
+const state = vi.hoisted(() => ({ profile: {} as Record<string, any> }));
 vi.mock('../ProfileEngine', () => ({
   getProfileKey: () => 'hc_unified_profile_acct',
   getProfileEngineState: () => ({ activeId: 'profile_1' }),
-  getProfile: () => ({}),
-  saveProfile: vi.fn(),
+  getProfile: () => state.profile,
+  saveProfile: vi.fn(async (profile) => { state.profile = profile; }),
 }));
 vi.mock('../RunContext', () => ({ getAccountScope: () => 'acct' }));
 
-import { deriveGutEvidence, hasStableGutMealId } from '../GutResolutionService';
+import { createGutThread, deriveGutChoiceHistory, deriveGutEvidence, hasStableGutMealId, listGutThreads, updateGutThread } from '../GutResolutionService';
 
 const thread: GutQuestionThread = {
   id: 'q1', schemaVersion: 1, ownerKey: 'hc_unified_profile_acct', profileId: 'profile_1',
@@ -35,6 +36,7 @@ const report = (meal: GutMeal, answer: 'yes' | 'no', ownerId = 'acct'): Observat
 });
 
 describe('Gut Resolution evidence ledger', () => {
+  beforeEach(() => { state.profile = {}; });
   it('keeps a same-day high symptom score and missing follow-up out of causal counts', () => {
     const evidence = deriveGutEvidence(thread, { meals, days: [day] }, []);
     expect(evidence.support).toBe(0);
@@ -73,5 +75,24 @@ describe('Gut Resolution evidence ledger', () => {
   it('allows stable saved meal ids while rejecting index-generated fallbacks', () => {
     expect(hasStableGutMealId(meals[0])).toBe(true);
     expect(hasStableGutMealId({ ...meals[0], id: 'meal-0' })).toBe(false);
+  });
+
+  it('matches a decision option to the exact saved meal name and leaves other variants out', () => {
+    const history = deriveGutChoiceHistory(thread, 'Masala Chai', { meals, days: [day] }, [report(meals[0], 'yes'), report(meals[1], 'no')]);
+    expect([history.matched, history.withSymptom, history.withoutSymptom, history.unknown]).toEqual([2, 1, 0, 1]);
+    expect(history.sourceIds).not.toContain(meals[1].id);
+    expect(deriveGutChoiceHistory(thread, '', { meals, days: [] }, []).matched).toBe(0);
+  });
+
+  it('persists a decision and filters malformed or out-of-scope question rows', async () => {
+    const created = await createGutThread({ intent: 'decide', question: 'What should I choose at dinner?' });
+    expect(created?.decision?.chosen).toBeNull();
+    if (!created?.decision) throw new Error('Decision thread was not saved');
+    const updated = await updateGutThread(created.id, { decision: { ...created.decision, options: { a: { label: 'My usual meal', mealName: 'Masala Chai' }, b: { label: 'Something else', mealName: '' } }, chosen: 'a', chosenAt: '2026-09-25T12:00:00Z' } });
+    expect(updated?.decision?.options.a.mealName).toBe('Masala Chai');
+    expect(updated?.decision?.chosen).toBe('a');
+    state.profile.gutResolutionThreads.push({ id: 'bad', schemaVersion: 1, ownerKey: thread.ownerKey, profileId: thread.profileId });
+    state.profile.gutResolutionThreads.push({ ...created, id: 'other', ownerKey: 'different-account' });
+    expect(listGutThreads().map((item) => item.id)).toEqual([created.id]);
   });
 });

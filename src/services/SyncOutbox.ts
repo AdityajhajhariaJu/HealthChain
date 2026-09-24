@@ -577,6 +577,14 @@ export async function getPendingSyncCount(userId: string): Promise<number> {
   return (await readQueue(userId)).length;
 }
 
+/** Protect unsent local observation revisions while importing remote history. */
+export async function getPendingObservationIds(userId: string, profileId: string): Promise<Set<string>> {
+  const queue = await readQueue(userId);
+  return new Set(queue.filter((entry) => entry.kind === 'health_observation_upsert' &&
+    entry.payload?.user_id === userId && entry.payload?.profile_id === profileId &&
+    typeof entry.payload?.id === 'string').map((entry) => entry.payload.id as string));
+}
+
 export async function getSyncStatus(userId?: string): Promise<SyncStatusDetail> {
   if (!userId) {
     return {

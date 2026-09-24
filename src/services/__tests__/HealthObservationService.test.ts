@@ -5,6 +5,7 @@ import type { ObservationDraft } from '../../domain/observations/types';
 const state = vi.hoisted(() => ({
   records: new Map<string, unknown>(), owner: 'account-a', profile: 'profile_1', queueOk: true, idbWriteFail: false,
   queued: [] as Array<{ kind: string; userId: string; payload: any }>,
+  remoteRows: [] as any[], remoteError: null as null | { code: string }, pendingIds: new Set<string>(),
 }));
 vi.mock('idb-keyval', () => ({
   get: vi.fn(async (key: string) => state.records.get(key)),
@@ -13,13 +14,20 @@ vi.mock('idb-keyval', () => ({
     state.records.set(key, structuredClone(value));
   }),
 }));
-vi.mock('../supabaseClient', () => ({ supabase: { auth: { getSession: vi.fn(async () => ({ data: { session: state.owner ? { user: { id: state.owner } } : null } })) } } }));
+vi.mock('../supabaseClient', () => ({ supabase: {
+  auth: { getSession: vi.fn(async () => ({ data: { session: state.owner ? { user: { id: state.owner } } : null } })) },
+  from: () => {
+    const builder: any = { select: () => builder, eq: () => builder, order: () => builder,
+      range: async (start: number, end: number) => ({ data: state.remoteRows.slice(start, end + 1), error: state.remoteError }) };
+    return builder;
+  },
+} }));
 vi.mock('../ProfileEngine', () => ({ getProfileEngineState: () => ({ activeId: state.profile }) }));
 vi.mock('../SyncOutbox', () => ({ enqueueSync: vi.fn(async (kind: string, userId: string, payload: any) => {
   state.queued.push({ kind, userId, payload }); return state.queueOk;
-}) }));
+}), getPendingObservationIds: vi.fn(async () => state.pendingIds) }));
 
-import { createObservation, deleteObservation, listObservations, reviseObservation } from '../HealthObservationService';
+import { createObservation, deleteObservation, listObservations, loadObservationsFromCloud, reviseObservation } from '../HealthObservationService';
 
 const draft = (): ObservationDraft => ({
   ownerId: state.owner, profileId: state.profile, payload: { kind: 'meal', description: 'Rice and dal' },
@@ -30,6 +38,7 @@ const draft = (): ObservationDraft => ({
 describe('canonical observation local commands', () => {
   beforeEach(() => {
     state.records.clear(); state.queued = []; state.owner = 'account-a'; state.profile = 'profile_1'; state.queueOk = true; state.idbWriteFail = false;
+    state.remoteRows = []; state.remoteError = null; state.pendingIds = new Set();
     localStorage.clear();
   });
 
@@ -91,5 +100,47 @@ describe('canonical observation local commands', () => {
     expect(await listObservations()).toHaveLength(0);
     expect(state.queued.map((item) => item.payload.revision)).toEqual([1, 2]);
     expect(state.queued[1].payload.deleted_at).not.toBeNull();
+  });
+
+  it('loads an account-owned remote record once without inventing another local command', async () => {
+    state.remoteRows = [{ id: 'remote-1', user_id: 'account-a', profile_id: 'profile_1',
+      payload: { kind: 'meal', description: 'Rice and dal' }, occurred_at: null, local_date: '2026-09-24',
+      timezone: null, time_precision: 'date_only', source: 'gut', evidence_type: 'user_report',
+      source_record_id: null, source_locator: null, idempotency_key: 'remote-meal-1', revision: 1,
+      recorded_at: '2026-09-24T12:00:00Z', created_at: '2026-09-24T12:00:00Z', updated_at: '2026-09-24T12:00:00Z', deleted_at: null }];
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'loaded', imported: 1, conflicts: 0 });
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'loaded', imported: 0, conflicts: 0 });
+    expect((await listObservations()).map((item) => item.id)).toEqual(['remote-1']);
+    expect(state.queued).toHaveLength(0);
+  });
+
+  it('preserves an unsent local revision and reports an unavailable remote relation', async () => {
+    const saved = await createObservation(draft());
+    if (!saved.ok) throw new Error('Expected local record');
+    state.remoteRows = [{ id: saved.observation.id, user_id: 'account-a', profile_id: 'profile_1',
+      payload: { kind: 'meal', description: 'Older remote text' }, occurred_at: null, local_date: '2026-09-24',
+      timezone: null, time_precision: 'date_only', source: 'gut', evidence_type: 'user_report',
+      source_record_id: null, source_locator: null, idempotency_key: 'meal-command-1', revision: 2,
+      recorded_at: saved.observation.recordedAt, created_at: saved.observation.createdAt,
+      updated_at: '2026-09-25T12:00:00Z', deleted_at: null }];
+    state.pendingIds.add(saved.observation.id);
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'conflict', imported: 0, conflicts: 1 });
+    expect((await listObservations())[0].payload).toMatchObject({ description: 'Rice and dal' });
+    state.remoteError = { code: 'PGRST205' };
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'unavailable', imported: 0 });
+    expect((await listObservations())[0].payload).toMatchObject({ description: 'Rice and dal' });
+  });
+
+  it('applies a newer cloud deletion without resurrecting the local record', async () => {
+    const saved = await createObservation(draft());
+    if (!saved.ok) throw new Error('Expected local record');
+    state.remoteRows = [{ id: saved.observation.id, user_id: 'account-a', profile_id: 'profile_1',
+      payload: saved.observation.payload, occurred_at: null, local_date: '2026-09-24', timezone: null,
+      time_precision: 'date_only', source: 'gut', evidence_type: 'user_report', source_record_id: null,
+      source_locator: null, idempotency_key: 'meal-command-1', revision: 2,
+      recorded_at: saved.observation.recordedAt, created_at: saved.observation.createdAt,
+      updated_at: '2026-09-25T12:00:00Z', deleted_at: '2026-09-25T12:00:00Z' }];
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'loaded', imported: 1 });
+    expect(await listObservations()).toHaveLength(0);
   });
 });

@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval';
 import { supabase } from './supabaseClient';
-import { enqueueSync } from './SyncOutbox';
+import { enqueueSync, getPendingObservationIds } from './SyncOutbox';
 import { getProfileEngineState } from './ProfileEngine';
 import { validateObservationDraft, type Observation, type ObservationDraft, type ObservationScope } from '../domain/observations/types';
 
@@ -110,6 +110,72 @@ export async function listObservations(): Promise<Observation[]> {
   const records = await readLocal(scope);
   if (!await sameScope(scope)) return [];
   return records.filter((record) => !record.deletedAt).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+}
+
+export type ObservationCloudLoad = { status: 'loaded' | 'local_only' | 'unavailable' | 'conflict' | 'scope_changed' | 'storage_failure'; imported: number; conflicts: number };
+
+function observationFromRemote(row: any, scope: ObservationScope): Observation | null {
+  if (!row || row.user_id !== scope.ownerId || row.profile_id !== scope.profileId || typeof row.id !== 'string' ||
+      !Number.isInteger(row.revision) || row.revision < 1 || !Number.isFinite(Date.parse(row.recorded_at)) ||
+      !Number.isFinite(Date.parse(row.created_at)) || !Number.isFinite(Date.parse(row.updated_at))) return null;
+  const draft: ObservationDraft = {
+    ownerId: row.user_id, profileId: row.profile_id, payload: row.payload,
+    occurredAt: row.occurred_at, localDate: row.local_date, timezone: row.timezone,
+    timePrecision: row.time_precision, source: row.source, evidenceType: row.evidence_type,
+    sourceRecordId: row.source_record_id || undefined, sourceLocator: row.source_locator || undefined,
+    idempotencyKey: row.idempotency_key,
+  };
+  if (!validateObservationDraft(draft).ok) return null;
+  return { ...draft, id: row.id, schemaVersion: 1, recordedAt: row.recorded_at,
+    revision: row.revision, createdAt: row.created_at, updatedAt: row.updated_at,
+    deletedAt: row.deleted_at || null };
+}
+
+/** Import account-owned server history without overwriting unsent or divergent local edits. */
+export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad> {
+  const empty = (status: ObservationCloudLoad['status']): ObservationCloudLoad => ({ status, imported: 0, conflicts: 0 });
+  const scope = await captureObservationScope();
+  if (!scope) return empty('scope_changed');
+  if (scope.ownerId === 'guest') return empty('local_only');
+  const remote: Observation[] = [];
+  for (let offset = 0; offset < 5000; offset += 200) {
+    const { data, error } = await supabase.from('health_observations').select('*')
+      .eq('user_id', scope.ownerId).eq('profile_id', scope.profileId)
+      .order('updated_at', { ascending: true }).order('id', { ascending: true }).range(offset, offset + 199);
+    if (error || !Array.isArray(data)) return empty('unavailable');
+    const parsed = data.map((row) => observationFromRemote(row, scope));
+    if (parsed.some((item) => !item)) return empty('unavailable');
+    remote.push(...parsed as Observation[]);
+    if (data.length < 200) break;
+    if (offset === 4800) return empty('unavailable');
+  }
+  if (!await sameScope(scope)) return empty('scope_changed');
+  let pending: Set<string>;
+  try { pending = await getPendingObservationIds(scope.ownerId, scope.profileId); }
+  catch { return empty('unavailable'); }
+  return serialize(async () => {
+    if (!await sameScope(scope)) return empty('scope_changed');
+    const local = await readLocal(scope);
+    const merged = new Map(local.map((item) => [item.id, item]));
+    let imported = 0;
+    let conflicts = 0;
+    for (const item of remote) {
+      const previous = merged.get(item.id);
+      if (!previous) { merged.set(item.id, item); imported++; continue; }
+      if (pending.has(item.id)) {
+        if (item.revision >= previous.revision && (item.revision !== previous.revision ||
+            JSON.stringify(item.payload) !== JSON.stringify(previous.payload) || item.deletedAt !== previous.deletedAt)) conflicts++;
+        continue;
+      }
+      if (item.revision > previous.revision) { merged.set(item.id, item); imported++; continue; }
+      if (item.revision < previous.revision || JSON.stringify(item.payload) !== JSON.stringify(previous.payload) ||
+          item.deletedAt !== previous.deletedAt) conflicts++;
+    }
+    if (!await sameScope(scope)) return empty('scope_changed');
+    if (imported && !await writeLocal(scope, [...merged.values()])) return empty('storage_failure');
+    if (imported && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_observations_updated', { detail: { imported } }));
+    return { status: conflicts ? 'conflict' : 'loaded', imported, conflicts };
+  });
 }
 
 export async function createObservation(draft: ObservationDraft): Promise<ObservationCommandResult> {
