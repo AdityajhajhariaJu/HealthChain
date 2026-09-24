@@ -66,7 +66,7 @@ export default function AppShell() {
     try {
       if (localStorage.getItem('hc_onboarded') !== 'true') {
         const prof = getProfile();
-        if (prof?.demographics?.onboardingCompletedAt || (prof?.demographics?.name && prof?.demographics?.age) || prof?.profileName) {
+        if (prof?.demographics?.onboardingCompletedAt || (prof?.demographics?.name && prof?.demographics?.age) || (prof?.profileName && prof?.profileName !== 'My Profile') || localStorage.getItem('hc_guest_mode') === 'true') {
           localStorage.setItem('hc_onboarded', 'true');
           return;
         }
