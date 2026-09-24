@@ -580,55 +580,86 @@ export default function MedicalProfile() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card"
         style={{
-          padding: isMobile ? '18px 20px' : '22px 32px',
-          margin: isMobile ? '0 0 20px 0' : '0 32px 24px 32px',
-          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#059669)',
-          color: '#F8FAFC',
-          borderRadius: '20px',
-          border: 'none',
-          boxShadow: '0 12px 32px rgba(15,23,42,0.15)'
+          padding: isMobile ? '14px 16px' : '16px 20px',
+          marginBottom: '20px',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 100%)',
+          borderRadius: '18px',
+          border: '1px solid #F1E5E7',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+          color: '#0F172A'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
-          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#99f6e4' }}>
-              <ShieldCheck size={18} />
-              <span style={{ fontSize: '12px', fontWeight: 800 }}>Profile completeness</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          <div style={{ flex: '1 1 0%', minWidth: 0 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 8px', borderRadius: '6px', background: '#F0FDFA', border: '1px solid #CCFBF1', color: '#0D9488', fontSize: '11px', fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase', marginBottom: '4px' }}>
+              <ShieldCheck size={12} strokeWidth={2.5} />
+              <span>Profile completeness</span>
             </div>
-            <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>{healthScore.score}% complete</h3>
-            <p style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '480px' }}>
-              More context can make summaries more relevant. Add only what you are comfortable storing, and verify AI output before using it.
+
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                {healthScore.score}% complete
+              </h3>
+            </div>
+
+            <p style={{ color: '#64748B', fontSize: '12px', lineHeight: 1.45, margin: '4px 0 0 0', maxWidth: '460px' }}>
+              More context can make summaries more relevant. Add only what you are comfortable storing.
             </p>
 
             {healthScore.missing.length > 0 && (
-              <div style={{ marginTop: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, marginBottom: '6px' }}>Optional details</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {healthScore.missing.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#f8fafc', background: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '6px' }}>
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                {healthScore.missing.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      color: '#475569',
+                      background: '#FFFAFA',
+                      border: '1px solid #F1E5E7',
+                      padding: '4px 10px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
+                    <span>{item}</span>
+                  </div>
+                ))}
               </div>
             )}
+
             {healthScore.score === 100 && (
-               <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#34D399', background: 'rgba(52,211,153,0.15)', padding: '6px 12px', borderRadius: '6px', width: 'fit-content' }}>
-                  <Check size={14} /> All suggested profile sections are complete.
-               </div>
+              <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '8px' }}>
+                <Check size={13} strokeWidth={2.5} /> All suggested profile sections are complete.
+              </div>
             )}
           </div>
-          
-          <div style={{ width: '96px', height: '96px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="96" height="96" viewBox="0 0 96 96">
-              <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
-              <circle cx="48" cy="48" r="42" fill="none" stroke="#99f6e4" strokeWidth="6" strokeDasharray={`${(healthScore.score / 100) * 264} 264`} strokeDashoffset="0" transform="rotate(-90 48 48)" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
+
+          <div style={{ width: '54px', height: '54px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="54" height="54" viewBox="0 0 54 54">
+              <circle cx="27" cy="27" r="22" fill="none" stroke="#F1E5E7" strokeWidth="4.5" />
+              <circle
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                stroke="#0D9488"
+                strokeWidth="4.5"
+                strokeDasharray={`${(healthScore.score / 100) * 138.23} 138.23`}
+                strokeDashoffset="0"
+                transform="rotate(-90 27 27)"
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.8s ease' }}
+              />
             </svg>
             <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#F8FAFC' }}>{healthScore.score}</span>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                {healthScore.score}
+              </span>
             </div>
           </div>
         </div>
