@@ -916,6 +916,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
           <button
             type="button"
             onClick={handleToday}
+            aria-label="Go to today"
             style={{
               padding: '6px 12px',
               borderRadius: '9px',

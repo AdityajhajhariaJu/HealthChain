@@ -146,7 +146,9 @@ export function getProfileEngineState() {
             return parsedBackup;
           }
         }
-      } catch (be) {}
+      } catch {
+        // Fallback silently if backup restoration also fails
+      }
 
       const defaultId = 'profile_1';
       return {
@@ -343,7 +345,9 @@ export async function saveProfile(profile) {
       if (currentRaw) {
         setItemSync(getProfileKey() + '_backup', currentRaw);
       }
-    } catch (bErr) {}
+    } catch {
+      // Ignore backup failures
+    }
 
     setItemSync(getProfileKey(), stateStr);
     
