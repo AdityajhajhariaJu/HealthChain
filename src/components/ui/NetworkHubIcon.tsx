@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { LucideProps } from 'lucide-react';
 
-export const NetworkHubIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }: LucideProps) => (
+export const NetworkHubIcon = React.memo<LucideProps>(({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -31,4 +31,5 @@ export const NetworkHubIcon = ({ size = 24, color = "currentColor", strokeWidth 
     <line x1="10.3" y1="13" x2="6.8" y2="15" />
     <line x1="10.3" y1="11" x2="6.8" y2="9" />
   </svg>
-);
+));
+NetworkHubIcon.displayName = 'NetworkHubIcon';
