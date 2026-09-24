@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Info, Sparkles, Wind } from 'lucide-react';
+import { Droplet, Info, Wind } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { getDailyStreak } from '../../services/VitalityPointsEngine';
@@ -42,17 +42,6 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 50%, #FFF7F8 100%)', borderRadius: '20px', padding: '16px 18px', border: '1.5px solid #F1E5E7', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)' }}>
-        <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)', flexShrink: 0 }}>
-          <Sparkles size={20} />
-        </div>
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>YOUR ZEN GARDEN</div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>A quiet record of consistency</div>
-          <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>Tend it once each day. The garden is a gentle visual ritual—not a health score.</div>
-        </div>
-      </div>
-
       <div style={{ position: 'relative', background: 'radial-gradient(ellipse at top, #FFFFFF 0%, #FFFAFA 45%, #FFF7F8 100%)', borderRadius: '28px', padding: '24px 20px', border: '1.5px solid #F1E5E7', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'hidden', minHeight: '260px' }}>
         <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }} style={{ position: 'absolute', top: '-20px', right: '20px', width: '90px', height: '90px', borderRadius: '50%', background: 'radial-gradient(circle, #FDE047 0%, rgba(251, 146, 60, 0) 70%)', pointerEvents: 'none' }} />
         <motion.div animate={{ y: [-5, -20, -5], opacity: [0.4, 0.9, 0.4] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} style={{ position: 'absolute', top: '40px', left: '30px', fontSize: '18px' }}>✨</motion.div>
