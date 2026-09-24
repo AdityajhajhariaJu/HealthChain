@@ -138,8 +138,7 @@ const AudioTrackCard: React.FC<{
             borderRadius: isMobile ? '12px' : '14px',
             overflow: 'hidden',
             flexShrink: 0,
-            background: '#0F172A',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.15)'
+            background: 'transparent'
           }}
         >
           <AnimatedTrackThumbnail
