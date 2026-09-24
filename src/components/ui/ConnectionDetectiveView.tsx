@@ -45,7 +45,6 @@ import {
 } from '../../services/ConnectionDetectiveEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
@@ -170,11 +169,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Post-Meal Timeline & Flare Calendar',
-    shortTitle: 'Timeline & Calendar',
+    title: 'Meal Records & Digestion Calendar',
+    shortTitle: 'Records & Calendar',
     icon: '🍽️',
-    subtitle: 'Post-meal reaction delay windows & 30-day digestion heatmap',
-    statusBadge: '2h/6h & Heatmap',
+    subtitle: 'Saved meal reports and dated digestion observations',
+    statusBadge: 'Saved records',
   },
   {
     id: 'insights',
@@ -184,11 +183,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Food Triggers & Insights',
-    shortTitle: 'Triggers & Insights',
+    title: 'Food Records & Patterns',
+    shortTitle: 'Food Records',
     icon: '🥗',
-    subtitle: 'Culprit foods, evidence graph & statistical correlations',
-    statusBadge: 'Correlations',
+    subtitle: 'Reported foods and descriptive patterns from saved records',
+    statusBadge: 'Record review',
   },
 ];
 
@@ -233,7 +232,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     id: 'gut',
     title: 'Gut & Food',
     badge: 'Pillar 01',
-    desc: 'Dietary triggers, histamine, post-meal timing & calendar flares',
+    desc: 'Meal reports, digestion observations, and recorded history',
     icon: '🥗',
     get stationCount() {
       return ALL_12_STATIONS.filter((s) => s.pillarId === 'gut').length;
@@ -242,7 +241,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
       const stations = ALL_12_STATIONS.filter((s) => s.pillarId === 'gut');
       return stations.length > 0 ? `${stations[0].stationNumber} - ${stations[stations.length - 1].stationNumber}` : '01 - 02';
     },
-    telemetry: 'Triggers & Flares',
+    telemetry: 'Saved records',
     accentColor: '#0D9488',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
     borderColor: 'rgba(13, 148, 136, 0.35)',
@@ -354,21 +353,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   const [sourcePassageModalData, setSourcePassageModalData] = useState<SourcePassageModalProps | null>(null);
 
-  const openSourcePassage = (source: string, citation?: string, snippet?: string, claim?: string) => {
-    setSourcePassageModalData({
-      isOpen: true,
-      onClose: () => setSourcePassageModalData(null),
-      recordTitle: citation ? `${source} (${citation})` : source,
-      recordType: 'Verified Medical Record & Clinical Protocol',
-      pageNumber: 1,
-      sectionTitle: 'Correlated Evidence Passage',
-      passageText: snippet || 'Source details are unavailable in this view.',
-      fullFindings: 'Open the case record to review the original source.',
-      dateAdded: 'Active Case Timeline',
-      findingClaim: claim || 'Source-linked item',
-    });
-  };
-
   // Scroll to station helper
   const scrollToStation = (tabId: TabId) => {
     triggerHapticSelection();
@@ -448,12 +432,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     };
   }, []);
 
-  const dietSummary = useMemo(() => generateDoctorSummary(), [report]);
-
   const resolvedCulpritFoods = useMemo(() => {
-    if (dietSummary?.topCulpritFoods && dietSummary.topCulpritFoods.length > 0) {
-      return dietSummary.topCulpritFoods;
-    }
     const intakeTriggers: string[] = Array.isArray(activeCase?.intakeData?.triggers)
       ? activeCase.intakeData.triggers
       : [];
@@ -464,9 +443,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
         emoji: '🥗',
         category: 'Intake Trigger',
         primarySensitivity: 'Patient-reported observation',
-        correlationPercent: 0,
         reactionWindow: 'Timing not established',
-        safeSwap: 'Elimination Trial Swap',
         evidenceRef: 'Intake History',
       }));
     }
@@ -478,14 +455,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
         emoji: '🥗',
         category: 'Dietary Stream',
         primarySensitivity: 'Recorded dietary observation',
-        correlationPercent: 0,
         reactionWindow: 'Timing not established',
-        safeSwap: 'Clinical Swap',
         evidenceRef: 'Dietary Stream',
       }));
     }
     return [];
-  }, [dietSummary, activeCase, report]);
+  }, [activeCase, report]);
 
   const dynamicPillarData = useMemo(() => {
     // 1. Gut & Food
@@ -495,8 +470,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     const culpritCount = resolvedCulpritFoods.length;
     const gutTriggersCount = culpritCount || directTriggers || streamDietCount;
     const gutTelemetry = gutTriggersCount > 0
-      ? `${gutTriggersCount} ${gutTriggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
-      : 'Awaiting Meal Logs';
+      ? `${gutTriggersCount} food ${gutTriggersCount === 1 ? 'entry' : 'entries'} in this case`
+      : 'No food history in this case';
 
     return {
       gut: { telemetry: gutTelemetry, triggersCount: gutTriggersCount },
@@ -648,7 +623,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            Food Detective <ArrowRight size={12} />
+                            Review food records <ArrowRight size={12} />
                           </button>
                         </div>
                       )}
@@ -690,7 +665,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                                     borderRadius: '6px',
                                   }}
                                 >
-                                  {culprit.correlationPercent > 0 ? `${culprit.correlationPercent}% co-recorded` : 'Reported'}
+                                  Reported
                                 </span>
                               </div>
 
@@ -701,24 +676,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
                               {/* Small visual linking finding to source */}
                               <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '2px' }}>
-                                <SourceEvidenceBadge
-                                  source={culprit.evidenceRef || 'Clinical Evidence Baseline'}
-                                  onClick={() => openSourcePassage(
-                                    culprit.evidenceRef || 'Clinical Evidence Baseline',
-                                    undefined,
-                                    culprit.correlationPercent > 0
-                                      ? `A symptom entry was also recorded on ${culprit.correlationPercent}% of dates when ${culprit.name} was logged. This is an association, not proof of causation.`
-                                      : `${culprit.name} was reported in the case history. No repeated association has been calculated.`,
-                                    `Recorded food observation for ${culprit.name}`
-                                  )}
-                                />
+                                <span style={{ fontSize: 11, color: '#64748B' }}>Source: {culprit.evidenceRef}</span>
                               </div>
 
-                              {culprit.safeSwap && (
-                                <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
-                                  🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
-                                </div>
-                              )}
                             </div>
                           ))}
                         </div>
@@ -738,10 +698,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                         >
                           <span style={{ fontSize: '24px' }}>🥗</span>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F766E' }}>
-                            No Dietary Triggers Logged Yet
+                            No food history in this case yet
                           </div>
                           <p style={{ margin: 0, fontSize: '12px', color: '#475569', maxWidth: '420px', lineHeight: 1.4 }}>
-                            Record daily meals in Food Detective or specify sensitivities in Case Intake to view correlation windows.
+                            Record a meal when it is useful, or review food details you reported in Case Intake. Empty history does not mean no symptoms.
                           </p>
                           <button
                             type="button"
@@ -765,7 +725,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                               gap: '4px',
                             }}
                           >
-                            Open Food Detective <ArrowRight size={12} />
+                            Review food records <ArrowRight size={12} />
                           </button>
                         </div>
                       )}

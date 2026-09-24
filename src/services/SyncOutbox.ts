@@ -1,5 +1,5 @@
 import { del, get, set } from 'idb-keyval';
-import { getItemSync, setItemSync } from './storage';
+import { getItemSync } from './storage';
 import { supabase } from './supabaseClient';
 import type { CaseItem } from './CaseEngine';
 import { mergeCaseItems } from './CaseMergeEngine';
@@ -11,6 +11,7 @@ type OutboxKind =
   | 'case_upsert' 
   | 'case_delete' 
   | 'health_memory_upsert' 
+  | 'health_observation_upsert'
   | 'profile_upsert' 
   | 'caregiver_profile_upsert'
   | 'fitness_history_upsert'
@@ -46,25 +47,37 @@ function getCurrentScope(): string {
 
 async function readQueue(userId: string): Promise<OutboxEntry[]> {
   const key = currentUserKey(userId);
-  let indexedDbQueue: OutboxEntry[] | null = null;
+  let indexedDbQueue: OutboxEntry[] = [];
   try {
     const value = await get(key);
-    if (Array.isArray(value)) {
-      indexedDbQueue = value;
-      if (value.length > 0) return value;
-    }
+    if (Array.isArray(value)) indexedDbQueue = value;
   } catch {}
+  let fallbackQueue: OutboxEntry[] = [];
   try {
     const value = JSON.parse(getItemSync(key) || '[]');
-    if (Array.isArray(value) && value.length > 0) {
-      // Migrate a queue written by an older/fallback storage path into the
-      // primary store before returning it. This prevents an empty IndexedDB
-      // namespace from masking recoverable localStorage work.
-      try { await set(key, value); } catch {}
-      return value;
-    }
+    if (Array.isArray(value)) fallbackQueue = value;
   } catch {}
-  return indexedDbQueue || [];
+  const merged = new Map<string, OutboxEntry>();
+  for (const entry of [...indexedDbQueue, ...fallbackQueue]) {
+    if (!entry || entry.userId !== userId || !entry.id) continue;
+    const previous = merged.get(entry.id);
+    const priorRevision = Number(previous?.payload?.revision || 0);
+    const nextRevision = Number(entry.payload?.revision || 0);
+    if (!previous || nextRevision > priorRevision ||
+        (nextRevision === priorRevision && String(entry.payload?.updated_at || '') >= String(previous.payload?.updated_at || ''))) {
+      merged.set(entry.id, entry);
+    }
+  }
+  const queue = [...merged.values()];
+  if (fallbackQueue.length > 0) {
+    try {
+      await set(key, queue);
+      try { window.localStorage.removeItem(key); } catch {}
+    } catch {
+      // Leave fallback entries in place until reconciliation can persist.
+    }
+  }
+  return queue;
 }
 
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
@@ -72,9 +85,10 @@ async function writeQueue(userId: string, queue: OutboxEntry[]) {
   try {
     await set(key, queue);
     try { window.localStorage.removeItem(key); } catch {}
-    return;
+    return true;
   } catch {}
-  try { setItemSync(key, JSON.stringify(queue)); } catch {}
+  try { window.localStorage.setItem(key, JSON.stringify(queue)); return true; } catch {}
+  return false;
 }
 
 function entryId() {
@@ -86,7 +100,8 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
   const queue = await readQueue(userId);
   const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
   const existing = queue.findIndex((entry) => entry.kind === kind &&
-    (entry.payload?.id || entry.payload?.profile_id || entry.payload?.data?.id) === stableId);
+    (entry.payload?.id || entry.payload?.profile_id || entry.payload?.data?.id) === stableId &&
+    (kind !== 'health_observation_upsert' || entry.payload?.revision === payload?.revision));
   const currentScope = getCurrentScope();
   const entry: OutboxEntry = {
     id: existing >= 0 ? queue[existing].id : entryId(),
@@ -107,7 +122,10 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
     }
     return false;
   } else queue.push(entry);
-  await writeQueue(userId, queue);
+  if (!await writeQueue(userId, queue)) {
+    lastSyncError = 'Offline changes could not be saved for sync. Free device storage and try again.';
+    return false;
+  }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: queue.length } }));
   }
@@ -118,6 +136,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
     : entry.kind === 'health_memory_upsert' ? 'health_memory'
+      : entry.kind === 'health_observation_upsert' ? 'health_observations'
       : entry.kind === 'caregiver_profile_upsert' ? 'healthchain_profiles'
       : entry.kind === 'fitness_history_upsert' ? 'user_fitness_history'
       : entry.kind === 'body_measurements_upsert' ? 'user_body_measurements'
@@ -126,7 +145,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
   const localUpdatedAt = entry.payload?.updated_at;
 
   // Protect non-case entities from stale offline snapshots overwriting newer remote updates
-  if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' && recordId && localUpdatedAt) {
+  if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' && entry.kind !== 'health_observation_upsert' && recordId && localUpdatedAt) {
     const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
     const remoteResult = table === 'healthchain_profiles'
       ? await supabase.from(table).select('updated_at').eq(ownerColumn, entry.userId)
@@ -379,6 +398,34 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     return supabase.from('cases').delete().eq('id', caseId).eq('user_id', entry.userId);
   }
 
+  if (entry.kind === 'health_observation_upsert') {
+    if (entry.scopeKey && entry.scopeKey !== getCurrentScope()) return { error: new Error('Scope switched during observation sync operation') };
+    const { expected_revision: expectedRevision, ...row } = entry.payload || {};
+    if (!row.id || row.user_id !== entry.userId || row.profile_id !== 'profile_1' || !Number.isInteger(row.revision)) {
+      return { error: new Error('Invalid observation sync payload') };
+    }
+    const lookup = () => supabase.from('health_observations').select('id, revision, idempotency_key')
+      .eq('id', row.id).eq('user_id', entry.userId).eq('profile_id', row.profile_id).maybeSingle();
+    if (!expectedRevision) {
+      const inserted = await supabase.from('health_observations').insert(row);
+      if (!inserted.error) return inserted;
+      if (inserted.error.code !== '23505') return inserted;
+      const existing = await lookup();
+      if (existing.error) return { error: existing.error };
+      return { error: existing.data?.revision === row.revision && existing.data?.idempotency_key === row.idempotency_key
+        ? null : new Error('Observation revision conflict') };
+    }
+    const updated = await supabase.from('health_observations').update(row)
+      .eq('id', row.id).eq('user_id', entry.userId).eq('profile_id', row.profile_id)
+      .eq('revision', expectedRevision).select('id').maybeSingle();
+    if (updated.error || updated.data) return updated;
+    const existing = await lookup();
+    if (existing.error) return { error: existing.error };
+    if (!existing.data) return supabase.from('health_observations').insert(row);
+    return { error: existing.data.revision === row.revision && existing.data.idempotency_key === row.idempotency_key
+      ? null : new Error('Observation revision conflict') };
+  }
+
   if (entry.kind === 'health_memory_upsert') {
     const result = await supabase.from('health_memory').upsert(entry.payload, { onConflict: 'id' });
     if (result.error?.code === '23505' && entry.payload?.dedupe_key) {
@@ -498,7 +545,10 @@ export async function flushSyncOutbox(userId?: string) {
     const merged = new Map(remaining.map((entry) => [entry.id, entry]));
     concurrentEntries.forEach((entry) => merged.set(entry.id, entry));
     const persistedRemaining = Array.from(merged.values());
-    await writeQueue(accountId, persistedRemaining);
+    if (!await writeQueue(accountId, persistedRemaining)) {
+      lastSyncError = 'Sync results could not be saved on this device.';
+      throw new Error(lastSyncError);
+    }
 
     if (persistedRemaining.length) {
       if (typeof window !== 'undefined') {

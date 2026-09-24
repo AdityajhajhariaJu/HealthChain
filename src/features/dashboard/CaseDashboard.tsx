@@ -61,7 +61,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { GutHealthModal } from '../../components/ui/GutHealthModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 
@@ -347,8 +347,15 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
-  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
+  const [showDetectiveModal, setShowDetectiveModal] = useState(() => new URLSearchParams(window.location.search).get('gut') === '1');
   const [profile, setProfile] = useState(() => getProfile());
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('gut') !== '1') return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('gut');
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  }, []);
 
   const isProfileComplete = Boolean(
     profile?.demographics?.age && 
@@ -612,7 +619,7 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Gut Health - Track food triggers, meal reactions & digestion"
+                aria-label="Gut Health - Record meals and digestion, review your history"
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -625,9 +632,9 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)', 
-                  border: '1px solid #99F6E4', 
-                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02)', 
+                  background: 'linear-gradient(135deg, #FFFCFA 0%, #FFF0E9 60%, #F8DDD2 100%)',
+                  border: '1px solid #E9CBBE',
+                  boxShadow: '0 4px 16px rgba(155, 103, 91, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02)',
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
@@ -647,18 +654,18 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)', 
-                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.28)', 
+                    background: 'radial-gradient(circle at 30% 25%, #FFF, #F7DED4 72%, #ECC3B4)',
+                    boxShadow: 'inset 0 1px 2px #FFF, 0 5px 14px #C18E7950',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
+                    <Utensils size={isMobile ? 18 : 20} color="#9B675B" strokeWidth={2.2} />
                   </div>
                 </div>
                 <div>
                   <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Gut Health</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Track food triggers, meal reactions & digestion</p>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Record meals and digestion. Review what changed.</p>
                 </div>
               </motion.div>
 
@@ -1661,12 +1668,10 @@ export default function CaseDashboard() {
         />
       )}
 
-      <ConnectionDetectiveModal
+      <GutHealthModal
         isOpen={showDetectiveModal}
         onClose={() => setShowDetectiveModal(false)}
-        onOpenFoodDetective={() => navigate('/app/dietician?tab=sensitivities')}
-        onOpenConsult={() => navigate('/app/consult')}
-        onOpenCasePrep={() => navigate('/app/case-prep')}
+        onOpenConsult={() => { setShowDetectiveModal(false); navigate('/app/consult'); }}
       />
 
       <TriggerSensitivityModal

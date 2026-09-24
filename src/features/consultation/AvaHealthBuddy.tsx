@@ -13,13 +13,10 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
-import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
-import { ConnectionTriggerCard } from '../../components/ui/ConnectionTriggerCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
-import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import { getCase, getCases, addCaseEvent, addCaseQuestion, type CaseItem } from '../../services/CaseEngine';
@@ -345,64 +342,14 @@ const MessageRenderer = ({
     );
   }
 
-  // CONNECTION TRIGGER CARD WIDGET (Multi-System Kinetic & Clinical Connection)
-  if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD')) {
-    const { payload, before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-        {before && <span>{before}</span>}
-        <ConnectionTriggerCard
-          symptom={payload?.symptom}
-          reactionWindow={payload?.reactionWindow}
-          confidencePercent={payload?.confidencePercent}
-          upstreamRootCause={payload?.upstreamRootCause}
-          kineticPathway={payload?.kineticPathway}
-          suspectVectors={payload?.suspectVectors}
-          onOpenKineticMap={() => {
-            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'map' } }));
-          }}
-        />
-        {after && <span>{after}</span>}
-      </div>
-    );
-  }
-
-  // TRIGGER SENSITIVITY CARD WIDGET (Triggerbites Symptom Reference)
-  if (content.includes('[WIDGET:TRIGGER_CARD')) {
-    const { payload, before, after } = extractBalancedWidget(content, 'TRIGGER_CARD');
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-        {before && <span>{before}</span>}
-        <TriggerSensitivityCard
-          symptom={payload?.symptom || 'Bloating'}
-          reactionWindow={payload?.reactionWindow || 'within 1 day'}
-          sensitivities={payload?.sensitivities}
-          ingredients={payload?.ingredients}
-          onOpenWholeHealth={onOpenWholeHealth}
-        />
-        {after && <span>{after}</span>}
-      </div>
-    );
-  }
-
-  // SYMPTOM SENSITIVITY CAPSULE CARD (TriggerBites Clinical Reference Pattern)
-  if (content.includes('[WIDGET:SYMPTOM_SENSITIVITY_CAPSULE_CARD')) {
-    const { payload, before, after } = extractBalancedWidget(content, 'SYMPTOM_SENSITIVITY_CAPSULE_CARD');
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-        {before && <span>{before}</span>}
-        <SymptomSensitivityCapsuleCard
-          symptomName={payload?.symptomName}
-          latencyWindow={payload?.latencyWindow}
-          sensitivities={payload?.sensitivities}
-          ingredients={payload?.ingredients}
-          onOpenDetective={() => {
-            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'matcher' } }));
-          }}
-        />
-        {after && <span>{after}</span>}
-      </div>
-    );
+  // Legacy food-sensitivity widgets were generated from unverified reference data.
+  if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD') ||
+      content.includes('[WIDGET:TRIGGER_CARD') ||
+      content.includes('[WIDGET:SYMPTOM_SENSITIVITY_CAPSULE_CARD')) {
+    return <div style={{ padding: 15, border: '1px solid #ECD9D0', borderRadius: 15, background: 'linear-gradient(145deg,#FFFCFA,#FFF3EF)', color: '#66554F', lineHeight: 1.5 }}>
+      This food-sensitivity card needs source review before it can be shown. You can review your recorded meals and symptoms in the observation view.
+      {onOpenWholeHealth && <button type="button" onClick={onOpenWholeHealth} style={{ display: 'block', marginTop: 10, minHeight: 40, padding: '8px 12px', borderRadius: 9, border: '1px solid #D8A999', background: '#FFFDFC', color: '#765248', fontWeight: 700, cursor: 'pointer' }}>Review observations</button>}
+    </div>;
   }
 
   if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {

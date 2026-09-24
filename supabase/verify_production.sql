@@ -11,7 +11,7 @@ begin
     into missing_tables
   from (values
     ('profiles'), ('cases'), ('health_memory'), ('user_devices'),
-    ('healthchain_profiles'), ('analytics_events'), ('ai_requests'), ('ai_usage_daily'), ('payments')
+    ('healthchain_profiles'), ('health_observations'), ('analytics_events'), ('ai_requests'), ('ai_usage_daily'), ('payments')
   ) as expected(name)
   where to_regclass('public.' || name) is null;
 
@@ -26,7 +26,7 @@ from information_schema.tables
 where table_schema = 'public'
   and table_name in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'healthchain_profiles', 'ai_requests', 'ai_usage_daily', 'payments'
+    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
   )
 order by table_name;
 
@@ -37,7 +37,7 @@ join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public'
   and c.relname in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'healthchain_profiles', 'ai_requests', 'ai_usage_daily', 'payments'
+    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
   )
 order by c.relname;
 
@@ -50,7 +50,7 @@ where n.nspname = 'public'
   and c.relkind = 'r'
   and c.relname in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'ai_requests', 'ai_usage_daily', 'payments'
+    'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
   )
   and not c.relrowsecurity
 order by c.relname;
@@ -85,7 +85,7 @@ begin
     into missing_policies
   from (values
     ('profiles'), ('cases'), ('health_memory'), ('user_devices'), ('analytics_events'),
-    ('healthchain_profiles')
+    ('healthchain_profiles'), ('health_observations')
   ) as expected(table_name)
   where not exists (
     select 1 from pg_policies policy

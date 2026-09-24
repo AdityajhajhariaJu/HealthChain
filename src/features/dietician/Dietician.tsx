@@ -112,8 +112,6 @@ import {
   exportDietObservationsToCase,
 } from '../../services/dietPlanLifecycle';
 import {
-  getAllClinicalDietarySwaps,
-  getClinicalDietarySwap,
   DietarySwap,
 } from '../../services/clinicalDietarySwaps';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
@@ -1051,16 +1049,6 @@ export default function Dietician() {
     toast.success('Meal Updated', 'Nutritional estimates and day totals recalculated.');
   };
 
-  const handleApplySwap = (swap: DietarySwap) => {
-    if (!mealPlan || !swappingMeal) return;
-    triggerHapticSuccess();
-    const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, swap);
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
-    setSwappingMeal(null);
-    toast.success('Swap Applied', `Replaced with ${swap.smartReplacement}. Day totals updated.`);
-  };
-
   const handleApplyCustomSwap = () => {
     if (!mealPlan || !swappingMeal || !customSwapName.trim()) return;
     triggerHapticSuccess();
@@ -1068,10 +1056,10 @@ export default function Dietician() {
       triggerName: swappingMeal.meal.name,
       category: 'ADDITIVE',
       offendingCompound: 'User personalized preference',
-      biologicalMechanism: customSwapRationale.trim() || 'User-selected ingredient tolerance swap',
+      biologicalMechanism: customSwapRationale.trim() ? `User note: ${customSwapRationale.trim()}` : 'User-selected meal replacement; no clinical effect established',
       smartReplacement: customSwapName.trim(),
       replacementDetails: 'Custom personalized tolerance swap',
-      expectedReliefTimeline: 'Within 24 hours',
+      expectedReliefTimeline: '',
     };
     const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, customSwap);
     setMealPlan(updated);
@@ -2376,7 +2364,7 @@ export default function Dietician() {
                                   <button
                                     type="button"
                                     onClick={() => setSwappingMeal({ day: dayNum, meal })}
-                                    title="Clinically swap this meal"
+                                    title="Replace this meal"
                                     style={{
                                       background: '#ECFDF5',
                                       border: '1px solid #A7F3D0',
@@ -3708,7 +3696,7 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
-        {/* Package 7: Clinical Dietary Swaps Modal */}
+        {/* Package 7: Edit Meal Replacements Modal */}
         <AnimatePresence>
           {swappingMeal && (
             <div
@@ -3744,7 +3732,7 @@ export default function Dietician() {
                 <motion.div
                   role="dialog"
                   aria-modal="true"
-                  aria-label="Clinical Dietary Swap"
+                  aria-label="Edit meal replacement"
                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -3771,10 +3759,10 @@ export default function Dietician() {
                       </div>
                       <div>
                         <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                          Clinical Dietary Swap
+                          Edit Meal Replacement
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-                          Replace <strong>{swappingMeal.meal.name}</strong> with a tolerance-tested clinical alternative.
+                          Replace <strong>{swappingMeal.meal.name}</strong> with a food you choose. No symptom effect is assumed.
                         </p>
                       </div>
                     </div>
@@ -3787,61 +3775,10 @@ export default function Dietician() {
                     </button>
                   </div>
 
-                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
-                    Select a Clinically Rationalized Swap:
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {getAllClinicalDietarySwaps().map((swap, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          padding: '12px 14px',
-                          borderRadius: '12px',
-                          border: '1px solid #E2E8F0',
-                          background: '#F8FAFC',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '12px',
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginBottom: '2px' }}>
-                            {swap.smartReplacement}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginBottom: '4px' }}>
-                            Category: {swap.category.replace('_', ' ')} · Triggers: {swap.triggerName}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
-                            {swap.biologicalMechanism}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleApplySwap(swap)}
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            background: '#059669',
-                            border: 'none',
-                            color: '#FFFFFF',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
-                        >
-                          Apply Swap
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
                   {/* Custom Swap */}
                   <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
-                      Or Enter a Custom Replacement:
+                      Choose a Replacement:
                     </div>
                     <input
                       type="text"
@@ -3852,7 +3789,7 @@ export default function Dietician() {
                     />
                     <input
                       type="text"
-                      placeholder="Reason / rationale (optional)..."
+                      placeholder="Your reason (optional)..."
                       value={customSwapRationale}
                       onChange={(e) => setCustomSwapRationale(e.target.value)}
                       style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
@@ -3873,7 +3810,7 @@ export default function Dietician() {
                         alignSelf: 'flex-end',
                       }}
                     >
-                      Apply Custom Swap
+                      Save Replacement
                     </button>
                   </div>
                 </motion.div>

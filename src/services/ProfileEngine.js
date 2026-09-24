@@ -733,13 +733,19 @@ export function addNutritionLog(log) {
   if (!profile.nutrition.recentLogs) {
     profile.nutrition.recentLogs = [];
   }
-  profile.nutrition.recentLogs.push({
+  const entry = {
     ...log,
     id: log.id || generateId(),
     loggedAt: log.loggedAt || new Date().toISOString(),
-  });
+  };
+  profile.nutrition.recentLogs.push(entry);
   saveProfile(profile);
-  return log.id || profile.nutrition.recentLogs[profile.nutrition.recentLogs.length - 1]?.id;
+  const persisted = getProfile()?.nutrition?.recentLogs?.find((item) => item.id === entry.id);
+  if (!persisted || JSON.stringify(persisted) !== JSON.stringify(entry)) {
+    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: new Error('Meal record was not saved locally') }));
+    return null;
+  }
+  return entry.id;
 }
 
 export function removeNutritionLog(logIdentifier) {
@@ -870,7 +876,7 @@ export function saveDigestionLog(dateKey, logData) {
     addEvent(
       'digestion',
       'digestion_checkin',
-      `Digestion Log (${dateKey}): Bloat ${updatedEntry.bloatingScore ?? 'N/A'}/10, Bristol Type ${updatedEntry.bristolType ?? 4}`,
+      `Digestion Log (${dateKey}): Bloating ${updatedEntry.bloatingScore == null ? 'not recorded' : `${updatedEntry.bloatingScore}/10`}, Bristol form ${updatedEntry.bristolType == null ? 'not recorded' : `type ${updatedEntry.bristolType}`}`,
       updatedEntry,
       true,
       profile
@@ -880,6 +886,11 @@ export function saveDigestionLog(dateKey, logData) {
   }
 
   saveProfile(profile);
+  const persisted = getDigestionLogs()[dateKey];
+  if (!persisted || JSON.stringify(persisted) !== JSON.stringify(updatedEntry)) {
+    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: new Error('Digestion observation was not saved locally') }));
+    return null;
+  }
   window.dispatchEvent(new CustomEvent('hc_digestion_updated', { detail: { dateKey, logData: updatedEntry } }));
   window.dispatchEvent(new Event('hc_profile_updated'));
   return updatedEntry;

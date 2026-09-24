@@ -74,15 +74,14 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
     expect(() => logTrialDay(4, true)).toThrow(/Start an elimination protocol/);
   });
 
-  it('archives the prior protocol when the user switches protocols', () => {
-    startTrial('hunt_bloat');
-    logTrialDay(6, true);
-    startTrial('hunt_histamine');
-
-    expect(getActiveTrial()?.trialId).toBe('hunt_histamine');
-    expect(getTrialHistory()[0]?.trialId).toBe('hunt_bloat');
-    expect(getTrialHistory()[0]?.endReason).toBe('replaced');
-    expect(getTrialHistory()[0]?.symptomScores).toHaveLength(1);
+  it('rejects direct starts for every unreviewed protocol', () => {
+    for (const protocol of ELIMINATION_PROTOCOLS) {
+      expect(() => startTrial(protocol.id)).toThrow(/verified clinical review/i);
+      expect(protocol.governance?.reviewedBy).toBeUndefined();
+      expect(protocol.governance?.reviewedAt).toBeUndefined();
+    }
+    expect(getActiveTrial()).toBeNull();
+    expect(getTrialHistory()).toHaveLength(0);
   });
 
   it('guarantees clinical governance, abundance definitions, and non-overclaiming impact statements across all 11 protocols', () => {

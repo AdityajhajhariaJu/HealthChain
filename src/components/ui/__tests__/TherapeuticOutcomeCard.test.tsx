@@ -1,140 +1,51 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-
-vi.mock('framer-motion', async () => {
-  const actual = await vi.importActual('framer-motion');
-  return {
-    ...actual,
-    AnimatePresence: ({ children }: any) => <>{children}</>,
-    motion: new Proxy(
-      {},
-      {
-        get: (_target, prop: string) => {
-          return ({ children, whileHover, whileTap, ...props }: any) => {
-            const Tag = prop as any;
-            return <Tag {...props}>{children}</Tag>;
-          };
-        },
-      }
-    ),
-  };
-});
-
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ search: '', pathname: '/app/today', hash: '', state: {} }),
   useNavigate: () => vi.fn(),
 }));
-
 import { TherapeuticOutcomeCard } from '../TherapeuticOutcomeCard';
-import { startTrial, getActiveTrial } from '../../../services/TriggerEngine';
-import { startNewTrialV2, getActiveTrialV2, getHealthEvents } from '../../../services/TrialWorkflowService';
+import { getHealthEvents, saveActiveTrialV2, startNewTrialV2 } from '../../../services/TrialWorkflowService';
 
-describe('TherapeuticOutcomeCard Dual-Sync & Quick Logging Tests', () => {
-  let containerDiv: HTMLDivElement;
-
+describe('Gut plan card', () => {
   beforeEach(() => {
-    containerDiv = document.createElement('div');
-    document.body.appendChild(containerDiv);
-    localStorage.clear();
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
     cleanup();
-    if (containerDiv && containerDiv.parentNode) {
-      containerDiv.parentNode.removeChild(containerDiv);
-    }
+    localStorage.clear();
+    localStorage.setItem('hc_unified_profile', JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: { id: 'profile_1', profileName: 'Test' } } }));
   });
 
-  it('renders active trial status and quick check-in button', () => {
-    startTrial('hunt_bloat');
-    startNewTrialV2({ protocolId: 'hunt_bloat', durationDays: 28 });
-
-    render(<TherapeuticOutcomeCard />, { container: containerDiv });
-
-    expect(screen.getByText('Track Food Triggers')).toBeTruthy();
-    expect(screen.getByText(/DAY 1\/28/i)).toBeTruthy();
-    expect(screen.getByText('Check-In')).toBeTruthy();
+  it('offers a low-burden starting point without claiming a trigger', () => {
+    render(<TherapeuticOutcomeCard />);
+    expect(screen.getByText('Gut plan records')).toBeTruthy();
+    expect(screen.getByText('START WITH OBSERVATION')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Find a starting point/i }));
+    expect(screen.getByText(/Find your starting point/i)).toBeTruthy();
   });
 
-  it('synchronizes quick-log score to both TriggerEngine (V1) and TrialWorkflowService (V2)', () => {
-    startTrial('hunt_bloat');
-    const v2 = startNewTrialV2({ protocolId: 'hunt_bloat', durationDays: 28 });
-    expect(v2.baseline.completedObservations).toBe(0);
-
-    render(<TherapeuticOutcomeCard />, { container: containerDiv });
-
-    // Click Check-In to reveal quick score buttons
-    const checkinBtn = screen.getByText('Check-In');
-    fireEvent.click(checkinBtn);
-
-    // Score buttons [0, 2, 5, 8, 10] should be visible
-    const score5Btn = screen.getByText('5');
-    fireEvent.click(score5Btn);
-
-    // V1 state updated
-    const v1Updated = getActiveTrial();
-    expect(v1Updated?.currentSeverity).toBe(5);
-
-    // V2 state MUST be synchronized (P0 bug fix verified)
-    const v2Updated = getActiveTrialV2();
-    expect(v2Updated).toBeDefined();
-    expect(v2Updated?.baseline.completedObservations).toBeGreaterThanOrEqual(1);
-
-    const events = getHealthEvents({ profileId: v2Updated!.profileId, trialId: v2Updated!.id, type: 'daily_checkin' });
-    expect(events.length).toBeGreaterThanOrEqual(2);
-    expect(events[events.length - 1].payload.severityScore).toBe(5);
+  it('saves a selected score to the trial record with unknown adherence', () => {
+    const trial = startNewTrialV2({ protocolId: 'hunt_bloat' });
+    render(<TherapeuticOutcomeCard />);
+    expect(screen.getByText(/0 recorded check-ins/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Check in' }));
+    fireEvent.click(screen.getByRole('button', { name: '5' }));
+    const events = getHealthEvents({ profileId: trial.profileId, trialId: trial.id, type: 'daily_checkin' });
+    expect(events).toHaveLength(1);
+    expect(events[0].payload.severityScore).toBe(5);
+    expect(events[0].payload.adherenceLevel).toBe('unknown');
+    expect(screen.getByText(/Today’s recorded symptom score: 5\/10/i)).toBeTruthy();
   });
 
-  it('renders guided intake callout when no active elimination trial exists', () => {
-    // No trial started
-    render(<TherapeuticOutcomeCard />, { container: containerDiv });
-
-    // Inactive card callout
-    expect(screen.getByText(/4-WEEK PROTOCOL/i)).toBeTruthy();
-    expect(screen.getByText(/Track Food Triggers/i)).toBeTruthy();
-    expect(screen.getByText(/Start Guided Reset →/i)).toBeTruthy();
-
-    // Clicking button opens modal
-    const startBtn = screen.getByText(/Start Guided Reset →/i);
-    fireEvent.click(startBtn);
-
-    // Modal rendered in onboarding mode
-    expect(screen.getAllByText(/Elimination Suite Onboarding/i).length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('renders clinical graduation victory cockpit when trial is completed with verdict', () => {
-    const v2 = startNewTrialV2({ protocolId: 'hunt_bloat', durationDays: 28 });
-    v2.status = 'completed';
-    v2.verdict = {
-      graduatedAt: new Date().toISOString(),
-      initialBaselineSeverity: 8,
-      finalSeverity: 2,
-      symptomReductionPercentage: 75,
-      confirmedTriggers: [{ id: 'garlic', name: 'Garlic', classification: 'confirmed_trigger' }],
-      clearedFoods: [{ id: 'oats', name: 'Rolled Oats', classification: 'cleared_safe' }],
-      inconclusiveFoods: [],
-      clinicianDossierSummary: 'Completed trial successfully.',
-      maintenanceDietRecommendations: ['Avoid garlic.'],
-    };
-    localStorage.setItem('hc_trial_v2_profile_1', JSON.stringify(v2));
-
-    render(<TherapeuticOutcomeCard />, { container: containerDiv });
-
-    // Permanent title & Graduation badges & metrics
-    expect(screen.getByText('Track Food Triggers')).toBeTruthy();
-    expect(screen.getByText(/GRADUATED 🏆/i)).toBeTruthy();
-    expect(screen.getByText(/-75%/i)).toBeTruthy();
-    expect(screen.getByText(/Investigation complete • 1 Confirmed Trigger\(s\)/i)).toBeTruthy();
-    expect(screen.getByText(/View Verdict & Plan →/i)).toBeTruthy();
-
-    // Clicking button opens modal into verdict view
-    const viewBtn = screen.getByText(/View Verdict & Plan →/i);
-    fireEvent.click(viewBtn);
-
-    expect(screen.getByText(/Diagnostic Elimination Graduated 🏆/i)).toBeTruthy();
-    expect(screen.getByText(/Empirical 3-Bucket Clinical Verdict/i)).toBeTruthy();
+  it('shows a completed plan as records without displaying its old verdict', () => {
+    const trial = startNewTrialV2({ protocolId: 'hunt_bloat' });
+    trial.status = 'completed';
+    trial.verdict = { graduatedAt: '2026-09-20T00:00:00Z', initialBaselineSeverity: 8, finalSeverity: 2, symptomReductionPercentage: 75, confirmedTriggers: [], clearedFoods: [], inconclusiveFoods: [], clinicianDossierSummary: 'Old claim', maintenanceDietRecommendations: [] };
+    saveActiveTrialV2(trial);
+    render(<TherapeuticOutcomeCard />);
+    expect(screen.getByText(/completed · 0 recorded check-ins/i)).toBeTruthy();
+    expect(screen.queryByText(/75%|Old claim/i)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Review records/i }));
+    expect(screen.getByText(/This plan is completed/i)).toBeTruthy();
   });
 });

@@ -11,20 +11,16 @@ import {
   ChevronRight,
   ShieldAlert,
   ArrowRight,
-  Check,
   Calendar,
   Clock,
   ExternalLink,
   Info,
 } from 'lucide-react';
-import { triggerHapticLight, triggerHapticSelection, triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import {
   getProfile,
   getDigestionLogs,
-  getEliminationProtocolState,
-  saveEliminationProtocolState,
 } from '../../services/ProfileEngine';
-import { useToast } from './ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export type InsightCategory = 'All' | 'Stomach' | 'Bloating' | 'Bowel' | 'Brain/Energy';
@@ -54,155 +50,6 @@ export interface SmartInsightItem {
   };
 }
 
-// Clinically validated benchmark insights (Monash FODMAP / Kaufman Acid Watcher / GI trials)
-// Matching media_1788703634311.png reference exact phrasing
-export const BENCHMARK_INSIGHTS: SmartInsightItem[] = [
-  {
-    id: 'insight_eggs_benedict',
-    foodName: 'Eggs benedict',
-    symptomName: 'Stomach discomfort',
-    category: 'Stomach',
-    iconType: 'flame',
-    matchingDays: 4,
-    totalDays: 4,
-    correlationPercent: 100,
-    incubationWindow: '45 – 90 min postprandial',
-    biochemicalMechanism: 'High-fat hollandaise emulsification delays gastric emptying while egg lecithin triggers gallbladder hyperkinesia and reflux in sensitive gut phenotypes.',
-    clinicalCompound: 'High Saturated Lipids & Acidified Emulsifiers',
-    safeSwap: {
-      insteadOf: 'Hollandaise sauce on English muffin',
-      swapTo: 'Poached eggs on sourdough with smashed avocado & lemon',
-      culinaryNote: 'Eliminates high saturated butter emulsification while retaining protein & choline.',
-    },
-  },
-  {
-    id: 'insight_spinach_dip',
-    foodName: 'Spinach dip',
-    symptomName: 'Stomach discomfort',
-    category: 'Stomach',
-    iconType: 'flame',
-    matchingDays: 4,
-    totalDays: 5,
-    correlationPercent: 80,
-    incubationWindow: '30 – 60 min postprandial',
-    biochemicalMechanism: 'Aged cream cheese, sour cream, and garlic powder in commercial dips combine high lactose, biogenic histamine, and concentrated fructans.',
-    clinicalCompound: 'Lactose + Fructans + Biogenic Histamine',
-    safeSwap: {
-      insteadOf: 'Commercial sour cream spinach dip',
-      swapTo: 'Warm spinach sautéed in garlic-infused olive oil with Greek strained yogurt',
-      culinaryNote: 'Garlic-infused oil provides aroma without water-soluble fructan oligosaccharides.',
-    },
-  },
-  {
-    id: 'insight_collard_greens',
-    foodName: 'Collard greens',
-    symptomName: 'Bloating',
-    category: 'Bloating',
-    iconType: 'wind',
-    matchingDays: 3,
-    totalDays: 3,
-    correlationPercent: 100,
-    incubationWindow: '90 – 180 min postprandial',
-    biochemicalMechanism: 'Insoluble fiber and raffinose trisaccharides escape proximal absorption, fermenting rapidly in the cecum into hydrogen and carbon dioxide gas.',
-    clinicalCompound: 'Raffinose & Insoluble Cellulose',
-    safeSwap: {
-      insteadOf: 'Raw or quickly braised collards/kale',
-      swapTo: 'Tender baby spinach, zucchini, or steamed bok choy with ginger',
-      culinaryNote: 'Low-fructan, low-raffinose greens digest without proximal colonic distension.',
-    },
-  },
-  {
-    id: 'insight_baked_beans',
-    foodName: 'Baked beans',
-    symptomName: 'Bloating',
-    category: 'Bloating',
-    iconType: 'wind',
-    matchingDays: 3,
-    totalDays: 3,
-    correlationPercent: 100,
-    incubationWindow: '120 – 240 min postprandial',
-    biochemicalMechanism: 'Galacto-oligosaccharides (GOS: stachyose & verbascose) lack human pancreatic enzymatic breakdown, driving intense osmotic fluid shifts and bacterial fermentation.',
-    clinicalCompound: 'Galacto-oligosaccharides (GOS) & Fructose Syrup',
-    safeSwap: {
-      insteadOf: 'Canned baked navy beans in molasses',
-      swapTo: 'Sprouted yellow moong dal or firm tofu seasoned with cumin, coriander & hing',
-      culinaryNote: 'Asafoetida (hing) down-regulates bacterial methanogenesis in gut microbiota.',
-    },
-  },
-  {
-    id: 'insight_besan_chilla',
-    foodName: 'Besan Chilla / Chana Dal',
-    symptomName: 'Bloating',
-    category: 'Bloating',
-    iconType: 'wind',
-    matchingDays: 4,
-    totalDays: 4,
-    correlationPercent: 100,
-    incubationWindow: '90 – 150 min postprandial',
-    biochemicalMechanism: 'Bengal gram flour contains dense oligosaccharides causing Roemheld subdiaphragmatic gas distension.',
-    clinicalCompound: 'GOS & Raffinose Family Oligosaccharides',
-    safeSwap: {
-      insteadOf: 'Besan / Chana flour batter',
-      swapTo: 'Yellow Moong Dal Chilla / Pesarattu with shredded carrots & ginger',
-      culinaryNote: 'Yellow moong possesses 78% lower fermentable oligosaccharide load.',
-    },
-  },
-  {
-    id: 'insight_garlic_naan',
-    foodName: 'Garlic Naan / Allium Curries',
-    symptomName: 'Stomach discomfort',
-    category: 'Stomach',
-    iconType: 'flame',
-    matchingDays: 3,
-    totalDays: 4,
-    correlationPercent: 75,
-    incubationWindow: '60 – 120 min postprandial',
-    biochemicalMechanism: 'High concentrated inulin fructans bypass gastric degradation, triggering osmotic fluid shifts and mucosal irritation.',
-    clinicalCompound: 'Inulin Fructans & Refined Gluten',
-    safeSwap: {
-      insteadOf: 'Maida garlic naan',
-      swapTo: 'Gluten-free jowar / ragi roti or sourdough flatbread brushed with garlic oil',
-      culinaryNote: 'Allows rich allium flavor without osmotic fructan polymer exposure.',
-    },
-  },
-  {
-    id: 'insight_spicy_curry',
-    foodName: 'Spicy Tomato Gravy / Chili Curry',
-    symptomName: 'Acid reflux',
-    category: 'Stomach',
-    iconType: 'flame',
-    matchingDays: 3,
-    totalDays: 3,
-    correlationPercent: 100,
-    incubationWindow: '30 – 60 min postprandial',
-    biochemicalMechanism: 'Tomato malic/citric acid combined with capsaicin relaxes the lower esophageal sphincter (LES) while accelerating gastric acid secretion.',
-    clinicalCompound: 'Capsaicin + Solanaceae Acid (pH < 4.4)',
-    safeSwap: {
-      insteadOf: 'High-acid tomato chili gravy',
-      swapTo: 'Coconut milk or bottle gourd (lauki) stew seasoned with turmeric & fennel',
-      culinaryNote: 'Alkalizing baseline with natural mucosal-soothing demulcent properties.',
-    },
-  },
-  {
-    id: 'insight_refined_wheat',
-    foodName: 'Refined Wheat Paratha',
-    symptomName: 'Brain fog & fatigue',
-    category: 'Brain/Energy',
-    iconType: 'brain',
-    matchingDays: 4,
-    totalDays: 4,
-    correlationPercent: 100,
-    incubationWindow: '60 – 120 min postprandial',
-    biochemicalMechanism: 'High glycemic spikes trigger rapid reactive hypoglycemia and systemic zonulin-mediated intestinal permeability.',
-    clinicalCompound: 'High Glycemic Load + Gluten Zonulin Stimulants',
-    safeSwap: {
-      insteadOf: 'Fried refined maida paratha',
-      swapTo: 'Steel-cut oats, millets (bajra/jowar), or sprouted grain sourdough',
-      culinaryNote: 'Sustained low-glycemic beta-glucan release prevents postprandial brain fog.',
-    },
-  },
-];
-
 interface SmartCorrelationInsightsViewProps {
   onBack?: () => void;
   onOpenElimination?: () => void;
@@ -217,12 +64,10 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
   onOpenHeatmap,
 }) => {
   const isMobile = useIsMobile();
-  const toast = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InsightCategory>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [addedFoodIds, setAddedFoodIds] = useState<Record<string, boolean>>({});
   const [dataRevision, setDataRevision] = useState(0);
 
   useEffect(() => {
@@ -357,39 +202,11 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
     });
   }, [dynamicInsights, selectedCategory, searchQuery]);
 
-  // Handle adding culprit food to active elimination protocol
-  const handleAddToElimination = (item: SmartInsightItem, e: React.MouseEvent) => {
+  // Review the source record without turning a comparison into a forbidden food.
+  const handleOpenRecord = (e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHapticSelection();
-
-    const currentProtocols = getEliminationProtocolState();
-    const activeId = currentProtocols.activeProtocolId;
-    if (!activeId) {
-      toast?.info?.('Choose a protocol first', 'Review and start an elimination protocol before adding a food observation.');
-      onOpenElimination?.();
-      return;
-    }
-    const activeData = currentProtocols.protocols?.[activeId] || {};
-
-    const customForbidden = activeData.customForbiddenFoods || [];
-    if (!customForbidden.some((f: any) => f.food.toLowerCase() === item.foodName.toLowerCase())) {
-      customForbidden.push({
-        food: item.foodName,
-        category: item.clinicalCompound,
-        why: `Co-recorded with ${item.symptomName} on ${item.matchingDays} of ${item.totalDays} logged exposure days; causation is not established`,
-        dangerLevel: 'medium',
-      });
-
-      saveEliminationProtocolState(activeId, {
-        customForbiddenFoods: customForbidden,
-      });
-
-      triggerHapticSuccess();
-      toast?.success?.('Added to trial list', `${item.foodName} is ready to review in the active elimination trial.`);
-      setAddedFoodIds((prev) => ({ ...prev, [item.id]: true }));
-    } else {
-      toast?.info?.('Already Tracked', `${item.foodName} is already on your active elimination list.`);
-    }
+    onOpenElimination?.();
   };
 
   const categories: InsightCategory[] = ['All', 'Stomach', 'Bloating', 'Bowel', 'Brain/Energy'];
@@ -610,7 +427,6 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         ) : (
           filteredInsights.map((item) => {
             const isExpanded = expandedId === item.id;
-            const isAdded = addedFoodIds[item.id];
 
             return (
               <div
@@ -856,7 +672,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                         <button
                           type="button"
-                          onClick={(e) => handleAddToElimination(item, e)}
+                          onClick={handleOpenRecord}
                           style={{
                             flex: 1,
                             minWidth: '160px',
@@ -866,18 +682,18 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                             gap: '6px',
                             padding: '9px 14px',
                             borderRadius: '12px',
-                            background: isAdded ? '#F0FDF4' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                            color: isAdded ? '#166534' : '#FFFFFF',
-                            border: isAdded ? '1px solid #BBF7D0' : 'none',
+                            background: 'linear-gradient(135deg, #9B675B 0%, #805348 100%)',
+                            color: '#FFFFFF',
+                            border: 'none',
                             fontSize: '12.5px',
                             fontWeight: 800,
                             cursor: 'pointer',
-                            boxShadow: isAdded ? 'none' : '0 3px 10px rgba(13, 148, 136, 0.25)',
+                            boxShadow: '0 3px 10px rgba(122, 78, 63, 0.2)',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          {isAdded ? <Check size={14} /> : <ShieldAlert size={14} />}
-                          <span>{isAdded ? 'Added to trial list' : `Add ${item.foodName} to trial`}</span>
+                          <ShieldAlert size={14} />
+                          <span>Review observation record</span>
                         </button>
 
                         {onOpenHeatmap && (

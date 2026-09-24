@@ -21,7 +21,6 @@ import { triggerHapticLight } from '../../services/haptics';
 import { getWeeklySymptomSeverity, getExposureTrends } from '../../services/TriggerEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import FocusTrap from './FocusTrap';
-import { FoodDetectiveView } from './FoodDetectiveView';
 import { SuspectFoodsView } from './SuspectFoodsView';
 import { EliminationTrialsView } from './EliminationTrialsView';
 import { WellnessZenGardenView } from './WellnessZenGardenView';
@@ -81,8 +80,8 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
 
   const tabs: { id: WholeHealthTab; label: string; icon: string }[] = [
     { id: 'picture', label: 'Whole Picture', icon: '📊' },
-    { id: 'detective', label: 'Food Detective', icon: '🔍' },
-    { id: 'suspects', label: 'Suspect Foods', icon: '⚠️' },
+    { id: 'detective', label: 'Food records', icon: '📖' },
+    { id: 'suspects', label: 'Digestion records', icon: '📖' },
     { id: 'trials', label: 'Diet Trials', icon: '🔬' },
     { id: 'garden', label: 'Zen Garden', icon: '🌸' },
     { id: 'doctor', label: 'Doctor Export', icon: '📋' },
@@ -678,14 +677,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               )}
 
               {/* TAB 2: FOOD DETECTIVE */}
-              {activeTab === 'detective' && (
-                <FoodDetectiveView
-                  onSelectSubstitute={(sub) => {
-                    onClose();
-                    window.dispatchEvent(new CustomEvent('hc_ava_suggest_prompt', { detail: { prompt: `Tell me more about swapping with ${sub}` } }));
-                  }}
-                />
-              )}
+              {activeTab === 'detective' && <SuspectFoodsView />}
 
               {/* TAB 3: SUSPECT FOODS */}
               {activeTab === 'suspects' && (

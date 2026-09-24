@@ -29,16 +29,15 @@ interface LatencyEvent {
   mealTime: string;
   slot: string;
   tags: string[];
-  latencyHours: number;
+  latencyHours: number | null;
   reaction: {
     symptom: string;
-    severity: 'Good' | 'Mild' | 'Severe';
-    severityScore: number;
+    severity: 'No reaction reported' | 'Reported';
+    severityScore: number | null;
     color: string;
     bg: string;
     border: string;
-    mechanism: string;
-    confirmedTrigger?: string;
+    mechanism?: string;
   } | null;
 }
 
@@ -64,88 +63,28 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
 
   const streamEvents: LatencyEvent[] = useMemo(() => {
     const recentLogs = profile?.nutrition?.recentLogs || [];
-    const checkins = profile?.dailyCheckins || [];
-
-    // Combine into structured timeline
-    const events: LatencyEvent[] = [];
-
-    // If user has real recent logs, build dynamic stream
-    if (recentLogs.length > 0) {
-      recentLogs.slice(-6).reverse().forEach((log: any, idx: number) => {
-        const mealTime = log.loggedAt ? new Date(log.loggedAt) : new Date(Date.now() - idx * 14400000);
-        const mealName = log.meal || log.name || 'Nutrient Meal';
-        const lowerName = mealName.toLowerCase();
-
-        // Correlate with checkins near that timestamp
-        let matchedReaction: any = null;
-        let latencyHours = 1.25;
-
-        // Check if food contains known triggers
-        if (lowerName.includes('achaar') || lowerName.includes('pickle') || lowerName.includes('wine') || lowerName.includes('cheese') || lowerName.includes('ferment')) {
-          matchedReaction = {
-            symptom: 'Post-Meal Flushing & Temple Throbbing',
-            severity: 'Severe',
-            severityScore: 8,
-            color: '#DC2626',
-            bg: '#FEF2F2',
-            border: '#FCA5A5',
-            mechanism: 'Histamine overload; intestinal DAO saturation leads to systemic cerebral vasodilation.',
-            confirmedTrigger: 'Biogenic Amines',
-          };
-          latencyHours = 1.5;
-        } else if (lowerName.includes('besan') || lowerName.includes('dal') || lowerName.includes('chana') || lowerName.includes('onion') || lowerName.includes('garlic')) {
-          matchedReaction = {
-            symptom: 'Subdiaphragmatic Bloating & Abdominal Pressure',
-            severity: 'Mild',
-            severityScore: 5,
-            color: '#D97706',
-            bg: '#FFFBEB',
-            border: '#FDE68A',
-            mechanism: 'Cecal GOS fermentation produces rapid hydrogen/methane gas distension.',
-            confirmedTrigger: 'Fermentable FODMAPs',
-          };
-          latencyHours = 1.75;
-        } else if (lowerName.includes('coffee') || lowerName.includes('chai') || lowerName.includes('tea')) {
-          matchedReaction = {
-            symptom: 'Palpitations & Gastric Acidity',
-            severity: 'Mild',
-            severityScore: 4,
-            color: '#D97706',
-            bg: '#FFFBEB',
-            border: '#FDE68A',
-            mechanism: 'Adenosine antagonism elevates catecholamines and accelerates gastric secretions.',
-            confirmedTrigger: 'Caffeine Rebound',
-          };
-          latencyHours = 0.75;
-        } else if (idx === 0 && checkins.length > 0) {
-          const lastCheckin = checkins[0];
-          if (lastCheckin.severity !== 'None') {
-            matchedReaction = {
-              symptom: `${lastCheckin.symptom || 'Symptom'} (${lastCheckin.severity})`,
-              severity: lastCheckin.severity === 'Severe' ? 'Severe' : 'Mild',
-              severityScore: lastCheckin.score || 6,
-              color: lastCheckin.severity === 'Severe' ? '#DC2626' : '#D97706',
-              bg: lastCheckin.severity === 'Severe' ? '#FEF2F2' : '#FFFBEB',
-              border: lastCheckin.severity === 'Severe' ? '#FCA5A5' : '#FDE68A',
-              mechanism: 'Postprandial neuro-vascular or digestive hypersensitivity.',
-            };
-            latencyHours = 1.5;
-          }
-        }
-
-        events.push({
-          id: `log-${idx}-${mealName}`,
-          mealName,
-          mealTime: mealTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          slot: log.slot || log.category || 'Intake',
-          tags: log.tags || [],
-          latencyHours,
-          reaction: matchedReaction,
-        });
-      });
-    }
-
-    return events;
+    return recentLogs.slice(-6).reverse().map((log: any, idx: number) => {
+      const occurredAt = log.loggedAt && !Number.isNaN(new Date(log.loggedAt).getTime())
+        ? new Date(log.loggedAt) : null;
+      const reaction = log.reaction;
+      const severityScore = typeof reaction?.severity === 'number' && Number.isFinite(reaction.severity) ? reaction.severity : null;
+      const latencyHours = occurredAt && reaction?.loggedAt && !Number.isNaN(new Date(reaction.loggedAt).getTime())
+        ? Math.max(0, Math.round((new Date(reaction.loggedAt).getTime() - occurredAt.getTime()) / 360000) / 10) : null;
+      return {
+        id: String(log.id || `log-${idx}`),
+        mealName: log.meal || log.name || 'Meal recorded',
+        mealTime: occurredAt ? occurredAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not recorded',
+        slot: log.slot || log.category || 'Meal',
+        tags: log.tags || [],
+        latencyHours,
+        reaction: reaction ? {
+          symptom: reaction.label || reaction.reactionType || 'Reported symptom',
+          severity: reaction.reactionType === 'none' ? 'No reaction reported' : 'Reported',
+          severityScore,
+          color: '#9B675B', bg: '#FFF4EF', border: '#EAD5CA',
+        } : null,
+      };
+    });
   }, [profile]);
 
   return (
@@ -461,7 +400,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                   <Clock size={12} />
                   <span>
                     {evt.reaction
-                      ? `⚡ Reaction Lag: ${evt.latencyHours}h later`
+                      ? evt.latencyHours === null ? 'Reaction time not recorded' : `Reported ${evt.latencyHours}h after meal`
                       : `🛡️ Asymptomatic Digest (> 4h clear)`}
                   </span>
                 </div>
@@ -496,23 +435,8 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                           letterSpacing: '0.4px',
                         }}
                       >
-                        {evt.reaction.severity} Flare ({evt.reaction.severityScore}/10)
+                        Reported: {evt.reaction.symptom}
                       </span>
-                      {evt.reaction.confirmedTrigger && (
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            padding: '1px 6px',
-                            borderRadius: '999px',
-                            background: '#FFFFFF',
-                            color: evt.reaction.color,
-                            border: `1px solid ${evt.reaction.border}`,
-                          }}
-                        >
-                          Trigger: {evt.reaction.confirmedTrigger}
-                        </span>
-                      )}
                     </div>
 
                     <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1E293B' }}>
@@ -520,7 +444,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                     </div>
 
                     <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: 1.35 }}>
-                      <strong>Clinical Mechanism:</strong> {evt.reaction.mechanism}
+                      Recorded alongside this meal. A cause is not established.
                     </div>
                   </div>
                 ) : (
@@ -537,7 +461,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                   >
                     <ShieldCheck size={16} color="#15803D" />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>
-                      Optimal Gastrointestinal & Autonomic Tolerance (No Flare)
+                      No reaction has been recorded for this meal
                     </span>
                   </div>
                 )}

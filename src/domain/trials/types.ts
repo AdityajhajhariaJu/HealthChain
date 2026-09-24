@@ -29,6 +29,7 @@ export type ChallengeOutcome =
   | 'clinician_review_needed';
 
 export type AdherenceLevel =
+  | 'unknown'
   | 'followed'
   | 'partly_followed'
   | 'not_followed';
@@ -40,7 +41,7 @@ export interface TrialBaselineRequirement {
 }
 
 export interface TrialConsentRecord {
-  acceptedAt: string;
+  acceptedAt?: string;
   acknowledgedLimitations: boolean;
   supervisingClinician?: string;
 }
@@ -69,7 +70,7 @@ export interface ClinicalVerdictData {
   graduatedAt: string;
   initialBaselineSeverity: number | null;
   finalSeverity: number | null;
-  symptomReductionPercentage: number;
+  symptomReductionPercentage: number | null;
   confirmedTriggers: FoodVerdictItem[];
   clearedFoods: FoodVerdictItem[];
   inconclusiveFoods: FoodVerdictItem[];
@@ -93,6 +94,7 @@ export interface TrialV2 {
   baseline: TrialBaselineRequirement;
   activeFilters: string[];
   currentChallengeId?: string;
+  statusBeforePause?: TrialStatus;
   consent: TrialConsentRecord;
   intakeAssessment?: TrialIntakeAssessment;
   stoppedReason?: 'flare' | 'difficulty' | 'clinician_advice' | 'completed' | 'switched' | 'other';
@@ -150,6 +152,7 @@ export interface HealthEvent {
     | 'meal_logged'
     | 'symptom_logged'
     | 'daily_checkin'
+    | 'trial_started'
     | 'task_completed'
     | 'exposure_logged'
     | 'challenge_started'

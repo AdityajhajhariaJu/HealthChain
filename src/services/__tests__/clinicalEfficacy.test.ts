@@ -128,24 +128,10 @@ describe('Clinical Pharmacology & Nutrient Depletion Engine', () => {
   });
 });
 
-describe('Deterministic Clinical Dietary Swaps', () => {
-  it('should provide smart replacement for Oats to resolve resistant starch distension', () => {
-    const swap = getClinicalDietarySwap('Oats');
-    expect(swap).not.toBeNull();
-    expect(swap?.smartReplacement).toContain('Cream of Rice');
-    expect(swap?.expectedReliefTimeline).toBeDefined();
-  });
-
-  it('should recommend garlic-infused olive oil to bypass water-soluble fructans', () => {
-    const swap = getClinicalDietarySwap('garlic');
-    expect(swap).not.toBeNull();
-    expect(swap?.category).toBe('FODMAP');
-    expect(swap?.smartReplacement).toContain('Garlic-Infused');
-  });
-
-  it('should recommend pea/egg protein isolate to replace whey protein', () => {
-    const swap = getClinicalDietarySwap('whey protein');
-    expect(swap).not.toBeNull();
-    expect(swap?.smartReplacement).toContain('Sprouted Pea');
+describe('Unreviewed automatic dietary swaps', () => {
+  it('does not suggest a substitution or relief timeline from a food name', () => {
+    expect(getClinicalDietarySwap('Oats')).toBeNull();
+    expect(getClinicalDietarySwap('garlic')).toBeNull();
+    expect(getClinicalDietarySwap('whey protein')).toBeNull();
   });
 });

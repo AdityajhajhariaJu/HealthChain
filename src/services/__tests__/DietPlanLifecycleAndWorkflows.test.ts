@@ -19,7 +19,7 @@ import {
   type MealPlanItem,
   type PlanStopReason,
 } from '../dietPlanLifecycle';
-import { getAllClinicalDietarySwaps } from '../clinicalDietarySwaps';
+import { getAllClinicalDietarySwaps, type DietarySwap } from '../clinicalDietarySwaps';
 import { createCaseDraft, getCase, getCaseQuestions, clearCaseEngineCache } from '../CaseEngine';
 
 describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
@@ -223,12 +223,10 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
       expect(edited.days[0].total_calories).toBe(280 + 550);
     });
 
-    it('applies a deterministic clinical swap and marks the meal as clinically substituted', () => {
+    it('stores a user-selected replacement and marks nutrition estimates for review', () => {
       const plan = normalizeFullMealPlan(sampleRawPlan);
-      const swaps = getAllClinicalDietarySwaps();
-      expect(swaps.length).toBeGreaterThan(0);
-
-      const chosenSwap = swaps[0];
+      expect(getAllClinicalDietarySwaps()).toEqual([]);
+      const chosenSwap: DietarySwap = { triggerName: 'Greek Yogurt', category: 'ADDITIVE', offendingCompound: 'User preference', biologicalMechanism: 'User note: preference', smartReplacement: 'User chosen breakfast', replacementDetails: 'User selected', expectedReliefTimeline: '' };
       const swapped = applyMealClinicalSwap(plan, 1, 'm1_breakfast', chosenSwap);
       const meal = swapped.days[0].meals[0];
 
@@ -238,6 +236,7 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
       expect(meal.swappedFrom).toBe('Greek Yogurt with Walnuts and Blueberries');
       expect(meal.swapRationale).toBe(chosenSwap.biologicalMechanism);
       expect(meal.userEdited).toBe(true);
+      expect(meal.macrosNeedReview).toBe(true);
     });
   });
 

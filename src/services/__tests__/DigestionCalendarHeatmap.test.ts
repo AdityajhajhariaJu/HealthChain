@@ -1,11 +1,61 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getDigestionLogs, saveDigestionLog, getProfile } from '../ProfileEngine';
-import { BRISTOL_STOOL_INFO, STOMACH_COMFORT_INFO } from '../../components/ui/DigestionCalendarHeatmap';
+import React from 'react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { addNutritionLog, getDigestionLogs, saveDigestionLog, getProfile, getProfileKey } from '../ProfileEngine';
+import { BRISTOL_STOOL_INFO, STOMACH_COMFORT_INFO, DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
+import { ToastProvider } from '../../components/ui/ToastProvider';
 
 describe('DigestionCalendarHeatmap & Digestion Logs Engine', () => {
   beforeEach(() => {
     localStorage.clear();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it('does not report a saved observation when local storage rejects the profile write', () => {
+    getProfile();
+    const profileKey = getProfileKey();
+    const setItem = Storage.prototype.setItem;
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === profileKey) throw new Error('quota exceeded');
+      return setItem.call(this, key, value);
+    });
+
+    expect(saveDigestionLog('2026-09-20', { bloatingScore: 5 })).toBeNull();
+    expect(getDigestionLogs()['2026-09-20']).toBeUndefined();
+    expect(dispatchSpy.mock.calls.some(([event]) => event.type === 'hc_sync_error')).toBe(true);
+    expect(dispatchSpy.mock.calls.some(([event]) => event.type === 'hc_digestion_updated')).toBe(false);
+  });
+
+  it('does not return a meal id when local storage rejects a quick meal', () => {
+    getProfile();
+    const profileKey = getProfileKey();
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === profileKey) throw new Error('quota exceeded');
+      return setItem.call(this, key, value);
+    });
+
+    expect(addNutritionLog({ meal: 'Rice and dal', date: '2026-09-20' })).toBeNull();
+    expect(getProfile().nutrition.recentLogs).toHaveLength(0);
+  });
+
+  it('leaves an empty calendar empty and saves a note without creating measurements', () => {
+    render(React.createElement(ToastProvider, null, React.createElement(DigestionCalendarHeatmap)));
+    expect(screen.getByText('0 recorded dates')).toBeTruthy();
+    expect(screen.getByText('No bloating ratings yet')).toBeTruthy();
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    fireEvent.click(screen.getByRole('button', { name: `${date}: no observation` }));
+    fireEvent.change(screen.getByLabelText('Notes (optional)'), { target: { value: 'Felt unsettled after lunch' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save observation' }));
+    expect(getDigestionLogs()[date].stomachNotes).toBe('Felt unsettled after lunch');
+    expect(getDigestionLogs()[date].bristolType).toBeUndefined();
+    expect(getDigestionLogs()[date].bloatingScore).toBeUndefined();
   });
 
   it('should save and retrieve a digestion log entry for a specific date', () => {

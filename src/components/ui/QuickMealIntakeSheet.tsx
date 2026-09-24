@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff } from 'lucide-react';
 import { addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import FocusTrap from './FocusTrap';
 
 export type CircadianSlot = 'Morning' | 'Noon' | 'Evening' | 'Night';
@@ -20,8 +19,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Morning',
     icon: '☀️',
     timeRange: '07:00 – 11:00',
-    organClock: 'Morning Digestion (07:00–09:00)',
-    organTip: 'Optimal window for breakfast and morning hydration.',
+    organClock: 'Morning meal',
+    organTip: 'Choose this slot if it matches when you ate.',
     desc: 'Breakfast & Fasting Break',
   },
   {
@@ -29,8 +28,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Noon',
     icon: '🌤️',
     timeRange: '11:00 – 15:00',
-    organClock: 'Peak Digestion (11:00–13:00)',
-    organTip: 'Highest digestive enzyme activity of the day; optimal for primary meal.',
+    organClock: 'Midday meal',
+    organTip: 'Choose this slot if it matches when you ate.',
     desc: 'Core Lunch & Digest',
   },
   {
@@ -38,8 +37,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Evening',
     icon: '🌆',
     timeRange: '15:00 – 19:00',
-    organClock: 'Evening Transition (17:00–19:00)',
-    organTip: 'Good window for light nourishment and hydration.',
+    organClock: 'Evening meal',
+    organTip: 'Choose this slot if it matches when you ate.',
     desc: 'Afternoon Tea & Transition',
   },
   {
@@ -47,27 +46,27 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Night',
     icon: '🌙',
     timeRange: '19:00 – 23:00',
-    organClock: 'Night Rest (21:00–23:00)',
-    organTip: 'Digestive activity slows; favor lighter foods before sleep.',
+    organClock: 'Night meal',
+    organTip: 'Choose this slot if it matches when you ate.',
     desc: 'Dinner & Fasting Onset',
   },
 ];
 
 const QUICK_INDIAN_CAPSULES = [
-  { id: 'chai', name: 'Masala Chai', icon: '☕', cal: 90, tag: 'Caffeine / Dairy' },
-  { id: 'poha', name: 'Poha with Peanuts', icon: '🥣', cal: 240, tag: 'Low FODMAP' },
-  { id: 'besan_chilla', name: 'Besan Chilla', icon: '🥞', cal: 210, tag: 'GOS / FODMAP' },
-  { id: 'curd_dahi', name: 'Curd / Dahi', icon: '🥛', cal: 120, tag: 'Fermented Dairy' },
-  { id: 'achaar', name: 'Mango / Lime Achaar', icon: '🥭', cal: 45, tag: 'High Histamine' },
-  { id: 'chana_dal', name: 'Chana Dal Tadka', icon: '🍲', cal: 280, tag: 'Fermentable Legume' },
-  { id: 'paneer_bhurji', name: 'Paneer Bhurji', icon: '🧀', cal: 320, tag: 'Casein Rich' },
-  { id: 'roti_sabzi', name: 'Roti + Seasonal Sabzi', icon: '🫓', cal: 310, tag: 'Whole Wheat / Fiber' },
-  { id: 'khichdi', name: 'Moong Dal Khichdi + Ghee', icon: '🍚', cal: 290, tag: 'Gut Rest / Soothing' },
-  { id: 'coffee', name: 'Filter Coffee', icon: '☕', cal: 110, tag: 'Adenosine Rebound' },
-  { id: 'makhana', name: 'Roasted Makhana', icon: '🍿', cal: 130, tag: 'Anti-Inflammatory' },
-  { id: 'rusk', name: 'Tea Rusk / Biscuits', icon: '🍪', cal: 160, tag: 'Refined Wheat' },
-  { id: 'idli_sambar', name: 'Idli + Veg Sambar', icon: '🥘', cal: 260, tag: 'Fermented Rice' },
-  { id: 'sprout_salad', name: 'Sprouted Moong Salad', icon: '🥗', cal: 140, tag: 'Raw Fiber' },
+  { id: 'chai', name: 'Masala Chai', icon: '☕' },
+  { id: 'poha', name: 'Poha with Peanuts', icon: '🥣' },
+  { id: 'besan_chilla', name: 'Besan Chilla', icon: '🥞' },
+  { id: 'curd_dahi', name: 'Curd / Dahi', icon: '🥛' },
+  { id: 'achaar', name: 'Mango / Lime Achaar', icon: '🥭' },
+  { id: 'chana_dal', name: 'Chana Dal Tadka', icon: '🍲' },
+  { id: 'paneer_bhurji', name: 'Paneer Bhurji', icon: '🧀' },
+  { id: 'roti_sabzi', name: 'Roti + Seasonal Sabzi', icon: '🫓' },
+  { id: 'khichdi', name: 'Moong Dal Khichdi + Ghee', icon: '🍚' },
+  { id: 'coffee', name: 'Filter Coffee', icon: '☕' },
+  { id: 'makhana', name: 'Roasted Makhana', icon: '🍿' },
+  { id: 'rusk', name: 'Tea Rusk / Biscuits', icon: '🍪' },
+  { id: 'idli_sambar', name: 'Idli + Veg Sambar', icon: '🥘' },
+  { id: 'sprout_salad', name: 'Sprouted Moong Salad', icon: '🥗' },
 ];
 
 export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
@@ -88,7 +87,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   const [mealText, setMealText] = useState('');
   const [selectedCapsules, setSelectedCapsules] = useState<string[]>([]);
   const [timingOffset, setTimingOffset] = useState<'now' | '30m' | '1h' | '2h'>('now');
-  const [portion, setPortion] = useState<'light' | 'standard' | 'heavy'>('standard');
+  const [portion, setPortion] = useState<'light' | 'standard' | 'heavy' | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
 
@@ -140,10 +139,8 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   };
 
   const handleSaveMeal = () => {
-    const finalMealName = mealText.trim() || (selectedCapsules.length > 0 ? selectedCapsules.join(', ') : 'Nutrient Intake');
+    const finalMealName = mealText.trim() || selectedCapsules.join(', ');
     if (!finalMealName) return;
-
-    triggerHapticSuccess();
 
     // Compute backdated timestamp if timingOffset is used
     const now = new Date();
@@ -153,41 +150,37 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
 
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // Calculate approximate calories from capsules or portion
-    const baseCal = selectedCapsules.reduce((sum, name) => {
-      const found = QUICK_INDIAN_CAPSULES.find((c) => c.name === name);
-      return sum + (found?.cal || 150);
-    }, 0) || (portion === 'light' ? 220 : portion === 'standard' ? 450 : 750);
-
     const logPayload = {
       meal: finalMealName,
       name: finalMealName,
       slot: selectedSlot,
       category: selectedSlot,
-      portion,
-      calories: baseCal,
-      protein: Math.round(baseCal * 0.04),
-      carbs: Math.round(baseCal * 0.12),
-      fat: Math.round(baseCal * 0.04),
+      ...(portion ? { portion } : {}),
       date: todayStr,
       loggedAt: now.toISOString(),
       tags: selectedCapsules,
     };
 
     const entryId = addNutritionLog(logPayload);
-    awardPoints(15, 'Logged Circadian Meal Intake');
+    if (!entryId) {
+      window.dispatchEvent(new CustomEvent('hc_toast', {
+        detail: { title: 'Meal not saved', message: 'Your meal is still here. Free device storage and try again.', type: 'error' }
+      }));
+      return;
+    }
+    triggerHapticSuccess();
     window.dispatchEvent(new Event('hc_profile_updated'));
 
     // Dispatch 6-second undo safety toast (Nielsen H3/H5)
     window.dispatchEvent(new CustomEvent('hc_toast', {
       detail: {
         title: 'Meal Logged ✓',
-        message: `${finalMealName} (+15 VP)`,
+        message: finalMealName,
         type: 'success',
         actionLabel: 'Undo',
         onAction: () => {
           triggerHapticLight();
-          removeNutritionLog(entryId || logPayload.loggedAt);
+          removeNutritionLog(entryId);
           window.dispatchEvent(new CustomEvent('hc_toast', {
             detail: {
               title: 'Meal Log Undone',
@@ -207,6 +200,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     // Reset and close
     setMealText('');
     setSelectedCapsules([]);
+    setPortion(null);
     onClose();
   };
 
@@ -218,7 +212,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Quick Circadian Meal Intake"
+          aria-label="Quick meal entry"
           style={{
             position: 'fixed',
             top: 0,
@@ -344,7 +338,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
               {/* 1. Circadian 4-Slot Capsule Tabs */}
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
-                  Circadian Timing Window
+                  When did you eat?
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                   {CIRCADIAN_SLOTS.map((slot) => {
@@ -555,7 +549,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
 
                 <div>
                   <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    Portion Size
+                    Portion Size (optional)
                   </div>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     {(['light', 'standard', 'heavy'] as const).map((p) => (

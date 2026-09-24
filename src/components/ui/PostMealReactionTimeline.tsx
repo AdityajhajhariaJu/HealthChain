@@ -2,30 +2,29 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Utensils, Clock, Sparkles, Plus } from 'lucide-react';
 import { getProfile, updateNutritionLogReaction } from '../../services/ProfileEngine';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 
 export interface PostMealReaction {
   reactionType: 'none' | 'bloat' | 'heartburn' | 'palpitations' | 'brain_fog' | 'stomach_upset';
   system: 'stomach' | 'bloating' | 'vitals' | 'neuro';
-  severity: 0 | 1 | 2 | 3;
+  severity: 0 | 1 | 2 | 3 | null;
   label: string;
   sublabel?: string;
   emoji: string;
-  incubationHours: number;
+  incubationHours: number | null;
   loggedAt: string;
 }
 
 export interface PostMealTimelineItem {
   id: string;
   time: string;
-  timestamp: number;
+  timestamp: number | null;
   mealName: string;
-  slot: 'morning' | 'noon' | 'evening' | 'night';
+  slot: 'morning' | 'noon' | 'evening' | 'night' | 'unknown';
   slotLabel: string;
   slotEmoji: string;
-  incubationHours: number;
+  incubationHours: number | null;
   reaction?: PostMealReaction;
   tags?: string[];
 }
@@ -34,7 +33,6 @@ export interface PostMealTimelineItem {
 const REACTION_OPTIONS: Array<{
   type: PostMealReaction['reactionType'];
   system: PostMealReaction['system'];
-  severity: 0 | 1 | 2 | 3;
   label: string;
   sublabel?: string;
   emoji: string;
@@ -45,7 +43,6 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'none',
     system: 'bloating',
-    severity: 0,
     label: 'No reaction',
     sublabel: 'Comfortable',
     emoji: '🙂',
@@ -56,8 +53,7 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'bloat',
     system: 'bloating',
-    severity: 1,
-    label: 'Mild bloat',
+    label: 'Bloating',
     sublabel: 'Distension',
     emoji: '💨',
     bg: '#FEF3C7',
@@ -67,7 +63,6 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'heartburn',
     system: 'stomach',
-    severity: 2,
     label: 'Heartburn / Acid',
     sublabel: 'Burning',
     emoji: '🔥',
@@ -78,9 +73,8 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'palpitations',
     system: 'vitals',
-    severity: 2,
     label: 'Palpitations',
-    sublabel: 'Roemheld reflex',
+    sublabel: 'Reported sensation',
     emoji: '💓',
     bg: '#F5F3FF',
     border: '#DDD6FE',
@@ -89,9 +83,8 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'brain_fog',
     system: 'neuro',
-    severity: 1,
     label: 'Brain fog',
-    sublabel: 'Histamine lag',
+    sublabel: 'Reported sensation',
     emoji: '🌫️',
     bg: '#F0F9FF',
     border: '#BAE6FD',
@@ -100,7 +93,6 @@ const REACTION_OPTIONS: Array<{
   {
     type: 'stomach_upset',
     system: 'stomach',
-    severity: 2,
     label: 'Stomach upset',
     sublabel: 'Cramping',
     emoji: '⚡',
@@ -121,6 +113,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
 }) => {
   const [profileVersion, setProfileVersion] = useState(0);
   const [selectedMealForReaction, setSelectedMealForReaction] = useState<string | null>(null);
+  const [reactionIntensity, setReactionIntensity] = useState<1 | 2 | 3 | null>(null);
   const [isQuickMealSheetOpen, setIsQuickMealSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -149,31 +142,35 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
       return [];
     }
 
-    return recentLogs.slice(-6).reverse().map((log: any, idx: number) => {
-      const logDate = log.loggedAt ? new Date(log.loggedAt) : new Date();
-      const hours = logDate.getHours();
-      const minutes = String(logDate.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12;
-      const timeStr = `${formattedHours}:${minutes} ${ampm}`;
+    const todayKey = new Date().toLocaleDateString('en-CA');
+    return recentLogs.filter((log: any) => {
+      const date = log.loggedAt ? new Date(log.loggedAt).toLocaleDateString('en-CA') : String(log.date || '').slice(0, 10);
+      return date === todayKey;
+    }).slice(-6).reverse().map((log: any, idx: number) => {
+      const logDate = log.loggedAt && !Number.isNaN(new Date(log.loggedAt).getTime()) ? new Date(log.loggedAt) : null;
+      const hours = logDate?.getHours() ?? null;
+      const minutes = logDate ? String(logDate.getMinutes()).padStart(2, '0') : '';
+      const ampm = hours !== null && hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours === null ? null : hours % 12 || 12;
+      const timeStr = formattedHours === null ? 'Time not recorded' : `${formattedHours}:${minutes} ${ampm}`;
 
-      let slot: 'morning' | 'noon' | 'evening' | 'night' = 'noon';
-      let slotLabel = 'Noon';
-      let slotEmoji = '☀️';
+      let slot: PostMealTimelineItem['slot'] = 'unknown';
+      let slotLabel = 'Time unknown';
+      let slotEmoji = '○';
 
-      if (hours < 12) {
+      if (hours !== null && hours < 12) {
         slot = 'morning';
         slotLabel = 'Morning';
         slotEmoji = '🌅';
-      } else if (hours < 17) {
+      } else if (hours !== null && hours < 17) {
         slot = 'noon';
         slotLabel = 'Noon';
         slotEmoji = '☀️';
-      } else if (hours < 21) {
+      } else if (hours !== null && hours < 21) {
         slot = 'evening';
         slotLabel = 'Evening';
         slotEmoji = '🌆';
-      } else {
+      } else if (hours !== null) {
         slot = 'night';
         slotLabel = 'Night';
         slotEmoji = '🌙';
@@ -182,45 +179,41 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
       return {
         id: log.id || `log_${idx}`,
         time: log.time || timeStr,
-        timestamp: logDate.getTime(),
-        mealName: log.meal || log.name || 'Balanced Meal',
+        timestamp: logDate?.getTime() ?? null,
+        mealName: log.meal || log.name || 'Meal recorded',
         slot,
         slotLabel,
         slotEmoji,
-        incubationHours: log.reaction?.incubationHours || 1.5,
+        incubationHours: log.reaction?.incubationHours ?? null,
         reaction: log.reaction,
         tags: log.tags || [],
       };
     });
   }, [profileVersion]);
 
-  const activeIncubationMeal = useMemo(() => {
-    const now = Date.now();
-    return timelineItems.find((item) => {
-      const elapsedHours = (now - item.timestamp) / (1000 * 3600);
-      return elapsedHours >= 1.0 && elapsedHours <= 3.5 && !item.reaction;
-    });
-  }, [timelineItems]);
 
   const handleSelectReaction = (item: PostMealTimelineItem, reactionOption: typeof REACTION_OPTIONS[0]) => {
-    triggerHapticSuccess();
     const reactionPayload: PostMealReaction = {
       reactionType: reactionOption.type,
       system: reactionOption.system,
-      severity: reactionOption.severity,
+      severity: reactionOption.type === 'none' ? 0 : reactionIntensity,
       label: reactionOption.label,
       sublabel: reactionOption.sublabel,
       emoji: reactionOption.emoji,
-      incubationHours: item.incubationHours,
+      incubationHours: item.timestamp === null ? null : Math.max(0, Math.round((Date.now() - item.timestamp) / 360000) / 10),
       loggedAt: new Date().toISOString(),
     };
 
-    updateNutritionLogReaction(item.id, reactionPayload);
-    awardPoints(10, `Recorded Post-Meal Sensitivity: ${reactionOption.label}`, 'lifestyle');
-
-    setToastMessage(`✓ Recorded: ${reactionOption.emoji} ${reactionOption.label} (+10 VP)`);
+    const saved = updateNutritionLogReaction(item.id, reactionPayload);
+    if (!saved.success) {
+      setToastMessage('Could not save this reaction. Please try again.');
+      return;
+    }
+    triggerHapticSuccess();
+    setToastMessage(`Recorded: ${reactionOption.label}`);
     setTimeout(() => setToastMessage(null), 2800);
     setSelectedMealForReaction(null);
+    setReactionIntensity(null);
   };
 
   return (
@@ -316,72 +309,6 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
         </div>
       </div>
 
-      {activeIncubationMeal && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          style={{
-            background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
-            border: '1.5px solid #FDE68A',
-            borderRadius: '18px',
-            padding: '12px 16px',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            boxShadow: '0 4px 14px rgba(217, 119, 6, 0.1)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                background: '#F59E0B',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Clock size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#92400E' }}>
-                Incubation Window Open ({activeIncubationMeal.time})
-              </div>
-              <div style={{ fontSize: '11.5px', color: '#B45309' }}>
-                Ready to check in on <strong style={{ color: '#78350F' }}>{activeIncubationMeal.mealName}</strong>?
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              triggerHapticLight();
-              setSelectedMealForReaction(activeIncubationMeal.id);
-            }}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '999px',
-              background: '#D97706',
-              color: '#FFFFFF',
-              border: 'none',
-              fontSize: '11.5px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              flexShrink: 0,
-              boxShadow: '0 2px 8px rgba(217, 119, 6, 0.3)',
-            }}
-          >
-            Check in
-          </button>
-        </motion.div>
-      )}
-
       {timelineItems.length === 0 ? (
         <div
           style={{
@@ -455,12 +382,10 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
           {timelineItems.map((item) => {
           const isSelected = selectedMealForReaction === item.id;
           const latencyPillColor =
-            item.reaction?.severity === 0
+            item.reaction?.reactionType === 'none'
               ? { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' }
-              : item.reaction?.severity === 1
-              ? { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' }
-              : item.reaction?.severity === 2
-              ? { bg: '#FFF1F2', text: '#E11D48', border: '#FECDD3' }
+              : item.reaction
+              ? { bg: '#FFF4EF', text: '#9B675B', border: '#EAD5CA' }
               : { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' };
 
           return (
@@ -517,7 +442,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                     fontWeight: 800,
                   }}
                 >
-                  {item.incubationHours.toFixed(1)}h later
+                  {item.incubationHours === null ? 'Timing not recorded' : `${item.incubationHours.toFixed(1)}h after meal`}
                 </span>
               </div>
 
@@ -576,19 +501,15 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                     title="Tap to update reaction"
                     style={{
                       background:
-                        item.reaction.severity === 0
+                        item.reaction.reactionType === 'none'
                           ? '#ECFDF5'
-                          : item.reaction.severity === 1
-                          ? '#FEF3C7'
-                          : '#FFF1F2',
+                          : '#FFF4EF',
                       borderRadius: '16px',
                       padding: '12px 14px',
                       border: `1px solid ${
-                        item.reaction.severity === 0
+                        item.reaction.reactionType === 'none'
                           ? '#A7F3D0'
-                          : item.reaction.severity === 1
-                          ? '#FDE68A'
-                          : '#FECDD3'
+                          : '#EAD5CA'
                       }`,
                       minHeight: '82px',
                       display: 'flex',
@@ -688,7 +609,11 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                     }}
                   >
                     <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>
-                      How did you feel 1.5 – 2h after {item.mealName}?
+                      What did you notice after {item.mealName}? You can report this later if timing is uncertain.
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10, color: '#604D45', fontSize: 12 }}>
+                      <span>Intensity (optional):</span>
+                      {([['mild', 1], ['moderate', 2], ['strong', 3]] as const).map(([label, value]) => <button key={value} type="button" aria-pressed={reactionIntensity === value} onClick={() => setReactionIntensity(reactionIntensity === value ? null : value)} style={{ borderRadius: 9, padding: '5px 9px', border: '1px solid #EAD5CA', background: reactionIntensity === value ? '#F7DED4' : '#FFFDFC', color: '#604D45', cursor: 'pointer' }}>{label}</button>)}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '8px' }}>
                       {REACTION_OPTIONS.map((opt) => (

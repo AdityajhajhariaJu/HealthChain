@@ -1,274 +1,42 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { AlertTriangle, TrendingUp, Clock, ShieldCheck, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
-import { getSuspectFoodsLeaderboard, SuspectFoodItem } from '../../services/TriggerEngine';
-import { getClinicalDietarySwap } from '../../services/clinicalDietarySwaps';
-import { triggerHapticLight } from '../../services/haptics';
-import { EmpiricalMatchInsights } from './EmpiricalMatchInsights';
+import React, { useEffect, useState } from 'react';
+import { BookOpen, ArrowRight } from 'lucide-react';
+import { getGutSnapshot } from '../../services/GutHealthSummary';
 
 interface SuspectFoodsViewProps {
   onStartTrial?: (protocolId: string) => void;
 }
 
+/** Legacy tab name retained for route compatibility; the view shows records, not culprit rankings. */
 export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial }) => {
-  const suspectFoods = getSuspectFoodsLeaderboard();
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Empirical Frequency Recurrence Section */}
-      <EmpiricalMatchInsights
-        onSelectAction={(action) => {
-          if (onStartTrial) onStartTrial('hunt_bloat');
-        }}
-      />
-
-      {/* Top Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
-          borderRadius: '20px',
-          padding: '16px 18px',
-          border: '1.5px solid #FECDD3',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-        }}
-      >
-        <div
-          style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
-            flexShrink: 0,
-          }}
-        >
-          <TrendingUp size={20} />
-        </div>
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            STATISTICAL CORRELATION LEADERBOARD
-          </div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            Suspect Foods & Culprit Ranking
-          </div>
-          <div style={{ fontSize: '12.5px', color: '#78716C', marginTop: '2px' }}>
-            Ingredients statistically linked to symptom flare episodes based on your logged meal timelines.
-          </div>
-        </div>
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const refresh = () => setRevision((value) => value + 1);
+    window.addEventListener('hc_profile_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('hc_profile_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
+  void revision;
+  const snapshot = getGutSnapshot();
+  const surface: React.CSSProperties = { background: 'linear-gradient(145deg,#FFFCFA,#FFF3EF)', border: '1px solid #ECD9D0', borderRadius: 18, padding: 17, color: '#493830' };
+  return <div style={{ display: 'grid', gap: 14 }}>
+    <section style={{ ...surface, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <span aria-hidden="true" style={{ width: 44, height: 44, borderRadius: 15, flexShrink: 0, display: 'grid', placeItems: 'center', color: '#9B675B', background: 'radial-gradient(circle at 30% 25%,#FFF,#F7DED4 72%,#ECC3B4)', boxShadow: 'inset 0 1px 2px #FFF,0 4px 12px #C18E7950' }}><BookOpen size={21} /></span>
+      <div>
+        <h2 className="serif-heading" style={{ margin: 0, fontSize: 21 }}>Food observations</h2>
+        <p style={{ color: '#746158', lineHeight: 1.5, margin: '6px 0 0' }}>These are your recorded meals and digestion notes. A food and symptom on the same day do not establish a cause, intolerance, or safe food. Missing dates are unknown.</p>
       </div>
-
-      {/* Suspect Foods List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {suspectFoods.map((item, index) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '20px',
-              padding: '16px 18px',
-              border: '1.5px solid #F1F5F9',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            {/* Header row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '28px' }}>{item.emoji}</span>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 800, color: '#1C1917' }}>{item.name}</span>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: '999px',
-                        background: '#F8FAFC',
-                        color: '#64748B',
-                        border: '1px solid #E2E8F0',
-                      }}
-                    >
-                      {item.category}
-                    </span>
-                  </div>
-                  <span style={{ fontSize: '12px', color: '#E11D48', fontWeight: 700 }}>
-                    {item.primarySensitivity}
-                  </span>
-                </div>
-              </div>
-
-              {/* Correlation percentage pill */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    background: '#FFF1F2',
-                    color: '#E11D48',
-                    fontSize: '14px',
-                    fontWeight: 800,
-                    border: '1px solid #FECDD3',
-                  }}
-                >
-                  +{item.correlationPercent}%
-                </div>
-                <span style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '2px' }}>
-                  flare likelihood
-                </span>
-              </div>
-            </div>
-
-            {/* Progress bar representing correlation intensity */}
-            <div style={{ width: '100%', height: '7px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, item.correlationPercent * 2.2)}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #0D9488 0%, #0F766E 100%)',
-                  borderRadius: '999px',
-                }}
-              />
-            </div>
-
-            {/* Metrics Chips */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '11.5px',
-                  color: '#475569',
-                }}
-              >
-                <Clock size={13} color="#64748B" />
-                <span>Reaction: <strong>{item.reactionWindow}</strong></span>
-              </div>
-
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '11.5px',
-                  color: '#475569',
-                }}
-              >
-                <AlertTriangle size={13} color="#D97706" />
-                <span><strong>{item.flaresTracked}</strong> flares observed ({item.daysObserved}d)</span>
-              </div>
-            </div>
-
-            {/* Clinical Mechanism */}
-            <div
-              style={{
-                fontSize: '12px',
-                color: '#64748B',
-                lineHeight: 1.4,
-                background: '#F8FAFC',
-                padding: '10px 12px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
-              }}
-            >
-              <strong style={{ color: '#1C1917' }}>Biological Action: </strong>
-              {item.mechanism}
-            </div>
-
-            {/* Safe Swap Box with Clinical Mechanism & Relief Timeline */}
-            {(() => {
-              const clinicalSwap = getClinicalDietarySwap(item.name);
-              const displaySwap = clinicalSwap?.smartReplacement || item.safeSwap;
-              const reliefTimeline = clinicalSwap?.expectedReliefTimeline;
-
-              return (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    background: '#F0FDF4',
-                    border: '1px solid #BBF7D0',
-                    gap: '8px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <ShieldCheck size={16} color="#16A34A" />
-                      <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 700 }}>
-                        Suggested Swap: {displaySwap}
-                      </span>
-                    </div>
-
-                    {onStartTrial && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          onStartTrial('low_histamine');
-                        }}
-                        style={{
-                          background: '#DCFCE7',
-                          border: 'none',
-                          color: '#15803D',
-                          borderRadius: '8px',
-                          padding: '4px 10px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                        }}
-                      >
-                        Test in Trial <ArrowRight size={12} />
-                      </button>
-                    )}
-                  </div>
-
-                  {reliefTimeline && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#15803D', background: '#DCFCE7', padding: '3px 8px', borderRadius: '6px', width: 'fit-content' }}>
-                      <Clock size={12} />
-                      <span>Expected Relief: {reliefTimeline}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
+    </section>
+    <section style={surface}>
+      <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Recent meals</h3>
+      {snapshot.meals.length ? snapshot.meals.slice(0, 12).map((meal) => <p key={meal.id} style={{ margin: '7px 0', lineHeight: 1.45 }}><strong>{meal.date} · {meal.name}</strong>{meal.reaction ? ` — reported: ${meal.reaction}` : ' — no reaction report'}</p>) : <p style={{ margin: 0, color: '#746158' }}>No meals recorded yet.</p>}
+    </section>
+    <section style={surface}>
+      <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Digestion records</h3>
+      {snapshot.days.length ? snapshot.days.slice(0, 12).map((day) => <p key={day.date} style={{ margin: '7px 0', lineHeight: 1.45 }}><strong>{day.date}</strong> · bloating {day.bloating === null ? 'unknown' : `${day.bloating}/10`} · discomfort {day.discomfort === null ? 'unknown' : `${day.discomfort}/10`}{day.stoolForm === null ? '' : ` · stool form ${day.stoolForm}`}{day.note ? ` · ${day.note}` : ''}</p>) : <p style={{ margin: 0, color: '#746158' }}>No digestion records yet.</p>}
+    </section>
+    {onStartTrial && <button type="button" onClick={() => onStartTrial('record_only')} style={{ minHeight: 44, border: '1px solid #D8A999', background: '#9B675B', color: 'white', borderRadius: 11, padding: '9px 15px', fontWeight: 700, cursor: 'pointer', justifySelf: 'start' }}>Review plan records <ArrowRight size={15} style={{ verticalAlign: 'middle' }} /></button>}
+  </div>;
 };

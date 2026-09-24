@@ -7,7 +7,7 @@ import {
   getFunctionalBiomarkers,
   FunctionalBiomarker,
 } from '../../services/ConnectionDetectiveEngine';
-import { getSuspectFoodsLeaderboard } from '../../services/TriggerEngine';
+import { getGutSnapshot } from '../../services/GutHealthSummary';
 import { getProfile } from '../../services/ProfileEngine';
 
 interface ConnectionTriggerHeroCardProps {
@@ -17,14 +17,14 @@ interface ConnectionTriggerHeroCardProps {
 export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps> = ({ onInvestigate }) => {
   const [report, setReport] = useState(() => getConnectionDetectiveReport());
   const [biomarkers, setBiomarkers] = useState<FunctionalBiomarker[]>(() => getFunctionalBiomarkers());
-  const [suspectFoods, setSuspectFoods] = useState(() => getSuspectFoodsLeaderboard());
+  const [gutSnapshot, setGutSnapshot] = useState(() => getGutSnapshot());
   const [profile, setProfile] = useState(() => getProfile());
 
   useEffect(() => {
     const handleUpdate = () => {
       setReport(getConnectionDetectiveReport());
       setBiomarkers(getFunctionalBiomarkers());
-      setSuspectFoods(getSuspectFoodsLeaderboard());
+      setGutSnapshot(getGutSnapshot());
       setProfile(getProfile());
     };
 
@@ -93,13 +93,13 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
   const vitalsSubtitle = vitalsItem ? 'Orthostatic surge' : 'Awaiting vitals log';
 
   // Diet Sensitivity Conduit
-  const topFood = suspectFoods?.[0];
-  const dietTitle = topFood ? topFood.name : 'No food patterns recorded';
-  const dietSubtitle = topFood?.primarySensitivity || 'Awaiting meal logs';
+  const topFood = gutSnapshot.meals[0];
+  const dietTitle = topFood ? topFood.name : 'No meals recorded';
+  const dietSubtitle = topFood ? 'Recorded meal · cause unknown' : 'Awaiting meal logs';
 
   // Narrative Synthesis
   const narrative = biomarkers.length > 0 || vitalsItem || topFood
-    ? `${biomarkers.length} extracted lab ${biomarkers.length === 1 ? 'value' : 'values'}, ${vitalsItem ? 'a recorded vitals observation' : 'no connected vitals observation'}, and ${topFood ? 'a repeated food observation' : 'no repeated food observation'} are available for review.${reviewNeededCount > 0 ? ` ${reviewNeededCount} lab ${reviewNeededCount === 1 ? 'value needs' : 'values need'} source review.` : ''}`
+    ? `${biomarkers.length} extracted lab ${biomarkers.length === 1 ? 'value' : 'values'}, ${vitalsItem ? 'a recorded vitals observation' : 'no connected vitals observation'}, and ${gutSnapshot.meals.length} recorded meal${gutSnapshot.meals.length === 1 ? '' : 's'} are available for review.${reviewNeededCount > 0 ? ` ${reviewNeededCount} lab ${reviewNeededCount === 1 ? 'value needs' : 'values need'} source review.` : ''}`
     : 'Add dated labs, vitals, meals, and symptoms to compare documented observations across the active case.';
 
   return (
@@ -182,7 +182,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
       >
         Gut Health:{' '}
         <span style={{ color: '#0D9488' }}>
-          Food & Trigger Map
+          Food & Observation Map
         </span>
       </h3>
 
@@ -371,7 +371,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
-            <span>🍎</span> DIET SENSITIVITY
+            <span>🍎</span> RECORDED MEAL
           </div>
           <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {dietTitle}

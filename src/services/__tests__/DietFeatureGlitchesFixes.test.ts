@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getClinicalDietarySwap } from '../clinicalDietarySwaps';
+import { getClinicalDietarySwap, type DietarySwap } from '../clinicalDietarySwaps';
 import {
   normalizeFullMealPlan,
   normalizeMealItem,
@@ -23,31 +23,11 @@ describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
     localStorage.clear();
   });
 
-  describe('Ticket 4: DIET-003 Clinical Dietary Swap Word-Boundary Matching', () => {
-    it('does NOT trigger oats swap on "goats milk" or "goat cheese"', () => {
-      const swap = getClinicalDietarySwap('Goats milk');
-      expect(swap?.smartReplacement).not.toContain('Cream of Rice');
-    });
-
-    it('does NOT trigger chai swap on "wooden chairs"', () => {
-      const swap = getClinicalDietarySwap('wooden chairs');
-      expect(swap).toBeNull();
-    });
-
-    it('correctly matches standalone "oats" and "Bowl of oats"', () => {
-      const swap1 = getClinicalDietarySwap('oats');
-      expect(swap1).not.toBeNull();
-      expect(swap1?.smartReplacement).toContain('Cream of Rice');
-
-      const swap2 = getClinicalDietarySwap('A bowl of oats');
-      expect(swap2).not.toBeNull();
-      expect(swap2?.smartReplacement).toContain('Cream of Rice');
-    });
-
-    it('correctly matches "garlic" and "fresh garlic cloves"', () => {
-      const swap = getClinicalDietarySwap('fresh garlic cloves');
-      expect(swap).not.toBeNull();
-      expect(swap?.category).toBe('FODMAP');
+  describe('Unreviewed dietary swap catalogue', () => {
+    it('returns no automatic clinical replacement for a food name', () => {
+      expect(getClinicalDietarySwap('oats')).toBeNull();
+      expect(getClinicalDietarySwap('garlic')).toBeNull();
+      expect(getClinicalDietarySwap('wooden chairs')).toBeNull();
     });
   });
 
@@ -168,7 +148,7 @@ describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
         ],
       };
 
-      const swap = getClinicalDietarySwap('Oats')!;
+      const swap: DietarySwap = { triggerName: 'Oats', category: 'ADDITIVE', offendingCompound: 'User preference', biologicalMechanism: 'User note', smartReplacement: 'Chosen meal', replacementDetails: 'User selected', expectedReliefTimeline: '' };
       const swapped = applyMealClinicalSwap(plan, 1, 'meal_swap_1', swap);
       expect(swapped.days[0].meals[0].isSwapped).toBe(true);
       expect(swapped.days[0].meals[0].macrosNeedReview).toBe(true);

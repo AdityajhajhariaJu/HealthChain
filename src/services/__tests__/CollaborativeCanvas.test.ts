@@ -117,13 +117,10 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
       expect(markers).toEqual([]); // No case measurements were supplied.
     });
 
-    it('retrieves active elimination trial state with adherence and delta metrics', () => {
-      startTrial('hunt_histamine');
+    it('blocks an unreviewed plan start', () => {
+      expect(() => startTrial('hunt_histamine')).toThrow(/verified clinical review/i);
       const trial = getActiveTrial();
-      expect(trial).not.toBeNull();
-      expect(trial?.trialId).toBeDefined();
-      expect(typeof trial?.reductionPercent).toBe('number');
-      expect(typeof trial?.adherencePercentage).toBe('number');
+      expect(trial).toBeNull();
     });
   });
 });

@@ -106,8 +106,8 @@ export interface ActiveTrialState {
   currentDay: number;
   totalDays: number;
   completedDays: number;
-  adherencePercentage: number;
-  symptomScores: { day: number; date?: string; severity: number; adhered: boolean; note?: string }[];
+  adherencePercentage: number | null;
+  symptomScores: { day: number; date?: string; severity: number; adhered: boolean | null; note?: string; adherenceLevel?: string | null }[];
   baselineSeverity: number | null; // null until the user records it
   currentSeverity: number | null;
   reductionPercent: number | null;
@@ -780,9 +780,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Based on clinical low-FODMAP dietary principles and reintroduction frameworks (Monash University / ACG Guidelines).',
       sourceReferences: ['Monash FODMAP Framework', 'ACG Clinical Guideline: Management of Irritable Bowel Syndrome (2021)'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Clinical Nutrition Board',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Ensure sufficient caloric intake via low-FODMAP grains, proteins, and allowable fruits/vegetables.'],
       stopRules: [
         'Severe abdominal pain, persistent vomiting, or fever',
@@ -847,9 +844,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Gastroenterological lifestyle guidelines for gastroesophageal reflux and Roemheld syndrome literature.',
       sourceReferences: ['ACG Guidelines for the Diagnosis and Management of GERD (2022)'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Cardiogastroenterology Advisory',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Maintain adequate hydration and balanced caloric distribution across smaller meals.'],
       stopRules: [
         'Radiating chest pain, shortness of breath, or syncope (call emergency services immediately)',
@@ -913,9 +907,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Observational histamine intolerance and diamine oxidase (DAO) clearance dietary trial frameworks.',
       sourceReferences: ['Histamine Intolerance: The Current State of the Art (Biomolecules, 2020)'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Allergy & Clinical Immunology Panel',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Consume fresh unprocessed meats, safe low-histamine vegetables, and adequate minerals.'],
       stopRules: [
         'Facial/lip swelling, wheezing, respiratory distress, or severe urticaria (seek immediate emergency care)',
@@ -979,9 +970,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Cervicogenic headache clinical diagnostic criteria and ergonomic behavioral interventions.',
       sourceReferences: ['International Headache Society (ICHD-3) Cervicogenic Headache Criteria'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Neuromuscular & Physiatry Panel',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Ensure regular hydration and balanced anti-inflammatory nutritional foundation.'],
       stopRules: [
         'Onset of aura, visual blackout, extremity numbness, or thunderclap intensity pain',
@@ -1045,9 +1033,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Postural Orthostatic Tachycardia Syndrome (POTS) dietary and lifestyle management consensus statements.',
       sourceReferences: ['Heart Rhythm Society Consensus on PASC and Dysautonomia (2021)'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Autonomic Neurology Advisory',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Follow physician-approved hydration and electrolyte guidelines; never restrict essential calories.'],
       stopRules: [
         'Near-syncope or true syncopal events with loss of consciousness',
@@ -1079,9 +1064,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Short-term diagnostic dietary elimination for biogenic amine sensitivity assessment.',
       sourceReferences: ['European Academy of Allergy and Clinical Immunology (EAACI) Task Force Guidelines'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Clinical Nutrition Board',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Ensure adequate intake of fresh meats, wholesome grains, and non-restricted vegetables.'],
       stopRules: [
         'Severe hives, breathing difficulty, or significant dizziness',
@@ -1113,9 +1095,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Short-term Phase 1 FODMAP elimination protocol based on Monash clinical criteria.',
       sourceReferences: ['Monash FODMAP Framework', 'British Dietetic Association (BDA) Guidelines for IBS'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Clinical Nutrition Board',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Incorporate safe prebiotic fibers (e.g. oat bran, chia seeds) and diverse allowable produce.'],
       stopRules: [
         'Unintentional weight loss or persistent diarrhea',
@@ -1147,9 +1126,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Structured elimination trial for non-IgE lactose or cow milk protein sensitivity.',
       sourceReferences: ['World Allergy Organization (WAO) Diagnosis and Rationale for Action against Cow’s Milk Allergy (DRACMA) Guidelines'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Clinical Nutrition Board',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Ensure adequate dietary calcium and vitamin D through fortified alternatives or leafy greens.'],
       stopRules: [
         'Immediate hives, swelling, or wheezing upon accidental exposure (emergency care)',
@@ -1180,9 +1156,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Clinical evaluation protocol for non-celiac gluten/wheat sensitivity (NCGS) after celiac disease exclusion.',
       sourceReferences: ['Salerno Experts Criteria on Non-Celiac Gluten Sensitivity', 'ACG Clinical Guidelines: Diagnosis and Management of Celiac Disease'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Clinical Nutrition Board',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Substitute certified gluten-free grains (brown rice, quinoa, certified GF oats) to maintain dietary fiber and B vitamins.'],
       stopRules: [
         'Unintentional weight loss or persistent diarrhea',
@@ -1239,9 +1212,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Bristol Stool Form Scale monitoring and fiber titration guidelines.',
       sourceReferences: ['Rome IV Diagnostic Criteria for Functional Bowel Disorders'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Gastroenterology Clinical Panel',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Maintain minimum 2.0L daily fluid intake when adjusting fiber.'],
       stopRules: [
         'Severe sharp abdominal distension, intractable vomiting, or inability to pass flatus (seek immediate emergency care)',
@@ -1291,9 +1261,6 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Behavioral gut-brain axis modulation and autonomic mealtime pacing literature.',
       sourceReferences: ['Rome Foundation Working Team Report on Neuromodulators and Behavioral Interventions'],
       contentVersion: '2.0.0',
-      reviewedBy: 'Neurogastroenterology & Behavioral Health Panel',
-      reviewedAt: '2026-01-15',
-      nextReviewAt: '2027-01-15',
       minimumNutritionRequirements: ['Ensure all regular nutritious foods are consumed without arbitrary caloric restriction.'],
       stopRules: [
         'Severe choking episodes or persistent regurgitation',
@@ -1394,29 +1361,13 @@ export const PROTOCOL_ALIASES: Record<string, string> = {
   'hunt_vagal': 'vagal_hunt',
 };
 
-export function startTrial(trialId: string, initialSeverity?: number): ActiveTrialState {
+export function startTrial(trialId: string, _initialSeverity?: number): ActiveTrialState {
   const targetId = PROTOCOL_ALIASES[trialId] || trialId;
   const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === targetId || p.id === trialId);
   if (!protocol) throw new Error(`Unknown elimination protocol: ${trialId}`);
-  const current = getActiveTrial();
-  if (current && current.trialId !== protocol.id && current.trialId !== trialId) archiveTrial(current, 'replaced');
-  const baseline = typeof initialSeverity === 'number' ? initialSeverity : null;
-  const newState: ActiveTrialState = {
-    trialId: protocol.id,
-    startDate: new Date().toISOString(),
-    currentDay: 1,
-    totalDays: protocol.durationDays,
-    completedDays: 0,
-    adherencePercentage: 100,
-    symptomScores: baseline !== null ? [{ day: 1, date: localDateString(), severity: baseline, adhered: true, note: 'Baseline recorded.' }] : [],
-    baselineSeverity: baseline,
-    currentSeverity: baseline,
-    reductionPercent: 0,
-    userInitiated: true,
-  } as any;
-  setItemSync(trialStorageKey(), JSON.stringify(newState));
-  window.dispatchEvent(new Event('hc_trial_updated'));
-  return newState;
+  // Historical plans remain readable, but none of the catalogue has a verified
+  // clinical approval record for a new restriction or elimination start.
+  throw new Error('This protocol is unavailable for new starts pending verified clinical review.');
 }
 
 export function stopActiveTrial(): ArchivedTrialState | null {
@@ -1437,7 +1388,7 @@ export function resetActiveTrial(): void {
   }
 }
 
-export function logTrialDay(severityScore: number, adhered: boolean | 'followed' | 'partly_followed' | 'partially_followed' | 'not_followed', note?: string): ActiveTrialState {
+export function logTrialDay(severityScore: number, adhered: boolean | 'unknown' | 'followed' | 'partly_followed' | 'partially_followed' | 'not_followed' | null, note?: string): ActiveTrialState {
   const state = getActiveTrial();
   if (!state) throw new Error('Start an elimination protocol before recording a daily check-in.');
 
@@ -1446,7 +1397,7 @@ export function logTrialDay(severityScore: number, adhered: boolean | 'followed'
   const priorScores = state.symptomScores || [];
   const existingIndex = priorScores.findIndex((score) => score.date === today || (!score.date && score.day === elapsedDay));
   const isAdhered = adhered === true || adhered === 'followed';
-  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered: isAdhered, adherenceLevel: typeof adhered === 'string' ? adhered : (isAdhered ? 'followed' : 'not_followed'), note: note || 'Daily check-in recorded.' };
+  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered: adhered === null || adhered === 'unknown' ? null : isAdhered, adherenceLevel: adhered === null || adhered === 'unknown' ? null : typeof adhered === 'string' ? adhered : (isAdhered ? 'followed' : 'not_followed'), note: note || 'Daily check-in recorded.' };
   const updatedScores = existingIndex >= 0
     ? priorScores.map((score, index) => index === existingIndex ? nextScore : score)
     : [...priorScores, nextScore];
@@ -1456,7 +1407,8 @@ export function logTrialDay(severityScore: number, adhered: boolean | 'followed'
     if (s.adherenceLevel === 'partly_followed' || s.adherenceLevel === 'partially_followed') return acc + 0.5;
     return acc;
   }, 0);
-  const adherencePercentage = updatedScores.length > 0 ? Math.round((adherenceScoreTotal / updatedScores.length) * 100) : 0;
+  const knownAdherenceCount = updatedScores.filter((score: any) => score.adherenceLevel !== null && score.adherenceLevel !== undefined || score.adhered !== null && score.adhered !== undefined).length;
+  const adherencePercentage = knownAdherenceCount > 0 ? Math.round((adherenceScoreTotal / knownAdherenceCount) * 100) : null;
   const baseline = state.baselineSeverity ?? severityScore;
   const reduction = baseline > 0 ? Math.round(((baseline - severityScore) / baseline) * 100) : 0;
 
