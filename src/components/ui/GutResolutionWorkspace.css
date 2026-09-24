@@ -122,7 +122,13 @@
 .gr-occasion-actions { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding-top:12px; margin-top:13px; border-top:1px solid #f0e9eb; }
 .gr-occasion-actions span { color:#74808d; font-size:12px; margin-right:4px; }
 .gr-occasion-actions button,.gr-excluded button { border:1px solid #e6dfe2; border-radius:9px; background:#fff; color:#8f3550; padding:7px 9px; font-size:12px; font-weight:700; }
-.gr-record-id { display:block; color:#9a939b; margin-top:8px; overflow-wrap:anywhere; }
+.gr-source-details { border-top:1px solid #f0e9eb; margin-top:12px; padding-top:10px; color:#6d7681; }
+.gr-source-details summary { width:max-content; max-width:100%; color:#9b3350; font-size:12px; font-weight:750; cursor:pointer; }
+.gr-source-details p { margin:10px 0; font-size:12px; line-height:1.5; }
+.gr-source-details dl { display:grid; gap:6px; margin:0; font-size:11px; }
+.gr-source-details dl>div { display:grid; grid-template-columns:110px minmax(0,1fr); gap:10px; }
+.gr-source-details dt { font-weight:750; color:#4c5360; }
+.gr-source-details dd { margin:0; overflow-wrap:anywhere; }
 .gr-excluded { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:17px; color:#5d626c; font-size:12px; }
 .gr-excluded button { display:flex; align-items:center; gap:5px; }
 .gr-research-warning { display:flex; align-items:flex-start; gap:9px; background:#f6f9fa; color:#556b74; border:1px solid #dce8eb; border-radius:13px; padding:11px 13px; font-size:12px; line-height:1.5; margin-bottom:15px; }
