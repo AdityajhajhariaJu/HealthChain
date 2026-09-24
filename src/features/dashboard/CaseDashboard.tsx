@@ -109,11 +109,11 @@ const AudioTrackCard: React.FC<{
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: isMobile ? '8px 10px' : '12px 14px',
+        padding: isMobile ? '10px 12px' : '12px 16px',
         background: isHovered
           ? 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)'
           : 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
-        borderRadius: isMobile ? '16px' : '20px',
+        borderRadius: isMobile ? '16px' : '18px',
         border: isHovered ? '1.5px solid rgba(13, 148, 136, 0.45)' : '1.5px solid rgba(226, 232, 240, 0.9)',
         cursor: 'pointer',
         boxShadow: isHovered
@@ -126,15 +126,15 @@ const AudioTrackCard: React.FC<{
         overflow: 'hidden'
       }}
     >
-      {/* Thumbnail + Metadata */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
+      {/* Thumbnail + Title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '14px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
         {/* Animated Headspace-Inspired Visual Art Thumbnail */}
         <div
           style={{
             position: 'relative',
-            width: isMobile ? '44px' : '52px',
-            height: isMobile ? '44px' : '52px',
-            minWidth: isMobile ? '44px' : '52px',
+            width: isMobile ? '40px' : '46px',
+            height: isMobile ? '40px' : '46px',
+            minWidth: isMobile ? '40px' : '46px',
             borderRadius: isMobile ? '12px' : '14px',
             overflow: 'hidden',
             flexShrink: 0,
@@ -143,51 +143,27 @@ const AudioTrackCard: React.FC<{
         >
           <AnimatedTrackThumbnail
             trackId={item.id}
-            size={isMobile ? 44 : 52}
+            size={isMobile ? 40 : 46}
             isHovered={isHovered}
           />
         </div>
 
-        {/* Text Details & Category Micro-Pill */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, flex: 1, overflow: 'hidden' }}>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: isMobile ? '14px' : '15px',
-              fontWeight: 800,
-              color: '#0F172A',
-              lineHeight: 1.25,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '100%',
-              letterSpacing: '-0.3px'
-            }}
-          >
-            {item.title}
-          </h3>
-
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              marginTop: '4px',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              background: item.badgeBg,
-              color: item.badgeColor,
-              fontSize: isMobile ? '10px' : '10.5px',
-              fontWeight: 700,
-              letterSpacing: '0.1px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '100%'
-            }}
-          >
-            {item.badge}
-          </div>
-        </div>
+        {/* Title */}
+        <h3
+          style={{
+            margin: 0,
+            fontSize: isMobile ? '15px' : '16px',
+            fontWeight: 700,
+            color: '#0F172A',
+            lineHeight: 1.25,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            letterSpacing: '-0.3px'
+          }}
+        >
+          {item.title}
+        </h3>
       </div>
     </motion.div>
   );
