@@ -1053,11 +1053,10 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const renderPillChip = (pill: EnrichedPillMetadata) => {
     const isScheduled = vitamins.some(v => v.name.toLowerCase() === pill.name.toLowerCase());
     
-    // Collagen Peptides Signature Rose Theme for All Selected Pills
+    // Collagen Peptides Signature Rose Theme for Selected Pill Badges & Borders (Icons retain original color)
     const selectedTheme = {
-      color1: '#FB7185',
-      color2: '#FFF1F2',
       border: '1.5px solid #FB7185',
+      background: 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)',
       shadow: '0 3px 12px rgba(251, 113, 133, 0.3)',
       checkBg: '#FB7185',
       checkShadow: '0 2px 6px rgba(251, 113, 133, 0.4)',
@@ -1075,7 +1074,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           borderRadius: '999px',
           border: isScheduled ? selectedTheme.border : '1px solid #E2E8F0',
           background: isScheduled 
-            ? `linear-gradient(135deg, ${selectedTheme.color2} 0%, #FFFFFF 100%)` 
+            ? selectedTheme.background 
             : '#FFFFFF',
           color: isScheduled ? '#0F172A' : '#1C1917',
           display: 'flex',
@@ -1090,8 +1089,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
       >
         <ClassyPillIcon 
           size={20} 
-          color1={isScheduled ? selectedTheme.color1 : pill.color1} 
-          color2={isScheduled ? selectedTheme.color2 : pill.color2} 
+          color1={pill.color1} 
+          color2={pill.color2} 
           kind={pill.iconKind} 
         />
 
