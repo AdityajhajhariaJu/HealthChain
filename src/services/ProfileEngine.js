@@ -146,7 +146,7 @@ export function getProfileEngineState() {
             return parsedBackup;
           }
         }
-      } catch (be) {}
+      } catch (_be) { /* ignore */ }
 
       const defaultId = 'profile_1';
       return {
@@ -343,7 +343,7 @@ export async function saveProfile(profile) {
       if (currentRaw) {
         setItemSync(getProfileKey() + '_backup', currentRaw);
       }
-    } catch (bErr) {}
+    } catch (_bErr) { /* ignore */ }
 
     setItemSync(getProfileKey(), stateStr);
     
