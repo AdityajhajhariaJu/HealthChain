@@ -407,11 +407,15 @@ export default function MedicalProfile() {
   const totalActions = uniqueActionItems.length;
 
   return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+    }}>
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, staggerChildren: 0.1 }}
-      style={{ paddingBottom: '80px' }}
+      style={{ paddingBottom: '80px', maxWidth: '1000px', margin: '0 auto', paddingLeft: isMobile ? '12px' : '16px', paddingRight: isMobile ? '12px' : '16px' }}
     >
 
 
@@ -423,8 +427,8 @@ export default function MedicalProfile() {
           position: 'relative',
           overflow: 'hidden',
           borderRadius: '24px',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #f1f5f9',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 100%)',
+          border: '1px solid #F1E5E7',
           padding: isMobile ? '24px' : '32px',
           marginBottom: '32px',
           boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.05)'
@@ -503,7 +507,7 @@ export default function MedicalProfile() {
                 color: '#334155',
                 fontSize: '14px',
                 fontWeight: 600,
-                border: '1px solid #E2E8F0',
+                border: '1px solid #F1E5E7',
                 cursor: 'pointer'
               }}
             >
@@ -520,7 +524,7 @@ export default function MedicalProfile() {
             padding: '18px 24px',
             borderRadius: '18px',
             background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            border: '1px solid #F1E5E7',
             display: 'flex',
             alignItems: 'center',
             gap: '14px',
@@ -1094,7 +1098,7 @@ export default function MedicalProfile() {
           </div>
 
           {/* 2.5 Active Health Conditions */}
-          <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
+          <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #F1E5E7', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
               <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Activity size={15} color="var(--teal)" /> Active Health Conditions ({(profile?.conditions || []).length})
@@ -1653,7 +1657,7 @@ export default function MedicalProfile() {
                         padding: '14px 16px',
                         background: '#FFFFFF',
                         borderRadius: '16px',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid #F1E5E7',
                         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
                         position: 'relative',
                         display: 'flex',
@@ -1766,7 +1770,7 @@ export default function MedicalProfile() {
                 <div style={{ fontSize: '14px', color: '#64748B' }}>No family history recorded.</div>
               )}
               {profile.familyHistory.map((hist, i) => (
-                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 16px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#FFFAFA', padding: '10px 16px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
                   <span style={{ fontSize: '14px', color: '#0F172A', fontWeight: 500 }}>{hist}</span>
                   <button type="button" onClick={() => removeFamilyHistory(hist)} aria-label={`Remove family history entry: ${hist}`} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <X size={16} />
@@ -2066,7 +2070,7 @@ export default function MedicalProfile() {
                 maxWidth: '440px',
                 width: '100%',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                border: '1px solid #F1F5F9'
+                border: '1px solid #F1E5E7'
               }}
             >
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
@@ -2107,5 +2111,6 @@ export default function MedicalProfile() {
         )}
       </AnimatePresence>
     </motion.div>
+    </div>
   );
 }
