@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, Clipboard, Compass, FileText, GitBranch, HeartHandshake, Plus, RotateCcw, Search, ShieldCheck, Sparkles, Utensils } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { formatGutVisitNote, getGutSnapshot, type GutMeal } from '../../services/GutHealthSummary';
 import { listObservations, loadObservationsFromCloud } from '../../services/HealthObservationService';
 import type { Observation } from '../../domain/observations/types';
 import { createGutThread, deriveGutEvidence, hasStableGutMealId, listGutThreads, recordGutMealOutcome, updateGutThread, type GutIntent, type GutQuestionThread, type GutSymptom } from '../../services/GutResolutionService';
-import { searchGutResearch, type GutResearchPaper } from '../../services/GutResearchService';
+import { gutResearchTopics, searchGutResearch, type GutResearchPaper, type GutResearchTopic } from '../../services/GutResearchService';
 import { GutDecisionPlanner } from './GutDecisionPlanner';
 import './GutResolutionWorkspace.css';
 
@@ -41,6 +41,8 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
   const [view, setView] = useState<View>('answer');
   const [research, setResearch] = useState<GutResearchPaper[]>([]);
   const [researchStatus, setResearchStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [researchTopic, setResearchTopic] = useState<GutResearchTopic>('food');
+  const researchRequest = useRef(0);
   const [stepDraft, setStepDraft] = useState('');
   const [reflectionDraft, setReflectionDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -93,6 +95,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
   const hasChanged = !!thread?.reviewedEvidence && !!evidence && thread.reviewedEvidence.fingerprint !== evidence.fingerprint;
 
   const openThread = (item: GutQuestionThread) => {
+    researchRequest.current++;
     setActiveId(item.id);
     setFocusDraft(item.focus);
     setStepDraft(item.selectedStep || '');
@@ -100,6 +103,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
     setView('answer');
     setResearch([]);
     setResearchStatus('idle');
+    setResearchTopic('food');
     setMessage('');
   };
 
@@ -108,7 +112,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
     setBusy(true);
     const saved = await updateGutThread(thread.id, patch);
     setBusy(false);
-    if (saved) setThreads(listGutThreads());
+    if (saved) { setThreads(listGutThreads()); if (patch.symptom && patch.symptom !== thread.symptom) { researchRequest.current++; setResearch([]); setResearchStatus('idle'); } }
     else setMessage('Could not save this question. Your text is still here; please try again.');
     return saved;
   };
@@ -133,13 +137,14 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
     else setMessage('Could not save that report. Please check your account and try again.');
   };
 
-  const loadResearch = async () => {
+  const loadResearch = async (selectedTopic: GutResearchTopic = researchTopic) => {
     if (!thread || researchStatus === 'loading') return;
+    const request = ++researchRequest.current;
     setResearchStatus('loading'); setResearch([]);
     try {
-      const papers = await searchGutResearch(thread.symptom);
-      setResearch(papers); setResearchStatus('ready');
-    } catch { setResearchStatus('error'); }
+      const papers = await searchGutResearch(thread.symptom, selectedTopic);
+      if (request === researchRequest.current) { setResearch(papers); setResearchStatus('ready'); }
+    } catch { if (request === researchRequest.current) setResearchStatus('error'); }
   };
 
   const copyBrief = async () => {
@@ -161,7 +166,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
       ] : []),
       `What happened: ${thread.reflection || 'not reported'}`,
       'A linked observation is not proof of cause. Date-only reports do not establish symptom timing. Research sources, if reviewed, must be assessed for their applicability to this person.',
-      ...research.map((paper) => `General research read: ${paper.title} — ${paper.url}`),
+      ...research.map((paper) => `General research shown (reading not confirmed): ${paper.title} — ${paper.url}${paper.correctionNotice ? `; publication notice: ${paper.correctionNotice}` : ''}`),
       '', formatGutVisitNote(snapshot),
     ];
     try { await navigator.clipboard.writeText(lines.join('\n')); setMessage('Question brief copied.'); }
@@ -222,11 +227,11 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
           {thread.excludedMealIds.length > 0 && <div className="gr-excluded"><strong>Kept separate</strong>{thread.excludedMealIds.map((mealId) => <button type="button" key={mealId} onClick={() => void savePatch({ excludedMealIds: thread.excludedMealIds.filter((id) => id !== mealId) })}>Restore {sourcedSnapshot.meals.find((meal) => meal.id === mealId)?.name || 'meal'} <RotateCcw size={15} /></button>)}</div>}
         </>}
       </div>}
-      {view === 'research' && <div className="gr-research-view"><div className="gr-section-intro"><div><h3>Research lens</h3><p>General research about {symptomName(thread.symptom)} and food. These sources do not prove what caused your symptom. The search sends only generic medical concepts, never your question or records.</p></div></div><div className="gr-research-warning"><ShieldCheck size={19} /> Study population and quality are not appraised automatically. Open the original source before relying on a finding.</div>
+      {view === 'research' && <div className="gr-research-view"><div className="gr-section-intro"><div><h3>Research lens</h3><p>General research about {symptomName(thread.symptom)}. Choose a topic yourself; no meal name, question or personal record is sent. The narrow search keeps papers whose titles name the symptom and topic, so it can miss relevant work.</p></div></div><div className="gr-research-topics" role="group" aria-label="Research topic">{(Object.entries(gutResearchTopics) as [GutResearchTopic, { label: string; query: string }][]).map(([id, item]) => <button type="button" key={id} aria-pressed={researchTopic === id} onClick={() => { setResearchTopic(id); void loadResearch(id); }} disabled={researchStatus === 'loading'}>{item.label}</button>)}</div><div className="gr-research-warning"><ShieldCheck size={19} /> A paper cannot prove your personal cause. Publication type is not a quality grade; population, methods and applicability need review. Discuss restrictive diets with a clinician or dietitian before trying them.</div>
         {researchStatus === 'idle' && <button type="button" className="gr-primary" onClick={() => void loadResearch()}>Find relevant papers <Search size={17} /></button>}
         {researchStatus === 'loading' && <p role="status" className="gr-loading">Searching Europe PMC for general research…</p>}
         {researchStatus === 'error' && <div className="gr-empty"><BookOpen size={24} /><strong>Research is temporarily unavailable</strong><p>Your personal evidence remains accessible. Try again later or use your question brief.</p><button type="button" className="gr-secondary" onClick={() => void loadResearch()}>Retry</button></div>}
-        {researchStatus === 'ready' && (research.length ? <div className="gr-paper-list">{research.map((paper) => <article key={paper.id} className="gr-paper"><span className="gr-paper-type">PUBMED · PMID {paper.id}</span><h4>{paper.title}</h4><p>{paper.abstract ? `${paper.abstract.slice(0, 430)}${paper.abstract.length > 430 ? '…' : ''}` : 'Abstract unavailable.'}</p><div className="gr-paper-foot"><span>{paper.journal || 'Journal unverified'}{paper.year ? ` · ${paper.year}` : ' · Year unverified'}</span><a href={paper.url} target="_blank" rel="noopener noreferrer">Open original <ArrowRight size={15} /></a></div><small>Abstract excerpt only · population and applicability require review · checked {new Date(paper.retrievedAt).toLocaleDateString()}</small></article>)}</div> : <div className="gr-empty"><BookOpen size={24} /><strong>No matching abstracts found</strong><p>This does not mean the topic has no research. Your personal question is still saved.</p></div>)}
+        {researchStatus === 'ready' && (research.length ? <div className="gr-paper-list">{research.map((paper) => <article key={paper.id} className="gr-paper"><span className="gr-paper-type">PUBMED · PMID {paper.id}</span><h4>{paper.title}</h4>{paper.publicationTypes.length > 0 && <div className="gr-paper-tags">{paper.publicationTypes.map((type) => <span key={type}>{type}</span>)}</div>}{paper.correctionNotice && <p className="gr-paper-correction">Publication notice: {paper.correctionNotice}. Check the original record before relying on it.</p>}<p>{paper.abstract ? `${paper.abstract.slice(0, 430)}${paper.abstract.length > 430 ? '…' : ''}` : 'Abstract unavailable.'}</p><div className="gr-paper-foot"><span>{paper.journal || 'Journal unverified'}{paper.year ? ` · ${paper.year}` : ' · Year unverified'}</span><a href={paper.url} target="_blank" rel="noopener noreferrer">Open original <ArrowRight size={15} /></a></div><small>Abstract excerpt only · population and applicability require review · checked {new Date(paper.retrievedAt).toLocaleDateString()}</small></article>)}</div> : <div className="gr-empty"><BookOpen size={24} /><strong>No title-matched abstracts found</strong><p>This narrow search does not mean the topic has no research. Try a broader topic or discuss the question with a clinician.</p></div>)}
       </div>}
       {view === 'next' && <div className="gr-next-view"><div className="gr-section-intro"><div><h3>Close the loop</h3><p>A useful outcome may be a choice, a clinician question, or deciding to leave this unresolved.</p></div></div><div className="gr-next-grid"><section><div className="gr-card-label"><Compass size={16} /> MY NEXT STEP</div><p className="gr-soft">Choose one or write your own. The app is not prescribing a diet, challenge or medicine change.</p><div className="gr-step-choices">{['Leave this question open without tracking', 'Discuss this uncertainty with a clinician', 'Notice what happens on an ordinary future occasion'].map((choice) => <button type="button" key={choice} className={stepDraft === choice ? 'gr-choice-active' : ''} onClick={() => setStepDraft(choice)}>{choice}{stepDraft === choice && <Check size={16} />}</button>)}</div><label htmlFor="gr-step-custom">Or write your next step</label><textarea id="gr-step-custom" value={stepDraft} onChange={(event) => setStepDraft(event.target.value)} maxLength={300} rows={2} placeholder="What would actually help you?" /><button type="button" className="gr-primary" disabled={busy || stepDraft === (thread.selectedStep || '')} onClick={() => void savePatch({ selectedStep: stepDraft })}>Save my step</button></section><section><div className="gr-card-label"><RotateCcw size={16} /> AFTERWARD, IF YOU WANT</div><p className="gr-soft">What happened or what did you decide? Skip this if it adds no value.</p><label htmlFor="gr-reflection">Your own words</label><textarea id="gr-reflection" value={reflectionDraft} onChange={(event) => setReflectionDraft(event.target.value)} maxLength={1000} rows={5} placeholder="I asked my clinician… / I chose to leave it alone…" /><button type="button" className="gr-secondary" disabled={busy || reflectionDraft === (thread.reflection || '')} onClick={() => void savePatch({ reflection: reflectionDraft })}>Save outcome</button></section></div><div className="gr-next-footer"><button type="button" className="gr-secondary" onClick={() => void copyBrief()}><Clipboard size={16} /> Copy question brief</button>{onOpenConsult && <button type="button" className="gr-secondary" onClick={onOpenConsult}>Open consultation <ArrowRight size={16} /></button>}<button type="button" className="gr-link" disabled={busy} onClick={() => void savePatch({ status: thread.status === 'open' ? 'closed' : 'open' })}>{thread.status === 'open' ? 'Close this question' : 'Reopen question'}</button><button type="button" className="gr-link" disabled={busy || !evidence} onClick={() => void savePatch({ reviewedEvidence: { fingerprint: evidence!.fingerprint, support: evidence!.support, tension: evidence!.tension, unknown: evidence!.unknown, at: new Date().toISOString() } })}>Mark evidence reviewed</button></div></div>}
       {message && <p className="gr-message" role="status">{message}</p>}

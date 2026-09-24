@@ -126,6 +126,9 @@
 .gr-excluded { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:17px; color:#5d626c; font-size:12px; }
 .gr-excluded button { display:flex; align-items:center; gap:5px; }
 .gr-research-warning { display:flex; align-items:flex-start; gap:9px; background:#f6f9fa; color:#556b74; border:1px solid #dce8eb; border-radius:13px; padding:11px 13px; font-size:12px; line-height:1.5; margin-bottom:15px; }
+.gr-research-topics { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 15px; }
+.gr-research-topics button { border:1px solid #e8dfe3; border-radius:99px; background:#fff; color:#675f68; padding:7px 11px; font-size:12px; font-weight:700; }
+.gr-research-topics button[aria-pressed="true"] { color:#ad2449; background:#fff2f5; border-color:#eaa2b5; }
 .gr-research-warning svg { flex:none; }
 .gr-loading { font-size:13px; color:#677584; }
 .gr-paper-list { display:grid; gap:12px; }
@@ -133,6 +136,9 @@
 .gr-paper-type { color:#b32d50; letter-spacing:.06em; font-weight:800; font-size:10px; }
 .gr-paper h4 { margin:7px 0; font-size:16px; line-height:1.4; }
 .gr-paper p { margin:0; color:#6b7480; font-size:12px; line-height:1.55; }
+.gr-paper-tags { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 9px; }
+.gr-paper-tags span { background:#f5f7f8; border:1px solid #e5eaed; color:#65737e; border-radius:99px; padding:3px 7px; font-size:10px; }
+.gr-paper .gr-paper-correction { color:#875320; background:#fff8e9; border:1px solid #f0ddb5; border-radius:9px; padding:8px; margin:0 0 9px; }
 .gr-paper-foot { display:flex; justify-content:space-between; gap:10px; align-items:center; border-top:1px solid #eee8eb; padding-top:10px; margin-top:11px; color:#7f8691; font-size:12px; }
 .gr-paper-foot a { color:#a9284a; text-decoration:none; display:flex; align-items:center; gap:5px; font-weight:750; }
 .gr-paper small { display:block; margin-top:7px; color:#96949c; font-size:11px; }
