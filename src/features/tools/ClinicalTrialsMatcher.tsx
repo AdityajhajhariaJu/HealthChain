@@ -222,7 +222,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       className="card" 
-      style={{ padding: '20px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '12px' }}
+      style={{ padding: '20px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '12px', background: '#FFFFFF', border: '1px solid #F1E5E7' }}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
         <div style={{ flex: 1 }}>
@@ -334,7 +334,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
               </div>
 
               {/* 2. STUDY CHARACTERISTICS (Promise 7) */}
-              <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <div style={{ background: '#FFFAFA', padding: '12px 14px', borderRadius: '12px', border: '1px solid #F1E5E7' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
                   Study Characteristics & Parameters
                 </div>
@@ -362,12 +362,12 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
 
               {/* 3. REAL CRITERIA SCREENING EVALUATION (Promise 7 & Point 9/10) */}
               {!isPaper && item.criteriaBreakdown && (
-                <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #E2E8F0' }}>
+                <div style={{ background: '#FFFAFA', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #F1E5E7' }}>
                   <div style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🔬</span> Case Criteria Screening Analysis
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px', fontSize: '12px' }}>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
                       <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>DIFFERENTIAL OVERLAP</span>
                       <strong style={{ color: item.criteriaBreakdown.conditionMatch.matched ? '#15803D' : '#334155' }}>
                         {item.criteriaBreakdown.conditionMatch.matched ? 'Correlated' : 'None Detected'}
@@ -376,7 +376,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                         {item.criteriaBreakdown.conditionMatch.note}
                       </p>
                     </div>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
                       <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>AGE SCREENING</span>
                       <strong style={{ color: item.criteriaBreakdown.ageCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
                         {item.criteriaBreakdown.ageCriteria.status === 'eligible' ? 'Within Bounds' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? 'Outside Bounds' : 'Unspecified'}
@@ -385,7 +385,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                         {item.criteriaBreakdown.ageCriteria.note}
                       </p>
                     </div>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
                       <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>SEX / COHORT</span>
                       <strong style={{ color: item.criteriaBreakdown.genderCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
                         {item.criteriaBreakdown.genderCriteria.status === 'eligible' ? 'All Sexes Accepted' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? 'Restricted Cohort' : 'Unspecified'}
@@ -730,7 +730,12 @@ export default function ClinicalTrialsMatcher() {
   }, [activeCase?.id, termsKey, differentialsKey, patientAge, patientGender, chiefComplaint]);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '40px' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+      paddingBottom: '40px',
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 12px' : '0 16px' }}>
       
 
       {/* Partial / Full Source Failure Recovery Banners */}
@@ -817,7 +822,7 @@ export default function ClinicalTrialsMatcher() {
 
       <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', gap: '20px' }}>
         <div>
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px', background: '#FFFFFF', border: '1px solid #F1E5E7' }}>
             <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <Filter size={16} /> Search
             </h3>
@@ -909,7 +914,7 @@ export default function ClinicalTrialsMatcher() {
             </div>
           </div>
           
-          <div style={{ marginTop: '24px', padding: '16px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', border: '1px dashed #CBD5E1' }}>
+          <div style={{ marginTop: '24px', padding: '16px', background: '#FFFAFA', borderRadius: 'var(--radius-lg)', border: '1px dashed #F1E5E7' }}>
              <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
                Discuss participation with the study team and your clinician.
              </p>
@@ -952,7 +957,7 @@ export default function ClinicalTrialsMatcher() {
                   />
                 ))
               ) : (
-                <div style={{ padding: '28px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+                <div style={{ padding: '28px 20px', background: '#FFFAFA', borderRadius: '16px', border: '1px solid #F1E5E7', textAlign: 'center' }}>
                   <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
                   <h3 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', fontWeight: 700 }}>
                     {effectiveTerms.length > 0 ? `No direct registry records found for “${effectiveTerms.join(', ')}”` : 'Choose a case topic or enter a search term'}
@@ -1049,7 +1054,7 @@ export default function ClinicalTrialsMatcher() {
 
               return (
                 <>
-                  <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #F1E5E7', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                     <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
                     </h2>
@@ -1061,18 +1066,18 @@ export default function ClinicalTrialsMatcher() {
                       {modalAbstract}
                     </p>
                     <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 'var(--radius-lg)' }}>
                         <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Journal' : 'Phase'}</span>
                         <strong style={{ fontSize: '13px' }}>{selectedItem.journal ? modalJournal : (selectedItem.phase || 'Phase Unknown')}</strong>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 'var(--radius-lg)' }}>
                         <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Authors' : 'Location'}</span>
                         <strong style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}>{modalAuthors}</strong>
                       </div>
                     </div>
 
                     {!selectedItem.journal && (
-                      <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '14px', marginBottom: '16px' }}>
+                      <div style={{ background: '#FFFAFA', borderRadius: '12px', border: '1px solid #F1E5E7', padding: '14px', marginBottom: '16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                             Official Registry Eligibility Criteria
@@ -1082,7 +1087,7 @@ export default function ClinicalTrialsMatcher() {
                           </span>
                         </div>
                         {selectedItem.eligibility?.eligibilityCriteria ? (
-                          <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: '12px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', whiteSpace: 'pre-line' }}>
+                          <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: '12px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #F1E5E7', whiteSpace: 'pre-line' }}>
                             {selectedItem.eligibility.eligibilityCriteria}
                           </div>
                         ) : (
@@ -1096,7 +1101,7 @@ export default function ClinicalTrialsMatcher() {
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #E2E8F0' }}>
+                  <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#FFFAFA', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #F1E5E7' }}>
                     <button className="btn btn-outline" onClick={() => handleSelectItem(null)}>Close</button>
                     <button
                       type="button"
@@ -1171,6 +1176,7 @@ export default function ClinicalTrialsMatcher() {
           </div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
