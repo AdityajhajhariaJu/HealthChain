@@ -8,7 +8,6 @@ import {
   Flame, 
   Gamepad2, 
   Heart, 
-  Waves, 
   Wind, 
   Share2, 
   Bookmark, 
@@ -16,7 +15,6 @@ import {
   Check, 
   Droplet,
   Droplets, 
-  Sparkles, 
   BookOpen, 
   Award, 
   X, 
@@ -1441,24 +1439,6 @@ export default function CaseDashboard() {
                     Choose a sound and begin.
                   </p>
                 </div>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    background: 'rgba(240, 253, 250, 0.95)',
-                    border: '1px solid rgba(204, 251, 241, 0.95)',
-                    color: '#0D9488',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.3px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  <Sparkles size={11} /> Guided Rituals
-                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
@@ -1512,24 +1492,6 @@ export default function CaseDashboard() {
                   <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
                     Immersive audio environments
                   </p>
-                </div>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    background: 'rgba(240, 253, 250, 0.95)',
-                    border: '1px solid rgba(204, 251, 241, 0.95)',
-                    color: '#0D9488',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.3px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  <Waves size={11} /> Spatial Audio
                 </div>
               </div>
 

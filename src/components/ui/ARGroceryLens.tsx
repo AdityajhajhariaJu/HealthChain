@@ -738,7 +738,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               position: 'absolute',
               inset: 0,
               zIndex: 50,
-              background: '#FFFFFF',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -746,15 +746,17 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               width: '100%'
             }}
           >
-            {/* Pristine White Header */}
+            {/* Warm Porcelain Header */}
             <header style={{
               flexShrink: 0,
               paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
               paddingBottom: '12px',
               paddingLeft: '20px',
               paddingRight: '20px',
-              background: '#FFFFFF',
-              borderBottom: '1px solid #E2E8F0',
+              background: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderBottom: '1px solid #F1E5E7',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -775,8 +777,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  border: '1px solid #E2E8F0',
-                  background: '#F8FAFC',
+                  border: '1px solid #F1E5E7',
+                  background: '#FFFAFA',
                   color: '#64748B',
                   display: 'flex',
                   alignItems: 'center',
@@ -811,7 +813,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   background: '#FFFFFF',
                   borderRadius: '24px',
                   padding: '32px 20px',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid #F1E5E7',
                   boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
                   textAlign: 'center'
                 }}>
@@ -874,9 +876,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       style={{
                         padding: '13px 18px',
                         borderRadius: '16px',
-                        background: '#FFFFFF',
+                        background: '#FFFAFA',
                         color: '#475569',
-                        border: '1.5px solid #CBD5E1',
+                        border: '1.5px solid #F1E5E7',
                         fontSize: '13.5px',
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -944,8 +946,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       background: '#FFFFFF',
                       borderRadius: '24px',
                       padding: '16px 14px',
-                      border: '1px solid #E2E8F0',
-                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                      border: '1px solid #F1E5E7',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.04)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px'
@@ -956,13 +958,13 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           display: 'flex',
                           alignItems: 'flex-start',
                           gap: '8px',
-                          background: '#FEF2F2',
-                          border: '1px solid #FECDD3',
+                          background: '#FEF2F3',
+                          border: '1px solid #F9D2D7',
                           borderRadius: '14px',
                           padding: '10px 12px',
                           boxSizing: 'border-box'
                         }}>
-                          <AlertTriangle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <AlertTriangle size={16} color="#CD3153" style={{ flexShrink: 0, marginTop: '2px' }} />
                           <span style={{ color: '#991B1B', fontSize: '12px', fontWeight: 700, lineHeight: 1.45 }}>
                             {displayedFood.warning}
                           </span>
@@ -1003,9 +1005,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         <div style={{
                           padding: '4px 10px',
                           borderRadius: '12px',
-                          background: isViewingAlt ? '#ECFDF5' : '#FEF2F2',
-                          border: `1px solid ${isViewingAlt ? '#A7F3D0' : '#FECDD3'}`,
-                          color: isViewingAlt ? '#059669' : '#DC2626',
+                          background: isViewingAlt ? '#ECFDF5' : '#FEF2F3',
+                          border: `1px solid ${isViewingAlt ? '#A7F3D0' : '#F9D2D7'}`,
+                          color: isViewingAlt ? '#059669' : '#CD3153',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -1048,10 +1050,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
                       {/* The 6 Original 80px Circular Macro Rings arranged in a 3x2 Matrix */}
                       <div style={{
-                        background: '#F8FAFC',
+                        background: '#FFFAFA',
                         borderRadius: '18px',
                         padding: '12px 6px',
-                        border: '1px solid #F1F5F9',
+                        border: '1px solid #F1E5E7',
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
                         gap: '10px 4px',
@@ -1135,9 +1137,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                               gap: '4px',
                               padding: '3px 8px',
                               borderRadius: '8px',
-                              background: '#FFF1F2',
-                              border: '1px solid #FECDD3',
-                              color: '#E11D48',
+                              background: '#FEF2F3',
+                              border: '1px solid #F9D2D7',
+                              color: '#CD3153',
                               fontSize: '11px',
                               fontWeight: 700
                             }}>
@@ -1151,8 +1153,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       {/* Top 3 Ingredients Micro-Bar (Label Padhega India) */}
                       {!isViewingAlt && Boolean(analysis?.topIngredients && analysis.topIngredients.length > 0) && (
                         <div style={{
-                          background: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
+                          background: '#FFFAFA',
+                          border: '1px solid #F1E5E7',
                           borderRadius: '12px',
                           padding: '8px 11px',
                           fontSize: '11.5px',
@@ -1180,8 +1182,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                               justifyContent: 'space-between',
                               padding: '8px 12px',
                               borderRadius: '12px',
-                              background: showIngredientsDrawer ? '#F8FAFC' : '#FFFFFF',
-                              border: '1px solid #CBD5E1',
+                              background: showIngredientsDrawer ? '#FFFAFA' : '#FFFFFF',
+                              border: '1px solid #F1E5E7',
                               color: '#475569',
                               fontSize: '12px',
                               fontWeight: 700,
@@ -1210,9 +1212,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                                 <div style={{
                                   marginTop: '8px',
                                   padding: '12px',
-                                  background: '#F8FAFC',
+                                  background: '#FFFAFA',
                                   borderRadius: '14px',
-                                  border: '1px solid #E2E8F0',
+                                  border: '1px solid #F1E5E7',
                                   fontSize: '11.5px',
                                   color: '#475569',
                                   display: 'flex',
@@ -1280,11 +1282,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           setActiveTab(prev => (prev === 'scanned' ? 'alternative' : 'scanned'));
                         }}
                         style={{
-                          background: isViewingAlt ? '#ECFDF5' : '#F0FDFA',
+                          background: isViewingAlt ? '#ECFDF5' : 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 50%, #FFF7F8 100%)',
                           borderRadius: '20px',
                           padding: '14px 16px',
-                          border: isViewingAlt ? '2px solid #10B981' : '1.5px solid #CCFBF1',
-                          boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)',
+                          border: isViewingAlt ? '2px solid #10B981' : '1.5px solid #F1E5E7',
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
@@ -1356,8 +1358,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             {/* Pinned Bottom Action Footer (Sleek, Ergonomic, Non-Intrusive) */}
             <footer style={{
               flexShrink: 0,
-              background: '#FFFFFF',
-              borderTop: '1px solid #E2E8F0',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderTop: '1px solid #F1E5E7',
               paddingTop: '10px',
               paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
               paddingLeft: '16px',
@@ -1386,9 +1390,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     flex: '0 0 auto',
                     height: '42px',
                     padding: '0 16px',
-                    background: '#F8FAFC',
+                    background: '#FFFAFA',
                     color: '#475569',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid #F1E5E7',
                     borderRadius: '12px',
                     fontSize: '13px',
                     fontWeight: 600,
