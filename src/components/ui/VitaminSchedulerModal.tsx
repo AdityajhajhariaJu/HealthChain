@@ -1049,19 +1049,10 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     return 'Bedtime';
   };
 
-  // Helper to render an individual pill chip with Collagen Peptides Signature Theme
+  // Helper to render an individual pill chip with Bespoke Dynamic Pill Color Theme
   const renderPillChip = (pill: EnrichedPillMetadata) => {
     const isScheduled = vitamins.some(v => v.name.toLowerCase() === pill.name.toLowerCase());
-    
-    // Collagen Peptides Signature Rose Theme for Selected Pill Badges & Borders (Icons retain original color)
-    const selectedTheme = {
-      border: '1.5px solid #FB7185',
-      background: 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)',
-      shadow: '0 3px 12px rgba(251, 113, 133, 0.3)',
-      checkBg: '#FB7185',
-      checkShadow: '0 2px 6px rgba(251, 113, 133, 0.4)',
-      benefitColor: '#FB7185'
-    };
+    const isWarmAmber = pill.color1 === '#EAB308' || pill.color1 === '#F59E0B' || pill.color1 === '#D97706';
 
     return (
       <motion.button
@@ -1072,21 +1063,22 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
         style={{
           padding: '8px 14px',
           borderRadius: '999px',
-          border: isScheduled ? selectedTheme.border : '1px solid #E2E8F0',
+          border: isScheduled ? `1.5px solid ${pill.color1}` : '1px solid #E2E8F0',
           background: isScheduled 
-            ? selectedTheme.background 
+            ? `linear-gradient(135deg, ${pill.color2} 0%, #FFFFFF 100%)` 
             : '#FFFFFF',
-          color: isScheduled ? '#0F172A' : '#1C1917',
+          color: isScheduled ? (isWarmAmber ? '#92400E' : '#0F172A') : '#1C1917',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           cursor: 'pointer',
           boxShadow: isScheduled 
-            ? selectedTheme.shadow 
+            ? `0 3px 12px ${pill.color1}30` 
             : '0 2px 6px rgba(0, 0, 0, 0.03)',
           transition: 'all 0.18s ease'
         }}
       >
+        {/* Bespoke Classy Pill SVG Artwork */}
         <ClassyPillIcon 
           size={20} 
           color1={pill.color1} 
@@ -1100,7 +1092,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           </span>
           <span style={{ 
             fontSize: '10.5px', 
-            color: isScheduled ? selectedTheme.benefitColor : '#78716C', 
+            color: isScheduled ? (isWarmAmber ? '#B45309' : pill.color1) : '#78716C', 
             fontWeight: isScheduled ? 700 : 500 
           }}>
             {pill.benefit}
@@ -1112,13 +1104,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             width: '18px',
             height: '18px',
             borderRadius: '50%',
-            background: selectedTheme.checkBg,
+            background: pill.color1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#FFFFFF',
             marginLeft: '2px',
-            boxShadow: selectedTheme.checkShadow,
+            boxShadow: `0 2px 6px ${pill.color1}40`,
             flexShrink: 0
           }}>
             <Check size={11} strokeWidth={3.5} />
