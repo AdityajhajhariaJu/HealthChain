@@ -850,6 +850,22 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   const interactionAlerts = React.useMemo(() => detectDrugNutrientInteractions(vitamins), [vitamins]);
 
+  const query = searchQuery.trim().toLowerCase();
+  const searchFilteredCatalog = React.useMemo(() => {
+    if (!query) return CLINICAL_CATALOG;
+    return CLINICAL_CATALOG.filter(p => 
+      p.name.toLowerCase().includes(query) ||
+      p.benefit.toLowerCase().includes(query) ||
+      p.dosage.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query)
+    );
+  }, [query]);
+
+  const filteredCatalog = React.useMemo(() => {
+    if (selectedCategory === 'All') return searchFilteredCatalog;
+    return searchFilteredCatalog.filter(p => p.category === selectedCategory);
+  }, [selectedCategory, searchFilteredCatalog]);
+
   useEffect(() => {
     if (isOpen) {
       setVitamins(getVitaminSchedule());
@@ -1018,22 +1034,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   const takenCount = vitamins.filter(v => v.takenToday).length;
   const allTaken = vitamins.length > 0 && takenCount === vitamins.length;
-
-  const query = searchQuery.trim().toLowerCase();
-  const searchFilteredCatalog = React.useMemo(() => {
-    if (!query) return CLINICAL_CATALOG;
-    return CLINICAL_CATALOG.filter(p => 
-      p.name.toLowerCase().includes(query) ||
-      p.benefit.toLowerCase().includes(query) ||
-      p.dosage.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query)
-    );
-  }, [query]);
-
-  const filteredCatalog = React.useMemo(() => {
-    if (selectedCategory === 'All') return searchFilteredCatalog;
-    return searchFilteredCatalog.filter(p => p.category === selectedCategory);
-  }, [selectedCategory, searchFilteredCatalog]);
 
   // Helper to match catalog metadata for any vitamin
   const getPillMeta = (vName: string): EnrichedPillMetadata | undefined => {
