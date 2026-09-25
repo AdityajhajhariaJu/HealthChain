@@ -8,7 +8,10 @@ interface Props {
 }
 
 export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistory }) => {
-  const { anchorTimestamp, anchorType, timedItems, dateOnlyItems, summary, caveat } = projection;
+  const { anchorTimestamp, anchorType, anchorTimezone, timedItems, dateOnlyItems, summary, caveat } = projection;
+  const [showAll, setShowAll] = React.useState(false);
+  const visibleTimed = showAll ? timedItems : timedItems.slice(0, 4);
+  const visibleDated = showAll ? dateOnlyItems : dateOnlyItems.slice(0, 4);
 
   const anchorDateFormatted = React.useMemo(() => {
     try {
@@ -19,11 +22,12 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
+        timeZone: anchorTimezone,
       });
     } catch {
       return anchorTimestamp;
     }
-  }, [anchorTimestamp]);
+  }, [anchorTimestamp, anchorTimezone]);
 
   return (
     <div
@@ -56,7 +60,7 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
               48-HOUR RECORD REVIEW WINDOW
             </div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
-              {anchorType === 'symptom_onset' ? 'Anchored to verified onset' : 'Anchored to question report'}
+              {anchorType === 'symptom_onset' ? 'Anchored to reported symptom onset' : 'Anchored to when this question was saved'}
             </div>
           </div>
         </div>
@@ -73,7 +77,7 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
       {/* Timed Timeline Events */}
       {timedItems.length > 0 ? (
         <div style={{ position: 'relative', paddingLeft: '22px', borderLeft: '2px solid #F6CCD6', margin: '12px 0 16px 8px', display: 'grid', gap: '14px' }}>
-          {timedItems.map((item) => (
+          {visibleTimed.map((item) => (
             <div key={item.id} style={{ position: 'relative' }}>
               {/* Timeline marker */}
               <div
@@ -119,13 +123,13 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
                       {item.kind === 'medication' && <Pill size={10} />}
                       {item.kind === 'context' && <FileText size={10} />}
                       {item.kind === 'digestion' && <Activity size={10} />}
-                      {item.kind.toUpperCase()}
+                      {item.kind === 'medication' ? 'MEDICATION NOTE' : item.kind.toUpperCase()}
                     </span>
                     <strong style={{ fontSize: '13px', color: '#0F172A' }}>{item.label}</strong>
                   </div>
 
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#CD3153', whiteSpace: 'nowrap' }}>
-                    {item.hoursPrior === 0 ? 'At report time' : `-${item.hoursPrior}h prior`}
+                    {item.hoursPrior === 0 ? 'At anchor time' : `-${item.hoursPrior}h before anchor`}
                   </span>
                 </div>
 
@@ -136,24 +140,29 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
                 )}
 
                 <div style={{ marginTop: '4px', fontSize: '10.5px', color: '#94A3B8', display: 'flex', gap: '8px' }}>
-                  <span>{item.timePrecision === 'exact' ? 'Exact recorded timestamp' : 'Approximate meal time'}</span>
-                  {onOpenHistory && item.occurredAt && (
+                  <span>{item.timePrecision === 'exact' ? 'User-reported occurrence time' : 'Approximate user-reported occurrence time'}</span>
+                  {onOpenHistory && (
                     <button
                       type="button"
-                      onClick={() => onOpenHistory(item.occurredAt.slice(0, 10))}
+                      onClick={() => onOpenHistory(item.sourceLocalDate || item.localDate)}
                       style={{ background: 'none', border: 'none', padding: 0, color: '#AD234A', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}
                     >
-                      Open date record &rarr;
+                      Open recorded date &rarr;
                     </button>
                   )}
                 </div>
+                <details style={{ marginTop: 6, fontSize: 11, color: '#64748B' }}>
+                  <summary style={{ cursor: 'pointer', color: '#AD234A', fontWeight: 700 }}>Why this appears / source</summary>
+                  <p>Reported occurrence {item.occurredAt}; {item.localDate} in the review timezone. {item.sourceLocalDate && item.sourceLocalDate !== item.localDate ? `Recorded under ${item.sourceLocalDate} in the source. ` : ''}{item.kind === 'medication' ? 'This is a medication context note, not a confirmed dose taken. ' : ''}The record appears because its reported occurrence falls within the 48-hour window. Timing alone does not establish a cause.</p>
+                  <p>Source: {item.sourceKind} · {item.sourceId}{item.revision === null ? '' : ` · revision ${item.revision}`}{item.reportedAt ? ` · entered ${item.reportedAt}` : ''}.</p>
+                </details>
               </div>
             </div>
           ))}
         </div>
       ) : (
         <div style={{ padding: '12px 14px', background: '#FFFFFF', border: '1px dashed #F1E5E7', borderRadius: '12px', fontSize: '12.5px', color: '#64748B', marginBottom: '14px' }}>
-          No exact timed meals or context logged in the 48 hours leading to this anchor.
+          No verified timed occurrence is available in this 48-hour record window.
         </div>
       )}
 
@@ -168,8 +177,8 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {dateOnlyItems.map((item) => (
-              <span
+            {visibleDated.map((item) => (
+              <div
                 key={item.id}
                 style={{
                   display: 'inline-flex',
@@ -186,11 +195,18 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
                 <span style={{ fontWeight: 700, color: '#64748B', fontSize: '10.5px' }}>{item.localDate}:</span>
                 <span>{item.label}</span>
                 {item.detail && <span style={{ color: '#94A3B8', fontSize: '10.5px' }}>({item.detail})</span>}
-              </span>
+                <details style={{ width: '100%', color: '#64748B' }}>
+                  <summary style={{ cursor: 'pointer', color: '#AD234A', fontWeight: 700 }}>Source and timing limit</summary>
+                  <span>Source {item.sourceKind} · {item.sourceId}{item.revision === null ? '' : ` · revision ${item.revision}`}. Time of occurrence is unknown; this record may be before or after the question. {item.kind === 'medication' ? 'A medication note does not confirm a dose was taken. ' : ''}{item.reportedAt ? `Entered ${item.reportedAt}. ` : ''}</span>
+                  {onOpenHistory && <button type="button" onClick={() => onOpenHistory(item.localDate)} style={{ display: 'block', marginTop: 4, border: 0, background: 'none', color: '#AD234A', cursor: 'pointer' }}>Open recorded date &rarr;</button>}
+                </details>
+              </div>
             ))}
           </div>
         </div>
       )}
+
+      {(timedItems.length > 4 || dateOnlyItems.length > 4) && <button type="button" onClick={() => setShowAll((value) => !value)} style={{ border: '1px solid #F1E5E7', background: '#FFFFFF', color: '#AD234A', borderRadius: 10, padding: '7px 12px', cursor: 'pointer' }}>{showAll ? 'Show fewer records' : `Show ${timedItems.length + dateOnlyItems.length - visibleTimed.length - visibleDated.length} more records`}</button>}
 
       {/* Honest Clinical Caveat */}
       <div

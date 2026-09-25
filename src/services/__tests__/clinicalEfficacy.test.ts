@@ -94,37 +94,22 @@ describe('Physician Dossier & SBAR Generation', () => {
   });
 });
 
-describe('Clinical Pharmacology & Nutrient Depletion Engine', () => {
-  it('should identify Vitamin B12 depletion and meal timing rules for Metformin', () => {
-    const data = getDeterministicMedicineData('metformin');
+describe('Source-gated medicine lookup', () => {
+  it.each(['metformin', 'Prilosec', 'Lipitor', 'Zoloft'])('does not surface unreviewed supplement and dose claims for %s', (name) => {
+    const data = getDeterministicMedicineData(name);
     expect(data).not.toBeNull();
-    expect(data?.name).toContain('Metformin');
-    const b12Depletion = data?.nutrientDepletions.find(d => d.nutrient.includes('B12'));
-    expect(b12Depletion).toBeDefined();
-    expect(data?.optimalTiming.foodRequirement).toContain('food');
+    expect(data?.reviewerStatus).toBe('not_clinically_reviewed');
+    expect(data?.nutrientDepletions).toEqual([]);
+    expect(data?.supplementInteractions).toEqual([]);
+    expect(data?.alternatives).toEqual([]);
   });
 
-  it('should identify Magnesium and B12 depletions and empty stomach rule for Omeprazole (PPI)', () => {
-    const data = getDeterministicMedicineData('Prilosec');
-    expect(data).not.toBeNull();
-    expect(data?.class).toContain('Proton Pump Inhibitor');
-    const magDepletion = data?.nutrientDepletions.find(d => d.nutrient.includes('Magnesium'));
-    expect(magDepletion).toBeDefined();
-    expect(data?.optimalTiming.bestTimeOfDay).toContain('Breakfast');
-  });
-
-  it('should identify CoQ10 depletion and evening dosing for Atorvastatin', () => {
-    const data = getDeterministicMedicineData('Lipitor');
-    expect(data).not.toBeNull();
-    const coq10 = data?.nutrientDepletions.find(d => d.nutrient.includes('CoQ10'));
-    expect(coq10).toBeDefined();
-  });
-
-  it('should flag dangerous interaction between St. John’s Wort and Sertraline (SSRI)', () => {
-    const data = getDeterministicMedicineData('Zoloft');
-    expect(data).not.toBeNull();
-    const stJohns = data?.supplementInteractions.find(s => s.supplement.includes('St. John’s Wort'));
-    expect(stJohns?.riskLevel).toBe('dangerous');
+  it('only shows the narrow label-checked tablet rule for the exact generic name', () => {
+    const data = getDeterministicMedicineData('levothyroxine');
+    expect(data?.reviewerStatus).toBe('label_checked_not_clinician_reviewed');
+    expect(data?.optimalTiming.criticalSpacingRules[0]).toContain('calcium carbonate');
+    expect(data?.sourceLabelUrl).toContain('dailymed.nlm.nih.gov');
+    expect(getDeterministicMedicineData('unknown levothyroxine liquid')).toBeNull();
   });
 });
 

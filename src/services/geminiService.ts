@@ -198,6 +198,18 @@ Return ONLY a valid JSON object (no markdown, no extra text) with the following 
 }
 If the medicine is unrecognized or the exact formulation is unclear, return "name": "Unknown" and explain what identifying information is needed. Absence of a listed interaction never means a combination is safe.${CLINICAL_SAFETY_RULES}`;
 
+function limitedMedicineLookup(name: unknown) {
+  return {
+    name: String(name || 'Unknown product').slice(0, 120),
+    class: 'Unverified medicine information',
+    uses: 'Check the approved indication for your exact product with a pharmacist.',
+    sideEffects: 'Side effects depend on the exact product and your situation. Review its official label.',
+    nutrientDepletions: [], optimalTiming: null, supplementInteractions: [], alternatives: [], interactions: [],
+    warnings: 'No interaction or treatment advice is verified here. Do not change your medicine or supplement plan based on this result.',
+    reviewerStatus: 'not_clinically_reviewed',
+  };
+}
+
 export async function fetchMedicineData(medicineName: string, profile: any = null): Promise<any> {
   if (!medicineName || typeof medicineName !== 'string') return null;
   const clean = medicineName.trim().toLowerCase();
@@ -208,13 +220,17 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
     return deterministicMatch;
   }
 
+  // Unknown products and formulations need a verified label. A model-generated
+  // interaction table cannot establish medicine safety for an individual.
+  if (!profile) return null;
+
   // 2. Check local client-side cache (0 tokens, instant)
   const cacheKey = `hc_pharm_cache_${clean}`;
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed && parsed.name && parsed.name !== 'Unknown') return parsed;
+      if (parsed && parsed.name && parsed.name !== 'Unknown') return limitedMedicineLookup(parsed.name);
     }
   } catch (e) {}
 
@@ -241,12 +257,11 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
       const text = data.candidates[0].content.parts[0].text;
       const parsed = parseModelJson<any>(text, null);
       if (parsed && parsed.name && parsed.name !== 'Unknown') {
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(parsed));
-        } catch (e) {}
-        return parsed;
+        const limited = limitedMedicineLookup(parsed.name);
+        try { localStorage.setItem(cacheKey, JSON.stringify(limited)); } catch (e) {}
+        return limited;
       }
-      return parsed;
+      return null;
     }
     throw new Error('No candidate returned');
   } catch (err) {

@@ -64,8 +64,8 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
   const streamEvents: LatencyEvent[] = useMemo(() => {
     const recentLogs = profile?.nutrition?.recentLogs || [];
     return recentLogs.slice(-6).reverse().map((log: any, idx: number) => {
-      const occurredAt = log.loggedAt && !Number.isNaN(new Date(log.loggedAt).getTime())
-        ? new Date(log.loggedAt) : null;
+      const occurredAt = log.occurredAt && ['exact', 'approximate'].includes(log.timePrecision) && !Number.isNaN(new Date(log.occurredAt).getTime())
+        ? new Date(log.occurredAt) : null;
       const reaction = log.reaction;
       const severityScore = typeof reaction?.severity === 'number' && Number.isFinite(reaction.severity) ? reaction.severity : null;
       const latencyHours = occurredAt && reaction?.loggedAt && !Number.isNaN(new Date(reaction.loggedAt).getTime())
@@ -400,7 +400,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                   <Clock size={12} />
                   <span>
                     {evt.reaction
-                      ? evt.latencyHours === null ? 'Reaction time not recorded' : `Reported ${evt.latencyHours}h after meal`
+                      ? evt.latencyHours === null ? 'Meal occurrence or reaction report time unavailable' : `Reaction report entered ${evt.latencyHours}h after reported meal time`
                       : `🛡️ Asymptomatic Digest (> 4h clear)`}
                   </span>
                 </div>
@@ -485,7 +485,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
       }}>
         <Info size={14} color="#64748B" style={{ flexShrink: 0 }} />
         <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.4 }}>
-          <strong>Clinical Reference:</strong> Pharmacokinetics & gastrointestinal latency patterns modeled on Monash University FODMAP criteria and Rome IV Functional GI Guidelines. For nutritional investigation only — not a clinical diagnosis.
+          <strong>Timing limit:</strong> These entries compare user-reported meal time with reaction entry time when both are available. They do not establish symptom onset, biological transit or a food cause.
         </p>
       </div>
 

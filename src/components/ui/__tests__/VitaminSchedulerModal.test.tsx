@@ -18,17 +18,17 @@ describe('VitaminSchedulerModal Catalog & Categories', () => {
     });
   });
 
-  it('contains at least 45 curated clinical formulations', () => {
+  it('contains at least 45 search names', () => {
     expect(CLINICAL_CATALOG.length).toBeGreaterThanOrEqual(45);
   });
 
-  it('verifies that every formulation has complete clinical metadata', () => {
+  it('keeps search labels free of preset directions and unreviewed claims', () => {
     CLINICAL_CATALOG.forEach((item) => {
       expect(item.name.trim().length).toBeGreaterThan(0);
-      expect(item.dosage.trim().length).toBeGreaterThan(0);
+      expect(item.dosage).toBe('');
       expect(item.benefit.trim().length).toBeGreaterThan(0);
-      expect(item.rationale.trim().length).toBeGreaterThan(0);
-      expect(item.defaultTime).toMatch(/^\d{2}:\d{2}$/);
+      expect(item.rationale).toBe('');
+      expect(item.defaultTime).toBe('');
       expect(CATEGORIES).toContain(item.category);
       expect(['capsule', 'tablet', 'droplet', 'leaf', 'syringe', 'inhaler']).toContain(item.iconKind);
       expect(item.color1).toMatch(/^#[0-9A-Fa-f]{6}$/);
@@ -52,7 +52,7 @@ describe('VitaminSchedulerModal Catalog & Categories', () => {
     });
   });
 
-  it('includes key evidence-based formulations like Collagen Peptides, Creatine, and Berberine', () => {
+  it('includes common search names like Collagen Peptides, Creatine, and Berberine', () => {
     const names = CLINICAL_CATALOG.map(p => p.name.toLowerCase());
     expect(names.some(n => n.includes('collagen peptides'))).toBe(true);
     expect(names.some(n => n.includes('creatine'))).toBe(true);

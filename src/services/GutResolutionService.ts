@@ -6,7 +6,7 @@ import type { TimePrecision } from '../domain/observations/types';
 import type { GutDay, GutMeal } from './GutHealthSummary';
 
 export type GutIntent = 'understand' | 'decide' | 'now' | 'care';
-export type GutSymptom = 'bloating' | 'discomfort' | 'reflux' | 'nausea' | 'bowel_changes';
+export type GutSymptom = 'unspecified' | 'bloating' | 'discomfort' | 'reflux' | 'nausea' | 'bowel_changes';
 
 export interface GutDecisionPlan {
   priority: string;
@@ -15,6 +15,7 @@ export interface GutDecisionPlan {
   chosenAt: string | null;
   outcome: string | null;
   outcomeAt: string | null;
+  actualMealId?: string | null;
 }
 
 export interface GutQuestionThread {
@@ -74,6 +75,7 @@ export interface GutEvidenceBundle {
 
 export interface GutNameVariant {
   name: string;
+  preparation?: string;
   sourceIds: string[];
   support: number;
   counterexamples: number;
@@ -118,8 +120,15 @@ export interface GutBacktraceItem {
   label: string;
   detail?: string;
   occurredAt: string;
+  localDate: string;
+  sourceLocalDate?: string;
   hoursPrior: number;
   timePrecision: 'exact' | 'approximate';
+  timeMeaning: 'user_reported_occurrence';
+  sourceKind: 'diet_meal' | 'observation';
+  sourceId: string;
+  revision: number | null;
+  reportedAt: string | null;
   sourceRecordId?: string;
 }
 
@@ -129,12 +138,17 @@ export interface GutBacktraceDateOnlyItem {
   label: string;
   detail?: string;
   localDate: string;
+  sourceKind: 'diet_meal' | 'observation' | 'daily_digest';
+  sourceId: string;
+  revision: number | null;
+  reportedAt: string | null;
   sourceRecordId?: string;
 }
 
 export interface GutBacktraceProjection {
   anchorTimestamp: string;
   anchorType: 'symptom_onset' | 'question_time';
+  anchorTimezone: string;
   anchorSymptom?: GutSymptom;
   windowHours: 48;
   timedItems: GutBacktraceItem[];
@@ -145,6 +159,7 @@ export interface GutBacktraceProjection {
 
 export type GutAnswerState =
   | 'no_records'
+  | 'needs_symptom'
   | 'date_only'
   | 'reliable_timed'
   | 'conflicts'
@@ -177,7 +192,9 @@ const cleanDecision = (value: GutDecisionPlan): GutDecisionPlan => ({
   },
   chosen: value.chosen === 'a' || value.chosen === 'b' ? value.chosen : null,
   chosenAt: value.chosen === 'a' || value.chosen === 'b' ? value.chosenAt || null : null,
-  outcome: limit(value.outcome, 1000) || null, outcomeAt: value.outcomeAt || null,
+  outcome: value.chosen === 'a' || value.chosen === 'b' ? limit(value.outcome, 1000) || null : null,
+  outcomeAt: value.chosen === 'a' || value.chosen === 'b' ? value.outcomeAt || null : null,
+  actualMealId: value.chosen === 'a' || value.chosen === 'b' ? limit(value.actualMealId, 160) || null : null,
 });
 
 /** Keep derived evidence out of storage so source edits cannot leave a frozen claim. */
@@ -185,7 +202,7 @@ export function listGutThreads(): GutQuestionThread[] {
   const current = scope();
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
-    .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
+    .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -206,7 +223,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   const now = new Date().toISOString();
   const thread: GutQuestionThread = {
     id: id(), schemaVersion: 1, ...current, intent: input.intent, question,
-    focus: clean(input.focus).slice(0, 120), symptom: input.symptom || 'bloating', status: 'open',
+    focus: clean(input.focus).slice(0, 120), symptom: input.symptom || 'unspecified', status: 'open',
     selectedStep: null, reflection: null, excludedMealIds: [], reviewedEvidence: null,
     decision: input.intent === 'decide' ? emptyGutDecision() : null,
     createdAt: now, updatedAt: now,
@@ -243,7 +260,7 @@ export function deriveGutChoiceHistory(thread: GutQuestionThread, mealName: stri
 
 const normalize = (value: string) => value.trim().toLocaleLowerCase();
 const symptomLabel: Record<GutSymptom, string> = {
-  bloating: 'bloating', discomfort: 'abdominal discomfort', reflux: 'reflux', nausea: 'nausea', bowel_changes: 'bowel changes',
+  unspecified: 'a selected symptom', bloating: 'bloating', discomfort: 'abdominal discomfort', reflux: 'reflux', nausea: 'nausea', bowel_changes: 'bowel changes',
 };
 /** The Diet reaction selector has only two symptom labels specific enough to reuse. */
 export function answerFromMealReaction(meal: GutMeal, symptom: GutSymptom): Answer {
@@ -279,14 +296,14 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
     const edge: GutEvidenceEdge = {
       category: answer === 'yes' ? 'support' : answer === 'no' ? 'counterexample' : 'unknown',
       inclusionRule,
-      mealSource: { id: meal.id, revision: null, timePrecision: meal.loggedAt ? 'exact' : 'date_only' },
+      mealSource: { id: meal.id, revision: null, timePrecision: meal.occurredAt ? (meal.timePrecision || 'approximate') : 'date_only' },
       answerSources,
     };
     const otherMeals = snapshot.meals.filter((other) => other.date === meal.date && other.id !== meal.id);
     const alternativeContext: GutAlternativeContext[] = [
       ...otherMeals.map((other): GutAlternativeContext => ({
         kind: 'other_meal_same_date', sourceId: other.id, revision: null,
-        timePrecision: other.loggedAt ? 'exact' : 'date_only', label: other.name,
+        timePrecision: other.occurredAt ? (other.timePrecision || 'approximate') : 'date_only', label: other.name,
       })),
       ...scopedObservations.filter((item) => item.localDate === meal.date && item.payload.kind === 'context')
         .map((item): GutAlternativeContext => ({
@@ -307,8 +324,8 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const alternativeContext = [...new Map(occasions.flatMap((item) => item.alternativeContext)
     .map((item) => [`${item.kind}:${item.sourceId}`, item])).values()];
   const nameVariants = [...occasions.reduce((groups, item) => {
-    const key = normalize(item.meal.name);
-    const group = groups.get(key) || { name: item.meal.name, sourceIds: [], support: 0, counterexamples: 0, unknown: 0 };
+    const key = `${normalize(item.meal.name)}:${item.meal.preparation?.source === 'user_confirmed' ? `${item.meal.preparation.kind}:${normalize(item.meal.preparation.detail)}` : 'unknown_preparation'}`;
+    const group = groups.get(key) || { name: item.meal.name, ...(item.meal.preparation?.source === 'user_confirmed' ? { preparation: item.meal.preparation.detail } : {}), sourceIds: [], support: 0, counterexamples: 0, unknown: 0 };
     group.sourceIds.push(item.meal.id);
     if (item.edge.category === 'support') group.support += 1;
     else if (item.edge.category === 'counterexample') group.counterexamples += 1;
@@ -328,7 +345,7 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const unknown = bundle.unknown.length;
   const conflicts = occasions.filter((item) => item.answerOrigin === 'conflict').length;
   const unstable = occasions.filter((item) => item.edge.inclusionRule === 'unstable_legacy_meal_id').length;
-  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, edge, sameDay, alternativeContext }) => [meal.id, meal.date, meal.loggedAt, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, edge.inclusionRule, sameDay, alternativeContext])]);
+  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, edge, sameDay, alternativeContext }) => [meal.id, meal.date, meal.occurredAt, meal.loggedAt, meal.name, meal.preparation, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, edge.inclusionRule, sameDay, alternativeContext])]);
   const label = symptomLabel[thread.symptom];
   let answer = 'Choose a recorded meal or phrase to examine. A question can still be saved without prior records.';
   if (focus && occasions.length === 0) answer = `No recorded meal names match “${thread.focus}” yet. This does not mean it was never eaten.`;
@@ -346,6 +363,10 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
       : nextQuestionOccasion ? `For ${nextQuestionOccasion.meal.name} on ${nextQuestionOccasion.meal.date}, do you clearly remember whether ${label} was present? “Not sure” or leaving it open is valid.`
         : unstable === unknown && unknown > 0 ? 'These older meal records cannot support a reliably linked answer. You can leave this question open.'
           : 'No single missing report would settle this. You can leave the question open or discuss it with a clinician.';
+  if (thread.symptom === 'unspecified') {
+    answer = 'Your question is saved. Choose a symptom only if you want to compare explicit reports for a saved meal; otherwise use the dated records or prepare a visit question.';
+    return { occasions, bundle, support: 0, tension: 0, unknown: occasions.length, conflicts: 0, fingerprint, nextQuestion: 'Which symptom, if any, would make this comparison useful?', nextQuestionMealId: null, answer };
+  }
   return { occasions, bundle, support, tension, unknown, conflicts, fingerprint, nextQuestion, nextQuestionMealId: nextQuestionOccasion?.meal.id || null, answer };
 }
 
@@ -412,7 +433,7 @@ export function deriveGutChangeReceipt(previous: GutReviewSnapshot, thread: GutQ
 
 export async function recordGutMealOutcome(meal: GutMeal, symptom: GutSymptom, answer: 'yes' | 'no') {
   const observationScope = await captureObservationScope();
-  if (!observationScope || !hasStableGutMealId(meal)) return { ok: false as const, error: 'A stable saved meal and active profile are required.' };
+  if (!observationScope || !hasStableGutMealId(meal) || symptom === 'unspecified') return { ok: false as const, error: 'Choose a symptom and stable saved meal first.' };
   const existing = (await listObservations()).find((item) => item.sourceRecordId === meal.id && item.localDate === meal.date && item.payload.kind === 'daily_checkin' && Object.prototype.hasOwnProperty.call(item.payload.answers, symptom));
   const draft = {
     ...observationScope,
@@ -424,6 +445,29 @@ export async function recordGutMealOutcome(meal: GutMeal, symptom: GutSymptom, a
   return existing ? reviseObservation(existing.id, existing.revision, draft) : createObservation(draft);
 }
 
+/** Save only an explicitly supplied preparation detail on its existing Diet meal. */
+export async function saveGutMealPreparation(
+  mealId: string,
+  preparation: NonNullable<GutMeal['preparation']> | null,
+): Promise<boolean> {
+  if (!mealId || (preparation && (preparation.source !== 'user_confirmed' || !['ingredient_or_substitution', 'portion', 'fresh_or_reheated', 'cooking_method'].includes(preparation.kind) || !clean(preparation.detail)))) return false;
+  const current = scope();
+  const profile = getProfile();
+  const logs = profile?.nutrition?.recentLogs;
+  if (!Array.isArray(logs)) return false;
+  const index = logs.findIndex((item: { id?: string }) => item.id === mealId);
+  if (index < 0) return false;
+  const next = preparation ? { ...preparation, detail: clean(preparation.detail).slice(0, 120) } : null;
+  const updatedProfile = { ...profile, nutrition: { ...profile.nutrition, recentLogs: logs.map((item: Record<string, unknown>, position: number) => position === index ? { ...item, preparation: next } : item) } };
+  try { await saveProfile(updatedProfile); }
+  catch { return false; }
+  if (scope().ownerKey !== current.ownerKey || scope().profileId !== current.profileId) return false;
+  const saved = getProfile()?.nutrition?.recentLogs?.find((item: { id?: string }) => item.id === mealId);
+  const ok = JSON.stringify(saved?.preparation || null) === JSON.stringify(next);
+  if (ok && typeof window !== 'undefined') window.dispatchEvent(new Event('hc_profile_updated'));
+  return ok;
+}
+
 /**
  * Pure deterministic function to route user query into one of 4 Gut branches,
  * extract inferred focus/options, and detect symptom mentions without AI hallucinations.
@@ -432,7 +476,7 @@ export function resolveDeterministicGutIntent(query: string): DeterministicInten
   const cleanQuery = (query || '').trim().toLowerCase();
 
   // 1. Detect Symptom
-  let inferredSymptom: GutSymptom = 'bloating';
+  let inferredSymptom: GutSymptom = 'unspecified';
   if (/reflux|heartburn|acid|gerd|burning|regurgitat/i.test(cleanQuery)) {
     inferredSymptom = 'reflux';
   } else if (/nausea|queasy|vomit|throw up|sick to (my )?stomach/i.test(cleanQuery)) {
@@ -451,7 +495,7 @@ export function resolveDeterministicGutIntent(query: string): DeterministicInten
     intent = 'now';
   } else if (/doctor|clinician|visit|appointment|prescribe|describe.*visit|handoff|brief|ask (my )?doctor|consult/i.test(cleanQuery)) {
     intent = 'care';
-  } else if (/decide|choose|choice|\bor\b|versus|\bvs\b|should i (have|eat|drink|take)|which (is|one)|substitute|replace/i.test(cleanQuery)) {
+  } else if (/decide|choose|choice|versus|\bvs\b|should i (have|eat|drink|take)|which (is|one)|substitute|replace/i.test(cleanQuery)) {
     intent = 'decide';
   } else {
     intent = 'understand';
@@ -474,39 +518,36 @@ export function resolveDeterministicGutIntent(query: string): DeterministicInten
   }
 
   if (!inferredFocus) {
-    const mealMatch = cleanQuery.match(/(?:is|does|about)\s+([a-z0-9\s]+?)\s+(?:linked to|trigger|cause|affect)/i)
+    const mealMatch = cleanQuery.match(/(?:is|does|about)\s+([a-z0-9\s]+?)\s+(?:linked to|related to|trigger|cause|affect)/i)
       || cleanQuery.match(/after\s+([a-z0-9\s]+?)(?:\?|$|\s+(?:dinner|lunch|breakfast))/i)
       || cleanQuery.match(/(?:pattern.*after|reaction to)\s+([a-z0-9\s]+?)(?:\?|$)/i);
     if (mealMatch && mealMatch[1]) {
       inferredFocus = mealMatch[1].trim();
-    } else if (cleanQuery.includes('chai')) {
-      inferredFocus = 'chai';
-    } else if (cleanQuery.includes('dinner')) {
-      inferredFocus = 'dinner';
     }
   }
 
   return { intent, inferredFocus, inferredSymptom, options };
 }
 
-function parseTimeOnDate(dateStr: string, timeStr: string): number | null {
-  try {
-    const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
-    if (!match) {
-      const dt = Date.parse(`${dateStr}T${timeStr}`);
-      return isNaN(dt) ? null : dt;
-    }
-    let hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const meridian = match[3]?.toUpperCase();
-    if (meridian === 'PM' && hours < 12) hours += 12;
-    if (meridian === 'AM' && hours === 12) hours = 0;
-    const dt = new Date(`${dateStr}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00.000Z`);
-    const time = dt.getTime();
-    return isNaN(time) ? null : time;
-  } catch {
-    return null;
-  }
+function dateInZone(timestamp: number, timezone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(timestamp));
+  const value = (type: string) => parts.find((part) => part.type === type)?.value || '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
+
+function recordKind(observation: Observation): GutBacktraceItem['kind'] {
+  if (observation.payload.kind === 'meal') return 'meal';
+  if (observation.payload.kind === 'context') return observation.payload.contextType === 'medication' ? 'medication' : 'context';
+  return 'digestion';
+}
+
+function recordLabel(observation: Observation): string {
+  if (observation.payload.kind === 'meal' || observation.payload.kind === 'context') return observation.payload.description;
+  if (observation.payload.kind === 'symptom') return `Reported ${observation.payload.symptom}`;
+  if (observation.payload.kind === 'bowel') return 'Bowel report';
+  return 'Digestion check-in';
 }
 
 /**
@@ -515,50 +556,41 @@ function parseTimeOnDate(dateStr: string, timeStr: string): number | null {
  * Strictly avoids gastric kinetics simulations or causal verdicts.
  */
 export function deriveGutBacktraceProjection(
-  anchor: { type: 'symptom_onset' | 'question_time'; timestamp: string; symptom?: GutSymptom },
+  anchor: { type: 'symptom_onset' | 'question_time'; timestamp: string; symptom?: GutSymptom; timezone?: string },
   snapshot: { meals: GutMeal[]; days: GutDay[] },
   observations: Observation[]
 ): GutBacktraceProjection {
-  const anchorMs = isNaN(Date.parse(anchor.timestamp)) ? Date.now() : Date.parse(anchor.timestamp);
+  const anchorMs = Date.parse(anchor.timestamp);
+  const anchorValid = /(?:Z|[+-]\d{2}:\d{2})$/.test(anchor.timestamp) && Number.isFinite(anchorMs);
+  let timezone = anchor.timezone || 'UTC';
+  try { new Intl.DateTimeFormat('en-US', { timeZone: timezone }).format(); }
+  catch { timezone = 'UTC'; }
+  if (!anchorValid) {
+    return {
+      anchorTimestamp: anchor.timestamp, anchorType: anchor.type, anchorTimezone: timezone,
+      anchorSymptom: anchor.symptom, windowHours: 48, timedItems: [], dateOnlyItems: [],
+      summary: 'The question timestamp is unavailable, so no 48-hour window can be verified.',
+      caveat: 'Open the dated record history. No meal or symptom order is inferred from an invalid time.',
+    };
+  }
   const anchorIso = new Date(anchorMs).toISOString();
   const windowMs = 48 * 3600 * 1000;
   const minMs = anchorMs - windowMs;
 
-  // Build set of local calendar dates covered by the 48h span
+  // A 48-hour interval can touch different local calendar dates across time zones and DST.
   const relevantDates = new Set<string>();
-  for (let offset = 0; offset <= 2; offset++) {
-    const d = new Date(anchorMs - offset * 86400 * 1000);
-    relevantDates.add(d.toISOString().slice(0, 10));
-  }
+  for (let ms = minMs; ms <= anchorMs; ms += 3600 * 1000) relevantDates.add(dateInZone(ms, timezone));
+  relevantDates.add(dateInZone(anchorMs, timezone));
 
   const timedItems: GutBacktraceItem[] = [];
   const dateOnlyItems: GutBacktraceDateOnlyItem[] = [];
   const seenIds = new Set<string>();
 
-  // 1. Process Meals from snapshot
+  // Legacy Diet loggedAt is a write time. Only separately saved occurrence time is sequenced.
   for (const meal of snapshot.meals) {
-    if (meal.loggedAt) {
-      const ms = Date.parse(meal.loggedAt);
-      if (!isNaN(ms) && ms >= minMs && ms <= anchorMs) {
-        const hoursPrior = Math.max(0, Math.round(((anchorMs - ms) / (3600 * 1000)) * 10) / 10);
-        timedItems.push({
-          id: meal.id,
-          kind: 'meal',
-          label: meal.name,
-          detail: meal.reaction ? `Reaction: ${meal.reaction}` : undefined,
-          occurredAt: meal.loggedAt,
-          hoursPrior,
-          timePrecision: 'exact',
-          sourceRecordId: meal.id,
-        });
-        seenIds.add(meal.id);
-        continue;
-      }
-    }
-
-    if (meal.date && meal.time) {
-      const ms = parseTimeOnDate(meal.date, meal.time);
-      if (ms && ms >= minMs && ms <= anchorMs) {
+    if (meal.occurredAt && (meal.timePrecision === 'exact' || meal.timePrecision === 'approximate')) {
+      const ms = Date.parse(meal.occurredAt);
+      if (/(?:Z|[+-]\d{2}:\d{2})$/.test(meal.occurredAt) && Number.isFinite(ms) && ms >= minMs && ms <= anchorMs) {
         const hoursPrior = Math.max(0, Math.round(((anchorMs - ms) / (3600 * 1000)) * 10) / 10);
         timedItems.push({
           id: meal.id,
@@ -566,13 +598,19 @@ export function deriveGutBacktraceProjection(
           label: meal.name,
           detail: meal.reaction ? `Reaction: ${meal.reaction}` : undefined,
           occurredAt: new Date(ms).toISOString(),
+          localDate: dateInZone(ms, timezone),
+          sourceLocalDate: meal.date,
           hoursPrior,
-          timePrecision: 'approximate',
+          timePrecision: meal.timePrecision,
+          timeMeaning: 'user_reported_occurrence',
+          sourceKind: 'diet_meal', sourceId: meal.id, revision: null,
+          reportedAt: meal.loggedAt || null,
           sourceRecordId: meal.id,
         });
         seenIds.add(meal.id);
-        continue;
       }
+      // An out-of-window or invalid timed event must not reappear as date-only.
+      continue;
     }
 
     if (meal.date && relevantDates.has(meal.date) && !seenIds.has(meal.id)) {
@@ -582,70 +620,52 @@ export function deriveGutBacktraceProjection(
         label: meal.name,
         detail: meal.reaction ? `Reaction: ${meal.reaction}` : undefined,
         localDate: meal.date,
+        sourceKind: 'diet_meal', sourceId: meal.id, revision: null,
+        reportedAt: meal.loggedAt || null,
         sourceRecordId: meal.id,
       });
       seenIds.add(meal.id);
     }
   }
 
-  // 2. Process Observations (canonical meals, medication context, check-ins)
+  // Observations must be scoped even when a caller accidentally passes a mixed array.
+  const current = scope();
   for (const obs of observations) {
-    if (obs.deletedAt) continue;
+    if (obs.deletedAt || obs.ownerId !== getAccountScope() || obs.profileId !== current.profileId) continue;
     if (obs.sourceRecordId && seenIds.has(obs.sourceRecordId)) continue;
     if (seenIds.has(obs.id)) continue;
 
-    if (obs.occurredAt && (obs.timePrecision === 'exact' || obs.timePrecision === 'approximate')) {
+    if (obs.timePrecision === 'exact' || obs.timePrecision === 'approximate') {
+      if (!obs.occurredAt || !/(?:Z|[+-]\d{2}:\d{2})$/.test(obs.occurredAt)) continue;
       const ms = Date.parse(obs.occurredAt);
-      if (!isNaN(ms) && ms >= minMs && ms <= anchorMs) {
+      if (Number.isFinite(ms) && ms >= minMs && ms <= anchorMs) {
         const hoursPrior = Math.max(0, Math.round(((anchorMs - ms) / (3600 * 1000)) * 10) / 10);
-        const isMed = obs.payload.kind === 'context' && obs.payload.contextType === 'medication';
-        const kind: GutBacktraceItem['kind'] = obs.payload.kind === 'meal'
-          ? 'meal'
-          : isMed
-            ? 'medication'
-            : obs.payload.kind === 'context'
-              ? 'context'
-              : 'digestion';
-        const label = obs.payload.kind === 'meal'
-          ? obs.payload.description
-          : obs.payload.kind === 'context'
-            ? obs.payload.description
-            : 'Digestion check-in';
-
         timedItems.push({
           id: obs.id,
-          kind,
-          label,
+          kind: recordKind(obs), label: recordLabel(obs),
           occurredAt: obs.occurredAt,
+          localDate: dateInZone(ms, timezone),
+          sourceLocalDate: obs.localDate || undefined,
           hoursPrior,
           timePrecision: obs.timePrecision,
+          timeMeaning: 'user_reported_occurrence',
+          sourceKind: 'observation', sourceId: obs.id, revision: obs.revision,
+          reportedAt: obs.recordedAt,
           sourceRecordId: obs.sourceRecordId,
         });
         seenIds.add(obs.id);
         continue;
       }
+      continue;
     }
 
-    if (obs.localDate && relevantDates.has(obs.localDate) && !seenIds.has(obs.id)) {
-      const isMed = obs.payload.kind === 'context' && obs.payload.contextType === 'medication';
-      const kind: GutBacktraceDateOnlyItem['kind'] = obs.payload.kind === 'meal'
-        ? 'meal'
-        : isMed
-          ? 'medication'
-          : obs.payload.kind === 'context'
-            ? 'context'
-            : 'digestion';
-      const label = obs.payload.kind === 'meal'
-        ? obs.payload.description
-        : obs.payload.kind === 'context'
-          ? obs.payload.description
-          : 'Digestion check-in';
-
+    if (obs.timePrecision === 'date_only' && obs.localDate && relevantDates.has(obs.localDate) && !seenIds.has(obs.id)) {
       dateOnlyItems.push({
         id: obs.id,
-        kind,
-        label,
+        kind: recordKind(obs), label: recordLabel(obs),
         localDate: obs.localDate,
+        sourceKind: 'observation', sourceId: obs.id, revision: obs.revision,
+        reportedAt: obs.recordedAt,
         sourceRecordId: obs.sourceRecordId,
       });
       seenIds.add(obs.id);
@@ -665,6 +685,8 @@ export function deriveGutBacktraceProjection(
           kind: 'digestion',
           label: `Digestion log: ${parts.join(', ')}`,
           localDate: day.date,
+          sourceKind: 'daily_digest', sourceId: dayId, revision: null,
+          reportedAt: null,
         });
         seenIds.add(dayId);
       }
@@ -676,12 +698,14 @@ export function deriveGutBacktraceProjection(
   // Sort date-only items by date descending
   dateOnlyItems.sort((a, b) => b.localDate.localeCompare(a.localDate));
 
-  const summary = `Within 48h prior to report: ${timedItems.length} timed event(s) and ${dateOnlyItems.length} date-only record(s) logged.`;
-  const caveat = 'Observed in your logged records in the 48 hours prior to report. Does not infer biological gastric transit, compartment kinetics, or causal attribution. Date-only records cannot confirm whether the item preceded or followed symptom onset.';
+  const anchorLabel = anchor.type === 'symptom_onset' ? 'reported symptom onset' : 'question creation';
+  const summary = `In the 48 hours before ${anchorLabel}: ${timedItems.length} timed report(s) and ${dateOnlyItems.length} date-only record(s).`;
+  const caveat = `This is a record review window before ${anchorLabel}. It does not infer biological gastric transit or cause. A date-only record may have occurred before or after the anchor; its order is unknown.`;
 
   return {
     anchorTimestamp: anchorIso,
     anchorType: anchor.type,
+    anchorTimezone: timezone,
     anchorSymptom: anchor.symptom,
     windowHours: 48,
     timedItems,
@@ -696,18 +720,12 @@ export function deriveGutBacktraceProjection(
  */
 export function classifyGutAnswerState(
   evidence: GutEvidence | null,
-  thread: GutQuestionThread,
-  options?: { cloudStatus?: string; researchStatus?: string }
+  thread: GutQuestionThread
 ): GutAnswerState {
-  if (options?.cloudStatus === 'error' || options?.cloudStatus === 'unavailable') {
-    return 'account_sync_error';
-  }
-  if (options?.researchStatus === 'error') {
-    return 'research_outage';
-  }
   if (thread.intent === 'now') {
     return 'now_acute';
   }
+  if (thread.symptom === 'unspecified') return 'needs_symptom';
   if (!evidence || evidence.occasions.length === 0) {
     return 'no_records';
   }
@@ -719,7 +737,7 @@ export function classifyGutAnswerState(
   }
 
   const hasTimed = evidence.occasions.some(
-    (occ) => !!occ.meal.time || !!occ.meal.loggedAt || occ.edge.mealSource.timePrecision === 'exact' || occ.edge.mealSource.timePrecision === 'approximate'
+    (occ) => !!occ.meal.occurredAt && (occ.edge.mealSource.timePrecision === 'exact' || occ.edge.mealSource.timePrecision === 'approximate')
   );
   if (!hasTimed) {
     return 'date_only';
@@ -731,4 +749,3 @@ export function classifyGutAnswerState(
 
   return 'reliable_timed';
 }
-

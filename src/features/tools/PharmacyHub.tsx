@@ -474,6 +474,10 @@ export default function PharmacyHub() {
                       >
                         {displayData.class}
                       </div>
+                      <p style={{ margin: '7px 0 0', fontSize: 11.5, color: '#8D354B' }}>
+                        {displayData.reviewerStatus === 'label_checked_not_clinician_reviewed' ? 'Product label checked; independent clinical review pending.' : 'Clinical review of this lookup is not verified.'}
+                        {displayData.sourceLabelUrl && <> <a href={displayData.sourceLabelUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#AD234A' }}>Open source label</a></>}
+                      </p>
                     </div>
                     <div style={{ marginLeft: isMobile ? '0' : 'auto', display: 'flex', alignItems: 'center', gap: '10px', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
                       <button
@@ -653,10 +657,10 @@ export default function PharmacyHub() {
                         </div>
                         <div>
                           <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                            Optimal Daily Timing & Food Synergies
+                            Product timing to verify
                           </h3>
                           <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                            Maximizing therapeutic bioavailability while supporting gastric comfort
+                            Compare this information with your exact product and prescribed plan
                           </span>
                         </div>
                       </div>

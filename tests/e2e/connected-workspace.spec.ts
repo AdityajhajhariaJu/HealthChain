@@ -10,6 +10,14 @@ test.beforeEach(async ({ page }) => {
   await page.route(/https:\/\//, route => route.abort());
 });
 
+async function advanceToClinicalStep(page: any, step: 4 | 5 | 6) {
+  await page.getByRole('button', { name: 'Next: Timeline (Step 2)' }).click();
+  await page.getByRole('button', { name: 'Next: Pattern (Step 3)' }).click();
+  await page.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }).click();
+  if (step >= 5) await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
+  if (step >= 6) await page.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }).click();
+}
+
 test('a draft remains visible and connects My Cases, Ava, and the engine', async ({ page }) => {
   await page.goto('/app/my-cases?new=true', { waitUntil: 'domcontentloaded' });
   await page.getByLabel('Case title', { exact: true }).fill('My energy timeline');
@@ -27,8 +35,10 @@ test('a draft remains visible and connects My Cases, Ava, and the engine', async
   await page.getByRole('button', { name: 'Save draft as a case update' }).click();
   await expect(input).toHaveValue('');
   await page.goto(`/app/consult?caseId=${caseId}&review=new`, { waitUntil: 'domcontentloaded' });
+  await advanceToClinicalStep(page, 6);
   await expect(page.getByLabel('Where should this review be saved?')).toHaveValue(caseId!);
-  await expect(page.getByRole('textbox', { name: 'Clinical timeline and symptom notes' })).toHaveValue(/My energy changes/);
+  await expect(page.getByText(/Clinical Timeline.*12 words/)).toBeVisible();
+  await expect(page.getByText('Uses this case’s saved context.')).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-engine-desktop.png', fullPage: true });
 });
 
@@ -53,7 +63,7 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   const quickWater = page.getByRole('button', { name: 'Quick log 250ml water' });
   await quickWater.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByText(/250 \/ 2,000 ml/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Daily Hydration - Open intake tracker' })).toContainText(/250\s*\/\s*2,000 ml/);
   await expect(page.getByRole('dialog', { name: /Hydration/i })).toHaveCount(0);
   await page.getByRole('button', { name: 'View all 10 articles' }).click();
   await expect(page.getByRole('button', { name: 'Show recommended' })).toBeVisible();
@@ -61,8 +71,7 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await page.getByRole('button', { name: 'Open Zen Garden' }).click();
   const garden = page.getByRole('dialog', { name: 'Zen Garden' });
   await expect(garden.getByRole('heading', { name: 'Zen Garden' })).toBeVisible();
-  await expect(garden.getByText(/days streak/i)).toBeVisible();
-  await expect(garden.getByText('Daily Care')).toBeVisible();
+  await expect(garden.getByText(/SANCTUARY METRICS/)).toBeVisible();
   await expect(garden.getByRole('button', { name: /Water Garden/i })).toBeVisible();
   await garden.getByRole('button', { name: 'Close modal' }).click();
   await page.getByRole('link', { name: 'Ava', exact: true }).click();
@@ -83,25 +92,26 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
 });
 
 test('Connection Detective keeps empty domains clear without duplicating engine or dossier workspaces', async ({ page }) => {
-  await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
-  await page.getByLabel('Connection Detective - Gut, food and biomarker connections').click();
+  await page.goto('/app/ava?tool=connection-detective', { waitUntil: 'domcontentloaded' });
   const detective = page.getByRole('dialog', { name: 'Clinical Connections' });
-  await expect(detective.getByRole('heading', { name: 'Connection Detective' })).toBeVisible();
-  await expect(page.getByText('Gut & Food', { exact: true })).toBeVisible();
-  await expect(page.getByText('Labs & Body', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Go to Case Prep/i })).toBeVisible();
-  await page.getByText('Gut & Food', { exact: true }).click();
-  await expect(page.getByText('No Dietary Triggers Logged Yet')).toBeVisible();
-  await expect(page.getByText('Evidence Connection Graph')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Post-Meal' })).toBeVisible();
+  await expect(detective.getByRole('heading', { name: 'Gut Health & Connections' })).toBeVisible();
+  const gutDomain = detective.getByRole('button', { name: 'Open Gut & Food' });
+  await expect(gutDomain).toContainText('No food history in this case');
+  await gutDomain.click();
+  await expect(detective.getByRole('button', { name: 'Open Meal Records & Digestion Calendar' })).toBeVisible();
+  await expect(detective.getByRole('button', { name: 'Open Food Records & Patterns' })).toBeVisible();
+  await expect(detective.getByText('Evidence Connection Graph')).toHaveCount(0);
 });
 
 test('the engine rejects unsupported documents and preserves written notes', async ({ page }) => {
   await page.goto('/app/consult', { waitUntil: 'domcontentloaded' });
+  await advanceToClinicalStep(page, 4);
   const notes = page.getByRole('textbox', { name: 'Clinical timeline and symptom notes' });
   await notes.fill('My own timeline, with no invented measurements.');
+  await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
   await page.getByLabel('Upload medical records, lab reports, or health documents').setInputFiles({ name: 'not-a-report.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
   await expect(page.getByText('Unsupported document', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '← Back to Story' }).click();
   await expect(notes).toHaveValue('My own timeline, with no invented measurements.');
 });
 

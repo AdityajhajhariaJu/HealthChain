@@ -21,6 +21,14 @@ async function seed(page:any) {
   });
 }
 
+async function advanceToStep(page:any, step: 4 | 5 | 6) {
+  await page.getByRole('button', { name: 'Next: Timeline (Step 2)' }).click();
+  await page.getByRole('button', { name: 'Next: Pattern (Step 3)' }).click();
+  await page.getByRole('button', { name: 'Next: Tell Your Story (Step 4)' }).click();
+  if (step >= 5) await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
+  if (step >= 6) await page.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }).click();
+}
+
 test('saved review has one reasoning view and one perspective view',async({page})=>{
   const id=await seed(page);
   await page.goto('/app/consult?caseId='+id);
@@ -53,7 +61,10 @@ test('clarification survives reload and remains a report, not a resolved conclus
 test('invalid engine case cannot silently use another case',async({page})=>{
   await seed(page);
   await page.goto('/app/consult?caseId=missing&review=new');
+  await advanceToStep(page, 4);
   await page.getByRole('textbox',{name:'Clinical timeline and symptom notes'}).fill('A new concern');
+  await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
+  await page.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }).click();
   await page.getByRole('button',{name:'Review and save to My Cases'}).click();
   await expect(page.getByText('Case unavailable',{exact:true})).toBeVisible();
 });

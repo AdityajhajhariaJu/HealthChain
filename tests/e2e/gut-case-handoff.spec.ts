@@ -42,8 +42,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
-  await gut.getByRole('button', { name: /I have a care question/ }).click();
-  await gut.getByLabel('Your question or situation').fill('What should I ask about recurring bloating?');
+  await gut.getByLabel('Your question or situation').fill('What should I ask my doctor about recurring bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
   await expect(gut.getByText('Bring this question to a visit')).toBeVisible();
   const handoff = gut.getByRole('region', { name: 'Prepare this question for a visit' });
@@ -53,7 +52,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await gut.getByRole('button', { name: 'Add question and open brief' }).click();
 
   await expect(page).toHaveURL(new RegExp(`/app/case-prep\\?caseId=${caseId}`));
-  await expect(page.getByText('What should I ask about recurring bloating?').first()).toBeVisible();
+  await expect(page.getByText('What should I ask my doctor about recurring bloating?').first()).toBeVisible();
   await expect(page.getByText('From your Gut Health question · patient report, not a clinician finding')).toBeVisible();
 
   await page.getByPlaceholder('What do you remember discussing? Saved as your report.').fill('We discussed a follow-up visit.');

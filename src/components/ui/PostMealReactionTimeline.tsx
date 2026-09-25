@@ -144,10 +144,10 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
 
     const todayKey = new Date().toLocaleDateString('en-CA');
     return recentLogs.filter((log: any) => {
-      const date = log.loggedAt ? new Date(log.loggedAt).toLocaleDateString('en-CA') : String(log.date || '').slice(0, 10);
+      const date = String(log.date || '').slice(0, 10);
       return date === todayKey;
     }).slice(-6).reverse().map((log: any, idx: number) => {
-      const logDate = log.loggedAt && !Number.isNaN(new Date(log.loggedAt).getTime()) ? new Date(log.loggedAt) : null;
+      const logDate = log.occurredAt && ['exact', 'approximate'].includes(log.timePrecision) && !Number.isNaN(new Date(log.occurredAt).getTime()) ? new Date(log.occurredAt) : null;
       const hours = logDate?.getHours() ?? null;
       const minutes = logDate ? String(logDate.getMinutes()).padStart(2, '0') : '';
       const ampm = hours !== null && hours >= 12 ? 'PM' : 'AM';
@@ -178,13 +178,13 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
 
       return {
         id: log.id || `log_${idx}`,
-        time: log.time || timeStr,
+        time: timeStr,
         timestamp: logDate?.getTime() ?? null,
         mealName: log.meal || log.name || 'Meal recorded',
         slot,
         slotLabel,
         slotEmoji,
-        incubationHours: log.reaction?.incubationHours ?? null,
+        incubationHours: logDate ? (log.reaction?.incubationHours ?? null) : null,
         reaction: log.reaction,
         tags: log.tags || [],
       };

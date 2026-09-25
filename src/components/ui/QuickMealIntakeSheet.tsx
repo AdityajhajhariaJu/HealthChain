@@ -143,7 +143,8 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     if (!finalMealName) return;
 
     // Compute backdated timestamp if timingOffset is used
-    const now = new Date();
+    const loggedAt = new Date();
+    const now = new Date(loggedAt);
     if (timingOffset === '30m') now.setMinutes(now.getMinutes() - 30);
     else if (timingOffset === '1h') now.setHours(now.getHours() - 1);
     else if (timingOffset === '2h') now.setHours(now.getHours() - 2);
@@ -157,7 +158,10 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
       category: selectedSlot,
       ...(portion ? { portion } : {}),
       date: todayStr,
-      loggedAt: now.toISOString(),
+      loggedAt: loggedAt.toISOString(),
+      occurredAt: now.toISOString(),
+      timePrecision: 'approximate',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
       tags: selectedCapsules,
     };
 

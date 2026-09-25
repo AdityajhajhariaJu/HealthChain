@@ -3,6 +3,15 @@ import type { GutSymptom } from './GutResolutionService';
 
 export type GutResearchTopic = 'food' | 'caffeine' | 'dairy' | 'meal_timing';
 
+/** General education links are deliberately separate from personal evidence and paper search. */
+export const gutGeneralGuidance: Partial<Record<GutSymptom, { title: string; summary: string; url: string }>> = {
+  bloating: { title: 'NIDDK: Gas and bloating', summary: 'Bloating has several possible explanations, including swallowed air, digestion of carbohydrates and digestive conditions. A meal name or timing alone cannot identify yours.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/gas-digestive-tract/symptoms-causes' },
+  discomfort: { title: 'NIDDK: Indigestion symptoms', summary: 'Upper abdominal discomfort can accompany fullness, bloating or nausea. This overview does not determine whether your discomfort is indigestion.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes' },
+  reflux: { title: 'NIDDK: Reflux symptoms', summary: 'This overview describes common reflux symptoms and when to discuss them with a clinician. Your records cannot diagnose reflux disease.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/acid-reflux-ger-gerd-adults/symptoms-causes' },
+  nausea: { title: 'NIDDK: Indigestion symptoms', summary: 'Nausea can occur alongside indigestion symptoms, but it has many possible explanations. This page is general context, not a match to your cause.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes' },
+  bowel_changes: { title: 'NIDDK: Digestive diseases', summary: 'Bowel changes can involve different concerns, including diarrhea, constipation and bowel control. This index links to separate overviews; choose one that matches your experience. The app has not classified your bowel change.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases' },
+};
+
 export interface GutResearchPaper {
   id: string;
   title: string;
@@ -20,6 +29,7 @@ export interface GutResearchPaper {
 }
 
 const concepts: Record<GutSymptom, string> = {
+  unspecified: '',
   bloating: '"abdominal bloating"',
   discomfort: '"abdominal pain"',
   reflux: '"gastroesophageal reflux"',
@@ -34,6 +44,7 @@ export const gutResearchTopics: Record<GutResearchTopic, { label: string; query:
 };
 const nonHumanTitle = /\b(?:mice|mouse|rats?|broilers?|chickens?|porcine|in vitro|cell lines?)\b/i;
 const symptomTitle: Record<GutSymptom, RegExp> = {
+  unspecified: /$^/,
   bloating: /bloat|distension/i, discomfort: /abdomin|pain|dyspep/i,
   reflux: /reflux|gastroesophag|GERD/i, nausea: /nausea|vomit/i,
   bowel_changes: /bowel|constipat|diarrh|stool/i,

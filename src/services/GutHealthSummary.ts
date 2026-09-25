@@ -16,10 +16,14 @@ export interface GutMeal {
   name: string;
   date: string;
   time: string | null;
+  /** Only a separately confirmed meal occurrence belongs on an hourly timeline. */
+  occurredAt?: string | null;
+  timePrecision?: 'exact' | 'approximate' | 'date_only' | 'unknown';
   loggedAt?: string | null;
   reaction: string | null;
   reactionType?: string | null;
   reactionRecordedAt?: string | null;
+  preparation?: { kind: 'ingredient_or_substitution' | 'portion' | 'fresh_or_reheated' | 'cooking_method'; detail: string; source: 'user_confirmed' } | null;
 }
 
 const validScore = (value: unknown): value is number =>
@@ -71,17 +75,29 @@ export function getGutSnapshot(now = new Date()) {
     .map((raw: any, index: number) => {
       const date = String(raw.date || raw.loggedAt || '').slice(0, 10);
       const timestamp = typeof raw.loggedAt === 'string' && !Number.isNaN(Date.parse(raw.loggedAt)) ? raw.loggedAt : null;
+      const occurrence = typeof raw.occurredAt === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(raw.occurredAt) && !Number.isNaN(Date.parse(raw.occurredAt)) ? raw.occurredAt : null;
+      const timePrecision = occurrence && ['exact', 'approximate'].includes(raw.timePrecision) ? raw.timePrecision as 'exact' | 'approximate' : 'date_only';
+      let displayTime: string | null = null;
+      if (occurrence && timePrecision !== 'date_only') {
+        try { displayTime = new Date(occurrence).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', ...(typeof raw.timezone === 'string' ? { timeZone: raw.timezone } : {}) }); }
+        catch { displayTime = null; }
+      }
       return {
         id: String(raw.id || raw.loggedAt || `meal-${index}`),
         name: String(raw.meal || raw.name || 'Meal'),
         date,
-        time: timestamp ? new Date(timestamp).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : null,
+        time: displayTime,
+        occurredAt: timePrecision !== 'date_only' ? occurrence : null,
+        timePrecision,
         loggedAt: timestamp,
         reaction: typeof raw.reaction?.label === 'string' && raw.reaction.label.trim() ? raw.reaction.label.trim() :
           typeof raw.reaction?.notes === 'string' && raw.reaction.notes.trim() ? raw.reaction.notes.trim() :
           typeof raw.reaction?.symptom === 'string' && raw.reaction.symptom.trim() ? raw.reaction.symptom.trim() : null,
         reactionType: typeof raw.reaction?.reactionType === 'string' ? raw.reaction.reactionType : null,
         reactionRecordedAt: typeof raw.reaction?.loggedAt === 'string' && !Number.isNaN(Date.parse(raw.reaction.loggedAt)) ? raw.reaction.loggedAt : null,
+        preparation: raw.preparation?.source === 'user_confirmed' && ['ingredient_or_substitution', 'portion', 'fresh_or_reheated', 'cooking_method'].includes(raw.preparation.kind) && typeof raw.preparation.detail === 'string' && raw.preparation.detail.trim() ? {
+          kind: raw.preparation.kind, detail: raw.preparation.detail.trim().slice(0, 120), source: 'user_confirmed' as const,
+        } : null,
       };
     })
     .filter((meal: GutMeal) => validDate(meal.date) && meal.date <= today)

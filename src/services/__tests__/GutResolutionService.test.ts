@@ -23,6 +23,7 @@ import {
   listGutThreads,
   makeGutReviewSnapshot,
   resolveDeterministicGutIntent,
+  saveGutMealPreparation,
   updateGutThread
 } from '../GutResolutionService';
 
@@ -72,6 +73,30 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.occasions[1].meal.name).toBe('Chai with oat milk');
     expect(evidence.nextQuestionMealId).toBeNull();
     expect(evidence.nextQuestion).toContain('already mixed');
+  });
+
+  it('separates same-name meals only after the user confirms a preparation difference', async () => {
+    const duplicate = { ...meals[0], id: 'same-name-2', date: '2026-09-21' };
+    state.profile = { nutrition: { recentLogs: [{ id: meals[0].id, meal: meals[0].name, date: meals[0].date }] } };
+    expect(await saveGutMealPreparation(meals[0].id, { kind: 'ingredient_or_substitution', detail: 'oat milk instead of dairy', source: 'user_confirmed' })).toBe(true);
+    const confirmed = { ...meals[0], preparation: state.profile.nutrition.recentLogs[0].preparation };
+    const evidence = deriveGutEvidence(thread, { meals: [confirmed, duplicate], days: [] }, []);
+    expect(evidence.bundle.nameVariants).toHaveLength(2);
+    expect(evidence.bundle.nameVariants[0].preparation).toBe('oat milk instead of dairy');
+    expect(evidence.bundle.nameVariants[1].preparation).toBeUndefined();
+  });
+
+  it('keeps a planned choice separate from a user-linked actual meal and allows correction', async () => {
+    const created = await createGutThread({ intent: 'decide', question: 'What should I order?' });
+    expect(created?.decision?.actualMealId).toBeUndefined();
+    const linked = await updateGutThread(created!.id, { decision: { ...created!.decision!, chosen: 'a', chosenAt: '2026-09-23T10:00:00Z', actualMealId: meals[0].id, outcome: 'I ate it', outcomeAt: '2026-09-23T12:00:00Z' } });
+    expect(linked?.decision?.actualMealId).toBe(meals[0].id);
+    const corrected = await updateGutThread(created!.id, { decision: { ...linked!.decision!, actualMealId: null, outcome: null, outcomeAt: null } });
+    expect(corrected?.decision?.actualMealId).toBeNull();
+    expect(corrected?.decision?.outcome).toBeNull();
+    const undecided = await updateGutThread(created!.id, { decision: { ...linked!.decision!, chosen: null } });
+    expect(undecided?.decision?.actualMealId).toBeNull();
+    expect(undecided?.decision?.outcome).toBeNull();
   });
 
   it('asks about one specific stable unknown occasion only when its answer may change the reading', () => {
@@ -230,13 +255,13 @@ describe('Gut Resolution evidence ledger', () => {
       const result = resolveDeterministicGutIntent('What pattern should I check after dinner?');
       expect(result.intent).toBe('understand');
       expect(result.inferredFocus).toBe('dinner');
-      expect(result.inferredSymptom).toBe('bloating');
+      expect(result.inferredSymptom).toBe('unspecified');
     });
 
     it('identifies decision questions between options', () => {
       const result = resolveDeterministicGutIntent('Should I have oat milk chai or dairy chai?');
       expect(result.intent).toBe('decide');
-      expect(result.inferredSymptom).toBe('bloating');
+      expect(result.inferredSymptom).toBe('unspecified');
       expect(result.options).toEqual({ a: 'oat milk chai', b: 'dairy chai' });
     });
 
@@ -266,16 +291,60 @@ describe('Gut Resolution evidence ledger', () => {
         symptom: 'bloating' as const,
       };
 
-      const projection = deriveGutBacktraceProjection(anchor, { meals, days: [day] }, []);
+      const timedMeals = [{ ...meals[0], occurredAt: '2026-09-20T20:30:00.000Z', timePrecision: 'approximate' as const, loggedAt: '2026-09-22T10:00:00.000Z' }, ...meals.slice(1)];
+      const projection = deriveGutBacktraceProjection(anchor, { meals: timedMeals, days: [day] }, []);
       expect(projection.windowHours).toBe(48);
       expect(projection.timedItems.length).toBeGreaterThanOrEqual(1);
-      // meals[0] was on 2026-09-20 at 8:30 PM, which is within 48h of 2026-09-22 9:00 PM
+      // The user-reported occurrence is within 48 hours; entry time is later.
       expect(projection.timedItems.some((item) => item.label === 'Masala Chai')).toBe(true);
+      expect(projection.timedItems[0].occurredAt).toBe('2026-09-20T20:30:00.000Z');
+      expect(projection.timedItems[0].reportedAt).toBe('2026-09-22T10:00:00.000Z');
       // meals[1] has no time (date-only)
       expect(projection.dateOnlyItems.some((item) => item.label === 'Chai with oat milk')).toBe(true);
       // disclaimer must be present and honest
-      expect(projection.caveat).toContain('Does not infer biological gastric transit');
-      expect(projection.caveat).toContain('Date-only records cannot confirm');
+      expect(projection.caveat).toContain('does not infer biological gastric transit');
+      expect(projection.caveat).toContain('its order is unknown');
+    });
+
+    it('does not turn a legacy log timestamp into a meal occurrence', () => {
+      const projection = deriveGutBacktraceProjection(
+        { type: 'question_time', timestamp: '2026-09-22T12:00:00Z', timezone: 'UTC' },
+        { meals: [{ ...meals[0], date: '2026-09-22', time: '8:30 PM', loggedAt: '2026-09-22T11:00:00Z' }], days: [] }, []);
+      expect(projection.timedItems).toHaveLength(0);
+      expect(projection.dateOnlyItems).toHaveLength(1);
+    });
+
+    it('excludes timed events after the anchor or before the window rather than relabeling them date-only', () => {
+      const projection = deriveGutBacktraceProjection(
+        { type: 'question_time', timestamp: '2026-09-22T12:00:00Z', timezone: 'UTC' },
+        { meals: [
+          { ...meals[0], date: '2026-09-22', occurredAt: '2026-09-22T13:00:00Z', timePrecision: 'exact' },
+          { ...meals[1], date: '2026-09-20', occurredAt: '2026-09-20T11:59:00Z', timePrecision: 'exact' },
+        ], days: [] }, []);
+      expect(projection.timedItems).toHaveLength(0);
+      expect(projection.dateOnlyItems).toHaveLength(0);
+    });
+
+    it('uses local dates across an offset and excludes observations from other profiles', () => {
+      const localMeal = { ...meals[0], date: '2026-09-23', occurredAt: '2026-09-22T18:30:00Z', timePrecision: 'exact' as const };
+      const otherProfile = { ...report(meals[0], 'yes'), id: 'other-profile', profileId: 'profile_2', localDate: '2026-09-23' };
+      const projection = deriveGutBacktraceProjection(
+        { type: 'question_time', timestamp: '2026-09-23T18:30:00Z', timezone: 'Asia/Kolkata' },
+        { meals: [localMeal], days: [] }, [otherProfile]);
+      expect(projection.timedItems.map((item) => item.sourceId)).toEqual([localMeal.id]);
+      expect(projection.dateOnlyItems).toHaveLength(0);
+      expect(projection.timedItems[0].localDate).toBe('2026-09-23');
+    });
+
+    it('uses real elapsed hours across daylight saving and keeps the source date distinct', () => {
+      const projection = deriveGutBacktraceProjection(
+        { type: 'question_time', timestamp: '2026-03-09T04:30:00Z', timezone: 'America/New_York' },
+        { meals: [{ ...meals[0], date: '2026-03-09', occurredAt: '2026-03-08T06:30:00Z', timePrecision: 'exact' }], days: [] }, []);
+      expect(projection.timedItems).toHaveLength(1);
+      expect(projection.timedItems[0].hoursPrior).toBe(22);
+      expect(projection.timedItems[0].localDate).toBe('2026-03-08');
+      expect(projection.timedItems[0].sourceLocalDate).toBe('2026-03-09');
+      expect(projection.anchorTimezone).toBe('America/New_York');
     });
   });
 
@@ -289,19 +358,20 @@ describe('Gut Resolution evidence ledger', () => {
       // Now intent takes precedence
       expect(classifyGutAnswerState(emptyEvidence, { ...thread, intent: 'now' })).toBe('now_acute');
 
-      // Network / cloud sync error states
-      expect(classifyGutAnswerState(emptyEvidence, thread, { cloudStatus: 'unavailable' })).toBe('account_sync_error');
-      expect(classifyGutAnswerState(emptyEvidence, thread, { researchStatus: 'error' })).toBe('research_outage');
+      // Service outages remain separate from the personal evidence state.
+      expect(classifyGutAnswerState(emptyEvidence, thread)).toBe('no_records');
+      expect(classifyGutAnswerState(emptyEvidence, { ...thread, symptom: 'unspecified' })).toBe('needs_symptom');
 
       // Date only vs timed
       const dateOnlyEvidence = deriveGutEvidence(thread, { meals: [meals[1]], days: [] }, [report(meals[1], 'yes')]);
       expect(classifyGutAnswerState(dateOnlyEvidence, thread)).toBe('date_only');
 
-      const singleEvidence = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [report(meals[0], 'yes')]);
+      const timedMeal = { ...meals[0], occurredAt: '2026-09-20T20:30:00Z', timePrecision: 'approximate' as const };
+      const singleEvidence = deriveGutEvidence(thread, { meals: [timedMeal], days: [] }, [report(meals[0], 'yes')]);
       expect(classifyGutAnswerState(singleEvidence, thread)).toBe('single_confirmed');
 
-      const timedMeal2 = { ...meals[0], id: 'meal-4-stable', date: '2026-09-21' };
-      const multiEvidence = deriveGutEvidence(thread, { meals: [meals[0], timedMeal2], days: [] }, [report(meals[0], 'yes'), report(timedMeal2, 'yes')]);
+      const timedMeal2 = { ...timedMeal, id: 'meal-4-stable', date: '2026-09-21' };
+      const multiEvidence = deriveGutEvidence(thread, { meals: [timedMeal, timedMeal2], days: [] }, [report(meals[0], 'yes'), report(timedMeal2, 'yes')]);
       expect(classifyGutAnswerState(multiEvidence, thread)).toBe('reliable_timed');
     });
   });

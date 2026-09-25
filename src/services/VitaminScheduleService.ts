@@ -317,102 +317,48 @@ export interface DrugInteractionAlert {
   message: string;
   recommendation: string;
   bufferHours?: number;
+  sourceUrl?: string;
 }
 
-/**
- * Clinical Chronotherapy & Drug-Nutrient Interaction Checker
- */
+/** A narrow label-backed schedule question. Saved schedules do not prove ingestion. */
 export function detectDrugNutrientInteractions(vitamins: VitaminItem[]): DrugInteractionAlert[] {
   const alerts: DrugInteractionAlert[] = [];
   const active = vitamins.filter(v => v.enabled);
 
   const findMed = (keywords: string[]) => active.find(v => {
     const n = (v.name || '').toLowerCase();
-    return keywords.some(k => n.includes(k));
+    return keywords.some(k => new RegExp(`\\b${k}\\b`, 'i').test(n));
   });
 
-  const parseHour = (timeStr: string) => {
-    const h = parseInt((timeStr || '09:00').split(':')[0], 10);
-    const m = parseInt((timeStr || '09:00').split(':')[1] || '0', 10);
-    return h + m / 60;
+  const parseMinutes = (timeStr: string): number | null => {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(timeStr || '')) return null;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
   };
 
-  // 1. Levothyroxine + Calcium/Iron/Multivitamins (Severe Chelation)
-  const levo = findMed(['levothyroxine', 'synthroid', 'eltroxin', 'thyronorm']);
-  const calciumOrIron = findMed(['calcium', 'iron', 'ferrous', 'multivitamin', 'multi']);
-  if (levo && calciumOrIron) {
-    const hourLevo = parseHour(levo.time);
-    const hourMineral = parseHour(calciumOrIron.time);
-    const diff = Math.abs(hourLevo - hourMineral);
-    if (diff < 4) {
+  // This label covers levothyroxine sodium tablets and calcium carbonate or ferrous sulfate.
+  // A brand, liquid/capsule formulation, or unspecified multivitamin needs manual verification.
+  const levo = findMed(['levothyroxine']);
+  const mineral = findMed(['calcium carbonate', 'ferrous sulfate']);
+  if (levo && mineral && /tablet/i.test(levo.name)) {
+    const first = parseMinutes(levo.time);
+    const second = parseMinutes(mineral.time);
+    if (first !== null && second !== null) {
+      const difference = Math.abs(first - second);
+      const shortest = Math.min(difference, 1440 - difference);
+      if (shortest < 240) {
       alerts.push({
-        id: 'chelation_levo_minerals',
+        id: 'label_levo_calcium_iron_schedule',
         severity: 'timing_buffer',
-        title: 'Cation Chelation & Thyroxine Malabsorption',
+        title: 'Review saved medicine timing',
         medication1: levo.name,
-        medication2: calciumOrIron.name,
-        message: `${calciumOrIron.name} chelates synthetic ${levo.name} in the intestinal lumen, drastically suppressing bioavailability and provoking subclinical hypothyroidism.`,
-        recommendation: 'Separate dosing times by at least 4 hours. Take Levothyroxine 60 min before breakfast, and minerals at Midday or Bedtime.',
-        bufferHours: 4
+        medication2: mineral.name,
+        message: `Your saved schedules for ${levo.name} and ${mineral.name} are less than four hours apart. This does not confirm either dose was taken.`,
+        recommendation: 'The linked levothyroxine sodium tablet label describes four-hour spacing for calcium carbonate and ferrous sulfate. Ask your pharmacist whether it applies to your exact products before changing a schedule.',
+        bufferHours: 4,
+        sourceUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d5f5465f-61bb-7aaa-e053-2a95a90a8c3d'
       });
-    }
-  }
-
-  // 2. Metformin + B12 Depletion
-  const metformin = findMed(['metformin', 'glycomet', 'glucophage']);
-  const b12 = findMed(['b12', 'cobalamin', 'b-complex', 'multivitamin']);
-  if (metformin && !b12) {
-    alerts.push({
-      id: 'depletion_metformin_b12',
-      severity: 'depletion',
-      title: 'Metformin-Induced Vitamin B12 Depletion',
-      medication1: metformin.name,
-      message: 'Chronic Metformin therapy impairs calcium-dependent ileal absorption of Vitamin B12 in up to 30% of patients, frequently manifesting as unexplained fatigue and numbness.',
-      recommendation: 'Consider co-supplementation with Methylcobalamin (Active B12, 1000mcg) or check annual serum B12 and homocysteine levels.'
-    });
-  }
-
-  // 3. PPIs + Magnesium / Mineral Depletion
-  const ppi = findMed(['omeprazole', 'pantoprazole', 'esomeprazole', 'rabeprazole', 'pan']);
-  const mag = findMed(['magnesium', 'mag']);
-  if (ppi && !mag) {
-    alerts.push({
-      id: 'depletion_ppi_magnesium',
-      severity: 'depletion',
-      title: 'Hypochlorhydria Magnesium & Mineral Depletion',
-      medication1: ppi.name,
-      message: 'Proton Pump Inhibitors drastically suppress gastric acidity, impairing the ionization and intestinal absorption of dietary Magnesium and Calcium.',
-      recommendation: 'Periodically monitor serum magnesium. Consider supplementing with highly bioavailable Magnesium Glycinate before sleep.'
-    });
-  }
-
-  // 4. Statins + CoQ10 Depletion
-  const statin = findMed(['atorvastatin', 'rosuvastatin', 'simvastatin', 'atorva', 'lipitor']);
-  const coq10 = findMed(['coq10', 'ubiquinol', 'coenzyme']);
-  if (statin && !coq10) {
-    alerts.push({
-      id: 'depletion_statin_coq10',
-      severity: 'depletion',
-      title: 'Mitochondrial CoQ10 (Ubiquinol) Depletion',
-      medication1: statin.name,
-      message: 'HMG-CoA reductase inhibitors block the mevalonate synthesis pathway, depleting muscle mitochondrial Coenzyme Q10 and triggering myalgia or exercise fatigue.',
-      recommendation: 'Co-supplementation with Ubiquinol (100–200mg) with your evening meal supports mitochondrial electron transport and muscle recovery.'
-    });
-  }
-
-  // 5. Lipophilic Vitamins Fasting Warning
-  const fatSoluble = findMed(['d3', 'k2', 'vitamin d', 'omega-3', 'fish oil']);
-  if (fatSoluble) {
-    const hour = parseHour(fatSoluble.time);
-    if (hour < 10) {
-      alerts.push({
-        id: 'bioavailability_fat_soluble',
-        severity: 'bioavailability',
-        title: 'Lipid Vehicle Required for Bioavailability',
-        medication1: fatSoluble.name,
-        message: 'Vitamins D3, K2, and Omega-3 are lipophilic. Bioavailability drops by up to 50% when taken during morning fasting without dietary lipids.',
-        recommendation: 'Schedule with your largest fat-containing meal (e.g. Lunch or Dinner with avocado, olive oil, eggs, or nuts).'
-      });
+      }
     }
   }
 

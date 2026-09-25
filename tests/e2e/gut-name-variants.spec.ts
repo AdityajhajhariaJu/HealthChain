@@ -21,9 +21,8 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai related to bloating?');
-  await gut.getByPlaceholder('Choose from your records or type a phrase').fill('chai');
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  await gut.getByRole('button', { name: 'Evidence', exact: true }).click();
+  await gut.getByRole('button', { name: 'Inspect the evidence' }).click();
   const sourceMap = gut.getByRole('region', { name: 'Source map for chai' });
   await sourceMap.getByRole('button', { name: '1 with bloating report. Open the first source.' }).click();
   await expect(page.locator('#gr-occasion-chai-masala')).toBeFocused();
@@ -33,10 +32,10 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await page.setViewportSize({ width: 320, height: 700 });
   expect(await sourceMap.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   const variants = gut.getByRole('region', { name: 'Saved meal name variants' });
-  await expect(variants.getByText('2 different saved names match “chai”')).toBeVisible();
+  await expect(variants.getByText('2 saved name or user-confirmed preparation groups match “chai”')).toBeVisible();
   await expect(variants.getByRole('button', { name: /Masala Chai.*1 with.*0 without.*0 unknown/ })).toBeVisible();
   await expect(variants.getByRole('button', { name: /Chai with oat milk.*0 with.*0 without.*1 unknown/ })).toBeVisible();
-  await expect(variants.getByText('Names do not verify ingredients, recipe or portion')).toBeVisible();
+  await expect(variants.getByText(/Unknown preparation remains unknown; no ingredient is inferred/)).toBeVisible();
   await variants.getByRole('button', { name: /Chai with oat milk.*0 with.*0 without.*1 unknown/ }).click();
   await expect(page.locator('#gr-occasion-chai-oat')).toBeFocused();
   expect(await variants.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);

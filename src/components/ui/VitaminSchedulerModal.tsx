@@ -208,15 +208,15 @@ export const ClassyPillIcon: React.FC<{
 };
 
 // Curated Clinical Knowledgebase — Distinct, Useful, Chronobiologically Timed
-export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
+const CATALOG_DISPLAY_SEEDS: EnrichedPillMetadata[] = [
   // 1. Daily Essentials
   {
     name: 'Daily Multivitamin',
-    dosage: '1 tablet with breakfast',
-    benefit: 'Whole-Body Micronutrient Baseline',
-    rationale: 'Best with morning meal to support cellular metabolism throughout the day.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#F43F5E',
     color2: '#FFE4E6',
@@ -224,23 +224,23 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Omega-3 Fish Oil',
-    dosage: '1000mg EPA/DHA with meal',
-    benefit: 'Heart & Brain Health',
-    rationale: 'Fat-soluble; best taken with dietary lipids during lunch for 3x absorption.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '13:00',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#0284C7',
     color2: '#E0F2FE',
     iconKind: 'droplet'
   },
   {
-    name: 'Probiotics (50B CFU)',
-    dosage: '1 capsule empty stomach',
-    benefit: 'Gut Microbiome & Mucosal Barrier',
-    rationale: 'Take 20 mins before first meal to optimize bacterial transit past stomach acid.',
+    name: 'Probiotics',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:30',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#10B981',
     color2: '#D1FAE5',
@@ -248,11 +248,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Collagen Peptides',
-    dosage: '10g in warm water',
-    benefit: 'Skin Elasticity & Joint Cartilage',
-    rationale: 'Pairs synergistically with Vitamin C in the morning for collagen synthesis.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '09:00',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#FB7185',
     color2: '#FFF1F2',
@@ -260,11 +260,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Vitamin C (Liposomal)',
-    dosage: '1000mg with breakfast',
-    benefit: 'Collagen Synthesis & Immune Defense',
-    rationale: 'Water-soluble antioxidant; enhances non-heme iron absorption and collagen stability.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#F59E0B',
     color2: '#FEF3C7',
@@ -272,11 +272,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Electrolytes Complete',
-    dosage: '1 scoop in 500ml water',
-    benefit: 'Cellular Hydration & Nerve Conduction',
-    rationale: 'Maintains osmotic balance and athletic stamina; best taken early or intra-workout.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '09:00',
+    defaultTime: '',
     category: 'Daily Essentials',
     color1: '#06B6D4',
     color2: '#ECFEFF',
@@ -286,11 +286,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   // 2. Vitamins & Minerals
   {
     name: 'Vitamin D3 & K2',
-    dosage: '2000 IU + 100mcg MK-7',
-    benefit: 'Immune Defense & Bone Mineralization',
-    rationale: 'Fat-soluble; supports morning cortisol rhythm. Avoid at night (may disrupt melatonin).',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '09:00',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#F59E0B',
     color2: '#FEF3C7',
@@ -298,11 +298,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Zinc Picolinate',
-    dosage: '15mg with food',
-    benefit: 'T-Cell Immune Activation & Protein Synthesis',
-    rationale: 'Always take with a substantial meal to avoid gastric irritation; separate from iron.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '13:30',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#D97706',
     color2: '#FEF3C7',
@@ -310,11 +310,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Vitamin B-Complex',
-    dosage: '1 active co-enzymated capsule',
-    benefit: 'Energy Metabolism & Nerve Function',
-    rationale: 'Energizing; best taken early morning to prevent nocturnal stimulation.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#EAB308',
     color2: '#FEF9C3',
@@ -322,11 +322,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Methylcobalamin (B12)',
-    dosage: '1000mcg sublingual',
-    benefit: 'Homocysteine Clearance & Myelin Sheath',
-    rationale: 'Bioactive methylated form; supports neural transmission and red blood cell formation.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#E11D48',
     color2: '#FFE4E6',
@@ -334,11 +334,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Iron Bisglycinate',
-    dosage: '25mg with citrus/water',
-    benefit: 'Hemoglobin & Oxygen Transport',
-    rationale: 'Gentle chelated iron. Take with Vitamin C; separate from calcium, eggs, and tea by 2 hours.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '10:00',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#DC2626',
     color2: '#FEE2E2',
@@ -346,11 +346,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Magnesium Glycinate',
-    dosage: '200mg before bed',
-    benefit: 'Deep Sleep Architecture & Muscular Relaxation',
-    rationale: 'Activates GABA receptors and relaxes striated muscle before sleep without laxative effect.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '21:30',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#818CF8',
     color2: '#EEF2FF',
@@ -358,11 +358,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'L-Methylfolate (5-MTHF)',
-    dosage: '400mcg morning',
-    benefit: 'Methylation Cycle & DNA Biosynthesis',
-    rationale: 'Crucial for MTHFR variant carriers; bypasses synthetic folic acid enzymatic bottleneck.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Vitamins & Minerals',
     color1: '#10B981',
     color2: '#D1FAE5',
@@ -372,11 +372,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   // 3. Longevity & Energy
   {
     name: 'CoQ10 Ubiquinol',
-    dosage: '100mg with meal',
-    benefit: 'Mitochondrial ATP & Statin Defense',
-    rationale: 'Active reduced form; crucial for cardiac energetics and statin-induced depletion defense.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '12:30',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#D97706',
     color2: '#FEF3C7',
@@ -384,11 +384,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Creatine Monohydrate',
-    dosage: '5g daily in water',
-    benefit: 'Phosphocreatine Cellular ATP & Cognitive Reserve',
-    rationale: 'Saturates muscle and neuronal phosphocreatine stores for acute energy reserve.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '09:30',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#3B82F6',
     color2: '#EFF6FF',
@@ -396,11 +396,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'NAC (N-Acetyl Cysteine)',
-    dosage: '600mg on empty stomach',
-    benefit: 'Master Glutathione Biosynthesis & Detox',
-    rationale: 'Rate-limiting precursor to glutathione; protects hepatocyte and cellular membranes.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#6366F1',
     color2: '#EEF2FF',
@@ -408,23 +408,23 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Berberine HCl',
-    dosage: '500mg before main meal',
-    benefit: 'AMPK Activation & Glycemic Sensitivity',
-    rationale: 'Activates cellular metabolic master switch AMPK; take 15-20 min before highest carb meal.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '12:45',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#EAB308',
     color2: '#FEF9C3',
     iconKind: 'capsule'
   },
   {
-    name: 'Curcumin / Turmeric (95%)',
-    dosage: '500mg with Piperine',
-    benefit: 'Systemic Cytokine & Joint Inflammation Calm',
-    rationale: 'Black pepper piperine boosts systemic absorption by up to 2000%; best taken with food.',
+    name: 'Curcumin / Turmeric',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '13:30',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#F97316',
     color2: '#FFEDD5',
@@ -432,11 +432,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'NMN (Nicotinamide Mononucleotide)',
-    dosage: '250mg sublingual morning',
-    benefit: 'Cellular NAD+ Salvage & Sirtuin Activation',
-    rationale: 'Direct NAD+ intermediate supporting cellular longevity enzymes and DNA repair mechanisms.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:30',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#EC4899',
     color2: '#FDF2F8',
@@ -444,11 +444,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Alpha Lipoic Acid (ALA)',
-    dosage: '300mg before meal',
-    benefit: 'Mitochondrial Antioxidant & Nerve Health',
-    rationale: 'Both water and lipid soluble; recycles Vitamins C and E and supports insulin signaling.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#8B5CF6',
     color2: '#F5F3FF',
@@ -456,11 +456,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Acetyl-L-Carnitine (ALCAR)',
-    dosage: '500mg morning',
-    benefit: 'Mitochondrial Beta-Oxidation & Neuro-Focus',
-    rationale: 'Crosses blood-brain barrier to shuttle long-chain fatty acids into mitochondria for cerebral ATP.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:15',
+    defaultTime: '',
     category: 'Longevity & Energy',
     color1: '#06B6D4',
     color2: '#ECFEFF',
@@ -470,23 +470,23 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   // 4. Sleep & Calm
   {
     name: 'Ashwagandha KSM-66',
-    dosage: '600mg evening',
-    benefit: 'Cortisol Modulation & Nervous System Calm',
-    rationale: 'Lowers evening salivary cortisol and balances HPA axis hyperarousal.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Evening',
-    defaultTime: '20:00',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#14B8A6',
     color2: '#CCFBF1',
     iconKind: 'leaf'
   },
   {
-    name: 'Melatonin (Micro-dose)',
-    dosage: '1mg 30m before bed',
-    benefit: 'Circadian Phase Shift & Sleep Onset',
-    rationale: 'Physiological micro-dose mimics endogenous pineal surge without morning grogginess.',
+    name: 'Melatonin',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '22:00',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#6366F1',
     color2: '#EEF2FF',
@@ -494,11 +494,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'L-Theanine',
-    dosage: '200mg as needed',
-    benefit: 'Alpha Brain Waves & Jitter-Free Relaxation',
-    rationale: 'Crosses blood-brain barrier; enhances GABA and glycine without daytime sedation.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Evening',
-    defaultTime: '19:00',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#10B981',
     color2: '#D1FAE5',
@@ -506,11 +506,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Magnesium L-Threonate',
-    dosage: '144mg elemental before bed',
-    benefit: 'Blood-Brain Barrier Synaptic Plasticity',
-    rationale: 'Unique chelate designed to elevate cerebrospinal fluid magnesium concentrations.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '21:45',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#8B5CF6',
     color2: '#F5F3FF',
@@ -518,11 +518,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'GABA (PharmaGABA)',
-    dosage: '100mg bedtime',
-    benefit: 'Central Nervous System Parasympathetic Tone',
-    rationale: 'Promotes parasympathetic vagal tone and attenuates racing nocturnal thoughts.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '22:15',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#A855F7',
     color2: '#FAF5FF',
@@ -530,11 +530,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Tart Cherry Extract',
-    dosage: '500mg evening',
-    benefit: 'Phytomelatonin & Muscle Recovery',
-    rationale: 'Natural source of exogenous phytomelatonin and anthocyanins that accelerate nocturnal tissue recovery.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Evening',
-    defaultTime: '20:30',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#BE123C',
     color2: '#FFF1F2',
@@ -542,11 +542,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Apigenin',
-    dosage: '50mg bedtime',
-    benefit: 'GABA-A Receptor Modulation & Sleep Architecture',
-    rationale: 'Chamomile flavonoid that binds benzodiazepine receptors gently, deepening slow-wave delta sleep.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '21:30',
+    defaultTime: '',
     category: 'Sleep & Calm',
     color1: '#6366F1',
     color2: '#EEF2FF',
@@ -556,11 +556,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   // 5. Gut & Digestion
   {
     name: 'Digestive Enzymes Complex',
-    dosage: '1-2 capsules with meals',
-    benefit: 'Macronutrient Cleavage & Postprandial Comfort',
-    rationale: 'Broad-spectrum protease, lipase, and amylase reduce upper GI fullness and gas.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '13:00',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#0D9488',
     color2: '#F0FDFA',
@@ -568,11 +568,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Probiotics (Spore & Bifido)',
-    dosage: '1 capsule morning on empty stomach',
-    benefit: 'Microbiome Diversity & Mucosal Immune Shield',
-    rationale: 'Colonizes mucosal brush border, competitive exclusion of pathobionts, and secretory IgA support.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:30',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#059669',
     color2: '#ECFDF5',
@@ -580,11 +580,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Zinc Carnosine',
-    dosage: '75mg between meals',
-    benefit: 'Gastric Mucosal Healing & Tight Junction Repair',
-    rationale: 'Chelated zinc-carnosine adheres specifically to ulcerated mucosal areas, accelerating gastric tissue repair.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#D97706',
     color2: '#FEF3C7',
@@ -592,11 +592,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Psyllium Husk Prebiotic',
-    dosage: '5g in tall glass of water',
-    benefit: 'Soluble Fiber & Short-Chain Fatty Acids',
-    rationale: 'Normalizes stool consistency and nourishes butyrate-producing colonic bacteria.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#84CC16',
     color2: '#F7FEE7',
@@ -604,11 +604,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'L-Glutamine',
-    dosage: '5g empty stomach in water',
-    benefit: 'Enterocyte Fuel & Intestinal Mucosal Barrier',
-    rationale: 'Primary metabolic fuel for small intestinal enterocytes; reinforces tight junctions.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:15',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#06B6D4',
     color2: '#ECFEFF',
@@ -616,11 +616,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'DGL Deglycyrrhizinated Licorice',
-    dosage: '400mg chewable before meals',
-    benefit: 'Gastric Mucosal Coating & Acid Defense',
-    rationale: 'Stimulates gastric mucosal prostaglandins without glycyrrhizin blood pressure elevation.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Midday',
-    defaultTime: '12:45',
+    defaultTime: '',
     category: 'Gut & Digestion',
     color1: '#D97706',
     color2: '#FEF3C7',
@@ -630,11 +630,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   // 6. Prescriptions (Rx)
   {
     name: 'Metformin',
-    dosage: '500mg with dinner',
-    benefit: 'Glycemic Regulation & Hepatic AMPK Activation',
-    rationale: 'Take with evening meal to minimize gastrointestinal discomfort and morning dawn phenomenon.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Evening',
-    defaultTime: '19:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#059669',
     color2: '#ECFDF5',
@@ -642,11 +642,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Lisinopril',
-    dosage: '10mg morning',
-    benefit: 'ACE Inhibition & Blood Pressure Stability',
-    rationale: 'Best taken consistently at the same morning hour daily; monitor serum potassium.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#6366F1',
     color2: '#EEF2FF',
@@ -654,11 +654,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Atorvastatin',
-    dosage: '20mg bedtime',
-    benefit: 'HMG-CoA Reductase Lipid Management',
-    rationale: 'Hepatic cholesterol synthesis peaks during sleep; best taken with evening water.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '22:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#0284C7',
     color2: '#F0F9FF',
@@ -666,11 +666,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Levothyroxine',
-    dosage: '50mcg on empty stomach',
-    benefit: 'Thyroid Hormone Baseline Replacement',
-    rationale: 'Must take with water 30-60 mins before breakfast. Strict separation from iron & calcium.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#8B5CF6',
     color2: '#F5F3FF',
@@ -678,11 +678,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Amlodipine',
-    dosage: '5mg morning',
-    benefit: 'Dihydropyridine Calcium Channel Blockade',
-    rationale: 'Relaxes peripheral arterial smooth muscle; long 30-50h half-life maintains all-day control.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#3B82F6',
     color2: '#EFF6FF',
@@ -690,11 +690,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Pantoprazole',
-    dosage: '40mg 30m before breakfast',
-    benefit: 'Proton Pump H+/K+ ATPase Acid Inhibition',
-    rationale: 'Irreversibly inhibits active proton pumps; requires food stimulation shortly after.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '07:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#D97706',
     color2: '#FEF3C7',
@@ -702,11 +702,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Losartan',
-    dosage: '50mg morning',
-    benefit: 'Angiotensin II Type 1 Receptor Blocker (ARB)',
-    rationale: 'Cardiorenal protective; well-tolerated alternative for patients with ACE-inhibitor cough.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:15',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#059669',
     color2: '#ECFDF5',
@@ -714,11 +714,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Rosuvastatin',
-    dosage: '10mg bedtime',
-    benefit: 'High-Potency Hydrophilic Statin Therapy',
-    rationale: 'Potent hepatic LDL receptor upregulation; hydrophilic with low systemic muscle penetrance.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '21:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#0284C7',
     color2: '#F0F9FF',
@@ -726,11 +726,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Insulin (Basal)',
-    dosage: 'Basal dose as directed',
-    benefit: 'Exogenous Basal Glucose Control',
-    rationale: 'Monitor continuous glucose levels and follow specialist titration instructions.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Bedtime',
-    defaultTime: '22:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#3B82F6',
     color2: '#EFF6FF',
@@ -738,11 +738,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Ventolin (Salbutamol)',
-    dosage: 'Inhaler as directed',
-    benefit: 'Rapid Bronchodilation & Airway Patency',
-    rationale: 'Carry for acute symptom relief or exercise-induced bronchospasm.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#06B6D4',
     color2: '#ECFEFF',
@@ -750,11 +750,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Sertraline (Zoloft)',
-    dosage: '50mg morning',
-    benefit: 'SSRI Serotonergic Neurotransmitter Support',
-    rationale: 'Morning administration prevents insomnia; take consistently with breakfast.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#EC4899',
     color2: '#FDF2F8',
@@ -762,11 +762,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Escitalopram (Lexapro)',
-    dosage: '10mg morning',
-    benefit: 'High-Selectivity Serotonin Reuptake',
-    rationale: 'Consistent morning timing supports steady-state pharmacokinetics.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '09:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#A855F7',
     color2: '#FAF5FF',
@@ -774,11 +774,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Spironolactone',
-    dosage: '25mg morning',
-    benefit: 'Aldosterone Receptor Antagonism',
-    rationale: 'Mild potassium-sparing diuretic; take in morning to prevent nocturia.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#10B981',
     color2: '#ECFDF5',
@@ -786,11 +786,11 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Cetirizine',
-    dosage: '10mg evening',
-    benefit: 'Selective H1 Receptor Antihistamine',
-    rationale: 'Controls chronic rhinitis, urticaria, and histaminergic flares with minimal sedation.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Evening',
-    defaultTime: '20:30',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#0284C7',
     color2: '#F0F9FF',
@@ -798,17 +798,26 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   },
   {
     name: 'Ondansetron',
-    dosage: '4mg oral disintegrating',
-    benefit: '5-HT3 Receptor Antiemetic',
-    rationale: 'Take 30 mins before triggering event or as directed for nausea.',
+    dosage: '',
+    benefit: '',
+    rationale: '',
     timeSlot: 'Morning',
-    defaultTime: '08:00',
+    defaultTime: '',
     category: 'Prescriptions (Rx)',
     color1: '#F43F5E',
     color2: '#FFF1F2',
     iconKind: 'tablet'
   }
 ];
+
+// These are search labels, not individualized dose, timing, benefit or reviewed advice.
+export const CLINICAL_CATALOG: EnrichedPillMetadata[] = CATALOG_DISPLAY_SEEDS.map((item) => ({
+  ...item,
+  dosage: '',
+  rationale: '',
+  benefit: item.category,
+  defaultTime: '',
+}));
 
 export const CATEGORIES: PillCategory[] = [
   'All',
@@ -843,8 +852,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const [searchQuery, setSearchQuery] = useState('');
   const [newName, setNewName] = useState('');
   const [newDosage, setNewDosage] = useState('');
-  const [newBenefit, setNewBenefit] = useState('');
-  const [newTime, setNewTime] = useState('08:30');
+  const [newTime, setNewTime] = useState('');
   const [hasNotificationPermission, setHasNotificationPermission] = useState(true);
 
   const interactionAlerts = React.useMemo(() => detectDrugNutrientInteractions(vitamins), [vitamins]);
@@ -951,30 +959,21 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
       handleRemove(existing.id);
       return;
     }
-
-    const newItem: VitaminItem = {
-      id: 'vit_' + Date.now() + Math.random().toString(36).substring(2, 5),
-      name: pill.name,
-      dosage: pill.dosage,
-      time: pill.defaultTime,
-      enabled: true,
-      takenToday: false
-    };
-
-    const next = [...vitamins, newItem];
-    persistSchedule(next);
+    setNewName(pill.name);
+    setNewDosage('');
+    document.getElementById('vitamin-custom-regimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const handleAddCustom = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!newName.trim()) return;
+    if (!newName.trim() || !newTime) return;
 
     triggerHapticSuccess();
     const newItem: VitaminItem = {
       id: 'vit_' + Date.now(),
       name: newName.trim(),
-      dosage: newDosage.trim() || (newBenefit.trim() ? newBenefit.trim() : '1 dose daily'),
-      time: newTime || '08:30',
+      dosage: newDosage.trim() || 'Directions not entered',
+      time: newTime,
       enabled: true,
       takenToday: false
     };
@@ -983,7 +982,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     persistSchedule(next);
     setNewName('');
     setNewDosage('');
-    setNewBenefit('');
+    setNewTime('');
   };
 
   const handleDismiss = async () => {
@@ -1204,7 +1203,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   </h3>
                 </div>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#78716C', fontWeight: 500 }}>
-                  Circadian dosing, cellular absorption & alerts
+                  Your saved schedule and label-backed timing questions
                 </p>
               </div>
             </div>
@@ -1242,6 +1241,15 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             flexDirection: 'column',
             gap: '18px'
           }}>
+
+            {interactionAlerts.length > 0 && <section aria-label="Medicine timing questions" style={{ background: '#FFF9FA', border: '1px solid #F1D8DE', borderRadius: 14, padding: '12px 14px' }}>
+              <strong style={{ color: '#8D354B' }}>Review a saved timing concern</strong>
+              {interactionAlerts.map((alert: DrugInteractionAlert) => <div key={alert.id} style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: '#475569' }}>
+                <p style={{ margin: '0 0 4px' }}>{alert.message}</p>
+                <p style={{ margin: '0 0 4px' }}>{alert.recommendation}</p>
+                {alert.sourceUrl && <a href={alert.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#AD234A' }}>Read the official product label</a>}
+              </div>)}
+            </section>}
 
 
             {/* Frosted Clinical Regimen Card */}
@@ -1346,10 +1354,10 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div>
                   <span style={{ fontSize: '12px', fontWeight: 800, color: '#44403C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Clinical Formulations & Supplements
+                    Medication & supplement names
                   </span>
                   <div style={{ fontSize: '11px', color: '#78716C', marginTop: '1px' }}>
-                    {CLINICAL_CATALOG.length} evidence-based formulations divided by category
+                    {CLINICAL_CATALOG.length} names to find an item; enter your own directions and reminder time
                   </div>
                 </div>
               </div>
@@ -1468,6 +1476,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
               {/* Custom Write-In Form (Always On) */}
               <form
+                id="vitamin-custom-regimen"
                 onSubmit={handleAddCustom}
                 style={{
                   background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF8F9 100%)',
@@ -1484,7 +1493,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '14px' }}>💊</span>
-                    <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Write Custom Tablet / Prescription</strong>
+                    <strong style={{ fontSize: '12.5px', color: '#9F1239' }}>Add your medication or supplement</strong>
                   </div>
                   <span style={{ fontSize: '10px', fontWeight: 700, color: '#BE123C', background: '#FFFAFA', border: '1px solid #F1E5E7', padding: '1px 6px', borderRadius: '6px' }}>
                     Quick Add
@@ -1509,7 +1518,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
-                    placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
+                    placeholder="Your label or prescriber's directions (optional)"
                     value={newDosage}
                     onChange={(e) => setNewDosage(e.target.value)}
                     style={{
@@ -1525,6 +1534,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   />
                   <input
                     type="time"
+                    aria-label="Choose your reminder time"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
                     style={{
@@ -1540,17 +1550,17 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 </div>
                 <button
                   type="submit"
-                  disabled={!newName.trim()}
+                  disabled={!newName.trim() || !newTime}
                   style={{
                     padding: '10px',
                     borderRadius: '12px',
-                    background: newName.trim() ? 'linear-gradient(135deg, #DB4969 0%, #B32040 100%)' : '#E2E8F0',
-                    color: newName.trim() ? '#FFF' : '#94A3B8',
+                    background: newName.trim() && newTime ? 'linear-gradient(135deg, #DB4969 0%, #B32040 100%)' : '#E2E8F0',
+                    color: newName.trim() && newTime ? '#FFF' : '#94A3B8',
                     border: 'none',
                     fontWeight: 800,
                     fontSize: '12.5px',
-                    cursor: newName.trim() ? 'pointer' : 'default',
-                    boxShadow: newName.trim() ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
+                    cursor: newName.trim() && newTime ? 'pointer' : 'default',
+                    boxShadow: newName.trim() && newTime ? '0 4px 12px rgba(225, 29, 72, 0.25)' : 'none'
                   }}
                 >
                   + Add to Daily Regimen
@@ -1691,7 +1701,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   color: '#78716C',
                   fontSize: '13px'
                 }}>
-                  No supplements scheduled yet. Tap any formulation above to build your daily chrono-routine!
+                  No reminders yet. Select a name above, then enter the directions and reminder time you actually use.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1762,7 +1772,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                                 </span>
                               </div>
                               <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#78716C', fontWeight: 500, lineHeight: 1.3 }}>
-                                {item.dosage || meta?.dosage || '1 dose daily'}
+                                {item.dosage || 'Directions not entered'}
                                 {meta?.rationale ? ` • ${meta.rationale}` : ''}
                               </p>
                             </div>

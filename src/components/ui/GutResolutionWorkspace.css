@@ -249,4 +249,9 @@
 .gr-unwell-text p { font-size:12px; color:#a16207; margin:0; line-height:1.4; }
 .gr-unwell-btn { border:1px solid #eab308; background:#fff; color:#a16207; padding:7px 13px; border-radius:10px; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
 .gr-unwell-btn:hover { background:#fef9c3; color:#854d0e; }
-
+.gr-backtrace-disclosure { margin-top:14px; border:1px solid #f1e5e7; border-radius:14px; background:#fffdfc; padding:11px 14px; }
+.gr-backtrace-disclosure>summary { cursor:pointer; color:#ad234a; font-weight:800; font-size:13px; }
+.gr-optional-symptom { display:grid; gap:6px; max-width:340px; margin:10px 0; color:#475569; font-size:12px; font-weight:700; }
+.gr-optional-symptom span { font-weight:500; }
+.gr-optional-symptom select { min-height:42px; border:1px solid #e8d9dc; border-radius:9px; background:#fff; color:#334155; padding:7px 10px; }
+@media(max-width:390px) { .gr-unwell-action { align-items:flex-start; flex-direction:column; } .gr-unwell-btn { align-self:stretch; justify-content:center; min-height:40px; } .gr-three-way { grid-template-columns:1fr; } .gr-three-way button { min-height:auto; } }
