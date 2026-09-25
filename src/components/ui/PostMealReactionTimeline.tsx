@@ -442,7 +442,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                     fontWeight: 800,
                   }}
                 >
-                  {item.incubationHours === null ? 'Timing not recorded' : `${item.incubationHours.toFixed(1)}h after meal`}
+                  {item.incubationHours === null ? 'Timing not recorded' : `${item.incubationHours.toFixed(1)}h elapsed to report`}
                 </span>
               </div>
 

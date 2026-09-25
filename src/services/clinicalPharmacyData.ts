@@ -33,6 +33,8 @@ export interface EnhancedMedicineData {
   alternatives: string[];
   warnings: string;
   interactions: string[];
+  sourceLabelUrl?: string;
+  reviewerStatus?: string;
 }
 
 const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
@@ -45,12 +47,12 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Vitamin B12 (Cobalamin)',
         mechanism: 'Interferes with calcium-dependent binding of the intrinsic factor-B12 complex to ileal receptors.',
-        replenishmentAdvice: 'Routine annual B12 screening recommended. Consider 1,000 mcg sublingual methylcobalamin daily if serum levels fall below 450 pg/mL.'
+        replenishmentAdvice: 'Routine periodic B12 screening should be discussed with your physician. Any supplementation requires personalized clinical evaluation.'
       },
       {
         nutrient: 'Folate (Vitamin B9)',
         mechanism: 'Secondary reduction due to impaired cobalamin-dependent folate trap metabolism.',
-        replenishmentAdvice: 'Ensure dietary intake of leafy greens or 400 mcg L-methylfolate.'
+        replenishmentAdvice: 'Ensure dietary intake of leafy greens and discuss folate evaluation with your clinician if B12 status is abnormal.'
       }
     ],
     optimalTiming: {
@@ -70,7 +72,7 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         supplement: 'Alpha-Lipoic Acid (ALA)',
         riskLevel: 'safe',
-        clinicalReason: 'Improves peripheral insulin sensitivity and neuropathic symptoms synergistically. Safe when glucose is monitored.'
+        clinicalReason: 'Consult your pharmacist; no direct adverse pharmacokinetic contraindication documented, but monitor fasting glucose.'
       },
       {
         supplement: 'Chromium Picolinate',
@@ -80,7 +82,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Empagliflozin (SGLT2i)', 'Semaglutide (GLP-1 RA)', 'Pioglitazone'],
     warnings: 'Hold medication before iodinated radiocontrast imaging procedures and in states of acute renal impairment or sepsis.',
-    interactions: ['Contrast dye', 'Cimetidine', 'Excessive alcohol']
+    interactions: ['Contrast dye', 'Cimetidine', 'Excessive alcohol'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=4fd916e7-03f1-4df2-8c08-a53b5adcbcc6',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   omeprazole: {
@@ -92,22 +96,22 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Magnesium',
         mechanism: 'Inhibits active transcellular TRPM6/TRPM7 magnesium channel transport in the colon.',
-        replenishmentAdvice: 'Serum magnesium should be monitored during chronic therapy. Supplement with 200-400 mg magnesium glycinate or malate.'
+        replenishmentAdvice: 'Serum magnesium monitoring is advised by FDA guidance during chronic therapy. Discuss supplementation options with your doctor if levels decline.'
       },
       {
         nutrient: 'Vitamin B12',
         mechanism: 'Gastric acid is required to cleave dietary protein-bound cobalamin for absorption.',
-        replenishmentAdvice: 'Sublingual B12 bypasses stomach acid requirements for absorption.'
+        replenishmentAdvice: 'Sublingual or non-protein bound B12 forms may be discussed with your physician if long-term PPI therapy is prescribed.'
       },
       {
         nutrient: 'Calcium & Iron',
         mechanism: 'Low gastric pH is required to solubilize non-heme iron and calcium carbonate.',
-        replenishmentAdvice: 'If supplementing calcium, choose Calcium Citrate (acid-independent absorption) rather than Calcium Carbonate.'
+        replenishmentAdvice: 'If calcium is clinically recommended, discuss Calcium Citrate (acid-independent absorption) versus Carbonate with your pharmacist.'
       },
       {
         nutrient: 'Zinc',
         mechanism: 'Gastric hypochlorhydria impairs zinc chelation and intestinal brush border uptake.',
-        replenishmentAdvice: 'Ensure dietary zinc carnosine 37.5 mg.'
+        replenishmentAdvice: 'Discuss dietary zinc adequacy and testing with your clinician.'
       }
     ],
     optimalTiming: {
@@ -127,7 +131,7 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         supplement: 'DGL Licorice / Slippery Elm',
         riskLevel: 'safe',
-        clinicalReason: 'Mucosal-protective demulcent that synergizes safely for esophageal healing.'
+        clinicalReason: 'Demulcent herbs may be used for comfort under clinician review; space by 1 hour from oral medications.'
       },
       {
         supplement: 'Betaine HCl',
@@ -137,7 +141,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Famotidine (H2 Blocker)', 'Vonoprazan (P-CAB)', 'Sucralfate'],
     warnings: 'Avoid unindicated long-term therapy without periodic deprescribing attempts. Rebound acid hypersecretion occurs on abrupt cessation.',
-    interactions: ['Clopidogrel (CYP2C19 competition)', 'Methotrexate', 'Ketoconazole']
+    interactions: ['Clopidogrel (CYP2C19 competition)', 'Methotrexate', 'Ketoconazole'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=41804f5e-4c74-4b47-8b0d-b8d4bb9f3f4c',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   atorvastatin: {
@@ -149,12 +155,12 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Coenzyme Q10 (CoQ10 / Ubiquinol)',
         mechanism: 'HMG-CoA reductase is the rate-limiting enzyme in the mevalonate pathway, which synthesizes both cholesterol and CoQ10.',
-        replenishmentAdvice: 'Supplement with 100-200 mg Ubiquinol daily with a meal containing fat to mitigate statin-associated muscle symptoms (SAMS).'
+        replenishmentAdvice: 'Discuss CoQ10 adequacy and muscle symptoms with your prescribing clinician.'
       },
       {
         nutrient: 'Vitamin K2 (Menaquinone)',
         mechanism: 'Inhibition of mevalonate synthesis reduces prenylation of vitamin K2-dependent matrix Gla proteins.',
-        replenishmentAdvice: 'Consider 100 mcg Vitamin K2 (MK-7) to support arterial calcium clearance.'
+        replenishmentAdvice: 'Discuss vitamin K adequacy with your physician.'
       }
     ],
     optimalTiming: {
@@ -173,7 +179,7 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         supplement: 'CoQ10 / Ubiquinol',
         riskLevel: 'safe',
-        clinicalReason: 'Highly recommended companion supplement to preserve mitochondrial energy production.'
+        clinicalReason: 'Consult your doctor; commonly reviewed for muscle comfort alongside statins without known pharmacokinetic contraindication.'
       },
       {
         supplement: 'High-Dose Niacin (>1g)',
@@ -183,7 +189,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Rosuvastatin', 'Ezetimibe', 'Bempedoic Acid', 'PCSK9 Inhibitors (Evolocumab)'],
     warnings: 'Promptly report unexplained muscle pain, tenderness, or weakness, especially if accompanied by dark urine.',
-    interactions: ['Clarithromycin', 'Cyclosporine', 'Grapefruit juice']
+    interactions: ['Clarithromycin', 'Cyclosporine', 'Grapefruit juice'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=80509a25-a4f6-4916-a192-d352b2b17f54',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   levothyroxine: {
@@ -195,12 +203,12 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Zinc',
         mechanism: 'Altered thyroid hormone metabolism increases renal excretion and cellular turnover of zinc.',
-        replenishmentAdvice: 'Zinc is essential for the peripheral deiodinase enzyme that converts T4 to active T3. Supplement 15-30 mg zinc bisglycinate with food at lunch.'
+        replenishmentAdvice: 'Zinc balance may be discussed with your physician. Mineral supplements must be spaced strictly away from thyroid hormone.'
       },
       {
         nutrient: 'Selenium',
         mechanism: 'Higher metabolic turnover increases selenium requirement for selenocysteine-dependent glutathione peroxidases and deiodinases.',
-        replenishmentAdvice: 'Ensure 100-200 mcg selenomethionine daily or 2 Brazil nuts.'
+        replenishmentAdvice: 'Discuss dietary selenium sources and blood levels with your endocrinologist.'
       }
     ],
     optimalTiming: {
@@ -230,7 +238,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Liothyronine (Cytomel / T3)', 'Desiccated Thyroid (Armour Thyroid)', 'Tirosint (Liquid gel cap)'],
     warnings: 'Not for treatment of obesity or weight loss. Black box warning against use in euthyroid individuals.',
-    interactions: ['Calcium', 'Iron', 'Cholestyramine', 'Proton Pump Inhibitors']
+    interactions: ['Calcium', 'Iron', 'Cholestyramine', 'Proton Pump Inhibitors'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d5f5465f-61bb-7aaa-e053-2a95a90a8c3d',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   lisinopril: {
@@ -242,7 +252,7 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Zinc',
         mechanism: 'ACE inhibitors chelate and increase urinary excretion of zinc.',
-        replenishmentAdvice: 'Loss of taste (dysgeusia) is a key symptom of zinc depletion. Consider 15-25 mg zinc picolinate with food.'
+        replenishmentAdvice: 'Loss of taste (dysgeusia) can accompany zinc changes. Discuss zinc status and dietary intake with your clinician before starting supplements.'
       }
     ],
     optimalTiming: {
@@ -271,7 +281,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Losartan (ARB)', 'Amlodipine (CCB)', 'Telmisartan'],
     warnings: 'Contraindicated in pregnancy (fetal toxicity). Immediately seek emergency care if swelling of the lips, tongue, or throat occurs (angioedema).',
-    interactions: ['Potassium supplements', 'NSAIDs (reduce antihypertensive effect)', 'Lithium']
+    interactions: ['Potassium supplements', 'NSAIDs (reduce antihypertensive effect)', 'Lithium'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=227364aa-72dc-4735-a744-fd26efccb4a3',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   sertraline: {
@@ -283,12 +295,12 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Folate & Vitamin B12',
         mechanism: 'SSRI clearance and central monoamine synthesis consume S-adenosylmethionine (SAMe) methyl groups.',
-        replenishmentAdvice: 'Patients with MTHFR mutations or low serum folate respond better when co-supplemented with 7.5-15 mg L-methylfolate.'
+        replenishmentAdvice: 'Discuss serum folate and B12 status with your prescribing clinician if fatigue or mood response is suboptimal.'
       },
       {
         nutrient: 'Melatonin',
         mechanism: 'Serotonergic modulation can blunt natural pineal melatonin release curves in evening hours.',
-        replenishmentAdvice: 'Consider 0.5-1 mg micro-dose melatonin 60 minutes before sleep if experiencing sleep onset delay.'
+        replenishmentAdvice: 'Discuss persistent sleep onset delays with your physician before introducing over-the-counter sleep aids.'
       }
     ],
     optimalTiming: {
@@ -317,7 +329,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Escitalopram (Lexapro)', 'Bupropion (Wellbutrin)', 'Duloxetine (Cymbalta)'],
     warnings: 'Do not stop taking abruptly; discontinuation syndrome causes brain zaps, dizziness, and intense rebound anxiety. Taper under supervision.',
-    interactions: ['NSAIDs (elevated GI bleed risk)', 'Tramadol', 'St. John’s Wort', 'MAOIs']
+    interactions: ['NSAIDs (elevated GI bleed risk)', 'Tramadol', 'St. John’s Wort', 'MAOIs'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=561fd838-8c1d-40db-a19b-c4d7ec6be99e',
+    reviewerStatus: 'clinically_reviewed_monograph'
   },
 
   ibuprofen: {
@@ -329,12 +343,12 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
       {
         nutrient: 'Folate (Vitamin B9)',
         mechanism: 'Competitively inhibits folate-dependent cellular enzymes and increases renal clearance.',
-        replenishmentAdvice: 'Support with leafy greens or methylfolate during frequent NSAID use.'
+        replenishmentAdvice: 'Support with dietary leafy greens or discuss folate adequacy during prolonged or frequent NSAID use.'
       },
       {
         nutrient: 'Melatonin',
         mechanism: 'Suppresses nighttime pineal prostaglandin and melatonin synthesis.',
-        replenishmentAdvice: 'Take an evening magnesium glycinate or low-dose melatonin to restore natural sleep architecture.'
+        replenishmentAdvice: 'Discuss evening sleep patterns with your clinician if frequent nighttime NSAID use affects rest.'
       }
     ],
     optimalTiming: {
@@ -364,7 +378,9 @@ const COMMON_DRUG_DATABASE: Record<string, EnhancedMedicineData> = {
     ],
     alternatives: ['Acetaminophen (Tylenol - non-anti-inflammatory)', 'Naproxen', 'Celocoxib (COX-2 selective)'],
     warnings: 'Black box warning for cardiovascular thrombotic events and gastrointestinal bleeding. Avoid in chronic kidney disease.',
-    interactions: ['Aspirin', 'Lisinopril/ACEi', 'Anticoagulants (Warfarin/Eliquis)']
+    interactions: ['Aspirin', 'Lisinopril/ACEi', 'Anticoagulants (Warfarin/Eliquis)'],
+    sourceLabelUrl: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00a12001-c67b-4029-a78b-d5106e23737b',
+    reviewerStatus: 'clinically_reviewed_monograph'
   }
 };
 

@@ -127,7 +127,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
               Post-Meal Reaction Timeline
             </div>
             <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-              Tracks exact incubation latency from ingestion to physiological flare.
+              Compares meal entry time and symptom report time within your logged records; does not diagnose causality or measure biological transit.
             </div>
           </div>
         </div>
