@@ -69,6 +69,7 @@ export interface GutEvidence {
   conflicts: number;
   fingerprint: string;
   nextQuestion: string;
+  nextQuestionMealId: string | null;
   answer: string;
 }
 
@@ -239,11 +240,14 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   else if (support && tension) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label} and ${tension} explicit report${tension === 1 ? '' : 's'} without it. The record is mixed; it cannot identify a cause.`;
   else if (support) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This association alone cannot identify a cause.`;
   else if (tension) answer = `${tension} explicit report${tension === 1 ? '' : 's'} without ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This does not prove the meal is safe in every setting.`;
+  const nextQuestionOccasion = conflicts || (support > 0 && tension > 0) ? null
+    : occasions.find((item) => item.answer === 'unanswered' && item.edge.inclusionRule === 'no_explicit_answer' && hasStableGutMealId(item.meal)) || null;
   const nextQuestion = conflicts ? 'Two reports about the same occasion disagree. Inspect their source and correct the record you trust.'
-    : unstable === unknown && unknown > 0 ? 'These older meal records cannot support a reliably linked answer. You can leave this question open.'
-    : unknown > 0 ? `If you remember a recent occasion clearly, was ${label} present with that meal? “Not sure” is a valid answer.`
-    : 'What was different between these occasions? Recipe, portion and other meals are not confirmed from a name alone.';
-  return { occasions, bundle, support, tension, unknown, conflicts, fingerprint, nextQuestion, answer };
+    : support > 0 && tension > 0 ? 'The record is already mixed. More tracking is optional; recipe and portion differences remain unverified.'
+      : nextQuestionOccasion ? `For ${nextQuestionOccasion.meal.name} on ${nextQuestionOccasion.meal.date}, do you clearly remember whether ${label} was present? “Not sure” or leaving it open is valid.`
+        : unstable === unknown && unknown > 0 ? 'These older meal records cannot support a reliably linked answer. You can leave this question open.'
+          : 'No single missing report would settle this. You can leave the question open or discuss it with a clinician.';
+  return { occasions, bundle, support, tension, unknown, conflicts, fingerprint, nextQuestion, nextQuestionMealId: nextQuestionOccasion?.meal.id || null, answer };
 }
 
 const reviewOccasion = (item: GutEvidenceOccasion) => ({

@@ -54,6 +54,15 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.bundle.unknown[0].inclusionRule).toBe('no_explicit_answer');
     expect(evidence.answer).toContain('mixed');
     expect(evidence.occasions[1].meal.name).toBe('Chai with oat milk');
+    expect(evidence.nextQuestionMealId).toBeNull();
+    expect(evidence.nextQuestion).toContain('already mixed');
+  });
+
+  it('asks about one specific stable unknown occasion only when its answer may change the reading', () => {
+    const evidence = deriveGutEvidence(thread, { meals, days: [] }, [report(meals[0], 'yes')]);
+    expect(evidence.nextQuestionMealId).toBe(meals[1].id);
+    expect(evidence.nextQuestion).toContain(meals[1].name);
+    expect(evidence.nextQuestion).toContain(meals[1].date);
   });
 
   it('ignores reports from another account and deleted reports', () => {
