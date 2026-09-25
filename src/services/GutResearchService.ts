@@ -8,12 +8,15 @@ export interface GutResearchPaper {
   title: string;
   journal: string | null;
   year: string | null;
+  publicationDate: string | null;
+  publicationDateSource: 'electronic' | 'print' | null;
   abstract: string | null;
   url: string;
   retrievedAt: string;
   populationKnown: boolean;
   publicationTypes: string[];
   correctionNotice: string | null;
+  titlePopulationCue: string | null;
 }
 
 const concepts: Record<GutSymptom, string> = {
@@ -40,6 +43,20 @@ const topicTitle: Record<GutResearchTopic, RegExp> = {
   caffeine: /\b(?:caffeine|coffee|tea)\b/i,
   dairy: /\b(?:milk|lactose|dairy)\b/i,
   meal_timing: /\b(?:meal timing|eating time|postprandial)\b/i,
+};
+const titlePopulationCue = (title: string): string | null => {
+  if (/\b(?:infants?|newborns?)\b/i.test(title)) return 'infants';
+  if (/\b(?:children|child|pediatric|paediatric|adolescents?|teenagers?)\b/i.test(title)) return 'children or adolescents';
+  if (/\b(?:pregnant|pregnancy)\b/i.test(title)) return 'pregnancy';
+  if (/\b(?:older adults?|elderly)\b/i.test(title)) return 'older adults';
+  if (/\badults?\b/i.test(title)) return 'adults';
+  return null;
+};
+const explicitDate = (value: unknown): string | null => {
+  const date = String(value || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const parsed = new Date(`${date}T12:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date ? date : null;
 };
 
 /** A generic concept query: no personal question, account ID, timeline or meal name leaves the device. */
@@ -71,17 +88,22 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
     const corrections = paper.commentCorrectionList?.commentCorrection;
     const related = Array.isArray(corrections) ? corrections : corrections ? [corrections] : [];
     const notice = related.map((item: any) => cleanMedicalText(String(item?.type || ''))).find((type: string) => /erratum|correction|expression of concern/i.test(type));
+    const electronicDate = explicitDate(paper.electronicPublicationDate);
+    const printDate = explicitDate(paper.printPublicationDate);
     return {
       id: String(paper.pmid),
       title: cleanMedicalText(paper.title || '') || 'Title unavailable',
       journal: cleanMedicalText(paper.journalInfo?.journal?.title || paper.journalTitle || '') || null,
       year,
+      publicationDate: electronicDate || printDate,
+      publicationDateSource: electronicDate ? 'electronic' as const : printDate ? 'print' as const : null,
       abstract: abstract || null,
       url: `https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(String(paper.pmid))}/`,
       retrievedAt,
       populationKnown: false,
       publicationTypes,
       correctionNotice: notice || null,
+      titlePopulationCue: titlePopulationCue(String(paper.title || '')),
     };
   });
 }

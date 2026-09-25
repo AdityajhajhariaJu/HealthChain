@@ -166,6 +166,10 @@
 .gr-paper-tags { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 9px; }
 .gr-paper-tags span { background:#f5f7f8; border:1px solid #e5eaed; color:#65737e; border-radius:99px; padding:3px 7px; font-size:10px; }
 .gr-paper .gr-paper-correction { color:#875320; background:#fff8e9; border:1px solid #f0ddb5; border-radius:9px; padding:8px; margin:0 0 9px; }
+.gr-paper-appraisal { border:1px solid #f0dce2; background:#fff8f9; border-radius:11px; padding:10px 12px; margin-top:12px; }
+.gr-paper-appraisal strong { color:#a12649; font-size:12px; }
+.gr-paper .gr-paper-appraisal p { color:#5d5965; margin:4px 0; }
+.gr-paper .gr-paper-appraisal small { margin:0; color:#7c6973; }
 .gr-paper-foot { display:flex; justify-content:space-between; gap:10px; align-items:center; border-top:1px solid #eee8eb; padding-top:10px; margin-top:11px; color:#7f8691; font-size:12px; }
 .gr-paper-foot a { color:#a9284a; text-decoration:none; display:flex; align-items:center; gap:5px; font-weight:750; }
 .gr-paper small { display:block; margin-top:7px; color:#96949c; font-size:11px; }
