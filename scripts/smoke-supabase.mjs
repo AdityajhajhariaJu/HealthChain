@@ -12,6 +12,7 @@ const requiredRelations = [
   'profiles',
   'cases',
   'health_memory',
+  'health_observations',
   'healthchain_profiles',
   'user_devices',
   'analytics_events',
@@ -24,6 +25,7 @@ const requiredRelations = [
 ];
 const expectedAnonDenied = new Set([
   'healthchain_profiles',
+  'health_observations',
   'ai_requests',
   'ai_usage_daily',
   'payments',
