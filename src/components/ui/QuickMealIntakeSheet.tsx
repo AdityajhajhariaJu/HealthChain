@@ -239,11 +239,11 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
               width: '100%',
               maxWidth: '540px',
               maxHeight: '90vh',
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 45%, #F0FDFA 100%)',
-              borderTopLeftRadius: '32px',
-              borderTopRightRadius: '32px',
-              border: '1.5px solid #99F6E4',
-              boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.22)',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 45%, #FFF7F8 100%)',
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              border: '1.5px solid #F1E5E7',
+              boxShadow: '0 -16px 48px rgba(45, 25, 25, 0.16)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -251,7 +251,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
           >
             {/* Grab Handle */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
-              <div style={{ width: '42px', height: '4px', borderRadius: '999px', background: '#CBD5E1' }} />
+              <div style={{ width: '42px', height: '4px', borderRadius: '999px', background: '#E2D9DC' }} />
             </div>
 
             {/* Header */}
@@ -261,19 +261,19 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                borderBottom: '1px solid #F1F5F9',
+                borderBottom: '1px solid #F1E5E7',
               }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    CIRCADIAN METABOLIC INTAKE
+                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#AD234A', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    CIRCADIAN MEAL INTAKE
                   </span>
-                  <span style={{ fontSize: '10px', background: '#CCFBF1', color: '#0F766E', padding: '1px 6px', borderRadius: '999px', fontWeight: 700 }}>
+                  <span style={{ fontSize: '10px', background: '#FEF2F3', border: '1px solid #F9D2D7', color: '#CD3153', padding: '1px 6px', borderRadius: '999px', fontWeight: 700 }}>
                     +15 Pts
                   </span>
                 </div>
-                <h3 style={{ margin: '2px 0 0 0', fontSize: '20px', fontWeight: 800, color: '#1E293B', letterSpacing: '-0.3px' }}>
+                <h3 style={{ margin: '2px 0 0 0', fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
                   What did you consume?
                 </h3>
               </div>
@@ -286,17 +286,17 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                 }}
                 aria-label="Close meal intake sheet"
                 style={{
-                  width: '44px',
-                  height: '44px',
-                  minWidth: '44px',
-                  minHeight: '44px',
+                  width: '40px',
+                  height: '40px',
+                  minWidth: '40px',
+                  minHeight: '40px',
                   borderRadius: '50%',
-                  background: '#F1F5F9',
-                  border: 'none',
+                  background: '#FFF8F9',
+                  border: '1px solid #F1E5E7',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#64748B',
+                  color: '#8D7167',
                   cursor: 'pointer',
                 }}
               >
@@ -357,10 +357,10 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                           alignItems: 'center',
                           padding: '10px 6px',
                           borderRadius: '16px',
-                          border: isCurrent ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: isCurrent ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                          color: isCurrent ? '#FFFFFF' : '#475569',
-                          boxShadow: isCurrent ? '0 4px 12px rgba(13, 148, 136, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
+                          border: isCurrent ? '1.5px solid #CD3153' : '1px solid #F1E5E7',
+                          background: isCurrent ? 'linear-gradient(135deg, #FEF2F3 0%, #FFF0F4 100%)' : '#FFFFFF',
+                          color: isCurrent ? '#AD234A' : '#475569',
+                          boxShadow: isCurrent ? '0 4px 12px rgba(205, 49, 83, 0.16)' : '0 1px 3px rgba(0,0,0,0.02)',
                           cursor: 'pointer',
                           transition: 'all 0.18s ease',
                         }}
@@ -383,10 +383,10 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     <div
                       style={{
                         marginTop: '10px',
-                        background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)',
+                        background: 'linear-gradient(135deg, #FFF8F9 0%, #FFFFFF 100%)',
                         borderRadius: '14px',
                         padding: '10px 14px',
-                        border: '1px solid #CCFBF1',
+                        border: '1px solid #F9D2D7',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '10px',
@@ -394,10 +394,10 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     >
                       <span style={{ fontSize: '18px' }}>⏰</span>
                       <div>
-                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#AD234A' }}>
                           {activeSlotMeta.organClock}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#475569', lineHeight: 1.35 }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.35 }}>
                           {activeSlotMeta.organTip}
                         </div>
                       </div>
@@ -420,15 +420,15 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     aria-label="Describe what you consumed"
                     style={{
                       width: '100%',
-                      padding: '14px 50px 14px 16px',
-                      borderRadius: '16px',
-                      border: '1.5px solid #99F6E4',
+                      padding: '13px 48px 13px 15px',
+                      borderRadius: '14px',
+                      border: '1.5px solid #F1E5E7',
                       background: '#FFFFFF',
                       fontSize: '14px',
-                      color: '#1E293B',
+                      color: '#0F172A',
                       outline: 'none',
                       boxSizing: 'border-box',
-                      boxShadow: '0 2px 8px rgba(13, 148, 136, 0.06)',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
                     }}
                   />
 
@@ -442,23 +442,23 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                         right: '8px',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '12px',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '10px',
                         border: 'none',
                         background: isListening
                           ? '#EF4444'
-                          : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                          : 'linear-gradient(135deg, #D32C56 0%, #B31943 100%)',
                         color: '#FFFFFF',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        boxShadow: isListening ? '0 0 14px rgba(239, 68, 68, 0.6)' : 'none',
+                        boxShadow: isListening ? '0 0 14px rgba(239, 68, 68, 0.6)' : '0 3px 8px rgba(179, 25, 67, 0.3)',
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                      {isListening ? <MicOff size={15} /> : <Mic size={15} />}
                     </button>
                   )}
                 </div>
@@ -470,7 +470,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Quick Indian foods
                   </span>
-                  <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 600 }}>Multi-select</span>
+                  <span style={{ fontSize: '11px', color: '#CD3153', fontWeight: 700 }}>Multi-select</span>
                 </div>
                 <div
                   style={{
@@ -498,16 +498,16 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                           fontSize: '12px',
                           fontWeight: 700,
                           cursor: 'pointer',
-                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: isSelected ? '#F0FDFA' : '#FFFFFF',
-                          color: isSelected ? '#0F766E' : '#475569',
-                          boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
+                          border: isSelected ? '1.5px solid #CD3153' : '1px solid #F1E5E7',
+                          background: isSelected ? '#FEF2F3' : '#FFFFFF',
+                          color: isSelected ? '#AD234A' : '#475569',
+                          boxShadow: isSelected ? '0 2px 8px rgba(205, 49, 83, 0.15)' : 'none',
                           transition: 'all 0.15s ease',
                         }}
                       >
                         <span>{cap.icon}</span>
                         <span>{cap.name}</span>
-                        {isSelected && <CheckCircle2 size={13} color="#0D9488" />}
+                        {isSelected && <CheckCircle2 size={13} color="#CD3153" />}
                       </button>
                     );
                   })}
@@ -536,9 +536,9 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                           fontSize: '11px',
                           fontWeight: 700,
                           cursor: 'pointer',
-                          border: timingOffset === t ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: timingOffset === t ? '#F0FDFA' : '#FFFFFF',
-                          color: timingOffset === t ? '#0F766E' : '#64748B',
+                          border: timingOffset === t ? '1.5px solid #CD3153' : '1px solid #F1E5E7',
+                          background: timingOffset === t ? '#FEF2F3' : '#FFFFFF',
+                          color: timingOffset === t ? '#AD234A' : '#64748B',
                         }}
                       >
                         {t === 'now' ? 'Just Now' : `-${t}`}
@@ -568,9 +568,9 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                           fontWeight: 700,
                           textTransform: 'capitalize',
                           cursor: 'pointer',
-                          border: portion === p ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                          background: portion === p ? '#F0FDFA' : '#FFFFFF',
-                          color: portion === p ? '#0F766E' : '#64748B',
+                          border: portion === p ? '1.5px solid #CD3153' : '1px solid #F1E5E7',
+                          background: portion === p ? '#FEF2F3' : '#FFFFFF',
+                          color: portion === p ? '#AD234A' : '#64748B',
                         }}
                       >
                         {p}
@@ -585,7 +585,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
             <div
               style={{
                 padding: '14px 20px 20px 20px',
-                borderTop: '1px solid #F1F5F9',
+                borderTop: '1px solid #F1E5E7',
                 background: '#FFFFFF',
               }}
             >
@@ -600,8 +600,8 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                   border: 'none',
                   background:
                     !mealText.trim() && selectedCapsules.length === 0
-                      ? '#E2E8F0'
-                      : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      ? '#F1E5E7'
+                      : 'linear-gradient(135deg, #D32C56 0%, #B31943 100%)',
                   color: !mealText.trim() && selectedCapsules.length === 0 ? '#94A3B8' : '#FFFFFF',
                   fontSize: '15px',
                   fontWeight: 800,
@@ -613,12 +613,12 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                   boxShadow:
                     !mealText.trim() && selectedCapsules.length === 0
                       ? 'none'
-                      : '0 8px 24px rgba(13, 148, 136, 0.32)',
+                      : '0 8px 24px rgba(205, 49, 83, 0.32)',
                   transition: 'all 0.2s ease',
                 }}
               >
                 <Utensils size={18} />
-                <span>Log Meal & Track Postprandial Latency</span>
+                <span>Log Meal & Track Response</span>
               </button>
             </div>
           </motion.div>

@@ -1,9 +1,35 @@
-import { addCaseQuestion, getCase, getCaseQuestions } from './CaseEngine';
+import { addCaseQuestion, getCase, getCaseQuestions, getCases, type OutcomeProvenance, type QuestionLifecycleStatus } from './CaseEngine';
 import { listGutThreads, type GutQuestionThread } from './GutResolutionService';
 
 export type GutCaseHandoffResult =
   | { ok: true; caseId: string; questionId: string; alreadyPresent: boolean }
   | { ok: false; reason: 'question_missing' | 'case_missing' | 'write_failed' };
+
+export interface GutCaseFollowThrough {
+  caseId: string;
+  caseTitle: string;
+  questionId: string;
+  status: QuestionLifecycleStatus;
+  outcomeNote: string | null;
+  outcomeDate: string | null;
+  outcomeProvenance: OutcomeProvenance | null;
+  doctorAction: string | null;
+}
+
+/** Read only: the case remains the source of the visit outcome and any correction. */
+export function getGutCaseFollowThrough(thread: GutQuestionThread): GutCaseFollowThrough[] {
+  if (!listGutThreads().some((item) => item.id === thread.id && item.profileId === thread.profileId)) return [];
+  return getCases().flatMap((item) => (item.questions || [])
+    .filter((question) => question.sourceRef?.feature === 'gut_resolution' && question.sourceRef.threadId === thread.id && question.sourceRef.profileId === thread.profileId)
+    .map((question) => ({
+      caseId: item.id, caseTitle: item.title, questionId: question.id, status: question.status,
+      outcomeNote: question.outcomeNote?.trim() || null,
+      outcomeDate: question.outcomeDate || null,
+      outcomeProvenance: question.outcomeProvenance || null,
+      doctorAction: question.doctorAction?.trim() || null,
+    })))
+    .sort((a, b) => (b.outcomeDate || '').localeCompare(a.outcomeDate || ''));
+}
 
 /** A user-triggered copy of the question, not an import of evidence or a clinician plan. */
 export function addGutQuestionToCase(thread: GutQuestionThread, caseId: string): GutCaseHandoffResult {

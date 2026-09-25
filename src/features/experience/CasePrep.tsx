@@ -206,11 +206,11 @@ export default function CasePrep() {
       provenance: 'user_reported_clinician_statement',
     });
 
-    awardPoints(15, 'Recorded Doctor Visit Outcome', 'consult', `visit_outcome_${targetId}`);
+    awardPoints(15, 'Recorded visit note', 'consult', `visit_outcome_${targetId}`);
     triggerHapticSuccess();
     toast.success(
       'Visit Outcome Recorded',
-      `Saved as patient-reported clinician guidance (${status.toUpperCase()}).`
+      `Saved as your report of the visit (${status.toUpperCase()}).`
     );
 
     // Refresh case and brief
@@ -882,11 +882,11 @@ export default function CasePrep() {
                       </div>
                       {po.note && (
                         <div style={{ color: '#334155', fontSize: 12.5, marginTop: 4 }}>
-                          <strong>Doctor Guidance:</strong> {po.note}
+                          <strong>{po.provenance === 'user_reported_clinician_statement' || !po.provenance ? 'Patient-entered visit note:' : 'Case outcome note (verify source):'}</strong> {po.note}
                         </div>
                       )}
                       <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 4 }}>
-                        Data Provenance: Patient-reported clinician statement &middot; {po.outcomeDate ? new Date(po.outcomeDate).toLocaleDateString() : 'Recorded'}
+                        {po.provenance === 'clinical_record_corroborated' ? 'Marked record-corroborated; verify source' : po.provenance === 'clinician_portal_import' ? 'Marked portal import; verify original' : 'Patient-reported clinician conversation'} &middot; {po.outcomeDate ? new Date(po.outcomeDate).toLocaleDateString() : 'Recorded'}
                       </div>
                     </div>
                   ))}
@@ -967,7 +967,7 @@ export default function CasePrep() {
         </section>
 
         <footer style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: '#94A3B8', flexWrap: 'wrap', gap: 8 }}>
-          <div>Data Provenance: Patient-reported clinician statement &middot; HealthChain Clinical Dossier</div>
+          <div>Sources: patient reports, case records and app-organized content; inspect each item &middot; HealthChain Clinical Dossier</div>
           <div>Brief Version {displayedBrief.version || 1} &middot; Case ID: {selectedCase?.id}</div>
         </footer>
       </div>
@@ -1061,14 +1061,14 @@ export default function CasePrep() {
 
                   {q.outcomeNote && (
                     <div style={{ fontSize: '13px', color: '#166534', background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid #BBF7D0' }}>
-                      <div><strong>Doctor Guidance:</strong> {q.outcomeNote}</div>
+                      <div><strong>{q.outcomeProvenance === 'user_reported_clinician_statement' || !q.outcomeProvenance ? 'Patient-entered visit note:' : 'Case outcome note (verify source):'}</strong> {q.outcomeNote}</div>
                       {q.doctorAction && (
                         <div style={{ marginTop: 4, fontSize: '12px', color: '#15803D' }}>
-                          <strong>Action:</strong> {q.doctorAction}
+                          <strong>Patient-entered action:</strong> {q.doctorAction}
                         </div>
                       )}
                       <div style={{ marginTop: 6, fontSize: '11px', color: '#15803D', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Tag size={12} /> Data Provenance: Patient-reported clinician statement
+                        <Tag size={12} /> {q.outcomeProvenance === 'clinical_record_corroborated' ? 'Marked record-corroborated in Case Prep; verify the linked record' : q.outcomeProvenance === 'clinician_portal_import' ? 'Marked portal import in Case Prep; verify the original' : 'Patient-reported clinician conversation'}
                       </div>
                     </div>
                   )}
@@ -1115,7 +1115,7 @@ export default function CasePrep() {
 
                     {/* Doctor Action Preset Selector */}
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Doctor Action:</span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Action discussed (your report):</span>
                       <select
                         value={outcomeDoctorActions[q.id] || q.doctorAction || ''}
                         onChange={(e) => setOutcomeDoctorActions(prev => ({ ...prev, [q.id]: e.target.value }))}
@@ -1139,7 +1139,7 @@ export default function CasePrep() {
                     {/* Note input */}
                     <input
                       type="text"
-                      placeholder="What did the doctor advise? (Saved as patient-reported clinician guidance)"
+                      placeholder="What do you remember discussing? Saved as your report."
                       value={outcomeNotes[q.id] !== undefined ? outcomeNotes[q.id] : (q.outcomeNote || '')}
                       onChange={(e) => setOutcomeNotes(prev => ({ ...prev, [q.id]: e.target.value }))}
                       style={{
@@ -1172,10 +1172,10 @@ export default function CasePrep() {
                           gap: '6px',
                         }}
                       >
-                        {savingOutcomeId === q.id ? 'Saving...' : 'Save Clinician Outcome'}
+                        {savingOutcomeId === q.id ? 'Saving...' : 'Save my visit note'}
                       </button>
                       <span style={{ fontSize: '11px', color: '#64748B' }}>
-                        Provenance: Patient-reported clinician statement
+                        Provenance: your report of the clinician conversation
                       </span>
                     </div>
                   </div>
