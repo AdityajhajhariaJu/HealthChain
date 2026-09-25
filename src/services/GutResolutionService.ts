@@ -373,11 +373,14 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   else if (support && tension) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label} and ${tension} explicit report${tension === 1 ? '' : 's'} without it. The record is mixed; it cannot identify a cause.`;
   else if (support) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This association alone cannot identify a cause.`;
   else if (tension) answer = `${tension} explicit report${tension === 1 ? '' : 's'} without ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This does not prove the meal is safe in every setting.`;
-  const nextQuestionOccasion = conflicts || (support > 0 && tension > 0) ? null
-    : occasions.find((item) => item.answer === 'unanswered' && item.edge.inclusionRule === 'no_explicit_answer' && hasStableGutMealId(item.meal)) || null;
+  const unansweredStableOccasions = occasions.filter((item) => item.answer === 'unanswered' && item.edge.inclusionRule === 'no_explicit_answer' && hasStableGutMealId(item.meal));
+  // Ask only when one existing unanswered occasion is the single fact likely to change this comparison.
+  // If several outcomes are missing, one answer would not resolve the uncertainty and should not be promoted.
+  const nextQuestionOccasion = conflicts || (support > 0 && tension > 0) || unansweredStableOccasions.length !== 1 ? null : unansweredStableOccasions[0];
   const nextQuestion = conflicts ? 'Two reports about the same occasion disagree. Inspect their source and correct the record you trust.'
     : support > 0 && tension > 0 ? 'The record is already mixed. More tracking is optional; recipe and portion differences remain unverified.'
       : nextQuestionOccasion ? `For ${nextQuestionOccasion.meal.name} on ${nextQuestionOccasion.meal.date}, do you clearly remember whether ${label} was present? “Not sure” or leaving it open is valid.`
+        : unansweredStableOccasions.length > 1 ? 'Several outcomes are unknown, so one answer would not settle this comparison. You can leave it open; no extra tracking is needed.'
         : unstable === unknown && unknown > 0 ? 'These older meal records cannot support a reliably linked answer. You can leave this question open.'
           : 'No single missing report would settle this. You can leave the question open or discuss it with a clinician.';
   if (thread.symptom === 'unspecified') {

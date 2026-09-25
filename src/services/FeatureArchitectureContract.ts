@@ -6,7 +6,7 @@
  * Implements the 12-feature matrix and unidirectional pipeline flow:
  * 1. Ava: "Help me describe this and understand my next step."
  * 2. Clinical Data Engine: "What does all this evidence suggest together?"
- * 3. Connection Detective: "Why are these things connected?"
+ * 3. Gut Health: "What can my records say about this question?"
  * 4. Health Canvas: "What happened, what is open, and what changed?"
  * 5. My Cases: "Where is the complete history of this issue?"
  * 6. Case Prep: "What should I bring and ask?"
@@ -177,14 +177,14 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     id: 'connection-detective',
     name: 'Gut Health',
     shortLabel: 'Gut Health',
-    uniqueQuestion: 'Why are these things connected?',
-    owns: "Exploration of the Engine's relationships",
-    produces: 'Inspectable connections and evidence paths',
-    mustNotDuplicate: 'Another independently generated diagnosis list',
+    uniqueQuestion: 'What can my records say about this question—and what remains uncertain?',
+    owns: 'Question-led review of digestive records, separate general research sources, and optional follow-through',
+    produces: 'Source-linked personal report counts, explicit unknowns and conflicts, source context, and a visit or decision handoff',
+    mustNotDuplicate: 'A diagnosis, personal food-cause verdict, unreviewed research synthesis, or self-directed treatment/challenge plan',
     pipelineStage: 'exploration',
-    route: '/app/cases',
-    plainDescription: 'Visualizing food triggers, digestion patterns, and biological mechanisms connecting your symptoms, vitals, and gut motility.',
-    plainPurpose: 'Gut health, food trigger tracking & digestive motility synthesis',
+    route: '/app/today?gut=1',
+    plainDescription: 'Bring one digestive question together with the records you actually saved, inspect the original sources, and choose a useful next step.',
+    plainPurpose: 'Question-led digestive record and research review',
     badgeColor: {
       bg: '#F0F9FF',
       text: '#075985',
@@ -194,16 +194,26 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     downstreamHandoffs: [
       {
         targetFeatureId: 'case-prep',
-        label: 'Take Inspected Pathways to Case Prep',
-        actionDescription: 'Arm your physician with verified biological connection paths',
+        label: 'Prepare this question for a visit',
+        actionDescription: 'Copy the patient question into a selected case while keeping personal reports separate from clinician findings',
         route: '/app/case-prep',
       },
     ],
     upstreamFeeds: [
       {
-        sourceFeatureId: 'engine',
-        label: 'Engine Relationships & Cross-System Findings',
-        artifactType: 'Synthesized hypotheses, contraindications, and specialist rationales',
+        sourceFeatureId: 'user',
+        label: 'The person’s exact question and selected comparison',
+        artifactType: 'Editable question, optional symptom, meal phrase, and onset report',
+      },
+      {
+        sourceFeatureId: 'diet-plan',
+        label: 'Saved Diet meals and explicit reaction selections',
+        artifactType: 'Profile-scoped personal records with source IDs and recorded precision',
+      },
+      {
+        sourceFeatureId: 'cases',
+        label: 'Linked case follow-through',
+        artifactType: 'Case question outcome with its recorded provenance',
       },
     ],
   },

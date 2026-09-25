@@ -43,7 +43,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
       'What does all this evidence suggest together?'
     );
     expect(getFeatureContract('connection-detective').uniqueQuestion).toBe(
-      'Why are these things connected?'
+      'What can my records say about this question—and what remains uncertain?'
     );
     expect(getFeatureContract('canvas').uniqueQuestion).toBe(
       'What happened, what is open, and what changed?'
@@ -98,7 +98,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
       'Day-to-day logging or a decorative specialist chat'
     );
     expect(getFeatureContract('connection-detective').mustNotDuplicate).toBe(
-      'Another independently generated diagnosis list'
+      'A diagnosis, personal food-cause verdict, unreviewed research synthesis, or self-directed treatment/challenge plan'
     );
     expect(getFeatureContract('canvas').mustNotDuplicate).toBe(
       'Simulated specialist discussion after every post'

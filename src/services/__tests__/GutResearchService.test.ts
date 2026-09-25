@@ -1,11 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { compareGutPublicationStatus, getGutPublicationStatus, searchGutResearch } from '../GutResearchService';
+import { clearGutResearchCache, compareGutPublicationStatus, formatGutResearchBrief, getGutPublicationStatus, searchGutResearch } from '../GutResearchService';
 import { buildGutStudyBridge } from '../GutStudyBridgeService';
 import type { GutQuestionThread } from '../GutResolutionService';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { clearGutResearchCache(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('Gut research metadata boundary', () => {
+  it('exports research citations with a clear non-review limitation', () => {
+    expect(formatGutResearchBrief([])).toEqual(['General research source: none attached to this brief.']);
+    expect(formatGutResearchBrief([{ id: '12345', title: 'Indexed source', url: 'https://pubmed.ncbi.nlm.nih.gov/12345/', status: 'search result', correctionNotice: 'Erratum in' }])).toEqual([
+      'General research source records (citation discovery only; not an independently reviewed synthesis or personal explanation):',
+      'Indexed source — PMID 12345 — https://pubmed.ncbi.nlm.nih.gov/12345/; saved publication status: search result; notice: Erratum in',
+    ]);
+  });
+
   it('sends only generic terms, preserves journal and publication type, and excludes retraction notices', async () => {
     const fetchMock = vi.fn(async (_url: string) => ({ ok: true, json: async () => ({ resultList: { result: [
       { pmid: '12345', title: 'Diet and bloating', abstractText: 'An abstract.', pubYear: '2025', electronicPublicationDate: '2025-04-12',
@@ -53,6 +61,25 @@ describe('Gut research metadata boundary', () => {
     expect(bridge.find((plank) => plank.field === 'population')?.sourceText).toBe('children or adolescents');
     expect(bridge.filter((plank) => plank.state === 'unknown').map((plank) => plank.field)).toEqual(['comparison', 'outcome', 'setting']);
     expect(bridge.find((plank) => plank.field === 'exposure')?.explanation).toContain('not a verified intervention');
+  });
+
+  it('deduplicates exact PMIDs and reuses generic searches briefly without sharing mutable results', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ resultList: { result: [
+      { pmid: '87654', title: 'Abdominal bloating and caffeine', abstractText: 'A study of caffeine and bloating.' },
+      { pmid: '87654', title: 'Duplicate index record', abstractText: 'Bloating and caffeine.' },
+    ] } }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.useFakeTimers();
+    const [first] = await searchGutResearch('bloating', 'caffeine');
+    first.title = 'changed by a caller';
+    const [cached] = await searchGutResearch('bloating', 'caffeine');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(cached.title).toBe('Abdominal bloating and caffeine');
+    expect(cached.id).toBe('87654');
+
+    vi.advanceTimersByTime(15 * 60 * 1000 + 1);
+    await searchGutResearch('bloating', 'caffeine');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('checks an exact saved PMID and surfaces a retraction without a personal conclusion', async () => {

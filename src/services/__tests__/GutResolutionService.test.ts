@@ -138,10 +138,17 @@ describe('Gut Resolution evidence ledger', () => {
   });
 
   it('asks about one specific stable unknown occasion only when its answer may change the reading', () => {
-    const evidence = deriveGutEvidence(thread, { meals, days: [] }, [report(meals[0], 'yes')]);
+    const evidence = deriveGutEvidence(thread, { meals: meals.slice(0, 2), days: [] }, [report(meals[0], 'yes')]);
     expect(evidence.nextQuestionMealId).toBe(meals[1].id);
     expect(evidence.nextQuestion).toContain(meals[1].name);
     expect(evidence.nextQuestion).toContain(meals[1].date);
+  });
+
+  it('does not prompt on several unknown occasions when one answer would not resolve the uncertainty', () => {
+    const evidence = deriveGutEvidence(thread, { meals, days: [] }, []);
+    expect(evidence.nextQuestionMealId).toBeNull();
+    expect(evidence.nextQuestion).toContain('one answer would not settle');
+    expect(evidence.nextQuestion).toContain('leave it open');
   });
 
   it('ignores reports from another account and deleted reports', () => {
@@ -417,6 +424,42 @@ describe('Gut Resolution evidence ledger', () => {
       const timedMeal2 = { ...timedMeal, id: 'meal-4-stable', date: '2026-09-21' };
       const multiEvidence = deriveGutEvidence(thread, { meals: [timedMeal, timedMeal2], days: [] }, [report(meals[0], 'yes'), report(timedMeal2, 'yes')]);
       expect(classifyGutAnswerState(multiEvidence, thread)).toBe('reliable_timed');
+    });
+
+    it('covers the eleven planned personal conclusion states without making an unavailable research result personal', () => {
+      const noRecords = deriveGutEvidence(thread, { meals: [], days: [] }, []);
+      expect(classifyGutAnswerState(noRecords, thread)).toBe('no_records');
+      expect(classifyGutAnswerState(noRecords, { ...thread, symptom: 'unspecified' })).toBe('needs_symptom');
+
+      const oneUnknown = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, []);
+      expect(classifyGutAnswerState(oneUnknown, thread)).toBe('needs_one_fact');
+
+      const dateOnly = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [report(meals[0], 'yes')]);
+      expect(classifyGutAnswerState(dateOnly, thread)).toBe('date_only');
+      const explicitWithout = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [report(meals[0], 'no')]);
+      expect(explicitWithout.tension).toBe(1);
+      expect(classifyGutAnswerState(explicitWithout, thread)).toBe('date_only');
+
+      const reportedWith = { ...meals[0], occurredAt: '2026-09-20T20:30:00Z', timePrecision: 'exact' as const };
+      const oneReportedWith = deriveGutEvidence(thread, { meals: [reportedWith], days: [] }, [report(reportedWith, 'yes')]);
+      expect(classifyGutAnswerState(oneReportedWith, thread)).toBe('single_confirmed');
+
+      const reportedWithout = { ...meals[1], occurredAt: '2026-09-21T20:30:00Z', timePrecision: 'approximate' as const };
+      const mixed = deriveGutEvidence(thread, { meals: [reportedWith, reportedWithout], days: [] }, [report(reportedWith, 'yes'), report(reportedWithout, 'no')]);
+      expect(classifyGutAnswerState(mixed, thread)).toBe('mixed_counterexample');
+
+      const conflictMeal = { ...meals[0], reaction: 'Bloating', reactionType: 'bloat' };
+      const conflict = deriveGutEvidence(thread, { meals: [conflictMeal], days: [] }, [report(conflictMeal, 'no')]);
+      expect(classifyGutAnswerState(conflict, thread)).toBe('conflicts');
+
+      const twoWith = deriveGutEvidence(thread, { meals: [reportedWith, { ...reportedWith, id: 'meal-4-stable', date: '2026-09-22' }], days: [] }, [report(reportedWith, 'yes'), report({ ...reportedWith, id: 'meal-4-stable', date: '2026-09-22' }, 'yes')]);
+      expect(classifyGutAnswerState(twoWith, thread)).toBe('reliable_timed');
+
+      expect(classifyGutAnswerState(noRecords, { ...thread, intent: 'now' })).toBe('now_acute');
+      expect(classifyGutAnswerState(noRecords, { ...thread, intent: 'care' })).toBe('visit_ready');
+      expect(classifyGutAnswerState(noRecords, { ...thread, intent: 'decide', decision: { chosen: 'a' } as any })).toBe('decision_recorded');
+      // Research outage is handled in the research view and leaves the personal evidence state intact.
+      expect(classifyGutAnswerState(mixed, thread)).toBe('mixed_counterexample');
     });
   });
 });

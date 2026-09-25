@@ -5,6 +5,7 @@ import { formatGutVisitNote, getGutSnapshot, mergeGutSnapshotWithObservations } 
 import { getObservationSyncInfo, listObservations, loadObservationsFromCloud, type ObservationSyncInfo } from '../../services/HealthObservationService';
 import { getActiveTrialV2, getHealthEvents } from '../../services/TrialWorkflowService';
 import type { Observation } from '../../domain/observations/types';
+import type { GutMeal } from '../../services/GutHealthSummary';
 import {
   classifyGutAnswerState,
   createGutThread,
@@ -23,7 +24,7 @@ import {
   type GutQuestionThread,
   type GutSymptom
 } from '../../services/GutResolutionService';
-import { compareGutPublicationStatus, getGutPublicationStatus, gutGeneralGuidance, gutResearchTopics, searchGutResearch, type GutPublicationStatus, type GutResearchPaper, type GutResearchTopic } from '../../services/GutResearchService';
+import { compareGutPublicationStatus, formatGutResearchBrief, getGutPublicationStatus, gutGeneralGuidance, gutResearchTopics, searchGutResearch, type GutPublicationStatus, type GutResearchPaper, type GutResearchTopic } from '../../services/GutResearchService';
 import { GutDecisionPlanner } from './GutDecisionPlanner';
 import { GutCaseHandoff } from './GutCaseHandoff';
 import { GutBacktraceTimeline } from './GutBacktraceTimeline';
@@ -35,6 +36,7 @@ import { makeGutResearchPassport } from '../../services/GutResearchDossierServic
 import type { GutSourceReference } from './GutSourceRecord';
 import { GutPreparationNote } from './GutPreparationNote';
 import { GutConclusionCard } from './GutConclusionCard';
+import { GutReviewedEvidencePanel } from './GutReviewedEvidencePanel';
 import { getProfileEngineState } from '../../services/ProfileEngine';
 import { getAccountScope } from '../../services/RunContext';
 import './GutResolutionWorkspace.css';
@@ -380,6 +382,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
 
   const copyBrief = async () => {
     if (!thread || !evidence) return;
+    const researchSources = thread.reviewedResearch?.sources.length
+      ? thread.reviewedResearch.sources.map((source) => ({ id: source.id, title: source.title, url: `https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(source.id)}/`, status: source.status, correctionNotice: source.correctionNotice }))
+      : research.map((paper) => ({ id: paper.id, title: paper.title, url: paper.url, status: 'search result' as const, correctionNotice: paper.correctionNotice }));
     const lines = [
       `Gut question — ${thread.question}`,
       `Conclusion rules version: ${thread.conclusionVersion || GUT_CONCLUSION_VERSION}`,
@@ -397,6 +402,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         ...evidence.occasions.map((item) => `${item.meal.date}: ${item.meal.name}; ${item.answerOrigin === 'conflict' ? 'Diet and Gut reports disagree; outcome unresolved' : item.answer === 'yes' ? `${symptomName(thread.symptom)} reported` : item.answer === 'no' ? `no ${symptomName(thread.symptom)} reported` : 'outcome unknown'}; meal source ${item.meal.id}; answer source ${item.answerOrigin}${item.meal.reactionType ? `; Diet reaction ${item.meal.reactionType}` : ''}${item.answerSource ? `; Gut report ${item.answerSource.id}, revision ${item.answerSource.revision}` : ''}`),
       ]),
       `Next step chosen: ${thread.selectedStep || 'not chosen'}`,
+      ...formatGutResearchBrief(researchSources),
       ...(thread.intent === 'decide' && thread.decision ? [
         `Upcoming options: A — ${thread.decision.options.a.label || 'not entered'}; B — ${thread.decision.options.b.label || 'not entered'}`,
         `Personal priority: ${thread.decision.priority || 'not entered'}`,
@@ -406,8 +412,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
       ] : []),
       `What happened: ${thread.reflection || 'not reported'}`,
       ...(trial ? [`Separate Clinical Elimination Suite trial: ${trial.id}; status ${trial.status}; ${trial.checkins} trial check-in(s). These were not counted as linked meal reports.`] : []),
-      'A linked observation is not proof of cause. Date-only reports do not establish symptom timing. Research sources, if reviewed, must be assessed for their applicability to this person.',
-      ...research.map((paper) => `General research shown (reading not confirmed): ${paper.title} — ${paper.url}${paper.correctionNotice ? `; publication notice: ${paper.correctionNotice}` : ''}`),
+      'A linked observation is not proof of cause. Date-only reports do not establish symptom timing. Search results are not independently reviewed findings; assess the original source before applying it.',
       '', formatGutVisitNote(sourcedSnapshot),
     ];
     try { await navigator.clipboard.writeText(lines.join('\n')); setMessage('Question brief copied.'); }
@@ -586,6 +591,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         {thread.symptom === 'unspecified' && <div className="gr-research-select"><label htmlFor="gr-research-symptom">Which symptom would you like to read about?</label><select id="gr-research-symptom" value="unspecified" disabled={busy} onChange={(event) => void savePatch({ symptom: event.target.value as GutSymptom })}><option value="unspecified">Choose a symptom</option>{symptoms.filter((item) => item.id !== 'unspecified').map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select><small>This choice selects general sources; it does not add a symptom report to your records.</small></div>}
         {thread.reviewedResearch?.sources.length ? <section className="gr-research-receipt"><strong>Saved source list · {new Date(thread.reviewedResearch.at).toLocaleDateString()}</strong><p>{thread.reviewedResearch.sources.length} exact PMID{thread.reviewedResearch.sources.length === 1 ? '' : 's'} saved for this question. Check their current publication status independently of search rankings.</p><button type="button" disabled={researchCheck === 'loading'} onClick={() => void checkSavedResearch()}>{researchCheck === 'loading' ? 'Checking exact sources…' : 'Check source updates'}</button>{researchCheck === 'error' && <p role="status">Status check unavailable. Earlier source information remains labeled as saved metadata.</p>}{researchCheck === 'ready' && (researchChanges.length ? <div role="status">{researchChanges.map((item) => <p key={item.id}><strong>PMID {item.id}:</strong> {item.changes.join('; ')}. Recheck the original before using this paper; no personal conclusion was updated.</p>)}</div> : <p role="status">No indexed status change was found for the saved PMIDs. This does not verify the paper’s findings or check guideline changes.</p>)}</section> : null}
         {gutGeneralGuidance[thread.symptom] && <section className="gr-paper" aria-label="General guidance"><div className="gr-paper-source-heading"><span aria-hidden="true"><BookOpen size={17} /></span><strong>Open a trusted overview</strong></div><p>Read the original source directly. This app has not independently reviewed or summarized this page, and it cannot explain your personal symptoms.</p><a href={gutGeneralGuidance[thread.symptom]?.url} target="_blank" rel="noopener noreferrer">{gutGeneralGuidance[thread.symptom]?.title} <ArrowRight size={15} /></a><small>{gutGeneralGuidance[thread.symptom]?.sourceOrganization} public information · source list version {gutGeneralGuidance[thread.symptom]?.contentVersion} · independent clinical review pending</small></section>}
+        {thread.symptom !== 'unspecified' && <GutReviewedEvidencePanel symptom={thread.symptom} topic={researchTopic} />}
         {thread.symptom !== 'unspecified' && <section className="gr-research-picker"><h4>Explore published studies <span>(optional)</span></h4><p>Choose the subject you want to search. Your question and records are never sent; the search uses only the selected subject and symptom. It can miss relevant studies.</p><div className="gr-research-topics" role="group" aria-label="Research topic">{(Object.entries(gutResearchTopics) as [GutResearchTopic, { label: string; query: string }][]).map(([id, item]) => { const TopicIcon = researchTopicIcons[id]; return <button type="button" key={id} aria-pressed={researchTopic === id} onClick={() => { setResearchTopic(id); void loadResearch(id); }} disabled={researchStatus === 'loading'}><TopicIcon size={15} aria-hidden="true" />{item.label}</button>; })}</div></section>}
         {researchTopic && <div className="gr-research-warning"><ShieldCheck size={19} /> Studies describe groups, not your personal cause. Check each source’s population and methods before applying it to yourself.</div>}
         {researchStatus === 'loading' && <p role="status" className="gr-loading">Searching Europe PMC for general research…</p>}

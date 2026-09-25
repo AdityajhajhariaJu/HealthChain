@@ -37,6 +37,32 @@ export interface GutPublicationStatus {
   status: 'active' | 'corrected' | 'retracted' | 'unavailable';
 }
 
+export interface GutResearchBriefSource {
+  id: string;
+  title: string;
+  url: string;
+  status: string;
+  correctionNotice: string | null;
+}
+
+/** Citation-only export. Saved/search-discovered papers are not represented as reviewed findings. */
+export function formatGutResearchBrief(sources: GutResearchBriefSource[]): string[] {
+  if (sources.length === 0) return ['General research source: none attached to this brief.'];
+  return [
+    'General research source records (citation discovery only; not an independently reviewed synthesis or personal explanation):',
+    ...sources.map((source) => `${source.title} — PMID ${source.id} — ${source.url}; saved publication status: ${source.status}${source.correctionNotice ? `; notice: ${source.correctionNotice}` : ''}`),
+  ];
+}
+
+const RESEARCH_CACHE_TTL_MS = 15 * 60 * 1000;
+const RESEARCH_CACHE_MAX = 16;
+const researchCache = new Map<string, { savedAt: number; papers: GutResearchPaper[] }>();
+
+/** Search terms contain only generic topic IDs; this in-memory cache is never profile scoped. */
+export function clearGutResearchCache(): void {
+  researchCache.clear();
+}
+
 /** Refresh an exact saved PMID; a changing search rank must not erase a reviewed source. */
 export async function getGutPublicationStatus(id: string, signal?: AbortSignal): Promise<GutPublicationStatus> {
   if (!/^\d+$/.test(id)) throw new Error('Invalid publication ID');
@@ -114,6 +140,10 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
   const concept = concepts[symptom];
   const selectedTopic = gutResearchTopics[topic];
   if (!concept || !selectedTopic) return [];
+  const cacheKey = `${symptom}:${topic}`;
+  const cached = researchCache.get(cacheKey);
+  if (cached && Date.now() - cached.savedAt < RESEARCH_CACHE_TTL_MS) return cached.papers.map((paper) => ({ ...paper }));
+  if (cached) researchCache.delete(cacheKey);
   const params = new URLSearchParams({
     query: `(${concept}) AND (${selectedTopic.query}) AND SRC:MED AND HAS_ABSTRACT:y`,
     format: 'json', resultType: 'core', pageSize: '30',
@@ -143,7 +173,7 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
     };
     return priority(a.paper) - priority(b.paper) || a.index - b.index;
   });
-  return ranked.filter(({ paper }: { paper: any }) => !!paper?.pmid).filter(({ paper }: { paper: any }, index: number, all: { paper: any }[]) => all.findIndex((entry) => String(entry.paper.pmid) === String(paper.pmid)) === index).slice(0, 8).map(({ paper }: { paper: any }) => {
+  const papers = ranked.filter(({ paper }: { paper: any }) => !!paper?.pmid).filter(({ paper }: { paper: any }, index: number, all: { paper: any }[]) => all.findIndex((entry) => String(entry.paper.pmid) === String(paper.pmid)) === index).slice(0, 8).map(({ paper }: { paper: any }) => {
     const abstract = cleanMedicalText(paper.abstractText || '');
     const year = /^\d{4}$/.test(String(paper.pubYear || '')) ? String(paper.pubYear) : null;
     const types = paper.pubTypeList?.pubType;
@@ -169,4 +199,9 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
       titlePopulationCue: titlePopulationCue(String(paper.title || '')),
     };
   });
+  if (!signal?.aborted) {
+    researchCache.set(cacheKey, { savedAt: Date.now(), papers });
+    while (researchCache.size > RESEARCH_CACHE_MAX) researchCache.delete(researchCache.keys().next().value!);
+  }
+  return papers.map((paper) => ({ ...paper }));
 }

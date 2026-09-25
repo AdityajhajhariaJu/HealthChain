@@ -1,9 +1,9 @@
 # Gut Health conclusion experience — implementation status
 
-**Updated:** 26 September 2026  
-**Repository:** `C:\Users\adity\OneDrive\Desktop\HealthChain-Live`  
-**Starting revision:** `1f4a7021` on `master` (matched `origin/master` before edits)  
-**Implementation commits:** `e052751c` and `023d12cf` (pushed to `origin/master`)  
+**Updated:** 26 September 2026
+**Repository:** `C:\Users\adity\OneDrive\Desktop\HealthChain-Live`
+**Starting revision for this completion pass:** `1660b1bb` on `master` (matched `origin/master`)
+**Earlier implementation commits:** `e052751c`, `023d12cf`, `1660b1bb` (pushed to `origin/master`)
 **Scope:** Implementation ledger for `C:\Users\adity\Desktop\HealthChain-Gut-Health-Conclusion-Experience-Implementation-Plan-2026-09-26.md`.
 
 ## What this change implements
@@ -18,51 +18,61 @@
 - Observation sync copy is limited to queue facts (`pending`, `no_pending`, `local_only`, `unavailable`). It does not claim that a second device has refreshed. A profile switch starts a fresh cloud observation load and drops the previous profile’s sync message.
 - The older Ava Connections guide now links to the same Gut workspace. The dashboard card remains the regular white card with its orange icon and has a question-led description.
 - Visit-history copying uses the shared projection and labels missing dates, source IDs/revisions, medication/context notes, and the limits of personal reports.
+- A missing-outcome prompt now appears only when exactly one stable, unanswered occasion is likely to change the reading. Several unknown outcomes no longer trigger a single-item prompt that cannot settle the comparison.
+- General research discovery now has a 15-minute memory cache keyed only by generic symptom/topic; no personal question, meal, account, profile, or observation is retained in the cache. PMID deduplication and review-type reading priority are covered by tests.
+- The user-facing synthesis registry now requires source location, a short source passage, population/exposure/comparator/outcome/setting, limitations, independent reviewer qualification, and review date/version. It contains no claims until a qualified reviewer approves them; the UI says so explicitly.
+- Copyable question briefs now include exact citations for saved or currently displayed study records and state that these are discovery citations, not reviewed findings or personal explanations.
+- Gut's canonical feature contract now names the question-led product, points to the real Today Gut route, and prohibits diagnosis, personal causal verdicts, unreviewed research synthesis, and self-directed treatment/challenge plans.
+- Added route/data/research/release handoff in `GUT_HEALTH_COMPLETION_PACKET_2026-09-26.md`.
 
 No example person, meal, outcome, user count, or research result was added as product data. NIDDK URLs and Europe PMC study results are external source metadata, not personal observations.
 
 ## Ticket ledger
 
-Status meanings: **Implemented** = code present; **Partial** = some code present but the plan’s completion condition still needs work; **Gate** = needs a qualified reviewer, authenticated environment, user evaluation, or deployment evidence; **Not done** = no implementation claimed.
+Status meanings: **Verified** = code and the stated automated evidence pass; **Code complete** = implemented but not all planned validation has run; **In progress** = a documented subset is done and an acceptance item remains; **Externally gated** = requires a qualified reviewer, authenticated staging, real participants, or production deployment evidence; **Not started** = no work claimed.
 
 | Ticket | Status | Evidence / remaining work |
 | --- | --- | --- |
-| GH-01 Baseline and route ledger | Partial | Dashboard, Today query-param, Ava handoff, workspace and source routes inspected during implementation. Deployment SHA, feature-flag state, route walkthrough, and a full route diagram still need recording. |
-| GH-02 Source and outcome inventory | Implemented in code | Shared profile-scoped projection now feeds workspace, records, source IDs/counts and copy export. Verify with authenticated multi-source fixtures before calling integration complete. |
-| GH-03 Visual prototype | Partial | The active UI is the implementation; advanced connection detail is collapsed after the conclusion. Desktop/mobile/320 px visual review has not been performed. |
-| GH-04 Clinical content policy | Gate | Pending independent clinician/dietitian review. The UI marks this status and does not show app-authored NIDDK paraphrases. Reviewer and date are intentionally blank. |
-| GH-05 Unified scoped Gut read model | Implemented in code | Diet and canonical meal records merge once; dated/undated counts and shared visit export use the same projection. |
-| GH-06 Provenance and time semantics | Partial | Exact source IDs, canonical revisions and time precision are preserved. Legacy Diet records may not have revisions; DST, timezone and delayed-report scenarios still need integration verification. |
-| GH-07 Profile and sync integrity | Partial / Gate | Visible profile-scoped queue states and fresh loads on profile switch are implemented. Two-account/two-device, RLS, offline queue, conflict and deletion verification are not established here. |
-| GH-08 Versioned question contract | Partial | Conclusion rules version is stored and legacy threads receive a read-time default. Full account migration/profile-switch testing remains. |
-| GH-09 Progressive intake | Partial | Four selectable Clinical-style intent cards, optional question details and direct answer path remain. The full A→D progress shell/prototype and accessibility review are not implemented. |
-| GH-10 Path-specific questions | Partial | Draft text stays editable; inferred symptom/meal is not silently persisted; suggestions require selection. Current-concern/choice/care path task evaluation remains. |
-| GH-11 Existing-data reveal | Implemented in code | Existing records and explicit outcomes surface with source links; exclusions are question-only. Confirm across all observation kinds in integration review. |
-| GH-12 Current-concern care branch | Partial / Gate | Non-triage wording and pending clinical-review status are visible. Reviewed red-flag copy and clinician sign-off are not complete. |
-| GH-13 Deterministic conclusion engine | Partial | Existing count/counterexample/unknown logic and additional state labels are surfaced. Not all eleven plan states have distinct tested fixtures/actions. |
-| GH-14 First-viewport conclusion | Implemented in code; visual Gate | Plain-language conclusion, count visualization, source-linked occasions, and one primary action precede the optional connection detail. Screenshot review is still required. |
-| GH-15 Evidence source drawer | Implemented in code | Meal, observation and digestion records open exact IDs; unavailable sources are not substituted. Verify deleted/revised-source behavior in authenticated scenarios. |
-| GH-16 Visualization system | Partial | Actual count balance, occasion ribbon, backtrace and preparation/context detail exist. Research-fit, visit-story, and change-receipt visual consistency still need design review. |
-| GH-17 One-fact investigator | Partial | Existing missing outcome/onset prompts are optional and tied to a source. Burden ranking across all question states is not implemented. |
-| GH-18 Reviewed evidence registry | Gate | Link metadata has version and pending-review status. Exact reviewed claims/passages, applicability fields, reviewer and review date are absent; no user-facing finding is claimed. |
-| GH-19 Retrieval and status service | Partial | Title/abstract search, correction/retraction checks, source links, and outage states exist. Guideline/review prioritization, caching and robust deduplication are not complete. |
-| GH-20 Research applicability and synthesis | Partial | Study bridge shows known/unknown metadata and directs users to the source. It does not verify study results or synthesize a body of reviewed evidence. |
-| GH-21 Research result UI | Partial | Research is separate from personal conclusions; studies remain an optional exploration path. A reviewed, concise applicability result is waiting on GH-18/20. |
-| GH-22 Choice and outcome | Partial | Chosen option and actual reported outcome remain separate. Reopening the same question after a meal/outcome needs end-to-end validation. |
-| GH-23 Visit-ready brief | Partial | Brief and records use the unified projection and distinguish personal reports/context. Automatically including reviewed research citations/applicability is not complete. |
-| GH-24 Case Prep and visit return | Partial | Existing Case Prep handoff remains; Ava Connections has a direct handoff to Gut. A documented visit outcome linked back to the exact Gut question needs integration work. |
-| GH-25 Living change receipt | Partial | Evidence fingerprints include canonical source revision and the UI can show a changed-source receipt. Publication change alerts do not update a clinical claim; reviewed-source downgrade behavior is not implemented. |
-| GH-26 Food-trial boundary | Implemented as gate | No new elimination/challenge program was opened. Existing trial data remains separate from linked meal reports. |
-| GH-27 Copy and visual polish | Partial | Dashboard copy, source language, sync language, and duplicate connection summary were refined. Final Clinical visual review is outstanding. |
-| GH-28 Functional/accessibility verification | Not run | No tests/build/browser checks were run for this implementation pass. Existing retrieval expectation was updated for the new title+abstract behavior. |
-| GH-29 Human usefulness evaluation | Gate | Requires moderated user tasks and clinician/dietitian review; code cannot establish satisfaction, benefit, or $20/month value. |
-| GH-30 Controlled production rollout | Gate | Requires CI/release evidence, RLS/sync proof, clinical registry review, deployment SHA, feature flag/rollback and privacy-minimal analytics review. |
+| GH-01 Baseline and route ledger | In progress | `GUT_HEALTH_COMPLETION_PACKET_2026-09-26.md` contains route/data map and reachable entry points. The starting revision is recorded above; the resulting code revision is available from the completion commit. Production deployment SHA and Gut runtime feature-flag state were not available in repository. |
+| GH-02 Source and outcome inventory | Verified | Source/count/missingness table in completion packet; shared projection and `GutHealthSummary` tests. Cross-account staging verification remains under GH-07. |
+| GH-03 Visual prototype | In progress | Existing Clinical-style UI and 320/390 px automated flow checks are present. Manual screenshot/design-owner review is still required; no fabricated prototype data was shipped. |
+| GH-04 Clinical content policy | Externally gated | The approved-claim schema and pending state are implemented. A qualified GI clinician/dietitian must review care copy and any future claim; no reviewer approval is claimed. |
+| GH-05 Unified scoped Gut read model | Verified | `GutHealthSummary.ts`, `GutResolutionService.ts`; tests cover source merging and no duplicate linked observations. |
+| GH-06 Provenance and time semantics | Verified | Source IDs/revisions, occurrence/report timestamps, exact/approximate/date-only values, timezone and delayed-report behavior have unit fixtures in `GutResolutionService.test.ts`. |
+| GH-07 Profile and sync integrity | Externally gated | Profile-scoped merge/outbox tests and anonymous Supabase smoke pass. Authenticated two-account/two-device, offline conflict, guest-promotion, and deletion proof still require staging test accounts/devices. |
+| GH-08 Versioned question contract | Code complete | Conclusion rules version is recorded on new questions and read-time backfilled for legacy questions; profile sync merge tests pass. Authenticated old-record migration remains under GH-07. |
+| GH-09 Progressive intake | Verified | Four real buttons, editable question, optional details, saved-draft continuity and no required meal; first-use tests check 320 px and the four paths. No separate confirmation screen is added, to keep the flow light. |
+| GH-10 Path-specific questions | Verified | User-controlled intent/symptom/meal; example text remains editable and inferred fields require explicit selection. First-use and intent-resolution tests cover this boundary. |
+| GH-11 Existing-data reveal | Verified | Exact meal/source actions, explicit outcome handling, and question-only exclusions are covered by service, source-record and Gut browser tests. |
+| GH-12 Current-concern care branch | Externally gated | Non-triage copy is present and labeled pending independent review. No automated urgency grade or cause is shown; clinical approval remains outstanding. |
+| GH-13 Deterministic conclusion engine | Verified | Tests cover the eleven planned answer families, mixed/conflict/date-only/unknown counts and decision/visit states. Multiple unknown occasions do not trigger a low-value single-fact prompt. |
+| GH-14 First-viewport conclusion | In progress | Conclusion/count/action appears before optional detail and is exercised on mobile/desktop browser paths. Final owner visual inspection remains outstanding. |
+| GH-15 Evidence source drawer | Verified | Exact source IDs and revisions open without nearby-date substitution; source component tests and mobile name-variant browser path cover the drill-in. Authenticated deletion behavior remains under GH-07. |
+| GH-16 Visualization system | Code complete | Count balance, source occasion actions, backtrace, preparation comparison, study-fit metadata bridge, change receipt, and visit follow-through are data-driven; unknown/date-only meanings remain textual. Owner visual review is open under GH-03/14. |
+| GH-17 One-fact investigator | Verified | A prompt is tied to one stable unknown source only when exactly one such outcome can alter the comparison. Multiple unknowns say one answer will not settle the question and invite the user to leave it open. Unit-tested. |
+| GH-18 Reviewed evidence registry | Externally gated | Schema and validator implemented in `GutReviewedEvidence.ts`; the registry intentionally contains zero claims. No research synthesis renders until an independent qualified review is recorded. |
+| GH-19 Retrieval and status service | Verified | Title/abstract query, generic query taxonomy, review-type reading priority, PMID deduplication, correction/retraction filtering, exact-PMID refresh, 15-minute memory cache, and outage copy tested. |
+| GH-20 Research applicability and synthesis | Externally gated | Metadata bridge reports unknowns without extracting an abstract-only result. A valid reviewed evidence body is required before synthesis; none is approved yet. |
+| GH-21 Research result UI | Verified | The panel distinguishes reviewed synthesis from search discovery and clearly says when no reviewed finding exists. Research-appraisal browser test asserts this state and checks original source links. |
+| GH-22 Choice and outcome | Code complete | Planned choice, actual selected Diet meal, and user-entered outcome are separate; service tests cover save/correction. Authenticated end-to-end return on a second device remains unverified. |
+| GH-23 Visit-ready brief | Code complete | Shared records projection, patient-report labels, question conclusion, and saved/live research citations with a discovery-only caveat. Citation formatter is unit-tested; user review of the final exported brief remains open. |
+| GH-24 Case Prep and visit return | Verified | Specific case selection, patient-question source reference, return to same Gut question, and provenance-labeled outcome have a browser round-trip test. |
+| GH-25 Living change receipt | Code complete | Fingerprints include revisions/source kind and tests cover added, removed, revised, and changed comparison sources. There are no reviewed research claims to downgrade yet; that depends on GH-18. |
+| GH-26 Food-trial boundary | Verified | Existing records remain inspectable and Gut does not launch a food challenge. Separate protocol, consent, nutrition-safety and clinician gates stay closed. |
+| GH-27 Copy and visual polish | In progress | Dashboard card/icon theme, short labels, source language, reduced-motion, and responsive styles are preserved. Manual Clinical design-owner review is still open. |
+| GH-28 Functional/accessibility verification | In progress | 511 unit tests across 74 files, lint, production build, and migration contract pass. Serialized Chromium/WebKit E2E: 42/46 pass; every Gut E2E passes in both browsers. Four non-Gut WebKit Clinical/workspace failures are listed below. Screen-reader and 200% zoom manual checks remain open. |
+| GH-29 Human usefulness evaluation | Externally gated | The completion packet contains the task protocol and predeclared success thresholds. No participant comprehension, satisfaction, clinical benefit or $20/month willingness-to-pay result is claimed. |
+| GH-30 Controlled production rollout | Externally gated | Quality workflow targets pushes to `master`; anonymous smoke passed. Production deployment SHA, runtime flag, rollback owner, authenticated RLS proof and privacy-analytics review require release-system access/evidence. |
 
 ## Release boundary
 
-This implementation improves source consistency and the first answer. It does **not** establish clinical effectiveness, independent research synthesis, authenticated cross-device reliability, or willingness to pay. Keep any clinical/research finding gated until a qualified reviewer records the exact claim, source passage, applicability, reviewer and date. Keep the food-challenge gate closed. Do not treat this status document as a clinical approval or deployment record.
+Code completion is not clinical approval, authenticated cross-device proof, user satisfaction, effectiveness, or willingness to pay. Keep the research registry empty until a qualified independent reviewer records the exact claim, source passage/location, applicability, reviewer and date. Keep food challenges closed. A push to `master` is not proof of deployment.
 
 ## Verification performed in this pass
 
-- Inspected the dirty diff and relevant call sites manually.
-- Did not execute unit tests, browser tests, lint, TypeScript, build, database migrations, or deployment. Those need an explicitly authorized verification pass.
+- Unit suite: **511 passed across 74 files**. `npm run lint`, `npm run build` (TypeScript plus production Vite build), and `npm run verify:migrations` passed. Migration validation found 25 SQL files and 17 schema checks.
+- Serialized Playwright run: **42/46 passed** across Chromium and WebKit. All Gut E2E cases passed in both browsers, including onboarding, source inspection/return, saved-meal-name variants, open-question continuity, research appraisal, and Case Prep handoff. The four failures were non-Gut WebKit tests: Clinical invalid-case review button visibility/stability; connected-workspace draft progression button visibility/stability; Today article test expecting a missing `Show recommended` control; and unsupported-document test back-button visibility/stability. These are recorded as release-suite failures, not Gut passes.
+- `git diff --check` passed after removing trailing whitespace from the status ledger.
+- Anonymous Supabase smoke passed in this completion pass: the observation relation was available and protected relations denied anonymous reads.
+- Anonymous smoke checks relation availability and that protected relations deny anonymous reads. It does not validate authenticated two-device behavior or prove data cannot cross accounts.
+- Build output includes existing Vite chunk warnings for modules imported both dynamically and statically. The build itself passed.

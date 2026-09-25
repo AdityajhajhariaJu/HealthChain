@@ -26,14 +26,12 @@ test('a first-time guest can ask one question without inventing a symptom', asyn
   await expect(question).toHaveValue('What pattern should I check after dinner?');
   await expect(gut.getByRole('heading', { name: 'What pattern should I check after dinner?' })).toHaveCount(0);
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  const trail = gut.getByRole('region', { name: 'Question reading' });
-  await expect(trail.getByText('Start with what is known')).toBeVisible();
+  const trail = gut.getByRole('region', { name: 'What your saved information can say' });
+  await expect(trail.getByText(/Your question is saved\. Choose a saved meal name only if you want to compare/)).toBeVisible();
   await expect(trail.getByRole('button', { name: /My records/ })).toBeVisible();
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  await expect(gut.getByText('Symptom not selected', { exact: true })).toBeVisible();
-  await expect(gut.locator('.gr-answer-card').getByText(/Your question is saved/)).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  await gut.getByRole('button', { name: 'Explore research' }).click();
+  await gut.getByRole('button', { name: 'Explore general research' }).click();
   await expect(gut.getByLabel('Which symptom would you like to read about?')).toBeVisible();
   await expect(gut.getByRole('group', { name: 'Research topic' })).toHaveCount(0);
   await gut.getByLabel('Which symptom would you like to read about?').selectOption('bloating');
@@ -98,7 +96,7 @@ test('the simple reading leads to the evidence view', async ({ page }) => {
   await gut.getByRole('button', { name: /I have a care question/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask at my visit?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  const trail = gut.getByRole('region', { name: 'Question reading' });
+  const trail = gut.getByRole('region', { name: 'What your saved information can say' });
   await trail.getByRole('button', { name: /My records/ }).click();
   await expect(gut.getByRole('heading', { name: 'Evidence hearing' })).toBeVisible();
 });

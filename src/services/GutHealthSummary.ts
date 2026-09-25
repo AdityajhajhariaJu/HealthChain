@@ -201,7 +201,7 @@ export function formatGutVisitNote(snapshot: GutSnapshot): string {
       const precision = item.timePrecision === 'exact' || item.timePrecision === 'approximate' ? `${item.timePrecision} occurrence ${item.occurredAt}` : `${item.timePrecision} occurrence time`;
       const detail = item.payload.kind === 'symptom' ? `${item.payload.symptom}${item.payload.severity ? ` ${item.payload.severity.value}/${item.payload.severity.max}` : ''}${item.payload.note ? `; ${item.payload.note}` : ''}` :
         item.payload.kind === 'bowel' ? `bowel report${item.payload.bristolType ? `; stool form ${item.payload.bristolType}` : ''}${item.payload.note ? `; ${item.payload.note}` : ''}` :
-          `digestion check-in${item.payload.note ? `; ${item.payload.note}` : ''}`;
+          item.payload.kind === 'daily_checkin' ? `digestion check-in${item.payload.note ? `; ${item.payload.note}` : ''}` : '';
       return `${date}: ${detail}; ${precision}; source ${item.id}, revision ${item.revision}; entered ${item.recordedAt}`;
     }),
     '',
