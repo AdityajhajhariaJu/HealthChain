@@ -13,6 +13,12 @@
 .gr-continue-text { display:grid; gap:2px; flex:1; min-width:0; }
 .gr-continue-text span { color:#9b6b77; font-size:11.5px; }
 .gr-continue-text strong { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13.5px; }
+.gr-other-questions { margin:-5px 0 14px; border:1px solid #f0dce2; border-radius:12px; background:#fffdfd; padding:9px 12px; }
+.gr-other-questions summary { width:max-content; max-width:100%; color:#a72c4e; font-size:12px; font-weight:750; cursor:pointer; }
+.gr-other-questions>div { display:grid; gap:3px; margin-top:7px; }
+.gr-other-questions button { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; border:0; border-radius:9px; padding:9px 7px; background:transparent; color:#51454d; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
+.gr-other-questions button:hover,.gr-other-questions button:focus-visible { background:#fff2f5; color:#a72c4e; }
+.gr-other-questions button span { overflow-wrap:anywhere; }
 .gr-quiet-button,.gr-secondary,.gr-source { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:38px; padding:8px 12px; border:1px solid #f1e5e7; background:#fff; color:#9d2948; border-radius:11px; font-size:12.5px; font-weight:750; text-decoration:none; }
 .gr-intent-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
 .gr-intent { text-align:left; display:flex; align-items:center; gap:10px; min-height:64px; padding:9px 12px; border:1px solid #f1e5e7; border-radius:16px; background:#fff; box-shadow:0 2px 8px #3e506008; transition:border-color .16s,transform .16s,box-shadow .16s; color:#292e38; }

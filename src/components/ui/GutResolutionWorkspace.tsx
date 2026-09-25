@@ -110,6 +110,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
   const mealNames = useMemo(() => [...new Set(sourcedSnapshot.meals.map((meal) => meal.name))].slice(0, 40), [sourcedSnapshot.meals]);
   const changeReceipt = thread?.reviewedEvidence && evidence ? deriveGutChangeReceipt(thread.reviewedEvidence, { ...thread, focus: comparisonFocus }, evidence) : null;
   const hasChanged = !!changeReceipt?.changed;
+  const openThreads = threads.filter((item) => item.status === 'open');
   const evidenceMapBranches = evidence ? ([
     { category: 'support', count: evidence.support, label: `with ${symptomName(thread!.symptom)}` },
     { category: 'counterexample', count: evidence.tension, label: 'without it' },
@@ -216,11 +217,12 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
       <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> GUT RESOLUTION STUDIO <span className="gr-eyebrow-note">Your evidence, in context</span></div>
       <h2 className="gr-title">What would you like help figuring out?</h2>
       <p className="gr-subtitle">Start with a question that matters today. We will connect what you actually recorded, show what is still uncertain, and help you choose a useful next step.</p>
-      {threads.some((item) => item.status === 'open') && <section className="gr-continue">
+      {openThreads.length > 0 && <section className="gr-continue">
         <div className="gr-small-icon"><RotateCcw size={19} /></div>
-        <div className="gr-continue-text"><span>Continue where you left off</span><strong>{threads.find((item) => item.status === 'open')?.question}</strong></div>
-        <button type="button" className="gr-quiet-button" onClick={() => openThread(threads.find((item) => item.status === 'open')!)}>Continue <ArrowRight size={16} /></button>
+        <div className="gr-continue-text"><span>Continue where you left off</span><strong>{openThreads[0].question}</strong></div>
+        <button type="button" className="gr-quiet-button" onClick={() => openThread(openThreads[0])}>Continue <ArrowRight size={16} /></button>
       </section>}
+      {openThreads.length > 1 && <details className="gr-other-questions"><summary>{openThreads.length - 1} other open question{openThreads.length === 2 ? '' : 's'}</summary><div>{openThreads.slice(1).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}><span>{item.question}</span><ArrowRight size={15} /></button>)}</div></details>}
       <div className="gr-intent-grid" role="group" aria-label="Choose what kind of help you need">
         {intents.map(({ id, title, desc, icon: Icon }) => <button type="button" key={id} className={`gr-intent ${intent === id ? 'gr-intent-active' : ''}`} aria-pressed={intent === id} onClick={() => setIntent(id)}>
           <span className={`gr-icon gr-icon-${id}`}><Icon size={21} /></span><span><strong>{title}</strong><small>{desc}</small></span><ChevronRight size={17} className="gr-intent-arrow" />
