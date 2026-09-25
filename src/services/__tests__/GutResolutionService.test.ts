@@ -12,7 +12,7 @@ vi.mock('../ProfileEngine', () => ({
 }));
 vi.mock('../RunContext', () => ({ getAccountScope: () => 'acct' }));
 
-import { createGutThread, deriveGutChoiceHistory, deriveGutEvidence, hasStableGutMealId, listGutThreads, updateGutThread } from '../GutResolutionService';
+import { createGutThread, deriveGutChangeReceipt, deriveGutChoiceHistory, deriveGutEvidence, hasStableGutMealId, listGutThreads, makeGutReviewSnapshot, updateGutThread } from '../GutResolutionService';
 
 const thread: GutQuestionThread = {
   id: 'q1', schemaVersion: 1, ownerKey: 'hc_unified_profile_acct', profileId: 'profile_1',
@@ -96,6 +96,33 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.occasions[0].answerOrigin).toBe('conflict');
     expect(evidence.answer).toContain('disagreeing');
     expect(evidence.nextQuestion).toContain('disagree');
+  });
+
+  it('explains added, revised and removed occasions after a review even if totals are unchanged', () => {
+    const original = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [report(meals[0], 'yes')]);
+    const reviewed = makeGutReviewSnapshot(thread, original, '2026-09-23T10:00:00Z');
+    expect(deriveGutChangeReceipt(reviewed, thread, original).changed).toBe(false);
+
+    const revised = deriveGutEvidence(thread, { meals: [meals[0], meals[1]], days: [] }, [{ ...report(meals[0], 'yes'), revision: 2 }]);
+    const receipt = deriveGutChangeReceipt(reviewed, thread, revised);
+    expect(receipt.changed).toBe(true);
+    expect(receipt.changes.map((item) => item.detail)).toEqual([
+      'A linked source or context changed; the reported outcome is unchanged',
+      'New matching occasion in your records',
+    ]);
+    const removed = deriveGutChangeReceipt(reviewed, thread, deriveGutEvidence(thread, { meals: [], days: [] }, []));
+    expect(removed.changes[0].detail).toBe('No longer included in this comparison');
+  });
+
+  it('marks a changed symptom comparison even when its counts happen to match', () => {
+    const initial = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, []);
+    const reviewed = makeGutReviewSnapshot(thread, initial);
+    const refluxThread = { ...thread, symptom: 'reflux' as const };
+    const reflux = deriveGutEvidence(refluxThread, { meals: [meals[0]], days: [] }, []);
+    const receipt = deriveGutChangeReceipt(reviewed, refluxThread, reflux);
+    expect(receipt.changed).toBe(true);
+    expect(receipt.comparisonChanged).toBe(true);
+    expect(receipt.current).toEqual(receipt.previous);
   });
 
   it('allows stable saved meal ids while rejecting index-generated fallbacks', () => {

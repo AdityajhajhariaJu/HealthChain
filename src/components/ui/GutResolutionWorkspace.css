@@ -56,10 +56,13 @@
 .gr-tabs { display:flex; align-items:center; gap:4px; border-bottom:1px solid #eadde1; margin:22px 0 23px; overflow-x:auto; }
 .gr-tabs button { border:0; border-bottom:3px solid transparent; background:transparent; color:#6f7180; padding:12px 17px; min-width:max-content; font-size:14px; font-weight:750; }
 .gr-tabs .gr-tab-active { color:#b51c45; border-bottom-color:#d62b56; }
-.gr-change { display:flex; gap:10px; padding:13px 16px; background:#f1faf7; border:1px solid #ccebdd; border-radius:14px; color:#236b5c; margin-bottom:15px; }
+.gr-change { display:flex; gap:10px; padding:13px 16px; background:linear-gradient(135deg,#fff7f1,#fff1f5); border:1px solid #f0cbd3; border-radius:14px; color:#9f3150; margin-bottom:15px; }
 .gr-change div { display:grid; gap:3px; }
 .gr-change strong { font-size:13px; }
 .gr-change span { font-size:12px; }
+.gr-change ul { margin:5px 0; padding-left:17px; color:#755862; font-size:12px; line-height:1.5; }
+.gr-change li strong { display:inline; font-size:12px; }
+.gr-change-review { justify-self:start; margin-top:5px; border:1px solid #e6adbd; background:#fff; color:#9f3150; padding:7px 10px; border-radius:9px; font-size:12px; font-weight:750; cursor:pointer; }
 .gr-answer-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(235px,.78fr); gap:18px; align-items:start; }
 .gr-answer-main { min-width:0; }
 .gr-answer-card { background:linear-gradient(135deg,#fff9f8,#fff); border:1px solid #f1dce0; border-radius:23px; padding:22px; box-shadow:0 8px 26px #a8647a11; }

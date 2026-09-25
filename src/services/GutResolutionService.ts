@@ -29,7 +29,7 @@ export interface GutQuestionThread {
   selectedStep: string | null;
   reflection: string | null;
   excludedMealIds: string[];
-  reviewedEvidence: { fingerprint: string; support: number; tension: number; unknown: number; at: string } | null;
+  reviewedEvidence: GutReviewSnapshot | null;
   decision?: GutDecisionPlan | null;
   createdAt: string;
   updatedAt: string;
@@ -54,6 +54,25 @@ export interface GutEvidence {
   fingerprint: string;
   nextQuestion: string;
   answer: string;
+}
+
+export interface GutReviewSnapshot {
+  fingerprint: string;
+  support: number;
+  tension: number;
+  unknown: number;
+  at: string;
+  focus?: string;
+  symptom?: GutSymptom;
+  occasions?: { id: string; name: string; date: string; answer: Answer; sourceVersion: string }[];
+}
+
+export interface GutChangeReceipt {
+  changed: boolean;
+  comparisonChanged: boolean;
+  changes: { mealId: string; label: string; detail: string }[];
+  previous: { support: number; tension: number; unknown: number };
+  current: { support: number; tension: number; unknown: number };
 }
 
 const featureKey = 'gutResolutionThreads';
@@ -170,7 +189,7 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const tension = occasions.filter((item) => item.answer === 'no').length;
   const unknown = occasions.filter((item) => item.answer === 'unanswered').length;
   const conflicts = occasions.filter((item) => item.answerOrigin === 'conflict').length;
-  const fingerprint = JSON.stringify(occasions.map(({ meal, answer, answerSource }) => [meal.id, meal.date, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision]));
+  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, sameDay, otherMeals }) => [meal.id, meal.date, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, sameDay, otherMeals.map((other) => other.id)])]);
   const label = symptomLabel[thread.symptom];
   let answer = 'Choose a recorded meal or phrase to examine. A question can still be saved without prior records.';
   if (focus && occasions.length === 0) answer = `No recorded meal names match “${thread.focus}” yet. This does not mean it was never eaten.`;
@@ -183,6 +202,39 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
     : unknown > 0 ? `If you remember a recent occasion clearly, was ${label} present with that meal? “Not sure” is a valid answer.`
     : 'What was different between these occasions? Recipe, portion and other meals are not confirmed from a name alone.';
   return { occasions, support, tension, unknown, conflicts, fingerprint, nextQuestion, answer };
+}
+
+const reviewOccasion = (item: GutEvidenceOccasion) => ({
+  id: item.meal.id,
+  name: item.meal.name,
+  date: item.meal.date,
+  answer: item.answer,
+  sourceVersion: JSON.stringify([item.meal.reaction, item.meal.reactionType, item.meal.reactionRecordedAt, item.answerSource?.id, item.answerSource?.revision, item.sameDay, item.otherMeals.map((meal) => meal.id)]),
+});
+
+export function makeGutReviewSnapshot(thread: GutQuestionThread, evidence: GutEvidence, at = new Date().toISOString()): GutReviewSnapshot {
+  return { fingerprint: evidence.fingerprint, support: evidence.support, tension: evidence.tension, unknown: evidence.unknown, at,
+    focus: thread.focus, symptom: thread.symptom, occasions: evidence.occasions.map(reviewOccasion) };
+}
+
+/** Describes source changes without turning count changes into a causal or safety verdict. */
+export function deriveGutChangeReceipt(previous: GutReviewSnapshot, thread: GutQuestionThread, evidence: GutEvidence): GutChangeReceipt {
+  const current = { support: evidence.support, tension: evidence.tension, unknown: evidence.unknown };
+  const oldCounts = { support: previous.support, tension: previous.tension, unknown: previous.unknown };
+  const changed = previous.fingerprint !== evidence.fingerprint;
+  const comparisonChanged = previous.focus !== undefined && (previous.focus !== thread.focus || previous.symptom !== thread.symptom);
+  const reviewedOccasions = Array.isArray(previous.occasions) ? previous.occasions.filter((item) => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.sourceVersion === 'string') : null;
+  const oldItems = new Map((reviewedOccasions || []).map((item) => [item.id, item]));
+  const newItems = new Map(evidence.occasions.map((item) => [item.meal.id, reviewOccasion(item)]));
+  const changes: GutChangeReceipt['changes'] = [];
+  for (const [id, item] of newItems) {
+    if (!reviewedOccasions) break;
+    const old = oldItems.get(id);
+    if (!old) changes.push({ mealId: id, label: item.name, detail: 'New matching occasion in your records' });
+    else if (old.answer !== item.answer || old.sourceVersion !== item.sourceVersion) changes.push({ mealId: id, label: item.name, detail: old.answer !== item.answer ? `Reported outcome changed from ${old.answer === 'unanswered' ? 'unknown' : old.answer} to ${item.answer === 'unanswered' ? 'unknown' : item.answer}` : 'A linked source or context changed; the reported outcome is unchanged' });
+  }
+  for (const [id, item] of oldItems) if (!newItems.has(id)) changes.push({ mealId: id, label: item.name, detail: 'No longer included in this comparison' });
+  return { changed, comparisonChanged, changes, previous: oldCounts, current };
 }
 
 export async function recordGutMealOutcome(meal: GutMeal, symptom: GutSymptom, answer: 'yes' | 'no') {
