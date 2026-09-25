@@ -33,12 +33,6 @@ import { getAccountScope } from '../../services/RunContext';
 import './GutResolutionWorkspace.css';
 
 const draftKey = () => `hc_gut_question_draft:${getAccountScope()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
-const EXAMPLE_PROMPTS = [
-  'Is chai linked to my bloating?',
-  'What pattern should I check after dinner?',
-  'How do I describe my digestion at a visit?',
-] as const;
-
 interface Props {
   onOpenHistory: (date?: string) => void;
   onOpenSource: (source: GutSourceReference) => void;
@@ -57,6 +51,32 @@ const intents: Array<{ id: GutIntent; title: string; desc: string; icon: LucideI
   { id: 'understand', title: 'I want to understand', desc: 'Examine a pattern without guessing', icon: GitBranch },
   { id: 'care', title: 'I have a care question', desc: 'Prepare a focused clinician discussion', icon: FileText },
 ];
+const intentGuidance: Record<GutIntent, { heading: string; help: string; placeholder: string; examples: string[] }> = {
+  now: {
+    heading: 'What is happening right now?',
+    help: 'Describe what you feel and when it began. We will organize your report and show a useful care next step.',
+    placeholder: 'For example, my stomach hurts after lunch today',
+    examples: ['I have stomach pain after lunch today', 'I feel nauseous and want to organize what happened'],
+  },
+  decide: {
+    heading: 'What decision is coming up?',
+    help: 'Name the choice in your own words. You can compare options after opening your question.',
+    placeholder: 'For example, should I choose tea or coffee tomorrow?',
+    examples: ['Should I choose tea or coffee tomorrow?', 'How can I plan for a restaurant meal?'],
+  },
+  understand: {
+    heading: 'What pattern are you curious about?',
+    help: 'Ask about one possible connection. We will show what your records support and what remains unknown.',
+    placeholder: 'For example, is chai linked to my bloating?',
+    examples: ['Is chai linked to my bloating?', 'What pattern should I check after dinner?'],
+  },
+  care: {
+    heading: 'What would you like to discuss at a visit?',
+    help: 'Capture the question you want help explaining to a clinician. Your source records stay attached.',
+    placeholder: 'For example, how do I describe recurring bloating at my visit?',
+    examples: ['How do I describe my digestion at a visit?', 'What should I ask about recurring bloating?'],
+  },
+};
 const symptoms: Array<{ id: GutSymptom; label: string }> = [
   { id: 'unspecified', label: 'Not selected' },
   { id: 'bloating', label: 'Bloating' }, { id: 'discomfort', label: 'Abdominal discomfort' },
@@ -88,6 +108,17 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
   const [selectedIntent, setSelectedIntent] = useState<GutIntent | null>(null);
   const [mealPhrase, setMealPhrase] = useState('');
   const [selectedSymptom, setSelectedSymptom] = useState<GutSymptom>('unspecified');
+  const startFormRef = useRef<HTMLElement>(null);
+  const questionRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!selectedIntent || activeId) return;
+    const frame = requestAnimationFrame(() => {
+      startFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      questionRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selectedIntent, activeId]);
 
   const handleQuestionChange = (val: string) => {
     setQuestion(val);
@@ -336,6 +367,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
       </section>}
       {openThreads.length > 1 && <details className="gr-other-questions"><summary>{openThreads.length - 1} other open question{openThreads.length === 2 ? '' : 's'}</summary><div>{openThreads.slice(1).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}><span>{item.question}</span><ArrowRight size={15} /></button>)}</div></details>}
 
+      <div className="gr-onboarding-step">STEP 1 OF 2 <span>Choose how we can help</span></div>
       <section className="gr-intent-grid" aria-label="Choose what you need help with">
         {intents.map(({ id, title, desc, icon: Icon }) => (
           <button
@@ -343,7 +375,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
             key={id}
             className={`gr-intent${selectedIntent === id ? ' gr-intent-active' : ''}`}
             aria-pressed={selectedIntent === id}
-            onClick={() => setSelectedIntent((current) => current === id ? null : id)}
+            onClick={() => setSelectedIntent(id)}
           >
             <span className={`gr-icon gr-icon-${id}`} aria-hidden="true"><Icon size={21} /></span>
             <span><strong>{title}</strong><small>{desc}</small></span>
@@ -352,20 +384,27 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         ))}
       </section>
 
-      <section className="gr-start-form">
+      {!selectedIntent && <p className="gr-path-hint">Choose a card to begin. One question is enough, and you can change paths at any time.</p>}
+      {selectedIntent && <section ref={startFormRef} className="gr-start-form" aria-label={`${intents.find((item) => item.id === selectedIntent)?.title} question setup`}>
+        <div className="gr-onboarding-step">STEP 2 OF 2 <span>{intents.find((item) => item.id === selectedIntent)?.title}</span></div>
+        <h3 className="gr-path-heading">{intentGuidance[selectedIntent].heading}</h3>
+        <p className="gr-path-help">{intentGuidance[selectedIntent].help}</p>
         <label htmlFor="gr-question">Your question or situation</label>
         <div className="gr-input-wrap">
           <Search size={20} />
           <input
             id="gr-question"
+            ref={questionRef}
             value={question}
             maxLength={500}
             onChange={(event) => handleQuestionChange(event.target.value)}
             onKeyDown={(event) => { if (event.key === 'Enter') void startWithQuery(); }}
-            placeholder="What would you like help figuring out?"
+            placeholder={intentGuidance[selectedIntent].placeholder}
           />
         </div>
 
+        <details className="gr-optional-details">
+          <summary>Add a meal or symptom from your records (optional)</summary>
         <div className="gr-form-row">
           <label htmlFor="gr-meal-phrase">Meal or phrase to examine <span>(optional)</span>
             <input
@@ -384,11 +423,12 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
             </select>
           </label>
         </div>
+        </details>
 
         <details className="gr-example-disclosure">
           <summary>Need a starting point? See example questions</summary>
           <div className="gr-chips-row">
-            {EXAMPLE_PROMPTS.map((prompt) => (
+            {intentGuidance[selectedIntent].examples.map((prompt) => (
               <button
                 type="button"
                 key={prompt}
@@ -411,7 +451,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
           </button>
           <span>A question is enough. Meal and symptom details are optional.</span>
         </div>
-      </section>
+      </section>}
 
       <div className="gr-home-bottom">
         <div><ShieldCheck size={17} /> Your records and general research stay visibly separate.</div>

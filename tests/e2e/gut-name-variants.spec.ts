@@ -20,6 +20,7 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByRole('button', { name: /I want to understand/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is chai related to bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
   await gut.getByRole('button', { name: 'Inspect the evidence' }).click();

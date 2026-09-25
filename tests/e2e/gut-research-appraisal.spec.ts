@@ -20,6 +20,7 @@ test('Gut research appraises indexed metadata without sending the personal quest
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByRole('button', { name: /I want to understand/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is my private chai recipe linked to bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
   await gut.getByRole('button', { name: 'Explore research' }).click();

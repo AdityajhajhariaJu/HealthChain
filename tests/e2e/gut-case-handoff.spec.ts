@@ -42,6 +42,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByRole('button', { name: /I have a care question/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask my doctor about recurring bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
   await expect(gut.getByText('Bring this question to a visit')).toBeVisible();
