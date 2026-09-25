@@ -11,9 +11,10 @@ describe('Gut research metadata boundary', () => {
       { pmid: '23456', title: 'Withdrawn article', abstractText: 'An abstract.', isRetracted: 'Y' },
       { pmid: '34567', title: 'Retracted by notice', abstractText: 'An abstract.',
         commentCorrectionList: { commentCorrection: [{ type: 'Retracted in' }] } },
-      { pmid: '45678', title: 'Correction to an abdominal bloating study', abstractText: 'An abstract.',
+      { pmid: '45678', title: 'Correction to a diet and abdominal bloating study', abstractText: 'An abstract.',
         commentCorrectionList: { commentCorrection: [{ type: 'Erratum in' }] } },
       { pmid: '56789', title: 'Sports supplement use in athletes', abstractText: 'Abdominal bloating mentioned.' },
+      { pmid: '67890', title: 'Abdominal bloating in adults', abstractText: 'Diet is discussed only in the abstract.' },
     ] } }) }));
     vi.stubGlobal('fetch', fetchMock);
     const papers = await searchGutResearch('bloating');

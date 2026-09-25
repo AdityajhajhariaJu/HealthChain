@@ -35,6 +35,12 @@ const symptomTitle: Record<GutSymptom, RegExp> = {
   reflux: /reflux|gastroesophag|GERD/i, nausea: /nausea|vomit/i,
   bowel_changes: /bowel|constipat|diarrh|stool/i,
 };
+const topicTitle: Record<GutResearchTopic, RegExp> = {
+  food: /\b(?:diet|meal|food|nutrition)\b/i,
+  caffeine: /\b(?:caffeine|coffee|tea)\b/i,
+  dairy: /\b(?:milk|lactose|dairy)\b/i,
+  meal_timing: /\b(?:meal timing|eating time|postprandial)\b/i,
+};
 
 /** A generic concept query: no personal question, account ID, timeline or meal name leaves the device. */
 export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchTopic = 'food', signal?: AbortSignal): Promise<GutResearchPaper[]> {
@@ -54,7 +60,7 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
     const corrections = paper?.commentCorrectionList?.commentCorrection;
     const related = Array.isArray(corrections) ? corrections : corrections ? [corrections] : [];
     const title = String(paper?.title || '');
-    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(title) && !nonHumanTitle.test(title) &&
+    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(title) && topicTitle[topic].test(title) && !nonHumanTitle.test(title) &&
       paper?.isRetracted !== 'Y' && paper?.isRetracted !== true &&
       !related.some((item: any) => /^(retracted in|retraction of)$/i.test(String(item?.type || '')));
   }).slice(0, 4).map((paper: any) => {
