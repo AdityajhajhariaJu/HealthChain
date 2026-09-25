@@ -23,14 +23,14 @@ describe('Gut questions during profile download', () => {
     flushSyncOutbox.mockClear();
   });
 
-  it('keeps a local offline question when a newer cloud profile arrives and queues the union', async () => {
+  it('keeps a local question with no selected symptom when a newer cloud profile arrives', async () => {
     const ownerKey = 'hc_unified_profile_account-a';
     const question = (id: string, updatedAt: string) => ({
       id, schemaVersion: 1, ownerKey, profileId: 'profile_1', intent: 'understand',
       question: id, focus: 'chai', symptom: 'bloating', status: 'open', selectedStep: null,
       reflection: null, excludedMealIds: [], reviewedEvidence: null, createdAt: updatedAt, updatedAt,
     });
-    const local = question('local', '2026-09-23T10:00:00.000Z');
+    const local = { ...question('local', '2026-09-23T10:00:00.000Z'), symptom: 'unspecified' };
     const remote = question('remote', '2026-09-23T11:00:00.000Z');
     window.localStorage.setItem(ownerKey, JSON.stringify({
       activeId: 'profile_1', profiles: { profile_1: { id: 'profile_1', profileName: 'Local',

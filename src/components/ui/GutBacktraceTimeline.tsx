@@ -1,13 +1,14 @@
 import React from 'react';
 import { Activity, Clock, HelpCircle, ShieldCheck, Utensils, Pill, FileText } from 'lucide-react';
 import type { GutBacktraceProjection } from '../../services/GutResolutionService';
+import type { GutSourceReference } from './GutSourceRecord';
 
 interface Props {
   projection: GutBacktraceProjection;
-  onOpenHistory?: (date?: string) => void;
+  onOpenSource?: (source: GutSourceReference) => void;
 }
 
-export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistory }) => {
+export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenSource }) => {
   const { anchorTimestamp, anchorType, anchorTimezone, timedItems, dateOnlyItems, summary, caveat } = projection;
   const [showAll, setShowAll] = React.useState(false);
   const visibleTimed = showAll ? timedItems : timedItems.slice(0, 4);
@@ -141,13 +142,13 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
 
                 <div style={{ marginTop: '4px', fontSize: '10.5px', color: '#94A3B8', display: 'flex', gap: '8px' }}>
                   <span>{item.timePrecision === 'exact' ? 'User-reported occurrence time' : 'Approximate user-reported occurrence time'}</span>
-                  {onOpenHistory && (
+                  {onOpenSource && (
                     <button
                       type="button"
-                      onClick={() => onOpenHistory(item.sourceLocalDate || item.localDate)}
+                      onClick={() => onOpenSource({ sourceKind: item.sourceKind, sourceId: item.sourceId, localDate: item.sourceLocalDate || item.localDate })}
                       style={{ background: 'none', border: 'none', padding: 0, color: '#AD234A', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}
                     >
-                      Open recorded date &rarr;
+                      Open source record &rarr;
                     </button>
                   )}
                 </div>
@@ -198,7 +199,7 @@ export const GutBacktraceTimeline: React.FC<Props> = ({ projection, onOpenHistor
                 <details style={{ width: '100%', color: '#64748B' }}>
                   <summary style={{ cursor: 'pointer', color: '#AD234A', fontWeight: 700 }}>Source and timing limit</summary>
                   <span>Source {item.sourceKind} · {item.sourceId}{item.revision === null ? '' : ` · revision ${item.revision}`}. Time of occurrence is unknown; this record may be before or after the question. {item.kind === 'medication' ? 'A medication note does not confirm a dose was taken. ' : ''}{item.reportedAt ? `Entered ${item.reportedAt}. ` : ''}</span>
-                  {onOpenHistory && <button type="button" onClick={() => onOpenHistory(item.localDate)} style={{ display: 'block', marginTop: 4, border: 0, background: 'none', color: '#AD234A', cursor: 'pointer' }}>Open recorded date &rarr;</button>}
+                  {onOpenSource && <button type="button" onClick={() => onOpenSource({ sourceKind: item.sourceKind, sourceId: item.sourceId, localDate: item.localDate })} style={{ display: 'block', marginTop: 4, border: 0, background: 'none', color: '#AD234A', cursor: 'pointer' }}>Open source record &rarr;</button>}
                 </details>
               </div>
             ))}

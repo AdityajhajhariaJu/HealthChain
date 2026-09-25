@@ -10,7 +10,6 @@ import {
 } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { getProfile, completeProfileOnboarding } from '../../services/ProfileEngine';
-import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { 
   Flame, 
@@ -326,19 +325,10 @@ export default function OnboardingFlow() {
           name: m.name,
           dosage: 'As directed',
           circadianSlot: m.slot,
-          time: m.slot === 'morning' ? '08:30' : m.slot === 'midday' ? '13:00' : m.slot === 'evening' ? '18:30' : '21:30'
         })),
         allergies: hasNoAllergies ? [] : allergies,
         healthFocus: selectedGoal?.title || '',
       });
-
-      if (!hasNoMeds && medications.length > 0) {
-        try {
-          await syncMedicationsFromProfile(medications.map(m => ({ name: m.name, timing: m.slot })));
-        } catch (err) {
-          console.warn('Medication schedule sync deferred:', err);
-        }
-      }
 
       localStorage.setItem('hc_onboarded', 'true');
       awardPoints(20, 'Welcome to HealthChain360! 🌟', 'welcome');

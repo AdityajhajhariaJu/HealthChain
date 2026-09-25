@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Activity, ArrowRight, CalendarDays, Clipboard, FileText, Plus, ShieldCheck, Sparkles, Utensils, X } from 'lucide-react';
 import { getGutSnapshot, formatGutVisitNote, summarizeRecordedBloating } from '../../services/GutHealthSummary';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 import { GutResolutionWorkspace } from './GutResolutionWorkspace';
+import { GutSourceRecord, type GutSourceReference } from './GutSourceRecord';
 import FocusTrap from './FocusTrap';
 
 interface Props { isOpen: boolean; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
@@ -16,9 +17,11 @@ const icon: React.CSSProperties = { width: 44, height: 44, borderRadius: 14, dis
 export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
   const [tab, setTab] = useState<Tab>('studio');
   const [historyInitialDate, setHistoryInitialDate] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<GutSourceReference | null>(null);
   const [quickMealOpen, setQuickMealOpen] = useState(false);
   const [snapshot, setSnapshot] = useState(() => getGutSnapshot());
   const [message, setMessage] = useState('');
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,7 +38,8 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, quickMealOpen, onClose]);
 
-  const openHistory = (date?: string) => { setHistoryInitialDate(date || null); setTab('records'); };
+  const openHistory = (date?: string) => { setSelectedSource(null); setHistoryInitialDate(date || null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
+  const openSource = (source: GutSourceReference) => { setSnapshot(getGutSnapshot()); setSelectedSource(source); setHistoryInitialDate(source.localDate); setTab('records'); mainRef.current?.scrollTo(0, 0); };
   const copyVisitNote = async () => {
     try { await navigator.clipboard.writeText(formatGutVisitNote(snapshot)); setMessage('Recorded history copied.'); }
     catch { setMessage('Could not copy. Please try again.'); }
@@ -56,9 +60,10 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult
           <nav aria-label="Gut Health sections" style={{ display: 'flex', padding: '8px clamp(12px,3vw,24px)', gap: 6, borderBottom: '1px solid #F1E5E7', overflowX: 'auto', background: '#FFFCFB' }}>
             {([['studio','Resolution Studio',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setTab(id); setMessage(''); }} style={{ ...button, minHeight: 40, background: tab === id ? '#FEF2F3' : '#FFFDFC', borderColor: tab === id ? '#F9D2D7' : '#F1E5E7', color: tab === id ? '#CD3153' : '#64748B', fontSize: 13.5, whiteSpace: 'nowrap', boxShadow: tab === id ? '0 2px 6px rgba(205, 49, 83, 0.12)' : 'none' }}><Icon size={16} />{label}</button>)}
           </nav>
-          <main style={{ overflowY: 'auto', padding: '16px clamp(14px,3vw,26px)', flex: 1 }}>
-            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace onOpenHistory={openHistory} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
+          <main ref={mainRef} style={{ overflowY: 'auto', padding: '16px clamp(14px,3vw,26px)', flex: 1 }}>
+            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
             {tab === 'records' && <div style={{ maxWidth: 850, margin: '0 auto' }}>
+              {selectedSource && <GutSourceRecord source={selectedSource} meals={snapshot.meals} days={snapshot.days} onBack={() => setSelectedSource(null)} onOpenDate={openHistory} />}
               <div style={{ marginBottom: 12 }}><div style={{ color: '#AD234A', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em' }}>YOUR SOURCE RECORDS</div><h2 className="serif-heading" style={{ fontSize: 24, margin: '6px 0 2px', color: '#0F172A' }}>The details behind your questions</h2><p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>Record only what matters. Blank days and unreported outcomes remain unknown.</p></div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 14 }}>
                 <section style={{ ...surface, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><span aria-hidden="true" style={{ ...icon, width: 38, height: 38, borderRadius: 12 }}><Utensils size={18} /></span><div><h3 style={{ margin: 0, fontSize: 14, color: '#0F172A', fontWeight: 800 }}>Meals</h3><p style={{ color: '#64748B', fontSize: 12, margin: '2px 0 0' }}>{snapshot.meals.length} recorded meal{snapshot.meals.length === 1 ? '' : 's'}</p></div></div><button type="button" onClick={() => setQuickMealOpen(true)} style={{ ...button, minHeight: 34, padding: '6px 11px', fontSize: 12 }}><Plus size={14} /> Log meal</button></section>

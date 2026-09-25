@@ -31,7 +31,6 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
-import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
 import { HCLogo } from '../../components/ui/HCLogo';
 
 import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
@@ -118,11 +117,11 @@ const HEALTH_FOCUS_OPTIONS = [
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 
-const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; time: string; color: string; bg: string }> = {
-  morning: { label: 'Morning', icon: '🌅', time: '08:30', color: '#0F766E', bg: '#CCFBF1' },
-  midday: { label: 'Midday', icon: '☀️', time: '13:00', color: '#0D9488', bg: '#ECFDF5' },
-  evening: { label: 'Evening', icon: '🌇', time: '18:30', color: '#D97706', bg: '#FEF3C7' },
-  bedtime: { label: 'Bedtime', icon: '🌙', time: '21:30', color: '#4338CA', bg: '#EEF2FF' },
+const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+  morning: { label: 'Morning', icon: '🌅', color: '#0F766E', bg: '#CCFBF1' },
+  midday: { label: 'Midday', icon: '☀️', color: '#0D9488', bg: '#ECFDF5' },
+  evening: { label: 'Evening', icon: '🌇', color: '#D97706', bg: '#FEF3C7' },
+  bedtime: { label: 'Bedtime', icon: '🌙', color: '#4338CA', bg: '#EEF2FF' },
 };
 
 export default function ProfileOnboarding({ onComplete }: { onComplete?: () => void }) {
@@ -275,7 +274,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
     const formattedMeds = medications.map((m) => {
       const slotMeta = CIRCADIAN_SLOT_META[m.slot];
-      return `${m.name} (${slotMeta.label} ${slotMeta.time})`;
+      return `${m.name} (${slotMeta.label})`;
     });
 
     const formattedAllergies = nkda
@@ -297,12 +296,6 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
       familyHistory,
       healthFocus,
     });
-
-    try {
-      await syncMedicationsFromProfile(medications.map((m) => ({ name: m.name, timing: m.slot })));
-    } catch (e) {
-      console.warn('Medication circadian schedule sync bypassed:', e);
-    }
 
     awardPoints(50, 'Medical Profile Initialized ✨', 'milestone', 'profile_onboarding_init');
     if (onComplete) onComplete();

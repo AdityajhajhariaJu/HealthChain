@@ -15,7 +15,7 @@ export function mergeGutThreads(
       && Number.isFinite(Date.parse(item.updatedAt)) && typeof item.question === 'string'
       && Array.isArray(item.excludedMealIds)
       && ['understand', 'decide', 'now', 'care'].includes(item.intent || '')
-      && ['bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item.symptom || '');
+      && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item.symptom || '');
   };
   const merged = new Map<string, GutQuestionThread>();
   for (const source of [remote, local]) {

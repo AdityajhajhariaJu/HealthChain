@@ -19,6 +19,12 @@ describe('Gut question merge across profile snapshots', () => {
       .toEqual(['remote', 'local']);
   });
 
+  it('preserves questions saved without a selected symptom', () => {
+    const local = { ...makeThread('unspecified', '2026-09-23T12:00:00.000Z'), symptom: 'unspecified' as const };
+    expect(mergeGutThreads([local], [], ownerKey, profileId)).toEqual([local]);
+    expect(mergeGutThreads([], [local], ownerKey, profileId)).toEqual([local]);
+  });
+
   it('retains the newer reviewed question even when its enclosing profile is older', () => {
     const old = makeThread('shared', '2026-09-23T10:00:00.000Z', 'old reflection');
     const revised = makeThread('shared', '2026-09-23T12:00:00.000Z', 'new reflection');

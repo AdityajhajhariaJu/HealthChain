@@ -32,7 +32,6 @@ import { getProfile, completeProfileOnboarding } from '../../services/ProfileEng
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
 import { CalmApothecaryCapsule, CalmCategoryKey } from './CalmApothecaryCapsule';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
@@ -120,15 +119,15 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown
 const STEPS = [
   { id: 0, label: 'Demographics & BMI' },
   { id: 1, label: 'Conditions' },
-  { id: 2, label: 'Medications & Clock' },
+  { id: 2, label: 'Medications' },
   { id: 3, label: 'Allergy Guard' }
 ];
 
-const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; time: string; color: string; bg: string }> = {
-  morning: { label: 'Morning', icon: '🌅', time: '08:30', color: '#B45309', bg: '#FEF3C7' },
-  midday: { label: 'Midday', icon: '☀️', time: '13:00', color: '#D97706', bg: '#FFFBEB' },
-  evening: { label: 'Evening', icon: '🌇', time: '18:30', color: '#4F46E5', bg: '#EEF2FF' },
-  bedtime: { label: 'Bedtime', icon: '🌙', time: '21:30', color: '#4338CA', bg: '#EEF2FF' },
+const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+  morning: { label: 'Morning', icon: '🌅', color: '#B45309', bg: '#FEF3C7' },
+  midday: { label: 'Midday', icon: '☀️', color: '#D97706', bg: '#FFFBEB' },
+  evening: { label: 'Evening', icon: '🌇', color: '#4F46E5', bg: '#EEF2FF' },
+  bedtime: { label: 'Bedtime', icon: '🌙', color: '#4338CA', bg: '#EEF2FF' },
 };
 
 const ALLERGY_SEVERITY_META: Record<AllergySeverity, { label: string; chipLabel: string; color: string; bg: string; border: string }> = {
@@ -286,14 +285,13 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               name: match ? match[1].trim() : m.trim(),
               dosage: match && match[2] ? match[2].trim() : 'As prescribed',
               circadianSlot: 'morning' as CircadianSlot,
-              time: '08:30'
             };
           }
           return {
             name: m.name || '',
             dosage: m.dosage || 'As prescribed',
             circadianSlot: (m.circadianSlot || 'morning') as CircadianSlot,
-            time: m.time || (m.circadianSlot === 'bedtime' ? '21:30' : m.circadianSlot === 'evening' ? '18:30' : m.circadianSlot === 'midday' ? '13:00' : '08:30')
+            ...(m.time ? { time: m.time } : {})
           };
         }).filter(m => m.name);
         setMedicationsList(parsedMeds);
@@ -440,12 +438,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     if (existingIndex >= 0) {
       setMedicationsList(prev => prev.filter((_, i) => i !== existingIndex));
     } else {
-      const defaultTime = CIRCADIAN_SLOT_META[preset.defaultSlot].time;
       setMedicationsList(prev => [...prev, {
         name: preset.name,
         dosage: preset.dosage,
-        circadianSlot: preset.defaultSlot,
-        time: defaultTime
+        circadianSlot: preset.defaultSlot
       }]);
     }
   };
@@ -454,13 +450,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     const trimmedName = medName.trim();
     if (trimmedName) {
       triggerHapticLight();
-      const defaultTime = CIRCADIAN_SLOT_META[medSlot].time;
       const existingIndex = medicationsList.findIndex(m => m.name.toLowerCase() === trimmedName.toLowerCase());
       const newEntry: ProfileMedicationItem = {
         name: trimmedName,
         dosage: medDosage.trim() || 'As prescribed',
-        circadianSlot: medSlot,
-        time: defaultTime
+        circadianSlot: medSlot
       };
 
       if (existingIndex >= 0) {
@@ -487,7 +481,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
         copy[index] = {
           ...copy[index],
           circadianSlot: newSlot,
-          time: CIRCADIAN_SLOT_META[newSlot].time
+          time: undefined
         };
       }
       return copy;
@@ -558,7 +552,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
       name: m.name,
       dosage: m.dosage || 'As prescribed',
       circadianSlot: m.circadianSlot,
-      time: m.time || CIRCADIAN_SLOT_META[m.circadianSlot].time
+      ...(m.time ? { time: m.time } : {})
     }));
 
     const formattedAllergies = hasNoAllergies ? [] : selectedAllergies.map(a => ({
@@ -583,16 +577,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
       healthFocus: selectedConditions.length > 0 ? selectedConditions[0] : 'General Wellness'
     });
 
-    // 2. Synchronize medications with daily VitaminScheduleService & push notifications
-    try {
-      if (formattedMeds.length > 0) {
-        await syncMedicationsFromProfile(formattedMeds);
-      }
-    } catch (err) {
-      console.warn('Failed to sync medications to vitamin schedule:', err);
-    }
-
-    // 3. Award milestone points
+    // Award milestone points
     awardPoints(50, 'Medical Dossier Initialized ✨', 'milestone', 'profile_completion_action');
 
     setIsSaving(false);
@@ -2147,7 +2132,6 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 >
                                   <SlotIcon size={14} strokeWidth={2.2} />
                                   <span>{meta.label}</span>
-                                  <span style={{ fontSize: '9px', opacity: 0.75 }}>{meta.time}</span>
                                 </button>
                               );
                             })}
@@ -2180,11 +2164,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       </div>
                     </div>
 
-                    {/* Active Scheduled Medications with Live Circadian Slot Adjuster */}
+                    {/* Profile medications and broad timing preferences */}
                     {medicationsList.length > 0 && (
                       <div>
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                          Scheduled Medications ({medicationsList.length})
+                          Profile Medications ({medicationsList.length})
                         </span>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {medicationsList.map((m, idx) => {

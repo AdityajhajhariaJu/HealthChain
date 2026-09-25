@@ -29,7 +29,6 @@ import {
   addAllergy, 
   removeAllergy 
 } from '../../services/ProfileEngine';
-import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
 import { triggerHapticLight, triggerHapticSelection, triggerHapticSuccess } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -210,14 +209,10 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
       name: m.name,
       dosage: m.dosage || 'As prescribed',
       circadianSlot: m.slot,
-      time: m.slot === 'morning' ? '08:30' : m.slot === 'midday' ? '13:00' : m.slot === 'evening' ? '18:30' : '21:30'
     }));
     updated.allergies = editAllergies;
 
     await saveProfile(updated);
-    if (editMeds.length > 0) {
-      await syncMedicationsFromProfile(editMeds.map(m => ({ name: m.name, timing: m.slot })));
-    }
     setIsEditModalOpen(false);
   };
 
