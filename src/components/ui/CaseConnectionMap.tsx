@@ -32,7 +32,10 @@ const SYMPTOM_ICONS: Record<string, string> = {
   symp_sleep: '🌙',
 };
 
-export function CaseConnectionMap({
+// ⚡ Bolt Performance Optimization:
+// Added React.memo to prevent unnecessary re-renders of the large and computationally expensive CaseConnectionMap component.
+// Impact: Reduces CPU load and prevents rendering jank by only re-rendering when props change.
+export const CaseConnectionMap = React.memo(function CaseConnectionMap({
   data,
   isMobile = false,
   selectedNodeId = null,
@@ -888,5 +891,5 @@ export function CaseConnectionMap({
       )}
     </div>
   );
-}
+});
 
