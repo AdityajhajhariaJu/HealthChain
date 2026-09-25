@@ -608,8 +608,8 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(145deg, #F6537B, #BD1749)',
-                    boxShadow: '0 5px 12px rgba(189, 44, 88, 0.32)',
+                    background: 'linear-gradient(145deg, #FFAA4D, #F47B38 58%, #DA5736)',
+                    boxShadow: '0 5px 12px rgba(218, 87, 54, 0.32)',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
