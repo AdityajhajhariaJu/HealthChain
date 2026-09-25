@@ -71,6 +71,25 @@ describe('Gut Resolution evidence ledger', () => {
     expect([evidence.support, evidence.tension, evidence.unknown]).toEqual([0, 0, 3]);
   });
 
+  it('shows scoped medication notes as same-date context without counting a dose or changing the symptom answer', () => {
+    const context: Observation = {
+      ...report(meals[0], 'yes'), id: 'context-1', sourceRecordId: undefined,
+      payload: { kind: 'context', description: 'Medication listed for this date', contextType: 'medication' },
+    };
+    const otherAccount = { ...context, id: 'other-account-context', ownerId: 'different-account' };
+    const evidence = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [context, otherAccount]);
+    expect([evidence.support, evidence.tension, evidence.unknown]).toEqual([0, 0, 1]);
+    expect(evidence.bundle.alternativeContext).toEqual([{
+      kind: 'recorded_context_same_date', sourceId: 'context-1', revision: 1,
+      timePrecision: 'date_only', label: 'Medication listed for this date', contextType: 'medication',
+    }]);
+    const reviewed = makeGutReviewSnapshot(thread, evidence);
+    const revised = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [{ ...context, revision: 2, payload: { kind: 'context', description: 'Medication note corrected', contextType: 'medication' } }]);
+    expect(deriveGutChangeReceipt(reviewed, thread, revised).changes[0].detail).toContain('context changed');
+    const earlierFormat = { ...reviewed, occasions: [{ ...reviewed.occasions![0], sourceVersion: JSON.stringify([null, null, null, null, null, null, 'no_explicit_answer', null, []]) }] };
+    expect(deriveGutChangeReceipt(earlierFormat, thread, revised).changes[0].detail).toContain('linked source or context changed');
+  });
+
   it('lets the user keep a different meal separate without deleting its source', () => {
     const evidence = deriveGutEvidence({ ...thread, excludedMealIds: [meals[1].id] }, { meals, days: [] }, [report(meals[1], 'no')]);
     expect(evidence.occasions.map((item) => item.meal.id)).not.toContain(meals[1].id);
@@ -127,7 +146,7 @@ describe('Gut Resolution evidence ledger', () => {
     const receipt = deriveGutChangeReceipt(reviewed, thread, revised);
     expect(receipt.changed).toBe(true);
     expect(receipt.changes.map((item) => item.detail)).toEqual([
-      'A linked source or context changed; the reported outcome is unchanged',
+      `Gut report report-${meals[0].id} was added, removed or revised`,
       'New matching occasion in your records',
     ]);
     const removed = deriveGutChangeReceipt(reviewed, thread, deriveGutEvidence(thread, { meals: [], days: [] }, []));

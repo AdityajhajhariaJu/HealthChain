@@ -44,7 +44,17 @@ export interface GutEvidenceOccasion {
   mealReactionAnswer: Answer;
   sameDay: GutDay | null;
   otherMeals: GutMeal[];
+  alternativeContext: GutAlternativeContext[];
   edge: GutEvidenceEdge;
+}
+
+export interface GutAlternativeContext {
+  kind: 'other_meal_same_date' | 'recorded_context_same_date';
+  sourceId: string;
+  revision: number | null;
+  timePrecision: TimePrecision;
+  label: string;
+  contextType?: 'medication' | 'illness' | 'sleep' | 'stress' | 'other';
 }
 
 export interface GutEvidenceEdge {
@@ -58,6 +68,7 @@ export interface GutEvidenceBundle {
   support: GutEvidenceEdge[];
   counterexamples: GutEvidenceEdge[];
   unknown: GutEvidenceEdge[];
+  alternativeContext: GutAlternativeContext[];
 }
 
 export interface GutEvidence {
@@ -187,7 +198,8 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const focus = normalize(thread.focus);
   const candidates = focus ? snapshot.meals.filter((meal) => normalize(meal.name).includes(focus) && !thread.excludedMealIds.includes(meal.id)) : [];
   const current = scope();
-  const scoped = observations.filter((item) => item.ownerId === getAccountScope() && item.profileId === current.profileId && !item.deletedAt && item.payload.kind === 'daily_checkin');
+  const scopedObservations = observations.filter((item) => item.ownerId === getAccountScope() && item.profileId === current.profileId && !item.deletedAt);
+  const scoped = scopedObservations.filter((item) => item.payload.kind === 'daily_checkin');
   const occasions: GutEvidenceOccasion[] = candidates.map((meal) => {
     const reports = scoped.filter((item) => item.sourceRecordId === meal.id && item.localDate === meal.date && item.payload.kind === 'daily_checkin' && item.payload.answers[thread.symptom]);
     reports.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -212,24 +224,42 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
       mealSource: { id: meal.id, revision: null, timePrecision: meal.loggedAt ? 'exact' : 'date_only' },
       answerSources,
     };
+    const otherMeals = snapshot.meals.filter((other) => other.date === meal.date && other.id !== meal.id);
+    const alternativeContext: GutAlternativeContext[] = [
+      ...otherMeals.map((other): GutAlternativeContext => ({
+        kind: 'other_meal_same_date', sourceId: other.id, revision: null,
+        timePrecision: other.loggedAt ? 'exact' : 'date_only', label: other.name,
+      })),
+      ...scopedObservations.filter((item) => item.localDate === meal.date && item.payload.kind === 'context')
+        .map((item): GutAlternativeContext => ({
+          kind: 'recorded_context_same_date', sourceId: item.id, revision: item.revision,
+          timePrecision: item.timePrecision,
+          label: item.payload.kind === 'context' ? item.payload.description : '',
+          contextType: item.payload.kind === 'context' ? item.payload.contextType : 'other',
+        })),
+    ];
     return {
       meal, answer, answerSource: report, answerOrigin, mealReactionAnswer,
       sameDay: snapshot.days.find((day) => day.date === meal.date) || null,
-      otherMeals: snapshot.meals.filter((other) => other.date === meal.date && other.id !== meal.id).slice(0, 4),
+      otherMeals,
+      alternativeContext,
       edge,
     };
   });
+  const alternativeContext = [...new Map(occasions.flatMap((item) => item.alternativeContext)
+    .map((item) => [`${item.kind}:${item.sourceId}`, item])).values()];
   const bundle: GutEvidenceBundle = {
     support: occasions.filter((item) => item.edge.category === 'support').map((item) => item.edge),
     counterexamples: occasions.filter((item) => item.edge.category === 'counterexample').map((item) => item.edge),
     unknown: occasions.filter((item) => item.edge.category === 'unknown').map((item) => item.edge),
+    alternativeContext,
   };
   const support = bundle.support.length;
   const tension = bundle.counterexamples.length;
   const unknown = bundle.unknown.length;
   const conflicts = occasions.filter((item) => item.answerOrigin === 'conflict').length;
   const unstable = occasions.filter((item) => item.edge.inclusionRule === 'unstable_legacy_meal_id').length;
-  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, edge, sameDay, otherMeals }) => [meal.id, meal.date, meal.loggedAt, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, edge.inclusionRule, sameDay, otherMeals.map((other) => other.id)])]);
+  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, edge, sameDay, alternativeContext }) => [meal.id, meal.date, meal.loggedAt, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, edge.inclusionRule, sameDay, alternativeContext])]);
   const label = symptomLabel[thread.symptom];
   let answer = 'Choose a recorded meal or phrase to examine. A question can still be saved without prior records.';
   if (focus && occasions.length === 0) answer = `No recorded meal names match “${thread.focus}” yet. This does not mean it was never eaten.`;
@@ -255,8 +285,36 @@ const reviewOccasion = (item: GutEvidenceOccasion) => ({
   name: item.meal.name,
   date: item.meal.date,
   answer: item.answer,
-  sourceVersion: JSON.stringify([item.meal.loggedAt, item.meal.reaction, item.meal.reactionType, item.meal.reactionRecordedAt, item.answerSource?.id, item.answerSource?.revision, item.edge.inclusionRule, item.sameDay, item.otherMeals.map((meal) => meal.id)]),
+  sourceVersion: JSON.stringify([item.meal.loggedAt, item.meal.reaction, item.meal.reactionType, item.meal.reactionRecordedAt, item.answerSource?.id, item.answerSource?.revision, item.edge.inclusionRule, item.sameDay, item.alternativeContext, 'gut-edge-v2']),
 });
+
+function describeGutSourceChange(previous: string, current: string, mealId: string): string {
+  try {
+    const old = JSON.parse(previous);
+    const next = JSON.parse(current);
+    if (!Array.isArray(old) || !Array.isArray(next) || old[9] !== 'gut-edge-v2' || next[9] !== 'gut-edge-v2') throw new Error('Earlier snapshot format');
+    if (old[4] !== next[4] || old[5] !== next[5]) return `Gut report ${next[4] || old[4] || mealId} was added, removed or revised`;
+    if (old[1] !== next[1] || old[2] !== next[2] || old[3] !== next[3]) return `Diet reaction on meal ${mealId} changed`;
+    if (JSON.stringify(old[8]) !== JSON.stringify(next[8])) {
+      const prior = new Map<string, string>((Array.isArray(old[8]) ? old[8] : []).map((item: GutAlternativeContext): [string, string] => [`${item.kind}:${item.sourceId}`, JSON.stringify(item)]));
+      const latest = new Map<string, string>((Array.isArray(next[8]) ? next[8] : []).map((item: GutAlternativeContext): [string, string] => [`${item.kind}:${item.sourceId}`, JSON.stringify(item)]));
+      const source = [...new Set([...prior.keys(), ...latest.keys()])].find((id) => prior.get(id) !== latest.get(id));
+      return `Same-date context changed${source ? ` (source ${source.split(':').slice(1).join(':')})` : ''}`;
+    }
+    if (JSON.stringify(old[7]) !== JSON.stringify(next[7])) return 'Same-date digestion record changed';
+    if (old[6] !== next[6]) return 'Counting rule changed';
+    if (old[0] !== next[0]) return 'Saved meal time changed';
+  } catch { /* Older snapshots still get a truthful generic change notice. */ }
+  return 'A linked source or context changed; the reported outcome is unchanged';
+}
+
+function outcomeChangeSource(version: string, mealId: string): string {
+  try {
+    const data = JSON.parse(version);
+    if (Array.isArray(data) && typeof data[4] === 'string' && data[4]) return data[4];
+  } catch { /* Use the meal source for older snapshots. */ }
+  return mealId;
+}
 
 export function makeGutReviewSnapshot(thread: GutQuestionThread, evidence: GutEvidence, at = new Date().toISOString()): GutReviewSnapshot {
   return { fingerprint: evidence.fingerprint, support: evidence.support, tension: evidence.tension, unknown: evidence.unknown, at,
@@ -277,7 +335,7 @@ export function deriveGutChangeReceipt(previous: GutReviewSnapshot, thread: GutQ
     if (!reviewedOccasions) break;
     const old = oldItems.get(id);
     if (!old) changes.push({ mealId: id, label: item.name, detail: 'New matching occasion in your records' });
-    else if (old.answer !== item.answer || old.sourceVersion !== item.sourceVersion) changes.push({ mealId: id, label: item.name, detail: old.answer !== item.answer ? `Reported outcome changed from ${old.answer === 'unanswered' ? 'unknown' : old.answer} to ${item.answer === 'unanswered' ? 'unknown' : item.answer}` : 'A linked source or context changed; the reported outcome is unchanged' });
+    else if (old.answer !== item.answer || old.sourceVersion !== item.sourceVersion) changes.push({ mealId: id, label: item.name, detail: old.answer !== item.answer ? `Reported outcome changed from ${old.answer === 'unanswered' ? 'unknown' : old.answer} to ${item.answer === 'unanswered' ? 'unknown' : item.answer} (source ${outcomeChangeSource(item.sourceVersion, id)})` : describeGutSourceChange(old.sourceVersion, item.sourceVersion, id) });
   }
   for (const [id, item] of oldItems) if (!newItems.has(id)) changes.push({ mealId: id, label: item.name, detail: 'No longer included in this comparison' });
   return { changed, comparisonChanged, changes, previous: oldCounts, current };
