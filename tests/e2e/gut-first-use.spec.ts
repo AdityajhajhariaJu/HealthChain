@@ -26,7 +26,10 @@ test('a first-time guest can ask one question without inventing a symptom', asyn
   await expect(question).toHaveValue('What pattern should I check after dinner?');
   await expect(gut.getByRole('heading', { name: 'What pattern should I check after dinner?' })).toHaveCount(0);
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  await expect(gut.getByText('Symptom not selected')).toBeVisible();
+  const trail = gut.getByRole('region', { name: 'Connected record trail' });
+  await expect(trail.getByText('0 matching occasions · 0 explicit outcomes')).toBeVisible();
+  expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  await expect(gut.getByText('Symptom not selected', { exact: true })).toBeVisible();
   await expect(gut.getByText(/Your question is saved/)).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });
@@ -75,4 +78,17 @@ test('meal recording is a visible optional source action linked to questions', a
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await sourceAction.getByRole('button', { name: 'Record a meal' }).click();
   await expect(page.getByRole('dialog', { name: 'Quick meal entry' })).toBeVisible();
+});
+
+test('the connected map leads to a missing meal comparison', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc_guest_mode', 'true'));
+  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByRole('button', { name: /I have a care question/ }).click();
+  await gut.getByLabel('Your question or situation').fill('What should I ask at my visit?');
+  await gut.getByRole('button', { name: 'Open my question' }).click();
+  const trail = gut.getByRole('region', { name: 'Connected record trail' });
+  await trail.getByText('Meal reports').click();
+  await trail.getByRole('button', { name: 'Choose a meal to examine' }).click();
+  await expect(gut.locator('#gr-focus-edit')).toBeFocused();
 });

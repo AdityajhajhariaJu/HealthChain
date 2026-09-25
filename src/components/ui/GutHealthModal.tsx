@@ -39,7 +39,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult
   }, [isOpen, quickMealOpen, onClose]);
 
   const openHistory = (date?: string) => { setSelectedSource(null); setHistoryInitialDate(date || null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
-  const openSource = (source: GutSourceReference) => { setSnapshot(getGutSnapshot()); setSelectedSource(source); setHistoryInitialDate(source.localDate); setTab('records'); mainRef.current?.scrollTo(0, 0); };
+  const openSource = (source: GutSourceReference) => { setSnapshot(getGutSnapshot()); setSelectedSource(source); setHistoryInitialDate(null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
   const copyVisitNote = async () => {
     try { await navigator.clipboard.writeText(formatGutVisitNote(snapshot)); setMessage('Recorded history copied.'); }
     catch { setMessage('Could not copy. Please try again.'); }
