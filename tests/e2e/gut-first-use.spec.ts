@@ -64,3 +64,15 @@ test('each card opens its own short onboarding prompt without creating a questio
   }
   await expect(gut.getByText('Add a meal or symptom from your records (optional)')).toBeVisible();
 });
+
+test('meal recording is a visible optional source action linked to questions', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc_guest_mode', 'true'));
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  const sourceAction = gut.getByRole('region', { name: 'Optional meal record' });
+  await expect(sourceAction.getByText('A saved meal can appear in a question’s evidence and record window. You can continue without logging one.')).toBeVisible();
+  expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  await sourceAction.getByRole('button', { name: 'Record a meal' }).click();
+  await expect(page.getByRole('dialog', { name: 'Quick meal entry' })).toBeVisible();
+});

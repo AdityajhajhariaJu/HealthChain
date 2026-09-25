@@ -384,6 +384,17 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         ))}
       </section>
 
+      <section className="gr-quick-record" aria-label="Optional meal record">
+        <span className="gr-quick-record-icon" aria-hidden="true"><Utensils size={20} /></span>
+        <div className="gr-quick-record-copy">
+          <span className="gr-quick-record-kicker">OPTIONAL SOURCE RECORD</span>
+          <strong>Have a meal worth remembering?</strong>
+          <p>A saved meal can appear in a question’s evidence and record window. You can continue without logging one.</p>
+          {snapshot.meals.length > 0 && <small>{snapshot.meals.length} meal{snapshot.meals.length === 1 ? '' : 's'} saved in this profile</small>}
+        </div>
+        <button type="button" onClick={onOpenQuickMeal}><Plus size={16} /> Record a meal <ArrowRight size={15} /></button>
+      </section>
+
       {!selectedIntent && <p className="gr-path-hint">Choose a card to begin. One question is enough, and you can change paths at any time.</p>}
       {selectedIntent && <section ref={startFormRef} className="gr-start-form" aria-label={`${intents.find((item) => item.id === selectedIntent)?.title} question setup`}>
         <div className="gr-onboarding-step">STEP 2 OF 2 <span>{intents.find((item) => item.id === selectedIntent)?.title}</span></div>
@@ -455,7 +466,6 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
 
       <div className="gr-home-bottom">
         <div><ShieldCheck size={17} /> Your records and general research stay visibly separate.</div>
-        <button type="button" onClick={onOpenQuickMeal}><Plus size={16} /> Record a meal</button>
         <button type="button" onClick={() => onOpenHistory()}><Activity size={16} /> Open history</button>
       </div>
 
