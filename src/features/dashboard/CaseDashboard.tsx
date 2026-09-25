@@ -586,9 +586,9 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #FFFCFA 0%, #FFF0E9 60%, #F8DDD2 100%)',
-                  border: '1px solid #E9CBBE',
-                  boxShadow: '0 4px 16px rgba(155, 103, 91, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                  background: '#FFFFFF',
+                  border: '1px solid #F1E5E7',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
                   borderRadius: isMobile ? '28px' : '34px',
                   padding: isMobile ? '16px' : '22px',
                   display: 'flex',
@@ -608,13 +608,13 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'radial-gradient(circle at 30% 25%, #FFF, #F7DED4 72%, #ECC3B4)',
-                    boxShadow: 'inset 0 1px 2px #FFF, 0 5px 14px #C18E7950',
+                    background: 'linear-gradient(145deg, #F6537B, #BD1749)',
+                    boxShadow: '0 5px 12px rgba(189, 44, 88, 0.32)',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <Utensils size={isMobile ? 18 : 20} color="#9B675B" strokeWidth={2.2} />
+                    <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.2} />
                   </div>
                 </div>
                 <div>
