@@ -2,6 +2,7 @@ import { getProfile, getProfileEngineState, getProfileKey, saveProfile } from '.
 import { captureObservationScope, createObservation, listObservations, reviseObservation } from './HealthObservationService';
 import { getAccountScope } from './RunContext';
 import type { Answer, Observation } from '../domain/observations/types';
+import type { TimePrecision } from '../domain/observations/types';
 import type { GutDay, GutMeal } from './GutHealthSummary';
 
 export type GutIntent = 'understand' | 'decide' | 'now' | 'care';
@@ -43,10 +44,25 @@ export interface GutEvidenceOccasion {
   mealReactionAnswer: Answer;
   sameDay: GutDay | null;
   otherMeals: GutMeal[];
+  edge: GutEvidenceEdge;
+}
+
+export interface GutEvidenceEdge {
+  category: 'support' | 'counterexample' | 'unknown';
+  inclusionRule: 'linked_explicit_report' | 'symptom_specific_diet_reaction' | 'concordant_reports' | 'conflicting_reports' | 'no_explicit_answer' | 'unstable_legacy_meal_id';
+  mealSource: { id: string; revision: null; timePrecision: TimePrecision };
+  answerSources: { kind: 'gut_report' | 'diet_reaction'; id: string; revision: number | null; timePrecision: TimePrecision }[];
+}
+
+export interface GutEvidenceBundle {
+  support: GutEvidenceEdge[];
+  counterexamples: GutEvidenceEdge[];
+  unknown: GutEvidenceEdge[];
 }
 
 export interface GutEvidence {
   occasions: GutEvidenceOccasion[];
+  bundle: GutEvidenceBundle;
   support: number;
   tension: number;
   unknown: number;
@@ -178,31 +194,56 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
     const canonicalAnswer = report?.payload.kind === 'daily_checkin' ? report.payload.answers[thread.symptom] || 'unanswered' : 'unanswered';
     const mealReactionAnswer = answerFromMealReaction(meal, thread.symptom);
     const conflict = canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' && canonicalAnswer !== mealReactionAnswer;
-    const answer = conflict ? 'unanswered' : canonicalAnswer !== 'unanswered' ? canonicalAnswer : mealReactionAnswer;
+    const unstableId = !hasStableGutMealId(meal);
+    const answer = unstableId || conflict ? 'unanswered' : canonicalAnswer !== 'unanswered' ? canonicalAnswer : mealReactionAnswer;
     const answerOrigin: GutEvidenceOccasion['answerOrigin'] = conflict ? 'conflict' : canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' ? 'both' : canonicalAnswer !== 'unanswered' ? 'canonical' : mealReactionAnswer !== 'unanswered' ? 'meal_reaction' : 'none';
+    const answerSources: GutEvidenceEdge['answerSources'] = [];
+    if (report && canonicalAnswer !== 'unanswered') answerSources.push({ kind: 'gut_report', id: report.id, revision: report.revision, timePrecision: report.timePrecision });
+    // Diet records when the reaction was entered, not when the symptom began.
+    if (mealReactionAnswer !== 'unanswered') answerSources.push({ kind: 'diet_reaction', id: meal.id, revision: null, timePrecision: 'date_only' });
+    const inclusionRule: GutEvidenceEdge['inclusionRule'] = unstableId ? 'unstable_legacy_meal_id' : conflict ? 'conflicting_reports'
+      : canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' ? 'concordant_reports'
+        : canonicalAnswer !== 'unanswered' ? 'linked_explicit_report'
+          : mealReactionAnswer !== 'unanswered' ? 'symptom_specific_diet_reaction' : 'no_explicit_answer';
+    const edge: GutEvidenceEdge = {
+      category: answer === 'yes' ? 'support' : answer === 'no' ? 'counterexample' : 'unknown',
+      inclusionRule,
+      mealSource: { id: meal.id, revision: null, timePrecision: meal.loggedAt ? 'exact' : 'date_only' },
+      answerSources,
+    };
     return {
       meal, answer, answerSource: report, answerOrigin, mealReactionAnswer,
       sameDay: snapshot.days.find((day) => day.date === meal.date) || null,
       otherMeals: snapshot.meals.filter((other) => other.date === meal.date && other.id !== meal.id).slice(0, 4),
+      edge,
     };
   });
-  const support = occasions.filter((item) => item.answer === 'yes').length;
-  const tension = occasions.filter((item) => item.answer === 'no').length;
-  const unknown = occasions.filter((item) => item.answer === 'unanswered').length;
+  const bundle: GutEvidenceBundle = {
+    support: occasions.filter((item) => item.edge.category === 'support').map((item) => item.edge),
+    counterexamples: occasions.filter((item) => item.edge.category === 'counterexample').map((item) => item.edge),
+    unknown: occasions.filter((item) => item.edge.category === 'unknown').map((item) => item.edge),
+  };
+  const support = bundle.support.length;
+  const tension = bundle.counterexamples.length;
+  const unknown = bundle.unknown.length;
   const conflicts = occasions.filter((item) => item.answerOrigin === 'conflict').length;
-  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, sameDay, otherMeals }) => [meal.id, meal.date, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, sameDay, otherMeals.map((other) => other.id)])]);
+  const unstable = occasions.filter((item) => item.edge.inclusionRule === 'unstable_legacy_meal_id').length;
+  const fingerprint = JSON.stringify([thread.focus, thread.symptom, thread.excludedMealIds, occasions.map(({ meal, answer, answerSource, edge, sameDay, otherMeals }) => [meal.id, meal.date, meal.loggedAt, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision, edge.inclusionRule, sameDay, otherMeals.map((other) => other.id)])]);
   const label = symptomLabel[thread.symptom];
   let answer = 'Choose a recorded meal or phrase to examine. A question can still be saved without prior records.';
   if (focus && occasions.length === 0) answer = `No recorded meal names match “${thread.focus}” yet. This does not mean it was never eaten.`;
   else if (conflicts) answer = `${conflicts} matching occasion${conflicts === 1 ? ' has' : 's have'} disagreeing meal-linked reports. ${support} other report${support === 1 ? '' : 's'} with ${label}, ${tension} without and ${unknown - conflicts} unresolved. Review the sources before drawing a conclusion.`;
-  else if (occasions.length && support + tension === 0) answer = `${occasions.length} matching occasion${occasions.length === 1 ? '' : 's'} recorded. None has an explicit ${label} answer linked to that meal, so the records cannot test this idea yet.`;
+  else if (occasions.length && support + tension === 0) answer = unstable
+    ? `${occasions.length} matching occasion${occasions.length === 1 ? '' : 's'} recorded. ${unstable} older meal record${unstable === 1 ? ' has' : 's have'} no stable source ID, so its report cannot be counted reliably. The records cannot test this idea yet.`
+    : `${occasions.length} matching occasion${occasions.length === 1 ? '' : 's'} recorded. None has an explicit ${label} answer linked to that meal, so the records cannot test this idea yet.`;
   else if (support && tension) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label} and ${tension} explicit report${tension === 1 ? '' : 's'} without it. The record is mixed; it cannot identify a cause.`;
   else if (support) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This association alone cannot identify a cause.`;
   else if (tension) answer = `${tension} explicit report${tension === 1 ? '' : 's'} without ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This does not prove the meal is safe in every setting.`;
   const nextQuestion = conflicts ? 'Two reports about the same occasion disagree. Inspect their source and correct the record you trust.'
+    : unstable === unknown && unknown > 0 ? 'These older meal records cannot support a reliably linked answer. You can leave this question open.'
     : unknown > 0 ? `If you remember a recent occasion clearly, was ${label} present with that meal? “Not sure” is a valid answer.`
     : 'What was different between these occasions? Recipe, portion and other meals are not confirmed from a name alone.';
-  return { occasions, support, tension, unknown, conflicts, fingerprint, nextQuestion, answer };
+  return { occasions, bundle, support, tension, unknown, conflicts, fingerprint, nextQuestion, answer };
 }
 
 const reviewOccasion = (item: GutEvidenceOccasion) => ({
@@ -210,7 +251,7 @@ const reviewOccasion = (item: GutEvidenceOccasion) => ({
   name: item.meal.name,
   date: item.meal.date,
   answer: item.answer,
-  sourceVersion: JSON.stringify([item.meal.reaction, item.meal.reactionType, item.meal.reactionRecordedAt, item.answerSource?.id, item.answerSource?.revision, item.sameDay, item.otherMeals.map((meal) => meal.id)]),
+  sourceVersion: JSON.stringify([item.meal.loggedAt, item.meal.reaction, item.meal.reactionType, item.meal.reactionRecordedAt, item.answerSource?.id, item.answerSource?.revision, item.edge.inclusionRule, item.sameDay, item.otherMeals.map((meal) => meal.id)]),
 });
 
 export function makeGutReviewSnapshot(thread: GutQuestionThread, evidence: GutEvidence, at = new Date().toISOString()): GutReviewSnapshot {

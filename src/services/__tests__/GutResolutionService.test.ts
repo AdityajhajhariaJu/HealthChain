@@ -49,6 +49,9 @@ describe('Gut Resolution evidence ledger', () => {
   it('keeps an explicit counterexample and a different recipe visible', () => {
     const evidence = deriveGutEvidence(thread, { meals, days: [day] }, [report(meals[0], 'yes'), report(meals[1], 'no')]);
     expect([evidence.support, evidence.tension, evidence.unknown]).toEqual([1, 1, 1]);
+    expect(evidence.bundle.support[0].answerSources).toEqual([{ kind: 'gut_report', id: `report-${meals[0].id}`, revision: 1, timePrecision: 'date_only' }]);
+    expect(evidence.bundle.counterexamples[0].inclusionRule).toBe('linked_explicit_report');
+    expect(evidence.bundle.unknown[0].inclusionRule).toBe('no_explicit_answer');
     expect(evidence.answer).toContain('mixed');
     expect(evidence.occasions[1].meal.name).toBe('Chai with oat milk');
   });
@@ -81,12 +84,20 @@ describe('Gut Resolution evidence ledger', () => {
     const bloating = deriveGutEvidence(thread, { meals: selected, days: [] }, []);
     expect([bloating.support, bloating.tension, bloating.unknown]).toEqual([1, 0, 2]);
     expect(bloating.occasions[0].answerOrigin).toBe('meal_reaction');
+    expect(bloating.bundle.support[0].answerSources[0]).toEqual({ kind: 'diet_reaction', id: meals[0].id, revision: null, timePrecision: 'date_only' });
     expect(bloating.occasions[1].answer).toBe('unanswered');
     expect(bloating.occasions[2].answer).toBe('unanswered');
     const reflux = deriveGutEvidence({ ...thread, symptom: 'reflux' }, { meals: selected, days: [] }, []);
     expect(reflux.support).toBe(1);
     expect(reflux.occasions[2].answerOrigin).toBe('meal_reaction');
     expect(deriveGutEvidence(thread, { meals, days: [] }, []).fingerprint).not.toBe(bloating.fingerprint);
+  });
+
+  it('keeps a legacy meal with an unstable fallback ID out of counted outcomes', () => {
+    const legacy = { ...meals[0], id: 'meal-0', reaction: 'Bloating', reactionType: 'bloat' };
+    const evidence = deriveGutEvidence(thread, { meals: [legacy], days: [] }, []);
+    expect([evidence.support, evidence.unknown]).toEqual([0, 1]);
+    expect(evidence.bundle.unknown[0].inclusionRule).toBe('unstable_legacy_meal_id');
   });
 
   it('keeps a contradictory Gut report and Diet reaction unresolved', () => {

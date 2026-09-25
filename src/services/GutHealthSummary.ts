@@ -16,6 +16,7 @@ export interface GutMeal {
   name: string;
   date: string;
   time: string | null;
+  loggedAt?: string | null;
   reaction: string | null;
   reactionType?: string | null;
   reactionRecordedAt?: string | null;
@@ -75,6 +76,7 @@ export function getGutSnapshot(now = new Date()) {
         name: String(raw.meal || raw.name || 'Meal'),
         date,
         time: timestamp ? new Date(timestamp).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : null,
+        loggedAt: timestamp,
         reaction: typeof raw.reaction?.label === 'string' && raw.reaction.label.trim() ? raw.reaction.label.trim() :
           typeof raw.reaction?.notes === 'string' && raw.reaction.notes.trim() ? raw.reaction.notes.trim() :
           typeof raw.reaction?.symptom === 'string' && raw.reaction.symptom.trim() ? raw.reaction.symptom.trim() : null,
