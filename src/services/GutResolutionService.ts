@@ -527,11 +527,13 @@ export function resolveDeterministicGutIntent(query: string): DeterministicInten
   }
 
   if (!inferredFocus) {
+    // "After lunch today" describes timing, not an exact saved meal name.
+    // Infer a candidate only when the person explicitly asks about a named thing.
     const mealMatch = cleanQuery.match(/(?:is|does|about)\s+([a-z0-9\s]+?)\s+(?:linked to|related to|trigger|cause|affect)/i)
-      || cleanQuery.match(/after\s+([a-z0-9\s]+?)(?:\?|$|\s+(?:dinner|lunch|breakfast))/i)
-      || cleanQuery.match(/(?:pattern.*after|reaction to)\s+([a-z0-9\s]+?)(?:\?|$)/i);
-    if (mealMatch && mealMatch[1]) {
-      inferredFocus = mealMatch[1].trim();
+      || cleanQuery.match(/reaction to\s+([a-z0-9\s]+?)(?:\?|$)/i);
+    const candidate = mealMatch?.[1]?.trim() || '';
+    if (candidate && !/^(?:my|this|that|it|food|meal|breakfast|lunch|dinner|snack|today|yesterday|anything|everything)(?:\s+(?:today|yesterday|this morning|tonight))?$/i.test(candidate)) {
+      inferredFocus = candidate;
     }
   }
 

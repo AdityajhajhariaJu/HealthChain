@@ -31,8 +31,13 @@ test('a first-time guest can ask one question without inventing a symptom', asyn
   await expect(trail.getByRole('button', { name: /My records/ })).toBeVisible();
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await expect(gut.getByText('Symptom not selected', { exact: true })).toBeVisible();
-  await expect(gut.getByText(/Your question is saved/)).toBeVisible();
+  await expect(gut.locator('.gr-answer-card').getByText(/Your question is saved/)).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  await gut.getByRole('button', { name: 'Explore research' }).click();
+  await expect(gut.getByLabel('Which symptom would you like to read about?')).toBeVisible();
+  await expect(gut.getByRole('group', { name: 'Research topic' })).toHaveCount(0);
+  await gut.getByLabel('Which symptom would you like to read about?').selectOption('bloating');
+  await expect(gut.getByRole('link', { name: /NIDDK: Gas and bloating/ })).toBeVisible();
 });
 
 test('choosing a current-concern path still requires the user to describe their situation', async ({ page }) => {
@@ -45,9 +50,14 @@ test('choosing a current-concern path still requires the user to describe their 
   await expect(gut.getByRole('button', { name: /I feel unwell/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(gut.getByRole('heading', { name: 'What is happening right now?' })).toBeVisible();
   await expect(gut.getByRole('button', { name: 'Open my question' })).toBeDisabled();
-  await gut.getByLabel('Your question or situation').fill('I have abdominal pain after lunch');
+  await gut.getByLabel('Your question or situation').fill('I have stomach pain after lunch today');
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  await expect(gut.getByText('If you feel unwell now')).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'Your concern is saved' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'I have stomach pain after lunch today' })).toBeVisible();
+  await expect(gut.getByText(/No recorded meal names match/)).toHaveCount(0);
+  await expect(gut.getByText('Question controls')).toHaveCount(0);
+  await expect(gut.getByText('Reported with abdominal discomfort')).toHaveCount(0);
+  await expect(gut.getByRole('button', { name: 'General information' })).toBeVisible();
   await expect(gut.getByText('Anchored to verified onset')).toHaveCount(0);
 });
 

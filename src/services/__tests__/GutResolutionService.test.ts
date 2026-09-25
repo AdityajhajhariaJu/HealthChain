@@ -292,8 +292,14 @@ describe('Gut Resolution evidence ledger', () => {
     it('identifies pattern questions after dinner', () => {
       const result = resolveDeterministicGutIntent('What pattern should I check after dinner?');
       expect(result.intent).toBe('understand');
-      expect(result.inferredFocus).toBe('dinner');
+      expect(result.inferredFocus).toBe('');
       expect(result.inferredSymptom).toBe('unspecified');
+    });
+
+    it('does not turn a current symptom time phrase into a named meal', () => {
+      const result = resolveDeterministicGutIntent('I have stomach pain after lunch today');
+      expect(result.inferredFocus).toBe('');
+      expect(result.inferredSymptom).toBe('discomfort');
     });
 
     it('identifies decision questions between options', () => {
