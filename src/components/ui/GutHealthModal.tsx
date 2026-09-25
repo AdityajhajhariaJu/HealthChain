@@ -7,13 +7,13 @@ import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 import { GutResolutionWorkspace } from './GutResolutionWorkspace';
 import FocusTrap from './FocusTrap';
 
-interface Props { isOpen: boolean; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void }
+interface Props { isOpen: boolean; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
 type Tab = 'studio' | 'records' | 'visit';
 const surface: React.CSSProperties = { background: 'linear-gradient(150deg,#FFFCFA,#FFF3EF)', border: '1px solid #F0DFD8', borderRadius: 19, boxShadow: '0 8px 24px rgba(104,70,55,.055)' };
 const button: React.CSSProperties = { minHeight: 44, border: '1px solid #E7D7D0', borderRadius: 12, background: '#FFFDFC', color: '#694149', padding: '9px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
 const icon: React.CSSProperties = { width: 46, height: 46, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'radial-gradient(circle at 30% 25%,#FFF,#F5C9D5 68%,#D84970)', color: '#B71945', boxShadow: 'inset 0 1px 2px #FFF,0 5px 14px #C14E7850', flexShrink: 0 };
 
-export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult, onOpenElimination, onOpenDiet }) => {
+export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
   const [tab, setTab] = useState<Tab>('studio');
   const [historyInitialDate, setHistoryInitialDate] = useState<string | null>(null);
   const [quickMealOpen, setQuickMealOpen] = useState(false);
@@ -57,7 +57,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult
             {([['studio','Resolution Studio',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setTab(id); setMessage(''); }} style={{ ...button, minHeight: 38, background: tab === id ? '#FFF0F4' : '#FFFDFC', borderColor: tab === id ? '#ED9DB3' : '#E8DFE1', color: tab === id ? '#AD234A' : '#6B6670', fontSize: 13, whiteSpace: 'nowrap', boxShadow: tab === id ? '0 2px 8px #D45A7D22' : 'none' }}><Icon size={15} />{label}</button>)}
           </nav>
           <main style={{ overflowY: 'auto', padding: '22px clamp(14px,4vw,32px)', flex: 1 }}>
-            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace onOpenHistory={openHistory} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} /></div>
+            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace onOpenHistory={openHistory} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
             {tab === 'records' && <div style={{ maxWidth: 850, margin: '0 auto' }}>
               <div style={{ marginBottom: 18 }}><div style={{ color: '#AF264B', fontSize: 11, fontWeight: 850, letterSpacing: '.09em' }}>YOUR SOURCE RECORDS</div><h2 className="serif-heading" style={{ fontSize: 29, margin: '10px 0 4px', color: '#252834' }}>The details behind your questions</h2><p style={{ color: '#718092', fontSize: 14, margin: 0 }}>Record only what matters. Blank days and unreported outcomes remain unknown.</p></div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 12, marginBottom: 18 }}>

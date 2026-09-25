@@ -67,6 +67,7 @@ export interface ClinicalQuestion {
   questionText: string;
   raisedBySpecialty: string;
   supportingEvidenceIds: string[];
+  sourceRef?: { feature: 'gut_resolution'; threadId: string; profileId: string; threadUpdatedAt: string };
   status: QuestionLifecycleStatus;
   outcomeNote?: string;
   outcomeDate?: string;

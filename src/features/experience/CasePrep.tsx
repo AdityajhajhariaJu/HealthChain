@@ -1041,6 +1041,7 @@ export default function CasePrep() {
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                     <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
                       {q.questionText}
+                      {q.sourceRef?.feature === 'gut_resolution' && <div style={{ color: '#A23453', fontSize: 11, fontWeight: 700, marginTop: 5 }}>From your Gut Health question · patient report, not a clinician finding</div>}
                     </div>
                     <span
                       style={{

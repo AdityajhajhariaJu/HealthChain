@@ -166,6 +166,16 @@
 .gr-step-choices .gr-choice-active { border-color:#e58ba4; background:#fff5f8; color:#a52249; }
 .gr-next-grid textarea { margin-bottom:13px; }
 .gr-next-footer { border-top:1px solid #eee2e5; padding-top:12px; }
+.gr-case-handoff { display:flex; align-items:flex-start; gap:12px; margin:17px 0; padding:17px; border:1px solid #efd2d8; border-radius:18px; background:linear-gradient(125deg,#fffaf6,#fff2f5); }
+.gr-case-icon { width:38px; height:38px; flex:none; display:grid; place-items:center; border-radius:13px; color:#ae3151; background:radial-gradient(circle at 28% 20%,#fff,#f8cdd9 68%,#e390a6); box-shadow:inset 0 1px 1px #fff,0 4px 11px #c5567330; }
+.gr-case-content { min-width:0; flex:1; }
+.gr-case-content>strong { color:#543d46; font-size:14px; }
+.gr-case-content>p { margin:4px 0 11px; color:#7b6d76; font-size:12px; line-height:1.5; }
+.gr-case-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.gr-case-actions label { font-size:12px; font-weight:750; color:#744e5b; }
+.gr-case-actions select { min-width:min(200px,100%); max-width:100%; border:1px solid #e4bec8; border-radius:10px; background:#fff; padding:9px 10px; color:#51424a; font-size:13px; }
+.gr-case-handoff .gr-secondary { min-height:38px; }
+.gr-case-error { color:#a32447 !important; margin:9px 0 0 !important; }
 .gr-message { font-size:13px; color:#7b4454; background:#fff5f7; padding:9px 12px; border-radius:9px; margin-top:17px; }
 .gr-sync-note { display:flex; align-items:flex-start; gap:8px; color:#805826; background:#fff8e9; border:1px solid #efd9a9; border-radius:12px; padding:10px 12px; margin:0 0 16px; font-size:12px; line-height:1.5; }
 .gr-sync-note svg { flex:none; }

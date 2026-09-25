@@ -1592,6 +1592,8 @@ export default function CaseDashboard() {
         onOpenConsult={() => { setShowDetectiveModal(false); navigate('/app/consult'); }}
         onOpenElimination={() => { setShowDetectiveModal(false); navigate('/app/dietician?tab=elimination'); }}
         onOpenDiet={() => { setShowDetectiveModal(false); navigate('/app/dietician'); }}
+        onOpenCasePrep={(caseId) => { setShowDetectiveModal(false); navigate(`/app/case-prep?caseId=${encodeURIComponent(caseId)}`, { state: { returnTo: '/app/today?gut=1', returnLabel: 'Back to Gut Health' } }); }}
+        onOpenCases={() => { setShowDetectiveModal(false); navigate('/app/my-cases?new=true'); }}
       />
 
       <TriggerSensitivityModal

@@ -8,6 +8,7 @@ import type { Observation } from '../../domain/observations/types';
 import { createGutThread, deriveGutChangeReceipt, deriveGutEvidence, hasStableGutMealId, listGutThreads, makeGutReviewSnapshot, recordGutMealOutcome, updateGutThread, type GutIntent, type GutQuestionThread, type GutSymptom } from '../../services/GutResolutionService';
 import { gutResearchTopics, searchGutResearch, type GutResearchPaper, type GutResearchTopic } from '../../services/GutResearchService';
 import { GutDecisionPlanner } from './GutDecisionPlanner';
+import { GutCaseHandoff } from './GutCaseHandoff';
 import './GutResolutionWorkspace.css';
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   onOpenConsult?: () => void;
   onOpenElimination?: () => void;
   onOpenDiet?: () => void;
+  onOpenCasePrep?: (caseId: string) => void;
+  onOpenCases?: () => void;
 }
 
 type View = 'answer' | 'evidence' | 'research' | 'next';
@@ -38,7 +41,7 @@ const trialContext = () => {
   } catch { return null; }
 };
 
-export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQuickMeal, onOpenConsult, onOpenElimination, onOpenDiet }) => {
+export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQuickMeal, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
   const [snapshot, setSnapshot] = useState(() => getGutSnapshot());
   const [observations, setObservations] = useState<Observation[]>([]);
   const [threads, setThreads] = useState<GutQuestionThread[]>(() => listGutThreads());
@@ -251,6 +254,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
         {researchStatus === 'ready' && (research.length ? <div className="gr-paper-list">{research.map((paper) => <article key={paper.id} className="gr-paper"><span className="gr-paper-type">PUBMED · PMID {paper.id}</span><h4>{paper.title}</h4>{paper.publicationTypes.length > 0 && <div className="gr-paper-tags">{paper.publicationTypes.map((type) => <span key={type}>{type}</span>)}</div>}{paper.correctionNotice && <p className="gr-paper-correction">Publication notice: {paper.correctionNotice}. Check the original record before relying on it.</p>}<p>{paper.abstract ? `${paper.abstract.slice(0, 430)}${paper.abstract.length > 430 ? '…' : ''}` : 'Abstract unavailable.'}</p><div className="gr-paper-foot"><span>{paper.journal || 'Journal unverified'}{paper.year ? ` · ${paper.year}` : ' · Year unverified'}</span><a href={paper.url} target="_blank" rel="noopener noreferrer">Open original <ArrowRight size={15} /></a></div><small>Abstract excerpt only · population and applicability require review · checked {new Date(paper.retrievedAt).toLocaleDateString()}</small></article>)}</div> : <div className="gr-empty"><BookOpen size={24} /><strong>No title-matched abstracts found</strong><p>This narrow search does not mean the topic has no research. Try a broader topic or discuss the question with a clinician.</p></div>)}
       </div>}
       {view === 'next' && <div className="gr-next-view"><div className="gr-section-intro"><div><h3>Close the loop</h3><p>A useful outcome may be a choice, a clinician question, or deciding to leave this unresolved.</p></div></div><div className="gr-next-grid"><section><div className="gr-card-label"><Compass size={16} /> MY NEXT STEP</div><p className="gr-soft">Choose one or write your own. The app is not prescribing a diet, challenge or medicine change.</p><div className="gr-step-choices">{['Leave this question open without tracking', 'Discuss this uncertainty with a clinician', 'Notice what happens on an ordinary future occasion'].map((choice) => <button type="button" key={choice} className={stepDraft === choice ? 'gr-choice-active' : ''} onClick={() => setStepDraft(choice)}>{choice}{stepDraft === choice && <Check size={16} />}</button>)}</div><label htmlFor="gr-step-custom">Or write your next step</label><textarea id="gr-step-custom" value={stepDraft} onChange={(event) => setStepDraft(event.target.value)} maxLength={300} rows={2} placeholder="What would actually help you?" /><button type="button" className="gr-primary" disabled={busy || stepDraft === (thread.selectedStep || '')} onClick={() => void savePatch({ selectedStep: stepDraft })}>Save my step</button></section><section><div className="gr-card-label"><RotateCcw size={16} /> AFTERWARD, IF YOU WANT</div><p className="gr-soft">What happened or what did you decide? Skip this if it adds no value.</p><label htmlFor="gr-reflection">Your own words</label><textarea id="gr-reflection" value={reflectionDraft} onChange={(event) => setReflectionDraft(event.target.value)} maxLength={1000} rows={5} placeholder="I asked my clinician… / I chose to leave it alone…" /><button type="button" className="gr-secondary" disabled={busy || reflectionDraft === (thread.reflection || '')} onClick={() => void savePatch({ reflection: reflectionDraft })}>Save outcome</button></section></div><div className="gr-next-footer"><button type="button" className="gr-secondary" onClick={() => void copyBrief()}><Clipboard size={16} /> Copy question brief</button>{onOpenConsult && <button type="button" className="gr-secondary" onClick={onOpenConsult}>Open consultation <ArrowRight size={16} /></button>}<button type="button" className="gr-link" disabled={busy} onClick={() => void savePatch({ status: thread.status === 'open' ? 'closed' : 'open' })}>{thread.status === 'open' ? 'Close this question' : 'Reopen question'}</button><button type="button" className="gr-link" disabled={busy || !evidence} onClick={() => void savePatch({ reviewedEvidence: makeGutReviewSnapshot({ ...thread, focus: comparisonFocus }, evidence!) })}>Mark evidence reviewed</button></div></div>}
+      {((view === 'next') || (view === 'answer' && thread.intent === 'care')) && onOpenCasePrep && onOpenCases && <GutCaseHandoff key={thread.id} thread={thread} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} />}
       {message && <p className="gr-message" role="status">{message}</p>}
     </>}
   </div>;
