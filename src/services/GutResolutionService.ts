@@ -39,6 +39,8 @@ export interface GutEvidenceOccasion {
   meal: GutMeal;
   answer: Answer;
   answerSource: Observation | null;
+  answerOrigin: 'canonical' | 'meal_reaction' | 'both' | 'conflict' | 'none';
+  mealReactionAnswer: Answer;
   sameDay: GutDay | null;
   otherMeals: GutMeal[];
 }
@@ -48,6 +50,7 @@ export interface GutEvidence {
   support: number;
   tension: number;
   unknown: number;
+  conflicts: number;
   fingerprint: string;
   nextQuestion: string;
   answer: string;
@@ -136,6 +139,12 @@ const normalize = (value: string) => value.trim().toLocaleLowerCase();
 const symptomLabel: Record<GutSymptom, string> = {
   bloating: 'bloating', discomfort: 'abdominal discomfort', reflux: 'reflux', nausea: 'nausea', bowel_changes: 'bowel changes',
 };
+/** The Diet reaction selector has only two symptom labels specific enough to reuse. */
+export function answerFromMealReaction(meal: GutMeal, symptom: GutSymptom): Answer {
+  if (meal.reactionType === 'bloat' && symptom === 'bloating') return 'yes';
+  if (meal.reactionType === 'heartburn' && symptom === 'reflux') return 'yes';
+  return 'unanswered';
+}
 
 export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: GutMeal[]; days: GutDay[] }, observations: Observation[]): GutEvidence {
   const focus = normalize(thread.focus);
@@ -146,9 +155,13 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
     const reports = scoped.filter((item) => item.sourceRecordId === meal.id && item.localDate === meal.date && item.payload.kind === 'daily_checkin' && item.payload.answers[thread.symptom]);
     reports.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     const report = reports[0] || null;
-    const answer = report?.payload.kind === 'daily_checkin' ? report.payload.answers[thread.symptom] || 'unanswered' : 'unanswered';
+    const canonicalAnswer = report?.payload.kind === 'daily_checkin' ? report.payload.answers[thread.symptom] || 'unanswered' : 'unanswered';
+    const mealReactionAnswer = answerFromMealReaction(meal, thread.symptom);
+    const conflict = canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' && canonicalAnswer !== mealReactionAnswer;
+    const answer = conflict ? 'unanswered' : canonicalAnswer !== 'unanswered' ? canonicalAnswer : mealReactionAnswer;
+    const answerOrigin: GutEvidenceOccasion['answerOrigin'] = conflict ? 'conflict' : canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' ? 'both' : canonicalAnswer !== 'unanswered' ? 'canonical' : mealReactionAnswer !== 'unanswered' ? 'meal_reaction' : 'none';
     return {
-      meal, answer, answerSource: report,
+      meal, answer, answerSource: report, answerOrigin, mealReactionAnswer,
       sameDay: snapshot.days.find((day) => day.date === meal.date) || null,
       otherMeals: snapshot.meals.filter((other) => other.date === meal.date && other.id !== meal.id).slice(0, 4),
     };
@@ -156,17 +169,20 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const support = occasions.filter((item) => item.answer === 'yes').length;
   const tension = occasions.filter((item) => item.answer === 'no').length;
   const unknown = occasions.filter((item) => item.answer === 'unanswered').length;
-  const fingerprint = JSON.stringify(occasions.map(({ meal, answer, answerSource }) => [meal.id, meal.date, meal.name, meal.reaction, answer, answerSource?.id, answerSource?.revision]));
+  const conflicts = occasions.filter((item) => item.answerOrigin === 'conflict').length;
+  const fingerprint = JSON.stringify(occasions.map(({ meal, answer, answerSource }) => [meal.id, meal.date, meal.name, meal.reaction, meal.reactionType, meal.reactionRecordedAt, answer, answerSource?.id, answerSource?.revision]));
   const label = symptomLabel[thread.symptom];
   let answer = 'Choose a recorded meal or phrase to examine. A question can still be saved without prior records.';
   if (focus && occasions.length === 0) answer = `No recorded meal names match “${thread.focus}” yet. This does not mean it was never eaten.`;
+  else if (conflicts) answer = `${conflicts} matching occasion${conflicts === 1 ? ' has' : 's have'} disagreeing meal-linked reports. ${support} other report${support === 1 ? '' : 's'} with ${label}, ${tension} without and ${unknown - conflicts} unresolved. Review the sources before drawing a conclusion.`;
   else if (occasions.length && support + tension === 0) answer = `${occasions.length} matching occasion${occasions.length === 1 ? '' : 's'} recorded. None has an explicit ${label} answer linked to that meal, so the records cannot test this idea yet.`;
   else if (support && tension) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label} and ${tension} explicit report${tension === 1 ? '' : 's'} without it. The record is mixed; it cannot identify a cause.`;
   else if (support) answer = `${support} linked report${support === 1 ? '' : 's'} of ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This association alone cannot identify a cause.`;
   else if (tension) answer = `${tension} explicit report${tension === 1 ? '' : 's'} without ${label}${unknown ? `, with ${unknown} outcome${unknown === 1 ? '' : 's'} unknown` : ''}. This does not prove the meal is safe in every setting.`;
-  const nextQuestion = unknown > 0 ? `If you remember a recent occasion clearly, was ${label} present with that meal? “Not sure” is a valid answer.`
+  const nextQuestion = conflicts ? 'Two reports about the same occasion disagree. Inspect their source and correct the record you trust.'
+    : unknown > 0 ? `If you remember a recent occasion clearly, was ${label} present with that meal? “Not sure” is a valid answer.`
     : 'What was different between these occasions? Recipe, portion and other meals are not confirmed from a name alone.';
-  return { occasions, support, tension, unknown, fingerprint, nextQuestion, answer };
+  return { occasions, support, tension, unknown, conflicts, fingerprint, nextQuestion, answer };
 }
 
 export async function recordGutMealOutcome(meal: GutMeal, symptom: GutSymptom, answer: 'yes' | 'no') {

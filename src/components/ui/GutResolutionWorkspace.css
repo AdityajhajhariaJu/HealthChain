@@ -120,10 +120,12 @@
 .gr-status { display:inline-block; background:#f2f0f2; color:#716b78; border-radius:99px; padding:5px 9px; font-size:11px; font-weight:750; }
 .gr-status-yes { background:#fff0f3; color:#b62149; }
 .gr-status-no { background:#e9f7f1; color:#237b65; }
+.gr-status-conflict { background:#fff2e7; color:#96542b; }
 .gr-source { min-height:36px; padding:7px 10px; white-space:nowrap; }
 .gr-source-note { color:#66717f; font-size:12px; line-height:1.5; margin:12px 0 0; }
 .gr-source-note strong { color:#444b57; }
 .gr-source-note em { font-style:normal; color:#97858f; }
+.gr-conflict-note { border-left:3px solid #e0a16f; background:#fff8f1; padding:9px 11px; border-radius:0 9px 9px 0; }
 .gr-occasion-actions { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding-top:12px; margin-top:13px; border-top:1px solid #f0e9eb; }
 .gr-occasion-actions span { color:#74808d; font-size:12px; margin-right:4px; }
 .gr-occasion-actions button,.gr-excluded button { border:1px solid #e6dfe2; border-radius:9px; background:#fff; color:#8f3550; padding:7px 9px; font-size:12px; font-weight:700; }

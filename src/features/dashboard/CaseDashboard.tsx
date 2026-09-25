@@ -1591,6 +1591,7 @@ export default function CaseDashboard() {
         onClose={() => setShowDetectiveModal(false)}
         onOpenConsult={() => { setShowDetectiveModal(false); navigate('/app/consult'); }}
         onOpenElimination={() => { setShowDetectiveModal(false); navigate('/app/dietician?tab=elimination'); }}
+        onOpenDiet={() => { setShowDetectiveModal(false); navigate('/app/dietician'); }}
       />
 
       <TriggerSensitivityModal

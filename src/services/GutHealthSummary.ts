@@ -17,6 +17,8 @@ export interface GutMeal {
   date: string;
   time: string | null;
   reaction: string | null;
+  reactionType?: string | null;
+  reactionRecordedAt?: string | null;
 }
 
 const validScore = (value: unknown): value is number =>
@@ -76,6 +78,8 @@ export function getGutSnapshot(now = new Date()) {
         reaction: typeof raw.reaction?.label === 'string' && raw.reaction.label.trim() ? raw.reaction.label.trim() :
           typeof raw.reaction?.notes === 'string' && raw.reaction.notes.trim() ? raw.reaction.notes.trim() :
           typeof raw.reaction?.symptom === 'string' && raw.reaction.symptom.trim() ? raw.reaction.symptom.trim() : null,
+        reactionType: typeof raw.reaction?.reactionType === 'string' ? raw.reaction.reactionType : null,
+        reactionRecordedAt: typeof raw.reaction?.loggedAt === 'string' && !Number.isNaN(Date.parse(raw.reaction.loggedAt)) ? raw.reaction.loggedAt : null,
       };
     })
     .filter((meal: GutMeal) => validDate(meal.date) && meal.date <= today)

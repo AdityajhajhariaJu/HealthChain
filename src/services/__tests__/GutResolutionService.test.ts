@@ -72,6 +72,32 @@ describe('Gut Resolution evidence ledger', () => {
     expect([revised.support, revised.tension]).toEqual([0, 1]);
   });
 
+  it('reuses only symptom-specific Diet reaction selections as linked user reports', () => {
+    const selected: GutMeal[] = [
+      { ...meals[0], reaction: 'Bloating', reactionType: 'bloat', reactionRecordedAt: '2026-09-20T22:00:00Z' },
+      { ...meals[1], reaction: 'No reaction', reactionType: 'none' },
+      { ...meals[2], reaction: 'Heartburn', reactionType: 'heartburn' },
+    ];
+    const bloating = deriveGutEvidence(thread, { meals: selected, days: [] }, []);
+    expect([bloating.support, bloating.tension, bloating.unknown]).toEqual([1, 0, 2]);
+    expect(bloating.occasions[0].answerOrigin).toBe('meal_reaction');
+    expect(bloating.occasions[1].answer).toBe('unanswered');
+    expect(bloating.occasions[2].answer).toBe('unanswered');
+    const reflux = deriveGutEvidence({ ...thread, symptom: 'reflux' }, { meals: selected, days: [] }, []);
+    expect(reflux.support).toBe(1);
+    expect(reflux.occasions[2].answerOrigin).toBe('meal_reaction');
+    expect(deriveGutEvidence(thread, { meals, days: [] }, []).fingerprint).not.toBe(bloating.fingerprint);
+  });
+
+  it('keeps a contradictory Gut report and Diet reaction unresolved', () => {
+    const meal = { ...meals[0], reaction: 'Bloating', reactionType: 'bloat' };
+    const evidence = deriveGutEvidence(thread, { meals: [meal], days: [] }, [report(meal, 'no')]);
+    expect([evidence.support, evidence.tension, evidence.unknown, evidence.conflicts]).toEqual([0, 0, 1, 1]);
+    expect(evidence.occasions[0].answerOrigin).toBe('conflict');
+    expect(evidence.answer).toContain('disagreeing');
+    expect(evidence.nextQuestion).toContain('disagree');
+  });
+
   it('allows stable saved meal ids while rejecting index-generated fallbacks', () => {
     expect(hasStableGutMealId(meals[0])).toBe(true);
     expect(hasStableGutMealId({ ...meals[0], id: 'meal-0' })).toBe(false);
