@@ -132,7 +132,8 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
-  const now = new Date().toISOString();
+  // A rapid second edit still needs a later record timestamp for cross-device merging.
+  const now = new Date(Math.max(Date.now(), Date.parse(original.updatedAt) + 1)).toISOString();
   const updated: GutQuestionThread = {
     ...original, ...patch,
     focus: patch.focus === undefined ? original.focus : clean(patch.focus).slice(0, 120),

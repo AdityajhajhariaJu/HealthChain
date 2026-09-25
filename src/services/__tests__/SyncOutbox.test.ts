@@ -81,6 +81,41 @@ describe('SyncOutbox', () => {
     expect(await getPendingSyncCount('user-1')).toBe(0);
   });
 
+  it('merges Gut questions before an offline profile snapshot overwrites the cloud', async () => {
+    window.localStorage.setItem('hc_account', JSON.stringify({ id: 'user-gut' }));
+    const ownerKey = 'hc_unified_profile_user-gut';
+    const question = (id: string, updatedAt: string, reflection: string | null = null) => ({
+      id, schemaVersion: 1, ownerKey, profileId: 'profile_1', intent: 'understand',
+      question: id, focus: 'chai', symptom: 'bloating', status: 'open', selectedStep: null,
+      reflection, excludedMealIds: [], reviewedEvidence: null, createdAt: updatedAt, updatedAt,
+    });
+    const localOld = question('shared', '2026-09-23T09:00:00.000Z', 'old');
+    const remoteNew = question('shared', '2026-09-23T11:00:00.000Z', 'revised');
+    const remoteOnly = question('remote-only', '2026-09-23T10:00:00.000Z');
+    const query = {
+      select: vi.fn(() => query), eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: {
+        updated_at: '2026-09-23T11:00:00.000Z',
+        data: { profileName: 'Remote name', gutResolutionThreads: [remoteNew, remoteOnly] },
+      }, error: null })),
+      upsert: vi.fn(async (_payload: any) => ({ error: null })),
+    };
+    from.mockReturnValue(query);
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-gut' } } } });
+    await enqueueSync('caregiver_profile_upsert', 'user-gut', {
+      user_id: 'user-gut', profile_id: 'profile_1', profile_name: 'Local name',
+      data: { profileName: 'Local name', gutResolutionThreads: [localOld, question('local-only', '2026-09-23T08:00:00.000Z')] },
+      updated_at: '2026-09-23T09:00:00.000Z',
+    });
+    await flushSyncOutbox('user-gut');
+    expect(query.upsert).toHaveBeenCalledOnce();
+    const payload = query.upsert.mock.calls[0][0] as any;
+    expect(payload.data.profileName).toBe('Remote name');
+    expect(payload.data.gutResolutionThreads.map((item: any) => item.id)).toEqual(['shared', 'remote-only', 'local-only']);
+    expect(payload.data.gutResolutionThreads[0].reflection).toBe('revised');
+    expect(await getPendingSyncCount('user-gut')).toBe(0);
+  });
+
   it('recovers a fallback localStorage queue when IndexedDB is empty', async () => {
     idbStore.set('hc_sync_outbox_user-3', []);
     window.localStorage.setItem('hc_sync_outbox_user-3', JSON.stringify([

@@ -148,4 +148,18 @@ describe('Gut Resolution evidence ledger', () => {
     state.profile.gutResolutionThreads.push({ ...created, id: 'other', ownerKey: 'different-account' });
     expect(listGutThreads().map((item) => item.id)).toEqual([created.id]);
   });
+
+  it('gives consecutive edits distinct timestamps even in the same millisecond', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-09-25T12:00:00.000Z'));
+      const created = await createGutThread({ intent: 'understand', question: 'Does chai relate to bloating?' });
+      if (!created) throw new Error('Question was not saved');
+      const first = await updateGutThread(created.id, { reflection: 'First note' });
+      const second = await updateGutThread(created.id, { reflection: 'Revised note' });
+      expect(first && second && created.updatedAt < first.updatedAt && first.updatedAt < second.updatedAt).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

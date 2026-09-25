@@ -6,6 +6,7 @@ import { mergeCaseItems } from './CaseMergeEngine';
 import { recordTombstone, isTombstoned } from './TombstoneManager';
 import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
+import { mergeGutThreads } from './GutThreadMerge';
 
 type OutboxKind = 
   | 'case_upsert' 
@@ -447,7 +448,29 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
   }
 
   if (entry.kind === 'caregiver_profile_upsert') {
-    return supabase.from('healthchain_profiles').upsert(entry.payload, { onConflict: 'user_id,profile_id' });
+    const profileId = entry.payload?.profile_id;
+    if (!profileId || entry.payload?.user_id !== entry.userId || !entry.payload?.data) {
+      return { error: new Error('Invalid profile sync payload') };
+    }
+    const { data: remote, error: readError } = await supabase.from('healthchain_profiles')
+      .select('data,updated_at').eq('user_id', entry.userId).eq('profile_id', profileId).maybeSingle();
+    if (readError) return { error: readError };
+    const localData = entry.payload.data;
+    const remoteData = remote?.data && typeof remote.data === 'object' ? remote.data : {};
+    const remoteNewer = !!remote?.updated_at && remote.updated_at > String(entry.payload.updated_at || '');
+    const mergedData = {
+      ...(remoteNewer ? localData : remoteData),
+      ...(remoteNewer ? remoteData : localData),
+      id: profileId,
+      gutResolutionThreads: mergeGutThreads(
+        localData.gutResolutionThreads, remoteData.gutResolutionThreads, getProfileKey(), profileId
+      ),
+    };
+    const updatedAt = new Date(Math.max(Date.now(), Date.parse(entry.payload.updated_at) || 0,
+      Date.parse(remote?.updated_at || '') || 0) + 1).toISOString();
+    return supabase.from('healthchain_profiles').upsert({
+      ...entry.payload, data: mergedData, updated_at: updatedAt,
+    }, { onConflict: 'user_id,profile_id' });
   }
 
   if (entry.kind === 'profile_upsert') {

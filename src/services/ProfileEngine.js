@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
+import { mergeGutThreads } from './GutThreadMerge';
 
 export function getProfileKey() {
   try {
@@ -1101,11 +1102,17 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       const local = state.profiles[row.profile_id];
       const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
       const remoteUpdated = row.updated_at || row.data.updatedAt;
+      const gutResolutionThreads = mergeGutThreads(
+        local?.gutResolutionThreads, row.data.gutResolutionThreads, getProfileKey(), row.profile_id
+      );
       if (localUpdated && remoteUpdated && new Date(localUpdated).getTime() > new Date(remoteUpdated).getTime()) {
+        const mergedLocal = { ...local, gutResolutionThreads };
+        state.profiles[row.profile_id] = mergedLocal;
+        changed = true;
         await enqueueSync('caregiver_profile_upsert', userId, {
           user_id: userId, profile_id: row.profile_id,
           profile_name: local.profileName || row.profile_name || 'My Profile',
-          data: { ...local, id: row.profile_id }, updated_at: new Date().toISOString()
+          data: { ...mergedLocal, id: row.profile_id }, updated_at: new Date().toISOString()
         });
         continue;
       }
@@ -1139,8 +1146,17 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
           recentLogs: Array.from(snapLogMap.values())
         },
         digestionLogs: { ...(row.data.digestionLogs || {}), ...(local?.digestionLogs || {}) },
-        eliminationProtocols: { ...(row.data.eliminationProtocols || {}), ...(local?.eliminationProtocols || {}) }
+        eliminationProtocols: { ...(row.data.eliminationProtocols || {}), ...(local?.eliminationProtocols || {}) },
+        gutResolutionThreads
       };
+
+      if (JSON.stringify(gutResolutionThreads) !== JSON.stringify(row.data.gutResolutionThreads || [])) {
+        await enqueueSync('caregiver_profile_upsert', userId, {
+          user_id: userId, profile_id: row.profile_id,
+          profile_name: state.profiles[row.profile_id].profileName,
+          data: state.profiles[row.profile_id], updated_at: new Date().toISOString()
+        });
+      }
       
       if (row.profile_id === 'profile_1' || row.profile_id === state.activeId) {
         state.profiles[row.profile_id].isPro = existingPro;
