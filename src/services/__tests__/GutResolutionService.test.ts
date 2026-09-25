@@ -12,7 +12,19 @@ vi.mock('../ProfileEngine', () => ({
 }));
 vi.mock('../RunContext', () => ({ getAccountScope: () => 'acct' }));
 
-import { createGutThread, deriveGutChangeReceipt, deriveGutChoiceHistory, deriveGutEvidence, hasStableGutMealId, listGutThreads, makeGutReviewSnapshot, updateGutThread } from '../GutResolutionService';
+import {
+  classifyGutAnswerState,
+  createGutThread,
+  deriveGutBacktraceProjection,
+  deriveGutChangeReceipt,
+  deriveGutChoiceHistory,
+  deriveGutEvidence,
+  hasStableGutMealId,
+  listGutThreads,
+  makeGutReviewSnapshot,
+  resolveDeterministicGutIntent,
+  updateGutThread
+} from '../GutResolutionService';
 
 const thread: GutQuestionThread = {
   id: 'q1', schemaVersion: 1, ownerKey: 'hc_unified_profile_acct', profileId: 'profile_1',
@@ -204,5 +216,93 @@ describe('Gut Resolution evidence ledger', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  describe('Deterministic Routing Engine', () => {
+    it('accurately routes retrospective questions and extracts focus', () => {
+      const result = resolveDeterministicGutIntent('Is chai linked to my bloating?');
+      expect(result.intent).toBe('understand');
+      expect(result.inferredFocus).toBe('chai');
+      expect(result.inferredSymptom).toBe('bloating');
+    });
+
+    it('identifies pattern questions after dinner', () => {
+      const result = resolveDeterministicGutIntent('What pattern should I check after dinner?');
+      expect(result.intent).toBe('understand');
+      expect(result.inferredFocus).toBe('dinner');
+      expect(result.inferredSymptom).toBe('bloating');
+    });
+
+    it('identifies decision questions between options', () => {
+      const result = resolveDeterministicGutIntent('Should I have oat milk chai or dairy chai?');
+      expect(result.intent).toBe('decide');
+      expect(result.inferredSymptom).toBe('bloating');
+      expect(result.options).toEqual({ a: 'oat milk chai', b: 'dairy chai' });
+    });
+
+    it('routes acute unwell questions to now intent and detects symptom', () => {
+      const result = resolveDeterministicGutIntent('I feel unwell now with stomach cramps and pain');
+      expect(result.intent).toBe('now');
+      expect(result.inferredSymptom).toBe('discomfort');
+    });
+
+    it('routes visit prep questions to care intent', () => {
+      const result = resolveDeterministicGutIntent('How do I describe my digestion at a visit?');
+      expect(result.intent).toBe('care');
+    });
+
+    it('detects reflux, heartburn and nausea symptoms correctly', () => {
+      expect(resolveDeterministicGutIntent('Is severe heartburn triggered by coffee?').inferredSymptom).toBe('reflux');
+      expect(resolveDeterministicGutIntent('Why do I have nausea after eating?').inferredSymptom).toBe('nausea');
+      expect(resolveDeterministicGutIntent('Bowel changes and loose stool after lunch').inferredSymptom).toBe('bowel_changes');
+    });
+  });
+
+  describe('48-Hour Backtrace Projection', () => {
+    it('gathers timed items and date-only items within 48h without causal verdict', () => {
+      const anchor = {
+        type: 'question_time' as const,
+        timestamp: '2026-09-22T12:00:00.000Z',
+        symptom: 'bloating' as const,
+      };
+
+      const projection = deriveGutBacktraceProjection(anchor, { meals, days: [day] }, []);
+      expect(projection.windowHours).toBe(48);
+      expect(projection.timedItems.length).toBeGreaterThanOrEqual(1);
+      // meals[0] was on 2026-09-20 at 8:30 PM, which is within 48h of 2026-09-22 9:00 PM
+      expect(projection.timedItems.some((item) => item.label === 'Masala Chai')).toBe(true);
+      // meals[1] has no time (date-only)
+      expect(projection.dateOnlyItems.some((item) => item.label === 'Chai with oat milk')).toBe(true);
+      // disclaimer must be present and honest
+      expect(projection.caveat).toContain('Does not infer biological gastric transit');
+      expect(projection.caveat).toContain('Date-only records cannot confirm');
+    });
+  });
+
+  describe('Answer Card State Classification', () => {
+    it('classifies empty records, date-only, reliable timed, and acute states', () => {
+      expect(classifyGutAnswerState(null, thread)).toBe('no_records');
+
+      const emptyEvidence = deriveGutEvidence(thread, { meals: [], days: [] }, []);
+      expect(classifyGutAnswerState(emptyEvidence, thread)).toBe('no_records');
+
+      // Now intent takes precedence
+      expect(classifyGutAnswerState(emptyEvidence, { ...thread, intent: 'now' })).toBe('now_acute');
+
+      // Network / cloud sync error states
+      expect(classifyGutAnswerState(emptyEvidence, thread, { cloudStatus: 'unavailable' })).toBe('account_sync_error');
+      expect(classifyGutAnswerState(emptyEvidence, thread, { researchStatus: 'error' })).toBe('research_outage');
+
+      // Date only vs timed
+      const dateOnlyEvidence = deriveGutEvidence(thread, { meals: [meals[1]], days: [] }, [report(meals[1], 'yes')]);
+      expect(classifyGutAnswerState(dateOnlyEvidence, thread)).toBe('date_only');
+
+      const singleEvidence = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [report(meals[0], 'yes')]);
+      expect(classifyGutAnswerState(singleEvidence, thread)).toBe('single_confirmed');
+
+      const timedMeal2 = { ...meals[0], id: 'meal-4-stable', date: '2026-09-21' };
+      const multiEvidence = deriveGutEvidence(thread, { meals: [meals[0], timedMeal2], days: [] }, [report(meals[0], 'yes'), report(timedMeal2, 'yes')]);
+      expect(classifyGutAnswerState(multiEvidence, thread)).toBe('reliable_timed');
+    });
   });
 });
