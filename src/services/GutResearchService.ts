@@ -28,6 +28,44 @@ export interface GutResearchPaper {
   titlePopulationCue: string | null;
 }
 
+export interface GutPublicationStatus {
+  id: string;
+  title: string;
+  correctionNotice: string | null;
+  publicationDate: string | null;
+  status: 'active' | 'corrected' | 'retracted' | 'unavailable';
+}
+
+/** Refresh an exact saved PMID; a changing search rank must not erase a reviewed source. */
+export async function getGutPublicationStatus(id: string, signal?: AbortSignal): Promise<GutPublicationStatus> {
+  if (!/^\d+$/.test(id)) throw new Error('Invalid publication ID');
+  const response = await fetch(`https://www.ebi.ac.uk/europepmc/webservices/rest/article/MED/${encodeURIComponent(id)}?format=json&resultType=core`, { signal });
+  if (response.status === 404) return { id, title: '', correctionNotice: null, publicationDate: null, status: 'unavailable' };
+  if (!response.ok) throw new Error('Research service unavailable');
+  const data = await response.json();
+  const paper = data?.result || data;
+  const raw = paper?.commentCorrectionList?.commentCorrection;
+  const notices = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const types: string[] = notices.map((item: { type?: string }) => cleanMedicalText(String(item?.type || '')));
+  const retracted = paper?.isRetracted === 'Y' || paper?.isRetracted === true || types.some((type) => /^(retracted in|retraction of)$/i.test(type));
+  const correctionNotice = types.find((type) => /erratum|correction|expression of concern|retract/i.test(type)) || null;
+  return { id, title: cleanMedicalText(String(paper?.title || '')), correctionNotice, publicationDate: explicitDate(paper?.electronicPublicationDate) || explicitDate(paper?.printPublicationDate), status: retracted ? 'retracted' : correctionNotice ? 'corrected' : 'active' };
+}
+
+export function compareGutPublicationStatus(previous: GutPublicationStatus[], current: GutPublicationStatus[]) {
+  const oldById = new Map(previous.map((item) => [item.id, item]));
+  return current.flatMap((item) => {
+    const old = oldById.get(item.id);
+    if (!old) return [];
+    const changes: string[] = [];
+    if (old.status !== item.status) changes.push(`publication status: ${old.status} → ${item.status}`);
+    if (old.correctionNotice !== item.correctionNotice) changes.push('publication notice changed');
+    if (old.title && item.title && old.title !== item.title) changes.push('indexed title changed');
+    if (old.publicationDate !== item.publicationDate) changes.push('indexed publication date changed');
+    return changes.length ? [{ id: item.id, title: item.title || old.title, changes }] : [];
+  });
+}
+
 const concepts: Record<GutSymptom, string> = {
   unspecified: '',
   bloating: '"abdominal bloating"',
@@ -84,14 +122,24 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
   const data = await response.json();
   const rows = Array.isArray(data?.resultList?.result) ? data.resultList.result : [];
   const retrievedAt = new Date().toISOString();
-  return rows.filter((paper: any) => {
+  const eligible = rows.filter((paper: any) => {
     const corrections = paper?.commentCorrectionList?.commentCorrection;
     const related = Array.isArray(corrections) ? corrections : corrections ? [corrections] : [];
     const title = String(paper?.title || '');
     return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(title) && topicTitle[topic].test(title) && !nonHumanTitle.test(title) &&
       paper?.isRetracted !== 'Y' && paper?.isRetracted !== true &&
       !related.some((item: any) => /^(retracted in|retraction of)$/i.test(String(item?.type || '')));
-  }).slice(0, 4).map((paper: any) => {
+  });
+  // A review gets reading priority, not a quality grade. Keep original relevance order within each group.
+  const ranked = eligible.map((paper: any, index: number) => ({ paper, index })).sort((a: any, b: any) => {
+    const priority = (row: any) => {
+      const raw = row?.pubTypeList?.pubType;
+      const types = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      return types.some((type: string) => /systematic review|meta.analysis/i.test(String(type))) ? 0 : types.some((type: string) => /^review$/i.test(String(type))) ? 1 : 2;
+    };
+    return priority(a.paper) - priority(b.paper) || a.index - b.index;
+  });
+  return ranked.filter(({ paper }: { paper: any }) => !!paper?.pmid).filter(({ paper }: { paper: any }, index: number, all: { paper: any }[]) => all.findIndex((entry) => String(entry.paper.pmid) === String(paper.pmid)) === index).slice(0, 8).map(({ paper }: { paper: any }) => {
     const abstract = cleanMedicalText(paper.abstractText || '');
     const year = /^\d{4}$/.test(String(paper.pubYear || '')) ? String(paper.pubYear) : null;
     const types = paper.pubTypeList?.pubType;

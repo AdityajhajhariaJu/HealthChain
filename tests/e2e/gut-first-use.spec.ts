@@ -26,8 +26,9 @@ test('a first-time guest can ask one question without inventing a symptom', asyn
   await expect(question).toHaveValue('What pattern should I check after dinner?');
   await expect(gut.getByRole('heading', { name: 'What pattern should I check after dinner?' })).toHaveCount(0);
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  const trail = gut.getByRole('region', { name: 'Connected record trail' });
-  await expect(trail.getByText('0 matching occasions · 0 explicit outcomes')).toBeVisible();
+  const trail = gut.getByRole('region', { name: 'Question reading' });
+  await expect(trail.getByText('Start with what is known')).toBeVisible();
+  await expect(trail.getByRole('button', { name: /My records/ })).toBeVisible();
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await expect(gut.getByText('Symptom not selected', { exact: true })).toBeVisible();
   await expect(gut.getByText(/Your question is saved/)).toBeVisible();
@@ -46,7 +47,7 @@ test('choosing a current-concern path still requires the user to describe their 
   await expect(gut.getByRole('button', { name: 'Open my question' })).toBeDisabled();
   await gut.getByLabel('Your question or situation').fill('I have abdominal pain after lunch');
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  await expect(gut.getByText('Current concern')).toBeVisible();
+  await expect(gut.getByText('If you feel unwell now')).toBeVisible();
   await expect(gut.getByText('Anchored to verified onset')).toHaveCount(0);
 });
 
@@ -80,15 +81,14 @@ test('meal recording is a visible optional source action linked to questions', a
   await expect(page.getByRole('dialog', { name: 'Quick meal entry' })).toBeVisible();
 });
 
-test('the connected map leads to a missing meal comparison', async ({ page }) => {
+test('the simple reading leads to the evidence view', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('hc_guest_mode', 'true'));
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /I have a care question/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask at my visit?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
-  const trail = gut.getByRole('region', { name: 'Connected record trail' });
-  await trail.getByText('Meal reports').click();
-  await trail.getByRole('button', { name: 'Choose a meal to examine' }).click();
-  await expect(gut.locator('#gr-focus-edit')).toBeFocused();
+  const trail = gut.getByRole('region', { name: 'Question reading' });
+  await trail.getByRole('button', { name: /My records/ }).click();
+  await expect(gut.getByRole('heading', { name: 'Evidence hearing' })).toBeVisible();
 });

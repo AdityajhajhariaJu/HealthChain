@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Observation } from '../../domain/observations/types';
 import type { GutDay, GutMeal } from '../GutHealthSummary';
 import type { GutQuestionThread } from '../GutResolutionService';
+import { deriveGutDossier, gutDossierLens } from '../GutResearchDossierService';
 
 const state = vi.hoisted(() => ({ profile: {} as Record<string, any> }));
 vi.mock('../ProfileEngine', () => ({
@@ -73,6 +74,43 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.occasions[1].meal.name).toBe('Chai with oat milk');
     expect(evidence.nextQuestionMealId).toBeNull();
     expect(evidence.nextQuestion).toContain('already mixed');
+  });
+
+  it('projects typed dossier links without counting date context as explicit evidence', () => {
+    const evidence = deriveGutEvidence(thread, { meals, days: [day] }, [report(meals[0], 'yes'), report(meals[1], 'no')]);
+    const dossier = deriveGutDossier(thread, evidence, null, new Set(meals.map((meal) => meal.id)));
+    expect(dossier.links.filter((link) => link.relation === 'explicit_with')).toHaveLength(1);
+    expect(dossier.links.filter((link) => link.relation === 'explicit_without')).toHaveLength(1);
+    expect(dossier.links.find((link) => link.relation === 'explicit_without')?.source.id).toBe(meals[1].id);
+    expect(gutDossierLens(dossier, 'explicit_only').every((link) => link.lane !== 'context')).toBe(true);
+    expect(dossier.reading).toContain('mixed picture');
+  });
+
+  it('rejects a foreign question before linking profile meals', () => {
+    const foreign = { ...thread, profileId: 'profile_2' };
+    const evidence = deriveGutEvidence(foreign, { meals, days: [day] }, [report(meals[0], 'yes')]);
+    expect(evidence.occasions).toHaveLength(0);
+    expect(deriveGutDossier(foreign, evidence, null, new Set(meals.map((meal) => meal.id))).links).toHaveLength(0);
+  });
+
+  it('stores a user-reported onset separately and never infers it from question time', async () => {
+    const created = await createGutThread({ intent: 'now', question: 'Pain today' });
+    expect(created?.symptomOnset).toBeUndefined();
+    const saved = await updateGutThread(created!.id, { symptomOnset: { occurredAt: '2026-09-20T12:00:00Z', precision: 'approximate' } });
+    expect(saved?.symptomOnset).toEqual({ occurredAt: '2026-09-20T12:00:00.000Z', precision: 'approximate' });
+    expect(saved?.createdAt).not.toBe(saved?.symptomOnset?.occurredAt);
+    const cleared = await updateGutThread(created!.id, { symptomOnset: null });
+    expect(cleared?.symptomOnset).toBeNull();
+  });
+
+  it('persists only exact reviewed PMID metadata, separate from personal evidence', async () => {
+    const created = await createGutThread({ intent: 'understand', question: 'Is chai linked to bloating?' });
+    const saved = await updateGutThread(created!.id, { reviewedResearch: { at: '', topic: 'food', sources: [
+      { id: '12345', title: 'A review', correctionNotice: null, publicationDate: '2025-01-01', status: 'active' },
+      { id: 'https://other.example', title: 'Untrusted', correctionNotice: null, publicationDate: null, status: 'active' },
+    ] } });
+    expect(saved?.reviewedResearch?.sources.map((source) => source.id)).toEqual(['12345']);
+    expect(saved?.reviewedEvidence).toBeNull();
   });
 
   it('separates same-name meals only after the user confirms a preparation difference', async () => {

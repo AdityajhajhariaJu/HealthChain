@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { searchGutResearch } from '../GutResearchService';
+import { compareGutPublicationStatus, getGutPublicationStatus, searchGutResearch } from '../GutResearchService';
+import { buildGutStudyBridge } from '../GutStudyBridgeService';
+import type { GutQuestionThread } from '../GutResolutionService';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -46,5 +48,20 @@ describe('Gut research metadata boundary', () => {
     expect(paper.titlePopulationCue).toBe('children or adolescents');
     expect(paper.publicationDate).toBe('2024-05-19');
     expect(paper.publicationDateSource).toBe('print');
+    const thread = { intent: 'understand', focus: 'chai', symptom: 'bloating' } as GutQuestionThread;
+    const bridge = buildGutStudyBridge(paper, thread, 'food');
+    expect(bridge.find((plank) => plank.field === 'population')?.sourceText).toBe('children or adolescents');
+    expect(bridge.filter((plank) => plank.state === 'unknown').map((plank) => plank.field)).toEqual(['comparison', 'outcome', 'setting']);
+    expect(bridge.find((plank) => plank.field === 'exposure')?.explanation).toContain('not a verified intervention');
+  });
+
+  it('checks an exact saved PMID and surfaces a retraction without a personal conclusion', async () => {
+    const fetchMock = vi.fn(async (_url: string) => ({ ok: true, status: 200, json: async () => ({ result: { title: 'A corrected study', isRetracted: 'Y', commentCorrectionList: { commentCorrection: [{ type: 'Retracted in' }] } } }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = await getGutPublicationStatus('13579');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/article/MED/13579');
+    expect(current.status).toBe('retracted');
+    const changes = compareGutPublicationStatus([{ id: '13579', title: 'A corrected study', correctionNotice: null, publicationDate: null, status: 'active' }], [current]);
+    expect(changes[0].changes).toContain('publication status: active → retracted');
   });
 });

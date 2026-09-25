@@ -32,7 +32,10 @@ export interface GutQuestionThread {
   reflection: string | null;
   excludedMealIds: string[];
   reviewedEvidence: GutReviewSnapshot | null;
+  reviewedResearch?: { at: string; topic: string; sources: { id: string; title: string; correctionNotice: string | null; publicationDate: string | null; status: 'active' | 'corrected' | 'retracted' | 'unavailable' }[] } | null;
   decision?: GutDecisionPlan | null;
+  /** User-entered occurrence time. Never inferred from the question save time. */
+  symptomOnset?: { occurredAt: string; precision: 'exact' | 'approximate' } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -231,7 +234,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   return await writeThreads([thread, ...listGutThreads()]) ? thread : null;
 }
 
-export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'decision'>>): Promise<GutQuestionThread | null> {
+export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
@@ -244,6 +247,11 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
     selectedStep: patch.selectedStep === undefined ? original.selectedStep : clean(patch.selectedStep).slice(0, 300) || null,
     excludedMealIds: patch.excludedMealIds === undefined ? original.excludedMealIds : [...new Set(patch.excludedMealIds)].slice(0, 200),
     decision: patch.decision === undefined ? original.decision : patch.decision === null ? null : cleanDecision(patch.decision),
+    reviewedResearch: patch.reviewedResearch === undefined ? original.reviewedResearch : patch.reviewedResearch === null ? null : {
+      at: new Date().toISOString(), topic: limit(patch.reviewedResearch.topic, 40),
+      sources: patch.reviewedResearch.sources.filter((source) => /^\d+$/.test(source.id)).slice(0, 8).map((source) => ({ id: source.id, title: limit(source.title, 500), correctionNotice: limit(source.correctionNotice, 160) || null, publicationDate: limit(source.publicationDate, 16) || null, status: source.status === 'corrected' || source.status === 'retracted' || source.status === 'unavailable' ? source.status : 'active' })),
+    },
+    symptomOnset: patch.symptomOnset === undefined ? original.symptomOnset : patch.symptomOnset && !Number.isNaN(Date.parse(patch.symptomOnset.occurredAt)) && Date.parse(patch.symptomOnset.occurredAt) <= Date.now() && ['exact', 'approximate'].includes(patch.symptomOnset.precision) ? { occurredAt: new Date(patch.symptomOnset.occurredAt).toISOString(), precision: patch.symptomOnset.precision } : null,
     updatedAt: now,
   };
   return await writeThreads(threads.map((item) => item.id === threadId ? updated : item)) ? updated : null;
@@ -271,8 +279,9 @@ export function answerFromMealReaction(meal: GutMeal, symptom: GutSymptom): Answ
 
 export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: GutMeal[]; days: GutDay[] }, observations: Observation[]): GutEvidence {
   const focus = normalize(thread.focus);
-  const candidates = focus ? snapshot.meals.filter((meal) => normalize(meal.name).includes(focus) && !thread.excludedMealIds.includes(meal.id)) : [];
   const current = scope();
+  // Profile meals can lack an owner field, so reject a foreign thread before considering them.
+  const candidates = focus && thread.ownerKey === current.ownerKey && thread.profileId === current.profileId ? snapshot.meals.filter((meal) => normalize(meal.name).includes(focus) && !thread.excludedMealIds.includes(meal.id)) : [];
   const scopedObservations = observations.filter((item) => item.ownerId === getAccountScope() && item.profileId === current.profileId && !item.deletedAt);
   const scoped = scopedObservations.filter((item) => item.payload.kind === 'daily_checkin');
   const occasions: GutEvidenceOccasion[] = candidates.map((meal) => {
