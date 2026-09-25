@@ -16,6 +16,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   const caseId = new URL(page.url()).pathname.split('/').pop();
   expect(caseId).toBeTruthy();
 
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await expect(gut.getByText('GUT RESOLUTION STUDIO')).toBeVisible();
@@ -23,6 +24,8 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await gut.getByLabel('Your question or situation').fill('What should I ask about recurring bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
   await expect(gut.getByText('Bring this question to a visit')).toBeVisible();
+  const handoff = gut.getByRole('region', { name: 'Prepare this question for a visit' });
+  expect(await handoff.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await expect(gut.getByRole('button', { name: 'Add question and open brief' })).toBeDisabled();
   await gut.getByLabel('Case', { exact: true }).selectOption(caseId!);
   await gut.getByRole('button', { name: 'Add question and open brief' }).click();
