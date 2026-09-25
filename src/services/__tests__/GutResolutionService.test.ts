@@ -52,6 +52,10 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.bundle.support[0].answerSources).toEqual([{ kind: 'gut_report', id: `report-${meals[0].id}`, revision: 1, timePrecision: 'date_only' }]);
     expect(evidence.bundle.counterexamples[0].inclusionRule).toBe('linked_explicit_report');
     expect(evidence.bundle.unknown[0].inclusionRule).toBe('no_explicit_answer');
+    expect(evidence.bundle.nameVariants).toEqual([
+      { name: 'Masala Chai', sourceIds: [meals[0].id, meals[2].id], support: 1, counterexamples: 0, unknown: 1 },
+      { name: 'Chai with oat milk', sourceIds: [meals[1].id], support: 0, counterexamples: 1, unknown: 0 },
+    ]);
     expect(evidence.answer).toContain('mixed');
     expect(evidence.occasions[1].meal.name).toBe('Chai with oat milk');
     expect(evidence.nextQuestionMealId).toBeNull();

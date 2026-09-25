@@ -69,6 +69,15 @@ export interface GutEvidenceBundle {
   counterexamples: GutEvidenceEdge[];
   unknown: GutEvidenceEdge[];
   alternativeContext: GutAlternativeContext[];
+  nameVariants: GutNameVariant[];
+}
+
+export interface GutNameVariant {
+  name: string;
+  sourceIds: string[];
+  support: number;
+  counterexamples: number;
+  unknown: number;
 }
 
 export interface GutEvidence {
@@ -248,11 +257,22 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   });
   const alternativeContext = [...new Map(occasions.flatMap((item) => item.alternativeContext)
     .map((item) => [`${item.kind}:${item.sourceId}`, item])).values()];
+  const nameVariants = [...occasions.reduce((groups, item) => {
+    const key = normalize(item.meal.name);
+    const group = groups.get(key) || { name: item.meal.name, sourceIds: [], support: 0, counterexamples: 0, unknown: 0 };
+    group.sourceIds.push(item.meal.id);
+    if (item.edge.category === 'support') group.support += 1;
+    else if (item.edge.category === 'counterexample') group.counterexamples += 1;
+    else group.unknown += 1;
+    groups.set(key, group);
+    return groups;
+  }, new Map<string, GutNameVariant>()).values()];
   const bundle: GutEvidenceBundle = {
     support: occasions.filter((item) => item.edge.category === 'support').map((item) => item.edge),
     counterexamples: occasions.filter((item) => item.edge.category === 'counterexample').map((item) => item.edge),
     unknown: occasions.filter((item) => item.edge.category === 'unknown').map((item) => item.edge),
     alternativeContext,
+    nameVariants,
   };
   const support = bundle.support.length;
   const tension = bundle.counterexamples.length;

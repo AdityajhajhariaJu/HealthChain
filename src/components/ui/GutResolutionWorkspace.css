@@ -115,6 +115,17 @@
 .gr-map-branches>div { min-width:0; text-align:center; border-top:2px solid #e3bfca; padding-top:12px; }
 .gr-map-branches b { display:block; color:#b3264a; font-size:23px; }
 .gr-map-branches span { font-size:12px; color:#666c78; overflow-wrap:anywhere; }
+.gr-variants { border:1px solid #f0dce2; border-radius:17px; background:linear-gradient(140deg,#fff8f9,#fffdfb); padding:15px; margin:0 0 18px; }
+.gr-variants>strong { color:#9e2344; font-size:14px; }
+.gr-variants>p { color:#6d6973; font-size:12px; line-height:1.5; margin:5px 0 12px; }
+.gr-variant-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:8px; }
+.gr-variant-list button { min-width:0; text-align:left; border:1px solid #efdce2; border-radius:12px; background:#fff; padding:10px 12px; cursor:pointer; }
+.gr-variant-list button:hover,.gr-variant-list button:focus-visible { border-color:#d4879d; background:#fff7f9; }
+.gr-variant-list b { display:block; color:#4e3440; font-size:12px; overflow-wrap:anywhere; }
+.gr-variant-list span { display:block; color:#7c7480; font-size:11px; margin-top:4px; }
+.gr-variants details { margin-top:10px; }
+.gr-variants summary { color:#9e2344; cursor:pointer; font-size:12px; font-weight:700; }
+.gr-variants details .gr-variant-list { margin-top:9px; }
 .gr-occasion-list { display:grid; gap:12px; }
 .gr-occasion { border:1px solid #eae2e4; border-radius:18px; padding:16px; background:#fff; }
 .gr-occasion-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
