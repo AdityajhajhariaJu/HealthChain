@@ -3,12 +3,14 @@
 **Updated:** 26 September 2026  
 **Repository:** `C:\Users\adity\OneDrive\Desktop\HealthChain-Live`  
 **Starting revision:** `1f4a7021` on `master` (matched `origin/master` before edits)  
+**Implementation commits:** `e052751c` and `023d12cf` (pushed to `origin/master`)  
 **Scope:** Implementation ledger for `C:\Users\adity\Desktop\HealthChain-Gut-Health-Conclusion-Experience-Implementation-Plan-2026-09-26.md`.
 
 ## What this change implements
 
 - A single read projection combines existing Diet meals with profile-scoped canonical observations for the Gut workspace, record view, evidence counts, and copied visit brief. Linked observations are not counted as second meals. Undated meal observations stay inspectable and are excluded from dated comparisons.
 - Conclusion cards show actual with / without / unknown-or-disputed counts and source-linked occasions. The visual is explicitly labeled as a count, not a probability. Each occasion opens its exact source.
+- Empty conclusions distinguish “no meal linked to this question” from “no matching reports,” and expose a separate route to saved records so the no-data state is not mistaken for missing account history.
 - The conclusion is now the first explanation on the answer screen. The additional connection reading sits behind **How these records connect**, so the user can get the answer before opening the detailed path.
 - Intent and symptom inference remain editable; draft suggestions do not become saved facts without selection. Excluding a source applies only to the question and does not delete the original record.
 - Current-concern guidance says the app cannot assess urgency and marks independent review as pending. General NIDDK links open the original source; the app no longer presents its own unreviewed paraphrase as a research summary.
