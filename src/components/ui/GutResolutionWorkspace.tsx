@@ -83,6 +83,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
       return '';
     }
   });
+  const [selectedIntent, setSelectedIntent] = useState<GutIntent | null>(null);
+  const [mealPhrase, setMealPhrase] = useState('');
+  const [selectedSymptom, setSelectedSymptom] = useState<GutSymptom>('unspecified');
 
   const handleQuestionChange = (val: string) => {
     setQuestion(val);
@@ -229,9 +232,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
 
     setBusy(true);
     const resolution = resolveDeterministicGutIntent(queryText);
-    const chosenIntent = forceIntent || resolution.intent;
-    const chosenFocus = resolution.inferredFocus;
-    const chosenSymptom = resolution.inferredSymptom;
+    const chosenIntent = forceIntent || selectedIntent || resolution.intent;
+    const chosenFocus = mealPhrase.trim() || resolution.inferredFocus;
+    const chosenSymptom = selectedSymptom !== 'unspecified' ? selectedSymptom : resolution.inferredSymptom;
 
     const created = await createGutThread({
       intent: chosenIntent,
@@ -263,6 +266,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
     }
 
     handleQuestionChange('');
+    setSelectedIntent(null);
+    setMealPhrase('');
+    setSelectedSymptom('unspecified');
     setThreads(listGutThreads());
     openThread(created);
   };
@@ -317,24 +323,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
   return <div className="gr-workspace">
     {cloudNote && <p className="gr-sync-note" role="status"><ShieldCheck size={17} /> {cloudNote}</p>}
     {!thread ? <>
-      <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> CLINICAL RESOLUTION STUDIO <span className="gr-eyebrow-note">Source-linked answers</span></div>
+      <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> CLINICAL RESOLUTION STUDIO <span className="gr-eyebrow-note">Your evidence, in context</span></div>
       <h2 className="gr-title">What would you like help figuring out?</h2>
       <p className="gr-subtitle">Start with a single question that matters today. We will connect what your records actually show, surface what is still uncertain, and suggest one inspectable next step.</p>
-
-      {/* Explicit 'I feel unwell now' action */}
-      <section className="gr-unwell-action">
-        <div className="gr-unwell-text">
-          <strong><HeartHandshake size={17} /> I feel unwell right now</strong>
-          <p>Open guidance for a current concern and review your records without completing a diary.</p>
-        </div>
-        <button
-          type="button"
-          className="gr-unwell-btn"
-          onClick={() => void startWithQuery('I feel unwell right now', 'now')}
-        >
-          Check now &rarr;
-        </button>
-      </section>
 
       {openThreads.length > 0 && <section className="gr-continue">
         <div className="gr-small-icon"><RotateCcw size={19} /></div>
@@ -342,6 +333,22 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
         <button type="button" className="gr-quiet-button" onClick={() => openThread(openThreads[0])}>Continue <ArrowRight size={16} /></button>
       </section>}
       {openThreads.length > 1 && <details className="gr-other-questions"><summary>{openThreads.length - 1} other open question{openThreads.length === 2 ? '' : 's'}</summary><div>{openThreads.slice(1).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}><span>{item.question}</span><ArrowRight size={15} /></button>)}</div></details>}
+
+      <section className="gr-intent-grid" aria-label="Choose what you need help with">
+        {intents.map(({ id, title, desc, icon: Icon }) => (
+          <button
+            type="button"
+            key={id}
+            className={`gr-intent${selectedIntent === id ? ' gr-intent-active' : ''}`}
+            aria-pressed={selectedIntent === id}
+            onClick={() => setSelectedIntent((current) => current === id ? null : id)}
+          >
+            <span className={`gr-icon gr-icon-${id}`} aria-hidden="true"><Icon size={21} /></span>
+            <span><strong>{title}</strong><small>{desc}</small></span>
+            <ChevronRight size={18} className="gr-intent-arrow" aria-hidden="true" />
+          </button>
+        ))}
+      </section>
 
       <section className="gr-start-form">
         <label htmlFor="gr-question">Your question or situation</label>
@@ -353,34 +360,54 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenQ
             maxLength={500}
             onChange={(event) => handleQuestionChange(event.target.value)}
             onKeyDown={(event) => { if (event.key === 'Enter') void startWithQuery(); }}
-            placeholder="e.g., Is chai linked to my bloating? or What pattern should I check after dinner?"
+            placeholder="What would you like help figuring out?"
           />
         </div>
 
-        {/* 3 Clickable Example Chips */}
-        <div className="gr-chips-row">
-          <span className="gr-chips-label">Examples:</span>
-          {EXAMPLE_PROMPTS.map((prompt) => (
-            <button
-              type="button"
-              key={prompt}
-              className="gr-prompt-chip"
-              onClick={() => {
-                handleQuestionChange(prompt);
-                document.getElementById('gr-question')?.focus();
-              }}
-            >
-              <Sparkles size={12} style={{ color: '#AD234A' }} />
-              {prompt}
-            </button>
-          ))}
+        <div className="gr-form-row">
+          <label htmlFor="gr-meal-phrase">Meal or phrase to examine <span>(optional)</span>
+            <input
+              id="gr-meal-phrase"
+              list="gr-recorded-meals"
+              value={mealPhrase}
+              maxLength={120}
+              onChange={(event) => setMealPhrase(event.target.value)}
+              placeholder="Choose from records or type a phrase"
+            />
+            <datalist id="gr-recorded-meals">{Array.from(new Set(snapshot.meals.map((meal) => meal.name))).map((name) => <option key={name} value={name} />)}</datalist>
+          </label>
+          <label htmlFor="gr-symptom">Symptom <span>(optional)</span>
+            <select id="gr-symptom" value={selectedSymptom} onChange={(event) => setSelectedSymptom(event.target.value as GutSymptom)}>
+              {symptoms.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+            </select>
+          </label>
         </div>
+
+        <details className="gr-example-disclosure">
+          <summary>Need a starting point? See example questions</summary>
+          <div className="gr-chips-row">
+            {EXAMPLE_PROMPTS.map((prompt) => (
+              <button
+                type="button"
+                key={prompt}
+                className="gr-prompt-chip"
+                onClick={() => {
+                  handleQuestionChange(prompt);
+                  document.getElementById('gr-question')?.focus();
+                }}
+              >
+                <Sparkles size={12} style={{ color: '#AD234A' }} />
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </details>
 
         <div className="gr-start-actions">
           <button type="button" className="gr-primary" onClick={() => void startWithQuery()} disabled={!question.trim() || busy}>
             Open my question <ArrowRight size={17} />
           </button>
-          <span>No questionnaire, account setup, or daily checklist required.</span>
+          <span>A question is enough. Meal and symptom details are optional.</span>
         </div>
       </section>
 
