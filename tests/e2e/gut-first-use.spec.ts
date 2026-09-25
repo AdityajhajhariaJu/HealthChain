@@ -12,6 +12,8 @@ test('a first-time guest can ask one question without inventing a symptom', asyn
   await expect(gut.getByRole('button', { name: /I need to choose/ })).toBeVisible();
   await expect(gut.getByRole('button', { name: /I want to understand/ })).toBeVisible();
   await expect(gut.getByRole('button', { name: /I have a care question/ })).toBeVisible();
+  const intentColumns = await gut.locator('.gr-intent-grid').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+  expect(intentColumns).toBe(2);
   const question = gut.getByLabel('Your question or situation');
   await expect(gut.getByLabel('Symptom (optional)')).toHaveValue('unspecified');
   await gut.locator('details.gr-example-disclosure > summary').click();
