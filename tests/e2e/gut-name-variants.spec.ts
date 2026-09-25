@@ -30,6 +30,8 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await sourceMap.getByRole('button', { name: '1 unknown or disputed report. Open the first source.' }).click();
   await expect(page.locator('#gr-occasion-chai-oat')).toBeFocused();
   await expect(sourceMap.getByRole('button', { name: '0 without it reports. No source in this group.' })).toBeDisabled();
+  await page.setViewportSize({ width: 320, height: 700 });
+  expect(await sourceMap.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   const variants = gut.getByRole('region', { name: 'Saved meal name variants' });
   await expect(variants.getByText('2 different saved names match “chai”')).toBeVisible();
   await expect(variants.getByRole('button', { name: /Masala Chai.*1 with.*0 without.*0 unknown/ })).toBeVisible();
