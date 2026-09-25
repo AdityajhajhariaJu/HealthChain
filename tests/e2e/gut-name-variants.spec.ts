@@ -32,7 +32,7 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   const exactSource = gut.getByRole('region', { name: 'Exact source record' });
   await expect(exactSource.getByRole('heading', { name: 'Masala Chai' })).toBeVisible();
   await expect(exactSource.getByText('chai-masala')).toBeVisible();
-  await gut.getByRole('button', { name: 'Resolution Studio' }).click();
+  await gut.getByRole('button', { name: 'My questions' }).click();
   await gut.getByRole('button', { name: 'My answer' }).click();
   await trail.getByRole('button', { name: /Why ask/ }).click();
   await trail.getByRole('button', { name: /Review this detail/ }).click();

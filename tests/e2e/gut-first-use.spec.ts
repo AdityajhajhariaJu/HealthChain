@@ -85,9 +85,9 @@ test('meal recording is a visible optional source action linked to questions', a
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   const sourceAction = gut.getByRole('region', { name: 'Optional meal record' });
-  await expect(sourceAction.getByText('A saved meal can appear in a question’s evidence and record window. You can continue without logging one.')).toBeVisible();
+  await expect(sourceAction.getByText('Record a meal', { exact: true })).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  await sourceAction.getByRole('button', { name: 'Record a meal' }).click();
+  await sourceAction.getByRole('button', { name: 'Add meal' }).click();
   await expect(page.getByRole('dialog', { name: 'Quick meal entry' })).toBeVisible();
 });
 

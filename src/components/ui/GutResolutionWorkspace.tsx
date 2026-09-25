@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, Clipboard, Compass, FileText, GitBranch, HeartHandshake, Plus, RotateCcw, Search, ShieldCheck, Sparkles, Utensils } from 'lucide-react';
+import { Activity, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, Clipboard, Clock3, Coffee, Compass, FileText, GitBranch, HeartHandshake, Milk, Plus, RotateCcw, Search, ShieldCheck, Sparkles, Utensils } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { formatGutVisitNote, getGutSnapshot, type GutMeal } from '../../services/GutHealthSummary';
 import { listObservations, loadObservationsFromCloud } from '../../services/HealthObservationService';
@@ -88,6 +88,7 @@ const symptoms: Array<{ id: GutSymptom; label: string }> = [
   { id: 'reflux', label: 'Reflux' }, { id: 'nausea', label: 'Nausea' }, { id: 'bowel_changes', label: 'Bowel changes' },
 ];
 const symptomName = (symptom: GutSymptom) => symptoms.find((item) => item.id === symptom)?.label.toLowerCase() || 'symptoms';
+const researchTopicIcons: Record<GutResearchTopic, LucideIcon> = { food: Utensils, caffeine: Coffee, dairy: Milk, meal_timing: Clock3 };
 const trialContext = () => {
   try {
     const trial = getActiveTrialV2();
@@ -119,7 +120,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
   useEffect(() => {
     if (!selectedIntent || activeId) return;
     const frame = requestAnimationFrame(() => {
-      startFormRef.current?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+      startFormRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
       questionRef.current?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
@@ -154,6 +155,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
   const [trial, setTrial] = useState(trialContext);
   const thread = threads.find((item) => item.id === activeId) || null;
   const ThreadIcon = intents.find((item) => item.id === thread?.intent)?.icon || GitBranch;
+  const SelectedIntentIcon = intents.find((item) => item.id === selectedIntent)?.icon || Sparkles;
 
   const sourcedSnapshot = useMemo(() => {
     const represented = new Set(snapshot.meals.map((meal) => meal.id));
@@ -388,9 +390,9 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
   return <div className="gr-workspace">
     {cloudNote && <p className="gr-sync-note" role="status"><ShieldCheck size={17} /> {cloudNote}</p>}
     {!thread ? <>
-      <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> CLINICAL RESOLUTION STUDIO <span className="gr-eyebrow-note">Your evidence, in context</span></div>
-      <h2 className="gr-title">What would you like help figuring out?</h2>
-      <p className="gr-subtitle">Start with a single question that matters today. We will connect what your records actually show, surface what is still uncertain, and suggest one inspectable next step.</p>
+      <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> GUT HEALTH <span className="gr-eyebrow-note">Your questions, in context</span></div>
+      <h2 className="gr-title">What do you need help with today?</h2>
+      <p className="gr-subtitle">Choose one starting point. We’ll keep your records, research and next step easy to inspect.</p>
 
       {openThreads.length > 0 && <section className="gr-continue">
         <div className="gr-small-icon"><RotateCcw size={19} /></div>
@@ -399,13 +401,13 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
       </section>}
       {openThreads.length > 1 && <details className="gr-other-questions"><summary>{openThreads.length - 1} other open question{openThreads.length === 2 ? '' : 's'}</summary><div>{openThreads.slice(1).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}><span>{item.question}</span><ArrowRight size={15} /></button>)}</div></details>}
 
-      <div className="gr-onboarding-step">STEP 1 OF 2 <span>Choose how we can help</span></div>
+      <div className="gr-onboarding-step"><span className="gr-step-track" aria-hidden="true"><i /><i className={selectedIntent ? 'gr-step-ready' : ''} /></span><strong>START HERE</strong><span>Choose what fits today</span></div>
       <section className="gr-intent-grid" aria-label="Choose what you need help with">
         {intents.map(({ id, title, desc, icon: Icon }) => (
           <button
             type="button"
             key={id}
-            className={`gr-intent${selectedIntent === id ? ' gr-intent-active' : ''}`}
+            className={`gr-intent gr-intent-${id}${selectedIntent === id ? ' gr-intent-active' : ''}`}
             aria-pressed={selectedIntent === id}
             onClick={() => setSelectedIntent(id)}
           >
@@ -416,21 +418,10 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         ))}
       </section>
 
-      <section className="gr-quick-record" aria-label="Optional meal record">
-        <span className="gr-quick-record-icon" aria-hidden="true"><Utensils size={20} /></span>
-        <div className="gr-quick-record-copy">
-          <span className="gr-quick-record-kicker">OPTIONAL SOURCE RECORD</span>
-          <strong>Have a meal worth remembering?</strong>
-          <p>A saved meal can appear in a question’s evidence and record window. You can continue without logging one.</p>
-          {snapshot.meals.length > 0 && <small>{snapshot.meals.length} meal{snapshot.meals.length === 1 ? '' : 's'} saved in this profile</small>}
-        </div>
-        <button type="button" onClick={onOpenQuickMeal}><Plus size={16} /> Record a meal <ArrowRight size={15} /></button>
-      </section>
-
-      {!selectedIntent && <p className="gr-path-hint">Choose a card to begin. One question is enough, and you can change paths at any time.</p>}
+      {!selectedIntent && <p className="gr-path-hint">A question is enough to begin. You can add details later.</p>}
       {selectedIntent && <section ref={startFormRef} className="gr-start-form" aria-label={`${intents.find((item) => item.id === selectedIntent)?.title} question setup`}>
-        <div className="gr-onboarding-step">STEP 2 OF 2 <span>{intents.find((item) => item.id === selectedIntent)?.title}</span></div>
-        <h3 className="gr-path-heading">{intentGuidance[selectedIntent].heading}</h3>
+        <div className="gr-onboarding-step"><span className="gr-step-track" aria-hidden="true"><i /><i className="gr-step-ready" /></span><strong>YOUR QUESTION</strong><span>{intents.find((item) => item.id === selectedIntent)?.title}</span></div>
+        <h3 className="gr-path-heading"><span className={`gr-path-heading-icon gr-icon-${selectedIntent}`} aria-hidden="true"><SelectedIntentIcon size={18} /></span>{intentGuidance[selectedIntent].heading}</h3>
         <p className="gr-path-help">{intentGuidance[selectedIntent].help}</p>
         <label htmlFor="gr-question">Your question or situation</label>
         <div className="gr-input-wrap">
@@ -496,6 +487,12 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
         </div>
       </section>}
 
+      <section className="gr-quick-record" aria-label="Optional meal record">
+        <span className="gr-quick-record-icon" aria-hidden="true"><Utensils size={19} /></span>
+        <div className="gr-quick-record-copy"><strong>Record a meal</strong><p>Optional. A saved meal can appear in a question’s evidence and record window. You can continue without logging one.</p></div>
+        <button type="button" onClick={onOpenQuickMeal}><Plus size={16} /> Add meal <ArrowRight size={15} /></button>
+      </section>
+
       <div className="gr-home-bottom">
         <div><ShieldCheck size={17} /> Your records and general research stay visibly separate.</div>
         <button type="button" onClick={() => onOpenHistory()}><Activity size={16} /> Open history</button>
@@ -503,7 +500,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
 
       {threads.filter((item) => item.status === 'closed').length > 0 && <section className="gr-closed"><h3>Past questions</h3>{threads.filter((item) => item.status === 'closed').slice(0, 4).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}>{item.question}<ArrowRight size={15} /></button>)}</section>}
     </> : <>
-      <div className="gr-thread-top"><button type="button" className="gr-back" onClick={() => { setActiveId(null); setMessage(''); }}><ArrowLeft size={17} /> All questions</button><span className="gr-thread-kind">{intents.find((item) => item.id === thread.intent)?.title}</span></div>
+      <div className="gr-thread-top"><button type="button" className="gr-back" onClick={() => { setActiveId(null); setMessage(''); }}><ArrowLeft size={17} /> All questions</button><span className="gr-thread-kind"><ThreadIcon size={14} />{intents.find((item) => item.id === thread.intent)?.title}</span></div>
       <div className="gr-thread-heading"><div><div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> {thread.intent === 'now' ? 'YOUR CURRENT CONCERN' : thread.intent === 'care' ? 'YOUR CARE QUESTION' : 'YOUR QUESTION'}</div><h2 className="gr-title">{thread.question}</h2><p className="gr-subtitle">{thread.intent === 'now' ? 'Your words are saved. See a care next step and the records you can bring.' : thread.intent === 'care' ? 'Keep your question and source records together for a visit.' : 'A reading you can inspect and update as your records change.'}</p></div><span className={`gr-icon gr-icon-${thread.intent}`}><ThreadIcon size={24} /></span></div>
       {view !== 'answer' && <nav className="gr-tabs" aria-label="Question sections">{(thread.intent === 'now' ? [['answer','My report'],['research','General information']] : [['answer',thread.intent === 'decide' ? 'My choice' : thread.intent === 'care' ? 'My question' : 'My answer'],['evidence','Records'],['research','Research'],['next','Next step']] as [View,string][]).map(([id, label]) => <button type="button" key={id} aria-current={view === id ? 'page' : undefined} className={view === id ? 'gr-tab-active' : ''} onClick={() => { setView(id as View); setMessage(''); }}>{label}</button>)}</nav>}
       {hasChanged && thread.intent !== 'now' && <div className="gr-change" role="status"><Sparkles size={19} /><div><strong>{thread.reviewedEvidence?.occasions ? 'Your records changed since this question was last reviewed.' : 'This question needs a fresh evidence review.'}</strong><span>Then: {changeReceipt?.previous.support} with, {changeReceipt?.previous.tension} without, {changeReceipt?.previous.unknown} unknown. Now: {changeReceipt?.current.support} with, {changeReceipt?.current.tension} without, {changeReceipt?.current.unknown} unknown.</span>{changeReceipt?.comparisonChanged && <span>The meal comparison or symptom changed.</span>}{changeReceipt && changeReceipt.changes.length > 0 && <ul>{changeReceipt.changes.slice(0, 3).map((change) => <li key={change.mealId}><strong>{change.label}:</strong> {change.detail}</li>)}{changeReceipt.changes.length > 3 && <li>{changeReceipt.changes.length - 3} more changed occasion(s) in Evidence.</li>}</ul>}{thread.reviewedEvidence?.occasions && changeReceipt?.changes.length === 0 && <span>A comparison detail changed; inspect the source records before relying on the earlier answer.</span>}<button type="button" className="gr-change-review" disabled={busy || !evidence} onClick={() => void savePatch({ reviewedEvidence: makeGutReviewSnapshot({ ...thread, focus: comparisonFocus }, evidence!) })}>I reviewed the current evidence</button></div></div>}
@@ -574,8 +571,8 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ onOpenHistory, onOpenS
       {view === 'research' && <div className="gr-research-view"><div className="gr-section-intro"><div><h3>General information</h3><p>{thread.symptom === 'unspecified' ? 'Choose the symptom you want to read about. Your question remains saved as written.' : `Start with a trusted overview for ${symptomName(thread.symptom)}. If you want published studies, choose a topic below. These sources do not explain your personal symptoms.`}</p></div></div>
         {thread.symptom === 'unspecified' && <div className="gr-research-select"><label htmlFor="gr-research-symptom">Which symptom would you like to read about?</label><select id="gr-research-symptom" value="unspecified" disabled={busy} onChange={(event) => void savePatch({ symptom: event.target.value as GutSymptom })}><option value="unspecified">Choose a symptom</option>{symptoms.filter((item) => item.id !== 'unspecified').map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select><small>This choice selects general sources; it does not add a symptom report to your records.</small></div>}
         {thread.reviewedResearch?.sources.length ? <section className="gr-research-receipt"><strong>Saved source list · {new Date(thread.reviewedResearch.at).toLocaleDateString()}</strong><p>{thread.reviewedResearch.sources.length} exact PMID{thread.reviewedResearch.sources.length === 1 ? '' : 's'} saved for this question. Check their current publication status independently of search rankings.</p><button type="button" disabled={researchCheck === 'loading'} onClick={() => void checkSavedResearch()}>{researchCheck === 'loading' ? 'Checking exact sources…' : 'Check source updates'}</button>{researchCheck === 'error' && <p role="status">Status check unavailable. Earlier source information remains labeled as saved metadata.</p>}{researchCheck === 'ready' && (researchChanges.length ? <div role="status">{researchChanges.map((item) => <p key={item.id}><strong>PMID {item.id}:</strong> {item.changes.join('; ')}. Recheck the original before using this paper; no personal conclusion was updated.</p>)}</div> : <p role="status">No indexed status change was found for the saved PMIDs. This does not verify the paper’s findings or check guideline changes.</p>)}</section> : null}
-        {gutGeneralGuidance[thread.symptom] && <section className="gr-paper" aria-label="General guidance"><strong>Start with a source</strong><p>{gutGeneralGuidance[thread.symptom]?.summary}</p><a href={gutGeneralGuidance[thread.symptom]?.url} target="_blank" rel="noopener noreferrer">{gutGeneralGuidance[thread.symptom]?.title} <ArrowRight size={15} /></a><small>Curated general link · independent clinical review pending</small></section>}
-        {thread.symptom !== 'unspecified' && <section className="gr-research-picker"><h4>Explore published studies <span>(optional)</span></h4><p>Choose the subject you want to search. Your question and records are never sent; the search uses only the selected subject and symptom. It can miss relevant studies.</p><div className="gr-research-topics" role="group" aria-label="Research topic">{(Object.entries(gutResearchTopics) as [GutResearchTopic, { label: string; query: string }][]).map(([id, item]) => <button type="button" key={id} aria-pressed={researchTopic === id} onClick={() => { setResearchTopic(id); void loadResearch(id); }} disabled={researchStatus === 'loading'}>{item.label}</button>)}</div></section>}
+        {gutGeneralGuidance[thread.symptom] && <section className="gr-paper" aria-label="General guidance"><div className="gr-paper-source-heading"><span aria-hidden="true"><BookOpen size={17} /></span><strong>Start with a source</strong></div><p>{gutGeneralGuidance[thread.symptom]?.summary}</p><a href={gutGeneralGuidance[thread.symptom]?.url} target="_blank" rel="noopener noreferrer">{gutGeneralGuidance[thread.symptom]?.title} <ArrowRight size={15} /></a><small>Curated general link · independent clinical review pending</small></section>}
+        {thread.symptom !== 'unspecified' && <section className="gr-research-picker"><h4>Explore published studies <span>(optional)</span></h4><p>Choose the subject you want to search. Your question and records are never sent; the search uses only the selected subject and symptom. It can miss relevant studies.</p><div className="gr-research-topics" role="group" aria-label="Research topic">{(Object.entries(gutResearchTopics) as [GutResearchTopic, { label: string; query: string }][]).map(([id, item]) => { const TopicIcon = researchTopicIcons[id]; return <button type="button" key={id} aria-pressed={researchTopic === id} onClick={() => { setResearchTopic(id); void loadResearch(id); }} disabled={researchStatus === 'loading'}><TopicIcon size={15} aria-hidden="true" />{item.label}</button>; })}</div></section>}
         {researchTopic && <div className="gr-research-warning"><ShieldCheck size={19} /> Studies describe groups, not your personal cause. Check each source’s population and methods before applying it to yourself.</div>}
         {researchStatus === 'loading' && <p role="status" className="gr-loading">Searching Europe PMC for general research…</p>}
         {researchStatus === 'error' && <div className="gr-empty"><BookOpen size={24} /><strong>Research is temporarily unavailable</strong><p>Your personal records remain accessible. Try again later.</p><button type="button" className="gr-secondary" onClick={() => void loadResearch()}>Retry</button></div>}
