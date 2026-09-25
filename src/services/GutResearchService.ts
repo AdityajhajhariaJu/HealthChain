@@ -4,12 +4,13 @@ import type { GutSymptom } from './GutResolutionService';
 export type GutResearchTopic = 'food' | 'caffeine' | 'dairy' | 'meal_timing';
 
 /** General education links are deliberately separate from personal evidence and paper search. */
-export const gutGeneralGuidance: Partial<Record<GutSymptom, { title: string; summary: string; url: string }>> = {
-  bloating: { title: 'NIDDK: Gas and bloating', summary: 'Bloating has several possible explanations, including swallowed air, digestion of carbohydrates and digestive conditions. A meal name or timing alone cannot identify yours.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/gas-digestive-tract/symptoms-causes' },
-  discomfort: { title: 'NIDDK: Indigestion symptoms', summary: 'Upper abdominal discomfort can accompany fullness, bloating or nausea. This overview does not determine whether your discomfort is indigestion.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes' },
-  reflux: { title: 'NIDDK: Reflux symptoms', summary: 'This overview describes common reflux symptoms and when to discuss them with a clinician. Your records cannot diagnose reflux disease.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/acid-reflux-ger-gerd-adults/symptoms-causes' },
-  nausea: { title: 'NIDDK: Indigestion symptoms', summary: 'Nausea can occur alongside indigestion symptoms, but it has many possible explanations. This page is general context, not a match to your cause.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes' },
-  bowel_changes: { title: 'NIDDK: Digestive diseases', summary: 'Bowel changes can involve different concerns, including diarrhea, constipation and bowel control. This index links to separate overviews; choose one that matches your experience. The app has not classified your bowel change.', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases' },
+export const gutContentVersion = '2026-09-26.1';
+export const gutGeneralGuidance: Partial<Record<GutSymptom, { title: string; url: string; sourceOrganization: string; reviewStatus: 'pending_independent_review'; contentVersion: string }>> = {
+  bloating: { title: 'NIDDK: Gas and bloating', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/gas-digestive-tract/symptoms-causes', sourceOrganization: 'NIDDK', reviewStatus: 'pending_independent_review', contentVersion: gutContentVersion },
+  discomfort: { title: 'NIDDK: Indigestion symptoms', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes', sourceOrganization: 'NIDDK', reviewStatus: 'pending_independent_review', contentVersion: gutContentVersion },
+  reflux: { title: 'NIDDK: Reflux symptoms', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/acid-reflux-ger-gerd-adults/symptoms-causes', sourceOrganization: 'NIDDK', reviewStatus: 'pending_independent_review', contentVersion: gutContentVersion },
+  nausea: { title: 'NIDDK: Indigestion symptoms', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases/indigestion-dyspepsia/symptoms-causes', sourceOrganization: 'NIDDK', reviewStatus: 'pending_independent_review', contentVersion: gutContentVersion },
+  bowel_changes: { title: 'NIDDK: Digestive diseases', url: 'https://www.niddk.nih.gov/health-information/digestive-diseases', sourceOrganization: 'NIDDK', reviewStatus: 'pending_independent_review', contentVersion: gutContentVersion },
 };
 
 export interface GutResearchPaper {
@@ -75,10 +76,10 @@ const concepts: Record<GutSymptom, string> = {
   bowel_changes: '"bowel habits" OR constipation OR diarrhea',
 };
 export const gutResearchTopics: Record<GutResearchTopic, { label: string; query: string }> = {
-  food: { label: 'Food in general', query: 'TITLE:diet OR TITLE:meal OR TITLE:food OR TITLE:nutrition' },
-  caffeine: { label: 'Caffeine, coffee or tea', query: 'TITLE:caffeine OR TITLE:coffee OR TITLE:tea' },
-  dairy: { label: 'Milk or dairy', query: 'TITLE:milk OR TITLE:lactose OR TITLE:dairy' },
-  meal_timing: { label: 'Meal timing', query: 'TITLE:"meal timing" OR TITLE:"eating time" OR TITLE:postprandial' },
+  food: { label: 'Food in general', query: 'TITLE_ABS:diet OR TITLE_ABS:meal OR TITLE_ABS:food OR TITLE_ABS:nutrition' },
+  caffeine: { label: 'Caffeine, coffee or tea', query: 'TITLE_ABS:caffeine OR TITLE_ABS:coffee OR TITLE_ABS:tea' },
+  dairy: { label: 'Milk or dairy', query: 'TITLE_ABS:milk OR TITLE_ABS:lactose OR TITLE_ABS:dairy' },
+  meal_timing: { label: 'Meal timing', query: 'TITLE_ABS:"meal timing" OR TITLE_ABS:"eating time" OR TITLE_ABS:postprandial' },
 };
 const nonHumanTitle = /\b(?:mice|mouse|rats?|broilers?|chickens?|porcine|in vitro|cell lines?)\b/i;
 const symptomTitle: Record<GutSymptom, RegExp> = {
@@ -126,7 +127,10 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
     const corrections = paper?.commentCorrectionList?.commentCorrection;
     const related = Array.isArray(corrections) ? corrections : corrections ? [corrections] : [];
     const title = String(paper?.title || '');
-    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(title) && topicTitle[topic].test(title) && !nonHumanTitle.test(title) &&
+    const searchableText = `${title} ${String(paper?.abstractText || '')}`;
+    // Europe PMC can search both title and abstract. Requiring both concepts in
+    // the title silently drops relevant papers whose exposure is in the abstract.
+    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(searchableText) && topicTitle[topic].test(searchableText) && !nonHumanTitle.test(title) &&
       paper?.isRetracted !== 'Y' && paper?.isRetracted !== true &&
       !related.some((item: any) => /^(retracted in|retraction of)$/i.test(String(item?.type || '')));
   });

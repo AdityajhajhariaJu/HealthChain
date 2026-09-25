@@ -20,7 +20,7 @@ describe('Gut research metadata boundary', () => {
     ] } }) }));
     vi.stubGlobal('fetch', fetchMock);
     const papers = await searchGutResearch('bloating');
-    expect(papers.map((paper) => paper.id)).toEqual(['12345', '45678']);
+    expect(papers.map((paper) => paper.id)).toEqual(['12345', '45678', '67890']);
     expect(papers[0]).toMatchObject({ journal: 'Example Journal', year: '2025', publicationDate: '2025-04-12', publicationDateSource: 'electronic', publicationTypes: ['Review', 'Journal Article'] });
     expect(papers[1].correctionNotice).toBe('Erratum in');
     const url = String(fetchMock.mock.calls[0][0]);
@@ -30,7 +30,7 @@ describe('Gut research metadata boundary', () => {
     await searchGutResearch('reflux', 'caffeine');
     const selected = new URL(String(fetchMock.mock.calls[1][0])).searchParams.get('query');
     expect(selected).toContain('gastroesophageal reflux');
-    expect(selected).toContain('TITLE:caffeine OR TITLE:coffee OR TITLE:tea');
+    expect(selected).toContain('TITLE_ABS:caffeine OR TITLE_ABS:coffee OR TITLE_ABS:tea');
     expect(selected).not.toContain('chai');
   });
 

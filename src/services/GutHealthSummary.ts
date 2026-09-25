@@ -1,4 +1,5 @@
 import { getDigestionLogs, getProfile } from './ProfileEngine';
+import type { Observation } from '../domain/observations/types';
 
 export interface GutDay {
   date: string;
@@ -24,6 +25,24 @@ export interface GutMeal {
   reactionType?: string | null;
   reactionRecordedAt?: string | null;
   preparation?: { kind: 'ingredient_or_substitution' | 'portion' | 'fresh_or_reheated' | 'cooking_method'; detail: string; source: 'user_confirmed' } | null;
+  /** Original store and source identity for merged records; never a derived event. */
+  sourceKind?: 'diet_meal' | 'observation';
+  sourceRecordId?: string | null;
+  revision?: number | null;
+}
+
+export interface GutSnapshot {
+  today: string;
+  days: GutDay[];
+  meals: GutMeal[];
+  todayDay: GutDay | null;
+  todayMeals: GutMeal[];
+  /** Canonical records are passed in by the profile-scoped observation service. */
+  observations: Observation[];
+  digestionDateCount: number;
+  /** Includes undated canonical meal reports; they remain unavailable to timed comparisons. */
+  mealRecordCount: number;
+  undatedMealObservations: Observation[];
 }
 
 const validScore = (value: unknown): value is number =>
@@ -49,7 +68,7 @@ const validDate = (value: unknown): value is string => {
 };
 
 /** A read-only view of recorded data. Missing fields stay missing. */
-export function getGutSnapshot(now = new Date()) {
+export function getGutSnapshot(now = new Date()): GutSnapshot {
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const days: GutDay[] = Object.entries(getDigestionLogs() || {})
     .filter(([date, entry]) => validDate(date) && date <= today && hasRecordedDigestionEntry(entry))
@@ -98,27 +117,97 @@ export function getGutSnapshot(now = new Date()) {
         preparation: raw.preparation?.source === 'user_confirmed' && ['ingredient_or_substitution', 'portion', 'fresh_or_reheated', 'cooking_method'].includes(raw.preparation.kind) && typeof raw.preparation.detail === 'string' && raw.preparation.detail.trim() ? {
           kind: raw.preparation.kind, detail: raw.preparation.detail.trim().slice(0, 120), source: 'user_confirmed' as const,
         } : null,
+        sourceKind: 'diet_meal' as const,
+        sourceRecordId: typeof raw.sourceRecordId === 'string' ? raw.sourceRecordId : String(raw.id || raw.loggedAt || `meal-${index}`),
+        revision: null,
       };
     })
     .filter((meal: GutMeal) => validDate(meal.date) && meal.date <= today)
     .sort((a: GutMeal, b: GutMeal) => b.date.localeCompare(a.date));
 
   return { today, days, meals, todayDay: days.find((day) => day.date === today) || null,
-    todayMeals: meals.filter((meal) => meal.date === today) };
+    todayMeals: meals.filter((meal) => meal.date === today), observations: [], digestionDateCount: days.length,
+    mealRecordCount: meals.length, undatedMealObservations: [] };
 }
 
-export function formatGutVisitNote(snapshot: ReturnType<typeof getGutSnapshot>): string {
+/**
+ * Combine the existing Gut/Diet read with profile-scoped canonical observations.
+ * A canonical observation linked to an existing Diet meal is provenance for that
+ * meal, not a second occasion. Other observations remain individually inspectable.
+ */
+export function mergeGutSnapshotWithObservations(snapshot: GutSnapshot, observations: Observation[]): GutSnapshot {
+  const active = observations.filter((item) => !item.deletedAt);
+  const representedIds = new Set<string>();
+  for (const meal of snapshot.meals) {
+    representedIds.add(meal.id);
+    if (meal.sourceRecordId) representedIds.add(meal.sourceRecordId);
+  }
+
+  const observedMeals: GutMeal[] = active.flatMap((item) => {
+    if (item.payload.kind !== 'meal' || !validDate(item.localDate || '')) return [];
+    if (representedIds.has(item.id) || (item.sourceRecordId && representedIds.has(item.sourceRecordId))) return [];
+    representedIds.add(item.id);
+    if (item.sourceRecordId) representedIds.add(item.sourceRecordId);
+    const hasTimedOccurrence = (item.timePrecision === 'exact' || item.timePrecision === 'approximate') && !!item.occurredAt;
+    let time: string | null = null;
+    if (hasTimedOccurrence) {
+      try { time = new Date(item.occurredAt!).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', ...(item.timezone ? { timeZone: item.timezone } : {}) }); }
+      catch { time = null; }
+    }
+    return [{
+      id: item.id, name: item.payload.description, date: item.localDate!, time,
+      occurredAt: hasTimedOccurrence ? item.occurredAt : null,
+      timePrecision: item.timePrecision, loggedAt: item.recordedAt, reaction: null,
+      preparation: null, sourceKind: 'observation', sourceRecordId: item.sourceRecordId || null,
+      revision: item.revision,
+    }];
+  });
+  const meals = [...snapshot.meals, ...observedMeals].sort((a, b) => b.date.localeCompare(a.date) ||
+    (b.occurredAt || '').localeCompare(a.occurredAt || '') || (b.loggedAt || '').localeCompare(a.loggedAt || ''));
+  const undatedMealObservations: Observation[] = [];
+  for (const item of active) {
+    if (item.payload.kind !== 'meal' || representedIds.has(item.id) || (item.sourceRecordId && representedIds.has(item.sourceRecordId))) continue;
+    undatedMealObservations.push(item);
+    representedIds.add(item.id);
+  }
+  const datedDigestion = new Set(snapshot.days.map((day) => day.date));
+  for (const item of active) {
+    if (item.localDate && item.payload.kind !== 'meal' && item.payload.kind !== 'context' && validDate(item.localDate)) datedDigestion.add(item.localDate);
+  }
+  return { ...snapshot, meals, todayMeals: meals.filter((meal) => meal.date === snapshot.today),
+    observations: active, digestionDateCount: datedDigestion.size,
+    mealRecordCount: meals.length + undatedMealObservations.length, undatedMealObservations };
+}
+
+export function formatGutVisitNote(snapshot: GutSnapshot): string {
   const lines = [
     'Gut Health — recorded observations',
     `Prepared: ${snapshot.today}`,
-    `Digestion dates recorded: ${snapshot.days.length}`,
-    `Meals recorded: ${snapshot.meals.length}`,
+    `Digestion dates with at least one recorded source: ${snapshot.digestionDateCount}`,
+    `Meal records: ${snapshot.mealRecordCount} (${snapshot.meals.length} with a valid date for comparison; ${snapshot.undatedMealObservations.length} without a date)`,
     '',
     'Recent digestion records:',
     ...snapshot.days.slice(0, 14).map((day) => `${day.date}: bloating ${day.bloating === null ? 'not recorded' : `${day.bloating}/10`}; discomfort ${day.discomfort === null ? 'not recorded' : `${day.discomfort}/10`}; stool form ${day.stoolForm ?? 'not recorded'}${day.comfort ? `; comfort: ${day.comfort}` : ''}${day.bowelFrequency !== null ? `; bowel movements: ${day.bowelFrequency}` : ''}${day.distensionPattern ? `; distension: ${day.distensionPattern}` : ''}${day.note ? `; note: ${day.note}` : ''}`),
     '',
     'Recent meals:',
     ...snapshot.meals.slice(0, 14).map((meal) => `${meal.date}: ${meal.name}${meal.reaction ? `; user report: ${meal.reaction}` : '; no reaction report'}`),
+    '',
+    'Meal reports without a date (excluded from dated comparisons):',
+    ...snapshot.undatedMealObservations.slice(0, 20).map((item) => item.payload.kind === 'meal' ? `Date not recorded: ${item.payload.description}; ${item.timePrecision} timing; source ${item.id}, revision ${item.revision}; entered ${item.recordedAt}` : ''),
+    '',
+    'Other saved digestive observations:',
+    ...snapshot.observations.filter((item) => item.payload.kind !== 'meal' && item.payload.kind !== 'context').slice(0, 20).map((item) => {
+      const date = item.localDate || 'date not recorded';
+      const precision = item.timePrecision === 'exact' || item.timePrecision === 'approximate' ? `${item.timePrecision} occurrence ${item.occurredAt}` : `${item.timePrecision} occurrence time`;
+      const detail = item.payload.kind === 'symptom' ? `${item.payload.symptom}${item.payload.severity ? ` ${item.payload.severity.value}/${item.payload.severity.max}` : ''}${item.payload.note ? `; ${item.payload.note}` : ''}` :
+        item.payload.kind === 'bowel' ? `bowel report${item.payload.bristolType ? `; stool form ${item.payload.bristolType}` : ''}${item.payload.note ? `; ${item.payload.note}` : ''}` :
+          `digestion check-in${item.payload.note ? `; ${item.payload.note}` : ''}`;
+      return `${date}: ${detail}; ${precision}; source ${item.id}, revision ${item.revision}; entered ${item.recordedAt}`;
+    }),
+    '',
+    'Saved context notes (not proof of exposure or a dose taken):',
+    ...snapshot.observations.filter((item) => item.payload.kind === 'context').slice(0, 20).map((item) =>
+      `${item.localDate || 'date not recorded'}: ${item.payload.kind === 'context' ? `${item.payload.contextType} note — ${item.payload.description}` : ''}; ${item.timePrecision} timing; source ${item.id}, revision ${item.revision}; entered ${item.recordedAt}`),
     '',
     'Missing dates and fields were not interpreted as symptom-free. These observations cannot establish a food trigger or diagnosis.',
   ];

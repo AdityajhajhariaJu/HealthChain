@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
+import { X, ArrowLeft, ArrowRight, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
 import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR, resolveStationTab } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
@@ -14,6 +14,7 @@ interface ConnectionDetectiveModalProps {
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
+  onOpenGutHealth?: () => void;
 }
 
 export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> = ({
@@ -23,6 +24,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
+  onOpenGutHealth,
 }) => {
   const isMobile = useIsMobile();
   const [openedPillarId, setOpenedPillarId] = useState<string | null>(null);
@@ -205,6 +207,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 padding: isMobile ? '8px 14px calc(20px + env(safe-area-inset-bottom, 0px)) 14px' : '10px 18px 24px 18px',
               }}
             >
+              {onOpenGutHealth && <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '5px 0 14px', padding: '13px 15px', border: '1px solid #F2CBD4', borderRadius: 16, background: 'linear-gradient(110deg,#FFF2F4,#FFFFFF)' }}>
+                <div style={{ minWidth: 0 }}><strong style={{ display: 'block', color: '#263147', fontSize: 13 }}>Have a personal gut question?</strong><span style={{ display: 'block', marginTop: 3, color: '#68768C', fontSize: 12, lineHeight: 1.4 }}>Open your saved meals, symptom reports and research together.</span></div>
+                <button type="button" onClick={onOpenGutHealth} style={{ minHeight: 38, flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 11px', border: '1px solid #E78CA2', borderRadius: 11, background: '#FFF', color: '#B51E49', fontWeight: 750, cursor: 'pointer' }}>My Gut Health <ArrowRight size={15} /></button>
+              </section>}
               <ConnectionDetectiveView
                 initialTab={initialTab as any}
                 openedPillarId={openedPillarId as any}

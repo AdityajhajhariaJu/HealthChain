@@ -3135,6 +3135,10 @@ export default function AvaHealthBuddy() {
           setIsDetectiveOpen(false);
           navigate('/app/case-prep');
         }}
+        onOpenGutHealth={() => {
+          setIsDetectiveOpen(false);
+          navigate('/app/today?gut=1');
+        }}
       />
 
       <EmergencyTriageModal

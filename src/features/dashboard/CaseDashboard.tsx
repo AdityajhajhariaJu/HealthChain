@@ -573,7 +573,7 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Gut Health - Record meals and digestion, review your history"
+                aria-label="Gut Health - Ask a question and explore your records and research"
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -619,7 +619,7 @@ export default function CaseDashboard() {
                 </div>
                 <div>
                   <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Gut Health</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Record meals and digestion. Review what changed.</p>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Ask a question. See what your records and research can say.</p>
                 </div>
               </motion.div>
 

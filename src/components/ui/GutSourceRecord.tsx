@@ -7,7 +7,7 @@ import type { Observation } from '../../domain/observations/types';
 export interface GutSourceReference {
   sourceKind: 'diet_meal' | 'observation' | 'daily_digest';
   sourceId: string;
-  localDate: string;
+  localDate?: string;
 }
 
 interface Props {

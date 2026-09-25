@@ -113,6 +113,19 @@ export async function listObservations(): Promise<Observation[]> {
 }
 
 export type ObservationCloudLoad = { status: 'loaded' | 'local_only' | 'unavailable' | 'conflict' | 'scope_changed' | 'storage_failure'; imported: number; conflicts: number };
+export type ObservationSyncInfo = { state: 'no_pending' | 'pending' | 'local_only' | 'unavailable'; pendingCount: number };
+
+/** Profile-scoped sync state for a conclusion; it never exposes another profile's queue. */
+export async function getObservationSyncInfo(): Promise<ObservationSyncInfo> {
+  const scope = await captureObservationScope();
+  if (!scope) return { state: 'unavailable', pendingCount: 0 };
+  if (scope.ownerId === 'guest') return { state: 'local_only', pendingCount: 0 };
+  try {
+    const pending = await getPendingObservationIds(scope.ownerId, scope.profileId);
+    if (!await sameScope(scope)) return { state: 'unavailable', pendingCount: 0 };
+    return { state: pending.size ? 'pending' : 'no_pending', pendingCount: pending.size };
+  } catch { return { state: 'unavailable', pendingCount: 0 }; }
+}
 
 function observationFromRemote(row: any, scope: ObservationScope): Observation | null {
   if (!row || row.user_id !== scope.ownerId || row.profile_id !== scope.profileId || typeof row.id !== 'string' ||
