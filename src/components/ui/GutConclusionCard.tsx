@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BookOpen, CircleHelp, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, CircleHelp, ShieldCheck, Utensils } from 'lucide-react';
 import type { GutAnswerState, GutEvidence, GutQuestionThread } from '../../services/GutResolutionService';
 import type { GutSourceReference } from './GutSourceRecord';
 
@@ -75,12 +75,12 @@ export const GutConclusionCard: React.FC<Props> = ({ thread, evidence, state, on
         })}
         {records.length > 8 && <span className="gr-conclusion-more">+{records.length - 8} more saved occasions</span>}
       </div>
-    </> : <div className="gr-conclusion-empty"><span aria-hidden="true"><BookOpen size={18} /></span><p>No matching personal reports are available for this question yet. You can still read general research or bring the question to a clinician.</p></div>}
+    </> : <div className="gr-conclusion-empty"><span aria-hidden="true"><BookOpen size={18} /></span><p>{!thread.focus && thread.intent !== 'decide' ? 'No meal has been linked to this question yet. Your saved records stay available to inspect; choosing a meal to compare is optional.' : 'No matching personal reports are available for this question yet. You can still read general research or bring the question to a clinician.'}</p></div>}
 
     {evidence?.nextQuestion && records.length > 0 && <p className="gr-conclusion-next"><ShieldCheck size={15} /><span><strong>What could help:</strong> {evidence.nextQuestion}</span></p>}
     <div className="gr-conclusion-actions">
       <button type="button" className="gr-primary" onClick={primaryAction.run}>{primaryAction.label}<ArrowRight size={16} /></button>
-      <button type="button" className="gr-secondary" onClick={onResearch}><BookOpen size={16} />Research</button>
+      {records.length > 0 ? <button type="button" className="gr-secondary" onClick={onResearch}><BookOpen size={16} />Research</button> : <button type="button" className="gr-secondary" onClick={() => onInspect()}><Utensils size={16} />My records</button>}
     </div>
     <p className="gr-conclusion-caveat">Personal reports can show what was recorded; they cannot establish a diagnosis or prove a cause.</p>
   </section>;
