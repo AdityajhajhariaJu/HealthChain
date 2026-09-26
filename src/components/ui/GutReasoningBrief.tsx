@@ -43,7 +43,7 @@ export const GutReasoningBrief: React.FC<Props> = ({ thread, evidence, synthesis
       <span className="gr-reasoning-badge">{usableSaved ? 'AI interpretation · inspect sources' : 'Built from your saved records'}</span>
     </div>
     <p className="gr-reasoning-intro">{showSaved && !stale ? synthesis?.connectionReading : evidence?.occasions.length ? `${counts.with} explicitly with, ${counts.without} explicitly without, ${counts.unknown} unknown or disputed. These records do not establish a cause.` : 'No matching meal and symptom report is saved yet. This is unknown, not a symptom-free result.'}</p>
-    {!usableSaved && <div className="gr-reason-pending-action"><strong>{stale ? 'Your earlier reading needs a refresh' : 'One useful step now'}</strong><p>{hasPersonalSources ? 'Inspect the exact reports behind this comparison.' : thread.intent === 'care' ? 'Bring your question to a qualified clinician if you need an answer now.' : 'You can leave this open; no extra tracking is required.'}</p><button type="button" onClick={() => onAction(hasPersonalSources ? 'review_records' : thread.intent === 'care' ? 'prepare_care_question' : 'leave_open')}>{hasPersonalSources ? 'Inspect my records' : thread.intent === 'care' ? 'Prepare a care question' : 'Keep this question open'} <ArrowRight size={15} /></button></div>}
+    {!usableSaved && <div className="gr-reason-pending-action"><strong>{stale ? 'Your earlier reading needs a refresh' : 'One useful step now'}</strong><p>{hasPersonalSources ? 'Inspect the exact reports behind this comparison.' : thread.intent === 'care' ? 'Bring your question to a qualified clinician if you need an answer now.' : 'See what research has studied about this topic. It cannot establish your personal cause.'}</p><button type="button" onClick={() => onAction(hasPersonalSources ? 'review_records' : thread.intent === 'care' ? 'prepare_care_question' : 'open_research')}>{hasPersonalSources ? 'Inspect my records' : thread.intent === 'care' ? 'Prepare a care question' : 'Explore research'} <ArrowRight size={15} /></button></div>}
 
     <div className="gr-reasoning-map" aria-label="Question connected to personal records, research, and an evidence reading">
       <div className="gr-reason-node gr-reason-question"><span className="gr-reason-node-icon"><Activity size={16} /></span><div><small>YOUR QUESTION</small><strong>{thread.question}</strong></div></div>
@@ -59,15 +59,17 @@ export const GutReasoningBrief: React.FC<Props> = ({ thread, evidence, synthesis
     </div>
 
     {usableSaved && synthesis && <div className="gr-reason-result">
-      <article className="gr-reason-reading-card"><h4>What your records say</h4><p>{synthesis.personalReading}</p><SourceButtons ids={synthesis.personalSourceIds} type="personal" onOpen={onOpenSource} /></article>
-      <article className="gr-reason-reading-card gr-reason-research-card"><h4>What the research adds</h4><p>{synthesis.researchReading}</p><SourceButtons ids={synthesis.researchSourceIds} type="research" onOpen={onOpenSource} /></article>
-      {synthesis.uncertainties.length > 0 && <div className="gr-reason-unknown"><strong>Still uncertain</strong><ul>{synthesis.uncertainties.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul></div>}
       <div className="gr-reason-next"><span><Check size={15} /></span><div><strong>One useful next step</strong><p>{synthesis.nextReason}</p><button type="button" onClick={() => onAction(synthesis.nextAction)}>{actionLabels[synthesis.nextAction]} <ArrowRight size={15} /></button></div></div>
+      <details className="gr-reason-explanation"><summary>Why this answer? Open the records and research</summary><div>
+        <article className="gr-reason-reading-card"><h4>What your records say</h4><p>{synthesis.personalReading}</p><SourceButtons ids={synthesis.personalSourceIds} type="personal" onOpen={onOpenSource} /></article>
+        <article className="gr-reason-reading-card gr-reason-research-card"><h4>What the research adds</h4><p>{synthesis.researchReading}</p><SourceButtons ids={synthesis.researchSourceIds} type="research" onOpen={onOpenSource} /></article>
+        {synthesis.uncertainties.length > 0 && <div className="gr-reason-unknown"><strong>Still uncertain</strong><ul>{synthesis.uncertainties.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul></div>}
+      </div></details>
       <small className="gr-reason-generated">Generated {new Date(synthesis.at).toLocaleString()} · AI interpretation, not independent clinical review.</small>
     </div>}
 
-    <details className="gr-reason-controls" open={!showSaved || stale}>
-      <summary>{showSaved ? stale ? 'Refresh this reading' : 'Explore a different research lens' : 'Build my evidence brief'}</summary>
+    <details className="gr-reason-controls" open={!usableSaved && consent}>
+      <summary>{busy ? 'Connecting your records and research…' : showSaved ? stale ? 'Refresh this reading' : 'Explore a different research lens' : 'Optional · ask Gemini for a deeper reading'}</summary>
       <div className="gr-reason-controls-body">
         <label htmlFor="gr-reason-topic">Research lens<select id="gr-reason-topic" value={topic} onChange={(event) => onTopicChange(event.target.value as GutResearchTopic)} disabled={busy}>{Object.entries(gutResearchTopics).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}</select></label>
         <p className="gr-reason-disclosure"><LockKeyhole size={15} /><span>When you generate this, your question, linked meal and symptom reports, nearby context timing, and retrieved paper abstracts for this lens are sent to HealthChain’s Gemini service. This does not change your records. You can inspect each source.</span></p>

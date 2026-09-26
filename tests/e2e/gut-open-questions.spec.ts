@@ -15,13 +15,13 @@ test('older open Gut questions remain reachable without another intake', async (
   await gut.getByRole('button', { name: /I feel unwell/ }).click();
   await gut.getByLabel('Your question or situation').fill('What happened after breakfast?');
   await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: 'Open my Gut brief' }).click();
+  await gut.getByRole('button', { name: 'Show my brief' }).click();
   await gut.getByRole('button', { name: 'All questions' }).click();
   await gut.getByText('Choose another way to start').click();
   await gut.getByRole('button', { name: /I have a care question/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask at my visit?');
   await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: 'Open my Gut brief' }).click();
+  await gut.getByRole('button', { name: 'Show my brief' }).click();
   await gut.getByRole('button', { name: 'All questions' }).click();
 
   await expect(gut.getByText('What should I ask at my visit?')).toBeVisible();

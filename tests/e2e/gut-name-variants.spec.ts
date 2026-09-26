@@ -26,11 +26,13 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await gut.locator('summary').filter({ hasText: 'Add a meal or symptom from your records' }).click();
   await gut.getByLabel(/Meal or phrase to examine/).fill('chai');
   await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
+  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
+  await gut.locator('summary').filter({ hasText: 'Inspect the detailed record comparison' }).click();
   const trail = gut.getByRole('region', { name: 'What your saved information can say' });
   await page.setViewportSize({ width: 320, height: 700 });
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await page.setViewportSize({ width: 390, height: 844 });
+  await gut.locator('summary').filter({ hasText: 'Adjust this question or copy the brief' }).click();
   await gut.getByLabel('Compare outcome').selectOption('bloating');
   await gut.locator('summary').filter({ hasText: 'How these records connect' }).click();
   await gut.locator('.gr-reading-paths button').filter({ hasText: 'My records' }).click();

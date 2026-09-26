@@ -16,6 +16,9 @@
 .gr-reason-result{order:2}
 .gr-reason-next{order:-1;border-color:#f0bdd0;background:linear-gradient(110deg,#fff1f5,#fff9f2)}
 .gr-reason-next button{min-height:35px;padding:6px 11px;border-radius:9px;background:#c71f4f;color:#fff}
+.gr-reason-explanation{border:1px solid #e8dfe5;border-radius:12px;background:#fff}
+.gr-reason-explanation>summary{padding:11px 13px;color:#a6264b;font-size:12px;font-weight:800;cursor:pointer}
+.gr-reason-explanation>div{display:grid;gap:9px;padding:0 10px 10px}
 .gr-reasoning-controls,.gr-reason-controls{order:3}
 .gr-reasoning-map{order:4;margin-top:14px}
 .gr-reason-safety{order:5}
@@ -23,5 +26,6 @@
 .gr-answer-main>.gr-reasoning{order:-1}
 .gr-reasoning-ready .gr-reasoning-heading h3{font-size:clamp(20px,2.7vw,29px);line-height:1.2}
 .gr-reasoning-pending .gr-reason-controls{border-color:#eaaabd;box-shadow:0 5px 14px #bb2d5415}
+.gr-reasoning-pending .gr-reason-controls>summary{color:#59697d}
 @media(max-width:580px){.gr-reasoning{padding:15px}.gr-reasoning-heading{flex-wrap:wrap}.gr-reasoning-badge{margin-left:49px}.gr-reasoning-ready .gr-reasoning-heading h3{font-size:21px}.gr-reasoning-map{margin-top:12px}}
 @media(max-width:580px){.gr-reasoning{margin-top:8px;padding:12px}.gr-reasoning-heading{flex-wrap:nowrap;align-items:flex-start}.gr-reasoning-mark{width:31px;height:31px;border-radius:10px}.gr-reasoning-badge{display:none}.gr-reasoning-intro{margin:7px 0 9px;font-size:12px;line-height:1.38}.gr-reason-pending-action{padding:9px 11px}.gr-reason-pending-action p{margin:2px 0 6px;font-size:11px;line-height:1.35}.gr-reason-pending-action button{min-height:34px}}

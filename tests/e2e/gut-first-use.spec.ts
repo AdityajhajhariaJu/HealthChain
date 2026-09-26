@@ -9,7 +9,7 @@ const guest = () => {
 const openGuidedQuestion = async (gut: Locator, question: string) => {
   await gut.getByLabel('Your question or situation').fill(question);
   await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: /Use these details and open my brief|Open my Gut brief/ }).click();
+  await gut.getByRole('button', { name: /Yes, show my brief|Show my brief/ }).click();
 };
 
 test('the first Gut screen starts with a question and symptom choices on a narrow phone', async ({ page }) => {
@@ -20,17 +20,35 @@ test('the first Gut screen starts with a question and symptom choices on a narro
   await expect(gut.getByLabel('Your question or situation')).toBeVisible();
   await expect(gut.getByRole('button', { name: 'Bloating' })).toBeVisible();
   await expect(gut.getByRole('button', { name: /I feel unwell/ })).toHaveCount(0);
+  await expect(gut.locator('.gr-step-track i.gr-step-ready')).toHaveCount(1);
+  expect(await gut.getByRole('button', { name: 'See my connections' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
   await gut.screenshot({ path: 'test-results/gut-first-use-mobile.png' });
   await gut.getByLabel('Your question or situation').fill('Is tea linked to my bloating?');
   await gut.getByRole('button', { name: 'See my connections' }).click();
   await expect(gut.getByText('STEP 2 OF 3')).toBeVisible();
-  await expect(gut.getByText(/SUGGESTED MEAL COMPARISON/)).toBeVisible();
-  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
+  await expect(gut.locator('.gr-step-track i.gr-step-ready')).toHaveCount(2);
+  await expect(gut.getByText(/MEAL FROM YOUR WORDS/)).toBeVisible();
+  await expect(gut.getByText(/SYMPTOM FROM YOUR WORDS/)).toBeVisible();
+  expect(await gut.getByRole('button', { name: 'Yes, show my brief' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
+  await gut.screenshot({ path: 'test-results/gut-connections-mobile.png' });
+  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
   await expect(gut.getByText('STEP 3 OF 3 · YOUR GUT BRIEF')).toBeVisible();
   await expect(gut.getByText(/No matching meal and symptom report is saved yet/)).toBeVisible();
-  expect(await gut.getByRole('button', { name: 'Keep this question open' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
+  expect(await gut.getByRole('button', { name: 'Explore research' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
   await gut.screenshot({ path: 'test-results/gut-brief-mobile.png' });
+  await gut.getByRole('button', { name: 'Explore research' }).click();
+  await expect(gut.getByRole('heading', { name: 'General information' })).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+});
+
+test('desktop entry keeps the question and next action in one view', async ({ page }) => {
+  await page.addInitScript(guest);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await expect(gut.getByLabel('Your question or situation')).toBeVisible();
+  expect(await gut.getByRole('button', { name: 'See my connections' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 30)).toBe(true);
+  await gut.screenshot({ path: 'test-results/gut-entry-desktop.png' });
 });
 
 test('the connection review preserves a user-confirmed meal and symptom without making the unknown occasion negative', async ({ page }) => {
@@ -51,8 +69,8 @@ test('the connection review preserves a user-confirmed meal and symptom without 
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai related to my bloating?');
   await gut.getByRole('button', { name: 'See my connections' }).click();
-  await expect(gut.getByText(/2 matching saved records found/)).toBeVisible();
-  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
+  await expect(gut.getByText(/2 matching saved meals/)).toBeVisible();
+  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
   await expect(gut.getByText(/1 explicitly with, 0 explicitly without, 1 unknown or disputed/)).toBeVisible();
   await gut.getByRole('button', { name: /YOUR SAVED REPORTS · OPEN/ }).click();
   await expect(gut.getByRole('heading', { name: 'Evidence hearing' })).toBeVisible();
@@ -81,6 +99,7 @@ test('a plainly current concern reaches the care path without choosing a mode fi
 
 test('consented Gemini framing and brief use only server-owned operations and keep missing evidence open', async ({ page }) => {
   await page.addInitScript(guest);
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     const originalFetch = window.fetch.bind(window);
     (window as typeof window & { __gutOperations?: string[]; __gutInvalidBody?: boolean }).__gutOperations = [];
@@ -105,10 +124,13 @@ test('consented Gemini framing and brief use only server-owned operations and ke
   await gut.getByRole('button', { name: 'See my connections' }).click();
   await expect(gut.getByText('STEP 2 OF 3')).toBeVisible();
   expect(await page.evaluate(() => (window as typeof window & { __gutOperations?: string[] }).__gutOperations)).toContain('gut_frame');
-  await expect(gut.getByText('tea', { exact: true })).toBeVisible();
-  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
-  await expect(gut.getByText(/No paper was retrieved for this question/)).toBeVisible();
+  await expect(gut.getByText('Research topic: tea')).toBeVisible();
+  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
   await expect(gut.getByRole('heading', { name: 'This question remains open' })).toBeVisible();
+  await gut.screenshot({ path: 'test-results/gut-ai-brief-mobile.png' });
+  expect(await gut.getByRole('button', { name: 'Leave this question open' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
+  await gut.locator('summary').filter({ hasText: 'Why this answer? Open the records and research' }).click();
+  await expect(gut.getByText(/No paper was retrieved for this question/)).toBeVisible();
   expect(await page.evaluate(() => (window as typeof window & { __gutOperations?: string[] }).__gutOperations)).toContain('gut_reasoning');
   expect(await page.evaluate(() => (window as typeof window & { __gutInvalidBody?: boolean }).__gutInvalidBody || false)).toBe(false);
 });
