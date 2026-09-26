@@ -98,6 +98,32 @@ export interface Message {
   text?: string;
 }
 
+/** HealthChain's existing authenticated Gemini gateway; no provider key is exposed in the browser. */
+export async function fetchGutReasoning(systemText: string, payload: unknown, responseSchema: Record<string, unknown>): Promise<string> {
+  const response = await fetchWithTimeout(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'gut_reasoning' },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemText }] },
+      contents: [{ role: 'user', parts: [{ text: JSON.stringify(payload) }] }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 1400,
+        responseMimeType: 'application/json',
+        responseSchema,
+      },
+    }),
+  }, 45000);
+  if (!response.ok) throw new Error(response.status === 402 || response.status === 429 ? 'Gemini is unavailable for this account right now. Your saved records are unchanged.' : 'Gemini could not complete this Gut brief. Your saved records are unchanged.');
+  const data = await response.json();
+  const candidate = Array.isArray(data?.candidates) ? data.candidates[0] : null;
+  const textContent = Array.isArray(candidate?.content?.parts)
+    ? candidate.content.parts.map((part: { text?: string }) => typeof part?.text === 'string' ? part.text : '').join('\n').trim()
+    : '';
+  if (!textContent) throw new Error('Gemini did not return a complete Gut brief. Your saved records are unchanged.');
+  return textContent;
+}
+
 const CLINICAL_SAFETY_RULES = `
 
 SAFETY AND CLINICAL BOUNDARIES:

@@ -36,11 +36,30 @@ export interface GutQuestionThread {
   excludedMealIds: string[];
   reviewedEvidence: GutReviewSnapshot | null;
   reviewedResearch?: { at: string; topic: string; sources: { id: string; title: string; correctionNotice: string | null; publicationDate: string | null; status: 'active' | 'corrected' | 'retracted' | 'unavailable' }[] } | null;
+  /** User-requested Gemini reading, tied to the exact personal evidence fingerprint shown. */
+  gutSynthesis?: GutSynthesis | null;
   decision?: GutDecisionPlan | null;
   /** User-entered occurrence time. Never inferred from the question save time. */
   symptomOnset?: { occurredAt: string; precision: 'exact' | 'approximate' } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface GutSynthesis {
+  at: string;
+  promptVersion: string;
+  evidenceFingerprint: string;
+  researchTopic: string;
+  researchIds: string[];
+  headline: string;
+  personalReading: string;
+  personalSourceIds: string[];
+  researchReading: string;
+  researchSourceIds: string[];
+  connectionReading: string;
+  uncertainties: string[];
+  nextAction: 'review_records' | 'open_research' | 'add_report' | 'prepare_care_question' | 'leave_open';
+  nextReason: string;
 }
 
 export interface GutEvidenceOccasion {
@@ -206,14 +225,38 @@ const cleanDecision = (value: GutDecisionPlan): GutDecisionPlan => ({
   outcomeAt: value.chosen === 'a' || value.chosen === 'b' ? value.outcomeAt || null : null,
   actualMealId: value.chosen === 'a' || value.chosen === 'b' ? limit(value.actualMealId, 160) || null : null,
 });
+const cleanGutSynthesis = (value: unknown): GutSynthesis | null => {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Partial<GutSynthesis>;
+  const actions: GutSynthesis['nextAction'][] = ['review_records', 'open_research', 'add_report', 'prepare_care_question', 'leave_open'];
+  const at = typeof source.at === 'string' && !Number.isNaN(Date.parse(source.at)) ? new Date(source.at).toISOString() : '';
+  if (!at || typeof source.headline !== 'string' || typeof source.personalReading !== 'string' || typeof source.researchReading !== 'string') return null;
+  const cleanIds = (ids: unknown, max: number) => Array.isArray(ids) ? [...new Set(ids.filter((id): id is string => typeof id === 'string').map((id) => limit(id, 180)).filter(Boolean))].slice(0, max) : [];
+  return {
+    at,
+    promptVersion: limit(source.promptVersion, 40),
+    evidenceFingerprint: limit(source.evidenceFingerprint, 240),
+    researchTopic: limit(source.researchTopic, 40),
+    researchIds: Array.isArray(source.researchIds) ? [...new Set(source.researchIds.filter((id): id is string => typeof id === 'string' && /^\d+$/.test(id)))].slice(0, 8) : [],
+    headline: limit(source.headline, 180),
+    personalReading: limit(source.personalReading, 900),
+    personalSourceIds: cleanIds(source.personalSourceIds, 16),
+    researchReading: limit(source.researchReading, 900),
+    researchSourceIds: cleanIds(source.researchSourceIds, 8),
+    connectionReading: limit(source.connectionReading, 600),
+    uncertainties: Array.isArray(source.uncertainties) ? source.uncertainties.filter((item): item is string => typeof item === 'string').map((item) => limit(item, 220)).filter(Boolean).slice(0, 5) : [],
+    nextAction: actions.includes(source.nextAction as GutSynthesis['nextAction']) ? source.nextAction as GutSynthesis['nextAction'] : 'leave_open',
+    nextReason: limit(source.nextReason, 260),
+  };
+};
 
-/** Keep derived evidence out of storage so source edits cannot leave a frozen claim. */
+/** Keep deterministic evidence out of storage; the optional AI brief carries a fingerprint and goes stale when its sources change. */
 export function listGutThreads(): GutQuestionThread[] {
   const current = scope();
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
     .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
-    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION }))
+    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -242,7 +285,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   return await writeThreads([thread, ...listGutThreads()]) ? thread : null;
 }
 
-export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
+export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
@@ -258,6 +301,22 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
     reviewedResearch: patch.reviewedResearch === undefined ? original.reviewedResearch : patch.reviewedResearch === null ? null : {
       at: new Date().toISOString(), topic: limit(patch.reviewedResearch.topic, 40),
       sources: patch.reviewedResearch.sources.filter((source) => /^\d+$/.test(source.id)).slice(0, 8).map((source) => ({ id: source.id, title: limit(source.title, 500), correctionNotice: limit(source.correctionNotice, 160) || null, publicationDate: limit(source.publicationDate, 16) || null, status: source.status === 'corrected' || source.status === 'retracted' || source.status === 'unavailable' ? source.status : 'active' })),
+    },
+    gutSynthesis: patch.gutSynthesis === undefined ? original.gutSynthesis : patch.gutSynthesis === null ? null : {
+      at: Number.isNaN(Date.parse(patch.gutSynthesis.at)) ? new Date().toISOString() : new Date(patch.gutSynthesis.at).toISOString(),
+      promptVersion: limit(patch.gutSynthesis.promptVersion, 40),
+      evidenceFingerprint: limit(patch.gutSynthesis.evidenceFingerprint, 240),
+      researchTopic: limit(patch.gutSynthesis.researchTopic, 40),
+      researchIds: [...new Set(patch.gutSynthesis.researchIds.filter((id) => /^\d+$/.test(id)))].slice(0, 8),
+      headline: limit(patch.gutSynthesis.headline, 180),
+      personalReading: limit(patch.gutSynthesis.personalReading, 900),
+      personalSourceIds: [...new Set(patch.gutSynthesis.personalSourceIds.map((id) => limit(id, 180)).filter(Boolean))].slice(0, 16),
+      researchReading: limit(patch.gutSynthesis.researchReading, 900),
+      researchSourceIds: [...new Set(patch.gutSynthesis.researchSourceIds.map((id) => limit(id, 180)).filter(Boolean))].slice(0, 8),
+      connectionReading: limit(patch.gutSynthesis.connectionReading, 600),
+      uncertainties: patch.gutSynthesis.uncertainties.map((item) => limit(item, 220)).filter(Boolean).slice(0, 5),
+      nextAction: ['review_records', 'open_research', 'add_report', 'prepare_care_question', 'leave_open'].includes(patch.gutSynthesis.nextAction) ? patch.gutSynthesis.nextAction : 'leave_open',
+      nextReason: limit(patch.gutSynthesis.nextReason, 260),
     },
     symptomOnset: patch.symptomOnset === undefined ? original.symptomOnset : patch.symptomOnset && !Number.isNaN(Date.parse(patch.symptomOnset.occurredAt)) && Date.parse(patch.symptomOnset.occurredAt) <= Date.now() && ['exact', 'approximate'].includes(patch.symptomOnset.precision) ? { occurredAt: new Date(patch.symptomOnset.occurredAt).toISOString(), precision: patch.symptomOnset.precision } : null,
     updatedAt: now,

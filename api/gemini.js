@@ -92,7 +92,8 @@ export default async function handler(req, res) {
   // Validate before charging a daily request slot. Invalid or oversized
   // payloads must never consume metered AI capacity.
   const isVision = operation.includes('vision') || operation.includes('lab') || operation.includes('image');
-  const maxBytes = isVision ? 4194304 : 250000;
+  const isGutReasoning = operation.toLowerCase() === 'gut_reasoning';
+  const maxBytes = isVision ? 4194304 : isGutReasoning ? 60000 : 250000;
   const contentLength = Number(req.headers['content-length'] || 0);
   if (contentLength > maxBytes) return res.status(413).json({ error: 'AI request is too large' });
   let bodyPayload;
@@ -243,12 +244,13 @@ export default async function handler(req, res) {
       ? bodyPayload.generationConfig
       : {};
     const requestedOutputTokens = Number(incomingGenerationConfig.maxOutputTokens);
+    const operationOutputCap = isGutReasoning ? 1900 : MAX_OUTPUT_TOKENS;
     bodyPayload.generationConfig = {
       ...incomingGenerationConfig,
       thinkingConfig: incomingGenerationConfig.thinkingConfig || { thinkingBudget: 0 },
       maxOutputTokens: Number.isFinite(requestedOutputTokens) && requestedOutputTokens > 0
-        ? Math.min(Math.floor(requestedOutputTokens), MAX_OUTPUT_TOKENS)
-        : MAX_OUTPUT_TOKENS,
+        ? Math.min(Math.floor(requestedOutputTokens), operationOutputCap)
+        : operationOutputCap,
       candidateCount: 1,
     };
 
