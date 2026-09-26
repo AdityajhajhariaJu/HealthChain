@@ -612,7 +612,7 @@ New Information / Changes in Symptoms since last evaluation:
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', padding: '5px 12px', borderRadius: '8px', border: '1px solid #BBF7D0', fontSize: '13px', color: '#166534' }}>
                     <FileText size={14} color="#16a34a" />
                     <span style={{ maxWidth: isMobile ? '160px' : '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>{f.name}</span>
-                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#16a34a', marginLeft: '4px' }}><X size={14} /></button>
+                    <button aria-label="Remove file" onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#16a34a', marginLeft: '4px' }}><X size={14} /></button>
                   </div>
                 ))}
               </div>
