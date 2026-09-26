@@ -6,6 +6,9 @@
 .gr-reasoning{display:flex;flex-direction:column}
 .gr-reason-branches button.gr-reason-node{width:100%;text-align:left;font:inherit;cursor:pointer}
 .gr-reason-branches button.gr-reason-node:hover{border-color:#e58fa7;box-shadow:0 5px 13px #af315022}
+.gr-reason-branches button.gr-reason-node:focus-visible{outline:3px solid #cc3766;outline-offset:2px}
+.gr-reason-node-arrow{flex:none;align-self:center;margin-left:auto;color:#ba2250;transition:transform .18s ease}
+.gr-reason-branches button.gr-reason-node:hover .gr-reason-node-arrow{transform:translateX(3px)}
 .gr-reasoning-heading{order:0}
 .gr-reasoning-intro{order:1;font-size:14px;color:#3c4658}
 .gr-reason-pending-action{order:2;padding:12px 14px;border:1px solid #efd2b9;border-radius:13px;background:linear-gradient(105deg,#fff8ed,#fff);color:#354155}
@@ -19,8 +22,8 @@
 .gr-reason-explanation{border:1px solid #e8dfe5;border-radius:12px;background:#fff}
 .gr-reason-explanation>summary{padding:11px 13px;color:#a6264b;font-size:12px;font-weight:800;cursor:pointer}
 .gr-reason-explanation>div{display:grid;gap:9px;padding:0 10px 10px}
-.gr-reasoning-controls,.gr-reason-controls{order:3}
-.gr-reasoning-map{order:4;margin-top:14px}
+.gr-reasoning-map{order:3;margin-top:14px}
+.gr-reasoning-controls,.gr-reason-controls{order:4}
 .gr-reason-safety{order:5}
 .gr-answer-main{display:flex;flex-direction:column}
 .gr-answer-main>.gr-reasoning{order:-1}
