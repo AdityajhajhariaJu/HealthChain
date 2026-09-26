@@ -135,17 +135,19 @@ const explicitDate = (value: unknown): string | null => {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date ? date : null;
 };
 
-/** A generic concept query: no personal question, account ID, timeline or meal name leaves the device. */
-export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchTopic = 'food', signal?: AbortSignal): Promise<GutResearchPaper[]> {
+/** A user-confirmed short concept query: no full personal question, account ID or timeline is sent. */
+export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchTopic = 'food', signal?: AbortSignal, confirmedConcept = ''): Promise<GutResearchPaper[]> {
   const concept = concepts[symptom];
   const selectedTopic = gutResearchTopics[topic];
   if (!concept || !selectedTopic) return [];
-  const cacheKey = `${symptom}:${topic}`;
+  const publicConcept = /^[\p{L}][\p{L} -]{1,59}$/u.test(confirmedConcept.trim()) && confirmedConcept.trim().split(/\s+/).length <= 4
+    ? confirmedConcept.trim().replace(/\s+/g, ' ') : '';
+  const cacheKey = `${symptom}:${topic}:${publicConcept.toLocaleLowerCase()}`;
   const cached = researchCache.get(cacheKey);
   if (cached && Date.now() - cached.savedAt < RESEARCH_CACHE_TTL_MS) return cached.papers.map((paper) => ({ ...paper }));
   if (cached) researchCache.delete(cacheKey);
   const params = new URLSearchParams({
-    query: `(${concept}) AND (${selectedTopic.query}) AND SRC:MED AND HAS_ABSTRACT:y`,
+    query: `(${concept}) AND (${publicConcept ? `TITLE_ABS:"${publicConcept}"` : selectedTopic.query}) AND SRC:MED AND HAS_ABSTRACT:y`,
     format: 'json', resultType: 'core', pageSize: '30',
   });
   const response = await fetch(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?${params}`, { signal });
@@ -160,7 +162,7 @@ export async function searchGutResearch(symptom: GutSymptom, topic: GutResearchT
     const searchableText = `${title} ${String(paper?.abstractText || '')}`;
     // Europe PMC can search both title and abstract. Requiring both concepts in
     // the title silently drops relevant papers whose exposure is in the abstract.
-    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(searchableText) && topicTitle[topic].test(searchableText) && !nonHumanTitle.test(title) &&
+    return /^\d+$/.test(String(paper?.pmid || '')) && symptomTitle[symptom].test(searchableText) && (publicConcept ? searchableText.toLocaleLowerCase().includes(publicConcept.toLocaleLowerCase()) : topicTitle[topic].test(searchableText)) && !nonHumanTitle.test(title) &&
       paper?.isRetracted !== 'Y' && paper?.isRetracted !== true &&
       !related.some((item: any) => /^(retracted in|retraction of)$/i.test(String(item?.type || '')));
   });

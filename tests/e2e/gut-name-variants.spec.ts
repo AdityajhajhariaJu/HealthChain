@@ -20,12 +20,13 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByText('Choose another way to start').click();
   await gut.getByRole('button', { name: /I want to understand/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is chai related to bloating?');
   await gut.locator('summary').filter({ hasText: 'Add a meal or symptom from your records' }).click();
   await gut.getByLabel(/Meal or phrase to examine/).fill('chai');
-  await gut.getByRole('button', { name: 'Open my question' }).click();
-  await gut.getByRole('region', { name: 'Confirm the details found in your question' }).getByRole('button', { name: /Use these details/ }).click();
+  await gut.getByRole('button', { name: 'See my connections' }).click();
+  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
   const trail = gut.getByRole('region', { name: 'What your saved information can say' });
   await page.setViewportSize({ width: 320, height: 700 });
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);

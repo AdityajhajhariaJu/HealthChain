@@ -34,30 +34,31 @@ export const GutReasoningBrief: React.FC<Props> = ({ thread, evidence, synthesis
   const counts = evidence ? { with: evidence.support, without: evidence.tension, unknown: evidence.unknown } : { with: 0, without: 0, unknown: 0 };
   const hasPersonalSources = !!(evidence?.occasions.length);
   const showSaved = !!synthesis;
+  const usableSaved = showSaved && !stale;
 
-  return <section className="gr-reasoning" aria-labelledby="gr-reasoning-title">
+  return <section className={`gr-reasoning ${showSaved ? 'gr-reasoning-ready' : 'gr-reasoning-pending'}`} aria-labelledby="gr-reasoning-title">
     <div className="gr-reasoning-heading">
       <span className="gr-reasoning-mark"><Sparkles size={18} /></span>
-      <div><span className="gr-reasoning-kicker">GUT RESEARCH BRIEF</span><h3 id="gr-reasoning-title">See what connects</h3></div>
-      <span className="gr-reasoning-badge">Gemini · source-linked</span>
+      <div><span className="gr-reasoning-kicker">STEP 3 OF 3 · YOUR GUT BRIEF</span><h3 id="gr-reasoning-title">{showSaved && !stale ? synthesis?.headline : hasPersonalSources ? 'Your reports, in context' : 'No linked report yet'}</h3></div>
+      <span className="gr-reasoning-badge">{usableSaved ? 'AI interpretation · inspect sources' : 'Built from your saved records'}</span>
     </div>
-    <p className="gr-reasoning-intro">A short reading across your saved reports and published research. The app keeps the source trail visible and leaves uncertain links open.</p>
+    <p className="gr-reasoning-intro">{showSaved && !stale ? synthesis?.connectionReading : evidence?.occasions.length ? `${counts.with} explicitly with, ${counts.without} explicitly without, ${counts.unknown} unknown or disputed. These records do not establish a cause.` : 'No matching meal and symptom report is saved yet. This is unknown, not a symptom-free result.'}</p>
+    {!usableSaved && <div className="gr-reason-pending-action"><strong>{stale ? 'Your earlier reading needs a refresh' : 'One useful step now'}</strong><p>{hasPersonalSources ? 'Inspect the exact reports behind this comparison.' : thread.intent === 'care' ? 'Bring your question to a qualified clinician if you need an answer now.' : 'You can leave this open; no extra tracking is required.'}</p><button type="button" onClick={() => onAction(hasPersonalSources ? 'review_records' : thread.intent === 'care' ? 'prepare_care_question' : 'leave_open')}>{hasPersonalSources ? 'Inspect my records' : thread.intent === 'care' ? 'Prepare a care question' : 'Keep this question open'} <ArrowRight size={15} /></button></div>}
 
     <div className="gr-reasoning-map" aria-label="Question connected to personal records, research, and an evidence reading">
       <div className="gr-reason-node gr-reason-question"><span className="gr-reason-node-icon"><Activity size={16} /></span><div><small>YOUR QUESTION</small><strong>{thread.question}</strong></div></div>
       <div className="gr-reason-branches">
-        <div className="gr-reason-node gr-reason-records"><span className="gr-reason-node-icon"><Utensils size={16} /></span><div><small>YOUR SAVED REPORTS</small><strong>{counts.with} with · {counts.without} without · {counts.unknown} unknown</strong><span>{hasPersonalSources ? `${evidence?.occasions.length} matching meal record${evidence?.occasions.length === 1 ? '' : 's'}; names do not verify recipe or cause` : 'No symptom-linked meal reports found for this question'}{contextCount > 0 ? ` · ${contextCount} nearby context record${contextCount === 1 ? '' : 's'} shown separately` : ''}</span></div></div>
-        <div className="gr-reason-node gr-reason-research"><span className="gr-reason-node-icon"><BookOpen size={16} /></span><div><small>GENERAL RESEARCH</small><strong>{papersCount ? `${papersCount} paper${papersCount === 1 ? '' : 's'} retrieved` : 'No papers attached yet'}</strong><span>{papersCount ? `Topic: ${gutResearchTopics[topic].label}; studies describe groups` : 'Search uses a general symptom and topic, not your personal question'}</span></div></div>
+        <button type="button" className="gr-reason-node gr-reason-records" onClick={() => onAction('review_records')}><span className="gr-reason-node-icon"><Utensils size={16} /></span><div><small>YOUR SAVED REPORTS · OPEN</small><strong>{counts.with} with · {counts.without} without · {counts.unknown} unknown</strong><span>{hasPersonalSources ? `${evidence?.occasions.length} matching meal record${evidence?.occasions.length === 1 ? '' : 's'}; names do not verify recipe or cause` : 'No symptom-linked meal reports found for this question'}{contextCount > 0 ? ` · ${contextCount} nearby context record${contextCount === 1 ? '' : 's'} shown separately` : ''}</span></div></button>
+        <button type="button" className="gr-reason-node gr-reason-research" onClick={() => onAction('open_research')}><span className="gr-reason-node-icon"><BookOpen size={16} /></span><div><small>GENERAL RESEARCH · OPEN</small><strong>{papersCount ? `${papersCount} paper${papersCount === 1 ? '' : 's'} retrieved` : 'No papers attached yet'}</strong><span>{papersCount ? `Search concept: ${thread.researchConcept && topic === thread.researchTopic ? thread.researchConcept : gutResearchTopics[topic].label}; studies describe groups` : 'Public search receives a general symptom and confirmed concept, not your personal question'}</span></div></button>
       </div>
       <div className="gr-reason-link"><GitBranch size={16} /><span>Compared with the same question</span></div>
       <div className={`gr-reason-node gr-reason-reading${showSaved && !stale ? ' gr-reason-reading-ready' : ''}`}>
         <span className="gr-reason-node-icon"><Sparkles size={16} /></span>
-        <div><small>{showSaved ? stale ? 'EARLIER READING · REFRESH NEEDED' : 'CURRENT READING' : 'THE BRIEF'}</small><strong>{showSaved ? synthesis?.headline : 'Connect records with research'}</strong><span>{showSaved ? stale ? 'Refresh this brief before relying on it.' : synthesis?.connectionReading : 'Generate one concise summary from the sources above.'}</span></div>
+        <div><small>{showSaved ? stale ? 'EARLIER READING · REFRESH NEEDED' : 'CURRENT READING' : 'THE BRIEF'}</small><strong>{usableSaved ? synthesis?.headline : stale ? 'Your sources changed' : 'Connect records with research'}</strong><span>{usableSaved ? synthesis?.connectionReading : stale ? 'Refresh this brief before relying on it.' : 'Generate one concise summary from the sources above.'}</span></div>
       </div>
     </div>
 
-    {showSaved && synthesis && <div className={`gr-reason-result${stale ? ' gr-reason-stale' : ''}`}>
-      {stale && <p className="gr-reason-stale-note" role="status">The question or linked records changed since this brief was generated. Refresh it to include the current information.</p>}
+    {usableSaved && synthesis && <div className="gr-reason-result">
       <article className="gr-reason-reading-card"><h4>What your records say</h4><p>{synthesis.personalReading}</p><SourceButtons ids={synthesis.personalSourceIds} type="personal" onOpen={onOpenSource} /></article>
       <article className="gr-reason-reading-card gr-reason-research-card"><h4>What the research adds</h4><p>{synthesis.researchReading}</p><SourceButtons ids={synthesis.researchSourceIds} type="research" onOpen={onOpenSource} /></article>
       {synthesis.uncertainties.length > 0 && <div className="gr-reason-unknown"><strong>Still uncertain</strong><ul>{synthesis.uncertainties.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul></div>}

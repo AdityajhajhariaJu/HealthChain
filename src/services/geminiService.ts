@@ -98,21 +98,26 @@ export interface Message {
   text?: string;
 }
 
+export async function fetchGutQuestionFrame(payload: { question: string; savedMealNames: string[] }): Promise<string> {
+  const response = await fetchWithTimeout(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'gut_frame' },
+    body: JSON.stringify({ gutFramePayload: payload }),
+  }, 25000);
+  if (!response.ok) throw new Error('Question framing is unavailable; you can still review the records yourself.');
+  const data = await response.json();
+  const parts = data?.candidates?.[0]?.content?.parts;
+  const result = Array.isArray(parts) ? parts.map((part: { text?: string }) => part.text || '').join('\n').trim() : '';
+  if (!result) throw new Error('Question framing did not return a suggestion.');
+  return result;
+}
+
 /** HealthChain's existing authenticated Gemini gateway; no provider key is exposed in the browser. */
-export async function fetchGutReasoning(systemText: string, payload: unknown, responseSchema: Record<string, unknown>): Promise<string> {
+export async function fetchGutReasoning(payload: unknown): Promise<string> {
   const response = await fetchWithTimeout(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'gut_reasoning' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemText }] },
-      contents: [{ role: 'user', parts: [{ text: JSON.stringify(payload) }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 1400,
-        responseMimeType: 'application/json',
-        responseSchema,
-      },
-    }),
+    body: JSON.stringify({ gutPayload: payload }),
   }, 45000);
   if (!response.ok) throw new Error(response.status === 402 || response.status === 429 ? 'Gemini is unavailable for this account right now. Your saved records are unchanged.' : 'Gemini could not complete this Gut brief. Your saved records are unchanged.');
   const data = await response.json();

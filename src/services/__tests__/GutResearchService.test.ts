@@ -48,6 +48,20 @@ describe('Gut research metadata boundary', () => {
     expect(paper).toMatchObject({ journal: null, year: null, publicationDate: null, publicationDateSource: null, publicationTypes: [], correctionNotice: null, populationKnown: false, titlePopulationCue: null });
   });
 
+  it('searches only a confirmed short public concept, never a raw personal question', async () => {
+    const fetchMock = vi.fn(async (_url: string) => ({ ok: true, json: async () => ({ resultList: { result: [{ pmid: '22222', title: 'Tea and abdominal bloating', abstractText: 'Tea and bloating were studied.' }] } }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const papers = await searchGutResearch('bloating', 'caffeine', undefined, 'tea');
+    const query = new URL(String(fetchMock.mock.calls[0][0])).searchParams.get('query') || '';
+    expect(query).toContain('TITLE_ABS:"tea"');
+    expect(query).not.toContain('my');
+    expect(papers.map((paper) => paper.id)).toEqual(['22222']);
+    await searchGutResearch('bloating', 'food', undefined, 'tea" OR account:private');
+    const unsafeQuery = new URL(String(fetchMock.mock.calls[1][0])).searchParams.get('query') || '';
+    expect(unsafeQuery).toContain('TITLE_ABS:diet');
+    expect(unsafeQuery).not.toContain('account:private');
+  });
+
   it('flags a population named in the title without claiming it matches the user', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ resultList: { result: [
       { pmid: '13579', title: 'Diet and bloating in children', abstractText: 'Study of children.', pubYear: '2024', printPublicationDate: '2024-05-19' },

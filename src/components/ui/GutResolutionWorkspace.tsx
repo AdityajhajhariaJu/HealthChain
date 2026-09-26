@@ -26,6 +26,7 @@ import {
 } from '../../services/GutResolutionService';
 import { compareGutPublicationStatus, formatGutResearchBrief, getGutPublicationStatus, gutResearchTopics, searchGutResearch, type GutPublicationStatus, type GutResearchPaper, type GutResearchTopic } from '../../services/GutResearchService';
 import { gutSynthesisFingerprint, reasonOverGutEvidence } from '../../services/GutReasoningService';
+import { frameGutQuestion, type GutQuestionFrame } from '../../services/GutQuestionFrameService';
 import { GutDecisionPlanner } from './GutDecisionPlanner';
 import { GutCaseHandoff } from './GutCaseHandoff';
 import { GutBacktraceTimeline } from './GutBacktraceTimeline';
@@ -128,12 +129,18 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
       return '';
     }
   });
-  const [selectedIntent, setSelectedIntent] = useState<GutIntent | null>(null);
+  const [selectedIntent, setSelectedIntent] = useState<GutIntent | null>('understand');
+  const [intentExplicit, setIntentExplicit] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<1 | 2 | 3>(1);
   const [mealPhrase, setMealPhrase] = useState('');
   const [selectedSymptom, setSelectedSymptom] = useState<GutSymptom>('unspecified');
   const [connectionReviewOpen, setConnectionReviewOpen] = useState(false);
+  const [questionFrame, setQuestionFrame] = useState<GutQuestionFrame | null>(null);
+  const [framingBusy, setFramingBusy] = useState(false);
+  const [framingError, setFramingError] = useState('');
   const liveResolution = useMemo(() => resolveDeterministicGutIntent(question), [question]);
+  const proposedFocus = questionFrame?.proposedMealPhrase || liveResolution.inferredFocus;
+  const proposedSymptom = questionFrame?.proposedSymptom && questionFrame.proposedSymptom !== 'unspecified' ? questionFrame.proposedSymptom : liveResolution.inferredSymptom;
   const startFormRef = useRef<HTMLElement>(null);
   const questionRef = useRef<HTMLInputElement>(null);
 
@@ -149,6 +156,8 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
   const handleQuestionChange = (val: string) => {
     setQuestion(val);
     setConnectionReviewOpen(false);
+    setQuestionFrame(null);
+    setFramingError('');
     try {
       sessionStorage.setItem(draftKey(), val);
     } catch {
@@ -176,6 +185,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
   const [reasoningConsent, setReasoningConsent] = useState(false);
   const [reasoningTopic, setReasoningTopic] = useState<GutResearchTopic>('food');
   const reasoningRequest = useRef(0);
+  const pendingReasoningThreadId = useRef<string | null>(null);
   const [message, setMessage] = useState('');
   const [cloudNote, setCloudNote] = useState('');
   const [observationSync, setObservationSync] = useState<ObservationSyncInfo>({ state: 'unavailable', pendingCount: 0 });
@@ -239,13 +249,16 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
   }, [thread, sourcedSnapshot, observations, comparisonFocus]);
   const mealNames = useMemo(() => [...new Set(sourcedSnapshot.meals.map((meal) => meal.name))].slice(0, 40), [sourcedSnapshot.meals]);
   const suggestedMeals = useMemo(() => {
-    const focus = liveResolution.inferredFocus.trim().toLocaleLowerCase();
+    const focus = proposedFocus.trim().toLocaleLowerCase();
     return focus ? sourcedSnapshot.meals.filter((meal) => meal.name.toLocaleLowerCase().includes(focus)).slice(0, 6) : [];
-  }, [liveResolution.inferredFocus, sourcedSnapshot.meals]);
+  }, [proposedFocus, sourcedSnapshot.meals]);
+  const reviewFocus = mealPhrase.trim() || ((selectedIntent === 'understand' || selectedIntent === 'decide') ? proposedFocus : '');
+  const reviewSymptom = selectedSymptom !== 'unspecified' ? selectedSymptom : proposedSymptom;
+  const reviewHasProposal = (!!proposedFocus && !mealPhrase.trim() && (selectedIntent === 'understand' || selectedIntent === 'decide')) || (proposedSymptom !== 'unspecified' && selectedSymptom === 'unspecified') || !!questionFrame?.researchConcept;
   const onboardingMatchedMeals = useMemo(() => {
-    const phrase = mealPhrase.trim().toLocaleLowerCase();
+    const phrase = reviewFocus.trim().toLocaleLowerCase();
     return phrase ? sourcedSnapshot.meals.filter((meal) => meal.name.trim().toLocaleLowerCase().includes(phrase)).slice(0, 6) : [];
-  }, [mealPhrase, sourcedSnapshot.meals]);
+  }, [reviewFocus, sourcedSnapshot.meals]);
   const changeReceipt = thread?.reviewedEvidence && evidence ? deriveGutChangeReceipt(thread.reviewedEvidence, { ...thread, focus: comparisonFocus }, evidence) : null;
   const hasChanged = !!changeReceipt?.changed;
 
@@ -259,12 +272,23 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     );
   }, [thread, sourcedSnapshot, observations]);
   const nearbyContextCount = (backtraceProjection?.timedItems.filter((item) => item.kind !== 'meal').length || 0) + (backtraceProjection?.dateOnlyItems.filter((item) => item.kind !== 'meal').length || 0);
+  const contextRecordsForSynthesis = useMemo(() => backtraceProjection
+    ? [
+      ...backtraceProjection.timedItems.filter((item) => item.kind !== 'meal').map((item) => ({ id: item.sourceId, kind: item.kind, label: item.kind === 'medication' ? 'Medication note; not verified as taken' : item.label, date: item.localDate, timing: item.timePrecision, sourceKind: item.sourceKind === 'diet_meal' ? 'observation' as const : item.sourceKind })),
+      ...backtraceProjection.dateOnlyItems.filter((item) => item.kind !== 'meal').map((item) => ({ id: item.sourceId, kind: item.kind, label: item.kind === 'medication' ? 'Medication note; not verified as taken' : item.label, date: item.localDate, timing: 'date only', sourceKind: item.sourceKind === 'daily_digest' ? 'daily_digest' as const : 'observation' as const })),
+    ].slice(0, 8)
+    : [], [backtraceProjection]);
+  const contextFingerprint = JSON.stringify(contextRecordsForSynthesis);
 
   const answerState = useMemo(() => {
     if (!thread) return 'no_records';
     return classifyGutAnswerState(evidence, thread);
   }, [evidence, thread]);
-  const synthesisStale = !!thread?.gutSynthesis && thread.gutSynthesis.evidenceFingerprint !== gutSynthesisFingerprint(thread, evidence);
+  const synthesisStale = !!thread?.gutSynthesis && (
+    thread.gutSynthesis.evidenceFingerprint !== gutSynthesisFingerprint(thread, evidence, contextFingerprint, reasoningTopic)
+    || Date.now() - Date.parse(thread.gutSynthesis.at) > 24 * 60 * 60 * 1000
+    || (researchStatus === 'ready' && researchTopic === reasoningTopic && research.map((paper) => paper.id).slice(0, 6).join(',') !== thread.gutSynthesis.researchIds.join(','))
+  );
   const todayGutObservations = useMemo(() => sourcedSnapshot.observations.filter((item) => item.localDate === snapshot.today && item.payload.kind !== 'meal' && item.payload.kind !== 'context'), [sourcedSnapshot, snapshot.today]);
 
   const openThreads = threads.filter((item) => item.status === 'open');
@@ -314,7 +338,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     setResearchTopic(null);
     setReasoningTopic(item.gutSynthesis && Object.prototype.hasOwnProperty.call(gutResearchTopics, item.gutSynthesis.researchTopic)
       ? item.gutSynthesis.researchTopic as GutResearchTopic
-      : suggestedResearchTopic(item.question, item.focus));
+      : item.researchTopic || suggestedResearchTopic(item.question, item.focus));
     setReasoningConsent(false);
     setReasoningError('');
     setReasoningBusy(false);
@@ -331,29 +355,47 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     return saved;
   };
 
+  const prepareConnections = async () => {
+    if (!question.trim() || framingBusy) return;
+    setFramingError('');
+    if (reasoningConsent) {
+      setFramingBusy(true);
+      try {
+        setQuestionFrame(await frameGutQuestion(question, mealNames));
+      } catch (error) {
+        setFramingError(`${error instanceof Error ? error.message : 'AI question framing is unavailable.'} You can still confirm the suggested comparison or enter your own details.`);
+      } finally {
+        setFramingBusy(false);
+      }
+    }
+    setOnboardingStep(2);
+  };
+
   const startWithQuery = async (customQuery?: string, forceIntent?: GutIntent, confirmation?: 'use' | 'skip') => {
     const raw = customQuery ?? question;
     const queryText = (raw || '').trim();
     if (!queryText || busy) return;
     const resolution = resolveDeterministicGutIntent(queryText);
-    const chosenIntent = forceIntent || selectedIntent || resolution.intent;
-    const hasSuggestedMeal = (chosenIntent === 'understand' || chosenIntent === 'decide') && !mealPhrase.trim() && !!resolution.inferredFocus;
-    const hasSuggestedSymptom = chosenIntent !== 'now' && selectedSymptom === 'unspecified' && resolution.inferredSymptom !== 'unspecified';
+    const chosenIntent = forceIntent || (intentExplicit ? selectedIntent : resolution.intent) || 'understand';
+    const hasSuggestedMeal = (chosenIntent === 'understand' || chosenIntent === 'decide') && !mealPhrase.trim() && !!proposedFocus;
+    const hasSuggestedSymptom = selectedSymptom === 'unspecified' && proposedSymptom !== 'unspecified';
     if (!confirmation && (hasSuggestedMeal || hasSuggestedSymptom)) {
       setConnectionReviewOpen(true);
       return;
     }
     setBusy(true);
-    const chosenFocus = confirmation === 'use' && hasSuggestedMeal ? resolution.inferredFocus : mealPhrase.trim();
+    const chosenFocus = confirmation === 'use' && hasSuggestedMeal ? proposedFocus : mealPhrase.trim();
     // Text parsing may suggest a label in the draft UI, but only user-confirmed
     // controls are persisted as structured symptom/meal fields.
-    const chosenSymptom = confirmation === 'use' && hasSuggestedSymptom ? resolution.inferredSymptom : selectedSymptom;
+    const chosenSymptom = confirmation === 'use' && hasSuggestedSymptom ? proposedSymptom : selectedSymptom;
 
     const created = await createGutThread({
       intent: chosenIntent,
       question: queryText,
       focus: chosenFocus,
       symptom: chosenSymptom,
+      researchConcept: confirmation === 'use' ? questionFrame?.researchConcept : '',
+      researchTopic: confirmation === 'use' ? questionFrame?.researchTopic : undefined,
     });
     setBusy(false);
 
@@ -379,13 +421,17 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     }
 
     handleQuestionChange('');
-    setSelectedIntent(null);
+    setSelectedIntent('understand');
+    setIntentExplicit(false);
     setOnboardingStep(1);
     setMealPhrase('');
     setSelectedSymptom('unspecified');
     setConnectionReviewOpen(false);
     setThreads(listGutThreads());
+    pendingReasoningThreadId.current = reasoningConsent && chosenIntent !== 'now' ? created.id : null;
     openThread(created);
+    if (reasoningConsent) setReasoningConsent(true);
+    if (questionFrame) setReasoningTopic(questionFrame.researchTopic);
   };
 
   const record = async (meal: GutMeal, answer: 'yes' | 'no') => {
@@ -403,13 +449,13 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     const request = ++researchRequest.current;
     setResearchStatus('loading'); setResearch([]);
     try {
-      const papers = await searchGutResearch(thread.symptom, selectedTopic);
+      const papers = await searchGutResearch(thread.symptom, selectedTopic, undefined, selectedTopic === thread.researchTopic ? thread.researchConcept : '');
       if (request === researchRequest.current) { setResearch(papers); setResearchStatus('ready'); }
     } catch { if (request === researchRequest.current) setResearchStatus('error'); }
   };
 
   const generateGutReasoning = async () => {
-    if (!thread || thread.intent === 'now' || reasoningBusy) return;
+    if (!thread || thread.intent === 'now' || !reasoningConsent || reasoningBusy) return;
     const request = ++reasoningRequest.current;
     const topic = reasoningTopic;
     setReasoningBusy(true);
@@ -419,18 +465,12 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
       if (thread.symptom !== 'unspecified') {
         setResearchTopic(topic);
         setResearchStatus('loading');
-        papers = researchStatus === 'ready' && researchTopic === topic ? research : await searchGutResearch(thread.symptom, topic);
+        papers = researchStatus === 'ready' && researchTopic === topic ? research : await searchGutResearch(thread.symptom, topic, undefined, topic === thread.researchTopic ? thread.researchConcept : '');
         if (request !== reasoningRequest.current) return;
         setResearch(papers);
         setResearchStatus('ready');
       }
-      const contextRecords = backtraceProjection
-        ? [
-          ...backtraceProjection.timedItems.filter((item) => item.kind !== 'meal').map((item) => ({ id: item.sourceId, kind: item.kind, label: item.kind === 'medication' ? 'Medication note; not verified as taken' : item.label, date: item.localDate, timing: item.timePrecision, sourceKind: item.sourceKind === 'diet_meal' ? 'observation' as const : item.sourceKind })),
-          ...backtraceProjection.dateOnlyItems.filter((item) => item.kind !== 'meal').map((item) => ({ id: item.sourceId, kind: item.kind, label: item.kind === 'medication' ? 'Medication note; not verified as taken' : item.label, date: item.localDate, timing: 'date only', sourceKind: item.sourceKind === 'daily_digest' ? 'daily_digest' as const : 'observation' as const })),
-        ].slice(0, 8)
-        : [];
-      const result = await reasonOverGutEvidence({ thread, evidence, papers, topic, contextRecords });
+      const result = await reasonOverGutEvidence({ thread, evidence, papers, topic, contextRecords: contextRecordsForSynthesis, contextFingerprint });
       if (request !== reasoningRequest.current) return;
       const saved = await updateGutThread(thread.id, { gutSynthesis: result });
       if (!saved) throw new Error('The brief could not be saved to this question. Please try again.');
@@ -445,6 +485,12 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
       if (request === reasoningRequest.current) setReasoningBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (!thread || pendingReasoningThreadId.current !== thread.id) return;
+    pendingReasoningThreadId.current = null;
+    void generateGutReasoning();
+  }, [thread, generateGutReasoning]);
 
   const openSynthesisSource = (sourceId: string) => {
     const [kind, ...rest] = sourceId.split(':');
@@ -521,6 +567,14 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
       `Next step chosen: ${thread.selectedStep || 'not chosen'}`,
       ...(publicGuide ? [`General NIDDK source context (not a personal finding): ${publicGuide.sentence} ${publicGuide.limit} Original: ${publicGuide.url}`] : []),
       ...formatGutResearchBrief(researchSources),
+      ...(thread.gutSynthesis && !synthesisStale ? [
+        `AI Gut reading (${thread.gutSynthesis.at}; not independently clinically reviewed): ${thread.gutSynthesis.headline}`,
+        `Personal reading: ${thread.gutSynthesis.personalReading}`,
+        `Research reading: ${thread.gutSynthesis.researchReading}`,
+        `Personal source IDs: ${thread.gutSynthesis.personalSourceIds.join(', ') || 'none'}`,
+        `Research PMID IDs: ${thread.gutSynthesis.researchSourceIds.join(', ') || 'none'}`,
+        `Suggested next step: ${thread.gutSynthesis.nextReason}`,
+      ] : thread.gutSynthesis ? ['A prior AI reading is stale and was excluded; refresh it before sharing.'] : []),
       ...(thread.intent === 'decide' && thread.decision ? [
         `Upcoming options: A — ${thread.decision.options.a.label || 'not entered'}; B — ${thread.decision.options.b.label || 'not entered'}`,
         `Personal priority: ${thread.decision.priority || 'not entered'}`,
@@ -547,7 +601,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     {!thread ? <>
       <div className="gr-eyebrow"><span className="gr-eyebrow-dot" /> GUT HEALTH <span className="gr-eyebrow-note">Your questions, in context</span></div>
       <h2 className="gr-title">What do you need help with today?</h2>
-      <p className="gr-subtitle">Choose one starting point. We’ll keep your records, research and next step easy to inspect.</p>
+      <p className="gr-subtitle">Tell us what you are wondering about. We’ll show the records that connect, the research that applies, and one useful next step.</p>
 
       {openThreads.length > 0 && <section className="gr-continue">
         <div className="gr-small-icon"><RotateCcw size={19} /></div>
@@ -556,27 +610,26 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
       </section>}
       {openThreads.length > 1 && <details className="gr-other-questions"><summary>{openThreads.length - 1} other open question{openThreads.length === 2 ? '' : 's'}</summary><div>{openThreads.slice(1).map((item) => <button type="button" key={item.id} onClick={() => openThread(item)}><span>{item.question}</span><ArrowRight size={15} /></button>)}</div></details>}
 
-      <div className="gr-onboarding-step"><span className="gr-step-track gr-step-track-three" aria-hidden="true"><i className={onboardingStep === 1 ? 'gr-step-current' : 'gr-step-ready'} /><i className={onboardingStep === 2 ? 'gr-step-current' : onboardingStep > 2 ? 'gr-step-ready' : ''} /><i className={onboardingStep === 3 ? 'gr-step-current' : ''} /></span><strong>{onboardingStep === 1 ? 'STEP 1 OF 3' : onboardingStep === 2 ? 'STEP 2 OF 3' : 'STEP 3 OF 3'}</strong><span>{onboardingStep === 1 ? 'Choose what fits today' : onboardingStep === 2 ? 'Tell us what is happening' : 'Review your connections'}</span></div>
-      {onboardingStep === 1 && <section className="gr-intent-grid" aria-label="Choose what you need help with">
+      <div className="gr-onboarding-step"><span className="gr-step-track gr-step-track-three" aria-hidden="true"><i className="gr-step-ready" /><i className={onboardingStep === 1 ? 'gr-step-current' : 'gr-step-ready'} /><i className={onboardingStep === 2 ? 'gr-step-current' : ''} /></span><strong>STEP {onboardingStep} OF 3</strong><span>{onboardingStep === 1 ? 'Tell us what is happening' : 'See your connections'}</span></div>
+      {framingError && <p role="status" className="gr-framing-error">{framingError}</p>}
+      <details className="gr-intent-optional"><summary>Choose another way to start</summary><section className="gr-intent-grid" aria-label="Optional starting points">
         {intents.map(({ id, title, desc, icon: Icon }) => (
           <button
             type="button"
             key={id}
             className={`gr-intent gr-intent-${id}${selectedIntent === id ? ' gr-intent-active' : ''}`}
             aria-pressed={selectedIntent === id}
-            onClick={() => { setSelectedIntent(id); setOnboardingStep(2); setMessage(''); }}
+            onClick={() => { setSelectedIntent(id); setIntentExplicit(true); setOnboardingStep(1); setMessage(''); }}
           >
             <span className={`gr-icon gr-icon-${id}`} aria-hidden="true"><Icon size={21} /></span>
             <span><strong>{title}</strong><small>{desc}</small></span>
             <ChevronRight size={18} className="gr-intent-arrow" aria-hidden="true" />
           </button>
         ))}
-      </section>}
+      </section></details>
 
       {!selectedIntent && onboardingStep === 1 && <p className="gr-path-hint">A question is enough to begin. You can add details later.</p>}
-      {selectedIntent && onboardingStep > 1 && <div className="gr-selected-path"><span className={`gr-icon gr-icon-${selectedIntent}`}><SelectedIntentIcon size={18} /></span><div><small>YOUR STARTING POINT</small><strong>{intents.find((item) => item.id === selectedIntent)?.title}</strong></div><button type="button" onClick={() => { setSelectedIntent(null); setOnboardingStep(1); setConnectionReviewOpen(false); }}>Change</button></div>}
-      {selectedIntent && onboardingStep === 2 && <section ref={startFormRef} className="gr-start-form" aria-label={`${intents.find((item) => item.id === selectedIntent)?.title} question setup`}>
-        <div className="gr-onboarding-step"><span className="gr-step-track gr-step-track-three" aria-hidden="true"><i className="gr-step-ready" /><i className="gr-step-current" /><i /></span><strong>YOUR QUESTION</strong><span>{intents.find((item) => item.id === selectedIntent)?.title}</span></div>
+      {selectedIntent && onboardingStep === 1 && <section ref={startFormRef} className="gr-start-form" aria-label={`${intents.find((item) => item.id === selectedIntent)?.title} question setup`}>
         <h3 className="gr-path-heading"><span className={`gr-path-heading-icon gr-icon-${selectedIntent}`} aria-hidden="true"><SelectedIntentIcon size={18} /></span>{intentGuidance[selectedIntent].heading}</h3>
         <p className="gr-path-help">{intentGuidance[selectedIntent].help}</p>
         <label htmlFor="gr-question">Your question or situation</label>
@@ -588,13 +641,15 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
             value={question}
             maxLength={500}
             onChange={(event) => handleQuestionChange(event.target.value)}
-            onKeyDown={(event) => { if (event.key === 'Enter') void startWithQuery(); }}
+            onKeyDown={(event) => { if (event.key === 'Enter' && question.trim()) void prepareConnections(); }}
             placeholder={intentGuidance[selectedIntent].placeholder}
           />
         </div>
 
-        {liveResolution.inferredFocus && !mealPhrase.trim() && (selectedIntent === 'understand' || selectedIntent === 'decide') && <button type="button" className="gr-draft-suggestion" onClick={() => { setMealPhrase(liveResolution.inferredFocus); setConnectionReviewOpen(false); }}><Search size={15} /><span>{suggestedMeals.length ? `Found ${suggestedMeals.length} saved meal${suggestedMeals.length === 1 ? '' : 's'} matching` : 'No saved meal matches'} <strong>{liveResolution.inferredFocus}</strong></span><b>Use</b></button>}
-        {selectedIntent !== 'now' && liveResolution.inferredSymptom !== 'unspecified' && selectedSymptom === 'unspecified' && <button type="button" className="gr-draft-suggestion gr-symptom-suggestion" onClick={() => { setSelectedSymptom(liveResolution.inferredSymptom); setConnectionReviewOpen(false); }}><Sparkles size={15} /><span>Possible symptom from your wording: <strong>{symptoms.find((item) => item.id === liveResolution.inferredSymptom)?.label}</strong></span><b>Add</b></button>}
+        <div className="gr-symptom-cloud" aria-label="Optional symptom comparison"><span>Which gut symptom matters here? <small>Optional · selects a comparison, not a symptom report</small></span><div>{symptoms.slice(1).map((item, index) => <button key={item.id} type="button" aria-pressed={selectedSymptom === item.id} className={`gr-symptom-chip gr-symptom-chip-${index}`} onClick={() => setSelectedSymptom(selectedSymptom === item.id ? 'unspecified' : item.id)}><span className="gr-symptom-chip-icon"><Activity size={15} /></span>{item.label}</button>)}</div></div>
+
+        {proposedFocus && !mealPhrase.trim() && (selectedIntent === 'understand' || selectedIntent === 'decide') && <button type="button" className="gr-draft-suggestion" onClick={() => { setMealPhrase(proposedFocus); setConnectionReviewOpen(false); }}><Search size={15} /><span>{suggestedMeals.length ? `Found ${suggestedMeals.length} saved meal${suggestedMeals.length === 1 ? '' : 's'} matching` : 'No saved meal matches'} <strong>{proposedFocus}</strong></span><b>Use</b></button>}
+        {selectedIntent !== 'now' && proposedSymptom !== 'unspecified' && selectedSymptom === 'unspecified' && <button type="button" className="gr-draft-suggestion gr-symptom-suggestion" onClick={() => { setSelectedSymptom(proposedSymptom); setConnectionReviewOpen(false); }}><Sparkles size={15} /><span>Possible symptom from your wording: <strong>{symptoms.find((item) => item.id === proposedSymptom)?.label}</strong></span><b>Add</b></button>}
 
         <details className="gr-optional-details">
           <summary>Add a meal or symptom from your records (optional)</summary>
@@ -621,8 +676,8 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
         {connectionReviewOpen && <section className="gr-connection-review" aria-label="Confirm the details found in your question">
           <div><span className="gr-connection-eyebrow">ONE QUICK CHECK</span><h4>Use these details to read your records?</h4><p>Your wording suggested them. Nothing is added to your health record until you choose, and a matching name does not verify a recipe or cause.</p></div>
           {suggestedMeals.length > 0 && !mealPhrase.trim() && <div className="gr-connection-review-sources"><strong>{suggestedMeals.length} matching saved meal{suggestedMeals.length === 1 ? '' : 's'}</strong>{suggestedMeals.slice(0, 3).map((meal) => <button type="button" key={`${meal.sourceKind || 'diet_meal'}:${meal.id}`} onClick={() => onOpenSource({ sourceKind: meal.sourceKind || 'diet_meal', sourceId: meal.id, localDate: meal.date })}>{meal.date} · {meal.name} <ArrowRight size={13} /></button>)}</div>}
-          {!suggestedMeals.length && liveResolution.inferredFocus && !mealPhrase.trim() && <p className="gr-connection-review-symptom">No saved meal matches <strong>{liveResolution.inferredFocus}</strong>. Keep it as your question focus if that is what you meant; this does not create a meal record.</p>}
-          {liveResolution.inferredSymptom !== 'unspecified' && selectedSymptom === 'unspecified' && <p className="gr-connection-review-symptom">Possible symptom: <strong>{symptoms.find((item) => item.id === liveResolution.inferredSymptom)?.label}</strong>. This selects a comparison; it does not report that you had it.</p>}
+          {!suggestedMeals.length && proposedFocus && !mealPhrase.trim() && <p className="gr-connection-review-symptom">No saved meal matches <strong>{proposedFocus}</strong>. Keep it as your question focus if that is what you meant; this does not create a meal record.</p>}
+          {proposedSymptom !== 'unspecified' && selectedSymptom === 'unspecified' && <p className="gr-connection-review-symptom">Possible symptom: <strong>{symptoms.find((item) => item.id === proposedSymptom)?.label}</strong>. This selects a comparison; it does not report that you had it.</p>}
           <div className="gr-connection-review-actions"><button type="button" className="gr-primary" disabled={busy} onClick={() => void startWithQuery(undefined, undefined, 'use')}>Use these details <ArrowRight size={16} /></button><button type="button" className="gr-secondary" disabled={busy} onClick={() => void startWithQuery(undefined, undefined, 'skip')}>Continue without them</button></div>
         </section>}
 
@@ -646,26 +701,28 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
           </div>
         </details>
 
+        <label className="gr-ai-optin"><input type="checkbox" checked={reasoningConsent} onChange={(event) => setReasoningConsent(event.target.checked)} /><span><strong>Use Gemini to connect this question</strong><small>Your question and up to 20 saved meal names are sent through HealthChain’s AI service to suggest comparisons. You confirm them before they become part of this question. A source-backed brief can then be built from the relevant records and research.</small></span></label>
         <div className="gr-start-actions">
-          <button type="button" className="gr-primary" onClick={() => { setOnboardingStep(3); setConnectionReviewOpen(false); }} disabled={!question.trim() || busy}>
-            Review my connections <ArrowRight size={17} />
+          <button type="button" className="gr-primary" onClick={() => void prepareConnections()} disabled={!question.trim() || busy || framingBusy}>
+            {framingBusy ? 'Finding connections…' : 'See my connections'} <ArrowRight size={17} />
           </button>
           <span>A question is enough. Meal and symptom details stay optional.</span>
         </div>
       </section>}
 
-      {selectedIntent && onboardingStep === 3 && <section className="gr-onboarding-review" aria-label="Review the records connected to your question">
-        <div className="gr-onboarding-review-heading"><span className="gr-review-icon"><GitBranch size={19} /></span><div><small>YOUR QUESTION</small><h3>Here is what we can connect</h3></div><button type="button" onClick={() => setOnboardingStep(2)}>Edit details</button></div>
+      {selectedIntent && onboardingStep === 2 && <section className="gr-onboarding-review" aria-label="Review the records connected to your question">
+        <div className="gr-onboarding-review-heading"><span className="gr-review-icon"><GitBranch size={19} /></span><div><small>YOUR QUESTION</small><h3>Here is what we can connect</h3></div><button type="button" onClick={() => setOnboardingStep(1)}>Edit details</button></div>
         <p className="gr-review-question">“{question.trim()}”</p>
         <div className="gr-onboarding-map">
-          <article><span className="gr-review-node-icon"><Utensils size={16} /></span><div><small>SAVED MEAL NAMES</small><strong>{mealPhrase.trim() || 'No meal selected'}</strong><span>{mealPhrase.trim() ? `${onboardingMatchedMeals.length} matching saved record${onboardingMatchedMeals.length === 1 ? '' : 's'} found` : 'You can continue without choosing a meal'}</span>{onboardingMatchedMeals.length > 0 && <div className="gr-review-meals">{onboardingMatchedMeals.slice(0, 3).map((meal) => <button type="button" key={`${meal.sourceKind || 'meal'}:${meal.id}`} onClick={() => onOpenSource({ sourceKind: meal.sourceKind || 'diet_meal', sourceId: meal.id, localDate: meal.date })}>{meal.date} · {meal.name} <ArrowRight size={12} /></button>)}</div>}</div></article>
+          <article><span className="gr-review-node-icon"><Utensils size={16} /></span><div><small>{mealPhrase.trim() ? 'YOUR MEAL COMPARISON' : 'SUGGESTED MEAL COMPARISON'}</small><strong>{reviewFocus || 'No meal selected'}</strong><span>{reviewFocus ? `${onboardingMatchedMeals.length} matching saved record${onboardingMatchedMeals.length === 1 ? '' : 's'} found; a name does not verify ingredients` : 'You can continue without choosing a meal'}</span>{onboardingMatchedMeals.length > 0 && <div className="gr-review-meals">{onboardingMatchedMeals.slice(0, 3).map((meal) => <button type="button" key={`${meal.sourceKind || 'meal'}:${meal.id}`} onClick={() => onOpenSource({ sourceKind: meal.sourceKind || 'diet_meal', sourceId: meal.id, localDate: meal.date })}>{meal.date} · {meal.name} <ArrowRight size={12} /></button>)}</div>}</div></article>
           <i aria-hidden="true" />
-          <article><span className="gr-review-node-icon gr-review-symptom"><Activity size={16} /></span><div><small>SYMPTOM COMPARISON</small><strong>{selectedSymptom === 'unspecified' ? 'Not selected' : symptoms.find((item) => item.id === selectedSymptom)?.label}</strong><span>{selectedSymptom === 'unspecified' ? 'No symptom-specific reports will be counted yet' : 'Only explicit reports for this symptom can count'}</span></div></article>
+          <article><span className="gr-review-node-icon gr-review-symptom"><Activity size={16} /></span><div><small>{selectedSymptom === 'unspecified' ? 'SUGGESTED SYMPTOM COMPARISON' : 'YOUR SYMPTOM COMPARISON'}</small><strong>{reviewSymptom === 'unspecified' ? 'Not selected' : symptoms.find((item) => item.id === reviewSymptom)?.label}</strong><span>{reviewSymptom === 'unspecified' ? 'No symptom-specific reports will be counted yet' : 'Only explicit reports for this symptom can count'}</span></div></article>
           <i aria-hidden="true" />
-          <article><span className="gr-review-node-icon gr-review-research"><BookOpen size={16} /></span><div><small>RESEARCH</small><strong>Added after your question is saved</strong><span>Generic topic search stays separate from your personal records.</span></div></article>
+          <article><span className="gr-review-node-icon gr-review-research"><BookOpen size={16} /></span><div><small>PUBLIC RESEARCH QUERY</small><strong>{questionFrame?.researchConcept || gutResearchTopics[questionFrame?.researchTopic || suggestedResearchTopic(question, reviewFocus)].label}</strong><span>{questionFrame?.researchConcept ? 'Confirming sends this short concept and selected symptom to Europe PMC; your full question and personal records are not sent to public search.' : 'A general symptom and topic search stays separate from your personal records.'}</span></div></article>
         </div>
         <p className="gr-review-caveat"><ShieldCheck size={15} /> A matching meal name does not verify its ingredients or prove a cause. Missing days are not symptom-free.</p>
-        <div className="gr-review-actions"><button type="button" className="gr-secondary" onClick={() => setOnboardingStep(2)}><ArrowLeft size={15} /> Back to question</button><button type="button" className="gr-primary" disabled={busy || !question.trim()} onClick={() => void startWithQuery(undefined, undefined, 'skip')}>Open my Gut brief <ArrowRight size={16} /></button></div>
+        {reviewHasProposal && <p className="gr-review-caveat">These are suggestions from your words. Confirm them to compare saved records; they do not add a symptom or meal to your health history.</p>}
+        <div className="gr-review-actions"><button type="button" className="gr-secondary" onClick={() => setOnboardingStep(1)}><ArrowLeft size={15} /> Back to question</button><button type="button" className="gr-primary" disabled={busy || !question.trim()} onClick={() => void startWithQuery(undefined, undefined, 'use')}>{reviewHasProposal ? 'Use these details and open my brief' : 'Open my Gut brief'} <ArrowRight size={16} /></button>{reviewHasProposal && <button type="button" className="gr-secondary" disabled={busy} onClick={() => void startWithQuery(undefined, undefined, 'skip')}>Continue without suggestions</button>}</div>
       </section>}
 
       <section className="gr-quick-record" aria-label="Optional meal record">

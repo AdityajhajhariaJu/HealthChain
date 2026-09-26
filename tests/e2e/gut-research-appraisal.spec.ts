@@ -21,10 +21,11 @@ test('Gut research appraises indexed metadata without sending the personal quest
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByText('Choose another way to start').click();
   await gut.getByRole('button', { name: /I want to understand/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is my private chai recipe linked to bloating?');
-  await gut.getByRole('button', { name: 'Open my question' }).click();
-  await gut.getByRole('region', { name: 'Confirm the details found in your question' }).getByRole('button', { name: /Use these details/ }).click();
+  await gut.getByRole('button', { name: 'See my connections' }).click();
+  await gut.getByRole('button', { name: /Use these details and open my brief/ }).click();
   await gut.getByRole('button', { name: 'Explore general research' }).click();
   await expect(gut.getByRole('heading', { name: 'General information' })).toBeVisible();
   await expect(gut.getByLabel('Which symptom would you like to read about?')).toHaveCount(0);

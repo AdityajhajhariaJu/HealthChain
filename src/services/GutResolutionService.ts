@@ -30,6 +30,9 @@ export interface GutQuestionThread {
   question: string;
   focus: string;
   symptom: GutSymptom;
+  /** User-confirmed generic search concept; never a raw private narrative. */
+  researchConcept?: string;
+  researchTopic?: 'food' | 'caffeine' | 'dairy' | 'meal_timing';
   status: 'open' | 'closed';
   selectedStep: string | null;
   reflection: string | null;
@@ -256,7 +259,7 @@ export function listGutThreads(): GutQuestionThread[] {
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
     .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
-    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
+    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -270,14 +273,14 @@ async function writeThreads(threads: GutQuestionThread[]): Promise<boolean> {
   return threads.every((thread) => getProfile()?.[featureKey]?.some((saved: GutQuestionThread) => saved.id === thread.id && saved.updatedAt === thread.updatedAt));
 }
 
-export async function createGutThread(input: { intent: GutIntent; question: string; focus?: string; symptom?: GutSymptom }): Promise<GutQuestionThread | null> {
+export async function createGutThread(input: { intent: GutIntent; question: string; focus?: string; symptom?: GutSymptom; researchConcept?: string; researchTopic?: GutQuestionThread['researchTopic'] }): Promise<GutQuestionThread | null> {
   const question = clean(input.question).slice(0, 500);
   if (!question || !['understand', 'decide', 'now', 'care'].includes(input.intent)) return null;
   const current = scope();
   const now = new Date().toISOString();
   const thread: GutQuestionThread = {
     id: id(), schemaVersion: 1, conclusionVersion: GUT_CONCLUSION_VERSION, ...current, intent: input.intent, question,
-    focus: clean(input.focus).slice(0, 120), symptom: input.symptom || 'unspecified', status: 'open',
+    focus: clean(input.focus).slice(0, 120), symptom: input.symptom || 'unspecified', researchConcept: limit(input.researchConcept, 60), researchTopic: input.researchTopic, status: 'open',
     selectedStep: null, reflection: null, excludedMealIds: [], reviewedEvidence: null,
     decision: input.intent === 'decide' ? emptyGutDecision() : null,
     createdAt: now, updatedAt: now,
@@ -285,7 +288,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   return await writeThreads([thread, ...listGutThreads()]) ? thread : null;
 }
 
-export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
+export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'researchConcept' | 'researchTopic' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
@@ -294,6 +297,8 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
   const updated: GutQuestionThread = {
     ...original, ...patch,
     focus: patch.focus === undefined ? original.focus : clean(patch.focus).slice(0, 120),
+    researchConcept: patch.researchConcept === undefined ? original.researchConcept : limit(patch.researchConcept, 60),
+    researchTopic: patch.researchTopic === undefined ? original.researchTopic : patch.researchTopic,
     reflection: patch.reflection === undefined ? original.reflection : clean(patch.reflection).slice(0, 1000) || null,
     selectedStep: patch.selectedStep === undefined ? original.selectedStep : clean(patch.selectedStep).slice(0, 300) || null,
     excludedMealIds: patch.excludedMealIds === undefined ? original.excludedMealIds : [...new Set(patch.excludedMealIds)].slice(0, 200),
@@ -571,7 +576,8 @@ export function resolveDeterministicGutIntent(query: string): DeterministicInten
 
   // 2. Detect Intent
   let intent: GutIntent = 'understand';
-  if (/unwell|sick|hurting|pain right now|right now|currently hurting|acute|emergency|severe pain|flare right now|feel unwell/i.test(cleanQuery)) {
+  if (/unwell|sick|hurting|pain right now|right now|currently hurting|acute|emergency|severe pain|flare right now|feel unwell/i.test(cleanQuery)
+    || /\b(?:i have|i'm having|i am having|i feel|experiencing)\b.{0,80}\b(?:pain|cramp|ache|nausea|vomit|diarrhea)\b.{0,60}\b(?:today|now)\b/i.test(cleanQuery)) {
     intent = 'now';
   } else if (/doctor|clinician|visit|appointment|prescribe|describe.*visit|handoff|brief|ask (my )?doctor|consult/i.test(cleanQuery)) {
     intent = 'care';
