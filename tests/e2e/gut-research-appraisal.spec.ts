@@ -27,13 +27,14 @@ test('Gut research appraises indexed metadata without sending the personal quest
   await gut.getByRole('button', { name: 'See my connections' }).click();
   await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
   await gut.getByRole('button', { name: 'Explore research', exact: true }).click();
-  await expect(gut.getByRole('heading', { name: 'General information' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'Research behind your question' })).toBeVisible();
   await expect(gut.getByLabel('Which symptom would you like to read about?')).toHaveCount(0);
   await expect(gut.getByRole('heading', { name: 'What we can learn from a trusted source' })).toBeVisible();
   await expect(gut.getByText(/No independently reviewed finding is published for this topic yet/)).toBeVisible();
   expect(literatureQuery).toBe('');
   await gut.getByRole('button', { name: 'Food in general' }).click();
   const card = gut.getByRole('article').filter({ hasText: 'Diet and bloating in children' });
+  await card.getByText('Inspect this study and its limits').click();
   await expect(card.getByText('The title names children or adolescents.')).toBeVisible();
   await expect(card.getByText('The comparator and measured outcome require checking the original paper.')).toBeVisible();
   await expect(card.getByText('2024-05-19 (electronic date)')).toBeVisible();

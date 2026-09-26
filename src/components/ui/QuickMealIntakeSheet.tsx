@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff } from 'lucide-react';
+import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff, ArrowRight, Clock3 } from 'lucide-react';
 import { addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import FocusTrap from './FocusTrap';
+import './QuickMealIntakeSheet.css';
 
 export type CircadianSlot = 'Morning' | 'Noon' | 'Evening' | 'Night';
 
@@ -11,6 +12,7 @@ interface QuickMealIntakeSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onMealLogged?: (mealName: string, slot: CircadianSlot) => void;
+  simple?: boolean;
 }
 
 const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRange: string; organClock: string; organTip: string; desc: string }[] = [
@@ -69,18 +71,22 @@ const QUICK_INDIAN_CAPSULES = [
   { id: 'sprout_salad', name: 'Sprouted Moong Salad', icon: '🥗' },
 ];
 
+const slotForHour = (hour: number): CircadianSlot => {
+  if (hour >= 5 && hour < 11) return 'Morning';
+  if (hour >= 11 && hour < 15) return 'Noon';
+  if (hour >= 15 && hour < 19) return 'Evening';
+  return 'Night';
+};
+
 export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   isOpen,
   onClose,
   onMealLogged,
+  simple = false,
 }) => {
   // Determine default circadian slot based on hour of day
   const getCurrentSlot = (): CircadianSlot => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 11) return 'Morning';
-    if (hour >= 11 && hour < 15) return 'Noon';
-    if (hour >= 15 && hour < 19) return 'Evening';
-    return 'Night';
+    return slotForHour(new Date().getHours());
   };
 
   const [selectedSlot, setSelectedSlot] = useState<CircadianSlot>(getCurrentSlot());
@@ -95,6 +101,13 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     const supported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     setSpeechSupported(supported);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !simple) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, simple, onClose]);
 
   const handleToggleCapsule = (capName: string) => {
     triggerHapticSelection();
@@ -148,14 +161,15 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     if (timingOffset === '30m') now.setMinutes(now.getMinutes() - 30);
     else if (timingOffset === '1h') now.setHours(now.getHours() - 1);
     else if (timingOffset === '2h') now.setHours(now.getHours() - 2);
+    const savedSlot = simple ? slotForHour(now.getHours()) : selectedSlot;
 
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     const logPayload = {
       meal: finalMealName,
       name: finalMealName,
-      slot: selectedSlot,
-      category: selectedSlot,
+      slot: savedSlot,
+      category: savedSlot,
       ...(portion ? { portion } : {}),
       date: todayStr,
       loggedAt: loggedAt.toISOString(),
@@ -198,17 +212,31 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     }));
 
     if (onMealLogged) {
-      onMealLogged(finalMealName, selectedSlot);
+      onMealLogged(finalMealName, savedSlot);
     }
 
     // Reset and close
     setMealText('');
     setSelectedCapsules([]);
     setPortion(null);
+    setTimingOffset('now');
     onClose();
   };
 
   if (!isOpen) return null;
+
+  if (simple) return <FocusTrap isActive={isOpen}>
+    <div className="gr-meal-backdrop" role="dialog" aria-modal="true" aria-label="Record a meal" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div className="gr-meal-sheet">
+        <div className="gr-meal-head"><span className="gr-meal-icon"><Utensils size={21} /></span><div><small>MY RECORDS</small><h2>Record a meal</h2></div><button type="button" aria-label="Close meal entry" onClick={onClose}><X size={18} /></button></div>
+        <div className="gr-meal-body"><p>Save what you remember. You can connect it to a question later.</p><label htmlFor="gr-meal-name">What did you eat or drink?</label><input id="gr-meal-name" type="text" value={mealText} maxLength={180} onChange={(event) => setMealText(event.target.value)} placeholder="e.g. chai and toast" />
+          <details className="gr-meal-time"><summary><Clock3 size={16} /> When was it? <span>Optional</span></summary><div role="group" aria-label="Approximate time eaten">{([['now','Now'],['30m','About 30 minutes ago'],['1h','About an hour ago'],['2h','About two hours ago']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={timingOffset === value} onClick={() => setTimingOffset(value)}>{label}</button>)}</div><small>Saved as an approximate time, using your device clock.</small></details>
+          <p className="gr-meal-note">A meal entry does not say whether a symptom happened or what caused it.</p>
+        </div>
+        <div className="gr-meal-footer"><button type="button" disabled={!mealText.trim()} onClick={handleSaveMeal}>Save meal <ArrowRight size={17} /></button></div>
+      </div>
+    </div>
+  </FocusTrap>;
 
   return (
     <AnimatePresence>

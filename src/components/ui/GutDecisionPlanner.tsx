@@ -49,14 +49,15 @@ export const GutDecisionPlanner: React.FC<Props> = ({ thread, snapshot, observat
   };
 
   return <div className="gr-decision">
-    <div className="gr-decision-intro"><span className="gr-icon gr-icon-decide"><Compass size={22} /></span><div><h3>Rehearse a real choice</h3><p>Put two options beside what you have actually experienced. The app will show relevant past records, then leave the decision with you.</p></div></div>
-    <label htmlFor="gr-decision-priority">What matters most in this situation? <span>(optional)</span></label>
+    <div className="gr-decision-intro"><span className="gr-icon gr-icon-decide"><Compass size={22} /></span><div><h3>Compare your options</h3><p>Choose what fits today. Your past records are shown beside each option.</p></div></div>
+    <details className="gr-decision-more"><summary>Add a priority or a symptom to compare <span>(optional)</span></summary>
+    <label htmlFor="gr-decision-priority">What matters most in this situation?</label>
     <input id="gr-decision-priority" value={draft.priority} maxLength={160} onChange={(event) => setDraft({ ...draft, priority: event.target.value })} placeholder="e.g. Enjoy dinner without making a broad food rule" />
-    <label htmlFor="gr-decision-symptom">Past symptom to compare <span>(optional context)</span></label>
+    <label htmlFor="gr-decision-symptom">Past symptom to compare</label>
     <select id="gr-decision-symptom" value={thread.symptom} disabled={busy} onChange={(event) => { void onSymptomChange(event.target.value as GutSymptom).then((ok) => { if (!ok) setMessage('Could not change the comparison symptom.'); }); }}>
       <option value="unspecified">No symptom selected</option>
       <option value="bloating">Bloating</option><option value="discomfort">Abdominal discomfort</option><option value="reflux">Reflux</option><option value="nausea">Nausea</option><option value="bowel_changes">Bowel changes</option>
-    </select>
+    </select></details>
     <div className="gr-decision-options">{keys.map((key, index) => {
       const option = draft.options[key];
       const history = histories[key];

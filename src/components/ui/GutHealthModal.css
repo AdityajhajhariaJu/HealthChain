@@ -1,0 +1,10 @@
+.gr-records-calendar-title{margin:18px 0 10px;color:#202a3c;font-size:17px;font-weight:800}
+.gr-recorded-trend,.gr-visit-detail{margin-top:14px;border:1px solid #eadde3;border-radius:14px;background:#fff}
+.gr-recorded-trend>summary,.gr-visit-detail>summary{padding:12px 15px;color:#ad234a;font-size:13px;font-weight:800;cursor:pointer}
+.gr-recorded-trend>section,.gr-visit-detail>section{margin:0 9px 9px}
+.gr-visit-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.gr-visit-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:43px;padding:9px 14px;border:1px solid #ae1e47;border-radius:11px;background:linear-gradient(115deg,#e74670,#b91445);box-shadow:0 5px 14px #bd285038;color:#fff;font-size:13px;font-weight:800;cursor:pointer}
+.gr-visit-primary:disabled{opacity:.55;cursor:not-allowed}
+.gr-visit-detail section>button{transition:border-color .15s ease,background .15s ease}
+.gr-visit-detail section>button:hover{border-color:#e79eb1!important;background:#fff8fa!important}
+@media(max-width:580px){.gr-visit-primary{width:100%}}

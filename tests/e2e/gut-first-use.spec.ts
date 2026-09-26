@@ -37,7 +37,7 @@ test('the first Gut screen starts with a question and symptom choices on a narro
   expect(await gut.getByRole('button', { name: 'Explore research' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
   await gut.screenshot({ path: 'test-results/gut-brief-mobile.png' });
   await gut.getByRole('button', { name: 'Explore research' }).click();
-  await expect(gut.getByRole('heading', { name: 'General information' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'Research behind your question' })).toBeVisible();
   expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });
 
@@ -73,7 +73,7 @@ test('the connection review preserves a user-confirmed meal and symptom without 
   await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
   await expect(gut.getByText(/1 explicitly with, 0 explicitly without, 1 unknown or disputed/)).toBeVisible();
   await gut.getByRole('button', { name: /YOUR SAVED REPORTS · OPEN/ }).click();
-  await expect(gut.getByRole('heading', { name: 'Evidence hearing' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'Your saved reports' })).toBeVisible();
 });
 
 test('the current concern shortcut remains available and leads to a focused care summary', async ({ page }) => {
