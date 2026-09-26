@@ -54,9 +54,9 @@ describe('Gut Gemini gateway contract', () => {
     await handler(request('gut_reasoning', { gutPayload: { question: 'Is tea linked to bloating?', intent: 'understand', symptom: 'bloating', selectedMealPhrase: 'tea', deterministicRecordCounts: {}, personalRecords: [], nearbyContext: [], retrievedResearch: [], allowedSourceIds: [] } }), res);
     expect(res.statusCode).toBe(200);
     const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(sent.systemInstruction.parts[0].text).toContain('Only explicit linked reports are personal outcomes');
-    expect(sent.generationConfig.responseSchema.required).toContain('researchQuote');
+    expect(sent.systemInstruction.parts[0].text).toContain('Explicit linked symptom reports and unknown/conflicting outcomes must follow deterministicRecordCounts');
+    expect(sent.generationConfig.responseSchema.required).toContain('citationPassageIds');
     expect(sent.generationConfig.responseSchema.properties.nextAction.enum).toContain('leave_open');
-    expect(sent.generationConfig.maxOutputTokens).toBeLessThanOrEqual(1900);
+    expect(sent.generationConfig.maxOutputTokens).toBeLessThanOrEqual(4096);
   });
 });

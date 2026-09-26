@@ -41,6 +41,7 @@ export interface GutQuestionThread {
   reviewedResearch?: { at: string; topic: string; sources: { id: string; title: string; correctionNotice: string | null; publicationDate: string | null; status: 'active' | 'corrected' | 'retracted' | 'unavailable' }[] } | null;
   /** User-requested Gemini reading, tied to the exact personal evidence fingerprint shown. */
   gutSynthesis?: GutSynthesis | null;
+  clarifications?: Array<{ question: string; answer: string }>;
   decision?: GutDecisionPlan | null;
   /** User-entered occurrence time. Never inferred from the question save time. */
   symptomOnset?: { occurredAt: string; precision: 'exact' | 'approximate' } | null;
@@ -63,6 +64,9 @@ export interface GutSynthesis {
   uncertainties: string[];
   nextAction: 'review_records' | 'open_research' | 'add_report' | 'prepare_care_question' | 'leave_open';
   nextReason: string;
+  followUpQuestion?: string;
+  followUpWhy?: string;
+  supportingQuotes?: Array<{ sourceId: string; quote: string }>;
 }
 
 export interface GutEvidenceOccasion {
@@ -228,6 +232,7 @@ const cleanDecision = (value: GutDecisionPlan): GutDecisionPlan => ({
   outcomeAt: value.chosen === 'a' || value.chosen === 'b' ? value.outcomeAt || null : null,
   actualMealId: value.chosen === 'a' || value.chosen === 'b' ? limit(value.actualMealId, 160) || null : null,
 });
+const cleanClarifications = (value: unknown): Array<{ question: string; answer: string }> => Array.isArray(value) ? value.filter(item => item && typeof item.question === 'string' && typeof item.answer === 'string').slice(-3).map(item => ({ question: limit(item.question, 180), answer: limit(item.answer, 500) })) : [];
 const cleanGutSynthesis = (value: unknown): GutSynthesis | null => {
   if (!value || typeof value !== 'object') return null;
   const source = value as Partial<GutSynthesis>;
@@ -250,6 +255,9 @@ const cleanGutSynthesis = (value: unknown): GutSynthesis | null => {
     uncertainties: Array.isArray(source.uncertainties) ? source.uncertainties.filter((item): item is string => typeof item === 'string').map((item) => limit(item, 220)).filter(Boolean).slice(0, 5) : [],
     nextAction: actions.includes(source.nextAction as GutSynthesis['nextAction']) ? source.nextAction as GutSynthesis['nextAction'] : 'leave_open',
     nextReason: limit(source.nextReason, 260),
+    followUpQuestion: limit(source.followUpQuestion, 180),
+    followUpWhy: limit(source.followUpWhy, 220),
+    supportingQuotes: Array.isArray(source.supportingQuotes) ? source.supportingQuotes.filter(item => item && typeof item.sourceId === 'string' && typeof item.quote === 'string').slice(0, 8).map(item => ({ sourceId: limit(item.sourceId, 180), quote: limit(item.quote, 220) })) : [],
   };
 };
 
@@ -259,7 +267,7 @@ export function listGutThreads(): GutQuestionThread[] {
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
     .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
-    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
+    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, clarifications: cleanClarifications(item.clarifications), gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -288,7 +296,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   return await writeThreads([thread, ...listGutThreads()]) ? thread : null;
 }
 
-export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'researchConcept' | 'researchTopic' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
+export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'researchConcept' | 'researchTopic' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'clarifications' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
@@ -296,6 +304,7 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
   const now = new Date(Math.max(Date.now(), Date.parse(original.updatedAt) + 1)).toISOString();
   const updated: GutQuestionThread = {
     ...original, ...patch,
+    clarifications: cleanClarifications(patch.clarifications ?? original.clarifications),
     focus: patch.focus === undefined ? original.focus : clean(patch.focus).slice(0, 120),
     researchConcept: patch.researchConcept === undefined ? original.researchConcept : limit(patch.researchConcept, 60),
     researchTopic: patch.researchTopic === undefined ? original.researchTopic : patch.researchTopic,
@@ -307,22 +316,7 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
       at: new Date().toISOString(), topic: limit(patch.reviewedResearch.topic, 40),
       sources: patch.reviewedResearch.sources.filter((source) => /^\d+$/.test(source.id)).slice(0, 8).map((source) => ({ id: source.id, title: limit(source.title, 500), correctionNotice: limit(source.correctionNotice, 160) || null, publicationDate: limit(source.publicationDate, 16) || null, status: source.status === 'corrected' || source.status === 'retracted' || source.status === 'unavailable' ? source.status : 'active' })),
     },
-    gutSynthesis: patch.gutSynthesis === undefined ? original.gutSynthesis : patch.gutSynthesis === null ? null : {
-      at: Number.isNaN(Date.parse(patch.gutSynthesis.at)) ? new Date().toISOString() : new Date(patch.gutSynthesis.at).toISOString(),
-      promptVersion: limit(patch.gutSynthesis.promptVersion, 40),
-      evidenceFingerprint: limit(patch.gutSynthesis.evidenceFingerprint, 240),
-      researchTopic: limit(patch.gutSynthesis.researchTopic, 40),
-      researchIds: [...new Set(patch.gutSynthesis.researchIds.filter((id) => /^\d+$/.test(id)))].slice(0, 8),
-      headline: limit(patch.gutSynthesis.headline, 180),
-      personalReading: limit(patch.gutSynthesis.personalReading, 900),
-      personalSourceIds: [...new Set(patch.gutSynthesis.personalSourceIds.map((id) => limit(id, 180)).filter(Boolean))].slice(0, 16),
-      researchReading: limit(patch.gutSynthesis.researchReading, 900),
-      researchSourceIds: [...new Set(patch.gutSynthesis.researchSourceIds.map((id) => limit(id, 180)).filter(Boolean))].slice(0, 8),
-      connectionReading: limit(patch.gutSynthesis.connectionReading, 600),
-      uncertainties: patch.gutSynthesis.uncertainties.map((item) => limit(item, 220)).filter(Boolean).slice(0, 5),
-      nextAction: ['review_records', 'open_research', 'add_report', 'prepare_care_question', 'leave_open'].includes(patch.gutSynthesis.nextAction) ? patch.gutSynthesis.nextAction : 'leave_open',
-      nextReason: limit(patch.gutSynthesis.nextReason, 260),
-    },
+    gutSynthesis: patch.gutSynthesis === undefined ? original.gutSynthesis : cleanGutSynthesis(patch.gutSynthesis),
     symptomOnset: patch.symptomOnset === undefined ? original.symptomOnset : patch.symptomOnset && !Number.isNaN(Date.parse(patch.symptomOnset.occurredAt)) && Date.parse(patch.symptomOnset.occurredAt) <= Date.now() && ['exact', 'approximate'].includes(patch.symptomOnset.precision) ? { occurredAt: new Date(patch.symptomOnset.occurredAt).toISOString(), precision: patch.symptomOnset.precision } : null,
     updatedAt: now,
   };

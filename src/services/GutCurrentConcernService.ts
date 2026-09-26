@@ -17,6 +17,7 @@ export function formatGutCurrentConcernBrief(thread: GutQuestionThread, snapshot
   const lines = [
     'GUT HEALTH · PATIENT-REPORTED CARE SUMMARY',
     `My concern: ${thread.question}`,
+    ...(thread.clarifications || []).map(item => `My added detail — ${item.question}: ${item.answer}`),
     thread.symptomOnset
       ? `When I recall it began: ${new Date(thread.symptomOnset.occurredAt).toLocaleString()} (${thread.symptomOnset.precision} time, reported by me).`
       : 'When symptoms began: not recorded. The question date is not symptom onset.',

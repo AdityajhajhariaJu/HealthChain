@@ -342,7 +342,7 @@
 .gr-thread-compact .gr-icon{width:31px;height:31px;flex:none;border-radius:9px}
 .gr-thread-compact>div{display:grid;gap:2px;min-width:0}
 .gr-thread-compact small{color:#ad2850;font-size:9px;font-weight:850;letter-spacing:.075em}
-.gr-thread-compact strong{color:#283044;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+.gr-thread-compact strong,.gr-thread-compact h2{margin:0;color:#283044;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
 .gr-thread-compact+.gr-tabs{margin:10px 0 15px}
 .gr-tabs { display:flex; align-items:center; gap:4px; border-bottom:1px solid #eadde1; margin:22px 0 23px; overflow-x:auto; }
 .gr-tabs button { border:0; border-bottom:3px solid transparent; background:transparent; color:#6f7180; padding:12px 17px; min-width:max-content; font-size:14px; font-weight:750; }
@@ -749,3 +749,7 @@
   .gr-review-actions { position:sticky; bottom:-24px; z-index:5; margin:13px -14px -14px; padding:10px 14px 14px; border-top:1px solid #f0e4e8; background:linear-gradient(#ffffffed,#fff); }
   .gr-review-actions .gr-primary { width:100%; }
 }
+
+.gr-research-explain{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;margin:12px 0;min-width:0}.gr-research-explain button{width:100%;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}.gr-research-explain small{color:#768196;font-size:11px}
+
+.gr-answer-urgent{display:block;margin:12px 0;padding:10px 12px;border:1px solid #edd1af;border-radius:12px;background:#fff8ed;color:#805a39;font-size:12px;line-height:1.45}

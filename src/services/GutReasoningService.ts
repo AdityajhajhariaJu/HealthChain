@@ -1,3 +1,4 @@
+import { getGutPublicSourceGuide, getGutTopicSourceGuide } from './GutPublicSourceGuide';
 import { parseModelJson } from './modelJson';
 import type { GutIntent, GutSymptom, GutSynthesis } from './GutResolutionService';
 import type { GutResearchPaper, GutResearchTopic } from './GutResearchService';
@@ -6,7 +7,7 @@ import type { GutQuestionThread } from './GutResolutionService';
 import { fetchGutReasoning } from './geminiService';
 
 export interface GutReasoningInput {
-  thread: Pick<GutQuestionThread, 'question' | 'intent' | 'symptom' | 'focus' | 'symptomOnset' | 'researchConcept'>;
+  thread: Pick<GutQuestionThread, 'question' | 'intent' | 'symptom' | 'focus' | 'symptomOnset' | 'researchConcept' | 'clarifications' | 'decision'> & { reflection?: string | null };
   evidence: GutEvidence | null;
   papers: GutResearchPaper[];
   topic: GutResearchTopic;
@@ -17,7 +18,7 @@ export interface GutReasoningInput {
 export interface GutReasoningSource {
   id: string;
   title: string;
-  kind: 'meal' | 'report' | 'context' | 'paper';
+  kind: 'meal' | 'report' | 'context' | 'paper' | 'question' | 'guide';
   sourceKind?: 'diet_meal' | 'observation' | 'daily_digest';
   sourceId?: string;
   localDate?: string;
@@ -29,11 +30,11 @@ export interface GutReasoningResult extends GutSynthesis {
 }
 
 /** Local freshness marker only; it contains no user text or account identifier. */
-export function gutSynthesisFingerprint(thread: Pick<GutQuestionThread, 'question' | 'symptom' | 'focus' | 'symptomOnset' | 'researchConcept'>, evidence: GutEvidence | null, contextFingerprint = '', researchTopic = ''): string {
-  const source = `${evidence?.fingerprint || 'no-linked-records'}|${thread.symptom}|${thread.focus.trim().toLocaleLowerCase()}|${thread.question.trim().toLocaleLowerCase()}|${thread.researchConcept || ''}|${thread.symptomOnset?.occurredAt || 'onset-unknown'}|${thread.symptomOnset?.precision || 'unknown'}|${contextFingerprint}|${researchTopic}`;
+export function gutSynthesisFingerprint(thread: Pick<GutQuestionThread, 'question' | 'symptom' | 'focus' | 'symptomOnset' | 'researchConcept' | 'clarifications' | 'decision'> & { reflection?: string | null }, evidence: GutEvidence | null, contextFingerprint = '', researchTopic = ''): string {
+  const source = `${evidence?.fingerprint || 'no-linked-records'}|${thread.symptom}|${thread.focus.trim().toLocaleLowerCase()}|${thread.question.trim().toLocaleLowerCase()}|${thread.researchConcept || ''}|${thread.symptomOnset?.occurredAt || 'onset-unknown'}|${thread.symptomOnset?.precision || 'unknown'}|${contextFingerprint}|${researchTopic}|${JSON.stringify(thread.clarifications || [])}|${JSON.stringify(thread.decision || null)}|${thread.reflection || ''}`;
   let hash = 2166136261;
   for (let index = 0; index < source.length; index += 1) hash = Math.imul(hash ^ source.charCodeAt(index), 16777619);
-  return `gut-v1-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  return `gut-v2-${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
 const text = (value: unknown, max: number) => typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, max) : '';
@@ -46,7 +47,14 @@ const list = (value: unknown, maxItems: number, maxText: number) => Array.isArra
  * identity, counts, time meaning, and all source links remain app-derived.
  */
 export async function reasonOverGutEvidence(input: GutReasoningInput): Promise<GutReasoningResult> {
-  const sources: GutReasoningSource[] = [];
+  const sources: GutReasoningSource[] = [{ id: 'question:current', title: input.thread.question, kind: 'question' }];
+  const guide = getGutPublicSourceGuide(input.thread.symptom);
+  const generalGuidance = guide ? [{ id: `guide:niddk:${input.thread.symptom}`, title: guide.title, text: `${guide.sentence} ${guide.relevance} ${guide.limit}`, url: guide.url }] : [];
+  const topicGuide = getGutTopicSourceGuide(input.thread.symptom, input.topic);
+  if (topicGuide) generalGuidance.push({ id: `guide:topic:${input.topic}`, title: topicGuide.title, text: `${topicGuide.sourceSays} ${topicGuide.population} ${topicGuide.fit}`, url: topicGuide.url });
+  for (const item of generalGuidance) sources.push({ id: item.id, title: item.title, kind: 'guide', url: item.url });
+  const clarifications = (input.thread.clarifications || []).slice(-3).map((item, index) => ({ id: `clarification:${index}`, question: text(item.question, 180), answer: text(item.answer, 500) }));
+  for (const item of clarifications) sources.push({ id: item.id, title: item.answer, kind: 'question' });
   const records = (input.evidence?.occasions || []).slice(0, 12).map((occasion) => {
     const mealId = `meal:${occasion.meal.id}`;
     sources.push({ id: mealId, title: `${occasion.meal.name} · ${occasion.meal.date}`, kind: 'meal', sourceKind: occasion.meal.sourceKind || 'diet_meal', sourceId: occasion.meal.id, localDate: occasion.meal.date });
@@ -111,6 +119,11 @@ export async function reasonOverGutEvidence(input: GutReasoningInput): Promise<G
     conflictingSources: input.evidence?.conflicts ?? 0,
     matchedMealNames: input.evidence?.occasions.length ?? 0,
   };
+  const decision = input.thread.decision;
+  const decisionText = decision ? `Options: ${decision.options.a.label} or ${decision.options.b.label}. Priority: ${decision.priority || 'not specified'}. Chosen: ${decision.chosen ? decision.options[decision.chosen].label : 'not chosen'}. Reported outcome: ${decision.outcome || 'not reported'}. A choice is not proof the meal was eaten.` : '';
+  const reflection = text(input.thread.reflection, 1000);
+  if (decisionText) sources.push({ id: 'decision:current', title: decisionText, kind: 'question' });
+  if (reflection) sources.push({ id: 'reflection:current', title: reflection, kind: 'question' });
   const payload = {
     question: text(input.thread.question, 500),
     intent: input.thread.intent as GutIntent,
@@ -122,69 +135,64 @@ export async function reasonOverGutEvidence(input: GutReasoningInput): Promise<G
     researchTopic: input.topic,
     confirmedResearchConcept: input.thread.researchConcept || '',
     retrievedResearch: papers,
-    allowedSourceIds: sources.map((source) => source.id),
+    generalGuidance,
+    clarifications,
+    decision: decisionText,
+    reportedFollowUp: reflection,
+    allowedSourceIds: [...new Set(sources.map((source) => source.id))],
   };
-  const raw = await fetchGutReasoning(payload);
+  const citationTexts = [
+    { id: 'question:current', text: input.thread.question },
+    ...(decisionText ? [{ id: 'decision:current', text: decisionText }] : []),
+    ...(reflection ? [{ id: 'reflection:current', text: reflection }] : []),
+    ...clarifications.map(item => ({ id: item.id, text: item.answer })),
+    ...generalGuidance.map(item => ({ id: item.id, text: item.text })),
+    ...papers.map(item => ({ id: item.id, text: item.abstractExcerpt })),
+    ...contextRecords.map(item => ({ id: item.id, text: item.label })),
+    ...records.flatMap(item => item.sourceIds.map(id => ({ id, text: `${item.mealName} ${item.date} ${item.outcome}` }))),
+    ...records.flatMap(item => item.sameDateContext.map(context => ({ id: context.id, text: `${context.title} ${context.date} ${context.timing} ${context.relation}` }))),
+  ];
+  const uniqueTexts = [...new Map(citationTexts.map(item => [item.id, item])).values()];
+  const citationPassages = uniqueTexts.flatMap(item => item.text.split(/(?<=[.!?])\s+/).slice(0, 4).filter(Boolean).map((sentence, index) => ({ id: `${item.id}#${index}`, sourceId: item.id, text: sentence.split(/\s+/).slice(0, 18).join(' ') }))).slice(0, 256);
+  const raw = await fetchGutReasoning({ ...payload, citationPassages });
   const parsed = parseModelJson<Record<string, unknown>>(raw, null);
   if (!parsed) throw new Error('Gut reasoning returned an unreadable answer. Please try again.');
 
-  const allowedPersonal = new Set(sources.filter((source) => source.kind === 'meal' || source.kind === 'report').map((source) => source.id));
-  const allowedResearch = new Set(sources.filter((source) => source.kind === 'paper').map((source) => source.id));
-  const personalSourceIds = [...new Set((input.evidence?.occasions || []).flatMap((occasion) => [
-    `meal:${occasion.meal.id}`,
-    ...occasion.edge.answerSources.map((source) => `report:${source.id}`),
-  ]))].filter((id) => allowedPersonal.has(id)).slice(0, 16);
-  const researchSourceIds = list(parsed.researchSourceIds, 8, 180).filter((id) => allowedResearch.has(id));
+  // The model selects passages; exact text and links are owned by the app.
+  // Provenance is checked here. Clinical interpretation remains labeled as AI.
+  const passageById = new Map(citationPassages.map(item => [item.id, item]));
+  const selectedIds = list(parsed.citationPassageIds, 8, 200);
+  if (!selectedIds.length || selectedIds.some(id => !passageById.has(id))) throw new Error('The answer cited a passage outside this question. Please try again.');
+  const selected = [...new Map(selectedIds.map(id => { const passage = passageById.get(id)!; return [passage.sourceId, passage]; })).values()];
+  const personalSourceIds = selected.filter(item => !item.sourceId.startsWith('paper:') && !item.sourceId.startsWith('guide:')).map(item => item.sourceId);
+  const researchSourceIds = selected.filter(item => item.sourceId.startsWith('paper:') || item.sourceId.startsWith('guide:')).map(item => item.sourceId);
+  const supportingQuotes = selected.map(item => ({ sourceId: item.sourceId, quote: item.text }));
+  const readingText = (value: unknown, max: number) => {
+    let prose = typeof value === 'string' ? value : '';
+    for (const id of [...passageById.keys(), ...sources.map(source => source.id)].sort((a, b) => b.length - a.length)) prose = prose.split(id).join('');
+    return text(prose.replace(/\(\s*[,;\s]*\)/g, '').replace(/\[\s*[,;\s]*\]/g, ''), max);
+  };
+  const headline = readingText(parsed.headline, 180);
+  const connectionReading = readingText(parsed.connectionReading, 600);
+  const personalReading = readingText(parsed.personalReading, 900);
+  const nextReason = readingText(parsed.nextReason, 260);
+  if (!headline || !connectionReading || !personalReading || !nextReason || !personalSourceIds.length) throw new Error('Gemini returned an incomplete answer. Please try again.');
+  const uncertainties = list(parsed.uncertainties, 3, 500).map(value => readingText(value, 220));
+  const researchReading = researchSourceIds.length ? readingText(parsed.researchReading, 900) : 'No relevant research passage is attached. This answer uses your description and saved information.';
+  const followUpQuestion = clarifications.length < 3 ? readingText(parsed.followUpQuestion, 180) : '';
+  const followUpWhy = readingText(parsed.followUpWhy, 220);
+  // Reject common explicit overclaims; this supplements the server instructions
+  // and source checks, and is not represented as medical validation.
+  const narrative = [headline, connectionReading, personalReading, researchReading, nextReason, followUpQuestion, followUpWhy, ...uncertainties].join(' ');
+  if (/\b(?:definitely causes?|confirmed (?:allergy|diagnosis|trigger)|you (?:have|suffer from) (?:IBS|GERD|an allergy)|(?:start|stop|increase|reduce) (?:your )?(?:medication|dose)|guaranteed|100% safe)\b/i.test(narrative)) throw new Error('The answer was too certain or included a treatment instruction. Please try again.');
   const validActions = ['review_records', 'open_research', 'add_report', 'prepare_care_question', 'leave_open'] as const;
   const nextAction = validActions.includes(parsed.nextAction as typeof validActions[number]) ? parsed.nextAction as typeof validActions[number] : 'leave_open';
-  const headline = counts.conflictingSources > 0 || (counts.explicitlyReportedWith > 0 && counts.explicitlyReportedWithout > 0)
-    ? 'Your saved reports are mixed'
-    : counts.explicitlyReportedWith > 0
-      ? `${counts.explicitlyReportedWith} report${counts.explicitlyReportedWith === 1 ? '' : 's'} recorded with this symptom`
-      : counts.explicitlyReportedWithout > 0
-        ? `${counts.explicitlyReportedWithout} report${counts.explicitlyReportedWithout === 1 ? '' : 's'} recorded without this symptom`
-        : 'This question remains open';
-  const matchedCount = input.evidence?.occasions.length ?? 0;
-  const proposedQuote = text(parsed.researchQuote, 220);
-  const quoteWords = proposedQuote.split(/\s+/).filter(Boolean).length;
-  const quotedPaper = quoteWords > 0 && quoteWords <= 20 ? papers.find((paper) => researchSourceIds.includes(paper.id) && paper.abstractExcerpt.replace(/\s+/g, ' ').includes(proposedQuote)) : undefined;
-  const anchoredResearchIds = quotedPaper ? [quotedPaper.id] : [];
-  const connectionReading = matchedCount === 0
-    ? 'No saved meal and symptom reports matched this question. That is missing information, not evidence that symptoms were absent.'
-    : `${matchedCount} saved meal record${matchedCount === 1 ? '' : 's'} matched. The record counts show ${counts.explicitlyReportedWith} explicitly reported with, ${counts.explicitlyReportedWithout} without, and ${counts.unknownOrConflicting} unknown or disputed. These observations do not show that a meal caused or prevented a symptom.`;
-  if (!headline || !connectionReading) throw new Error('Gut reasoning did not return a complete, readable brief. Please try again.');
-
   return {
-    at: new Date().toISOString(),
-    promptVersion: 'gut-reading-v1',
+    at: new Date().toISOString(), promptVersion: 'gut-reading-v2',
     evidenceFingerprint: gutSynthesisFingerprint(input.thread, input.evidence, input.contextFingerprint, input.topic),
-    researchTopic: input.topic,
-    researchIds: input.papers.slice(0, 6).map((paper) => paper.id),
-    headline,
-    personalReading: matchedCount === 0
-      ? 'No symptom-specific meal report is linked to this question yet. Your question remains open; an absent record is not a symptom-free report.'
-      : `${matchedCount} matching saved meal record${matchedCount === 1 ? '' : 's'}: ${counts.explicitlyReportedWith} explicitly reported with this symptom, ${counts.explicitlyReportedWithout} explicitly reported without it, and ${counts.unknownOrConflicting} unknown or disputed. Inspect the linked records before acting on this pattern.`,
-    personalSourceIds,
-    researchReading: quotedPaper
-      ? `One retrieved abstract states: “${proposedQuote}” This is a finding about that study's participants, not a conclusion about your symptoms.`
-      : papers.length === 0
-        ? 'No paper was retrieved for this question, so there is no source-backed research summary to show.'
-        : 'No exact source passage was verified for a research summary. Open the original studies to inspect them.',
-    researchSourceIds: anchoredResearchIds,
-    connectionReading,
-    uncertainties: [
-      ...(counts.conflictingSources > 0 ? ['Some saved reports disagree; their outcome is unresolved.'] : []),
-      ...(counts.unknownOrConflicting > 0 ? ['An unreported outcome is not a symptom-free occasion.'] : []),
-      ...(contextRecords.length > 0 ? ['Nearby records do not establish what happened first.'] : []),
-    ].slice(0, 3),
-    nextAction,
-    nextReason: ({
-      review_records: 'Check that each linked report describes the occasion you meant.',
-      open_research: 'Inspect the cited study’s population, methods, and measured outcome.',
-      add_report: 'Add a remembered report only if you know what happened; leave uncertain timing unknown.',
-      prepare_care_question: 'A qualified clinician can help assess possible explanations and urgency.',
-      leave_open: 'The available evidence is incomplete; no extra tracking is needed unless it would help you.',
-    } as const)[nextAction],
-    sources,
+    researchTopic: input.topic, researchIds: input.papers.slice(0, 6).map(paper => paper.id),
+    headline, personalReading, personalSourceIds, researchReading, researchSourceIds,
+    connectionReading, uncertainties, nextAction, nextReason,
+    followUpQuestion, followUpWhy, supportingQuotes, sources,
   };
 }

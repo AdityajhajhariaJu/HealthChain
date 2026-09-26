@@ -32,9 +32,9 @@ test('the first Gut screen starts with a question and symptom choices on a narro
   expect(await gut.getByRole('button', { name: 'Yes, show my brief' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
   await gut.screenshot({ path: 'test-results/gut-connections-mobile.png' });
   await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
-  await expect(gut.getByText('STEP 3 OF 3 · YOUR GUT BRIEF')).toBeVisible();
-  await expect(gut.getByText(/No matching meal and symptom report is saved yet/)).toBeVisible();
-  expect(await gut.getByRole('button', { name: 'Explore research' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
+  await expect(gut.getByText('MAKE SENSE OF THIS')).toBeVisible();
+  await expect(gut.getByText(/Missing reports stay unknown/)).toBeVisible();
+  expect(await gut.getByRole('button', { name: 'Answer with Gemini', exact: true }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
   await gut.screenshot({ path: 'test-results/gut-brief-mobile.png' });
   await gut.getByRole('button', { name: 'Explore research' }).click();
   await expect(gut.getByRole('heading', { name: 'Research behind your question' })).toBeVisible();
@@ -83,6 +83,7 @@ test('the current concern shortcut remains available and leads to a focused care
   await gut.getByText('Choose another way to start').click();
   await gut.getByRole('button', { name: /I feel unwell/ }).click();
   await openGuidedQuestion(gut, 'I have stomach pain after lunch today');
+  await gut.getByText('Prepare a care summary', { exact: true }).click();
   await expect(gut.getByRole('heading', { name: 'What you can do now' })).toBeVisible();
   await expect(gut.getByRole('button', { name: /Copy focused care summary/ })).toBeVisible();
   await expect(gut.getByText('No records on this date')).toBeVisible();
@@ -93,6 +94,7 @@ test('a plainly current concern reaches the care path without choosing a mode fi
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await openGuidedQuestion(gut, 'I have stomach pain after lunch today');
+  await gut.getByText('Prepare a care summary', { exact: true }).click();
   await expect(gut.getByRole('heading', { name: 'What you can do now' })).toBeVisible();
   await expect(gut.getByRole('button', { name: /Copy focused care summary/ })).toBeVisible();
 });
@@ -111,7 +113,7 @@ test('consented Gemini framing and brief use only server-owned operations and ke
       if (body.systemInstruction || body.generationConfig) (window as typeof window & { __gutInvalidBody?: boolean }).__gutInvalidBody = true;
       const output = operation === 'gut_frame'
         ? { proposedSymptom: 'bloating', proposedMealPhrase: 'chai', researchTopic: 'caffeine', researchConcept: 'tea', oneClarification: '' }
-        : { headline: 'Invented headline', personalReading: 'Invented diagnosis', personalSourceIds: [], researchReading: 'Invented paper', researchQuote: '', researchSourceIds: [], connectionReading: 'Invented cause', uncertainties: [], nextAction: 'leave_open', nextReason: 'Invented directive' };
+        : { headline: 'The timing needs a closer look', personalReading: 'You asked about chai and bloating.', personalSourceIds: ['question:current'], researchReading: '', researchQuote: '', researchSourceIds: [], connectionReading: 'Your question alone cannot separate chai from other explanations. One timing detail can help us make sense of this.', uncertainties: [], nextAction: 'leave_open', nextReason: 'Consider whether this also happens at other times.', followUpQuestion: 'Does this happen without chai?', followUpWhy: 'This helps distinguish a broader pattern.', citationPassageIds: ['question:current#0'] };
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(output) }] } }] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     };
   });
@@ -120,17 +122,16 @@ test('consented Gemini framing and brief use only server-owned operations and ke
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?');
   expect(await page.evaluate(() => navigator.onLine)).toBe(true);
-  await gut.locator('.gr-ai-optin input').check();
-  await gut.getByRole('button', { name: 'See my connections' }).click();
+  await gut.getByRole('button', { name: 'Answer with Gemini' }).click();
   await expect(gut.getByText('STEP 2 OF 3')).toBeVisible();
   expect(await page.evaluate(() => (window as typeof window & { __gutOperations?: string[] }).__gutOperations)).toContain('gut_frame');
   await expect(gut.getByText('Research topic: tea')).toBeVisible();
   await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
-  await expect(gut.getByRole('heading', { name: 'This question remains open' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'The timing needs a closer look' })).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-ai-brief-mobile.png' });
-  expect(await gut.getByRole('button', { name: 'Leave this question open' }).evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight - 16)).toBe(true);
+  await expect(gut.getByLabel('Does this happen without chai?')).toBeVisible();
   await gut.locator('summary').filter({ hasText: 'Why this answer? Open the records and research' }).click();
-  await expect(gut.getByText(/No paper was retrieved for this question/)).toBeVisible();
+  await expect(gut.getByText(/No relevant research passage/)).toBeVisible();
   expect(await page.evaluate(() => (window as typeof window & { __gutOperations?: string[] }).__gutOperations)).toContain('gut_reasoning');
   expect(await page.evaluate(() => (window as typeof window & { __gutInvalidBody?: boolean }).__gutInvalidBody || false)).toBe(false);
 });
