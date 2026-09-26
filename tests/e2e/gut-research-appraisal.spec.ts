@@ -24,10 +24,11 @@ test('Gut research appraises indexed metadata without sending the personal quest
   await gut.getByRole('button', { name: /I want to understand/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is my private chai recipe linked to bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
+  await gut.getByRole('region', { name: 'Confirm the details found in your question' }).getByRole('button', { name: /Use these details/ }).click();
   await gut.getByRole('button', { name: 'Explore general research' }).click();
   await expect(gut.getByRole('heading', { name: 'General information' })).toBeVisible();
-  await gut.getByLabel('Which symptom would you like to read about?').selectOption('bloating');
-  await expect(gut.getByRole('heading', { name: 'What reviewed evidence can say' })).toBeVisible();
+  await expect(gut.getByLabel('Which symptom would you like to read about?')).toHaveCount(0);
+  await expect(gut.getByRole('heading', { name: 'What we can learn from a trusted source' })).toBeVisible();
   await expect(gut.getByText(/No independently reviewed finding is published for this topic yet/)).toBeVisible();
   expect(literatureQuery).toBe('');
   await gut.getByRole('button', { name: 'Food in general' }).click();

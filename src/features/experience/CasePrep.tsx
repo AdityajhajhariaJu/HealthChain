@@ -49,6 +49,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { GutLinkedQuestionSummary } from '../../components/ui/GutLinkedQuestionSummary';
 
 const DOCTOR_ACTION_PRESETS = [
   'General discussion / clinical reassurance',
@@ -1041,7 +1042,7 @@ export default function CasePrep() {
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                     <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
                       {q.questionText}
-                      {q.sourceRef?.feature === 'gut_resolution' && <div style={{ color: '#A23453', fontSize: 11, fontWeight: 700, marginTop: 5 }}>From your Gut Health question · patient report, not a clinician finding</div>}
+                      {q.sourceRef?.feature === 'gut_resolution' && <GutLinkedQuestionSummary threadId={q.sourceRef.threadId} profileId={q.sourceRef.profileId} onOpenGut={() => navigate(`/app/today?gut=1&gutThread=${encodeURIComponent(q.sourceRef!.threadId)}`)} />}
                     </div>
                     <span
                       style={{

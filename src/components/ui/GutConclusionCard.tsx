@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, BookOpen, CircleHelp, ShieldCheck, Utensils } from 'lucide-react';
 import type { GutAnswerState, GutEvidence, GutQuestionThread } from '../../services/GutResolutionService';
 import type { GutSourceReference } from './GutSourceRecord';
+import { getGutPublicSourceGuide } from '../../services/GutPublicSourceGuide';
 
 interface Props {
   thread: GutQuestionThread;
@@ -36,6 +37,7 @@ function conclusionFor(thread: GutQuestionThread, evidence: GutEvidence | null) 
 
 export const GutConclusionCard: React.FC<Props> = ({ thread, evidence, state, onOpenSource, onInspect, onResearch, onCopyBrief }) => {
   const records = evidence?.occasions || [];
+  const publicGuide = getGutPublicSourceGuide(thread.symptom);
   const total = (evidence?.support || 0) + (evidence?.tension || 0) + (evidence?.unknown || 0);
   const primaryAction = thread.intent === 'care'
     ? { label: 'Copy care brief', run: onCopyBrief }
@@ -57,6 +59,10 @@ export const GutConclusionCard: React.FC<Props> = ({ thread, evidence, state, on
       <span className="gr-conclusion-state">{displayedState}</span>
     </div>
     <p className="gr-conclusion-answer">{conclusionFor(thread, evidence)}</p>
+    <div className="gr-conclusion-actions gr-conclusion-actions-first">
+      <button type="button" className="gr-primary" onClick={primaryAction.run}>{primaryAction.label}<ArrowRight size={16} /></button>
+      {records.length > 0 ? <button type="button" className="gr-secondary" onClick={onResearch}><BookOpen size={16} />Research</button> : <button type="button" className="gr-secondary" onClick={() => onInspect()}><Utensils size={16} />My records</button>}
+    </div>
 
     {records.length > 0 ? <>
       <div className="gr-conclusion-counts" aria-label={`${evidence?.support || 0} reports with the symptom, ${evidence?.tension || 0} without, ${evidence?.unknown || 0} unknown or disputed`}>
@@ -77,11 +83,9 @@ export const GutConclusionCard: React.FC<Props> = ({ thread, evidence, state, on
       </div>
     </> : <div className="gr-conclusion-empty"><span aria-hidden="true"><BookOpen size={18} /></span><p>{!thread.focus && thread.intent !== 'decide' ? 'No meal has been linked to this question yet. Your saved records stay available to inspect; choosing a meal to compare is optional.' : 'No matching personal reports are available for this question yet. You can still read general research or bring the question to a clinician.'}</p></div>}
 
+    {records.length === 0 && publicGuide && <div className="gr-conclusion-source"><strong>General context from NIDDK</strong><p>{publicGuide.sentence} {publicGuide.limit}</p><a href={publicGuide.url} target="_blank" rel="noopener noreferrer">Inspect original source <ArrowRight size={13} /></a></div>}
+
     {evidence?.nextQuestion && records.length > 0 && <p className="gr-conclusion-next"><ShieldCheck size={15} /><span><strong>What could help:</strong> {evidence.nextQuestion}</span></p>}
-    <div className="gr-conclusion-actions">
-      <button type="button" className="gr-primary" onClick={primaryAction.run}>{primaryAction.label}<ArrowRight size={16} /></button>
-      {records.length > 0 ? <button type="button" className="gr-secondary" onClick={onResearch}><BookOpen size={16} />Research</button> : <button type="button" className="gr-secondary" onClick={() => onInspect()}><Utensils size={16} />My records</button>}
-    </div>
     <p className="gr-conclusion-caveat">Personal reports can show what was recorded; they cannot establish a diagnosis or prove a cause.</p>
   </section>;
 };

@@ -25,6 +25,7 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await gut.locator('summary').filter({ hasText: 'Add a meal or symptom from your records' }).click();
   await gut.getByLabel(/Meal or phrase to examine/).fill('chai');
   await gut.getByRole('button', { name: 'Open my question' }).click();
+  await gut.getByRole('region', { name: 'Confirm the details found in your question' }).getByRole('button', { name: /Use these details/ }).click();
   const trail = gut.getByRole('region', { name: 'What your saved information can say' });
   await page.setViewportSize({ width: 320, height: 700 });
   expect(await trail.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);

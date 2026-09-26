@@ -302,12 +302,14 @@ export default function CaseDashboard() {
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
   const [showDetectiveModal, setShowDetectiveModal] = useState(() => new URLSearchParams(window.location.search).get('gut') === '1');
+  const [initialGutThreadId] = useState(() => new URLSearchParams(window.location.search).get('gutThread'));
   const [profile, setProfile] = useState(() => getProfile());
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('gut') !== '1') return;
     const url = new URL(window.location.href);
     url.searchParams.delete('gut');
+    url.searchParams.delete('gutThread');
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
@@ -1588,6 +1590,7 @@ export default function CaseDashboard() {
 
       <GutHealthModal
         isOpen={showDetectiveModal}
+        initialThreadId={initialGutThreadId}
         onClose={() => setShowDetectiveModal(false)}
         onOpenConsult={() => { setShowDetectiveModal(false); navigate('/app/consult'); }}
         onOpenElimination={() => { setShowDetectiveModal(false); navigate('/app/dietician?tab=elimination'); }}

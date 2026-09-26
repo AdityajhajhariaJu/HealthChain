@@ -10,13 +10,13 @@ import { GutResolutionWorkspace } from './GutResolutionWorkspace';
 import { GutSourceRecord, type GutSourceReference } from './GutSourceRecord';
 import FocusTrap from './FocusTrap';
 
-interface Props { isOpen: boolean; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
+interface Props { isOpen: boolean; initialThreadId?: string | null; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
 type Tab = 'studio' | 'records' | 'visit';
 const surface: React.CSSProperties = { background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: 18, boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)' };
 const button: React.CSSProperties = { minHeight: 38, border: '1px solid #F1E5E7', borderRadius: 11, background: '#FFFDFC', color: '#AD234A', padding: '8px 13px', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 };
 const icon: React.CSSProperties = { width: 46, height: 46, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#f72c5e,#c50e40)', color: '#FFFFFF', boxShadow: 'inset 0 1px 1px rgba(255,255,255,.45),0 7px 17px rgba(183,25,69,.25)', flexShrink: 0 };
 
-export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
+export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
   const [tab, setTab] = useState<Tab>('studio');
   const [historyInitialDate, setHistoryInitialDate] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<GutSourceReference | null>(null);
@@ -75,7 +75,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, onClose, onOpenConsult
             {([['studio','My questions',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setTab(id); setMessage(''); }} style={{ ...button, minHeight: 41, background: tab === id ? '#FFF1F3' : '#FFFFFF', borderColor: tab === id ? '#F6A8BA' : '#E8E4E7', color: tab === id ? '#BE123C' : '#5E687B', fontSize: 13.5, whiteSpace: 'nowrap', boxShadow: tab === id ? '0 3px 9px rgba(205,49,83,.13)' : 'none' }}><Icon size={16} />{label}</button>)}
           </nav>
           <main ref={mainRef} style={{ overflowY: 'auto', padding: '24px clamp(14px,3.5vw,38px)', flex: 1 }}>
-            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
+            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace initialThreadId={initialThreadId} onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
             {tab === 'records' && <div style={{ maxWidth: 850, margin: '0 auto' }}>
             {selectedSource && <GutSourceRecord source={selectedSource} meals={snapshot.meals} days={snapshot.days} onBack={() => setSelectedSource(null)} onOpenDate={openHistory} />}
               <div style={{ marginBottom: 12 }}><div style={{ color: '#AD234A', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em' }}>YOUR SOURCE RECORDS</div><h2 className="serif-heading" style={{ fontSize: 24, margin: '6px 0 2px', color: '#0F172A' }}>The details behind your questions</h2><p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>Record only what matters. Blank days and unreported outcomes remain unknown.</p></div>

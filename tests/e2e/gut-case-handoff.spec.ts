@@ -45,6 +45,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await gut.getByRole('button', { name: /I have a care question/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask my doctor about recurring bloating?');
   await gut.getByRole('button', { name: 'Open my question' }).click();
+  await gut.getByRole('region', { name: 'Confirm the details found in your question' }).getByRole('button', { name: /Use these details/ }).click();
   await expect(gut.getByText('Bring this question to a visit')).toBeVisible();
   const handoff = gut.getByRole('region', { name: 'Prepare this question for a visit' });
   expect(await handoff.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
@@ -54,14 +55,15 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
 
   await expect(page).toHaveURL(new RegExp(`/app/case-prep\\?caseId=${caseId}`));
   await expect(page.getByText('What should I ask my doctor about recurring bloating?').first()).toBeVisible();
-  await expect(page.getByText('From your Gut Health question · patient report, not a clinician finding')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Live Gut question context' })).toBeVisible();
+  await expect(page.getByText('Patient report · read from current records')).toBeVisible();
 
   await page.getByPlaceholder('What do you remember discussing? Saved as your report.').fill('We discussed a follow-up visit.');
   await page.getByRole('button', { name: 'Save my visit note' }).click();
   await expect(page.getByText('Patient-entered visit note:').first()).toBeVisible();
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('region', { name: 'Live Gut question context' }).getByRole('button', { name: 'Open Gut question and exact sources' }).click();
   const returnedGut = page.getByRole('dialog', { name: 'Gut Health' });
-  await returnedGut.getByRole('button', { name: 'Continue' }).click();
+  await expect(returnedGut.getByRole('heading', { name: 'What should I ask my doctor about recurring bloating?' })).toBeVisible();
   await expect(returnedGut.getByText('Visit follow-through from Case Prep')).toBeVisible();
   await expect(returnedGut.getByText('We discussed a follow-up visit.')).toBeVisible();
   await expect(returnedGut.getByText('Patient-entered visit report:')).toBeVisible();
