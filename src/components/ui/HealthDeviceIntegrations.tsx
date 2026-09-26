@@ -104,6 +104,7 @@ export function HealthDeviceIntegrations() {
           {!isConnected ? (
             <button 
               onClick={handleConnect}
+              aria-label="Connect Activity Sync"
               style={{
                 background: '#0F172A',
                 color: 'white',
@@ -134,6 +135,7 @@ export function HealthDeviceIntegrations() {
               </div>
               <button
                 onClick={handleSync}
+                aria-label="Sync Health Data"
                 disabled={isSyncing}
                 style={{
                   background: 'transparent',
