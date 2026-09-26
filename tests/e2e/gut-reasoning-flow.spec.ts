@@ -27,8 +27,8 @@ test('current concerns get an AI answer without logs; refinement survives reload
   await setup(page); await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1'); const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('I have stomach pain after lunch today');
-  await gut.getByRole('button', { name: 'Answer with Gemini', exact: true }).click();
-  await gut.getByRole('button', { name: /Yes, show my brief|Show my brief/ }).click();
+  await gut.getByRole('button', { name: 'Connect my question', exact: true }).click();
+  await gut.getByRole('button', { name: 'Explore my answer' }).click();
   await expect(gut.getByRole('heading', { name: 'Location and timing can help explain the pattern' })).toBeVisible();
   await expect(gut.getByText(/Study search is unavailable/)).toBeVisible();
   await expect(gut.getByText(/Do not wait for an AI answer/)).toBeVisible();
@@ -36,9 +36,9 @@ test('current concerns get an AI answer without logs; refinement survives reload
   await gut.getByRole('button', { name: 'Refine answer' }).click();
   await expect(gut.getByRole('heading', { name: 'The added timing changes the interpretation' })).toBeVisible();
   await page.goto('/app/today?gut=1');
-  await gut.getByRole('button', { name: 'Continue', exact: true }).click();
+  await gut.getByRole('button', { name: /Continue/ }).click();
   await expect(gut.getByRole('heading', { name: 'The added timing changes the interpretation' })).toBeVisible();
-  await gut.getByText('Why this answer? Open the records and research').click();
+  await gut.getByText('Sources & what could change this').click();
   await expect(gut.getByText('Your added details')).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-refined-answer-mobile.png' });
 });

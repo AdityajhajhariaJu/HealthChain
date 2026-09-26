@@ -47,9 +47,9 @@ test('question sections keep the source chain compact on a phone', async ({ page
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai related to my bloating?');
-  await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
-  await gut.getByRole('button', { name: /YOUR SAVED REPORTS · OPEN/ }).click();
+  await gut.getByRole('button', { name: 'Explore without AI' }).click();
+  await gut.getByRole('button', { name: 'Open my connection map' }).click();
+  await gut.getByRole('button', { name: 'Records', exact: true }).click();
   await expect(gut.getByLabel('How saved records relate to this question')).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-evidence-linked-mobile.png' });
   await gut.getByRole('button', { name: 'Research', exact: true }).click();

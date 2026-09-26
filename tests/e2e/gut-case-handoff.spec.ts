@@ -42,11 +42,11 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
-  await gut.getByText('Choose another way to start').click();
-  await gut.getByRole('button', { name: /I have a care question/ }).click();
+  await gut.getByRole('button', { name: /Prepare for a visit/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask my doctor about recurring bloating?');
-  await gut.getByRole('button', { name: 'See my connections' }).click();
-  await gut.getByRole('button', { name: /Yes, show my brief/ }).click();
+  await gut.getByRole('button', { name: 'Explore without AI' }).click();
+  await gut.getByRole('button', { name: 'Open my connection map' }).click();
+  await gut.getByRole('navigation', { name: 'Question sections' }).getByRole('button', { name: 'Next step' }).click();
   await expect(gut.getByText('Bring this question to a visit')).toBeVisible();
   const handoff = gut.getByRole('region', { name: 'Prepare this question for a visit' });
   expect(await handoff.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
@@ -65,6 +65,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await page.getByRole('region', { name: 'Live Gut question context' }).getByRole('button', { name: 'Open Gut question and exact sources' }).click();
   const returnedGut = page.getByRole('dialog', { name: 'Gut Health' });
   await expect(returnedGut.getByRole('heading', { name: 'What should I ask my doctor about recurring bloating?' })).toBeVisible();
+  await returnedGut.getByRole('navigation', { name: 'Question sections' }).getByRole('button', { name: 'Next step' }).click();
   await expect(returnedGut.getByText('Visit follow-through from Case Prep')).toBeVisible();
   await expect(returnedGut.getByText('We discussed a follow-up visit.')).toBeVisible();
   await expect(returnedGut.getByText('Patient-entered visit report:')).toBeVisible();
