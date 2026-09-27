@@ -35,9 +35,25 @@ test('a real log appears in understanding and on its weekly date', async ({ page
   await expect(gut.getByRole('heading', { name: 'Your understanding' })).toBeVisible();
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-daily-understanding-mobile.png' });
   await expect(gut.getByText('Too early to see a pattern.', { exact: true })).toBeVisible();
+  await expect(gut.locator('.gij-conclusion')).toContainText('1 bloating report saved');
   await gut.getByRole('button', { name: 'This week', exact: true }).click();
   await expect(gut.locator('.gdh-calendar .log')).toHaveCount(1);
   await expect(gut.locator('.gdh-day-list').getByText('Bloating', { exact: true })).toBeVisible();
+  await expect(gut.locator('.gdh-day-list').getByText('What might explain bloating?')).toHaveCount(1);
+});
+
+test('a new kind of log opens its own question instead of an unrelated active one', async ({ page }) => {
+  await page.addInitScript(guest);
+  await page.goto('/app/today?gut=1');
+  const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await gut.getByRole('button', { name: 'Bloating' }).click();
+  await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
+  await gut.getByRole('button', { name: 'Log', exact: true }).click();
+  await gut.getByRole('tab', { name: 'Meal' }).click();
+  await gut.getByRole('textbox', { name: 'Describe a meal or how you felt' }).fill('Rice');
+  await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
+  await expect(gut.locator('.gij-sub')).toContainText('What do my Rice logs show?');
+  await expect(gut.locator('.gij-conclusion')).toContainText('1 Rice meal entry saved');
 });
 
 test('a saved question becomes a resumable investigation', async ({ page }) => {
@@ -176,6 +192,9 @@ test('research is searched for a chosen symptom and a source is saved only on re
   await gut.getByRole('button', { name: 'Search indexed studies' }).click();
   await gut.locator('.gij-list').getByRole('button', { name: /Diet and abdominal bloating/ }).click();
   await expect(gut.getByText('INDEXED PUBLICATION · PMID 12345678')).toBeVisible();
+  await gut.locator('.gij-topline').getByRole('button', { name: 'Back' }).click();
+  await expect(gut.getByRole('heading', { name: 'Does research fit?' })).toBeVisible();
+  await gut.locator('.gij-list').getByRole('button', { name: /Diet and abdominal bloating/ }).click();
   await gut.getByRole('button', { name: 'Save source to My research' }).click();
   await expect(gut.locator('.gij').getByRole('status')).toContainText('Source saved');
   await gut.getByRole('button', { name: 'My research', exact: true }).first().click();
