@@ -1,0 +1,4 @@
+## 2024-05-24 - [Fix Authorization Bypass & Information Leakage in Admin API]
+**Vulnerability:** Admin endpoint `api/admin-content.js` lacked an authorization check, enabling any authenticated user to potentially insert, update, or soft-delete fitness content. The catch block additionally leaked internal database error messages to the client.
+**Learning:** `api/admin-content.js` had a comment to implement a strict role check (`if (user.id !== ADMIN_USER_ID)`) but had left it commented out "for now" during development. The catch block simply piped `error.message` directly into the JSON response payload.
+**Prevention:** Always implement authorization checks with a fail-closed approach before deploying sensitive endpoints. In backend APIs, log the explicit database or server errors but provide generic error messages (e.g., 'Internal Server Error') to the client to avoid exposing sensitive implementation details.
