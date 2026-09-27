@@ -119,3 +119,28 @@
   .gij-lens-grid button>svg:last-child { grid-column: 3; grid-row: 1 / 3; }
   .gij-action-grid button { min-height: 48px; }
 }
+.gij-conclusion { margin: 12px 0; padding: 12px; border: 1px solid #dddcd3; border-radius: 10px; background: #fffdf8; }
+.gij-conclusion.has-data { background: #eaf6ff; border-color: #c5e2f4; }
+.gij-conclusion>strong { display: block; font-size: 22px; letter-spacing: -.035em; line-height: 1.12; color: #102b4b; }
+.gij-conclusion p { color: #526f87; font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.gij-tabs { display: flex; gap: 5px; margin: 12px 0; }
+.gij-tabs button { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1; border: 1px solid #bed3e2; border-radius: 24px; background: #fff; color: #15375c; padding: 7px 5px; font-size: 10px; font-weight: 750; }
+.gij-tabs button:first-child { background: #15375c; color: #fff; border-color: #15375c; }
+.gij-tabs svg { flex: none; }
+.gij-evidence-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.gij-evidence-pills span { background: #edf7fa; color: #365c79; border: 1px solid #cce2ee; border-radius: 18px; padding: 5px 8px; font-size: 10px; }
+.gij-uncertainty { margin: 10px 0; border: 1px solid #d7e3e9; border-radius: 9px; padding: 10px; }
+.gij-uncertainty summary { cursor: pointer; font-size: 11px; font-weight: 750; color: #315c7e; }
+.gij-uncertainty p { font-size: 11px; line-height: 1.5; color: #698197; }
+.gij-uncertainty>button { color: #287bb3; border: 0; background: transparent; font-size: 11px; text-decoration: underline; }
+.gij-change-list { border-left: 2px solid #b5d7ea; margin: 12px 0; padding-left: 12px; }
+.gij-change-list>div { margin: 10px 0; }
+.gij-change-list strong { font-size: 12px; }
+.gij-change-list p { color: #678296; font-size: 11px; margin: 3px 0; }
+.gij-more button { font-size: 10px !important; }
+@media(max-width:420px) { .gij-tabs button { font-size: 8px; gap: 3px; } .gij-tabs svg { width: 12px; } }
+.gdh .gij-tabs button { font-size: 10px; line-height: 1.25; min-height: 32px; }
+.gdh .gij-primary, .gdh .gij-secondary { font-size: 12px; }
+.gdh .gij-quiet, .gdh .gij-topline button, .gdh .gij-pills button { font-size: 11px; }
+.gdh .gij-list button { font-size: 11px; }
+@media(max-width:420px) { .gdh .gij-tabs button { font-size: 8px; } }

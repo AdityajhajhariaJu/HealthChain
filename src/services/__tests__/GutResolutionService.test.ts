@@ -16,6 +16,7 @@ vi.mock('../RunContext', () => ({ getAccountScope: () => 'acct' }));
 import {
   classifyGutAnswerState,
   createGutThread,
+  recordGutFollowup,
   deriveGutBacktraceProjection,
   deriveGutChangeReceipt,
   deriveGutChoiceHistory,
@@ -51,6 +52,17 @@ const report = (meal: GutMeal, answer: 'yes' | 'no', ownerId = 'acct'): Observat
 
 describe('Gut Resolution evidence ledger', () => {
   beforeEach(() => { state.profile = {}; });
+
+  it('keeps a source-linked follow-up once even without an optional reflection', async () => {
+    const created = await createGutThread({ intent: 'understand', question: 'What do my dinners show?' });
+    expect(created).not.toBeNull();
+    expect(await recordGutFollowup(created!.id, 'meal-next', 'Dinner · outcome not recorded')).toBe(true);
+    expect(await recordGutFollowup(created!.id, 'meal-next', 'Dinner · outcome not recorded')).toBe(true);
+    const saved = listGutThreads()[0];
+    expect(saved.activity?.filter((item) => item.kind === 'checkin')).toHaveLength(1);
+    expect(saved.activity?.[0].sourceId).toBe('meal-next');
+    expect(saved.reflection).toBeNull();
+  });
   it('keeps a same-day high symptom score and missing follow-up out of causal counts', () => {
     const evidence = deriveGutEvidence(thread, { meals, days: [day] }, []);
     expect(evidence.support).toBe(0);

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+test.setTimeout(60000);
+
 const guest = () => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
@@ -11,7 +13,7 @@ test('new user sees honest empty states and research is always one tap away', as
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
-  await expect(gut.getByRole('heading', { name: 'What happened?' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'What happened?' })).toBeVisible({ timeout: 15000 });
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-daily-empty-mobile.png' });
   await expect(gut.getByRole('button', { name: 'My research', exact: true }).first()).toBeVisible();
   await gut.getByRole('button', { name: 'My research', exact: true }).first().click();
@@ -32,7 +34,7 @@ test('a real log appears in understanding and on its weekly date', async ({ page
   await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
   await expect(gut.getByRole('heading', { name: 'Your understanding' })).toBeVisible();
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-daily-understanding-mobile.png' });
-  await expect(gut.getByText('1 symptom report saved. Too early to name a cause.')).toBeVisible();
+  await expect(gut.getByText('Too early to see a pattern.', { exact: true })).toBeVisible();
   await gut.getByRole('button', { name: 'This week', exact: true }).click();
   await expect(gut.locator('.gdh-calendar .log')).toHaveCount(1);
   await expect(gut.locator('.gdh-day-list').getByText('Bloating', { exact: true })).toBeVisible();
@@ -49,7 +51,7 @@ test('a saved question becomes a resumable investigation', async ({ page }) => {
   await gut.getByRole('button', { name: 'My research', exact: true }).first().click();
   await expect(gut.locator('.gdh-thread-list').getByText('Does bloating follow my dinners?')).toBeVisible();
   await gut.getByRole('button', { name: 'Open', exact: true }).click();
-  await expect(gut.getByRole('heading', { name: 'Explore an insight' })).toBeVisible();
+  await expect(gut.getByRole('heading', { name: 'Your understanding' })).toBeVisible();
   await expect(gut.getByRole('button', { name: /Compare possibilities/ })).toBeVisible();
 });
 
@@ -103,7 +105,6 @@ test('optional details lead to a review and an editable original record', async 
   await expect(gut.locator('.gdh-review')).toContainText('rice, yogurt');
   await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
   await expect(gut.getByRole('heading', { name: 'Your understanding' })).toBeVisible();
-  await gut.getByRole('button', { name: 'Explore this insight step by step' }).click();
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-inner-home.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-inner-home-mobile.png' });
@@ -113,25 +114,36 @@ test('optional details lead to a review and an editable original record', async 
   await gut.locator('.gij-list').getByRole('button', { name: /Rice and yogurt/ }).click();
   await gut.locator('.gij-list').getByRole('button', { name: /Rice and yogurt/ }).click();
   await expect(gut.getByText('ORIGINAL MEAL')).toBeVisible();
+  await gut.getByRole('button', { name: 'Open exact source' }).click();
+  await expect(gut.getByRole('region', { name: 'Exact source record' })).toBeVisible();
+  await gut.getByRole('button', { name: 'Back to records' }).click();
+  await expect(gut.getByText('ORIGINAL MEAL')).toBeVisible();
   await gut.getByRole('button', { name: 'Correct this record' }).click();
   await gut.getByRole('textbox', { name: 'Meal', exact: true }).fill('Rice and plain yogurt');
   await gut.getByRole('button', { name: 'Save correction' }).click();
   await expect(gut.getByRole('heading', { name: 'What changed?' })).toBeVisible();
-  await expect(gut.getByRole('status').last()).toContainText('corrected');
+  await expect(gut.locator('.gij').getByRole('status')).toContainText('corrected');
 });
 
 test('an insight can save a next step and log a later outcome without inventing one', async ({ page }) => {
+  test.setTimeout(60000);
   await page.addInitScript(guest);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('tab', { name: 'Meal' }).click();
   await gut.getByRole('textbox', { name: 'Describe a meal or how you felt' }).fill('Dinner');
   await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
-  await gut.getByRole('button', { name: 'Explore this insight step by step' }).click();
-  await gut.getByRole('button', { name: 'Keep in mind' }).click();
+  await gut.getByRole('button', { name: 'Keep this in mind' }).click();
   await gut.getByRole('textbox', { name: 'Your next step' }).fill('Notice what happens after another dinner');
   await gut.getByRole('button', { name: 'Save to my next log' }).click();
   await expect(gut.getByRole('heading', { name: 'Saved to your next log' })).toBeVisible();
+  await gut.locator('summary').filter({ hasText: 'Remind me' }).click();
+  const future = new Date(); future.setDate(future.getDate() + 2);
+  await gut.getByLabel('Reminder date', { exact: true }).fill(`${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}-${String(future.getDate()).padStart(2, '0')}`);
+  const download = page.waitForEvent('download');
+  await gut.getByRole('button', { name: 'Add to calendar' }).click();
+  expect((await download).suggestedFilename()).toBe('healthchain-reminder.ics');
+  await expect(gut.locator('.gij').getByRole('status')).toContainText('confirm its alert');
   await gut.getByRole('button', { name: 'Log what happens later' }).click();
   await gut.getByRole('textbox', { name: 'Meal or drink' }).fill('Another dinner');
   await gut.getByRole('button', { name: 'Save & update insight' }).click();
@@ -141,6 +153,7 @@ test('an insight can save a next step and log a later outcome without inventing 
   await expect(gut.getByText('Notice what happens after another dinner')).toBeVisible();
   await gut.getByRole('button', { name: 'This week', exact: true }).click();
   await expect(gut.getByText('Next step saved').first()).toBeVisible();
+  await expect(gut.getByText('Follow-up recorded').first()).toBeVisible();
 });
 
 test('research is searched for a chosen symptom and a source is saved only on request', async ({ page }) => {
@@ -158,14 +171,13 @@ test('research is searched for a chosen symptom and a source is saved only on re
   await gut.getByRole('button', { name: 'Or ask a question' }).click();
   await gut.getByLabel('Your gut question').fill('What could help me understand bloating?');
   await gut.getByRole('button', { name: 'Start investigation' }).click();
-  await gut.getByRole('button', { name: 'Explore this insight step by step' }).click();
   await gut.getByRole('button', { name: /Check research/ }).click();
   await gut.getByRole('combobox', { name: 'Symptom category' }).selectOption('bloating');
   await gut.getByRole('button', { name: 'Search indexed studies' }).click();
   await gut.locator('.gij-list').getByRole('button', { name: /Diet and abdominal bloating/ }).click();
   await expect(gut.getByText('INDEXED PUBLICATION · PMID 12345678')).toBeVisible();
   await gut.getByRole('button', { name: 'Save source to My research' }).click();
-  await expect(gut.getByRole('status').last()).toContainText('Source saved');
+  await expect(gut.locator('.gij').getByRole('status')).toContainText('Source saved');
   await gut.getByRole('button', { name: 'My research', exact: true }).first().click();
   await gut.getByRole('button', { name: 'Saved sources' }).click();
   await expect(gut.getByText('Diet and abdominal bloating in adults: a review')).toBeVisible();

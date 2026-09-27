@@ -44,7 +44,7 @@ export interface GutQuestionThread {
   /** User-requested Gemini reading, tied to the exact personal evidence fingerprint shown. */
   gutSynthesis?: GutSynthesis | null;
   /** Saved milestones for the weekly view. Older threads simply have no history. */
-  activity?: Array<{ id: string; at: string; kind: 'understanding' | 'sources' | 'next_step' | 'checkin'; title: string }>;
+  activity?: Array<{ id: string; at: string; kind: 'understanding' | 'sources' | 'next_step' | 'checkin'; title: string; previousTitle?: string; detail?: string; sourceId?: string }>;
   clarifications?: Array<{ question: string; answer: string }>;
   decision?: GutDecisionPlan | null;
   /** User-entered occurrence time. Never inferred from the question save time. */
@@ -331,7 +331,7 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
     updated.gutSynthesis.headline !== original.gutSynthesis?.headline ||
     updated.gutSynthesis.personalReading !== original.gutSynthesis?.personalReading
   )) {
-    activity.push({ id: id(), at: now, kind: 'understanding', title: updated.gutSynthesis.headline });
+    activity.push({ id: id(), at: now, kind: 'understanding', title: updated.gutSynthesis.headline, previousTitle: original.gutSynthesis?.headline, detail: updated.gutSynthesis.personalReading });
   }
   if (patch.reviewedResearch?.sources?.length) {
     activity.push({ id: id(), at: now, kind: 'sources', title: `${patch.reviewedResearch.sources.length} research source${patch.reviewedResearch.sources.length === 1 ? '' : 's'} saved` });
@@ -340,6 +340,17 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
   if (patch.reflection !== undefined && updated.reflection !== original.reflection) activity.push({ id: id(), at: now, kind: 'checkin', title: updated.reflection || 'Follow-up cleared' });
   updated.activity = activity.slice(-120);
   return await writeThreads(threads.map((item) => item.id === threadId ? updated : item)) ? updated : null;
+}
+
+/** Record a real follow-up even when the user leaves the optional note blank. */
+export async function recordGutFollowup(threadId: string, sourceId: string, summary: string): Promise<boolean> {
+  const threads = listGutThreads();
+  const thread = threads.find((item) => item.id === threadId);
+  if (!thread) return false;
+  if (thread.activity?.some((item) => item.kind === 'checkin' && item.sourceId === sourceId)) return true;
+  const at = new Date().toISOString();
+  const activity = [...(thread.activity || []), { id: id(), at, kind: 'checkin' as const, title: limit(summary, 300), sourceId, previousTitle: thread.gutSynthesis?.headline }].slice(-120);
+  return writeThreads(threads.map((item) => item.id === threadId ? { ...item, activity, updatedAt: at } : item));
 }
 
 /** An exact saved name is a memory cue, never a prediction or safety verdict. */
