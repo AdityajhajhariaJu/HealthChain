@@ -36,6 +36,7 @@ test('a real log appears in understanding and on its weekly date', async ({ page
   if (test.info().project.name === 'chromium') await gut.screenshot({ path: 'test-results/gut-daily-understanding-mobile.png' });
   await expect(gut.getByText('Too early to see a pattern.', { exact: true })).toBeVisible();
   await expect(gut.locator('.gij-conclusion')).toContainText('1 bloating report saved');
+  await expect(gut.locator('.gij-state.coral')).toContainText('note the meal and how you felt');
   await gut.getByRole('button', { name: 'This week', exact: true }).click();
   await expect(gut.locator('.gdh-calendar .log')).toHaveCount(1);
   await expect(gut.locator('.gdh-day-list').getByText('Bloating', { exact: true })).toBeVisible();

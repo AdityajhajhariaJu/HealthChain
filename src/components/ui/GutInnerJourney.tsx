@@ -72,6 +72,11 @@ export const GutInnerJourney: React.FC<Props> = ({ thread, snapshot, observation
     : evidence.occasions.length ? evidence.answer
     : observations.length ? `${observations.length} observation${observations.length === 1 ? '' : 's'} saved. There is not enough linked detail to answer this question yet.`
     : evidence.answer;
+  const groundedNextStep = matchingSymptoms && !evidence.support && !evidence.tension
+    ? 'If it happens again, note the meal and how you felt. One report cannot identify a cause.'
+    : matchingMeals && thread.symptom === 'unspecified'
+      ? 'If you remember an outcome after a meal, add it. Leave anything uncertain blank.'
+      : evidence.nextQuestion;
   const contextFingerprint = JSON.stringify(observations.slice(0, 14).map((item) => [item.id, item.revision, item.payload, item.localDate]));
   const synthesisStale = !!thread.gutSynthesis && thread.gutSynthesis.evidenceFingerprint !== gutSynthesisFingerprint(thread, evidence, contextFingerprint, thread.researchTopic || 'food');
   const synthesis = synthesisStale ? null : thread.gutSynthesis || null;
@@ -225,7 +230,7 @@ export const GutInnerJourney: React.FC<Props> = ({ thread, snapshot, observation
           <button type="button" onClick={() => go('research')}><Search size={14} />Check research</button>
         </div>
         <details className="gij-uncertainty"><summary>What is still uncertain?</summary><p>{synthesis?.uncertainties?.[0] || (evidence.unknown ? `${evidence.unknown} matching occasions have no clear outcome. A pattern would still not establish a cause.` : 'These reports cannot establish what caused the symptom.')}</p><button type="button" onClick={() => go('uncertainty')}>Add what you remember</button></details>
-        <div className="gij-state coral"><Lightbulb size={21} /><div><strong>What you can do</strong><p>{thread.selectedStep || synthesis?.nextReason || evidence.nextQuestion}</p></div></div>
+        <div className="gij-state coral"><Lightbulb size={21} /><div><strong>What you can do</strong><p>{thread.selectedStep || synthesis?.nextReason || groundedNextStep}</p></div></div>
         {thread.selectedStep ? <><button type="button" className="gij-primary" onClick={() => go('checkin')}>Log a later outcome <ArrowRight size={15} /></button><button type="button" className="gij-quiet" onClick={() => go('saved')}>Edit saved next step or reminder</button></> : <button type="button" className="gij-primary" onClick={() => { setStepDraft(synthesis?.nextReason || 'Notice what happens on a later ordinary occasion'); go('note'); }}>Keep this in mind <Check size={15} /></button>}
         {!synthesis && <button type="button" className="gij-secondary" onClick={() => go('permission')}>{synthesisStale ? 'Refresh understanding' : 'Get a Gemini reading'} <Sparkles size={15} /></button>}
         <div className="gij-more"><button type="button" onClick={() => go('changed')}>See what changed</button><button type="button" onClick={() => go('history')}>Saved history</button><button type="button" onClick={() => go('visit')}>Prepare a visit</button><button type="button" onClick={() => go('safety')}>Data controls</button></div>
