@@ -290,6 +290,7 @@ export default function HelpCenter() {
                     key={star}
                     type="button"
                     onClick={() => setRating(star)}
+                    aria-label={`Rate ${star} star${star === 1 ? '' : 's'}`}
                     style={{
                       background: 'transparent',
                       border: 'none',
