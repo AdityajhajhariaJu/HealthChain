@@ -8,3 +8,4 @@
 .gr-visit-detail section>button{transition:border-color .15s ease,background .15s ease}
 .gr-visit-detail section>button:hover{border-color:#e79eb1!important;background:#fff8fa!important}
 @media(max-width:580px){.gr-visit-primary{width:100%}}
+@media(max-width:400px){.gr-modal-header{gap:8px!important;padding:9px 11px!important}.gr-modal-header>span:first-child{width:32px!important;height:32px!important;border-radius:9px!important}.gr-modal-header>span:first-child svg{width:17px}.gr-modal-header h1{font-size:17px!important}.gr-modal-header button{font-size:10px!important;padding:6px!important;min-height:32px!important}.gr-modal-header button[aria-label="Close Gut Health"]{width:32px!important}.gr-modal-privacy{display:none!important}.gr-modal-footer{font-size:9px!important;padding:6px 10px!important}}

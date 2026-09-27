@@ -41,6 +41,8 @@ export interface GutQuestionThread {
   reviewedResearch?: { at: string; topic: string; sources: { id: string; title: string; correctionNotice: string | null; publicationDate: string | null; status: 'active' | 'corrected' | 'retracted' | 'unavailable' }[] } | null;
   /** User-requested Gemini reading, tied to the exact personal evidence fingerprint shown. */
   gutSynthesis?: GutSynthesis | null;
+  /** Saved milestones for the weekly view. Older threads simply have no history. */
+  activity?: Array<{ id: string; at: string; kind: 'understanding' | 'sources'; title: string }>;
   clarifications?: Array<{ question: string; answer: string }>;
   decision?: GutDecisionPlan | null;
   /** User-entered occurrence time. Never inferred from the question save time. */
@@ -267,7 +269,7 @@ export function listGutThreads(): GutQuestionThread[] {
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
     .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
-    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, clarifications: cleanClarifications(item.clarifications), gutSynthesis: cleanGutSynthesis(item.gutSynthesis) }))
+    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, clarifications: cleanClarifications(item.clarifications), gutSynthesis: cleanGutSynthesis(item.gutSynthesis), activity: Array.isArray(item.activity) ? item.activity.filter((event) => event && typeof event.id === 'string' && typeof event.at === 'string' && !Number.isNaN(Date.parse(event.at)) && (event.kind === 'understanding' || event.kind === 'sources') && typeof event.title === 'string').slice(-120) : [] }))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -320,6 +322,18 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
     symptomOnset: patch.symptomOnset === undefined ? original.symptomOnset : patch.symptomOnset && !Number.isNaN(Date.parse(patch.symptomOnset.occurredAt)) && Date.parse(patch.symptomOnset.occurredAt) <= Date.now() && ['exact', 'approximate'].includes(patch.symptomOnset.precision) ? { occurredAt: new Date(patch.symptomOnset.occurredAt).toISOString(), precision: patch.symptomOnset.precision } : null,
     updatedAt: now,
   };
+  const activity = [...(original.activity || [])];
+  if (patch.gutSynthesis && updated.gutSynthesis && (
+    updated.gutSynthesis.evidenceFingerprint !== original.gutSynthesis?.evidenceFingerprint ||
+    updated.gutSynthesis.headline !== original.gutSynthesis?.headline ||
+    updated.gutSynthesis.personalReading !== original.gutSynthesis?.personalReading
+  )) {
+    activity.push({ id: id(), at: now, kind: 'understanding', title: updated.gutSynthesis.headline });
+  }
+  if (patch.reviewedResearch?.sources?.length) {
+    activity.push({ id: id(), at: now, kind: 'sources', title: `${patch.reviewedResearch.sources.length} research source${patch.reviewedResearch.sources.length === 1 ? '' : 's'} saved` });
+  }
+  updated.activity = activity.slice(-120);
   return await writeThreads(threads.map((item) => item.id === threadId ? updated : item)) ? updated : null;
 }
 

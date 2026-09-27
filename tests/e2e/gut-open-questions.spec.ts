@@ -9,7 +9,7 @@ test('older open Gut questions remain reachable without another intake', async (
   });
   await page.route(/https:\/\//, (route) => route.abort());
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Understand a symptom/ }).click();
   await gut.getByLabel('Your question or situation').fill('What happened after breakfast?');

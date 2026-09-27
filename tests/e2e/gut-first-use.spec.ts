@@ -3,7 +3,7 @@ const guest = () => { localStorage.setItem('hc_guest_mode','true'); localStorage
 
 test('guided start fits a narrow phone and map branches open real destinations', async ({ page }) => {
   await page.addInitScript(guest); await page.setViewportSize({ width: 320, height: 700 });
-  await page.goto('/app/today?gut=1'); const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await page.goto('/app/today?gut=1&view=deep'); const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await expect(gut.getByRole('button', { name: /Find a connection/ })).toHaveAttribute('aria-pressed','true');
   await expect(gut.getByRole('button', { name: 'Bloating', exact: true })).toBeVisible();
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?');
@@ -22,7 +22,7 @@ test('guided start fits a narrow phone and map branches open real destinations',
 });
 
 test('review edits can remove inferred details and survive reopening', async ({ page }) => {
-  await page.addInitScript(guest); await page.goto('/app/today?gut=1'); const gut=page.getByRole('dialog',{name:'Gut Health'});
+  await page.addInitScript(guest); await page.goto('/app/today?gut=1&view=deep'); const gut=page.getByRole('dialog',{name:'Gut Health'});
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?');
   await gut.getByRole('button',{name:'Explore without AI'}).click();
   await gut.getByLabel('Food or situation').fill('');
@@ -32,12 +32,12 @@ test('review edits can remove inferred details and survive reopening', async ({ 
   await gut.getByRole('button',{name:'Question settings'}).click();
   await expect(gut.getByLabel('Meal or phrase',{exact:true})).toHaveValue('');
   await expect(gut.getByLabel('Compare outcome')).toHaveValue('unspecified');
-  await page.goto('/app/today?gut=1'); await gut.getByRole('button',{name:/Continue/}).click();
+  await page.goto('/app/today?gut=1&view=deep'); await gut.getByRole('button',{name:/Continue/}).click();
   await expect(gut.getByRole('heading',{name:'Is chai linked to my bloating?',exact:true})).toBeVisible();
 });
 
 test('current concerns have focused care tools and a next step', async ({ page }) => {
-  await page.addInitScript(guest); await page.goto('/app/today?gut=1'); const gut=page.getByRole('dialog',{name:'Gut Health'});
+  await page.addInitScript(guest); await page.goto('/app/today?gut=1&view=deep'); const gut=page.getByRole('dialog',{name:'Gut Health'});
   await gut.getByRole('button',{name:/Understand a symptom/}).click();
   await gut.getByLabel('Your question or situation').fill('I have stomach pain after lunch today');
   await gut.getByRole('button',{name:'Explore without AI'}).click();
@@ -51,7 +51,7 @@ test('current concerns have focused care tools and a next step', async ({ page }
 });
 
 test('desktop map preserves unknown records and reveals one research tool at a time', async ({ page }) => {
-  await page.addInitScript(guest); await page.setViewportSize({width:1440,height:1000}); await page.goto('/app/today?gut=1'); const gut=page.getByRole('dialog',{name:'Gut Health'});
+  await page.addInitScript(guest); await page.setViewportSize({width:1440,height:1000}); await page.goto('/app/today?gut=1&view=deep'); const gut=page.getByRole('dialog',{name:'Gut Health'});
   if (test.info().project.name === 'chromium') await gut.screenshot({path:'test-results/gut-redesign-start-desktop.png'});
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?'); await gut.getByRole('button',{name:'Explore without AI'}).click();
   if (test.info().project.name === 'chromium') await gut.screenshot({path:'test-results/gut-redesign-review-desktop.png'});
@@ -86,7 +86,7 @@ test('consented Gemini framing and brief use only server-owned operations and ke
     };
   });
   await page.route(/https:\/\/www\.ebi\.ac\.uk\/europepmc\/webservices\/rest\/search/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ resultList: { result: [] } }) }));
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?');
   expect(await page.evaluate(() => navigator.onLine)).toBe(true);
@@ -108,7 +108,7 @@ test('consented Gemini framing and brief use only server-owned operations and ke
 
 
 test('decision exploration saves options without creating a meal report', async ({ page }) => {
-  await page.addInitScript(guest); await page.goto('/app/today?gut=1'); const gut=page.getByRole('dialog',{name:'Gut Health'});
+  await page.addInitScript(guest); await page.goto('/app/today?gut=1&view=deep'); const gut=page.getByRole('dialog',{name:'Gut Health'});
   await gut.getByRole('button',{name:/Compare my options/}).click();
   await gut.getByLabel('Your question or situation').fill('Should I choose tea or coffee tomorrow?');
   await gut.getByRole('button',{name:'Explore without AI'}).click();

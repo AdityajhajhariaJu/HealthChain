@@ -32,6 +32,12 @@ describe('Gut question merge across profile snapshots', () => {
     expect(mergeGutThreads([revised], [old], ownerKey, profileId)[0].reflection).toBe('new reflection');
   });
 
+  it('keeps weekly research milestones from both devices when the same question is edited', () => {
+    const older = { ...makeThread('shared', '2026-09-23T10:00:00.000Z'), activity: [{ id: 'source', at: '2026-09-23T09:00:00.000Z', kind: 'sources' as const, title: 'One source saved' }] };
+    const newer = { ...makeThread('shared', '2026-09-23T12:00:00.000Z'), activity: [{ id: 'answer', at: '2026-09-23T12:00:00.000Z', kind: 'understanding' as const, title: 'Answer updated' }] };
+    expect(mergeGutThreads([older], [newer], ownerKey, profileId)[0].activity?.map((event) => event.id)).toEqual(['source', 'answer']);
+  });
+
   it('discards threads from another account, profile or unsupported schema', () => {
     const valid = makeThread('valid', '2026-09-23T10:00:00.000Z');
     const otherAccount = { ...valid, id: 'other-account', ownerKey: 'hc_unified_profile_account-b' };

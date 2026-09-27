@@ -15,7 +15,7 @@ const seedGuest = () => {
 test('records and visit notes show linked summaries and open the exact source', async ({ page }) => {
   await page.addInitScript(seedGuest);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'My records' }).click();
   await expect(gut.getByRole('heading', { name: 'Your meals and digestion, together' })).toBeVisible();
@@ -44,7 +44,7 @@ test('records and visit notes show linked summaries and open the exact source', 
 test('question sections keep the source chain compact on a phone', async ({ page }) => {
   await page.addInitScript(seedGuest);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai related to my bloating?');
   await gut.getByRole('button', { name: 'Explore without AI' }).click();

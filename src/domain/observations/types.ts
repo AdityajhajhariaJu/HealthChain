@@ -4,8 +4,8 @@ export type TimePrecision = 'exact' | 'approximate' | 'date_only' | 'unknown';
 export type Answer = 'yes' | 'no' | 'unanswered';
 
 export type ObservationPayload =
-  | { kind: 'meal'; description: string; amount?: { value: number; unit: string } | null; ingredients?: Array<{ name: string; status: 'user_confirmed' | 'unverified' }> }
-  | { kind: 'symptom'; symptom: string; severity?: { value: number; max: number } | null; note?: string; explicitMealIds?: string[] }
+  | { kind: 'meal'; description: string; amount?: { value: number; unit: string } | null; portionSize?: 'smaller' | 'usual' | 'larger'; ingredients?: Array<{ name: string; status: 'user_confirmed' | 'unverified' }> }
+  | { kind: 'symptom'; symptom: string; severity?: { value: number; max: number } | null; severityLabel?: 'mild' | 'moderate' | 'severe'; note?: string; explicitMealIds?: string[] }
   | { kind: 'bowel'; bristolType?: number | null; urgency?: Answer; straining?: Answer; note?: string }
   | { kind: 'daily_checkin'; localDate: string; answers: Record<string, Answer>; note?: string }
   | { kind: 'context'; description: string; contextType: 'medication' | 'illness' | 'sleep' | 'stress' | 'other' };
@@ -75,10 +75,12 @@ export function validateObservationDraft(draft: ObservationDraft): ObservationVa
   if (!payload || typeof payload !== 'object') errors.push('Add an observation.');
   else if (payload.kind === 'meal') {
     if (!text(payload.description)) errors.push('Describe the meal.');
+    if (payload.portionSize !== undefined && !['smaller', 'usual', 'larger'].includes(payload.portionSize)) errors.push('Choose a valid portion size.');
     if (payload.amount != null && (!Number.isFinite(payload.amount.value) || payload.amount.value <= 0 || !text(payload.amount.unit))) errors.push('Enter a valid amount and unit or leave the amount unknown.');
     if (payload.ingredients?.some((ingredient) => !text(ingredient.name) || !['user_confirmed', 'unverified'].includes(ingredient.status))) errors.push('Check the ingredient names and their source status.');
   } else if (payload.kind === 'symptom') {
     if (!text(payload.symptom)) errors.push('Name the symptom.');
+    if (payload.severityLabel !== undefined && !['mild', 'moderate', 'severe'].includes(payload.severityLabel)) errors.push('Choose a valid severity label.');
     if (payload.severity != null && (!Number.isFinite(payload.severity.value) || !Number.isFinite(payload.severity.max) || payload.severity.max <= 0 || payload.severity.value < 0 || payload.severity.value > payload.severity.max)) errors.push('Enter a severity within its recorded scale.');
   } else if (payload.kind === 'bowel') {
     if (payload.bristolType != null && (!Number.isInteger(payload.bristolType) || payload.bristolType < 1 || payload.bristolType > 7)) errors.push('Stool form must be 1–7 or unknown.');

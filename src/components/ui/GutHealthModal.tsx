@@ -7,19 +7,21 @@ import type { Observation } from '../../domain/observations/types';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 import { GutResolutionWorkspace } from './GutResolutionWorkspace';
+import { GutDailyHome } from './GutDailyHome';
 import { GutSourceRecord, type GutSourceReference } from './GutSourceRecord';
 import { GutLinkStrip } from './GutLinkStrip';
 import FocusTrap from './FocusTrap';
 import './GutHealthModal.css';
 
 interface Props { isOpen: boolean; initialThreadId?: string | null; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
-type Tab = 'studio' | 'records' | 'visit';
+type Tab = 'daily' | 'research' | 'studio' | 'records' | 'visit';
 const surface: React.CSSProperties = { background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: 18, boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)' };
 const button: React.CSSProperties = { minHeight: 38, border: '1px solid #F1E5E7', borderRadius: 11, background: '#FFFDFC', color: '#AD234A', padding: '8px 13px', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 };
 const icon: React.CSSProperties = { width: 46, height: 46, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#f72c5e,#c50e40)', color: '#FFFFFF', boxShadow: 'inset 0 1px 1px rgba(255,255,255,.45),0 7px 17px rgba(183,25,69,.25)', flexShrink: 0 };
 
 export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
-  const [tab, setTab] = useState<Tab>('studio');
+  const [tab, setTab] = useState<Tab>(() => initialThreadId || new URLSearchParams(window.location.search).get('view') === 'deep' ? 'studio' : 'daily');
+  const [openThreadId, setOpenThreadId] = useState<string | null>(initialThreadId || null);
   const [historyInitialDate, setHistoryInitialDate] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<GutSourceReference | null>(null);
   const [quickMealOpen, setQuickMealOpen] = useState(false);
@@ -43,6 +45,11 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
     return () => { active = false; for (const event of events) window.removeEventListener(event, refresh); };
   }, [isOpen]);
 
+  const refreshData = async () => {
+    setBaseSnapshot(getGutSnapshot());
+    try { setObservations(await listObservations()); } catch { setObservations([]); }
+  };
+
   useEffect(() => {
     if (!isOpen || quickMealOpen) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
@@ -51,6 +58,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   }, [isOpen, quickMealOpen, onClose]);
 
   const openHistory = (date?: string) => { setSelectedSource(null); setHistoryInitialDate(date || null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
+  const openThread = (id: string) => { setOpenThreadId(id); setTab('studio'); mainRef.current?.scrollTo(0, 0); };
   const openSource = (source: GutSourceReference) => {
     setBaseSnapshot(getGutSnapshot());
     void listObservations().then(setObservations).catch(() => setObservations([]));
@@ -68,18 +76,19 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   return createPortal(<>
     <FocusTrap isActive={!quickMealOpen}>
       <div role="dialog" aria-modal="true" aria-label="Gut Health" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 'clamp(0px, 1vw, 10px)' }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-        <div className="gr-modal-dialog" style={{ width: 'min(100%,1160px)', height: 'min(94vh,980px)', background: '#FFFFFF', borderRadius: 26, border: '1px solid #F1E5E7', boxShadow: '0 24px 80px rgba(45, 25, 25, 0.2)', display: 'flex', flexDirection: 'column', overflow: 'hidden', color: '#0F172A' }}>
-          <header className="gr-modal-header" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '20px clamp(16px,3.5vw,38px)', borderBottom: '1px solid #F1E5E7', background: 'radial-gradient(circle at 5% 10%,#fff1f4,#fffaf9 45%,#ffffff)' }}>
+        <div className="gr-modal-dialog" style={{ width: 'min(100%,1160px)', height: 'min(94vh,980px)', background: '#fffefa', borderRadius: 24, border: '1.5px solid #17375a', boxShadow: '0 24px 80px rgba(21, 55, 92, 0.24)', display: 'flex', flexDirection: 'column', overflow: 'hidden', color: '#102c4c' }}>
+          <header className="gr-modal-header" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px clamp(16px,3.5vw,38px)', borderBottom: '1.5px solid #adc5d8', background: '#fffefa' }}>
             <span aria-hidden="true" style={icon}><Activity size={22} /></span>
-            <div style={{ flex: 1, minWidth: 0 }}><div className="gr-modal-eyebrow" style={{ fontSize: 10, letterSpacing: '.09em', color: '#AD234A', fontWeight: 850, marginBottom: 2 }}>YOUR GUT EXPLORER <Sparkles size={11} style={{ verticalAlign: 'middle' }} /></div><h1 className="serif-heading" style={{ margin: 0, fontSize: 'clamp(21px,2.7vw,30px)', color: '#0F172A' }}>Gut Health</h1></div>
-            <span className="gr-modal-privacy" style={{ border: '1px solid #F9D2D7', borderRadius: 99, padding: '6px 11px', background: '#FEF2F3', color: '#AD234A', fontSize: 11.5, fontWeight: 750, display: 'flex', gap: 5, alignItems: 'center' }}><ShieldCheck size={14} /> Explore with evidence</span>
+            <div style={{ flex: 1, minWidth: 0 }}><div className="gr-modal-eyebrow" style={{ fontSize: 10, letterSpacing: '.09em', color: '#e54d57', fontWeight: 850, marginBottom: 2 }}>YOUR GUT HEALTH</div><h1 style={{ margin: 0, fontSize: 'clamp(20px,2.7vw,28px)', color: '#102c4c', letterSpacing: '-.04em' }}>Gut Health</h1></div>
+            {(tab === 'daily' || tab === 'research') ? <button type="button" onClick={() => setTab(tab === 'research' ? 'daily' : 'research')} style={{ ...button, borderColor: '#adc5d8', background: '#fffefa', color: '#15375c', whiteSpace: 'nowrap' }}><Sparkles size={15} />{tab === 'research' ? 'Quick log' : 'My research'}</button> : <span className="gr-modal-privacy" style={{ border: '1px solid #F9D2D7', borderRadius: 99, padding: '6px 11px', background: '#FEF2F3', color: '#AD234A', fontSize: 11.5, fontWeight: 750, display: 'flex', gap: 5, alignItems: 'center' }}><ShieldCheck size={14} /> Explore with evidence</span>}
             <button type="button" aria-label="Close Gut Health" onClick={onClose} style={{ ...button, padding: 8, width: 40, minHeight: 40, borderRadius: '50%', color: '#8D7167' }}><X size={18} /></button>
           </header>
-          <nav aria-label="Gut Health sections" style={{ display: 'flex', padding: '10px clamp(12px,3.5vw,38px)', gap: 7, borderBottom: '1px solid #F1E5E7', overflowX: 'auto', background: '#FFFCFB' }}>
-            {([['studio','My questions',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setSelectedSource(null); setTab(id); setMessage(''); }} style={{ ...button, minHeight: 41, background: tab === id ? '#FFF1F3' : '#FFFFFF', borderColor: tab === id ? '#F6A8BA' : '#E8E4E7', color: tab === id ? '#BE123C' : '#5E687B', fontSize: 13.5, whiteSpace: 'nowrap', boxShadow: tab === id ? '0 3px 9px rgba(205,49,83,.13)' : 'none' }}><Icon size={16} />{label}</button>)}
-          </nav>
-          <main ref={mainRef} style={{ overflowY: 'auto', padding: '24px clamp(14px,3.5vw,38px)', flex: 1 }}>
-            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace initialThreadId={initialThreadId} onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
+          {(tab !== 'daily' && tab !== 'research') && <nav aria-label="Gut Health sections" style={{ display: 'flex', padding: '8px clamp(12px,3.5vw,38px)', gap: 7, borderBottom: '1px solid #c5d9e6', overflowX: 'auto', background: '#f7fbfd' }}>
+            {([['daily','Quick log',Activity],['research','My research',Sparkles],['studio','Deep dive',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setSelectedSource(null); setTab(id); setMessage(''); }} style={{ ...button, minHeight: 35, background: tab === id ? '#15375c' : '#FFFFFF', borderColor: tab === id ? '#15375c' : '#b8d0e1', color: tab === id ? '#fff' : '#15375c', fontSize: 12, whiteSpace: 'nowrap', boxShadow: 'none' }}><Icon size={15} />{label}</button>)}
+          </nav>}
+          <main ref={mainRef} style={{ overflowY: 'auto', padding: '17px clamp(14px,3.5vw,38px)', flex: 1, background: '#fffefa' }}>
+            {(tab === 'daily' || tab === 'research') && <GutDailyHome key={tab} snapshot={snapshot} observations={observations} initialThreadId={initialThreadId} initialPage={tab === 'research' ? 'research' : 'log'} onOpenThread={openThread} onOpenSource={openSource} onOpenRecords={openHistory} onOpenVisit={() => setTab('visit')} onRefresh={refreshData} />}
+            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace key={openThreadId || 'new'} initialThreadId={openThreadId} onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
             {tab === 'records' && <div style={{ maxWidth: 850, margin: '0 auto' }}>
             {selectedSource ? <GutSourceRecord source={selectedSource} meals={snapshot.meals} days={snapshot.days} onBack={() => setSelectedSource(null)} onOpenDate={openHistory} /> : <>
               <div style={{ marginBottom: 12 }}><div style={{ color: '#AD234A', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em' }}>YOUR SOURCE RECORDS</div><h2 className="serif-heading" style={{ fontSize: 24, margin: '6px 0 2px', color: '#0F172A' }}>Your meals and digestion, together</h2><p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>Explore the dates you saved. Blank days stay unknown.</p></div>
@@ -100,7 +109,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
               </section></details>
             </div>}
           </main>
-          <footer className="gr-modal-footer" style={{ borderTop: '1px solid #F1E5E7', padding: '9px 18px', color: '#8D7167', fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 6, background: '#FFFCFB' }}><ShieldCheck size={14} /> Personal observations, research and clinician records have different meanings. Inspect the source before acting.</footer>
+          <footer className="gr-modal-footer" style={{ borderTop: '1px solid #c5d9e6', padding: '8px 18px', color: '#68849b', fontSize: 10, display: 'flex', alignItems: 'center', gap: 6, background: '#fffefa' }}><ShieldCheck size={14} /> Personal observations and general research have different meanings. Open a source to check it.</footer>
         </div>
       </div>
     </FocusTrap>

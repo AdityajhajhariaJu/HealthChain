@@ -158,7 +158,8 @@ export function mergeGutSnapshotWithObservations(snapshot: GutSnapshot, observat
       id: item.id, name: item.payload.description, date: item.localDate!, time,
       occurredAt: hasTimedOccurrence ? item.occurredAt : null,
       timePrecision: item.timePrecision, loggedAt: item.recordedAt, reaction: null,
-      preparation: null, sourceKind: 'observation', sourceRecordId: item.sourceRecordId || null,
+      preparation: item.payload.portionSize ? { kind: 'portion', detail: item.payload.portionSize === 'usual' ? 'Usual portion' : `${item.payload.portionSize} than usual`, source: 'user_confirmed' } : null,
+      sourceKind: 'observation', sourceRecordId: item.sourceRecordId || null,
       revision: item.revision,
     }];
   });

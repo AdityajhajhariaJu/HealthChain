@@ -18,7 +18,7 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   });
   await page.route(/https:\/\//, (route) => route.abort());
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Find a connection/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is chai related to bloating?');
@@ -39,7 +39,7 @@ test('Gut evidence separates saved meal names without inferring recipes on mobil
   await expect(exactSource.getByRole('heading', { name: 'Masala Chai' })).toBeVisible();
   await expect(exactSource.getByText('chai-masala')).toBeVisible();
   await exactSource.getByRole('button', { name: 'Back to records' }).click();
-  await gut.getByRole('button', { name: 'My questions' }).click();
+  await gut.getByRole('button', { name: 'Deep dive' }).click();
   await gut.getByRole('button', { name: 'All questions' }).click();
   await gut.getByRole('button', { name: /Continue/ }).click();
   await gut.getByRole('navigation', { name: 'Question sections' }).getByRole('button', { name: 'Explore more' }).click();

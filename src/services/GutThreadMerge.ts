@@ -23,7 +23,11 @@ export function mergeGutThreads(
     for (const item of source) {
       if (!valid(item)) continue;
       const previous = merged.get(item.id);
-      if (!previous || item.updatedAt > previous.updatedAt) merged.set(item.id, item);
+      if (!previous) { merged.set(item.id, item); continue; }
+      const latest = item.updatedAt > previous.updatedAt ? item : previous;
+      const activity = new Map([...(previous.activity || []), ...(item.activity || [])]
+        .filter((event) => event && typeof event.id === 'string').map((event) => [event.id, event]));
+      merged.set(item.id, { ...latest, activity: [...activity.values()].sort((a, b) => a.at.localeCompare(b.at)).slice(-120) });
     }
   }
   return [...merged.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));

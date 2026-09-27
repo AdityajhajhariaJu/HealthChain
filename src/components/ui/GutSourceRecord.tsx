@@ -57,8 +57,8 @@ export const GutSourceRecord: React.FC<Props> = ({ source, meals, days, onBack, 
       </>}
       {observation && <>
         {row('Revision', observation.revision)}{row('Reported date', observation.localDate)}{row('Occurrence', observation.occurredAt || 'Exact time not reported')}{row('Time precision', observation.timePrecision)}{row('Entered', observation.recordedAt)}{row('Evidence', observation.evidenceType.replace(/_/g, ' '))}{row('Origin', observation.source)}{row('Original record ID', observation.sourceRecordId)}
-        {payload?.kind === 'meal' && <>{row('Meal', payload.description)}{row('Amount', payload.amount ? `${payload.amount.value} ${payload.amount.unit}` : null)}{row('Ingredients', payload.ingredients?.map((item) => `${item.name} (${item.status.replace('_', ' ')})`).join(', '))}</>}
-        {payload?.kind === 'symptom' && <>{row('Symptom', payload.symptom)}{row('Severity', payload.severity ? `${payload.severity.value}/${payload.severity.max}` : null)}{row('Note', payload.note)}</>}
+        {payload?.kind === 'meal' && <>{row('Meal', payload.description)}{row('Portion', payload.portionSize)}{row('Amount', payload.amount ? `${payload.amount.value} ${payload.amount.unit}` : null)}{row('Ingredients', payload.ingredients?.map((item) => `${item.name} (${item.status.replace('_', ' ')})`).join(', '))}</>}
+        {payload?.kind === 'symptom' && <>{row('Symptom', payload.symptom)}{row('Severity', payload.severity ? `${payload.severity.value}/${payload.severity.max}` : payload.severityLabel)}{row('Linked meal IDs', payload.explicitMealIds?.join(', '))}{row('Note', payload.note)}</>}
         {payload?.kind === 'bowel' && <>{row('Stool form', payload.bristolType)}{row('Urgency', payload.urgency)}{row('Straining', payload.straining)}{row('Note', payload.note)}</>}
         {payload?.kind === 'daily_checkin' && <>{Object.entries(payload.answers).map(([key, value]) => row(key.replace(/_/g, ' '), value))}{row('Note', payload.note)}</>}
         {payload?.kind === 'context' && <>{row('Context type', payload.contextType)}{row('Description', payload.description)}</>}

@@ -19,7 +19,7 @@ test('Gut research appraises indexed metadata without sending the personal quest
   });
   await page.route(/https:\/\/www\.ebi\.ac\.uk\/europepmc\/webservices\/rest\/article\/MED\/13579/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ result: { title: 'Diet and bloating in children', isRetracted: 'Y', commentCorrectionList: { commentCorrection: [{ type: 'Retracted in' }] }, electronicPublicationDate: '2024-05-19' } }) }));
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Find a connection/ }).click();
   await gut.getByLabel('Your question or situation').fill('Is my private chai recipe linked to bloating?');

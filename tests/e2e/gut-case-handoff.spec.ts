@@ -40,7 +40,7 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
   await page.route(/https:\/\//, route => route.abort());
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Prepare for a visit/ }).click();
   await gut.getByLabel('Your question or situation').fill('What should I ask my doctor about recurring bloating?');
