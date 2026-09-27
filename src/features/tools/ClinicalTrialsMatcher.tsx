@@ -864,6 +864,7 @@ export default function ClinicalTrialsMatcher() {
                   disabled={!customQuery.trim()}
                   className="btn btn-primary"
                   style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  aria-label="Search custom query"
                 >
                   <Search size={14} />
                 </button>
@@ -882,6 +883,7 @@ export default function ClinicalTrialsMatcher() {
                     }}
                     style={{ background: 'none', border: 'none', color: '#6366F1', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
                     title="Reset to Case Targets"
+                    aria-label="Reset to Case Targets"
                   >
                     <RotateCcw size={13} />
                   </button>
