@@ -35,6 +35,8 @@ export interface GutQuestionThread {
   researchTopic?: 'food' | 'caffeine' | 'dairy' | 'meal_timing';
   status: 'open' | 'closed';
   selectedStep: string | null;
+  /** Optional in-app revisit date chosen by the user; no external notification is implied. */
+  reminderAt?: string | null;
   reflection: string | null;
   excludedMealIds: string[];
   reviewedEvidence: GutReviewSnapshot | null;
@@ -42,7 +44,7 @@ export interface GutQuestionThread {
   /** User-requested Gemini reading, tied to the exact personal evidence fingerprint shown. */
   gutSynthesis?: GutSynthesis | null;
   /** Saved milestones for the weekly view. Older threads simply have no history. */
-  activity?: Array<{ id: string; at: string; kind: 'understanding' | 'sources'; title: string }>;
+  activity?: Array<{ id: string; at: string; kind: 'understanding' | 'sources' | 'next_step' | 'checkin'; title: string }>;
   clarifications?: Array<{ question: string; answer: string }>;
   decision?: GutDecisionPlan | null;
   /** User-entered occurrence time. Never inferred from the question save time. */
@@ -269,7 +271,7 @@ export function listGutThreads(): GutQuestionThread[] {
   const data = getProfile()?.[featureKey];
   return (Array.isArray(data) ? data : [])
     .filter((item): item is GutQuestionThread => item?.schemaVersion === 1 && item?.ownerKey === current.ownerKey && item?.profileId === current.profileId && typeof item?.id === 'string' && typeof item?.updatedAt === 'string' && typeof item?.question === 'string' && Array.isArray(item?.excludedMealIds) && ['understand', 'decide', 'now', 'care'].includes(item?.intent) && ['unspecified', 'bloating', 'discomfort', 'reflux', 'nausea', 'bowel_changes'].includes(item?.symptom))
-    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, clarifications: cleanClarifications(item.clarifications), gutSynthesis: cleanGutSynthesis(item.gutSynthesis), activity: Array.isArray(item.activity) ? item.activity.filter((event) => event && typeof event.id === 'string' && typeof event.at === 'string' && !Number.isNaN(Date.parse(event.at)) && (event.kind === 'understanding' || event.kind === 'sources') && typeof event.title === 'string').slice(-120) : [] }))
+    .map((item) => ({ ...item, conclusionVersion: GUT_CONCLUSION_VERSION, researchConcept: limit(item.researchConcept, 60), researchTopic: typeof item.researchTopic === 'string' && ['food', 'caffeine', 'dairy', 'meal_timing'].includes(item.researchTopic) ? item.researchTopic : undefined, clarifications: cleanClarifications(item.clarifications), gutSynthesis: cleanGutSynthesis(item.gutSynthesis), reminderAt: typeof item.reminderAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.reminderAt) ? item.reminderAt : null, activity: Array.isArray(item.activity) ? item.activity.filter((event) => event && typeof event.id === 'string' && typeof event.at === 'string' && !Number.isNaN(Date.parse(event.at)) && ['understanding', 'sources', 'next_step', 'checkin'].includes(event.kind) && typeof event.title === 'string').slice(-120) : [] }))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -298,7 +300,7 @@ export async function createGutThread(input: { intent: GutIntent; question: stri
   return await writeThreads([thread, ...listGutThreads()]) ? thread : null;
 }
 
-export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'researchConcept' | 'researchTopic' | 'status' | 'selectedStep' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'clarifications' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
+export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQuestionThread, 'focus' | 'symptom' | 'researchConcept' | 'researchTopic' | 'status' | 'selectedStep' | 'reminderAt' | 'reflection' | 'excludedMealIds' | 'reviewedEvidence' | 'reviewedResearch' | 'gutSynthesis' | 'clarifications' | 'decision' | 'symptomOnset'>>): Promise<GutQuestionThread | null> {
   const threads = listGutThreads();
   const original = threads.find((item) => item.id === threadId);
   if (!original) return null;
@@ -312,6 +314,7 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
     researchTopic: patch.researchTopic === undefined ? original.researchTopic : patch.researchTopic,
     reflection: patch.reflection === undefined ? original.reflection : clean(patch.reflection).slice(0, 1000) || null,
     selectedStep: patch.selectedStep === undefined ? original.selectedStep : clean(patch.selectedStep).slice(0, 300) || null,
+    reminderAt: patch.reminderAt === undefined ? original.reminderAt : typeof patch.reminderAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(patch.reminderAt) && !Number.isNaN(Date.parse(`${patch.reminderAt}T12:00:00Z`)) ? patch.reminderAt : null,
     excludedMealIds: patch.excludedMealIds === undefined ? original.excludedMealIds : [...new Set(patch.excludedMealIds)].slice(0, 200),
     decision: patch.decision === undefined ? original.decision : patch.decision === null ? null : cleanDecision(patch.decision),
     reviewedResearch: patch.reviewedResearch === undefined ? original.reviewedResearch : patch.reviewedResearch === null ? null : {
@@ -333,6 +336,8 @@ export async function updateGutThread(threadId: string, patch: Partial<Pick<GutQ
   if (patch.reviewedResearch?.sources?.length) {
     activity.push({ id: id(), at: now, kind: 'sources', title: `${patch.reviewedResearch.sources.length} research source${patch.reviewedResearch.sources.length === 1 ? '' : 's'} saved` });
   }
+  if (patch.selectedStep !== undefined && updated.selectedStep !== original.selectedStep) activity.push({ id: id(), at: now, kind: 'next_step', title: updated.selectedStep || 'Next step removed' });
+  if (patch.reflection !== undefined && updated.reflection !== original.reflection) activity.push({ id: id(), at: now, kind: 'checkin', title: updated.reflection || 'Follow-up cleared' });
   updated.activity = activity.slice(-120);
   return await writeThreads(threads.map((item) => item.id === threadId ? updated : item)) ? updated : null;
 }
@@ -367,15 +372,20 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
   const occasions: GutEvidenceOccasion[] = candidates.map((meal) => {
     const reports = scoped.filter((item) => item.sourceRecordId === meal.id && item.localDate === meal.date && item.payload.kind === 'daily_checkin' && item.payload.answers[thread.symptom]);
     reports.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-    const report = reports[0] || null;
-    const canonicalAnswer = report?.payload.kind === 'daily_checkin' ? report.payload.answers[thread.symptom] || 'unanswered' : 'unanswered';
+    const checkin = reports[0] || null;
+    const linkedSymptoms = scopedObservations.filter((item) => item.localDate === meal.date && item.payload.kind === 'symptom' && item.payload.explicitMealIds?.includes(meal.id) && (item.payload.symptomCode === thread.symptom || (!item.payload.symptomCode && normalize(item.payload.symptom) === normalize(symptomLabel[thread.symptom])))).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    const linkedReport = linkedSymptoms[0] || null;
+    const checkinAnswer = checkin?.payload.kind === 'daily_checkin' ? checkin.payload.answers[thread.symptom] || 'unanswered' : 'unanswered';
+    const report = checkinAnswer === 'unanswered' ? linkedReport || checkin : checkin;
+    const canonicalAnswer: Answer = checkinAnswer !== 'unanswered' ? checkinAnswer : linkedReport ? 'yes' : 'unanswered';
     const mealReactionAnswer = answerFromMealReaction(meal, thread.symptom);
-    const conflict = canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' && canonicalAnswer !== mealReactionAnswer;
+    const conflict = (checkinAnswer === 'no' && !!linkedReport) || (canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' && canonicalAnswer !== mealReactionAnswer);
     const unstableId = !hasStableGutMealId(meal);
     const answer = unstableId || conflict ? 'unanswered' : canonicalAnswer !== 'unanswered' ? canonicalAnswer : mealReactionAnswer;
     const answerOrigin: GutEvidenceOccasion['answerOrigin'] = conflict ? 'conflict' : canonicalAnswer !== 'unanswered' && mealReactionAnswer !== 'unanswered' ? 'both' : canonicalAnswer !== 'unanswered' ? 'canonical' : mealReactionAnswer !== 'unanswered' ? 'meal_reaction' : 'none';
     const answerSources: GutEvidenceEdge['answerSources'] = [];
     if (report && canonicalAnswer !== 'unanswered') answerSources.push({ kind: 'gut_report', id: report.id, revision: report.revision, timePrecision: report.timePrecision });
+    if (linkedReport && linkedReport.id !== report?.id) answerSources.push({ kind: 'gut_report', id: linkedReport.id, revision: linkedReport.revision, timePrecision: linkedReport.timePrecision });
     // Diet records when the reaction was entered, not when the symptom began.
     if (mealReactionAnswer !== 'unanswered') answerSources.push({ kind: 'diet_reaction', id: meal.id, revision: null, timePrecision: 'date_only' });
     const inclusionRule: GutEvidenceEdge['inclusionRule'] = unstableId ? 'unstable_legacy_meal_id' : conflict ? 'conflicting_reports'

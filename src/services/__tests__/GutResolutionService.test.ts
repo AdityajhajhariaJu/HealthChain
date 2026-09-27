@@ -76,6 +76,19 @@ describe('Gut Resolution evidence ledger', () => {
     expect(evidence.nextQuestion).toContain('already mixed');
   });
 
+  it('counts a symptom only when the user explicitly linked that meal, and keeps contradictory reports unresolved', () => {
+    const linked: Observation = { ...report(meals[0], 'yes'), id: 'symptom-linked', sourceRecordId: undefined,
+      payload: { kind: 'symptom', symptom: 'Bloating', symptomCode: 'bloating', explicitMealIds: [meals[0].id] } };
+    const direct = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [linked]);
+    expect([direct.support, direct.tension, direct.unknown]).toEqual([1, 0, 0]);
+    expect(direct.bundle.support[0].answerSources[0].id).toBe(linked.id);
+    const unlinked = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [{ ...linked, payload: { kind: 'symptom', symptom: 'Bloating', symptomCode: 'bloating' } }]);
+    expect(unlinked.unknown).toBe(1);
+    const contradictory = deriveGutEvidence(thread, { meals: [meals[0]], days: [] }, [linked, report(meals[0], 'no')]);
+    expect(contradictory.unknown).toBe(1);
+    expect(contradictory.conflicts).toBe(1);
+  });
+
   it('projects typed dossier links without counting date context as explicit evidence', () => {
     const evidence = deriveGutEvidence(thread, { meals, days: [day] }, [report(meals[0], 'yes'), report(meals[1], 'no')]);
     const dossier = deriveGutDossier(thread, evidence, null, new Set(meals.map((meal) => meal.id)));

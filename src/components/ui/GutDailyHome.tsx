@@ -5,10 +5,11 @@ import type { GutSnapshot } from '../../services/GutHealthSummary';
 import { captureObservationScope, createObservation, listObservations } from '../../services/HealthObservationService';
 import { createGutThread, deriveGutEvidence, listGutThreads, updateGutThread, type GutQuestionThread, type GutSymptom } from '../../services/GutResolutionService';
 import { gutSynthesisFingerprint, reasonOverGutEvidence } from '../../services/GutReasoningService';
+import { GutInnerJourney } from './GutInnerJourney';
 import type { GutSourceReference } from './GutSourceRecord';
 import './GutDailyHome.css';
 
-type Page = 'log' | 'understanding' | 'research' | 'week';
+type Page = 'log' | 'understanding' | 'research' | 'week' | 'journey';
 type LogKind = 'symptom' | 'meal' | 'context';
 type SymptomChoice = { label: string; code: GutSymptom; icon: string };
 const symptoms: SymptomChoice[] = [
@@ -20,6 +21,7 @@ const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() 
 const shortDate = (date: Date) => date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 const newKey = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `gut-${Date.now()}-${Math.random()}`;
 const sentence = (value: string, max = 120) => value.length > max ? `${value.slice(0, max - 1)}…` : value;
+const activityLabel = (kind: 'question' | 'sources' | 'understanding' | 'next_step' | 'checkin') => ({ question: 'Question started', sources: 'Sources saved', understanding: 'Understanding updated', next_step: 'Next step saved', checkin: 'Follow-up recorded' })[kind];
 const observationLabel = (observation: Observation) => observation.payload.kind === 'symptom' ? observation.payload.symptom : observation.payload.kind === 'meal' ? observation.payload.description : observation.payload.kind === 'context' ? observation.payload.description : observation.payload.kind === 'bowel' ? 'Bowel entry' : 'Daily check-in';
 
 interface Props {
@@ -60,6 +62,13 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
   const [weekOffset, setWeekOffset] = useState(0);
   const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [selectedDay, setSelectedDay] = useState(dateKey(new Date()));
+  const [journeyKey, setJourneyKey] = useState(0);
+  const [journeyStep, setJourneyStep] = useState<'home' | 'compare' | 'simple' | 'research' | 'permission' | 'note'>('home');
+  const [journeyReturn, setJourneyReturn] = useState<'understanding' | 'research' | 'week'>('understanding');
+  const [logStage, setLogStage] = useState<'quick' | 'details' | 'review'>('quick');
+  const [logNote, setLogNote] = useState('');
+  const [logTime, setLogTime] = useState('');
+  const [ingredientText, setIngredientText] = useState('');
 
   const threads = useMemo(() => listGutThreads(), [threadVersion, observations]);
   const activeThread = threads.find((item) => item.id === activeThreadId) || null;
@@ -67,6 +76,7 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
   const synthesis = activeThread?.gutSynthesis && !observations.some((item) => item.updatedAt > activeThread.gutSynthesis!.at) && !snapshot.meals.some((item) => item.loggedAt && item.loggedAt > activeThread.gutSynthesis!.at) ? activeThread.gutSynthesis : null;
   const savedSources = useMemo(() => [...new Map(threads.flatMap((thread) => (thread.reviewedResearch?.sources || []).map((source) => [source.id, source]))).values()], [threads]);
   const hasData = observations.length > 0 || snapshot.meals.length > 0 || snapshot.days.length > 0;
+  const dueReminders = threads.filter((item) => item.reminderAt && item.reminderAt <= dateKey(new Date()) && item.selectedStep);
   const recentReports = observations.filter((item) => item.payload.kind === 'symptom');
   const recentMeals = snapshot.meals;
   const localDate = when === 'today' ? dateKey(new Date()) : when === 'yesterday' ? dateKey(new Date(Date.now() - 86400000)) : chosenDate;
@@ -78,20 +88,42 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
 
   const jump = (target: Page) => { setPage(target); setStatus(''); document.querySelector<HTMLElement>('.gr-modal-dialog main')?.scrollTo(0, 0); };
   const refreshThreads = () => setThreadVersion((value) => value + 1);
+  const openJourney = async (step: typeof journeyStep = 'home', threadId?: string) => {
+    setQuestionBusy(true); setStatus('');
+    try {
+      let selected = threadId ? threads.find((item) => item.id === threadId) : activeThread;
+      if (!selected) {
+        const report = recentReports[0];
+        const subject = report?.payload.kind === 'symptom' ? report.payload.symptom : recentMeals[0]?.name;
+        const symptom = report?.payload.kind === 'symptom' ? report.payload.symptomCode || symptoms.find((item) => item.label.toLocaleLowerCase() === (report.payload as Extract<ObservationPayload, { kind: 'symptom' }>).symptom.toLocaleLowerCase())?.code || 'unspecified' : 'unspecified';
+        selected = await createGutThread({ intent: 'understand', question: subject ? `What can I understand from my saved ${subject} log?` : 'What can I understand from my saved gut logs?', symptom, focus: linkedMeal?.name || (report ? '' : recentMeals[0]?.name || '') }) || undefined;
+        if (!selected) throw new Error('Your investigation could not be started.');
+        refreshThreads();
+      }
+      setActiveThreadId(selected.id); setJourneyReturn(page === 'research' || page === 'week' ? page : 'understanding');
+      setJourneyStep(step); setJourneyKey((value) => value + 1); jump('journey');
+    } catch (error) { setStatus(error instanceof Error ? error.message : 'Could not open the insight.'); }
+    finally { setQuestionBusy(false); }
+  };
   const saveLog = async () => {
     if (!preview || saving) return;
     setSaving(true); setStatus('');
     try {
       const scope = await captureObservationScope();
       if (!scope) throw new Error('Choose an active profile before saving.');
-      const payload: ObservationPayload = kind === 'symptom' ? { kind, symptom: preview, ...(severity !== null ? { severityLabel: severity } : {}), ...(relatedMealId ? { explicitMealIds: [relatedMealId] } : {}) }
-        : kind === 'meal' ? { kind, description: preview, ...(portionSize ? { portionSize } : {}) } : { kind, description: preview, contextType };
-      const result = await createObservation({ ...scope, payload, localDate, occurredAt: null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null, timePrecision: 'date_only', source: 'gut', evidenceType: 'user_report', idempotencyKey: newKey() });
+      const chosenCode = !customSymptom.trim() ? symptoms.find((item) => item.label === selectedSymptom)?.code : undefined;
+      const ingredients = ingredientText.split(',').map((item) => item.trim()).filter(Boolean).slice(0, 12).map((name) => ({ name, status: 'user_confirmed' as const }));
+      const payload: ObservationPayload = kind === 'symptom' ? { kind, symptom: preview, ...(chosenCode && chosenCode !== 'unspecified' ? { symptomCode: chosenCode } : {}), ...(severity !== null ? { severityLabel: severity } : {}), ...(relatedMealId ? { explicitMealIds: [relatedMealId] } : {}), ...(logNote.trim() ? { note: logNote.trim() } : {}) }
+        : kind === 'meal' ? { kind, description: preview, ...(portionSize ? { portionSize } : {}), ...(ingredients.length ? { ingredients } : {}) } : { kind, description: logNote.trim() ? `${preview} — ${logNote.trim()}` : preview, contextType };
+      const occurredAt = logTime ? new Date(`${localDate}T${logTime}:00`).toISOString() : null;
+      if (occurredAt && Date.parse(occurredAt) > Date.now()) throw new Error('Choose a time that has already happened.');
+      const result = await createObservation({ ...scope, payload, localDate, occurredAt, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null, timePrecision: logTime ? 'exact' : 'date_only', source: 'gut', evidenceType: 'user_report', idempotencyKey: newKey() });
       if (!result.ok) throw new Error(result.details?.[0] || `Could not save: ${result.error}`);
       await onRefresh();
       if (kind === 'symptom') { setSelectedSymptom(''); setCustomSymptom(''); setSeverity(null); setRelatedMealId(null); }
       if (kind === 'meal') { setMeal(''); setPortionSize(null); }
       if (kind === 'context') setContext('');
+      setLogNote(''); setLogTime(''); setIngredientText(''); setLogStage('quick');
       jump('understanding');
       setStatus('Entry saved. Your understanding now includes it.');
     } catch (error) { setStatus(error instanceof Error ? error.message : 'The entry could not be saved.'); }
@@ -108,8 +140,8 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
     } catch (error) { setStatus(error instanceof Error ? error.message : 'Could not save question.'); }
     finally { setQuestionBusy(false); }
   };
-  const generateInsight = async (thread: GutQuestionThread) => {
-    if (insightBusy) return;
+  const generateInsight = async (thread: GutQuestionThread): Promise<boolean> => {
+    if (insightBusy) return false;
     setInsightBusy(true); setStatus('');
     try {
       const scoped = await listObservations();
@@ -123,7 +155,8 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
       if (!saved) throw new Error('The answer could not be saved.');
       refreshThreads(); setActiveThreadId(saved.id);
       setStatus('Understanding updated from your saved records.');
-    } catch (error) { setStatus(error instanceof Error ? error.message : 'Could not update your understanding.'); }
+      return true;
+    } catch (error) { setStatus(error instanceof Error ? error.message : 'Could not update your understanding.'); return false; }
     finally { setInsightBusy(false); }
   };
   const openObservation = (item: Observation) => onOpenSource({ sourceKind: 'observation', sourceId: item.id, localDate: item.localDate || undefined });
@@ -141,22 +174,40 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
   const linkedMeal = linkedReport?.payload.kind === 'symptom' ? recentMeals.find((meal) => linkedReport.payload.kind === 'symptom' && linkedReport.payload.explicitMealIds?.includes(meal.id)) : null;
 
   return <div className="gdh">
-    <div className="gdh-page-head"><div className="gdh-kicker">{page === 'log' ? '01 / QUICK LOG' : page === 'understanding' ? '02 / YOUR UNDERSTANDING' : page === 'research' ? '03 / MY RESEARCH' : '04 / WEEKLY REVIEW'}</div><button type="button" onClick={() => onOpenRecords()} className="gdh-history"><History size={15} /> History</button></div>
+    <div className="gdh-page-head"><div className="gdh-kicker">{page === 'log' ? '01 / QUICK LOG' : page === 'understanding' ? '02 / YOUR UNDERSTANDING' : page === 'research' ? '03 / MY RESEARCH' : page === 'week' ? '04 / WEEKLY REVIEW' : 'YOUR INSIGHT / ONE STEP AT A TIME'}</div><button type="button" onClick={() => onOpenRecords()} className="gdh-history"><History size={15} /> History</button></div>
     {page === 'log' && <section className="gdh-page">
       <div className="gdh-brand"><span><Activity size={18} /></span>Gut Health</div>
-      <h2>What happened?</h2><p className="gdh-subtitle">A few taps. In your own words.</p>
-      <div className="gdh-input-line"><Search size={16} /><input aria-label="Describe a meal or how you felt" placeholder="Describe a meal or how you felt…" value={kind === 'symptom' ? customSymptom : kind === 'meal' ? meal : context} onChange={(event) => kind === 'symptom' ? setCustomSymptom(event.target.value) : kind === 'meal' ? setMeal(event.target.value) : setContext(event.target.value)} maxLength={200} /></div>
-      <div className="gdh-segment" role="tablist" aria-label="Log type">{([['meal','Meal',Utensils],['symptom','Symptom',Activity],['context','Context',Sparkles]] as const).map(([id,label,Icon]) => <button type="button" role="tab" aria-selected={kind === id} className={kind === id ? 'active' : ''} key={id} onClick={() => setKind(id)}><Icon size={14} /> {label}</button>)}</div>
-      {kind === 'symptom' && <div className="gdh-pill-grid">{symptoms.map((choice) => <button type="button" className={selectedSymptom === choice.label && !customSymptom ? 'chosen' : ''} key={choice.label} onClick={() => { setSelectedSymptom(choice.label); setCustomSymptom(''); }}><span className={`gdh-pill-icon gdh-tone-${choice.code}`}>{choice.icon}</span>{choice.label}{selectedSymptom === choice.label && !customSymptom && <Check size={14} />}</button>)}<button type="button" onClick={() => { setSelectedSymptom(''); document.querySelector<HTMLInputElement>('.gdh-input-line input')?.focus(); }}><span className="gdh-pill-icon gdh-tone-more"><Plus size={14} /></span>Something else</button></div>}
-      {kind === 'meal' && <><div className="gdh-helper"><Utensils size={18} /><div><strong>What did you have?</strong><small>Name the meal in the field above. Add a portion if you remember it.</small></div></div><div className="gdh-field-label">Portion <small>Optional, compared with your usual</small></div><div className="gdh-segment">{(['smaller','usual','larger'] as const).map((size) => <button type="button" key={size} className={portionSize === size ? 'active' : ''} onClick={() => setPortionSize(portionSize === size ? null : size)}>{size}</button>)}</div></>}
-      {kind === 'context' && <div className="gdh-contexts">{(['sleep','stress','medication','illness','other'] as const).map((type) => <button type="button" key={type} className={contextType === type ? 'chosen' : ''} onClick={() => setContextType(type)}>{type}</button>)}</div>}
-      <div className="gdh-rule" />
-      <div className="gdh-field-label">When?</div><div className="gdh-segment gdh-date-segment"><button type="button" className={when === 'today' ? 'active' : ''} onClick={() => setWhen('today')}>Today</button><button type="button" className={when === 'yesterday' ? 'active' : ''} onClick={() => setWhen('yesterday')}>Yesterday</button><button type="button" className={when === 'date' ? 'active' : ''} onClick={() => setWhen('date')}><CalendarDays size={14} /> Choose date</button></div>
-      {when === 'date' && <input className="gdh-date-input" aria-label="Entry date" type="date" value={chosenDate} max={dateKey(new Date())} onChange={(event) => setChosenDate(event.target.value)} />}
-      {preview && <div className="gdh-preview"><span>Your entry</span><strong>{sentence(preview)}</strong><small>{shortDate(toDate(localDate))} · {kind === 'symptom' ? 'symptom' : kind}</small></div>}
-      {kind === 'symptom' && <><div className="gdh-field-label">How did it feel? <small>Optional</small></div><div className="gdh-segment gdh-severity">{(['mild','moderate','severe'] as const).map((value) => <button type="button" key={value} className={severity === value ? 'active' : ''} onClick={() => setSeverity(severity === value ? null : value)}>{value}</button>)}</div>{recentMeals.some((item) => item.date === localDate) && <><div className="gdh-field-label">Link to a meal you saved that day? <small>Only if you remember</small></div><div className="gdh-segment gdh-meal-link"><button type="button" className={!relatedMealId ? 'active' : ''} onClick={() => setRelatedMealId(null)}>Not sure</button>{recentMeals.filter((item) => item.date === localDate).slice(0, 3).map((item) => <button type="button" key={item.id} className={relatedMealId === item.id ? 'active' : ''} onClick={() => setRelatedMealId(item.id)}>{sentence(item.name, 25)}</button>)}</div></>}</>}
-      <button type="button" className="gdh-primary" disabled={!preview || saving || !localDate} onClick={() => void saveLog()}>{saving ? 'Saving…' : 'Save & see my understanding'} <ArrowRight size={16} /></button>
-      <small className="gdh-footnote">Meals and symptoms are saved separately. A same-day entry does not prove a connection.</small>
+      <h2>{logStage === 'quick' ? 'What happened?' : logStage === 'details' ? kind === 'meal' ? 'Meal details' : kind === 'symptom' ? 'Symptom details' : 'Context details' : 'Review your entry'}</h2>
+      <p className="gdh-subtitle">{logStage === 'quick' ? 'A few taps. In your own words.' : logStage === 'details' ? 'Add only what you remember. Every field here is optional.' : 'Check the original details before saving.'}</p>
+      {logStage === 'quick' && <>
+        <div className="gdh-input-line"><Search size={16} /><input aria-label="Describe a meal or how you felt" placeholder="Describe a meal or how you felt…" value={kind === 'symptom' ? customSymptom : kind === 'meal' ? meal : context} onChange={(event) => kind === 'symptom' ? setCustomSymptom(event.target.value) : kind === 'meal' ? setMeal(event.target.value) : setContext(event.target.value)} maxLength={200} /></div>
+        <div className="gdh-segment" role="tablist" aria-label="Log type">{([['meal','Meal',Utensils],['symptom','Symptom',Activity],['context','Context',Sparkles]] as const).map(([id,label,Icon]) => <button type="button" role="tab" aria-selected={kind === id} className={kind === id ? 'active' : ''} key={id} onClick={() => setKind(id)}><Icon size={14} /> {label}</button>)}</div>
+        {kind === 'symptom' && <div className="gdh-pill-grid">{symptoms.map((choice) => <button type="button" className={selectedSymptom === choice.label && !customSymptom ? 'chosen' : ''} key={choice.label} onClick={() => { setSelectedSymptom(choice.label); setCustomSymptom(''); }}><span className={`gdh-pill-icon gdh-tone-${choice.code}`}>{choice.icon}</span>{choice.label}{selectedSymptom === choice.label && !customSymptom && <Check size={14} />}</button>)}<button type="button" onClick={() => { setSelectedSymptom(''); document.querySelector<HTMLInputElement>('.gdh-input-line input')?.focus(); }}><span className="gdh-pill-icon gdh-tone-more"><Plus size={14} /></span>Something else</button></div>}
+        {kind === 'meal' && <><div className="gdh-helper"><Utensils size={18} /><div><strong>What did you have?</strong><small>Name the meal above. Portion details are optional.</small></div></div><div className="gdh-field-label">Portion <small>Compared with your usual</small></div><div className="gdh-segment">{(['smaller','usual','larger'] as const).map((size) => <button type="button" key={size} className={portionSize === size ? 'active' : ''} onClick={() => setPortionSize(portionSize === size ? null : size)}>{size}</button>)}</div></>}
+        {kind === 'context' && <div className="gdh-contexts">{(['sleep','stress','medication','illness','other'] as const).map((type) => <button type="button" key={type} className={contextType === type ? 'chosen' : ''} onClick={() => setContextType(type)}>{type}</button>)}</div>}
+        <div className="gdh-rule" /><div className="gdh-field-label">When?</div>
+        <div className="gdh-segment gdh-date-segment"><button type="button" className={when === 'today' ? 'active' : ''} onClick={() => setWhen('today')}>Today</button><button type="button" className={when === 'yesterday' ? 'active' : ''} onClick={() => setWhen('yesterday')}>Yesterday</button><button type="button" className={when === 'date' ? 'active' : ''} onClick={() => setWhen('date')}><CalendarDays size={14} /> Choose date</button></div>
+        {when === 'date' && <input className="gdh-date-input" aria-label="Entry date" type="date" value={chosenDate} max={dateKey(new Date())} onChange={(event) => setChosenDate(event.target.value)} />}
+        {preview && <div className="gdh-preview"><span>Your entry</span><strong>{sentence(preview)}</strong><small>{shortDate(toDate(localDate))} · {kind}</small></div>}
+        {kind === 'symptom' && <><div className="gdh-field-label">How did it feel? <small>Optional</small></div><div className="gdh-segment gdh-severity">{(['mild','moderate','severe'] as const).map((value) => <button type="button" key={value} className={severity === value ? 'active' : ''} onClick={() => setSeverity(severity === value ? null : value)}>{value}</button>)}</div>{recentMeals.some((item) => item.date === localDate) && <><div className="gdh-field-label">Link to a meal you saved that day? <small>Only if you remember</small></div><div className="gdh-segment gdh-meal-link"><button type="button" className={!relatedMealId ? 'active' : ''} onClick={() => setRelatedMealId(null)}>Not sure</button>{recentMeals.filter((item) => item.date === localDate).slice(0, 3).map((item) => <button type="button" key={item.id} className={relatedMealId === item.id ? 'active' : ''} onClick={() => setRelatedMealId(item.id)}>{sentence(item.name, 25)}</button>)}</div></>}</>}
+        {preview && <button type="button" className="gdh-secondary" onClick={() => setLogStage('details')}>Add details & review <ArrowRight size={14} /></button>}
+        <button type="button" className="gdh-primary" disabled={!preview || saving || !localDate} onClick={() => void saveLog()}>{saving ? 'Saving…' : 'Save & see my understanding'} <ArrowRight size={16} /></button>
+        <small className="gdh-footnote">Meals and symptoms are saved separately. A same-day entry does not prove a connection.</small>
+      </>}
+      {logStage === 'details' && <>
+        <div className="gdh-preview"><span>{kind.toUpperCase()}</span><strong>{preview}</strong><small>{localDate}</small></div>
+        <label className="gdh-detail-label">Exact time <small>Only if you remember</small><input type="time" aria-label="Exact time" value={logTime} onChange={(event) => setLogTime(event.target.value)} /></label>
+        {kind === 'meal' && <label className="gdh-detail-label">Ingredients you know <small>Separate with commas</small><input aria-label="Known ingredients" value={ingredientText} maxLength={500} onChange={(event) => setIngredientText(event.target.value)} placeholder="e.g. rice, milk" /></label>}
+        {kind !== 'meal' && <label className="gdh-detail-label">Your note <small>Optional</small><textarea aria-label="Entry note" value={logNote} maxLength={500} onChange={(event) => setLogNote(event.target.value)} placeholder="What else do you remember?" /></label>}
+        <button type="button" className="gdh-primary" onClick={() => setLogStage('review')}>Review entry <ArrowRight size={15} /></button>
+        <button type="button" className="gdh-text-link" onClick={() => setLogStage('quick')}>Back to Quick Log</button>
+      </>}
+      {logStage === 'review' && <>
+        <div className="gdh-review"><div><span>What</span><strong>{preview}</strong></div><div><span>When</span><strong>{localDate}{logTime ? ` at ${logTime}` : ' · time not recorded'}</strong></div><div><span>{kind === 'meal' ? 'Portion' : kind === 'symptom' ? 'Severity' : 'Context'}</span><strong>{kind === 'meal' ? portionSize || 'Not recorded' : kind === 'symptom' ? severity || 'Not recorded' : contextType}</strong></div>{relatedMealId && <div><span>Linked meal</span><strong>{recentMeals.find((item) => item.id === relatedMealId)?.name || 'Original meal'}</strong></div>}{(logNote || ingredientText) && <div><span>Extra detail</span><strong>{logNote || ingredientText}</strong></div>}</div>
+        <p className="gdh-footnote">Only the details above are saved. Blank fields stay unknown.</p>
+        <button type="button" className="gdh-primary" disabled={saving} onClick={() => void saveLog()}>{saving ? 'Saving…' : 'Save & see my understanding'} <ArrowRight size={16} /></button>
+        <button type="button" className="gdh-text-link" onClick={() => setLogStage('details')}>Edit details</button>
+      </>}
     </section>}
     {page === 'understanding' && <section className="gdh-page">
       <div className="gdh-brand"><span><Activity size={18} /></span>Gut Health {hasData && <em>BASED ON YOUR LOGS</em>}</div>
@@ -168,20 +219,23 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
         <div className="gdh-explain-tabs">{([['compare','Compare possibilities',Activity],['simple','Explain simply',FileText],['research','Check research',Search]] as const).map(([mode,label,Icon]) => <button type="button" key={mode} className={insightMode === mode ? 'active' : ''} onClick={() => setInsightMode(mode)}><Icon size={14} />{label}</button>)}</div>
         {insightMode === 'compare' && <div className="gdh-explain-panel"><strong>What your records show</strong><p>{activeEvidence?.answer || (recentReports.length > 0 && recentMeals.length > 0 ? 'You have both meal and symptom records. Open a question to check their dates, timing and missing details before comparing them.' : 'Record a meal and an outcome on occasions that matter to you. Unknown days stay unknown.')}</p></div>}
         {insightMode === 'simple' && <div className="gdh-explain-panel"><strong>In simple words</strong><p>{synthesis?.personalReading || 'Your entries are saved. They describe what happened, but one entry cannot explain why it happened.'}</p></div>}
-        {insightMode === 'research' && <div className="gdh-explain-panel"><strong>Research for this question</strong><p>{synthesis?.researchReading || 'Open a question to inspect general evidence and save the sources that help you.'}</p><button type="button" className="gdh-inline-link" onClick={() => activeThread ? onOpenThread(activeThread.id) : setShowQuestion(true)}>Explore sources <ArrowRight size={14} /></button></div>}
+        {insightMode === 'research' && <div className="gdh-explain-panel"><strong>Research for this question</strong><p>{synthesis?.researchReading || 'Open a question to inspect general evidence and save the sources that help you.'}</p><button type="button" className="gdh-inline-link" onClick={() => void openJourney('research')}>Explore sources <ArrowRight size={14} /></button></div>}
+        <button type="button" className="gdh-secondary" disabled={questionBusy} onClick={() => void openJourney('home')}><Sparkles size={15} /> Explore this insight step by step <ArrowRight size={14} /></button>
         <div className="gdh-record-strip"><span>WHAT FITS YOUR RECORDS</span><div>{activeThread ? <button type="button" onClick={() => onOpenThread(activeThread.id)}><BookOpen size={16} />{sentence(activeThread.question, 68)} <ChevronRight size={16} /></button> : <button type="button" onClick={() => setShowQuestion(true)}><Plus size={16} />Ask what you want to understand <ChevronRight size={16} /></button>}</div></div>
         <div className="gdh-next"><Lightbulb size={20} /><div><strong>What you can do</strong><p>{synthesis?.nextReason || 'Keep your question open. Add a log when something worth remembering happens.'}</p></div></div>
-        {activeThread && <button type="button" className="gdh-primary" onClick={() => void generateInsight(activeThread)} disabled={insightBusy}>{insightBusy ? 'Reading your records…' : activeThread.gutSynthesis ? 'Refresh understanding' : 'Get a Gemini reading'} <Sparkles size={16} /></button>}
+        {activeThread && <button type="button" className="gdh-primary" onClick={() => void openJourney('permission')} disabled={insightBusy}>{activeThread.gutSynthesis ? 'Refresh understanding' : 'Get a Gemini reading'} <Sparkles size={16} /></button>}
         {!activeThread && <button type="button" className="gdh-primary" onClick={() => setShowQuestion(true)}>Ask about my entries <ArrowRight size={16} /></button>}
       </>}
       {showQuestion && <div className="gdh-question"><button type="button" className="gdh-question-close" aria-label="Close question" onClick={() => setShowQuestion(false)}><X size={16} /></button><strong>What would you like to understand?</strong><textarea autoFocus aria-label="Your gut question" value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={500} placeholder="For example: What might explain bloating after dinner?" /><button type="button" className="gdh-primary" disabled={!question.trim() || questionBusy} onClick={() => void startQuestion()}>{questionBusy ? 'Saving…' : 'Start investigation'} <ArrowRight size={16} /></button></div>}
     </section>}
+    {page === 'journey' && activeThread && <GutInnerJourney key={`${activeThread.id}:${journeyKey}`} thread={activeThread} snapshot={snapshot} observations={observations} initialStep={journeyStep} generating={insightBusy} onGenerate={generateInsight} onUpdated={refreshThreads} onRefresh={onRefresh} onOpenSource={onOpenSource} onOpenDeepDive={onOpenThread} onOpenVisit={onOpenVisit} onLog={() => jump('log')} onBack={() => jump(journeyReturn)} />}
     {page === 'research' && <section className="gdh-page">
       <div className="gdh-brand"><span><Activity size={18} /></span>Gut Health</div><h2>My research</h2><p className="gdh-subtitle">Your questions, findings and saved sources.</p>
+      {dueReminders.length > 0 && <button type="button" className="gdh-reminder-banner" onClick={() => void openJourney('note', dueReminders[0].id)}><Lightbulb size={17} /><span><strong>Ready to revisit</strong><small>{sentence(dueReminders[0].selectedStep || dueReminders[0].question, 100)}</small></span><ArrowRight size={15} /></button>}
       {threads.length > 0 && <button type="button" className="gdh-week-banner" onClick={() => jump('week')}><CalendarDays size={18} /><span><strong>This week</strong><small>{activities.filter((item) => new Date(item.at) >= weekStart).length} research updates</small></span>Review week <ArrowRight size={15} /></button>}
       <div className="gdh-research-tabs"><button type="button" className={researchTab === 'investigations' ? 'active' : ''} onClick={() => setResearchTab('investigations')}><Search size={15} /> Investigations</button><button type="button" className={researchTab === 'sources' ? 'active' : ''} onClick={() => setResearchTab('sources')}><BookOpen size={15} /> Saved sources</button></div>
-      {researchTab === 'investigations' && (threads.length ? <div className="gdh-thread-list">{threads.map((thread) => <article key={thread.id} className="gdh-thread"><div className="gdh-thread-top"><span className="gdh-insight-icon rose"><Activity size={18} /></span><strong>{sentence(thread.question, 100)}</strong><em>{thread.status === 'closed' ? 'Finished' : 'Exploring'}</em></div><small>Current understanding</small><p>{thread.gutSynthesis?.headline || 'Question saved. Open it to investigate your records.'}</p><div className="gdh-thread-foot"><span><FileText size={13} /> Logs · Replies · Sources</span><span><Clock3 size={13} /> Updated {shortDate(new Date(thread.updatedAt))}</span><button type="button" onClick={() => onOpenThread(thread.id)}>{thread.gutSynthesis ? 'Continue' : 'Open'} <ArrowRight size={14} /></button></div></article>)}</div> : <div className="gdh-empty"><div className="gdh-empty-icon"><Search size={34} /></div><strong>No investigations yet.</strong><p>Start a question or save an insight here.</p><button type="button" className="gdh-primary" onClick={() => { jump('understanding'); setShowQuestion(true); }}>Start a question</button><button type="button" className="gdh-text-link" onClick={() => jump('log')}>Add a log</button></div>)}
-      {researchTab === 'sources' && (savedSources.length ? <div className="gdh-source-list">{savedSources.map((source) => <a key={source.id} href={`https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(source.id)}/`} target="_blank" rel="noreferrer"><BookOpen size={17} /><span><strong>{source.title}</strong><small>{source.status === 'active' ? 'Saved research source' : `Status: ${source.status}`}</small></span><ArrowRight size={15} /></a>)}</div> : <div className="gdh-empty"><div className="gdh-empty-icon mint"><BookOpen size={32} /></div><strong>No saved sources.</strong><p>Sources appear here when you choose to save them.</p><button type="button" className="gdh-primary" onClick={() => threads[0] ? onOpenThread(threads[0].id) : (jump('understanding'), setShowQuestion(true))}>Explore a question</button></div>)}
+      {researchTab === 'investigations' && (threads.length ? <div className="gdh-thread-list">{threads.map((thread) => <article key={thread.id} className="gdh-thread"><div className="gdh-thread-top"><span className="gdh-insight-icon rose"><Activity size={18} /></span><strong>{sentence(thread.question, 100)}</strong><em>{thread.status === 'closed' ? 'Finished' : 'Exploring'}</em></div><small>Current understanding</small><p>{thread.gutSynthesis?.headline || 'Question saved. Open it to investigate your records.'}</p>{thread.selectedStep && <div className="gdh-thread-step"><Lightbulb size={13} /> {sentence(thread.selectedStep, 120)}{thread.reminderAt ? ` · Revisit ${thread.reminderAt}` : ''}</div>}<div className="gdh-thread-foot"><span><FileText size={13} /> Logs · Replies · Sources</span><span><Clock3 size={13} /> Updated {shortDate(new Date(thread.updatedAt))}</span><button type="button" onClick={() => void openJourney('home', thread.id)}>{thread.gutSynthesis ? 'Continue' : 'Open'} <ArrowRight size={14} /></button></div></article>)}</div> : <div className="gdh-empty"><div className="gdh-empty-icon"><Search size={34} /></div><strong>No investigations yet.</strong><p>Start a question or save an insight here.</p><button type="button" className="gdh-primary" onClick={() => { jump('understanding'); setShowQuestion(true); }}>Start a question</button><button type="button" className="gdh-text-link" onClick={() => jump('log')}>Add a log</button></div>)}
+      {researchTab === 'sources' && (savedSources.length ? <div className="gdh-source-list">{savedSources.map((source) => <a key={source.id} href={`https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(source.id)}/`} target="_blank" rel="noreferrer"><BookOpen size={17} /><span><strong>{source.title}</strong><small>{source.status === 'active' ? 'Saved research source' : `Status: ${source.status}`}</small></span><ArrowRight size={15} /></a>)}</div> : <div className="gdh-empty"><div className="gdh-empty-icon mint"><BookOpen size={32} /></div><strong>No saved sources.</strong><p>Sources appear here when you choose to save them.</p><button type="button" className="gdh-primary" onClick={() => threads[0] ? void openJourney('research', threads[0].id) : (jump('understanding'), setShowQuestion(true))}>Explore a question</button></div>)}
       {researchTab === 'investigations' && threads.length > 0 && <button type="button" className="gdh-list-action" onClick={() => { jump('understanding'); setShowQuestion(true); }}><Plus size={18} /> Start a question <ChevronRight size={17} /></button>}
     </section>}
     {page === 'week' && <section className="gdh-page">
@@ -191,15 +245,15 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
       <div className="gdh-legend"><span>Blank days mean no entry, not symptom-free.</span><div><i className="log" /> Log added <i className="research" /> Research saved</div></div>
       {!hasData && activities.length === 0 ? <div className="gdh-empty"><div className="gdh-empty-icon"><CalendarDays size={34} /></div><strong>Your week starts with an entry.</strong><p>Logs and saved research will appear on their dates.</p><button type="button" className="gdh-primary" onClick={() => jump('log')}>Add an entry</button><button type="button" className="gdh-text-link" onClick={() => { jump('understanding'); setShowQuestion(true); }}>Ask a question</button></div> : <>
         <div className="gdh-week-heading">What changed {calendarMode === 'week' ? 'this week' : 'this month'}</div>
-        {visibleResearch.length ? <div className="gdh-day-list">{visibleResearch.slice(0, 3).map((item) => <button type="button" key={item.id} onClick={() => onOpenThread(item.threadId)}><span className="gdh-insight-icon blue"><BookOpen size={16} /></span><span><strong>{sentence(item.title, 80)}</strong><small>{shortDate(new Date(item.at))} · {item.kind === 'question' ? 'Question started' : item.kind === 'sources' ? 'Sources saved' : 'Understanding updated'}</small></span><ChevronRight size={16} /></button>)}</div> : <p className="gdh-no-day">No research changes saved in this period.</p>}
+        {visibleResearch.length ? <div className="gdh-day-list">{visibleResearch.slice(0, 3).map((item) => <button type="button" key={item.id} onClick={() => onOpenThread(item.threadId)}><span className="gdh-insight-icon blue"><BookOpen size={16} /></span><span><strong>{sentence(item.title, 80)}</strong><small>{shortDate(new Date(item.at))} · {activityLabel(item.kind)}</small></span><ChevronRight size={16} /></button>)}</div> : <p className="gdh-no-day">No research changes saved in this period.</p>}
         <div className="gdh-week-heading">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' })}</div>
-        {selectedLogs.length === 0 && selectedActivities.length === 0 ? <p className="gdh-no-day">No activity recorded on this day.</p> : <div className="gdh-day-list">{selectedLogs.map((item) => <button type="button" key={item.id} onClick={() => openObservation(item)}><span className="gdh-insight-icon rose"><Activity size={16} /></span><span><strong>{sentence(observationLabel(item), 80)}</strong><small>Entry saved · Original record</small></span><ChevronRight size={16} /></button>)}{selectedActivities.map((item) => <button type="button" key={item.id} onClick={() => onOpenThread(item.threadId)}><span className="gdh-insight-icon blue"><BookOpen size={16} /></span><span><strong>{sentence(item.title, 80)}</strong><small>{item.kind === 'question' ? 'Question started' : item.kind === 'sources' ? 'Sources saved' : 'Understanding updated'}</small></span><ChevronRight size={16} /></button>)}</div>}
+        {selectedLogs.length === 0 && selectedActivities.length === 0 ? <p className="gdh-no-day">No activity recorded on this day.</p> : <div className="gdh-day-list">{selectedLogs.map((item) => <button type="button" key={item.id} onClick={() => openObservation(item)}><span className="gdh-insight-icon rose"><Activity size={16} /></span><span><strong>{sentence(observationLabel(item), 80)}</strong><small>Entry saved · Original record</small></span><ChevronRight size={16} /></button>)}{selectedActivities.map((item) => <button type="button" key={item.id} onClick={() => onOpenThread(item.threadId)}><span className="gdh-insight-icon blue"><BookOpen size={16} /></span><span><strong>{sentence(item.title, 80)}</strong><small>{activityLabel(item.kind)}</small></span><ChevronRight size={16} /></button>)}</div>}
         <button type="button" className="gdh-secondary" onClick={() => onOpenRecords(selectedDay)}>Open this day <ArrowRight size={15} /></button>
-        {threads[0] && <button type="button" className="gdh-primary" onClick={() => onOpenThread(threads[0].id)}>Continue {sentence(threads[0].question, 42)} <ArrowRight size={15} /></button>}
+        {threads[0] && <button type="button" className="gdh-primary" onClick={() => void openJourney('home', threads[0].id)}>Continue {sentence(threads[0].question, 42)} <ArrowRight size={15} /></button>}
       </>}
     </section>}
     {status && <div className="gdh-status" role="status">{status}</div>}
-    <nav className="gdh-bottom-nav" aria-label="Gut daily pages"><button type="button" className={page === 'log' ? 'active' : ''} onClick={() => jump('log')}><Plus size={18} /> Log</button><button type="button" className={page === 'research' || page === 'understanding' ? 'active' : ''} onClick={() => jump('research')}><Search size={17} /> My research</button><button type="button" className={page === 'week' ? 'active' : ''} onClick={() => jump('week')}><CalendarDays size={17} /> This week</button></nav>
+    <nav className="gdh-bottom-nav" aria-label="Gut daily pages"><button type="button" className={page === 'log' ? 'active' : ''} onClick={() => jump('log')}><Plus size={18} /> Log</button><button type="button" className={page === 'research' || page === 'understanding' || page === 'journey' ? 'active' : ''} onClick={() => jump('research')}><Search size={17} /> My research</button><button type="button" className={page === 'week' ? 'active' : ''} onClick={() => jump('week')}><CalendarDays size={17} /> This week</button></nav>
     <div className="gdh-utility"><button type="button" onClick={() => jump('understanding')}>Your understanding <ArrowRight size={14} /></button><button type="button" onClick={onOpenVisit}>Prepare for visit <ArrowRight size={14} /></button></div>
   </div>;
 };
