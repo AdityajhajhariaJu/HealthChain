@@ -132,7 +132,7 @@ export function CaseConnectionMap({
             }}
           >
             <FileText size={14} />
-            <span>Attach Lab Report</span>
+            <span>Open Case Prep</span>
           </button>
         </div>
       </div>

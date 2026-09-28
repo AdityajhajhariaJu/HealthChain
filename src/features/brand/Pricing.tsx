@@ -10,7 +10,6 @@ import {
   Network,
   Heart,
   FolderHeart,
-  Pill,
   FileText,
   Apple,
   FlaskConical,
@@ -60,7 +59,6 @@ const BASIC_FEATURES: FeatureItem[] = [
   { name: 'Ava Health Buddy (10 Replies)', desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Food & Symptom Tools (1 Plan Trial)', desc: 'Editable meal planning and observation logging', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Clinical Research (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
-  { name: 'Medicines & Reports (Unlimited)', desc: 'Medication information and interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Medical Profile & Vault', desc: 'Encrypted personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
@@ -72,8 +70,7 @@ const PRO_30_FEATURES: FeatureItem[] = [
   { name: `Ava Health Buddy (${PRO_30_PLAN.quotas.ava_replies} Replies)`, desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor visit briefs & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food & Symptom Tools (Unlimited)', desc: 'Editable meal plans and observation tracking', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: `Medication Information (${PRO_30_PLAN.quotas.pharmacy_hub} Sessions)`, desc: 'Educational interaction questions to verify with a pharmacist', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { name: `Lab Report PDF Analyzer (${PRO_30_PLAN.quotas.lab_report} Reports)`, desc: 'Value extraction and multi-report trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: `Clinical document review (${PRO_30_PLAN.quotas.lab_report} Reports)`, desc: 'Report extraction inside Clinical Review', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
@@ -85,8 +82,7 @@ const PRO_90_FEATURES: FeatureItem[] = [
   { name: `Ava Health Buddy (${PRO_90_PLAN.quotas.ava_replies} Replies)`, desc: 'Extended case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable visit briefs & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food Planner (Unlimited)', desc: 'Culturally relevant example meals and grocery planning', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: `Pharmacy & Interactions (${PRO_90_PLAN.quotas.pharmacy_hub} Sessions)`, desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { name: `Lab Report PDF Analyzer (${PRO_90_PLAN.quotas.lab_report} Reports)`, desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: `Clinical document review (${PRO_90_PLAN.quotas.lab_report} Reports)`, desc: 'Report extraction inside Clinical Review', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
@@ -96,8 +92,7 @@ const TOPUP_PLANS = [
   { id: 'topup_quick_consult', name: 'Quick Consult', price: rupees(PRODUCT_CATALOG.topup_quick_consult.amount), qty: `+${PRODUCT_CATALOG.topup_quick_consult.quantity} Session`, desc: 'Focused single-perspective review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
   { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: rupees(PRODUCT_CATALOG.topup_deep_collab.amount), qty: `+${PRODUCT_CATALOG.topup_deep_collab.quantity} Session`, desc: 'Multiple AI review perspectives', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
   { id: 'topup_jarvis', name: 'Clinical Review', price: rupees(PRODUCT_CATALOG.topup_jarvis.amount), qty: `+${PRODUCT_CATALOG.topup_jarvis.quantity} Session`, desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
-  { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: rupees(PRODUCT_CATALOG.topup_pharmacy_hub.amount), qty: `+${PRODUCT_CATALOG.topup_pharmacy_hub.quantity} Sessions`, desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: rupees(PRODUCT_CATALOG.topup_lab_report.amount), qty: `+${PRODUCT_CATALOG.topup_lab_report.quantity} Reports`, desc: 'Biomarker and report extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { id: 'topup_lab_report', name: 'Clinical document review', price: rupees(PRODUCT_CATALOG.topup_lab_report.amount), qty: `+${PRODUCT_CATALOG.topup_lab_report.quantity} Reports`, desc: 'Document extraction within Clinical Review', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [

@@ -3,19 +3,18 @@
  *
  * CANONICAL ARCHITECTURE SPECIFICATION: STEP 2 (Distinct purposes: one job per feature)
  *
- * Implements the 12-feature matrix and unidirectional pipeline flow:
+ * Implements the 11-feature matrix and unidirectional pipeline flow:
  * 1. Ava: "Help me describe this and understand my next step."
  * 2. Clinical Data Engine: "What does all this evidence suggest together?"
  * 3. Gut Health: "What can my records say about this question?"
  * 4. Health Canvas: "What happened, what is open, and what changed?"
  * 5. My Cases: "Where is the complete history of this issue?"
  * 6. Case Prep: "What should I bring and ask?"
- * 7. Medicine & Lab Reports: "What does this original item contain?"
- * 8. Diet Plan: "What can I realistically eat?"
- * 9. Food Detective: "What patterns occur in my food logs?"
- * 10. Clinical Elimination Suite: "How do I follow and document this selected plan?"
- * 11. Clinical Trials: "What relevant research can I investigate?"
- * 12. Zen Garden: "How do I take a worthwhile break?"
+ * 7. Diet Plan: "What can I realistically eat?"
+ * 8. Food Detective: "What patterns occur in my food logs?"
+ * 9. Clinical Elimination Suite: "How do I follow and document this selected plan?"
+ * 10. Clinical Trials: "What relevant research can I investigate?"
+ * 11. Zen Garden: "How do I take a worthwhile break?"
  */
 
 export type FeatureId =
@@ -25,7 +24,6 @@ export type FeatureId =
   | 'canvas'
   | 'cases'
   | 'case-prep'
-  | 'medicine-labs'
   | 'diet-plan'
   | 'food-detective'
   | 'elimination-suite'
@@ -281,11 +279,6 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     ],
     upstreamFeeds: [
       {
-        sourceFeatureId: 'medicine-labs',
-        label: 'Verified Medication & Lab Records',
-        artifactType: 'Corrected lab values and medication dosages',
-      },
-      {
         sourceFeatureId: 'ava',
         label: 'Confirmed Observations & Questions',
         artifactType: 'Structured intake data and symptom descriptions',
@@ -334,41 +327,6 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
         sourceFeatureId: 'connection-detective',
         label: 'Corroborated Evidence Paths',
         artifactType: 'Specific biological connection chains to show the doctor',
-      },
-    ],
-  },
-
-  'medicine-labs': {
-    id: 'medicine-labs',
-    name: 'Medicine & Lab Reports',
-    shortLabel: 'Medicine & Labs',
-    uniqueQuestion: 'What does this original item contain?',
-    owns: 'Record intake and correction',
-    produces: 'Verified medication and measurement entries',
-    mustNotDuplicate: 'Cross-case conclusions',
-    pipelineStage: 'intake',
-    route: '/app/medicine-lab',
-    plainDescription: 'Reviewing and organizing your lab results, blood work, and prescriptions with verified measurements.',
-    plainPurpose: 'Lab report & medication verification',
-    badgeColor: {
-      bg: '#EFF6FF',
-      text: '#1E40AF',
-      border: '#BFDBFE',
-      accent: '#3B82F6',
-    },
-    downstreamHandoffs: [
-      {
-        targetFeatureId: 'cases',
-        label: 'Link Verified Records to My Cases',
-        actionDescription: 'Attach confirmed lab values and prescriptions into your active clinical case',
-        route: '/app/my-cases',
-      },
-    ],
-    upstreamFeeds: [
-      {
-        sourceFeatureId: 'user',
-        label: 'Original Medical Documents',
-        artifactType: 'Lab report PDF, prescription image, blood test paper',
       },
     ],
   },
@@ -580,7 +538,7 @@ export function getFeatureContract(id: FeatureId): FeatureContract {
 }
 
 /**
- * Returns all 12 feature boundary contracts.
+ * Returns all 11 feature boundary contracts.
  */
 export function getAllFeatureContracts(): FeatureContract[] {
   return Object.values(FEATURE_CONTRACTS);
@@ -611,7 +569,7 @@ export function isPermissiblePipelineHandoff(fromId: FeatureId, toId: FeatureId)
 
 /**
  * Canonical Feature Registry prompt for Ava and AI reasoning engines.
- * Permanently resolves Point 10 Gap #8: References all 12 features by their actual names and boundaries.
+ * References all 11 current features by their actual names and boundaries.
  */
 export function getCanonicalFeatureRegistryPrompt(): string {
   const contracts = getAllFeatureContracts();

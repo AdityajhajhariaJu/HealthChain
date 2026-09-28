@@ -9,7 +9,7 @@ import { triggerHapticLight } from '../../services/haptics';
 const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
 interface TopUpModalProps {
-  feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'pharmacy_hub' | 'lab_report';
+  feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'lab_report';
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -19,8 +19,7 @@ const TOPUPS = {
   quick_consult: { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '1 Session' },
   deep_collab: { id: 'topup_deep_collab', name: 'Specialist Consensus', price: 149, qty: '1 Session' },
   jarvis: { id: 'topup_jarvis', name: 'Clinical Review', price: 169, qty: '1 Session' },
-  pharmacy_hub: { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: 99, qty: '30 Sessions' },
-  lab_report: { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '2 Sessions' },
+  lab_report: { id: 'topup_lab_report', name: 'Clinical document review', price: 99, qty: '2 Reports' },
 };
 
 export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalProps) {

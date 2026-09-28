@@ -17,7 +17,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     'canvas',
     'cases',
     'case-prep',
-    'medicine-labs',
     'diet-plan',
     'food-detective',
     'elimination-suite',
@@ -25,9 +24,9 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     'zen-garden',
   ];
 
-  it('contains exactly the 12 canonical features defined in the architecture specification', () => {
+  it('contains exactly the 11 canonical features defined in the architecture specification', () => {
     const contracts = getAllFeatureContracts();
-    expect(contracts).toHaveLength(12);
+    expect(contracts).toHaveLength(11);
 
     const actualIds = contracts.map((c) => c.id);
     for (const expectedId of EXPECTED_FEATURE_IDS) {
@@ -54,9 +53,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     expect(getFeatureContract('case-prep').uniqueQuestion).toBe(
       'What should I bring and ask?'
     );
-    expect(getFeatureContract('medicine-labs').uniqueQuestion).toBe(
-      'What does this original item contain?'
-    );
     expect(getFeatureContract('diet-plan').uniqueQuestion).toBe(
       'What can I realistically eat?'
     );
@@ -79,7 +75,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     const ownerships = contracts.map((c) => c.owns.toLowerCase().trim());
     const uniqueOwnerships = new Set(ownerships);
 
-    expect(uniqueOwnerships.size).toBe(12);
+    expect(uniqueOwnerships.size).toBe(11);
   });
 
   it('verifies distinct unique questions with zero duplication across the suite', () => {
@@ -87,10 +83,10 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     const questions = contracts.map((c) => c.uniqueQuestion.toLowerCase().trim());
     const uniqueQuestions = new Set(questions);
 
-    expect(uniqueQuestions.size).toBe(12);
+    expect(uniqueQuestions.size).toBe(11);
   });
 
-  it('enforces non-duplication rules for all 12 features', () => {
+  it('enforces non-duplication rules for all 11 features', () => {
     expect(getFeatureContract('ava').mustNotDuplicate).toBe(
       'A separate competing clinical report'
     );
@@ -108,9 +104,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     );
     expect(getFeatureContract('case-prep').mustNotDuplicate).toBe(
       'An entirely new assessment'
-    );
-    expect(getFeatureContract('medicine-labs').mustNotDuplicate).toBe(
-      'Cross-case conclusions'
     );
     expect(getFeatureContract('diet-plan').mustNotDuplicate).toBe(
       'Food-trigger investigation'
@@ -132,7 +125,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
   it('validates the complete unidirectional pipeline flow', () => {
     // 1. Intake -> Storage (My Cases)
     expect(isPermissiblePipelineHandoff('ava', 'cases')).toBe(true);
-    expect(isPermissiblePipelineHandoff('medicine-labs', 'cases')).toBe(true);
 
     // 2. Storage -> Synthesis (Clinical Data Engine)
     expect(isPermissiblePipelineHandoff('cases', 'engine')).toBe(true);
@@ -155,7 +147,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
 
     // 8. Invalid reverse / illegal leaps are prohibited
     expect(isPermissiblePipelineHandoff('canvas', 'engine')).toBe(false);
-    expect(isPermissiblePipelineHandoff('medicine-labs', 'connection-detective')).toBe(false);
     expect(isPermissiblePipelineHandoff('zen-garden', 'engine')).toBe(false);
   });
 

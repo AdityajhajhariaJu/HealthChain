@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
-import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Home, User } from 'lucide-react';
+import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Home, User } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -47,7 +47,6 @@ const links: any[] = [
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
-  { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
 ];
 
 const mobileTabs = [
@@ -313,7 +312,6 @@ const enforceSafeArea = () => {
     '/app/trials',
     '/app/profile',
     '/app/settings',
-    '/app/medicine-lab',
     '/app/my-cases',
   ].some(p => location.pathname.startsWith(p));
 
@@ -449,7 +447,7 @@ const enforceSafeArea = () => {
         <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC', background: isWarmPorcelainRoute ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' : undefined, overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px', margin: '0 auto' }}>
-            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
+            {!['/app/today', '/app/consult', '/app/dietician', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
@@ -462,7 +460,7 @@ const enforceSafeArea = () => {
           <>
             <div className="mobile-top-bar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab'].includes(location.pathname) && !location.pathname.startsWith('/app/war-room') ? (
+              {!['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) && !location.pathname.startsWith('/app/war-room') ? (
                 <button
                   onClick={() => {
                     triggerHapticLight();
@@ -488,7 +486,7 @@ const enforceSafeArea = () => {
                   <ArrowLeft size={19} strokeWidth={2.5} />
                 </button>
               ) : null}
-            {['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab'].includes(location.pathname) && (
+            {['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) && (
               <div style={{ position: 'relative' }}>
               <button
                 type="button"

@@ -28,7 +28,6 @@ import {
   Edit2,
   Check,
   AlertTriangle,
-  Search,
   BriefcaseBusiness,
   Stethoscope,
   ChevronRight,
@@ -54,6 +53,7 @@ import {
   addCondition,
   removeCondition,
   removeMedication,
+  addMedication,
   addAllergy,
   removeAllergy,
   addFamilyHistory,
@@ -82,6 +82,7 @@ export default function MedicalProfile() {
   const navigate = useNavigate();
   const synthesisKey = getRunScope('profile', 'draft', 'synthesis');
   const [profile, setProfile] = useState(getProfile());
+  const [newMedicationName, setNewMedicationName] = useState('');
   const healthScore = calculateHealthScore(profile);
   const [_trigger, setTrigger] = useState(0); // Force re-render for undo/redo state
 
@@ -1230,7 +1231,6 @@ export default function MedicalProfile() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {uniqueActionItems.map((item) => {
-                  let extractedDrug: string | null = null;
                   const rawText = typeof item?.task === 'string' && item.task.length > 0 
                     ? item.task 
                     : (typeof item?.step === 'string' && item.step.length > 0 
@@ -1243,9 +1243,6 @@ export default function MedicalProfile() {
                     .replace(/\s*·\s*(Immediately|Investigation|Consultation|Routine|Urgent)[\s\S]*/i, '')
                     .replace(/["'{}]/g, '')
                     .trim() || 'Review clinical finding';
-
-                  const match = cleanTitle.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
-                  if (match && match[1]) extractedDrug = match[1];
 
                   const isCompleted = item.status === 'completed';
 
@@ -1291,7 +1288,7 @@ export default function MedicalProfile() {
                       >
                         {isCompleted && <Check size={12} color="#FFF" />}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: extractedDrug ? '70px' : '8px' }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
                         <div
                           style={{
                             fontSize: '13.5px',
@@ -1326,31 +1323,6 @@ export default function MedicalProfile() {
                         </div>
                       </div>
 
-                      {extractedDrug && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/app/pharmacy', { state: { searchQuery: extractedDrug } });
-                          }}
-                          style={{
-                            background: '#ECFDF5',
-                            color: '#10B981',
-                            border: 'none',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            cursor: 'pointer',
-                            flexShrink: 0
-                          }}
-                        >
-                          <Search size={11} /> Lookup
-                        </button>
-                      )}
-                      
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1447,7 +1419,7 @@ export default function MedicalProfile() {
               </ResponsiveContainer>
               {displayData.length === 0 && (
                 <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, textAlign: 'center', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  No historical data available. Upload lab reports to track your metrics.
+                  No lab measurements saved yet.
                 </div>
               )}
             </div>
@@ -1462,10 +1434,7 @@ export default function MedicalProfile() {
                   border: '1px dashed var(--border-strong)',
                 }}
               >
-                <p className="text-gray mb-4">No lab reports parsed yet.</p>
-                <button className="btn btn-navy btn-sm" onClick={() => navigate('/app/reports')}>
-                  Upload Lab Report
-                </button>
+                <p className="text-gray m-0">No lab measurements saved yet.</p>
               </div>
             ) : (
               <div
@@ -1589,62 +1558,6 @@ export default function MedicalProfile() {
 
       </div>
 
-      {/* NEW: Smart Auto-Refill Adherence Engine */}
-          {profile.medications.some(med => {
-            const startDate = new Date(med.lastFilledAt || med.addedAt);
-            const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-            const supplyDays = med.supplyDays || 30;
-            return (supplyDays - daysPassed) <= 7 && (supplyDays - daysPassed) >= 0;
-          }) && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="card"
-              style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ background: '#FEF2F2', color: '#EF4444', padding: '8px', borderRadius: '50%' }}>
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#991B1B' }}>Refill Action Required</h4>
-                  <span style={{ fontSize: '13px', color: '#B91C1C' }}>Ava has detected that you are running low on critical medications.</span>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {profile.medications.map(med => {
-                  const startDate = new Date(med.lastFilledAt || med.addedAt);
-                  const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-                  const supplyDays = med.supplyDays || 30;
-                  const daysLeft = Math.floor(supplyDays - daysPassed);
-                  
-                  if (daysLeft <= 7 && daysLeft >= 0) {
-                    return (
-                      <div key={`refill-${med.name}`} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                        <div>
-                          <strong style={{ fontSize: '15px' }}>{med.name}</strong>
-                          <span style={{ display: 'block', fontSize: '12px', color: '#EF4444', fontWeight: 600 }}>Only {daysLeft} days supply remaining</span>
-                        </div>
-                        <button 
-                          className="btn btn-primary btn-sm" 
-                          style={{ background: '#EF4444', cursor: 'pointer' }}
-                          onClick={() => {
-                            triggerHapticLight();
-                            navigate('/app/pharmacy?search=' + encodeURIComponent(med.name));
-                          }}
-                        >
-                          Auto-Refill Now
-                        </button>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            </motion.div>
-          )}
-
           {/* 3. Active Medications */}
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
@@ -1674,9 +1587,9 @@ export default function MedicalProfile() {
                 {profile.medications.map((m: any) => {
                   const mName = typeof m === 'string' ? m : m.name;
                   const mDosage = typeof m === 'object' && m.dosage ? m.dosage : '';
-                  const mSlot = typeof m === 'object' && m.circadianSlot ? m.circadianSlot : 'morning';
+                  const mSlot = typeof m === 'object' && m.circadianSlot ? m.circadianSlot : null;
                   const SlotIcon = mSlot === 'bedtime' ? Moon : mSlot === 'evening' ? Sunset : mSlot === 'midday' ? Sun : Sunrise;
-                  const slotTime = typeof m === 'object' && m.time ? m.time : (mSlot === 'bedtime' ? '21:30' : mSlot === 'evening' ? '18:30' : mSlot === 'midday' ? '13:00' : '08:30');
+                  const slotTime = typeof m === 'object' && m.time ? m.time : null;
                   
                   return (
                     <motion.div
@@ -1718,7 +1631,7 @@ export default function MedicalProfile() {
                           >
                             <span style={{ fontWeight: 800 }}>{mName}</span>
                             {mDosage && <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>({mDosage})</span>}
-                            <span style={{
+                            {(mSlot || slotTime) && <span style={{
                               fontSize: '11px',
                               fontWeight: 700,
                               padding: '2px 8px',
@@ -1730,12 +1643,12 @@ export default function MedicalProfile() {
                               alignItems: 'center',
                               gap: '4px'
                             }}>
-                              <SlotIcon size={11} strokeWidth={2.2} />
-                              <span style={{ textTransform: 'capitalize' }}>{mSlot} ({slotTime})</span>
-                            </span>
+                              {mSlot && <SlotIcon size={11} strokeWidth={2.2} />}
+                              <span style={{ textTransform: 'capitalize' }}>{[mSlot, slotTime].filter(Boolean).join(' · ')}</span>
+                            </span>}
                           </div>
                           <div style={{ color: '#78716C', fontSize: '11.5px', marginTop: '2px' }}>
-                            {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : m.source === 'onboarding' ? 'Profile Dossier' : 'Manually added'}
+                            {m.source === 'pharmacy_hub' ? 'Saved medication' : m.source === 'onboarding' ? 'Profile Dossier' : 'Manually added'}
                           </div>
                         </div>
                       </div>
@@ -1770,13 +1683,17 @@ export default function MedicalProfile() {
                 </AnimatePresence>
               </div>
             )}
-            <button
-              className="btn btn-outline btn-sm"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => navigate('/app/pharmacy')}
-            >
-              <Plus size={16} /> Add via PharmacyHub
-            </button>
+            <form onSubmit={(event) => {
+              event.preventDefault();
+              const name = newMedicationName.trim();
+              if (!name) return;
+              addMedication({ name }, 'medical_profile');
+              setProfile(getProfile());
+              setNewMedicationName('');
+            }} style={{ display: 'flex', gap: 8 }}>
+              <input aria-label="Medication name" value={newMedicationName} onChange={(event) => setNewMedicationName(event.target.value)} maxLength={120} placeholder="Medication name" style={{ flex: 1, minWidth: 0 }} />
+              <button type="submit" className="btn btn-outline btn-sm" disabled={!newMedicationName.trim()}><Plus size={16} /> Add</button>
+            </form>
           </div>
 
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>

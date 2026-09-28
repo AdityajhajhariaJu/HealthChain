@@ -449,35 +449,15 @@ export default function CaseDetail() {
                 <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Attached Case Records</h2>
                 <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>Clinical lab tests, imaging, and external documents attached to this case.</p>
               </div>
-              {recordsCount > 0 && <button
-                className="btn btn-outline"
-                style={{ padding: '8px 14px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                onClick={() => {
-                  setActiveCase(caseItem.id);
-                  navigate(`/app/medicine-lab?caseId=${encodeURIComponent(caseItem.id)}&returnTo=${encodeURIComponent('/app/cases/' + caseItem.id)}#clinical-report-analyzer`);
-                }}
-              >
-                <FileText size={15} /> Interpret New Report
-              </button>}
             </div>
 
             {recordsCount === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px 16px', background: '#F8FAFC', borderRadius: 16, border: '1px dashed #CBD5E1' }}>
                 <FolderOpen size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#334155', margin: '0 0 6px' }}>No records uploaded directly yet</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#334155', margin: '0 0 6px' }}>No case records attached yet</h3>
                 <p style={{ color: '#64748B', fontSize: 14, margin: '0 0 16px', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                  You can upload lab reports, discharge summaries, or imaging notes to attach them to this case's synthesis.
+                  Records from your clinical reviews will appear here when linked to this case.
                 </p>
-                <button
-                  className="btn btn-primary"
-                  style={{ padding: '8px 16px', fontSize: 13 }}
-                  onClick={() => {
-                    setActiveCase(caseItem.id);
-                    navigate(`/app/medicine-lab?caseId=${encodeURIComponent(caseItem.id)}&returnTo=${encodeURIComponent('/app/cases/' + caseItem.id)}#clinical-report-analyzer`);
-                  }}
-                >
-                  Upload Clinical Record
-                </button>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 12 }}>

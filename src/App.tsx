@@ -36,7 +36,6 @@ import TopUpModal from './features/brand/TopUpModal';
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
 const ConsultPage = React.lazy(() => import('./features/consultation/ConsultPage'));
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
-const MedicineLabPage = React.lazy(() => import('./features/tools/MedicineLabPage'));
 const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
 
 const Settings = React.lazy(() => import('./features/profile/Settings'));
@@ -110,6 +109,13 @@ const PreservedNavigate: React.FC<{ to: string }> = ({ to }) => {
   const location = useLocation();
   const target = `${to}${location.search}${location.hash}`;
   return <Navigate to={target} replace />;
+};
+
+const RetiredMedicineLabRedirect: React.FC = () => {
+  const location = useLocation();
+  const caseId = new URLSearchParams(location.search).get('caseId');
+  if (caseId) return <Navigate to={`/app/cases/${encodeURIComponent(caseId)}?tab=records`} replace />;
+  return <Navigate to={location.pathname === '/app/pharmacy' || (!location.hash && location.pathname === '/app/medicine-lab') ? '/app/profile' : '/app/my-cases'} replace />;
 };
 
 /**
@@ -228,7 +234,6 @@ export default function App() {
       else if (op.includes('specialist_selection')) setTopUpFeature('deep_collab');
       else if (op.includes('jarvis')) setTopUpFeature('jarvis');
       else if (op.includes('lab')) setTopUpFeature('lab_report');
-      else if (op.includes('pharmacy')) setTopUpFeature('pharmacy_hub');
     };
     window.addEventListener('hc_quota_exceeded', handleQuota);
     return () => window.removeEventListener('hc_quota_exceeded', handleQuota);
@@ -652,15 +657,8 @@ export default function App() {
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<PreservedNavigate to="/app/case-prep" />} />
-          <Route
-            path="/app/medicine-lab"
-            element={
-              <SafeRoute>
-                <MedicineLabPage />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/pharmacy" element={<PreservedNavigate to="/app/medicine-lab" />} />
+          <Route path="/app/medicine-lab" element={<RetiredMedicineLabRedirect />} />
+          <Route path="/app/pharmacy" element={<RetiredMedicineLabRedirect />} />
           <Route path="/app/nutrition" element={<PreservedNavigate to="/app/dietician" />} />
           <Route path="/app/nutrition-log" element={<SafeRoute><NutritionInterceptor /></SafeRoute>} />
           <Route
@@ -681,7 +679,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/reports" element={<PreservedNavigate to="/app/medicine-lab" />} />
+          <Route path="/app/reports" element={<RetiredMedicineLabRedirect />} />
           <Route
             path="/app/trials"
             element={

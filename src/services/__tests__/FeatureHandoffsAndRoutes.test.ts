@@ -19,14 +19,13 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
   });
 
   describe('Step 1-5: Plain Language & Canonical Contract Integrity', () => {
-    const ALL_12_FEATURES: FeatureId[] = [
+    const ALL_FEATURES: FeatureId[] = [
       'ava',
       'engine',
       'connection-detective',
       'canvas',
       'cases',
       'case-prep',
-      'medicine-labs',
       'diet-plan',
       'food-detective',
       'elimination-suite',
@@ -36,7 +35,7 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
 
     it('verifies every canonical feature defines plainDescription and plainPurpose without internal jargon', () => {
       const contracts = getAllFeatureContracts();
-      expect(contracts).toHaveLength(12);
+      expect(contracts).toHaveLength(11);
 
       for (const contract of contracts) {
         expect(contract.plainDescription).toBeDefined();
@@ -61,14 +60,13 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
         '/app/cases',
         '/app/my-cases',
         '/app/case-prep',
-        '/app/medicine-lab',
         '/app/dietician',
         '/app/trials',
         '/app/today',
         '/app/profile',
       ];
 
-      for (const featId of ALL_12_FEATURES) {
+      for (const featId of ALL_FEATURES) {
         const handoffs = getDownstreamHandoffs(featId);
         for (const handoff of handoffs) {
           expect(validAppRoutes).toContain(handoff.route);

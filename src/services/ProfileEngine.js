@@ -589,8 +589,6 @@ export function addMedication(med, source = 'manual') {
       ...med, 
       addedAt: new Date().toISOString(), 
       source,
-      supplyDays: med.supplyDays || 30,
-      lastFilledAt: med.lastFilledAt || new Date().toISOString(),
     });
       addEvent('system', source, `Medication Added: ${med.name}`, { med }, false, profile);
       saveProfile(profile);

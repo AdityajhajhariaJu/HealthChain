@@ -7,7 +7,6 @@ import {
   Stethoscope,
   Heart,
   Apple,
-  Pill,
   Brain,
   ArrowRight,
   ShieldCheck,
@@ -470,81 +469,6 @@ export function TrialFeaturesModal({
               </button>
             </div>
 
-            {/* 4. Pharmacy Hub */}
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '10px',
-                      background: '#F0FDFA',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Pill size={18} color="#0D9488" />
-                  </div>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: '#F0FDFA',
-                      color: '#0F766E',
-                      border: '1px solid #99F6E4',
-                    }}
-                  >
-                    Free Always
-                  </span>
-                </div>
-
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  Pharmacy Hub
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.4, margin: '0 0 14px 0' }}>
-                  Educational medication summaries with prompts to verify the original label and consult a pharmacist.
-                </p>
-              </div>
-
-              <button
-                onClick={() => handleSelectTrial('/app/pharmacy')}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)',
-                }}
-              >
-                <span>Check Interactions</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
           </div>
 
           {/* Pro Upgrade Banner */}
