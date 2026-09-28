@@ -1,0 +1,3 @@
+## 2024-10-24 - Missing ARIA Labels on Dismissable Overlays
+**Learning:** Found multiple instances where floating UI components (like `DataSovereigntyModal`, `PaymentRecoveryBanner`, and `WholeHealthRiverModal`) implemented icon-only close/dismiss buttons without `aria-label` attributes. This breaks accessibility for screen reader users, who will just hear "button" without knowing its function. This seems to be a common pattern when quickly implementing overlays with lucide-react icons.
+**Action:** When implementing or reviewing new modal, banner, or floating overlay components, explicitly verify that all close/dismiss buttons containing only icons have an `aria-label` attribute (e.g., `aria-label="Close modal"`).
