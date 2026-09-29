@@ -15,7 +15,6 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
   'http://localhost'
 ];
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
   type: 'OBJECT',
@@ -80,6 +79,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const authHeader = req.headers.authorization;
 
   let userId = null;
