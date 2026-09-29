@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getTodayCheckin, recordDailyCheckin } from '../../services/ProfileEngine';
+import { getTodayDateString, getVitaminSchedule, toggleVitaminTaken } from '../../services/VitaminScheduleService';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import DailySymptomCheckinWidget from '../../features/dashboard/DailySymptomCheckinWidget';
@@ -147,7 +148,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const [quietHoursStart, setQuietHoursStart] = useState<string>('22:00');
   const [quietHoursEnd, setQuietHoursEnd] = useState<string>('07:00');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayDateString();
 
   const loadData = () => {
     try {
@@ -251,6 +252,31 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     }
     onClose();
     navigate(resolved.destination);
+  };
+
+  const handleNotificationAction = (event: React.MouseEvent, item: AppNotification) => {
+    event.stopPropagation();
+    if (item.profileId !== getActiveProfileId()) return;
+    if (item.category === 'medication_reminder') {
+      const id = item.metadata?.vitaminId;
+      const medicine = getVitaminSchedule().find(entry => entry.id === id && entry.enabled && !entry.takenToday);
+      if (medicine && toggleVitaminTaken(id)) {
+        markNotificationAsRead(item.id);
+        awardPoints(2, `Taken: ${medicine.name}`, 'lifestyle', `pill_${id}_${todayStr}`);
+        toast('Dose recorded', `${medicine.name} marked taken today.`, 'success');
+      }
+      loadData();
+      return;
+    }
+    if (item.category === 'hydration_check') {
+      const next = getWaterGlassesForDate(todayStr) + 1;
+      setWaterGlassesForDate(todayStr, next);
+      markNotificationAsRead(item.id);
+      setWaterGlasses(next);
+      loadData();
+      return;
+    }
+    handleNotificationClick(item);
   };
 
   const handleDismissNotification = (e: React.MouseEvent, id: string) => {
@@ -696,8 +722,14 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
 
                         {/* Bottom: Action Button */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '2px' }}>
-                          <span
+                          <button
+                            type="button"
+                            onClick={(event) => handleNotificationAction(event, notif)}
+                            aria-label={`${notif.actionLabel || 'View'}: ${notif.title}`}
                             style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
                               fontSize: '11.5px',
                               fontWeight: 700,
                               color: cfg.color,
@@ -707,7 +739,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                             }}
                           >
                             {notif.actionLabel || 'View'} <ArrowRight size={12} />
-                          </span>
+                          </button>
                         </div>
                       </motion.div>
                     );
@@ -1067,7 +1099,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                           {testAlertStatus === 'sent' ? (
                             <>
                               <Check size={12} color="#059669" />
-                              <span style={{ color: '#059669', fontWeight: 700 }}>Alert Dispatched!</span>
+                              <span style={{ color: '#059669', fontWeight: 700 }}>Test scheduled</span>
                             </>
                           ) : (
                             <>

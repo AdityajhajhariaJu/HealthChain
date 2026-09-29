@@ -1040,7 +1040,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   const handleTestPillNotification = () => {
     triggerHapticLight();
-    triggerPillNotification(vitamins.length > 0 ? vitamins[0] : undefined);
+    triggerPillNotification(vitamins.length > 0 ? vitamins[0] : undefined, true);
   };
 
   if (!isOpen) return null;
@@ -1344,24 +1344,25 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                     {Capacitor.isNativePlatform() ? 'Enable device notifications for alarms' : 'Dose tracking works here. Background alarms require the native app.'}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRequestPermission}
-                  disabled={!Capacitor.isNativePlatform()}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: '8px',
-                    background: '#BE123C',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 1px 4px rgba(190, 18, 60, 0.2)'
-                  }}
-                >
-                  Enable
-                </button>
+                {Capacitor.isNativePlatform() && (
+                  <button
+                    type="button"
+                    onClick={handleRequestPermission}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      background: '#BE123C',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 4px rgba(190, 18, 60, 0.2)'
+                    }}
+                  >
+                    Enable
+                  </button>
+                )}
               </div>
             )}
 
@@ -1684,7 +1685,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#44403C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Scheduled Regimen & Alarms ({vitamins.length})
+                  Daily schedule ({vitamins.length})
                 </span>
                 {vitamins.length > 0 && (
                   <button
@@ -1868,7 +1869,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                               }}
                             >
                               {item.enabled ? <Bell size={12} /> : <BellOff size={12} />}
-                              {!item.time ? 'Set time' : item.enabled ? 'Scheduled' : 'Paused'}
+                              {!item.time ? 'Set time' : item.enabled ? (hasNotificationPermission ? 'Time saved' : 'Tracking only') : 'Paused'}
                             </button>
                           </div>
 

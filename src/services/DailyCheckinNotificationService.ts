@@ -2,6 +2,10 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
 import { checkAndUpdateTimezone } from './NotificationEngine';
+import { getVitaminSchedule, triggerPillNotification } from './VitaminScheduleService';
+import { getActiveProfileScope } from './profileScope';
+import { ensureNotificationChannel, NOTIFICATION_CHANNEL_ID, requestNotificationPermission } from './NotificationDeviceService';
+export { NOTIFICATION_CHANNEL_ID, requestNotificationPermission, ensureNotificationChannel } from './NotificationDeviceService';
 
 export interface DailyReminderConfig {
   enabled: boolean;
@@ -12,7 +16,6 @@ export interface DailyReminderConfig {
 const STORAGE_KEY_ENABLED = 'hc_daily_checkin_reminder_enabled';
 const STORAGE_KEY_TIME = 'hc_daily_checkin_reminder_time';
 export const NOTIFICATION_ID = 1001;
-export const NOTIFICATION_CHANNEL_ID = 'healthchain_daily_checkin';
 export const DAILY_CHECKIN_REMINDER_ID = NOTIFICATION_ID;
 export const CHANNEL_ID = NOTIFICATION_CHANNEL_ID;
 
@@ -40,53 +43,6 @@ function isValidReminderTime(time: string): boolean {
 
 export function supportsDailyReminders(): boolean {
   return Capacitor.isNativePlatform();
-}
-
-/**
- * Requests notification permissions across platforms (Capacitor Native or Web Notification API).
- */
-export async function requestNotificationPermission(): Promise<boolean> {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      let perm = await LocalNotifications.checkPermissions();
-      if (perm.display !== 'granted') {
-        perm = await LocalNotifications.requestPermissions();
-      }
-      return perm.display === 'granted';
-    } else if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') return true;
-      if (Notification.permission !== 'denied') {
-        const result = await Notification.requestPermission();
-        return result === 'granted';
-      }
-    }
-  } catch (e) {
-    console.warn('[DailyReminder] Permission request warning:', e);
-  }
-  return false;
-}
-
-/**
- * Initializes notification channels on Android.
- */
-async function ensureNotificationChannel(): Promise<void> {
-  if (Capacitor.getPlatform() === 'android') {
-    try {
-      await LocalNotifications.createChannel({
-        id: NOTIFICATION_CHANNEL_ID,
-        name: 'Daily Health Rhythm Check-in',
-        description: 'Daily reminder alerts to log your symptoms, energy, and wellness.',
-        importance: 4, // High importance
-        visibility: 1, // Public
-        sound: 'beep.wav',
-        vibration: true,
-        lights: true,
-        lightColor: '#059669',
-      });
-    } catch (e) {
-      console.warn('[DailyReminder] Error creating Android notification channel:', e);
-    }
-  }
 }
 
 /**
@@ -132,7 +88,6 @@ export async function scheduleDailyReminder(time?: string, requestPermission = t
               repeats: true,
               allowWhileIdle: true,
             },
-            actionTypeId: 'DAILY_CHECKIN',
             extra: {
               route: '/app/today',
               type: 'daily_checkin',
@@ -266,11 +221,16 @@ export async function initDailyReminderService(onNotificationClick?: (route: str
   if (Capacitor.isNativePlatform()) {
     try {
       await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-        const route = notification.notification?.extra?.route || '/app/today';
+        const extra = notification.notification?.extra;
+        const route = extra?.route || '/app/today';
         if (onNotificationClick) {
           onNotificationClick(route);
         } else {
           window.location.href = route;
+        }
+        if (extra?.type === 'pill_reminder' && extra.scope === getActiveProfileScope()) {
+          const medicine = getVitaminSchedule().find(item => item.id === extra.vitaminId && item.enabled && !item.takenToday);
+          if (medicine) window.setTimeout(() => triggerPillNotification(medicine), 0);
         }
       });
     } catch (e) {

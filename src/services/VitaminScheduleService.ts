@@ -3,8 +3,8 @@ import { isMedicationTime, normalizeMedications } from './MedicationScheduleMode
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
-import { requestNotificationPermission } from './DailyCheckinNotificationService';
-import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { ensureNotificationChannel, hasNativeNotificationPermission, NOTIFICATION_CHANNEL_ID } from './NotificationDeviceService';
+import { getActiveProfileScope, getHabitStorageKey, getScopedStorageKey } from './profileScope';
 
 export interface VitaminItem {
   id: string;
@@ -186,8 +186,9 @@ async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promi
       } catch {}
 
       if (!list.some(item => item.enabled && isMedicationTime(item.time))) return;
-      const hasPermission = await requestNotificationPermission();
+      const hasPermission = await hasNativeNotificationPermission();
       if (!hasPermission || scope !== scopedKey(STORAGE_KEY_VITAMINS)) return;
+      await ensureNotificationChannel();
 
       // Schedule active vitamins
       const notificationsToSchedule: any[] = [];
@@ -201,7 +202,7 @@ async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promi
           id: NOTIFICATION_BASE_ID + index,
           title: 'HealthChain reminder',
           body: 'A scheduled health reminder is ready. Open HealthChain to review it.',
-          channelId: 'healthchain_daily_checkin',
+          channelId: NOTIFICATION_CHANNEL_ID,
           schedule: {
             on: { hour, minute },
             repeats: true,
@@ -210,7 +211,8 @@ async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promi
           extra: {
             route: '/app/today',
             type: 'pill_reminder',
-            vitaminId: item.id
+            vitaminId: item.id,
+            scope: getActiveProfileScope(),
           }
         });
       });
@@ -256,7 +258,7 @@ if (typeof window !== 'undefined') {
 /**
  * Triggers an immediate in-app Pill Notification banner (for test preview or timer event).
  */
-export function triggerPillNotification(item?: Partial<VitaminItem>): void {
+export function triggerPillNotification(item?: Partial<VitaminItem>, preview = false): void {
   const payload = item || {
     id: 'vit_test',
     name: 'Daily Multivitamin & Omega-3',
@@ -264,7 +266,7 @@ export function triggerPillNotification(item?: Partial<VitaminItem>): void {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
 
-  window.dispatchEvent(new CustomEvent('hc_pill_reminder_triggered', { detail: payload }));
+  window.dispatchEvent(new CustomEvent('hc_pill_reminder_triggered', { detail: { ...payload, preview: preview || !item } }));
 }
 
 export interface DrugInteractionAlert {

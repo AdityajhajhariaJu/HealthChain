@@ -4,7 +4,13 @@ const state = vi.hoisted(() => ({ scope: 'one', profiles: {} as Record<string, a
 const notifications = vi.hoisted(() => ({ schedule: vi.fn(), cancel: vi.fn() }));
 vi.mock('@capacitor/core', () => ({ Capacitor: { isNativePlatform: () => state.native, getPlatform: () => 'web' } }));
 vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: notifications }));
-vi.mock('../DailyCheckinNotificationService', () => ({ requestNotificationPermission: async () => state.permission }));
+const channel = vi.hoisted(() => ({ create: vi.fn() }));
+vi.mock('../NotificationDeviceService', () => ({
+  requestNotificationPermission: async () => state.permission,
+  hasNativeNotificationPermission: async () => state.permission,
+  ensureNotificationChannel: channel.create,
+  NOTIFICATION_CHANNEL_ID: 'healthchain_daily_reminders_v2',
+}));
 vi.mock('../haptics', () => ({ triggerHapticLight: vi.fn(), triggerHapticSuccess: vi.fn() }));
 vi.mock('../VitalityPointsEngine', () => ({ awardPoints: vi.fn() }));
 vi.mock('../ProfileEngine', () => ({
@@ -12,7 +18,7 @@ vi.mock('../ProfileEngine', () => ({
   getProfile: () => structuredClone(state.profiles[state.scope] || { medications: [] }),
   saveProfile: async (profile: any) => { state.profiles[state.scope] = structuredClone(profile); },
 }));
-import { addWaterLog, adjustWaterAmount, getHydrationData, removeWaterLog, setHydrationReminders, setHydrationTarget } from '../HydrationService';
+import { addWaterLog, adjustWaterAmount, getHydrationData, removeWaterLog, restoreHydrationNotifications, setHydrationReminders, setHydrationTarget } from '../HydrationService';
 import { getVitaminSchedule, saveVitaminSchedule, toggleVitaminTaken, markAllVitaminsTaken, rescheduleVitaminNotifications } from '../VitaminScheduleService';
 import { mergeLegacyMedicationSchedule, normalizeMedications } from '../MedicationScheduleModel';
 import { getHabitStorageKey, getScopedStorageKey } from '../profileScope';
@@ -21,6 +27,7 @@ beforeEach(() => {
   localStorage.clear(); state.scope = 'one'; state.profiles = {}; state.native = false; state.permission = true;
   vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 8, 29, 10));
   notifications.schedule.mockReset().mockResolvedValue(undefined); notifications.cancel.mockReset().mockResolvedValue(undefined);
+  channel.create.mockReset().mockResolvedValue(undefined);
 });
 afterEach(() => vi.useRealTimers());
 const med = (id = 'a', enabled = true) => ({ id, name: `Medicine ${id}`, dosage: 'User directions', time: '08:30', enabled });
@@ -70,6 +77,15 @@ describe('shared medication inventory and daily adherence', () => {
     state.native = true; state.permission = false; await rescheduleVitaminNotifications([med()]);
     expect(notifications.cancel).toHaveBeenCalled(); expect(notifications.schedule).not.toHaveBeenCalled();
   });
+  it('creates the Android channel and schedules a scoped native medicine reminder', async () => {
+    state.native = true; await rescheduleVitaminNotifications([med()]);
+    expect(channel.create).toHaveBeenCalledOnce();
+    expect(notifications.schedule).toHaveBeenCalledWith({ notifications: [expect.objectContaining({
+      channelId: 'healthchain_daily_reminders_v2',
+      schedule: expect.objectContaining({ on: { hour: 8, minute: 30 }, repeats: true }),
+      extra: expect.objectContaining({ vitaminId: 'a', scope: 'account:one', route: '/app/today' }),
+    })] });
+  });
 });
 
 describe('hydration consistency and reminders', () => {
@@ -111,5 +127,15 @@ describe('hydration consistency and reminders', () => {
     expect(getHydrationData().remindersEnabled).toBe(true);
     notifications.schedule.mockRejectedValueOnce(new Error('Device scheduling failure'));
     expect(await setHydrationReminders(true)).toBe(false); expect(getHydrationData().remindersEnabled).toBe(false);
+  });
+  it('restores opted-in native hydration reminders with channel and route on startup', async () => {
+    state.native = true; localStorage.setItem(getScopedStorageKey('healthchain_hydration_reminders_enabled'), 'true');
+    localStorage.setItem(getScopedStorageKey('healthchain_hydration_reminder_interval'), '3');
+    await restoreHydrationNotifications();
+    expect(channel.create).toHaveBeenCalled();
+    expect(notifications.schedule.mock.calls[0][0].notifications).toHaveLength(5);
+    expect(notifications.schedule.mock.calls[0][0].notifications[0]).toMatchObject({
+      channelId: 'healthchain_daily_reminders_v2', extra: { type: 'hydration', route: '/app/today', scope: getScopedStorageKey('healthchain_hydration_reminders_enabled') },
+    });
   });
 });

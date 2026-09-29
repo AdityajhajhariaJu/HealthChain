@@ -61,12 +61,13 @@ export const setupPushListeners = () => {
       if (session?.user) {
         registeredToken = token.value;
         registeredUserId = session.user.id;
-        await supabase
+        const { error } = await supabase
           .from('user_devices')
           .upsert(
             { user_id: session.user.id, push_token: token.value, platform: Capacitor.getPlatform(), updated_at: new Date().toISOString() },
             { onConflict: 'user_id,push_token' }
           );
+        if (error) console.warn('Failed to save push device registration:', error);
       }
     } catch (err) {
       console.warn('Failed to sync push device registration to Supabase:', err);

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Pill, Check, X, Sparkles, Clock, Bell } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { toggleVitaminTaken, getTodayDateString } from '../../services/VitaminScheduleService';
+import { toggleVitaminTaken, getTodayDateString, getVitaminSchedule } from '../../services/VitaminScheduleService';
+import { getActiveProfileScope } from '../../services/profileScope';
 import { isQuietHoursActive, markNotificationAsRead, markNotificationAsDismissed } from '../../services/NotificationEngine';
 
 interface PillNotificationData {
@@ -12,24 +14,39 @@ interface PillNotificationData {
   name: string;
   dosage?: string;
   time?: string;
+  preview?: boolean;
 }
 
 export default function PillNotificationBanner() {
   const [data, setData] = useState<PillNotificationData | null>(null);
   const isMobile = useIsMobile();
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<PillNotificationData[]>([]);
+  const shownRef = useRef(new Set<string>());
+  const lastCheckedRef = useRef('');
+  const activeRef = useRef(false);
+
+  const showNext = () => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    const next = pendingRef.current.shift() || null;
+    activeRef.current = Boolean(next);
+    setData(next);
+    if (next) dismissTimerRef.current = setTimeout(showNext, 10000);
+  };
 
   useEffect(() => {
     const handleTrigger = (e: Event) => {
       const custom = e as CustomEvent;
       if (custom.detail) {
-        if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
         triggerHapticLight();
+        pendingRef.current = [];
+        if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+        activeRef.current = true;
         setData(custom.detail);
 
         // Auto dismiss after 10 seconds
         dismissTimerRef.current = setTimeout(() => {
-          setData(null);
+          showNext();
         }, 10000);
       }
     };
@@ -41,64 +58,70 @@ export default function PillNotificationBanner() {
     };
   }, []);
 
-  // Also check scheduled vitamins against current minute periodically
+  // Check the shared, profile-scoped schedule while this window is active.
   useEffect(() => {
     const checkSchedule = () => {
       try {
         if (isQuietHoursActive()) return;
         const now = new Date();
-        const currentHM = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        const lastCheckedMinute = sessionStorage.getItem('hc_last_checked_pill_minute');
-        if (lastCheckedMinute === currentHM) return;
-        sessionStorage.setItem('hc_last_checked_pill_minute', currentHM);
-
-        const raw = localStorage.getItem('healthchain_vitamins_schedule_v2');
-        if (raw) {
-          const list = JSON.parse(raw);
-          const match = list.find((v: any) => v.enabled && v.time === currentHM);
-          if (match) {
-            // Check if already taken today
-            const today = getTodayDateString();
-            const rawLogs = localStorage.getItem(`healthchain_vitamins_taken_logs_${today}`);
-            const takenMap = rawLogs ? JSON.parse(rawLogs) : {};
-            if (!takenMap[match.id]) {
-              setData(match);
-              triggerHapticLight();
-            }
-          }
+        const currentHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const minuteKey = `${getActiveProfileScope()}:${getTodayDateString()}:${currentHM}`;
+        if (lastCheckedRef.current === minuteKey) return;
+        lastCheckedRef.current = minuteKey;
+        const matches = getVitaminSchedule().filter(item => item.enabled && !item.takenToday && item.time === currentHM);
+        for (const match of matches) {
+          const key = `${minuteKey}:${match.id}`;
+          if (shownRef.current.has(key)) continue;
+          shownRef.current.add(key);
+          pendingRef.current.push(match);
         }
-      } catch (err) {}
+        if (matches.length && !activeRef.current) {
+          triggerHapticLight();
+          showNext();
+        }
+      } catch (err) { console.warn('[PillNotification] In-app schedule check failed', err); }
     };
 
+    checkSchedule();
     const interval = setInterval(checkSchedule, 25000);
-    return () => clearInterval(interval);
+    const handleScopeChange = () => {
+      pendingRef.current = [];
+      shownRef.current.clear();
+      lastCheckedRef.current = '';
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+      activeRef.current = false;
+      setData(null);
+      checkSchedule();
+    };
+    window.addEventListener('focus', checkSchedule);
+    window.addEventListener('hc_profile_updated', handleScopeChange);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkSchedule);
+      window.removeEventListener('hc_profile_updated', handleScopeChange);
+    };
   }, []);
 
   const handleTakeDose = () => {
     triggerHapticSuccess();
-    if (data?.id) {
-      toggleVitaminTaken(data.id);
+    if (data?.id && !data.preview && toggleVitaminTaken(data.id)) {
       markNotificationAsRead(`med_${data.id}_${getTodayDateString()}`);
       awardPoints(5, `Tablet taken: ${data.name}`, 'lifestyle', `pill_${data.id}_${getTodayDateString()}`);
-    } else {
-      awardPoints(5, `Tablet taken: ${data?.name || 'Vitamins'}`, 'lifestyle');
     }
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    setData(null);
+    showNext();
   };
 
   const handleDismiss = () => {
     triggerHapticLight();
-    if (data?.id) {
+    if (data?.id && !data.preview) {
       markNotificationAsDismissed(`med_${data.id}_${getTodayDateString()}`);
     }
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    setData(null);
+    showNext();
   };
 
   if (!data) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         key="pill-notification-banner"
@@ -114,7 +137,7 @@ export default function PillNotificationBanner() {
           margin: '0 auto',
           width: isMobile ? 'calc(100% - 24px)' : 'auto',
           maxWidth: '460px',
-          zIndex: 100005,
+          zIndex: 1000001,
           pointerEvents: 'auto'
         }}
       >
@@ -214,7 +237,7 @@ export default function PillNotificationBanner() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <button
               type="button"
-              onClick={handleTakeDose}
+              onClick={data.id && !data.preview ? handleTakeDose : handleDismiss}
               style={{
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
@@ -232,7 +255,7 @@ export default function PillNotificationBanner() {
               }}
             >
               <Check size={14} strokeWidth={2.6} />
-              <span>Take (+5)</span>
+              <span>{data.id && !data.preview ? 'Take (+5)' : 'Dismiss preview'}</span>
             </button>
 
             <button
@@ -258,6 +281,7 @@ export default function PillNotificationBanner() {
           </div>
         </div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -322,7 +322,6 @@ export default function App() {
   useEffect(() => {
     initGlobalHaptics();
     initNativeLifecycle();
-    registerPushNotifications().catch(console.error);
     setupPushListeners();
 
     // Check for email verification / password recovery hash
@@ -393,6 +392,7 @@ export default function App() {
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
         authBootstrapTimer = setTimeout(() => {
+          void registerPushNotifications().catch(error => console.warn('Push registration failed', error));
           // Navigate FIRST based on what's already in localStorage.
           // Do NOT block navigation on network calls (syncProfile, initCaseEngine)
           // because they call supabase.auth.getSession() internally, which can
@@ -718,7 +718,6 @@ export default function App() {
     </SafeRoute>
   );
 }
-
 
 
 

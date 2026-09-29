@@ -26,6 +26,8 @@ import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
+import { rescheduleVitaminNotifications } from '../../services/VitaminScheduleService';
+import { restoreHydrationNotifications } from '../../services/HydrationService';
 import { getUnreadNotificationCount } from '../../services/NotificationEngine';
 import { HCLogo } from '../ui/HCLogo';
 import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
@@ -149,6 +151,8 @@ export default function AppShell() {
     window.addEventListener('keydown', handleKeyDown);
 
     initDailyReminderService((route) => navigate(route));
+    void rescheduleVitaminNotifications();
+    void restoreHydrationNotifications();
     return () => {
       window.removeEventListener('hc_daily_checkin_completed', refreshNotifications);
       window.removeEventListener('hc_profile_updated', refreshNotifications);
@@ -970,7 +974,6 @@ export function ActiveCaseBar({ navigate }: any) {
 function BrandPulseBanner() {
   return null;
 }
-
 
 
 

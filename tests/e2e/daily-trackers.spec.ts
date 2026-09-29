@@ -174,3 +174,49 @@ test('dashboard refreshes when account scope changes and restores isolated value
   await expect(page.getByRole('button', { name: 'Daily Hydration - Open intake tracker' })).toContainText(/250\s*\/\s*2,000 ml/);
   await expect(page.getByRole('button', { name: /Daily Meds & Vitamins -/ })).toContainText('1 dose remaining');
 });
+
+test('notification drawer actions record a dose and a glass in the shared trackers', async ({ page }) => {
+  await seedProfile(page);
+  await page.getByRole('button', { name: 'View notifications' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Daily Notifications and Care Reminders' });
+  await drawer.getByRole('button', { name: 'Mark Taken: Scheduled: Metformin' }).click();
+  await drawer.getByRole('button', { name: '+1 Glass: Cellular Hydration Rhythm' }).click();
+  const saved = await page.evaluate(async () => {
+    const vitaminsPath = '/src/services/VitaminScheduleService.ts';
+    const hydrationPath = '/src/services/HydrationService.ts';
+    const vitamins = await import(/* @vite-ignore */ vitaminsPath);
+    const hydration = await import(/* @vite-ignore */ hydrationPath);
+    return { taken: vitamins.getVitaminSchedule()[0].takenToday, water: hydration.getHydrationData().currentMl };
+  });
+  expect(saved).toEqual({ taken: true, water: 250 });
+});
+
+test('in-app dose banner reads the shared profile schedule at the saved minute', async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 8, 29, 8, 59, 55) });
+  await page.reload();
+  await seedProfile(page);
+  await page.evaluate(async () => {
+    const path = '/src/services/VitaminScheduleService.ts'; const service = await import(/* @vite-ignore */ path);
+    await service.saveVitaminSchedule([{ ...service.getVitaminSchedule()[0], time: '09:00' }]);
+  });
+  await page.clock.runFor(26000);
+  await expect(page.getByText('PILL ALERT', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Take (+5)' }).click();
+  await expect(page.getByText('PILL ALERT', { exact: true })).toHaveCount(0);
+  const taken = await page.evaluate(async () => {
+    const path = '/src/services/VitaminScheduleService.ts'; return (await import(/* @vite-ignore */ path)).getVitaminSchedule()[0].takenToday;
+  });
+  expect(taken).toBe(true);
+});
+
+test('a test alert previews the pill banner without recording a dose', async ({ page }) => {
+  await seedProfile(page);
+  await page.getByRole('button', { name: /Daily Meds & Vitamins -/ }).click();
+  await page.getByRole('button', { name: 'Test Alert' }).click();
+  await expect(page.getByText('PILL ALERT', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Dismiss preview' }).click();
+  const taken = await page.evaluate(async () => {
+    const path = '/src/services/VitaminScheduleService.ts'; return (await import(/* @vite-ignore */ path)).getVitaminSchedule()[0].takenToday;
+  });
+  expect(taken).toBe(false);
+});

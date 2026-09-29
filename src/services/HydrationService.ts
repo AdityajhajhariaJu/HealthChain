@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
 import { triggerHapticLight, triggerHapticSuccess } from './haptics';
 import { awardPoints } from './VitalityPointsEngine';
-import { requestNotificationPermission } from './DailyCheckinNotificationService';
+import { ensureNotificationChannel, hasNativeNotificationPermission, NOTIFICATION_CHANNEL_ID, requestNotificationPermission } from './NotificationDeviceService';
 import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
 
 export interface HydrationLogItem {
@@ -213,7 +213,7 @@ export function setHydrationTarget(targetMl: number): void {
  * Schedule recurring hydration reminders throughout daytime hours (09:00 - 21:00)
  */
 let reminderQueue: Promise<unknown> = Promise.resolve();
-export function setHydrationReminders(enabled: boolean, intervalHours: number = 2): Promise<boolean> {
+export function setHydrationReminders(enabled: boolean, intervalHours: number = 2, requestPermission = true): Promise<boolean> {
   const scope = scopedKey(STORAGE_KEY_REMINDERS);
   const run = async () => {
     if (scope !== scopedKey(STORAGE_KEY_REMINDERS)) return false;
@@ -222,13 +222,15 @@ export function setHydrationReminders(enabled: boolean, intervalHours: number = 
     try {
       if (Capacitor.isNativePlatform()) {
         await LocalNotifications.cancel({ notifications: Array.from({ length: 13 }, (_, i) => ({ id: NOTIFICATION_BASE_ID + i })) });
-        if (enabled && await requestNotificationPermission() && scope === scopedKey(STORAGE_KEY_REMINDERS)) {
+        if (enabled && await (requestPermission ? requestNotificationPermission() : hasNativeNotificationPermission()) && scope === scopedKey(STORAGE_KEY_REMINDERS)) {
+          await ensureNotificationChannel();
           const hours = Array.from({ length: Math.floor(12 / interval) + 1 }, (_, i) => 9 + i * interval);
           await LocalNotifications.schedule({ notifications: hours.map((hour, index) => ({
             id: NOTIFICATION_BASE_ID + index, title: 'Hydration reminder',
             body: 'Open HealthChain to review your water log.',
+            channelId: NOTIFICATION_CHANNEL_ID,
             schedule: { on: { hour, minute: 0 }, repeats: true, allowWhileIdle: true },
-            extra: { type: 'hydration', scope },
+            extra: { type: 'hydration', route: '/app/today', scope },
           })) });
           active = true;
         }
@@ -255,6 +257,14 @@ export async function cancelHydrationNotifications(): Promise<void> {
   }
 }
 
+/** Restore device alarms after app startup or an OS permission change. */
+export async function restoreHydrationNotifications(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  const enabled = getItemSync(scopedKey(STORAGE_KEY_REMINDERS)) === 'true';
+  const interval = Number(getItemSync(scopedKey(STORAGE_KEY_INTERVAL))) || 2;
+  await setHydrationReminders(enabled, interval, false);
+}
+
 if (typeof window !== 'undefined') {
   window.addEventListener('hc_logout', () => { reminderQueue = reminderQueue.then(cancelHydrationNotifications); });
   let lastScope = '';
@@ -263,7 +273,7 @@ if (typeof window !== 'undefined') {
     if (nextScope !== lastScope) {
       lastScope = nextScope;
       const data = getHydrationData();
-      void setHydrationReminders(data.remindersEnabled, data.reminderIntervalHours);
+      void setHydrationReminders(data.remindersEnabled, data.reminderIntervalHours, false);
     }
   });
 }
