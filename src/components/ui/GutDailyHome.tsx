@@ -183,7 +183,7 @@ export const GutDailyHome: React.FC<Props> = ({ snapshot, observations, initialT
   const linkedReport = recentReports.find((item) => item.payload.kind === 'symptom' && item.payload.explicitMealIds?.some((id) => recentMeals.some((meal) => meal.id === id)));
   const linkedMeal = linkedReport?.payload.kind === 'symptom' ? recentMeals.find((meal) => linkedReport.payload.kind === 'symptom' && linkedReport.payload.explicitMealIds?.includes(meal.id)) : null;
 
-  return <div className="gdh">
+  return <div className="gdh" data-page={page}>
     {inlineSource && <GutSourceRecord source={inlineSource} meals={snapshot.meals} days={snapshot.days} onBack={() => setInlineSource(null)} onOpenDate={onOpenRecords} />}
     <div hidden={!!inlineSource}>
     <div className="gdh-page-head"><div className="gdh-kicker">{page === 'log' ? '01 / QUICK LOG' : page === 'understanding' ? '02 / YOUR UNDERSTANDING' : page === 'research' ? '03 / MY RESEARCH' : page === 'week' ? '04 / WEEKLY REVIEW' : 'YOUR INSIGHT / ONE STEP AT A TIME'}</div><button type="button" onClick={() => onOpenRecords()} className="gdh-history"><History size={15} /> History</button></div>
