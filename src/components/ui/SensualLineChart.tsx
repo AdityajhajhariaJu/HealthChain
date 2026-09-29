@@ -7,7 +7,7 @@ export interface SensualLineChartProps {
   data?: number[];
 }
 
-export const SensualLineChart: React.FC<SensualLineChartProps> = ({ data: propData }) => {
+export const SensualLineChart: React.FC<SensualLineChartProps> = React.memo(({ data: propData }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   
   const chartData = useMemo(() => {
@@ -53,23 +53,33 @@ export const SensualLineChart: React.FC<SensualLineChartProps> = ({ data: propDa
   const height = 140;
   const padding = 20;
 
-  const points = data.map((val, i) => ({
-    x: padding + (i * (width - padding * 2)) / (data.length - 1),
-    y: height - padding - (val / max) * (height - padding * 2)
-  }));
+  // Memoize path generation to avoid expensive calculations on activeIndex changes (scrubbing)
+  // Expected impact: smoother scrubbing interactions and reduced CPU cycles during re-renders
+  const { points, pathData, areaData } = useMemo(() => {
+    const calculatedPoints = data.map((val, i) => ({
+      x: padding + (i * (width - padding * 2)) / (data.length - 1),
+      y: height - padding - (val / max) * (height - padding * 2)
+    }));
 
-  // Create smooth bezier curve path
-  const pathData = points.reduce((acc, point, i, a) => {
-    if (i === 0) return `M ${point.x},${point.y}`;
-    const prev = a[i - 1];
-    const cp1x = prev.x + (point.x - prev.x) / 2;
-    const cp1y = prev.y;
-    const cp2x = point.x - (point.x - prev.x) / 2;
-    const cp2y = point.y;
-    return `${acc} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${point.x},${point.y}`;
-  }, '');
+    // Create smooth bezier curve path
+    const calculatedPathData = calculatedPoints.reduce((acc, point, i, a) => {
+      if (i === 0) return `M ${point.x},${point.y}`;
+      const prev = a[i - 1];
+      const cp1x = prev.x + (point.x - prev.x) / 2;
+      const cp1y = prev.y;
+      const cp2x = point.x - (point.x - prev.x) / 2;
+      const cp2y = point.y;
+      return `${acc} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${point.x},${point.y}`;
+    }, '');
 
-  const areaData = `${pathData} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`;
+    const calculatedAreaData = `${calculatedPathData} L ${calculatedPoints[calculatedPoints.length - 1].x},${height} L ${calculatedPoints[0].x},${height} Z`;
+
+    return {
+      points: calculatedPoints,
+      pathData: calculatedPathData,
+      areaData: calculatedAreaData
+    };
+  }, [data, width, height, padding, max]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100px', marginTop: '8px' }}>
@@ -133,4 +143,4 @@ export const SensualLineChart: React.FC<SensualLineChartProps> = ({ data: propDa
       </svg>
     </div>
   );
-};
+});
