@@ -7,17 +7,39 @@
 .gr-visit-primary:disabled{opacity:.55;cursor:not-allowed}
 .gr-visit-detail section>button{transition:border-color .15s ease,background .15s ease}
 .gr-visit-detail section>button:hover{border-color:#e79eb1!important;background:#fff8fa!important}
+.gr-modal-dialog > main {
+  scroll-padding-top: 16px;
+  scroll-padding-bottom: 75px;
+}
+
 @media(max-width:600px){
   .gr-modal-backdrop{padding:0 !important;display:flex !important;align-items:stretch !important;}
   .gr-modal-dialog{width:100% !important;height:100% !important;height:100dvh !important;max-height:100dvh !important;border-radius:0 !important;border:0 !important;box-shadow:none !important;}
-  .gr-modal-header{padding:11px 14px !important;gap:10px !important;}
-  .gr-modal-dialog main{padding:10px 12px !important;}
+  .gr-modal-header{
+    padding-top:max(16px, env(safe-area-inset-top, 24px)) !important;
+    padding-left:max(16px, env(safe-area-inset-left, 16px)) !important;
+    padding-right:max(16px, env(safe-area-inset-right, 16px)) !important;
+    padding-bottom:12px !important;
+    min-height:calc(56px + env(safe-area-inset-top, 24px)) !important;
+    gap:12px !important;
+  }
+  .gr-modal-header > span:first-child{width:36px !important;height:36px !important;border-radius:11px !important;flex-shrink:0 !important;}
+  .gr-modal-header h1{font-size:20px !important;line-height:1.2 !important;}
+  .gr-modal-header button[aria-label="Close Gut Health"]{width:38px !important;height:38px !important;min-height:38px !important;border-radius:50% !important;flex-shrink:0 !important;}
+  .gr-modal-dialog > main{
+    padding-top:12px !important;
+    padding-left:max(16px, env(safe-area-inset-left, 16px)) !important;
+    padding-right:max(16px, env(safe-area-inset-right, 16px)) !important;
+    padding-bottom:max(24px, env(safe-area-inset-bottom, 24px)) !important;
+    scroll-padding-top:max(16px, env(safe-area-inset-top, 24px));
+    scroll-padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom, 24px)));
+  }
   .gr-modal-footer{display:none !important;}
-  .gr-visit-primary{width:100%}
+  .gr-visit-primary{width:100%;}
 }
-@media(max-width:400px){.gr-modal-header{gap:8px!important;padding:9px 11px!important}.gr-modal-header>span:first-child{width:32px!important;height:32px!important;border-radius:9px!important}.gr-modal-header>span:first-child svg{width:17px}.gr-modal-header h1{font-size:17px!important}.gr-modal-header button{font-size:10px!important;padding:6px!important;min-height:32px!important}.gr-modal-header button[aria-label="Close Gut Health"]{width:32px!important}.gr-modal-privacy{display:none!important}.gr-modal-footer{font-size:9px!important;padding:6px 10px!important}}
 .gr-support-page { background: #fffefa; border: 1.5px solid #15375c; border-radius: 15px; padding: 16px; color: #15375c; }
 .gr-support-heading { font-family: Inter,Arial,sans-serif; letter-spacing: -.035em; }
 .gr-support-page .gr-visit-primary { background: #ff575d; border-color: #ff575d; }
 .gr-support-page summary { color: #15375c; }
+
 
