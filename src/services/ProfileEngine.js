@@ -1,3 +1,4 @@
+import { normalizeMedications, mergeLegacyMedicationSchedule } from './MedicationScheduleModel';
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
@@ -294,6 +295,15 @@ export function getProfile() {
       };
     }
 
+    // Read the old local schedule until the next profile save commits the shared inventory.
+    let legacySchedule = [];
+    if (!profile.medicationScheduleLinked && getItemSync(`hc_medication_schedule_linked:${getProfileKey()}:${state.activeId}`) !== 'true') {
+      try {
+        legacySchedule = JSON.parse(getItemSync(`healthchain_vitamins_schedule_v2:${getProfileKey()}:${state.activeId}`) || '[]');
+      } catch { /* Keep the profile usable when legacy storage is malformed. */ }
+    }
+    profile.medications = mergeLegacyMedicationSchedule(profile.medications, legacySchedule);
+
     // Auto-sync from Diet profile if available
     try {
       const dietData = getItemSync(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
@@ -335,6 +345,8 @@ export async function saveProfile(profile) {
     profile.demographics.updatedAt = nowIso;
     profile.updatedAt = nowIso;
 
+    profile.medications = normalizeMedications(profile.medications);
+    profile.medicationScheduleLinked = true;
     state.profiles[state.activeId] = profile;
     const stateStr = JSON.stringify(state);
     
@@ -351,6 +363,7 @@ export async function saveProfile(profile) {
     }
 
     setItemSync(getProfileKey(), stateStr);
+    setItemSync(`hc_medication_schedule_linked:${getProfileKey()}:${state.activeId}`, 'true');
     
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
@@ -583,7 +596,7 @@ export function removeCondition(condition) {
 
 export function addMedication(med, source = 'manual') {
   const profile = getProfile();
-  const exists = profile.medications.find((m) => m.name === med.name);
+  const exists = profile.medications.find((m) => m.name.toLowerCase() === med.name.trim().toLowerCase());
   if (!exists) {
     profile.medications.push({ 
       ...med, 
@@ -611,7 +624,7 @@ export function addAllergy(allergy) {
 
 export function removeAllergy(allergy) {
   const profile = getProfile();
-  profile.allergies = profile.allergies.filter((a) => a !== allergy);
+  profile.allergies = profile.allergies.filter((a) => (typeof a === 'string' ? a : a.name) !== allergy);
   saveProfile(profile);
 }
 

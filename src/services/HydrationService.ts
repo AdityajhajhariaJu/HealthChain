@@ -24,6 +24,7 @@ export interface HydrationDayData {
 
 const STORAGE_PREFIX = 'healthchain_hydration_data_';
 const STORAGE_KEY_TARGET = 'healthchain_hydration_target_ml';
+const STORAGE_KEY_INTERVAL = 'healthchain_hydration_reminder_interval';
 const STORAGE_KEY_REMINDERS = 'healthchain_hydration_reminders_enabled';
 const NOTIFICATION_BASE_ID = 3000;
 
@@ -48,22 +49,29 @@ export function formatTimeAmPm(date: Date = new Date()): string {
  * Retrieve current hydration state for a date, auto-syncing with Dietician storage if present.
  */
 export function getHydrationData(date: string = getTodayDateString()): HydrationDayData {
-  const targetMl = parseInt(getItemSync(scopedKey(STORAGE_KEY_TARGET)) || '2000', 10);
-  const remindersEnabled = getItemSync(scopedKey(STORAGE_KEY_REMINDERS)) !== 'false';
+  const savedTarget = Number(getItemSync(scopedKey(STORAGE_KEY_TARGET)));
+  const targetMl = Number.isFinite(savedTarget) && savedTarget > 0 ? savedTarget : 2000;
+  const remindersEnabled = Capacitor.isNativePlatform() && getItemSync(scopedKey(STORAGE_KEY_REMINDERS)) === 'true';
+  const interval = Number(getItemSync(scopedKey(STORAGE_KEY_INTERVAL))) || 2;
 
   let currentData: HydrationDayData = {
     date,
     currentMl: 0,
     targetMl,
     logs: [],
-    reminderIntervalHours: 2,
+    reminderIntervalHours: interval,
     remindersEnabled
   };
 
   try {
     const raw = getItemSync(scopedKey(`${STORAGE_PREFIX}${date}`));
     if (raw) {
-      currentData = { ...currentData, ...JSON.parse(raw) };
+      const saved = JSON.parse(raw);
+      const logs = Array.isArray(saved?.logs) ? saved.logs.filter((log: any) => log && typeof log.id === 'string' && Number.isFinite(log.amountMl) && log.amountMl > 0) : [];
+      currentData = { ...currentData, logs,
+        currentMl: Number.isFinite(saved?.currentMl) && saved.currentMl >= 0 ? saved.currentMl : logs.reduce((sum: number, log: HydrationLogItem) => sum + log.amountMl, 0),
+        targetMl: date === getTodayDateString() ? targetMl : (Number.isFinite(saved?.targetMl) && saved.targetMl > 0 ? saved.targetMl : targetMl),
+      };
     }
   } catch (err) {
     // fallback to default
@@ -105,6 +113,7 @@ export function addWaterLog(
   type: HydrationLogItem['type'] = 'water',
   date: string = getTodayDateString()
 ): HydrationDayData {
+  if (!Number.isFinite(amountMl) || amountMl <= 0) return getHydrationData(date);
   const current = getHydrationData(date);
   const wasBelowTarget = current.currentMl < current.targetMl;
 
@@ -168,6 +177,7 @@ export function adjustWaterAmount(
   type: HydrationLogItem['type'] = 'water',
   date: string = getTodayDateString()
 ): HydrationDayData {
+  if (!Number.isFinite(deltaMl) || deltaMl === 0) return getHydrationData(date);
   if (deltaMl >= 0) return addWaterLog(deltaMl, type, date);
 
   const current = getHydrationData(date);
@@ -191,6 +201,7 @@ export function adjustWaterAmount(
  * Update daily hydration target (e.g. 2000ml, 2500ml, 3000ml)
  */
 export function setHydrationTarget(targetMl: number): void {
+  if (!Number.isFinite(targetMl) || targetMl <= 0) return;
   setItemSync(scopedKey(STORAGE_KEY_TARGET), targetMl.toString());
   const today = getTodayDateString();
   const current = getHydrationData(today);
@@ -201,62 +212,42 @@ export function setHydrationTarget(targetMl: number): void {
 /**
  * Schedule recurring hydration reminders throughout daytime hours (09:00 - 21:00)
  */
-export async function setHydrationReminders(enabled: boolean, intervalHours: number = 2): Promise<boolean> {
-  setItemSync(scopedKey(STORAGE_KEY_REMINDERS), enabled ? 'true' : 'false');
-  const today = getTodayDateString();
-  const current = getHydrationData(today);
-  saveHydrationData({ ...current, remindersEnabled: enabled, reminderIntervalHours: intervalHours });
-
-  if (!Capacitor.isNativePlatform()) {
-    return enabled;
-  }
-
-  try {
-    // Cancel existing hydration reminders
-    const cancelIds = [
-      NOTIFICATION_BASE_ID,
-      NOTIFICATION_BASE_ID + 1,
-      NOTIFICATION_BASE_ID + 2,
-      NOTIFICATION_BASE_ID + 3,
-      NOTIFICATION_BASE_ID + 4,
-      NOTIFICATION_BASE_ID + 5,
-      NOTIFICATION_BASE_ID + 6
-    ];
-    await LocalNotifications.cancel({ notifications: cancelIds.map(id => ({ id })) });
-
-    if (!enabled) {
-      return false;
-    }
-
-    const hasPermission = await requestNotificationPermission();
-    if (!hasPermission) return false;
-
-    // Daytime check-in slots: 09:00, 11:00, 13:00, 15:00, 17:00, 19:00, 21:00
-    const hours = [9, 11, 13, 15, 17, 19, 21];
-    const notifications = hours.map((hour, idx) => ({
-      id: NOTIFICATION_BASE_ID + idx,
-      title: 'Hydration Check 💧',
-      body: 'Time for a fresh glass of water to support cellular clearance and blood osmolality.',
-      schedule: {
-        on: { hour, minute: 0 },
-        repeats: true,
-        allowWhileIdle: true
-      },
-      sound: 'default',
-      extra: { type: 'hydration' }
-    }));
-
-    await LocalNotifications.schedule({ notifications });
-    return true;
-  } catch (err) {
-    console.warn('[HydrationService] Failed to schedule notifications:', err);
-    return false;
-  }
+let reminderQueue: Promise<unknown> = Promise.resolve();
+export function setHydrationReminders(enabled: boolean, intervalHours: number = 2): Promise<boolean> {
+  const scope = scopedKey(STORAGE_KEY_REMINDERS);
+  const run = async () => {
+    if (scope !== scopedKey(STORAGE_KEY_REMINDERS)) return false;
+    const interval = Number.isInteger(intervalHours) && intervalHours >= 1 && intervalHours <= 12 ? intervalHours : 2;
+    let active = false;
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: Array.from({ length: 13 }, (_, i) => ({ id: NOTIFICATION_BASE_ID + i })) });
+        if (enabled && await requestNotificationPermission() && scope === scopedKey(STORAGE_KEY_REMINDERS)) {
+          const hours = Array.from({ length: Math.floor(12 / interval) + 1 }, (_, i) => 9 + i * interval);
+          await LocalNotifications.schedule({ notifications: hours.map((hour, index) => ({
+            id: NOTIFICATION_BASE_ID + index, title: 'Hydration reminder',
+            body: 'Open HealthChain to review your water log.',
+            schedule: { on: { hour, minute: 0 }, repeats: true, allowWhileIdle: true },
+            extra: { type: 'hydration', scope },
+          })) });
+          active = true;
+        }
+      }
+    } catch (error) { console.warn('[HydrationService] Could not schedule reminders', error); }
+    if (scope !== scopedKey(STORAGE_KEY_REMINDERS)) { await cancelHydrationNotifications(); return false; }
+    setItemSync(scope, String(active));
+    setItemSync(scopedKey(STORAGE_KEY_INTERVAL), String(interval));
+    saveHydrationData({ ...getHydrationData(), remindersEnabled: active, reminderIntervalHours: interval });
+    return active;
+  };
+  const result = reminderQueue.then(run, run);
+  reminderQueue = result;
+  return result;
 }
 
 export async function cancelHydrationNotifications(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
-  const notifications = Array.from({ length: 7 }, (_, index) => ({ id: NOTIFICATION_BASE_ID + index }));
+  const notifications = Array.from({ length: 13 }, (_, index) => ({ id: NOTIFICATION_BASE_ID + index }));
   try {
     await LocalNotifications.cancel({ notifications });
   } catch (error) {
@@ -265,5 +256,14 @@ export async function cancelHydrationNotifications(): Promise<void> {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('hc_logout', () => { void cancelHydrationNotifications(); });
+  window.addEventListener('hc_logout', () => { reminderQueue = reminderQueue.then(cancelHydrationNotifications); });
+  let lastScope = '';
+  window.addEventListener('hc_profile_updated', () => {
+    const nextScope = scopedKey(STORAGE_KEY_REMINDERS);
+    if (nextScope !== lastScope) {
+      lastScope = nextScope;
+      const data = getHydrationData();
+      void setHydrationReminders(data.remindersEnabled, data.reminderIntervalHours);
+    }
+  });
 }

@@ -377,7 +377,7 @@ export function getActiveNotifications(profileId?: string): AppNotification[] {
           destination: '/app/today',
           fallbackDestination: '/app/today',
           actionLabel: 'Mark Taken',
-          createdAt: `${todayStr}T${item.time || '09:00'}:00.000Z`,
+          createdAt: new Date(`${todayStr}T${item.time || '09:00'}:00`).toISOString(),
           isRead: !!state?.isRead,
           isDismissed: !!state?.isDismissed,
           readAt: state?.readAt || null,
@@ -391,8 +391,9 @@ export function getActiveNotifications(profileId?: string): AppNotification[] {
 
   // 5. Hydration Check Notification
   if (prefs.enabledCategories.hydration_check) {
-    const glasses = getWaterGlassesForDate(todayStr, pId);
-    if (glasses < 8) {
+    const hydration = getHydrationData(todayStr);
+    const glasses = Math.floor(hydration.currentMl / 250);
+    if (hydration.currentMl < hydration.targetMl) {
       const id = `hydration_${todayStr}`;
       const state = stateMap[id];
 
@@ -400,7 +401,7 @@ export function getActiveNotifications(profileId?: string): AppNotification[] {
         id,
         category: 'hydration_check',
         title: 'Cellular Hydration Rhythm',
-        body: `${glasses}/8 glasses recorded today. Staying hydrated supports focus and energy.`,
+        body: `${hydration.currentMl.toLocaleString()} / ${hydration.targetMl.toLocaleString()} ml recorded today (${glasses} full glasses).`,
         previewBody: 'HealthChain: Daily hydration check-in.',
         destination: '/app/today',
         fallbackDestination: '/app/today',

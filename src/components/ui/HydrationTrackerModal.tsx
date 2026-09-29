@@ -14,7 +14,8 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { 
-  getHydrationData, 
+  getHydrationData,
+  getTodayDateString,
   addWaterLog, 
   removeWaterLog, 
   setHydrationTarget, 
@@ -72,6 +73,19 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
     }
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const refresh = () => setData(getHydrationData());
+    const events = ['hc_hydration_updated', 'hc_profile_updated', 'storage', 'focus'];
+    events.forEach(event => window.addEventListener(event, refresh));
+    let day = getTodayDateString();
+    const clock = window.setInterval(() => {
+      const next = getTodayDateString();
+      if (next !== day) { day = next; refresh(); }
+    }, 1000);
+    return () => { events.forEach(event => window.removeEventListener(event, refresh)); window.clearInterval(clock); };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currentMl = data.currentMl;
@@ -121,9 +135,9 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   const handleToggleReminders = async () => {
     triggerHapticSelection();
     const nextState = !data.remindersEnabled;
-    await setHydrationReminders(nextState, 2);
+    const active = await setHydrationReminders(nextState, 2);
     setData(getHydrationData());
-    setReminderToast(nextState ? 'Hourly reminders active (9 AM - 9 PM)' : 'Reminders muted');
+    setReminderToast(!nextState ? 'Reminders muted' : active ? 'Reminders every 2 hours (9 AM - 9 PM)' : 'Reminders unavailable. Use the native app and allow notifications.');
     setTimeout(() => setReminderToast(null), 3000);
   };
 
@@ -593,7 +607,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                       Daylight Reminders (9 AM - 9 PM)
                     </span>
                     <p style={{ margin: 0, fontSize: '11px', color: '#78716C' }}>
-                      Gentle hourly nudges to maintain hydration
+                      Every 2 hours; native app notifications required
                     </p>
                   </div>
                 </div>

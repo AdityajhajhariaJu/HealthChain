@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { isMedicationTime } from '../../services/MedicationScheduleModel';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +29,8 @@ import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { 
   getVitaminSchedule, 
-  saveVitaminSchedule, 
+  saveVitaminSchedule,
+  rescheduleVitaminNotifications,
   toggleVitaminTaken, 
   markAllVitaminsTaken,
   triggerPillNotification,
@@ -893,24 +897,35 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     const handleUpdate = () => {
       setVitamins(getVitaminSchedule());
     };
+    let day = getTodayDateString();
+    const clock = window.setInterval(() => { const next = getTodayDateString(); if (day !== next) { day = next; handleUpdate(); } }, 1000);
+    window.addEventListener('focus', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
     window.addEventListener('hc_profile_updated', handleUpdate);
     window.addEventListener('hc_vitamins_updated', handleUpdate);
     return () => {
+      window.clearInterval(clock);
+      window.removeEventListener('focus', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('hc_profile_updated', handleUpdate);
       window.removeEventListener('hc_vitamins_updated', handleUpdate);
     };
   }, []);
 
   const checkPermission = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setHasNotificationPermission(Notification.permission === 'granted');
-    }
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const status = await LocalNotifications.checkPermissions();
+        setHasNotificationPermission(status.display === 'granted');
+      } catch { setHasNotificationPermission(false); }
+    } else setHasNotificationPermission(false);
   };
 
   const handleRequestPermission = async () => {
     triggerHapticLight();
     const granted = await requestNotificationPermission();
     setHasNotificationPermission(granted);
+    if (granted) await rescheduleVitaminNotifications();
   };
 
   const persistSchedule = async (updated: VitaminItem[]) => {
@@ -924,13 +939,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   };
 
   const handleTimeChange = (id: string, newTimeStr: string) => {
-    const next = vitamins.map(v => v.id === id ? { ...v, time: newTimeStr } : v);
+    const next = vitamins.map(v => v.id === id ? { ...v, time: newTimeStr, enabled: isMedicationTime(newTimeStr) && (v.time ? v.enabled : true) } : v);
     persistSchedule(next);
   };
 
   const handleToggleEnabled = (id: string) => {
     triggerHapticLight();
-    const next = vitamins.map(v => v.id === id ? { ...v, enabled: !v.enabled } : v);
+    const next = vitamins.map(v => v.id === id ? { ...v, enabled: isMedicationTime(v.time) && !v.enabled } : v);
     persistSchedule(next);
   };
 
@@ -970,7 +985,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
     triggerHapticSuccess();
     const newItem: VitaminItem = {
-      id: 'vit_' + Date.now(),
+      id: 'vit_' + crypto.randomUUID(),
       name: newName.trim(),
       dosage: newDosage.trim() || 'Directions not entered',
       time: newTime,
@@ -1030,8 +1045,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   if (!isOpen) return null;
 
-  const takenCount = vitamins.filter(v => v.takenToday).length;
-  const allTaken = vitamins.length > 0 && takenCount === vitamins.length;
+  const activeVitamins = vitamins.filter(v => v.enabled);
+  const takenCount = activeVitamins.filter(v => v.takenToday).length;
+  const allTaken = activeVitamins.length > 0 && takenCount === activeVitamins.length;
 
   // Helper to match catalog metadata for any vitamin
   const getPillMeta = (vName: string): EnrichedPillMetadata | undefined => {
@@ -1277,7 +1293,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                     borderRadius: '999px',
                     border: allTaken ? '1px solid #A7F3D0' : '1px solid #F1E5E7'
                   }}>
-                    {takenCount} of {vitamins.length} taken
+                    {takenCount} of {activeVitamins.length} scheduled doses taken
                   </span>
                 </div>
                 <p style={{ margin: '3px 0 0', fontSize: '11.5px', color: '#78716C' }}>
@@ -1325,12 +1341,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Bell size={15} color="#BE123C" />
                   <span style={{ fontSize: '12px', fontWeight: 700, color: '#9F1239' }}>
-                    Enable device notifications for alarms
+                    {Capacitor.isNativePlatform() ? 'Enable device notifications for alarms' : 'Dose tracking works here. Background alarms require the native app.'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleRequestPermission}
+                  disabled={!Capacitor.isNativePlatform()}
                   style={{
                     padding: '5px 12px',
                     borderRadius: '8px',
@@ -1768,7 +1785,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                                   alignItems: 'center',
                                   gap: '3px'
                                 }}>
-                                  {CIRCADIAN_ICONS[slot]} {slot}
+                                  {item.time ? <>{CIRCADIAN_ICONS[slot]} {slot}</> : 'Choose a time'}
                                 </span>
                               </div>
                               <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#78716C', fontWeight: 500, lineHeight: 1.3 }}>
@@ -1818,6 +1835,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                               <input
                                 type="time"
                                 value={item.time}
+                                aria-label={`Reminder time for ${item.name}`}
                                 onChange={(e) => handleTimeChange(item.id, e.target.value)}
                                 style={{
                                   border: 'none',
@@ -1850,7 +1868,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                               }}
                             >
                               {item.enabled ? <Bell size={12} /> : <BellOff size={12} />}
-                              {item.enabled ? 'Alarm' : 'Muted'}
+                              {!item.time ? 'Set time' : item.enabled ? 'Scheduled' : 'Paused'}
                             </button>
                           </div>
 
@@ -1858,6 +1876,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                           <button
                             type="button"
                             onClick={() => handleToggleTaken(item.id, item.name)}
+                            disabled={!item.enabled}
                             style={{
                               display: 'flex',
                               alignItems: 'center',

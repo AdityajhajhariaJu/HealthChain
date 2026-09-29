@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { getActiveProfileScope } from '../../services/profileScope';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
@@ -100,13 +101,18 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
   const [profile, setProfile] = useState(() => getProfile());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const editScope = useRef(getActiveProfileScope());
+  const [editError, setEditError] = useState('');
+
   // Sync profile reactively
   useEffect(() => {
     const handleUpdate = () => {
+      if (editScope.current !== getActiveProfileScope()) setIsEditModalOpen(false);
       setProfile(getProfile());
     };
     window.addEventListener('hc_profile_updated', handleUpdate);
-    return () => window.removeEventListener('hc_profile_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => { window.removeEventListener('hc_profile_updated', handleUpdate); window.removeEventListener('storage', handleUpdate); };
   }, []);
 
   const demographics = profile?.demographics || {};
@@ -118,6 +124,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
     return (profile?.medications || []).map((m: any) => {
       if (typeof m === 'string') return { name: m, circadianSlot: 'morning' as CircadianSlot, dosage: '' };
       return {
+        ...m,
         name: m.name || '',
         dosage: m.dosage || '',
         circadianSlot: (m.circadianSlot || 'morning') as CircadianSlot
@@ -160,36 +167,43 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
   );
 
   // Edit Modal Form State
-  const [editAge, setEditAge] = useState<number>(demographics.age ? Number(demographics.age) : 28);
-  const [editGender, setEditGender] = useState<'Male' | 'Female' | 'Other'>(demographics.gender || 'Male');
-  const [editHeight, setEditHeight] = useState<number>(demographics.height ? Number(demographics.height) : 175);
-  const [editWeight, setEditWeight] = useState<number>(demographics.weight ? Number(demographics.weight) : 72);
+  const [editAge, setEditAge] = useState<number | ''>(demographics.age ? Number(demographics.age) : '');
+  const [editGender, setEditGender] = useState<'' | 'Male' | 'Female' | 'Other'>(demographics.gender || '');
+  const [editHeight, setEditHeight] = useState<number | ''>(demographics.height ? Number(demographics.height) : '');
+  const [editWeight, setEditWeight] = useState<number | ''>(demographics.weight ? Number(demographics.weight) : '');
   const [editConditions, setEditConditions] = useState<string[]>([]);
   const [editCustomCond, setEditCustomCond] = useState<string>('');
-  const [editMeds, setEditMeds] = useState<{ name: string; slot: CircadianSlot; dosage?: string }[]>([]);
+  const [editMeds, setEditMeds] = useState<{ id?: string; name: string; slot: CircadianSlot; dosage?: string }[]>([]);
   const [editAllergies, setEditAllergies] = useState<{ name: string; severity: AllergySeverity }[]>([]);
 
   const openModal = () => {
     triggerHapticSelection();
-    setEditAge(demographics.age ? Number(demographics.age) : 28);
-    setEditGender(demographics.gender || 'Male');
-    setEditHeight(demographics.height ? Number(demographics.height) : 175);
-    setEditWeight(demographics.weight ? Number(demographics.weight) : 72);
+    editScope.current = getActiveProfileScope();
+    setEditError('');
+    setEditAge(demographics.age ? Number(demographics.age) : '');
+    setEditGender(demographics.gender || '');
+    setEditHeight(demographics.height ? Number(demographics.height) : '');
+    setEditWeight(demographics.weight ? Number(demographics.weight) : '');
     setEditConditions([...conditions]);
-    setEditMeds(medications.map(m => ({ name: m.name, slot: m.circadianSlot, dosage: m.dosage })));
+    setEditMeds(medications.map(m => ({ id: m.id, name: m.name, slot: m.circadianSlot, dosage: m.dosage })));
     setEditAllergies(allergies.map(a => ({ name: a.name, severity: a.severity })));
     setIsEditModalOpen(true);
   };
 
   const handleSaveModal = async () => {
+    if (editScope.current !== getActiveProfileScope()) { setIsEditModalOpen(false); return; }
+    if ([editAge, editHeight, editWeight].some(value => value !== '' && (!Number.isFinite(value) || Number(value) <= 0))) {
+      setEditError('Enter positive values or leave unknown measurements blank.'); return;
+    }
     triggerHapticSuccess();
-    const updated = { ...profile };
+    const updated = { ...getProfile() };
     
     // Compute BMI
-    const hM = editHeight / 100;
-    const computedBmi = Math.round((editWeight / (hM * hM)) * 10) / 10;
-    let bmiCategory = 'Normal';
-    if (computedBmi < 18.5) bmiCategory = 'Underweight';
+    const hM = Number(editHeight) / 100;
+    const computedBmi = editHeight && editWeight ? Math.round((Number(editWeight) / (hM * hM)) * 10) / 10 : null;
+    let bmiCategory = '';
+    if (computedBmi === null) bmiCategory = '';
+    else if (computedBmi < 18.5) bmiCategory = 'Underweight';
     else if (computedBmi <= 24.9) bmiCategory = 'Normal';
     else if (computedBmi <= 29.9) bmiCategory = 'Overweight';
     else bmiCategory = 'Obese';
@@ -206,11 +220,14 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
     updated.conditions = editConditions;
     updated.medications = editMeds.map(m => ({
+      ...(updated.medications || []).find((original: any) => m.id ? original.id === m.id : original.name === m.name),
       name: m.name,
-      dosage: m.dosage || 'As prescribed',
+      dosage: m.dosage || '',
       circadianSlot: m.slot,
     }));
-    updated.allergies = editAllergies;
+    updated.allergies = editAllergies.map(a => ({
+      ...(updated.allergies || []).find((original: any) => original?.name === a.name), ...a,
+    }));
 
     await saveProfile(updated);
     setIsEditModalOpen(false);
@@ -405,7 +422,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                   const slotMeta = CIRCADIAN_SLOT_META[m.circadianSlot] || CIRCADIAN_SLOT_META.morning;
                   return (
                     <span
-                      key={m.name}
+                      key={m.id || m.name}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -638,6 +655,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
               {/* Modal Body */}
               <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {editError && <p role="alert">{editError}</p>}
                 {/* 1. Biometrics */}
                 <div>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
@@ -648,8 +666,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Age</label>
                       <input
                         type="number"
+                        aria-label="Age"
                         value={editAge}
-                        onChange={(e) => setEditAge(Number(e.target.value))}
+                        onChange={(e) => setEditAge(e.target.value === '' ? '' : Number(e.target.value))}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
                       />
                     </div>
@@ -660,6 +679,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         onChange={(e) => setEditGender(e.target.value as any)}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
                       >
+                        <option value="">Not entered</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
@@ -669,8 +689,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Height (cm)</label>
                       <input
                         type="number"
+                        aria-label="Height"
                         value={editHeight}
-                        onChange={(e) => setEditHeight(Number(e.target.value))}
+                        onChange={(e) => setEditHeight(e.target.value === '' ? '' : Number(e.target.value))}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
                       />
                     </div>
@@ -678,8 +699,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Weight (kg)</label>
                       <input
                         type="number"
+                        aria-label="Weight"
                         value={editWeight}
-                        onChange={(e) => setEditWeight(Number(e.target.value))}
+                        onChange={(e) => setEditWeight(e.target.value === '' ? '' : Number(e.target.value))}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
                       />
                     </div>
@@ -768,8 +790,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 {/* 3. Chrono-Medications */}
                 <div>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                    3. Regular Medications & Timing ({editMeds.length})
+                    3. Regular Medications ({editMeds.length})
                   </h4>
+                  <p style={{ fontSize: '12px', color: '#64748B' }}>This list is shared with Daily Meds &amp; Vitamins. Enter exact reminder times there; a time of day here does not schedule a dose.</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {PRESET_MEDS_LIST.map((m) => {
                       const active = editMeds.find(item => item.name === m.name);
@@ -785,7 +808,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                               setEditMeds(prev => {
                                 const exists = prev.find(item => item.name === m.name);
                                 if (exists) return prev.filter(item => item.name !== m.name);
-                                return [...prev, { name: m.name, slot: m.slot, dosage: 'Standard' }];
+                                return [...prev, { name: m.name, slot: m.slot, dosage: '' }];
                               });
                             }}
                             style={{
@@ -809,7 +832,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             <Pill size={11} /> {m.name}
                             {isSelected && <Check size={11} color="#0D9488" strokeWidth={2.8} />}
                           </button>
-                          {isSelected && active && (
+                          {isSelected && active && !medications.some(med => med.name === m.name && med.time) && (
                             <div style={{ display: 'flex', gap: 2 }}>
                               {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
                                 const isCurrent = active.slot === slot;

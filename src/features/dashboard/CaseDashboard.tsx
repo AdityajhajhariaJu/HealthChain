@@ -348,18 +348,28 @@ export default function CaseDashboard() {
   useEffect(() => {
     const handleHabitsUpdated = () => {
       try {
-        const stored = getItemSync(getHabitStorageKey(todayDateStr));
-        if (stored) setCompletedHabits(JSON.parse(stored));
+        const stored = getItemSync(getHabitStorageKey(getTodayDateString()));
+        setCompletedHabits(stored ? JSON.parse(stored) : {});
       } catch {
         // ignore
       }
       setVitaminSchedule(getVitaminSchedule());
       setHydrationData(getHydrationData());
     };
+    let lastDay = getTodayDateString();
+    const clock = window.setInterval(() => {
+      const day = getTodayDateString();
+      if (day !== lastDay) { lastDay = day; handleHabitsUpdated(); }
+    }, 1000);
+    window.addEventListener('focus', handleHabitsUpdated);
+    window.addEventListener('hc_profile_updated', handleHabitsUpdated);
     window.addEventListener('hc_vitamins_updated', handleHabitsUpdated);
     window.addEventListener('hc_hydration_updated', handleHabitsUpdated);
     window.addEventListener('storage', handleHabitsUpdated);
     return () => {
+      window.clearInterval(clock);
+      window.removeEventListener('focus', handleHabitsUpdated);
+      window.removeEventListener('hc_profile_updated', handleHabitsUpdated);
       window.removeEventListener('hc_vitamins_updated', handleHabitsUpdated);
       window.removeEventListener('hc_hydration_updated', handleHabitsUpdated);
       window.removeEventListener('storage', handleHabitsUpdated);
@@ -741,8 +751,8 @@ export default function CaseDashboard() {
                         {isWaterGoal ? (
                           <span style={{ fontWeight: 700, color: '#0284C7' }}>
                             {waterMl > targetWaterMl
-                              ? `✓ Goal surpassed (+${(waterMl - targetWaterMl).toLocaleString()} ml extra) • Gut mucosa optimal`
-                              : '✓ Daily hydration goal reached • Gut mucosa optimal'}
+                              ? `✓ Goal surpassed (+${(waterMl - targetWaterMl).toLocaleString()} ml extra) • Daily water goal reached`
+                              : '✓ Daily hydration goal reached • Daily water goal reached'}
                           </span>
                         ) : (
                           `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today (${remainingWaterMl.toLocaleString()} ml to goal)`
@@ -934,13 +944,9 @@ export default function CaseDashboard() {
               {(() => {
                 const activeVitamins = vitaminSchedule.filter(v => v.enabled !== false);
                 const hasConfiguredMeds = activeVitamins.length > 0;
-                const totalRxDoses = hasConfiguredMeds ? activeVitamins.length : 1;
-                const takenRxDoses = hasConfiguredMeds
-                  ? activeVitamins.filter(v => Boolean(v.takenToday)).length
-                  : (completedHabits['vitamins'] ? 1 : 0);
-                const isRxDone = hasConfiguredMeds
-                  ? (totalRxDoses > 0 && takenRxDoses >= totalRxDoses)
-                  : Boolean(completedHabits['vitamins']);
+                const totalRxDoses = activeVitamins.length;
+                const takenRxDoses = activeVitamins.filter(v => Boolean(v.takenToday)).length;
+                const isRxDone = totalRxDoses > 0 && takenRxDoses === totalRxDoses;
                 const rxPct = totalRxDoses > 0 ? Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100)) : 0;
                 const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
                 const ringRadius = 29;
@@ -1398,7 +1404,7 @@ export default function CaseDashboard() {
           <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
             <FeatureProfileDataBanner
               featureName="Daily Circadian Tracker"
-              contextMessage="Medication schedule, adherence tracking, and nutrient depletion alerts."
+              contextMessage="Shared medication list, daily dose tracking, and saved health details."
               accentColor="#0D9488"
             />
           </div>

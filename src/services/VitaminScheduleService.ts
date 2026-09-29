@@ -1,3 +1,5 @@
+import { getProfile, saveProfile } from './ProfileEngine';
+import { isMedicationTime, normalizeMedications } from './MedicationScheduleModel';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
@@ -19,7 +21,6 @@ const NOTIFICATION_BASE_ID = 2000;
 
 const scopedKey = getScopedStorageKey;
 
-const DEFAULT_VITAMINS: VitaminItem[] = [];
 
 export function getTodayDateString(): string {
   const now = new Date();
@@ -30,30 +31,14 @@ export function getTodayDateString(): string {
  * Retrieve the saved vitamins schedule, with today's taken status merged in.
  */
 export function getVitaminSchedule(): VitaminItem[] {
-  let list: VitaminItem[] = [];
-  try {
-    const raw = getItemSync(scopedKey(STORAGE_KEY_VITAMINS));
-    if (raw) {
-      list = JSON.parse(raw);
-      // Self-healing migration: strip out any legacy hardcoded mock pill demo seeds
-      if (Array.isArray(list) && list.some(i => ['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id))) {
-        list = list.filter(i => !['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id));
-        setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(list));
-      }
-    } else {
-      list = [];
-      setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(list));
-    }
-  } catch (e) {
-    list = [];
-  }
+  const list: VitaminItem[] = normalizeMedications(getProfile().medications);
 
   // Merge today's taken logs
   const today = getTodayDateString();
   let takenMap: Record<string, boolean> = {};
   try {
     const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
-    if (rawLogs) takenMap = JSON.parse(rawLogs);
+    if (rawLogs) { const parsed = JSON.parse(rawLogs); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; }
   } catch {}
 
   return list.map(item => ({
@@ -66,14 +51,21 @@ export function getVitaminSchedule(): VitaminItem[] {
  * Save the updated vitamins schedule and re-schedule alarms.
  */
 export async function saveVitaminSchedule(items: VitaminItem[]): Promise<void> {
-  setItemSync(scopedKey(STORAGE_KEY_VITAMINS), JSON.stringify(items));
+  const profile = getProfile();
+  const normalized = normalizeMedications(items);
+  profile.medications = normalized.map(item => ({
+    ...(profile.medications || []).find((med: any) => med.id === item.id), ...item,
+  }));
+  // saveProfile writes locally and broadcasts before its optional cloud work.
+  void saveProfile(profile);
+  items = normalized;
 
   // Sync today's completion state
   const today = getTodayDateString();
   let takenMap: Record<string, boolean> = {};
   try {
     const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
-    if (rawLogs) takenMap = JSON.parse(rawLogs);
+    if (rawLogs) { const parsed = JSON.parse(rawLogs); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; }
   } catch {}
 
   const enabledItems = items.filter(v => v.enabled !== false);
@@ -87,12 +79,12 @@ export async function saveVitaminSchedule(items: VitaminItem[]): Promise<void> {
     setItemSync(habitKey, JSON.stringify(habits));
   } catch {}
 
-  await rescheduleVitaminNotifications(items);
+  void rescheduleVitaminNotifications(items);
 
-  // Re-fetch latest logs to avoid racing with synchronous toggleVitaminTaken operations during async scheduling
+  // Read the current daily status after the profile update has been broadcast.
   try {
     const latestRawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
-    if (latestRawLogs) takenMap = JSON.parse(latestRawLogs);
+    if (latestRawLogs) { const parsed = JSON.parse(latestRawLogs); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; }
   } catch {}
 
   const updatedWithLogs = items.map(item => ({
@@ -111,9 +103,10 @@ export function toggleVitaminTaken(id: string): boolean {
   let takenMap: Record<string, boolean> = {};
   try {
     const rawLogs = getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`));
-    if (rawLogs) takenMap = JSON.parse(rawLogs);
+    if (rawLogs) { const parsed = JSON.parse(rawLogs); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; }
   } catch {}
 
+  if (!getVitaminSchedule().some(item => item.id === id && item.enabled && isMedicationTime(item.time))) return false;
   const nextState = !takenMap[id];
   takenMap[id] = nextState;
   setItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`), JSON.stringify(takenMap));
@@ -143,7 +136,8 @@ export function toggleVitaminTaken(id: string): boolean {
 export function markAllVitaminsTaken(): void {
   const today = getTodayDateString();
   const all = getVitaminSchedule();
-  const takenMap: Record<string, boolean> = {};
+  let takenMap: Record<string, boolean> = {};
+  try { const parsed = JSON.parse(getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`)) || '{}'); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; } catch {}
   all.forEach(v => {
     if (v.enabled !== false) takenMap[v.id] = true;
   });
@@ -166,15 +160,24 @@ export function markAllVitaminsTaken(): void {
 }
 
 /**
- * Reschedules native or web notifications for all enabled vitamins.
+ * Reschedules native notifications for enabled medicines with valid reminder times.
  */
-export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Promise<void> {
+let notificationQueue: Promise<void> = Promise.resolve();
+export function rescheduleVitaminNotifications(items?: VitaminItem[]): Promise<void> {
+  const scope = scopedKey(STORAGE_KEY_VITAMINS);
   const list = items || getVitaminSchedule();
+  const run = async () => {
+    if (scope !== scopedKey(STORAGE_KEY_VITAMINS)) return;
+    await scheduleNativeVitamins(list, scope);
+  };
+  notificationQueue = notificationQueue.then(run, run);
+  return notificationQueue;
+}
+
+async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promise<void> {
 
   try {
     if (Capacitor.isNativePlatform()) {
-      const hasPermission = await requestNotificationPermission();
-      if (!hasPermission) return;
 
       // Cancel previous vitamin alarms (IDs 2000 to 2099)
       const cancelIds = Array.from({ length: 100 }, (_, i) => ({ id: NOTIFICATION_BASE_ID + i }));
@@ -182,10 +185,14 @@ export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Pro
         await LocalNotifications.cancel({ notifications: cancelIds });
       } catch {}
 
+      if (!list.some(item => item.enabled && isMedicationTime(item.time))) return;
+      const hasPermission = await requestNotificationPermission();
+      if (!hasPermission || scope !== scopedKey(STORAGE_KEY_VITAMINS)) return;
+
       // Schedule active vitamins
       const notificationsToSchedule: any[] = [];
       list.forEach((item, index) => {
-        if (!item.enabled) return;
+        if (!item.enabled || !isMedicationTime(item.time) || index >= 100) return;
         const [hourStr, minuteStr] = (item.time || '09:00').split(':');
         const hour = parseInt(hourStr || '9', 10);
         const minute = parseInt(minuteStr || '0', 10);
@@ -212,11 +219,6 @@ export async function rescheduleVitaminNotifications(items?: VitaminItem[]): Pro
         await LocalNotifications.schedule({ notifications: notificationsToSchedule });
         console.info(`[VitaminSchedule] Scheduled ${notificationsToSchedule.length} native tablet alarms.`);
       }
-    } else {
-      // In web, request permission if available
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        await requestNotificationPermission();
-      }
     }
   } catch (err) {
     console.warn('[VitaminSchedule] Failed to schedule tablet alarms:', err);
@@ -232,7 +234,23 @@ export async function cancelVitaminNotifications(): Promise<void> {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('hc_logout', () => { void cancelVitaminNotifications(); });
+  window.addEventListener('hc_logout', () => { notificationQueue = notificationQueue.then(cancelVitaminNotifications); });
+  let lastSignature = '';
+  const refreshNotifications = () => {
+    const schedule = getVitaminSchedule();
+    // Baseline edits also change daily completion; recompute the shared habit immediately.
+    try {
+      const key = getHabitStorageKey(getTodayDateString());
+      const habits = JSON.parse(getItemSync(key) || '{}') || {};
+      const active = schedule.filter(item => item.enabled);
+      habits.vitamins = active.length > 0 && active.every(item => item.takenToday);
+      setItemSync(key, JSON.stringify(habits));
+    } catch { /* The schedule remains usable if old habit storage is malformed. */ }
+    const signature = JSON.stringify([scopedKey(STORAGE_KEY_VITAMINS), schedule.map(({ takenToday, ...item }) => item)]);
+    if (signature !== lastSignature) { lastSignature = signature; void rescheduleVitaminNotifications(schedule); }
+  };
+  window.addEventListener('hc_profile_updated', refreshNotifications);
+  window.addEventListener('storage', refreshNotifications);
 }
 
 /**
