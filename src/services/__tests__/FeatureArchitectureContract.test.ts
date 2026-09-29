@@ -60,7 +60,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
       'What patterns occur in my food logs?'
     );
     expect(getFeatureContract('elimination-suite').uniqueQuestion).toBe(
-      'How do I follow and document this selected plan?'
+      'What did I record during an existing food challenge?'
     );
     expect(getFeatureContract('clinical-trials').uniqueQuestion).toBe(
       'What relevant research can I investigate?'

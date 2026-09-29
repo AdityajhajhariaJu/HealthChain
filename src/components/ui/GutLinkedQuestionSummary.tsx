@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Utensils } from 'lucide-react';
 import { getGutSnapshot, mergeGutSnapshotWithObservations } from '../../services/GutHealthSummary';
-import { listObservations } from '../../services/HealthObservationService';
+import { listObservationHistory } from '../../services/HealthObservationService';
 import { deriveGutEvidence, listGutThreads } from '../../services/GutResolutionService';
 import { getGutConcernDate } from '../../services/GutCurrentConcernService';
 import './GutLinkedQuestionSummary.css';
@@ -20,7 +20,7 @@ export const GutLinkedQuestionSummary: React.FC<Props> = ({ threadId, profileId,
       const thread = listGutThreads().find((item) => item.id === threadId && item.profileId === profileId);
       if (!thread) { if (active) setSummary(<p>This Gut question is unavailable in the current profile. Its earlier Case Prep text remains a patient question.</p>); return; }
       try {
-        const snapshot = mergeGutSnapshotWithObservations(getGutSnapshot(), await listObservations());
+        const snapshot = mergeGutSnapshotWithObservations(getGutSnapshot(), await listObservationHistory());
         if (!active) return;
         if (thread.intent === 'now') {
           const date = getGutConcernDate(thread);

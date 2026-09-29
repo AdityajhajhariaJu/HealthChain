@@ -8,7 +8,7 @@ test('Diet Plan opens without a runtime failure', async ({ page }) => {
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
-    localStorage.setItem('hc_unified_profile_guest', JSON.stringify({
+    localStorage.setItem('hc_unified_profile_guest', JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: {
       id: 'profile_1',
       demographics: { age: 35, gender: 'male', height: 175, weight: 70 },
       conditions: [],
@@ -29,7 +29,7 @@ test('Diet Plan opens without a runtime failure', async ({ page }) => {
         hydration: {},
         groceryList: [],
       },
-    }));
+    } } }));
   });
   await page.route(/https:\/\//, route => route.abort());
 

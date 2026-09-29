@@ -42,7 +42,7 @@ export const PLAN_STOP_REASON_LABELS: Record<PlanStopReason, string> = {
 };
 
 export const PORTION_ESTIMATE_DISCLAIMER =
-  'Nutritional values are calculated estimates based on Indian Food Composition Tables (IFCT/NIN) and standard household portions. Actual values vary with specific brands, cooking methods, and individual absorption.';
+  'Meal nutrient numbers are AI estimates without a verified ingredient and portion breakdown. They may differ substantially from the food prepared or eaten.';
 
 export const NON_CAUSAL_TIMING_DISCLAIMER =
   'Observed symptom timings represent chronological associations, not proven biological causation. Stress, sleep disruption, gut motility, hydration, and concurrent medications can independently trigger symptoms.';
@@ -84,6 +84,9 @@ export interface MealPlanItem {
   swapRationale?: string;
   userEdited?: boolean;
   macrosNeedReview?: boolean;
+  ingredients?: Array<{ name: string; amount: number; unit: 'g' | 'ml' | 'piece'; verified?: boolean }>;
+  steps?: string[];
+  prepMinutes?: number;
 }
 
 export interface DayPlanItem {
@@ -142,10 +145,18 @@ export function normalizeMealItem(rawMeal: any, index: number): MealPlanItem {
     ? rawMeal.servingMultiplier
     : 1.0;
 
-  const baseCalories = Number(rawMeal.baseCalories || rawMeal.calories) || 300;
-  const baseProtein = Number(rawMeal.baseProtein || rawMeal.protein) || 15;
-  const baseCarbs = Number(rawMeal.baseCarbs || rawMeal.carbs) || 40;
-  const baseFat = Number(rawMeal.baseFat || rawMeal.fat) || 10;
+  const readNutrient = (base: unknown, current: unknown): number | null => {
+    const candidate = base ?? current;
+    return typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0 ? candidate : null;
+  };
+  const nutrientValues = [
+    readNutrient(rawMeal.baseCalories, rawMeal.calories),
+    readNutrient(rawMeal.baseProtein, rawMeal.protein),
+    readNutrient(rawMeal.baseCarbs, rawMeal.carbs),
+    readNutrient(rawMeal.baseFat, rawMeal.fat),
+  ];
+  const macrosNeedReview = Boolean(rawMeal.macrosNeedReview) || nutrientValues.some((value) => value === null);
+  const [baseCalories, baseProtein, baseCarbs, baseFat] = nutrientValues.map((value) => value ?? 0);
 
   return {
     id: getStableMealId(rawMeal, index),
@@ -167,7 +178,14 @@ export function normalizeMealItem(rawMeal: any, index: number): MealPlanItem {
     originalName: rawMeal.originalName || rawMeal.swappedFrom,
     swapRationale: rawMeal.swapRationale,
     userEdited: Boolean(rawMeal.userEdited),
-    macrosNeedReview: Boolean(rawMeal.macrosNeedReview),
+    macrosNeedReview,
+    ingredients: Array.isArray(rawMeal.ingredients) ? rawMeal.ingredients
+      .filter((ingredient: any) => typeof ingredient?.name === 'string' && ingredient.name.trim() &&
+        Number.isFinite(ingredient.amount) && ingredient.amount > 0 && ['g', 'ml', 'piece'].includes(ingredient.unit))
+      .map((ingredient: any) => ({ name: ingredient.name.trim(), amount: ingredient.amount,
+        unit: ingredient.unit, verified: ingredient.verified === true })) : undefined,
+    steps: Array.isArray(rawMeal.steps) ? rawMeal.steps.filter((step: unknown) => typeof step === 'string' && step.trim()).map((step: string) => step.trim()) : undefined,
+    prepMinutes: Number.isFinite(rawMeal.prepMinutes) && rawMeal.prepMinutes > 0 ? rawMeal.prepMinutes : undefined,
   };
 }
 
@@ -179,10 +197,10 @@ export function normalizeDayItem(rawDay: any, dayIdx: number): DayPlanItem {
   const rawMeals = Array.isArray(rawDay.meals) ? rawDay.meals : [];
   const meals = rawMeals.map((m: any, mIdx: number) => normalizeMealItem(m, mIdx));
 
-  const total_calories = meals.reduce((acc, m) => acc + (m.calories || 0), 0);
-  const total_protein = meals.reduce((acc, m) => acc + (m.protein || 0), 0);
-  const total_carbs = meals.reduce((acc, m) => acc + (m.carbs || 0), 0);
-  const total_fat = meals.reduce((acc, m) => acc + (m.fat || 0), 0);
+  const total_calories = meals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.calories), 0);
+  const total_protein = meals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.protein), 0);
+  const total_carbs = meals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.carbs), 0);
+  const total_fat = meals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.fat), 0);
 
   return {
     day: dayNum,
@@ -285,10 +303,10 @@ export function updateMealServing(
       };
     });
 
-    const total_calories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
-    const total_protein = updatedMeals.reduce((acc, m) => acc + m.protein, 0);
-    const total_carbs = updatedMeals.reduce((acc, m) => acc + m.carbs, 0);
-    const total_fat = updatedMeals.reduce((acc, m) => acc + m.fat, 0);
+    const total_calories = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.calories), 0);
+    const total_protein = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.protein), 0);
+    const total_carbs = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.carbs), 0);
+    const total_fat = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.fat), 0);
 
     return {
       ...day,
@@ -317,7 +335,8 @@ export function editMealContent(
   plan: FullMealPlan,
   dayNumber: number,
   mealId: string,
-  updates: { name?: string; portion?: string; description?: string; calories?: number; protein?: number; carbs?: number; fat?: number }
+  updates: { name?: string; portion?: string; description?: string; calories?: number; protein?: number; carbs?: number; fat?: number;
+    ingredients?: MealPlanItem['ingredients']; steps?: string[]; prepMinutes?: number }
 ): FullMealPlan {
   const updatedDays = plan.days.map((day) => {
     if (day.day !== dayNumber) return day;
@@ -335,6 +354,11 @@ export function editMealContent(
         name: updates.name !== undefined ? updates.name.trim() : meal.name,
         portion: updates.portion !== undefined ? updates.portion.trim() : (meal.portion || '1 serving'),
         description: updates.description !== undefined ? updates.description.trim() : meal.description,
+        ingredients: updates.ingredients !== undefined ? updates.ingredients :
+          updates.name !== undefined && updates.name.trim() !== meal.name ? [] : meal.ingredients,
+        steps: updates.steps !== undefined ? updates.steps :
+          updates.name !== undefined && updates.name.trim() !== meal.name ? [] : meal.steps,
+        prepMinutes: updates.steps?.length === 0 ? undefined : updates.prepMinutes !== undefined ? updates.prepMinutes : meal.prepMinutes,
         baseCalories,
         baseProtein,
         baseCarbs,
@@ -344,13 +368,15 @@ export function editMealContent(
         carbs: Math.round(baseCarbs * meal.servingMultiplier),
         fat: Math.round(baseFat * meal.servingMultiplier),
         userEdited: true,
+        macrosNeedReview: meal.macrosNeedReview && !(['calories', 'protein', 'carbs', 'fat'] as const).every((key) =>
+          typeof updates[key] === 'number' && Number.isFinite(updates[key]) && updates[key]! >= 0),
       };
     });
 
-    const total_calories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
-    const total_protein = updatedMeals.reduce((acc, m) => acc + m.protein, 0);
-    const total_carbs = updatedMeals.reduce((acc, m) => acc + m.carbs, 0);
-    const total_fat = updatedMeals.reduce((acc, m) => acc + m.fat, 0);
+    const total_calories = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.calories), 0);
+    const total_protein = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.protein), 0);
+    const total_carbs = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.carbs), 0);
+    const total_fat = updatedMeals.reduce((acc, m) => acc + (m.macrosNeedReview ? 0 : m.fat), 0);
 
     return {
       ...day,
@@ -391,18 +417,24 @@ export function applyMealClinicalSwap(
         ...meal,
         name: swap.smartReplacement,
         description: `${swap.replacementDetails} (Substituted for: ${meal.name})`,
+        baseCalories: 0, baseProtein: 0, baseCarbs: 0, baseFat: 0,
+        calories: 0, protein: 0, carbs: 0, fat: 0,
         isSwapped: true,
         swappedFrom: meal.name,
         originalName: meal.name,
         swapRationale: swap.biologicalMechanism,
         userEdited: true,
         macrosNeedReview: true,
+        ingredients: [], steps: [], prepMinutes: undefined,
       };
     });
 
     return {
-      ...day,
-      meals: updatedMeals,
+      ...day, meals: updatedMeals,
+      total_calories: updatedMeals.reduce((sum, item) => sum + (item.macrosNeedReview ? 0 : item.calories), 0),
+      total_protein: updatedMeals.reduce((sum, item) => sum + (item.macrosNeedReview ? 0 : item.protein), 0),
+      total_carbs: updatedMeals.reduce((sum, item) => sum + (item.macrosNeedReview ? 0 : item.carbs), 0),
+      total_fat: updatedMeals.reduce((sum, item) => sum + (item.macrosNeedReview ? 0 : item.fat), 0),
     };
   });
 
@@ -505,7 +537,7 @@ export function archiveCurrentPlan(
     archivedAt: new Date().toISOString(),
   };
 
-  return [archivedCurrent, ...filtered.slice(0, 19)];
+  return [archivedCurrent, ...filtered];
 }
 
 export interface FactualDietObservationSummary {

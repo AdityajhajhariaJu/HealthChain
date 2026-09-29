@@ -1022,6 +1022,16 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                             portionGrams,
                             foodType: food.foodType,
                             nutritionBasis: food.foodType === 'packaged' ? 'label_photo_per_100g' : 'meal_estimate_per_100g',
+                            originalNutritionBasis: analysis.nutritionBasis,
+                            originalServingGrams: analysis.servingGrams,
+                            originalLabelNutrients: food.foodType === 'packaged' ? {
+                              calories: analysis.calories, protein: analysis.protein, carbs: analysis.carbs,
+                              fat: analysis.fats, sugar: analysis.sugar, fibre: analysis.fibre, sodium: analysis.sodium,
+                            } : undefined,
+                            per100Nutrients: {
+                              calories: food.calories, protein: food.protein, carbs: food.carbs,
+                              fat: food.fats, sugar: food.sugar, fibre: food.fibre, sodium: food.sodium,
+                            },
                             type: mealType,
                           });
                           if (saved !== true) throw new Error('Meal was not saved');

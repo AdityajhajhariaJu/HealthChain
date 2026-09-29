@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Activity, ArrowRight, CalendarDays, Clipboard, FileText, ShieldCheck, Sparkles, Utensils, X } from 'lucide-react';
 import { getGutSnapshot, formatGutVisitNote, mergeGutSnapshotWithObservations, summarizeRecordedBloating } from '../../services/GutHealthSummary';
-import { listObservations } from '../../services/HealthObservationService';
+import { listObservationHistory } from '../../services/HealthObservationService';
 import type { Observation } from '../../domain/observations/types';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
@@ -37,7 +37,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
     let active = true;
     const refresh = async () => {
       setBaseSnapshot(getGutSnapshot());
-      try { const records = await listObservations(); if (active) setObservations(records); }
+      try { const records = await listObservationHistory(); if (active) setObservations(records); }
       catch { if (active) setObservations([]); }
     };
     void refresh();
@@ -48,7 +48,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
 
   const refreshData = async () => {
     setBaseSnapshot(getGutSnapshot());
-    try { setObservations(await listObservations()); } catch { setObservations([]); }
+    try { setObservations(await listObservationHistory()); } catch { setObservations([]); }
   };
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   const openThread = (id: string) => { setOpenThreadId(id); setTab('studio'); mainRef.current?.scrollTo(0, 0); };
   const openSource = (source: GutSourceReference) => {
     setBaseSnapshot(getGutSnapshot());
-    void listObservations().then(setObservations).catch(() => setObservations([]));
+    void listObservationHistory().then(setObservations).catch(() => setObservations([]));
     setSelectedSource(source); setHistoryInitialDate(null); setTab('records'); mainRef.current?.scrollTo(0, 0);
   };
   const copyVisitNote = async () => {
@@ -114,6 +114,6 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
         </div>
       </div>
     </FocusTrap>
-    <QuickMealIntakeSheet simple isOpen={quickMealOpen} onClose={() => setQuickMealOpen(false)} onMealLogged={() => { setBaseSnapshot(getGutSnapshot()); void listObservations().then(setObservations).catch(() => setObservations([])); }} />
+    <QuickMealIntakeSheet simple isOpen={quickMealOpen} onClose={() => setQuickMealOpen(false)} onMealLogged={() => { setBaseSnapshot(getGutSnapshot()); void listObservationHistory().then(setObservations).catch(() => setObservations([])); }} />
   </>, document.body);
 };

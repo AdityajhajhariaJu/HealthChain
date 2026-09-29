@@ -40,12 +40,16 @@ test('pack scan saves only the amount eaten and avoids unsupported claims', asyn
   await expect(lens).toHaveCount(0);
   const saved = await page.evaluate(async () => {
     const engine = await import(/* @vite-ignore */ '/src/services/ProfileEngine.js');
-    const profile = engine.getProfile();
-    return { nutrition: profile.nutrition.recentLogs.at(-1), diary: Object.values(profile.dietFoodLogs || {}).flat().at(-1) };
+    const meals = await import(/* @vite-ignore */ '/src/services/MealCommandService.ts');
+    const observations = await import(/* @vite-ignore */ '/src/services/HealthObservationService.ts');
+    return { legacyCount: engine.getProfile().nutrition.recentLogs.length,
+      diary: Object.values(await meals.listMealDiary()).flat().at(-1),
+      observation: (await observations.listObservations()).find((item: any) => item.payload.kind === 'meal') };
   });
-  expect(saved.nutrition.calories).toBe(288);
+  expect(saved.legacyCount).toBe(0);
   expect(saved.diary.calories).toBe(288);
-  expect(saved.diary.portion).toBe('60g consumed');
+  expect(saved.diary.portionGrams).toBe(60);
+  expect(saved.observation.payload.nutritionAssessment.originalBasis).toMatchObject({ kind: 'per_serving', metricServing: { value: 30, unit: 'g' } });
 });
 
 test('incomplete AI output cannot be logged', async ({ page }) => {
@@ -88,7 +92,10 @@ test('meal with unknown portion waits for an entered weight', async ({ page }) =
 });
 
 test('dietician entry point saves the same portion math', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('hc_unified_profile_guest', JSON.stringify({ demographics: { name: 'Test', age: 28, height: 172, weight: 70 } })));
+  await page.addInitScript(() => localStorage.setItem('hc_unified_profile_guest', JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: {
+    demographics: { name: 'Test', age: 28, height: 172, weight: 70 },
+    dietician: { profile: { age: 28, height: 172, weight: 70, goal: 'Maintain', activityLevel: 'moderate', gender: 'male', restrictions: [] }, foodLogs: {}, hydration: {}, groceryList: [] },
+  } } })));
   await page.route('**/api/gemini', route => route.fulfill({ status: 200, contentType: 'application/json', body: modelResult({
     detected: true, foodName: 'Lunch Plate', foodType: 'meal', nutritionBasis: 'per_100g', portionGrams: 370,
     calories: 138, protein: 4.2, carbs: 25.8, fats: 2.3, sugar: 1.1, fibre: 2.9, sodium: 185,
@@ -109,10 +116,11 @@ test('dietician entry point saves the same portion math', async ({ page }) => {
   await expect(lens).toHaveCount(0);
   const saved = await page.evaluate(async () => {
     const engine = await import(/* @vite-ignore */ '/src/services/ProfileEngine.js');
-    const profile = engine.getProfile();
-    return { nutrition: profile.nutrition.recentLogs.at(-1), diary: Object.values(profile.dietFoodLogs || {}).flat().at(-1) };
+    const meals = await import(/* @vite-ignore */ '/src/services/MealCommandService.ts');
+    return { legacyCount: engine.getProfile().nutrition.recentLogs.length,
+      diary: Object.values(await meals.listMealDiary()).flat().at(-1) };
   });
-  expect(saved.nutrition.calories).toBe(276);
+  expect(saved.legacyCount).toBe(0);
   expect(saved.diary.calories).toBe(276);
-  expect(saved.diary.portion).toBe('200g consumed');
+  expect(saved.diary.portionGrams).toBe(200);
 });

@@ -54,7 +54,8 @@ import { AnimatedTrackThumbnail } from '../../components/ui/AnimatedTrackThumbna
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getHabitStorageKey } from '../../services/profileScope';
 
-import { getProfile, addNutritionLog, removeNutritionLog, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { getProfile } from '../../services/ProfileEngine';
+import { createMeal } from '../../services/MealCommandService';
 import { useToast } from '../../components/ui/ToastProvider';
 
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
@@ -1621,46 +1622,20 @@ export default function CaseDashboard() {
       {showARLens && (
         <ARGroceryLens
           onClose={() => setShowARLens(false)}
-          onLogFood={(food) => {
-            let savedId: string | null = null;
+          onLogFood={async (food) => {
             try {
               const todayStr = getTodayDateString();
-              const core = getProfile();
-              if (!core) return false;
               const entryId = crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-              // 1. Unified Nutrition Log for Ava & Clinical Engine
-              savedId = addNutritionLog({
-                id: entryId,
-                meal: food.name,
-                calories: food.calories || 0,
-                protein: food.protein || 0,
-                carbs: food.carbs || 0,
-                fat: food.fat || 0,
-                sugar: food.sugar || 0,
-                fibre: food.fibre || 0,
-                type: food.type || 'Meal',
-                date: todayStr,
-              });
-              if (!savedId) return false;
-
-              // 2. Persist to Diet Diary so it immediately appears in /dietician
-              const existingLogs = core.dietFoodLogs || core.dietician?.foodLogs || {};
-              const updatedLogs = { ...existingLogs };
-              updatedLogs[todayStr] = [...(updatedLogs[todayStr] || []), { ...food, id: entryId, date: todayStr }];
-              updateProfileFeatureData('dietFoodLogs', updatedLogs);
-              if (core.dietician) {
-                updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
-              }
-              if (!getProfile()?.dietFoodLogs?.[todayStr]?.some((item: any) => item.id === entryId)) throw new Error('Diary record was not saved');
-
-              window.dispatchEvent(new Event('hc_profile_updated'));
+              const saved = await createMeal({ localDate: todayStr,
+                entry: { ...food, id: entryId, name: String(food.name || '').trim(),
+                  nutritionSource: food.nutritionBasis || 'photo_estimate' }, captureMethod: 'clinical_lens' });
+              if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
               triggerHapticSuccess();
-              toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary.`);
+              if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Food saved on this device, but cloud sync could not be queued.');
+              else toast.success('Food saved locally', `Added "${food.name}" to the shared meal diary.`);
               return true;
             } catch (e) {
               console.warn('Failed to log food from dashboard:', e);
-              if (savedId) removeNutritionLog(savedId);
               return false;
             }
           }}

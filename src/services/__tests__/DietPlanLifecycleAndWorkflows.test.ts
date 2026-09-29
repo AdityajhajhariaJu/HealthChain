@@ -300,8 +300,9 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
       expect(NON_CAUSAL_TIMING_DISCLAIMER).toContain('chronological associations, not proven biological causation');
     });
 
-    it('clarifies that nutrient numbers are nutritional reference estimates, not chemical assay', () => {
-      expect(PORTION_ESTIMATE_DISCLAIMER).toContain('calculated estimates');
+    it('does not claim an unverified nutrient table was calculated from a reference source', () => {
+      expect(PORTION_ESTIMATE_DISCLAIMER).toContain('AI estimates');
+      expect(PORTION_ESTIMATE_DISCLAIMER).toContain('without a verified ingredient and portion breakdown');
     });
 
     it('strictly guards against medication washouts and extreme caloric restriction', () => {

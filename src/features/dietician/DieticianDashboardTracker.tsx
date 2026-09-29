@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight, Info, Lightbulb, Calendar } from 'lucide-react';
+import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, Edit2, ArrowRight, Info, Lightbulb, Calendar } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
+import { getHydrationData } from '../../services/HydrationService';
 
 export function DieticianDashboardTracker({ 
   profile, 
@@ -11,6 +12,7 @@ export function DieticianDashboardTracker({
   waterGlasses = 0,
   onLogMeal, 
   onDeleteMeal,
+  onEditMeal,
   onUpdateHydration,
   onSnap, 
   onOpenSettings,
@@ -21,7 +23,14 @@ export function DieticianDashboardTracker({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  const targetCalories = profile?.targetCalories || 1850;
+  const hasTarget = Number.isFinite(profile?.targetCalories) && profile.targetCalories > 0;
+  const targetCalories = hasTarget ? profile.targetCalories : 0;
+  const hydrationToday = getHydrationData(currentDate);
+  const dailyMeals: any[] = Array.isArray(foodLogs[currentDate]) ? foodLogs[currentDate] : [];
+  const hasUnknownNutrition = dailyMeals.some((meal) =>
+    ['calories', 'protein', 'carbs', 'fat'].some((key) => !Number.isFinite(meal[key])));
+  const displayNutrient = (value: unknown, unit = '') =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? `${value}${unit}` : 'Unknown';
   
     const consumed = Array.isArray(foodLogs[currentDate]) 
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.calories || 0), 0)
@@ -39,11 +48,11 @@ export function DieticianDashboardTracker({
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.fat || log.fats || 0), 0)
     : 0;
     
-  const targetProtein = profile?.targetProtein || 135;
-  const targetCarbs = profile?.targetCarbs || 200;
-  const targetFats = profile?.targetFat || 75;
-  const targetSugar = profile?.targetSugar || 30;
-  const targetFibre = profile?.targetFibre || 25;
+  const targetProtein = profile?.targetProtein || 0;
+  const targetCarbs = profile?.targetCarbs || 0;
+  const targetFats = profile?.targetFat || 0;
+  const targetSugar = profile?.targetSugar || 0;
+  const targetFibre = profile?.targetFibre || 0;
   
   const consumedSugar = Array.isArray(foodLogs[currentDate]) 
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.sugar || 0), 0)
@@ -126,7 +135,7 @@ export function DieticianDashboardTracker({
             </div>
             <div>
               <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Diet & Goals</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Target: {targetCalories} kcal • {targetProtein}g Protein</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{hasTarget ? `Estimated target: ${targetCalories} kcal` : 'No calorie target set'}</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{profile?.goal || 'Maintain Weight'}</div>
             </div>
           </div>
@@ -145,14 +154,14 @@ export function DieticianDashboardTracker({
             </div>
             <div>
               <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Hydration</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{waterGlasses * 250}ml of 2,000ml (Target: 8 glasses)</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>{waterGlasses} / 8 Glasses</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Shared Today hydration goal</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>{hydrationToday.currentMl.toLocaleString()} / {hydrationToday.targetMl.toLocaleString()} ml</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               onClick={() => onUpdateHydration && onUpdateHydration(-1)}
-              disabled={waterGlasses <= 0}
+              disabled={hydrationToday.currentMl <= 0}
               style={{
                 width: '32px',
                 height: '32px',
@@ -163,8 +172,8 @@ export function DieticianDashboardTracker({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: waterGlasses <= 0 ? 'not-allowed' : 'pointer',
-                opacity: waterGlasses <= 0 ? 0.4 : 1,
+                cursor: hydrationToday.currentMl <= 0 ? 'not-allowed' : 'pointer',
+                opacity: hydrationToday.currentMl <= 0 ? 0.4 : 1,
               }}
               title="Remove glass"
               aria-label="Remove 1 glass of water"
@@ -213,13 +222,14 @@ export function DieticianDashboardTracker({
             paddingBottom: '16px',
             scrollbarWidth: 'none',
             WebkitOverflowScrolling: 'touch'}}>
-          <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
+          {hasTarget ? <><CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
           <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
-          <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />
-          <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />
+          {targetSugar > 0 && <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />}
+          {targetFibre > 0 && <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />}
           <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" trackColor="#FEF3C7" title="Fats" subtitle={`${targetFats}g`} />
-          <CircularProgress value={consumed} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} />
+          <CircularProgress value={consumed} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} /></> : <div style={{ color: '#334155', fontSize: '13px', padding: '10px' }}>No nutrition targets set. You can still record what you ate.</div>}
           </div>
+          {hasUnknownNutrition && <div role="status" style={{ color: '#475569', fontSize: '12px', padding: '0 8px' }}>Some meals have unknown nutrition. Totals and progress include only recorded estimates.</div>}
         </div>
 
       {/* 3. Quick Actions */}
@@ -238,7 +248,7 @@ export function DieticianDashboardTracker({
         </button>
       </div>
 
-      {/* Ava Clinical Nutritionist Bridge Banner */}
+      {/* Ava source-linked discussion bridge */}
       <div style={{
         background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
         borderRadius: '20px',
@@ -256,11 +266,11 @@ export function DieticianDashboardTracker({
             <Sparkles size={20} color="#38BDF8" />
           </div>
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>Ava Clinical Nutritionist</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>Discuss your food records with Ava</div>
             <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-              {consumed === 0
-                ? 'Ask for personalized Indian meal suggestions tailored to your biomarkers'
-                : `${consumed} / ${targetCalories} kcal logged • Review macro split & glycemic index balance`}
+              {dailyMeals.length === 0
+                ? 'Ask what information is missing from your food records'
+                : `${consumed} kcal in recorded estimates${hasTarget ? ` of ${targetCalories} kcal planning target` : ''}${hasUnknownNutrition ? ' • Some values unknown' : ''}`}
             </div>
           </div>
         </div>
@@ -271,7 +281,7 @@ export function DieticianDashboardTracker({
               state: {
                 returnTo: '/app/dietician?tab=dashboard',
                 returnLabel: 'Back to Diet Dashboard',
-                initialPrompt: `Hi Ava, here is my daily nutrition intake for today: Consumed ${consumed} kcal (Target: ${targetCalories} kcal), Protein: ${Math.round(consumedProtein)}g / ${targetProtein}g, Carbs: ${Math.round(consumedCarbs)}g / ${targetCarbs}g, Fats: ${Math.round(consumedFats)}g / ${targetFats}g, Fibre: ${Math.round(consumedFibre)}g / ${targetFibre}g, Hydration: ${waterGlasses} / 8 glasses. What adjustments should I make for remaining meals according to my health goals?`
+                initialPrompt: `Help me review today's user-entered food records and their missing or estimated values. The screen shows ${consumed} kcal, ${Math.round(consumedProtein)}g protein, ${Math.round(consumedCarbs)}g carbs, and ${Math.round(consumedFats)}g fat from available estimates only${hasUnknownNutrition ? '; at least one meal has unknown nutrition, so these are incomplete subtotals' : ''}${hasTarget ? ` against an optional ${targetCalories} kcal planning estimate` : ' with no calorie target set'}. Shared hydration is ${hydrationToday.currentMl} of ${hydrationToday.targetMl} ml. Do not treat these numbers as verified or give condition-specific treatment advice.`
               }
             });
           }}
@@ -422,13 +432,14 @@ export function DieticianDashboardTracker({
         {mealConfig.map((meal, idx) => {
           const mealBudget = Math.round(targetCalories * meal.percent);
           const mealConsumed = getConsumedForMeal(meal.name);
+          const loggedMeals = dailyMeals.filter((entry) => isLogForMeal(entry, meal.name));
           
           return (
             <div key={idx}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>{meal.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{mealConsumed} of {mealBudget} Cal</span>
+                  <span style={{ fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{hasTarget ? `${mealConsumed} known of ${mealBudget} estimated kcal` : `${mealConsumed} known kcal`}{loggedMeals.some((entry) => !Number.isFinite(entry.calories)) ? ' + unknown' : ''}</span>
                   <button 
                     type="button"
                     aria-label={`Log meal for ${meal.name}`}
@@ -440,7 +451,7 @@ export function DieticianDashboardTracker({
                 </div>
               </div>
               
-              {mealConsumed === 0 && (
+              {loggedMeals.length === 0 && (
                 <div 
                   onClick={() => onLogMeal(meal.name)} 
                   role="button"
@@ -466,17 +477,33 @@ export function DieticianDashboardTracker({
                 </div>
               )}
 
-              {mealConsumed > 0 && Array.isArray(foodLogs[currentDate]) && foodLogs[currentDate].filter((l: any) => isLogForMeal(l, meal.name)).map((log: any, idx2: number) => (
+              {loggedMeals.map((log: any, idx2: number) => (
                   <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
                     <div style={{ flex: 1, minWidth: '160px' }}>
                       <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, color: '#EF4444' }}>🔥 {log.calories} kcal</span>
-                        <span style={{ fontWeight: 600, color: '#10B981' }}>🥩 {log.protein || 0}g P</span>
-                        <span style={{ fontWeight: 600, color: '#3B82F6' }}>🍚 {log.carbs || 0}g C</span>
-                        <span style={{ fontWeight: 600, color: '#F59E0B' }}>🥑 {log.fat || log.fats || 0}g F</span>
+                        <span style={{ fontWeight: 700, color: '#EF4444' }}>🔥 {displayNutrient(log.calories, ' kcal')}</span>
+                        <span style={{ fontWeight: 600, color: '#10B981' }}>🥩 {displayNutrient(log.protein, 'g')} P</span>
+                        <span style={{ fontWeight: 600, color: '#3B82F6' }}>🍚 {displayNutrient(log.carbs, 'g')} C</span>
+                        <span style={{ fontWeight: 600, color: '#F59E0B' }}>🥑 {displayNutrient(log.fat ?? log.fats, 'g')} F</span>
                         {(log.fibre || log.fiber) ? <span style={{ fontWeight: 600, color: '#8B5CF6' }}>🌾 {log.fibre || log.fiber}g Fibre</span> : null}
                       </div>
+                      {log.nutritionSource === 'package_label' && log.per100Nutrients && (
+                        <div style={{ fontSize: '11px', color: '#475569', marginTop: '5px' }}>
+                          Label photo · per 100 g: {displayNutrient(log.per100Nutrients.calories, ' kcal')} ·
+                          {' '}{displayNutrient(log.per100Nutrients.protein, ' g')} protein ·
+                          {' '}{displayNutrient(log.per100Nutrients.carbs, ' g')} carbs ·
+                          {' '}{displayNutrient(log.per100Nutrients.fat, ' g')} fat.
+                          {' '}Transcription unverified; check the package.
+                          {log.originalNutritionBasis === 'per_serving' && log.originalServingGrams ? ` Printed basis: per ${log.originalServingGrams} g serving.` : ''}
+                        </div>
+                      )}
+                      {log.nutritionStatus === 'estimated' && (
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>Estimate; confirm the portion and ingredients.</div>
+                      )}
+                      {log.nutritionStatus === 'unknown' && (
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>Nutrition unknown; this meal is still recorded.</div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
@@ -486,7 +513,7 @@ export function DieticianDashboardTracker({
                             state: {
                               returnTo: '/app/dietician?tab=dashboard',
                               returnLabel: 'Back to Diet Dashboard',
-                              initialPrompt: `Hi Ava, I logged "${log.name}" (${log.calories} kcal, ${log.protein || 0}g protein, ${log.carbs || 0}g carbs, ${log.fat || log.fats || 0}g fat). What are its clinical glycemic index impact and micronutrient benefits for my metabolic profile?`
+                              initialPrompt: `I logged "${log.name}" with an estimated ${log.calories ?? 'unknown'} kcal. Explain what is recorded, what is uncertain about the portion or ingredients, and what source or label detail I could check. Do not infer a glycemic response or clinical benefit.`
                             }
                           });
                         }}
@@ -509,6 +536,13 @@ export function DieticianDashboardTracker({
                       >
                         <Sparkles size={13} /> Ava Review
                       </button>
+                      {onDeleteMeal && (
+                        <button type="button" onClick={() => onEditMeal?.(log)}
+                          aria-label={`Correct ${log.name}`} title="Correct meal details"
+                          style={{ background: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4', borderRadius: '10px', padding: '6px 10px', cursor: 'pointer' }}>
+                          <Edit2 size={13} />
+                        </button>
+                      )}
                       {onDeleteMeal && (
                         <button
                           onClick={() => onDeleteMeal(log.id)}

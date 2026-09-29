@@ -242,15 +242,13 @@ describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
       expect(resolveTabKey('nonexistent-tab')).toBe('dashboard');
     });
 
-    it('getInitialDietProfile synchronously derives profile from demographics to prevent OnboardingWizard flash', () => {
+    it('does not invent a Diet setup or calorie target from general demographics', async () => {
       const profile = getProfile();
       profile.demographics = { name: 'Aditya', age: 28, weight: 72, height: 175, gender: 'male' };
-      saveProfile(profile);
+      await saveProfile(profile);
 
       const initialDiet = getInitialDietProfile();
-      expect(initialDiet).not.toBeNull();
-      expect(initialDiet.weight).toBe(72);
-      expect(initialDiet.targetCalories).toBeGreaterThan(1200);
+      expect(initialDiet).toBeNull();
     });
   });
 });

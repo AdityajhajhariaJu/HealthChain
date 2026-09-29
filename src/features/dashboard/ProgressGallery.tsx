@@ -15,6 +15,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { getCases } from '../../services/CaseEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getActiveProfileScope, getScopedStorageKey } from '../../services/profileScope';
+import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -23,6 +24,7 @@ export const ProgressGallery: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
+  const [mealDiary, setMealDiary] = useState<MealDiary>({});
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
   const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync(getScopedStorageKey('hc_progress_photo')));
 
@@ -45,6 +47,22 @@ export const ProgressGallery: React.FC = () => {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const refreshMeals = () => {
+      void listMealDiary().then((diary) => { if (active) setMealDiary(diary); })
+        .catch(() => { if (active) setMealDiary({}); });
+    };
+    refreshMeals();
+    window.addEventListener('hc_observations_updated', refreshMeals);
+    window.addEventListener('hc_profile_updated', refreshMeals);
+    return () => {
+      active = false;
+      window.removeEventListener('hc_observations_updated', refreshMeals);
+      window.removeEventListener('hc_profile_updated', refreshMeals);
+    };
   }, []);
 
   const loadData = async () => {
@@ -88,9 +106,7 @@ export const ProgressGallery: React.FC = () => {
     const profile = getProfile();
     const cases = getCases();
 
-    // Nutrition Quality (from diet food logs)
-    const foodLogs = profile?.dietFoodLogs || {};
-    const daysLogged = Object.keys(foodLogs).length;
+    const daysLogged = Object.values(mealDiary).filter((day) => Array.isArray(day) && day.length > 0).length;
 
     // Mindfulness & Autonomic Calm (from logged sessions)
     let mindfulnessMinutes = 0;

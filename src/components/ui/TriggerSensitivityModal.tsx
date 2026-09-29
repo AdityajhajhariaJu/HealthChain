@@ -18,7 +18,8 @@ import {
   Flower2,
 } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
-import { getWeeklySymptomSeverity, getExposureTrends } from '../../services/TriggerEngine';
+import { getWeeklySymptomSeverity } from '../../services/TriggerEngine';
+import { listMealDiary } from '../../services/MealCommandService';
 import { getProfile } from '../../services/ProfileEngine';
 import FocusTrap from './FocusTrap';
 import { SuspectFoodsView } from './SuspectFoodsView';
@@ -48,8 +49,8 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
   const [activeTab, setActiveTab] = useState<WholeHealthTab>(initialTab);
   const [selectedTrialProtocolId, setSelectedTrialProtocolId] = useState<string | null>(null);
   const [historyMode, setHistoryMode] = useState<'month' | '7day'>('month');
+  const [recordedMealCount, setRecordedMealCount] = useState<number | null>(null);
   const weeklySeverity = getWeeklySymptomSeverity();
-  const exposureTrends = getExposureTrends();
   const profile = getProfile();
   const restingHR = (profile as any)?.biometrics?.restingHR || (profile as any)?.vitals?.restingHR;
   const hrDisplay = restingHR ? `${restingHR} bpm` : '-- bpm';
@@ -65,6 +66,24 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
       setActiveTab(initialTab);
     }
   }, [initialTab, isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    const refreshMeals = () => {
+      void listMealDiary().then((diary) => {
+        if (active) setRecordedMealCount(Object.values(diary).reduce((total, day) => total + day.length, 0));
+      }).catch(() => { if (active) setRecordedMealCount(null); });
+    };
+    refreshMeals();
+    window.addEventListener('hc_observations_updated', refreshMeals);
+    window.addEventListener('hc_profile_updated', refreshMeals);
+    return () => {
+      active = false;
+      window.removeEventListener('hc_observations_updated', refreshMeals);
+      window.removeEventListener('hc_profile_updated', refreshMeals);
+    };
+  }, [isOpen]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -496,12 +515,15 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                         <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} /> Calm / Stable
                         </span>
+                        <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E2E8F0' }} /> No entry
+                        </span>
                       </div>
                     </div>
                   )}
 
 
-                  {/* Exposure Trends Card */}
+                  {/* Recorded food count only; no exposure or biochemical inference. */}
                   <div
                     style={{
                       background: '#FFFFFF',
@@ -512,41 +534,13 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                     }}
                   >
                     <div style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px' }}>
-                      BIOCHEMICAL EXPOSURE
+                      FOOD RECORDS
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {exposureTrends.map((exp) => (
-                        <div key={exp.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '110px' }}>
-                            <span style={{ fontSize: '18px' }}>{exp.icon}</span>
-                            <div>
-                              <div style={{ fontSize: '14px', fontWeight: 700, color: '#1C1917' }}>{exp.name}</div>
-                              <div style={{ fontSize: '11.5px', color: '#64748B' }}>{exp.bites} exposures</div>
-                            </div>
-                          </div>
-
-                          <div style={{ flex: 1, height: '34px', position: 'relative' }}>
-                            <svg viewBox="0 0 120 35" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
-                              <path d={exp.path} fill="none" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" />
-                            </svg>
-                          </div>
-
-                          <div
-                            style={{
-                              padding: '4px 8px',
-                              borderRadius: '999px',
-                              background: '#FFF1F2',
-                              color: '#E11D48',
-                              fontSize: '12.5px',
-                              fontWeight: 800,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {exp.changePercent}%
-                          </div>
-                        </div>
-                      ))}
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#1C1917' }}>
+                      {recordedMealCount === null ? 'Food records unavailable' : `${recordedMealCount} meals recorded`}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '5px' }}>
+                      A food record alone does not measure a biochemical exposure or identify a sensitivity.
                     </div>
                   </div>
 
@@ -562,7 +556,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                        18 SENSITIVITY LENSES
+                        FOOD TOPICS TO DISCUSS
                       </div>
                       <button
                         type="button"
@@ -583,6 +577,9 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       </button>
                     </div>
 
+                    <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 12px' }}>
+                      These are educational examples, not measured exposures or personal sensitivities.
+                    </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {[
                         { label: 'Histamine', icon: '⚗️', color: '#E11D48', bg: '#FFF1F2' },

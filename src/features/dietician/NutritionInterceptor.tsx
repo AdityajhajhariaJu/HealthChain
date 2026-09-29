@@ -6,7 +6,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate } from 'react-router-dom';
 import { safeNavigateBack } from '../../services/navigation';
-import { getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { createMeal, mealEntryFromAnalysis } from '../../services/MealCommandService';
 import { recordHealthMemory } from '../../services/HealthMemory';
 
 const RAPID_MEAL_BUILDERS = [
@@ -48,6 +48,9 @@ export const NutritionInterceptor: React.FC = () => {
   const [input, setInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recentLog, setRecentLog] = useState<NutritionAnalysisPayload | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const displayNutrient = (value: unknown, unit = '') =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? `${value}${unit}` : 'Unknown';
 
   const handleAppendQuickMeal = (meal: string) => {
     triggerHapticLight();
@@ -63,55 +66,36 @@ export const NutritionInterceptor: React.FC = () => {
     if (!input.trim()) return;
     triggerHapticLight();
     setIsAnalyzing(true);
+    setSaveError(null);
     
     try {
       const result = await analyzeFoodEntry(input);
-      if (result && result.items) {
+      if (result && Array.isArray(result.items) && result.items.length > 0) {
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const entry = mealEntryFromAnalysis(input, result.items, { type: 'Meal' });
+        const saved = await createMeal({ localDate: today, entry, captureMethod: 'quick_nutrition' });
+        if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
         setRecentLog(result);
         triggerHapticSuccess();
-        awardPoints(2, '🥗 Quick Nutrition Log', 'lifestyle', 'quick_diet_' + Date.now());
-
-        // Persist directly into dietFoodLogs so it reflects in Diet Tracker & Profile
+        awardPoints(2, '🥗 Quick Nutrition Log', 'lifestyle', 'quick_diet_' + saved.observation.id);
+        if (saved.sync === 'queue_failed') setSaveError('Saved on this device, but cloud sync could not be queued. Keep this device until sync is repaired.');
         try {
-          const profile = getProfile();
-          const today = new Date().toISOString().split('T')[0];
-          const existingLogs = profile?.dietFoodLogs ? { ...profile.dietFoodLogs } : {};
-          const dayLogs = Array.isArray(existingLogs[today]) ? [...existingLogs[today]] : [];
-
-          const newItems = result.items.map((it: any) => ({
-            id: Date.now() + Math.random(),
-            name: it.name || input.slice(0, 30),
-            calories: it.calories || 0,
-            protein: it.protein || 0,
-            carbs: it.carbs || 0,
-            fat: it.fat || it.fats || 0,
-            sugar: it.sugar || 0,
-            fibre: it.fibre || 0,
-            type: 'Meal'
-          }));
-
-          existingLogs[today] = [...dayLogs, ...newItems];
-          updateProfileFeatureData('dietFoodLogs', existingLogs);
-
           recordHealthMemory({
-            kind: 'diet',
-            source: 'ambient_tracking',
-            title: `Nutrition Log: ${newItems.map((n: any) => n.name).join(', ').slice(0, 50)}`,
-            occurredAt: new Date().toISOString(),
-            payload: {
-              summary: result.clinical_insight || 'Ambient meal entry recorded.',
-              items: newItems,
-              total: result.total
-            }
+            kind: 'diet', source: 'ambient_tracking',
+            title: `Nutrition Log: ${entry.name.slice(0, 50)}`,
+            occurredAt: now.toISOString(), payload: { observationId: saved.observation.id, total: result.total },
           });
-        } catch (storageErr) {
-          console.error('Failed to persist diet log:', storageErr);
+        } catch (memoryError) {
+          console.warn('Meal saved; optional memory summary was unavailable', memoryError);
         }
-
         setInput('');
+      } else {
+        setSaveError('No food items were recognized. Add more detail and try again.');
       }
     } catch (err) {
-      console.error('Failed to analyze food', err);
+      console.error('Failed to analyze or save food', err);
+      setSaveError('The meal was not confirmed as saved. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -193,6 +177,7 @@ export const NutritionInterceptor: React.FC = () => {
             {isAnalyzing ? <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" /> : <Send size={24} />}
           </button>
         </div>
+        {saveError && <p role="alert" className="mt-3 text-sm text-rose-300">{saveError}</p>}
 
         {/* Results Card */}
         {recentLog && (
@@ -206,25 +191,25 @@ export const NutritionInterceptor: React.FC = () => {
               <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
                 <Sparkles size={20} />
               </div>
-              <h3 className="text-white font-semibold">{recentLog.clinical_insight || 'Logged successfully.'}</h3>
+              <h3 className="text-white font-semibold">Meal saved locally. Nutrient estimates need portion and ingredient review.</h3>
             </div>
             
             <div className="grid grid-cols-4 gap-4">
               <div className="flex flex-col items-center p-4 rounded-2xl bg-black/20 border border-white/5">
                 <span className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Protein</span>
-                <span className="text-emerald-400 text-2xl font-black">{recentLog.total?.protein || 0}g</span>
+                <span className="text-emerald-400 text-2xl font-black">{displayNutrient(recentLog.total?.protein, 'g')}</span>
               </div>
               <div className="flex flex-col items-center p-4 rounded-2xl bg-black/20 border border-white/5">
                 <span className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Carbs</span>
-                <span className="text-blue-400 text-2xl font-black">{recentLog.total?.carbs || 0}g</span>
+                <span className="text-blue-400 text-2xl font-black">{displayNutrient(recentLog.total?.carbs, 'g')}</span>
               </div>
               <div className="flex flex-col items-center p-4 rounded-2xl bg-black/20 border border-white/5">
                 <span className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Fats</span>
-                <span className="text-amber-400 text-2xl font-black">{recentLog.total?.fat || 0}g</span>
+                <span className="text-amber-400 text-2xl font-black">{displayNutrient(recentLog.total?.fat, 'g')}</span>
               </div>
               <div className="flex flex-col items-center p-4 rounded-2xl bg-black/20 border border-white/5">
                 <span className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Cals</span>
-                <span className="text-white text-2xl font-black">{recentLog.total?.calories || 0}</span>
+                <span className="text-white text-2xl font-black">{displayNutrient(recentLog.total?.calories)}</span>
               </div>
             </div>
             <div className="text-white/40 text-xs mt-3 text-center">

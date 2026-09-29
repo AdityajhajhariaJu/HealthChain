@@ -377,7 +377,7 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Broad cross-system reasoning',
     pipelineStage: 'exploration',
     route: '/app/dietician',
-    plainDescription: 'Discovering patterns and correlations between what you eat and how your body responds over time.',
+    plainDescription: 'Reviewing dated food and symptom observations, including missing timing and other possible explanations.',
     plainPurpose: 'Food pattern & digestive tracking',
     badgeColor: {
       bg: '#FEF3C7',
@@ -388,8 +388,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     downstreamHandoffs: [
       {
         targetFeatureId: 'elimination-suite',
-        label: 'Run 4-Week Clinical Elimination Protocol',
-        actionDescription: 'Isolate suspected food triggers under structured clinical phases',
+        label: 'Review Existing Elimination Records',
+        actionDescription: 'Review recorded food challenges and notes; new guided protocols are paused for clinical review',
         route: '/app/today',
       },
       {
@@ -412,14 +412,14 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     id: 'elimination-suite',
     name: 'Clinical Elimination Suite',
     shortLabel: 'Elimination Suite',
-    uniqueQuestion: 'How do I follow and document this selected plan?',
-    owns: 'Plan execution and observation',
-    produces: 'Progress logs and reviewable outcomes',
+    uniqueQuestion: 'What did I record during an existing food challenge?',
+    owns: 'Existing challenge records and observations',
+    produces: 'Reviewable records and visit notes',
     mustNotDuplicate: 'Automatically deciding what caused symptoms',
     pipelineStage: 'action',
     route: '/app/today',
-    plainDescription: 'Guiding you through structured elimination and reintroduction phases to safely identify food sensitivities.',
-    plainPurpose: 'Structured elimination protocol',
+    plainDescription: 'Review existing elimination and reintroduction records. New guided challenges are paused for clinical review.',
+    plainPurpose: 'Food challenge records',
     badgeColor: {
       bg: '#FFF7ED',
       text: '#9A3412',
@@ -429,8 +429,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     downstreamHandoffs: [
       {
         targetFeatureId: 'case-prep',
-        label: 'Export Protocol Outcome to Doctor Brief',
-        actionDescription: 'Bring verified elimination results to your gastroenterologist or allergist',
+        label: 'Export Recorded Observations to Doctor Brief',
+        actionDescription: 'Bring dated food and symptom observations to a clinician for review',
         route: '/app/case-prep',
       },
       {
@@ -443,8 +443,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     upstreamFeeds: [
       {
         sourceFeatureId: 'food-detective',
-        label: 'Suspected Food Triggers',
-        artifactType: 'Correlated foods with high symptom frequency',
+        label: 'Food and Symptom Observations',
+        artifactType: 'Dated food and symptom records with timing limits',
       },
     ],
   },

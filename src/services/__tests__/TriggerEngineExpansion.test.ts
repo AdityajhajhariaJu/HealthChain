@@ -9,7 +9,9 @@ import {
   getTrialHistory,
   logTrialDay,
   startTrial,
+  getWeeklySymptomSeverity,
 } from '../TriggerEngine';
+import { getProfile, getProfileKey } from '../ProfileEngine';
 
 describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
   beforeEach(() => {
@@ -19,6 +21,18 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
   it('does not manufacture empirical matches when no observations exist', () => {
     const matches = getEmpiricalFrequencyMatches();
     expect(matches).toEqual([]);
+  });
+
+  it('does not classify a check-in with an unknown score scale as a calm day', () => {
+    const today = new Date();
+    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    for (const score of [3, 9]) {
+      localStorage.setItem(getProfileKey(), JSON.stringify({ activeId: 'profile_1', profiles: {
+        profile_1: { ...getProfile(), dailyCheckins: [{ date: localDate, score, symptom: 'Pain' }] },
+      } }));
+      const week = getWeeklySymptomSeverity();
+      expect(week[week.length - 1]).toMatchObject({ color: '#E2E8F0', label: `Score ${score}; scale not established` });
+    }
   });
 
   it('includes patient-confirmed triggers into empirical frequency matches', () => {

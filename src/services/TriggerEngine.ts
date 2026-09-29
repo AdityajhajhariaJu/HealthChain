@@ -1764,16 +1764,22 @@ export function getWeeklySymptomSeverity(): { day: string; fullDay: string; seve
 
     const match = checkins.find((c: any) => c?.date && c.date.startsWith(dateStr));
     if (match) {
-      const score = typeof match.score === 'number'
-        ? match.score
-        : (match.severity === 'Severe' ? 3 : match.severity === 'Moderate' ? 2 : match.severity === 'Mild' ? 1 : 0);
+      const severityLabel = String(match.severity || '').toLowerCase();
+      const score = severityLabel === 'severe' ? 3 : severityLabel === 'moderate' ? 2 : severityLabel === 'mild' ? 1 :
+        ['none', 'calm', 'stable'].includes(severityLabel) ? 0 : null;
+      if (score === null) {
+        result.push({ day: dayName, fullDay: fullDayName, severity: 0,
+          label: Number.isFinite(match.score) ? `Score ${match.score}; scale not established` : 'Severity not recorded',
+          height: 14, color: '#E2E8F0' });
+        continue;
+      }
       const height = score === 3 ? 85 : score === 2 ? 60 : score === 1 ? 35 : 18;
       const color = score === 3 ? '#EF4444' : score === 2 ? '#F59E0B' : score === 1 ? '#0284C7' : '#10B981';
       result.push({
         day: dayName,
         fullDay: fullDayName,
         severity: score,
-        label: match.severity || (score === 3 ? 'Severe' : score === 2 ? 'Moderate' : score === 1 ? 'Mild' : 'None'),
+        label: match.severity || (score === 3 ? 'Severe' : score === 2 ? 'Moderate' : score === 1 ? 'Mild' : 'No symptom reported'),
         height,
         color
       });
@@ -1782,7 +1788,7 @@ export function getWeeklySymptomSeverity(): { day: string; fullDay: string; seve
         day: dayName,
         fullDay: fullDayName,
         severity: 0,
-        label: 'None',
+        label: 'No entry',
         height: 14,
         color: '#E2E8F0'
       });

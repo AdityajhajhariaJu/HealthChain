@@ -59,4 +59,13 @@ describe('Gut Gemini gateway contract', () => {
     expect(sent.generationConfig.responseSchema.properties.nextAction.enum).toContain('leave_open');
     expect(sent.generationConfig.maxOutputTokens).toBeLessThanOrEqual(4096);
   });
+
+  it('rejects an unsigned meal plan request before invoking the provider', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = response();
+    await handler(request('dietician_meal_plan', { contents: [{ parts: [{ text: 'Generate a plan' }] }], generationConfig: { responseMimeType: 'application/json' } }), res);
+    expect(res.statusCode).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

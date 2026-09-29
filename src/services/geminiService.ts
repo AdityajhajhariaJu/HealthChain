@@ -1314,65 +1314,74 @@ Rules:
   }
 }
 
-export async function generateMealPlan(profile: any, days: number = 7): Promise<any> {
-  const dietaryRelevantConditions = (profile?.medicalConditions || []).filter((c: string) => {
-    const l = (c || '').toLowerCase();
-    return l.includes('diabet') || l.includes('gerd') || l.includes('acid') || l.includes('celiac') || 
-           l.includes('gluten') || l.includes('gout') || l.includes('hypertens') || l.includes('renal') || 
-           l.includes('kidney') || l.includes('ibs') || l.includes('crohn') || l.includes('colitis') || 
-           l.includes('cholesterol') || l.includes('liver') || l.includes('thyroid');
-  });
+const dietPlanPayload = (profile: any) => ({ dietPlanRequest: {
+    age: Number(profile?.age), gender: profile?.gender, pregnancyStatus: profile?.pregnancyStatus,
+    targetCalories: Number(profile?.targetCalories), cuisine: profile?.cuisine || 'Any',
+    mealSchedule: profile?.mealSchedule || '3 Meals + 1 Snack', goal: profile?.goal,
+  } });
 
-  const payload = {
-    contents: [
-      {
-        parts: [
-          {
-            text: `You are a food-planning assistant. Generate a strictly valid JSON ${days}-day example meal plan.
-Saved conditions to treat only as cautions, not as a basis for medical nutrition therapy: ${dietaryRelevantConditions.join(', ') || 'None supplied'}
-Cuisine Preference: . DO NOT SUGGEST WESTERN FOOD IF THIS IS NOT WESTERN.${profile.cuisine || 'Any'}
-Target: ${profile.targetCalories || 2000} kcal/day
-Schedule: ${profile.mealSchedule || 'Standard 3 meals'}
+const pendingPlanKey = async (profileKey: string): Promise<string> => {
+  const { data } = await supabase.auth.getSession();
+  const userId = data?.session?.user?.id;
+  if (!userId || !profileKey) throw new Error('diet_plan_recovery_unavailable');
+  return `hc_diet_plan_pending_v1:${userId}:${profileKey}`;
+};
 
-Rules:
-1. Output ONLY JSON.
-2. Total daily calories should closely match the target (${profile.targetCalories || 2000} kcal).
-3. Cuisine Preference: . DO NOT SUGGEST WESTERN FOOD IF THIS IS NOT WESTERN.Strictly follow the '${profile.cuisine}' cuisine preference. Generate authentic, delicious dishes.
-4. Do not claim the plan treats or is safe for a medical condition. Avoid obvious conflicts only when the user supplied an allergy or restriction, and require clinician or dietitian review for condition-specific needs.
-5. Schedule: Strictly follow the '${profile.mealSchedule}' meal schedule.
-6. Format:
-{
-  "plan": [
-    {
-      "day": number,
-      "total_calories": number,
-      "meals": [
-        {
-          "type": "Breakfast" | "Lunch" | "Dinner" | "Snack",
-          "name": "string",
-          "calories": number,
-          "protein": number,
-          "fat": number,
-          "carbs": number
-        }
-      ]
-    }
-  ]
-}`,
-          },
-        ],
-      },
-    ],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 },
-  };
+const planFingerprint = async (profile: any): Promise<string> => {
+  if (!globalThis.crypto?.subtle) throw new Error('diet_plan_recovery_unavailable');
+  const bytes = new TextEncoder().encode(JSON.stringify(dietPlanPayload(profile)));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+export async function hasPendingDietPlanRequest(profile: any, profileKey: string): Promise<boolean> {
+  try {
+    const key = await pendingPlanKey(profileKey);
+    const stored = JSON.parse(localStorage.getItem(key) || 'null');
+    return Boolean(stored?.id && stored?.fingerprint === await planFingerprint(profile));
+  } catch { return false; }
+}
+
+export async function clearPendingDietPlanRequest(profileKey: string): Promise<void> {
+  localStorage.removeItem(await pendingPlanKey(profileKey));
+}
+
+export async function generateMealPlan(profile: any, days: number = 7, profileKey = 'default'): Promise<any> {
+  if (days !== 7) return null;
+  const payload = dietPlanPayload(profile);
+  const storageKey = await pendingPlanKey(profileKey);
+  const fingerprint = await planFingerprint(profile);
+  let previous: { id?: string; fingerprint?: string } | null = null;
+  try { previous = JSON.parse(localStorage.getItem(storageKey) || 'null'); }
+  catch { throw new Error('diet_plan_recovery_unavailable'); }
+  const requestId = previous?.fingerprint === fingerprint && previous.id
+    ? previous.id : globalThis.crypto?.randomUUID?.();
+  if (!requestId) throw new Error('diet_plan_recovery_unavailable');
+  try {
+    localStorage.setItem(storageKey, JSON.stringify({ id: requestId, fingerprint }));
+    if (JSON.parse(localStorage.getItem(storageKey) || 'null')?.id !== requestId)
+      throw new Error('diet_plan_recovery_unavailable');
+  } catch { throw new Error('diet_plan_recovery_unavailable'); }
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'dietician_meal_plan' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'dietician_meal_plan', 'X-HC-Request-Id': requestId },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error('API Error');
+    if (!res.ok) {
+      if (res.status === 402) throw new Error('diet_plan_quota_exceeded');
+      if (res.status === 400 || res.status === 422) throw new Error('diet_plan_unsupported_setup');
+      if (res.status === 409) {
+        const failure = await res.json().catch(() => ({}));
+        if (failure.reason === 'request_failed') {
+          await clearPendingDietPlanRequest(profileKey);
+          throw new Error('diet_plan_retry_ready');
+        }
+        throw new Error('diet_plan_in_progress');
+      }
+      throw new Error('Meal plan request failed');
+    }
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
@@ -1380,6 +1389,8 @@ Rules:
     }
   } catch (err) {
     console.error('Meal plan generation error:', err);
+    if (err instanceof Error && err.message === 'QUOTA_EXCEEDED') throw new Error('diet_plan_quota_exceeded');
+    if (err instanceof Error && ['diet_plan_quota_exceeded', 'diet_plan_unsupported_setup', 'diet_plan_retry_ready', 'diet_plan_in_progress', 'diet_plan_recovery_unavailable'].includes(err.message)) throw err;
     return null;
   }
 }

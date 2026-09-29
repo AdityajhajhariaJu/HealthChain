@@ -38,7 +38,7 @@ export interface SmartInsightItem {
   nonExposureTotalDays?: number;
   nonExposurePercent?: number;
   hasComparativeIncrease?: boolean;
-  isUserVerified?: boolean;
+  fromDiary?: boolean;
   hasReferenceExplanation?: boolean;
   incubationWindow: string;
   biochemicalMechanism: string;
@@ -89,19 +89,21 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
     const recentNutrition = profile?.nutrition?.recentLogs || [];
     const dietFoodLogs = profile?.dietFoodLogs || {};
 
-    // Group meals by date
+    // Group descriptions by their reported local date. This is a date match,
+    // never proof that a meal preceded a symptom or that two foods are equivalent.
     const mealsByDate: Record<string, string[]> = {};
+    const normalizedName = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
     recentNutrition.forEach((log: any) => {
       if (log.date && log.name) {
         if (!mealsByDate[log.date]) mealsByDate[log.date] = [];
-        mealsByDate[log.date].push(log.name.toLowerCase());
+        mealsByDate[log.date].push(normalizedName(log.name));
       }
     });
     Object.entries(dietFoodLogs).forEach(([dateStr, items]: [string, any]) => {
       if (Array.isArray(items)) {
         if (!mealsByDate[dateStr]) mealsByDate[dateStr] = [];
         items.forEach((it: any) => {
-          if (it.name) mealsByDate[dateStr].push(it.name.toLowerCase());
+          if (it.name) mealsByDate[dateStr].push(normalizedName(it.name));
         });
       }
     });
@@ -126,9 +128,8 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       if (item.category === 'Bowel') return symptom.bowel;
       return false;
     };
-    const buildObserved = (item: SmartInsightItem, foodMatcher: (food: string) => boolean): SmartInsightItem[] => {
-      const foodWords = item.foodName.toLowerCase().split(/[\s/]+/);
-      const isExposure = (food: string) => foodMatcher(food) || foodWords.some((word) => word.length > 3 && food.includes(word));
+    const buildObserved = (item: SmartInsightItem): SmartInsightItem[] => {
+      const isExposure = (food: string) => food === normalizedName(item.foodName);
       let userExposures = 0;
       let userMatches = 0;
 
@@ -157,7 +158,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         nonExposureTotalDays: nonExposureDates.length,
         nonExposurePercent,
         hasComparativeIncrease: nonExposurePercent !== undefined ? exposurePercent > nonExposurePercent : undefined,
-        isUserVerified: true,
+        fromDiary: true,
       }];
     };
 
@@ -179,7 +180,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
           safeSwap: { insteadOf: foodName, swapTo: 'No substitute suggested', culinaryNote: '' },
           hasReferenceExplanation: false,
         };
-        return buildObserved(generic, (food) => food === foodName).filter((result) => result.matchingDays > 0);
+        return buildObserved(generic).filter((result) => result.matchingDays > 0);
       });
     });
     return observedResults;
@@ -293,7 +294,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       >
         <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <strong style={{ color: '#0F172A' }}>Observational Timeline Associations:</strong> Timing patterns show foods eaten before symptoms occurred. They indicate possible triggers to explore with your clinician, not definitive proof of causality. Stress, sleep, hydration, and medications also influence digestive comfort.
+          <strong style={{ color: '#0F172A' }}>Same-day observations:</strong> Food and symptom dates may match, but this view does not establish which happened first or what caused a symptom. Stress, sleep, hydration, and medications can also matter.
         </div>
       </div>
 
@@ -485,18 +486,14 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         marginBottom: '6px',
                       }}
                     >
-                      {item.hasComparativeIncrease === true
-                        ? `${item.symptomName} was recorded more often on logged days with `
-                        : typeof item.hasComparativeIncrease === 'boolean'
-                          ? `${item.symptomName} was not recorded more often on logged days with `
-                          : `${item.symptomName} was recorded on ${item.matchingDays} of ${item.totalDays} logged days with `}
+                      {`${item.symptomName} was recorded on ${item.matchingDays} of ${item.totalDays} reviewed days with `}
                       <strong style={{ color: '#0F172A', fontWeight: 800 }}>{item.foodName}</strong>
-                      {typeof item.hasComparativeIncrease === 'boolean' ? '.' : '; more comparison days are needed.'}
+                      . Timing and cause are unknown.
                     </div>
 
                     {/* Day Match Ratio Badge */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      {item.isUserVerified ? (
+                      {item.fromDiary ? (
                         <>
                           <span
                             style={{
@@ -508,11 +505,11 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                               gap: '5px',
                             }}
                           >
-                            <span>📊</span> {item.matchingDays}/{item.totalDays} day match ({item.correlationPercent}%)
+                            <span>📊</span> Symptom recorded on {item.matchingDays} of {item.totalDays} reviewed days with this food
                           </span>
                           {typeof item.nonExposurePercent === 'number' && (
                             <span style={{ fontSize: '11px', color: '#64748B' }}>
-                              compared with {item.nonExposureMatchingDays}/{item.nonExposureTotalDays} other logged days ({item.nonExposurePercent}%)
+                              and on {item.nonExposureMatchingDays} of {item.nonExposureTotalDays} other reviewed days
                             </span>
                           )}
                           <span
@@ -526,7 +523,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                               border: '1px solid #A7F3D0',
                             }}
                           >
-                            ✓ From Your Diary
+                            From dated diary entries; timing unverified
                           </span>
                         </>
                       ) : (

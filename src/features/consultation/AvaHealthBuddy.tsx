@@ -22,6 +22,7 @@ import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import { getCase, getCases, addCaseEvent, addCaseQuestion, type CaseItem } from '../../services/CaseEngine';
 import { buildCaseContext, getUnifiedCaseScope, getCaseDocumentedAnswers } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
 import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
@@ -299,10 +300,12 @@ const MessageRenderer = ({
   content,
   onOpenCalm,
   onOpenWholeHealth,
+  diaryEntries = [],
 }: {
   content: string;
   onOpenCalm?: () => void;
   onOpenWholeHealth?: () => void;
+  diaryEntries?: Array<{ id: string | number; name: string; date?: string; occurredAt?: unknown; timePrecision?: unknown; type?: unknown }>;
 }) => {
   const handleStartCalm = () => {
     triggerHapticLight();
@@ -315,18 +318,16 @@ const MessageRenderer = ({
 
   // DIARY TIMELINE WIDGET (Triggerbites Diary Reference)
   if (content.includes('[WIDGET:DIARY_TIMELINE')) {
-    const { payload, before, after } = extractBalancedWidget(content, 'DIARY_TIMELINE');
-    const profile = getProfile();
-    const recentLogs = profile?.nutrition?.recentLogs || [];
-    const dynamicEntries = recentLogs.slice(-3).map((l: any, i: number) => ({
-      time: l.loggedAt ? new Date(l.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `${String(8 + i * 4).padStart(2, '0')}:00`,
-      category: l.slot || 'Intake',
-      items: l.tags && l.tags.length > 0 ? l.tags : [l.name || 'Logged Intake'],
+    const { before, after } = extractBalancedWidget(content, 'DIARY_TIMELINE');
+    const dynamicEntries = diaryEntries.slice(0, 3).map((meal) => ({
+      time: typeof meal.occurredAt === 'string' && ['exact', 'approximate'].includes(String(meal.timePrecision))
+        ? new Date(meal.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not recorded',
+      category: typeof meal.type === 'string' ? meal.type : 'Meal',
+      items: [meal.name || 'Logged meal'],
     }));
-
-    const parsed = payload && Array.isArray(payload.entries) && payload.entries.length > 0 ? payload : {
+    const parsed = {
       title: 'Logged in your diary',
-      date: 'Today',
+      date: 'Recent records',
       entries: dynamicEntries,
     };
     return (
@@ -1365,15 +1366,27 @@ export default function AvaHealthBuddy() {
   });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
+  const [mealDiary, setMealDiary] = useState<MealDiary>({});
+  useEffect(() => {
+    let active = true;
+    const refresh = () => { void listMealDiary().then((diary) => { if (active) setMealDiary(diary); }); };
+    refresh();
+    window.addEventListener('hc_observations_updated', refresh);
+    window.addEventListener('hc_profile_updated', refresh);
+    return () => { active = false; window.removeEventListener('hc_observations_updated', refresh); window.removeEventListener('hc_profile_updated', refresh); };
+  }, []);
+  const recentDiaryMeals = useMemo(() => Object.values(mealDiary).flat()
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.loggedAt || '').localeCompare(String(a.loggedAt || '')))
+    .slice(0, 3), [mealDiary]);
   const memoryContext = useMemo(() => {
     const allMemories = getHealthMemory() || [];
     const prof = getProfile() || {};
-    const logs = prof?.nutrition?.recentLogs || [];
+    const logs = recentDiaryMeals;
     const vitals = prof?.vitals || {};
     const relevantMemories = allMemories
       .filter((memory) => selectedCaseId ? memory.caseId === selectedCaseId : !memory.caseId)
       .slice(0, 5);
-    const relevantLogs = selectedCaseId ? [] : logs.slice(-2);
+    const relevantLogs = selectedCaseId ? [] : logs.slice(0, 2);
     const totalRecords = relevantMemories.length + relevantLogs.length + (selectedCaseId ? 0 : ((vitals.bloodPressure ? 1 : 0) + (vitals.restingHeartRate ? 1 : 0)));
     const includedItems = [
       ...relevantMemories.map(m => ({
@@ -1384,9 +1397,9 @@ export default function AvaHealthBuddy() {
       })),
       ...relevantLogs.map(l => ({
         type: 'Food / Intake Log',
-        title: l.name || (l.tags && l.tags.join(', ')) || 'Meal entry',
-        time: l.loggedAt ? new Date(l.loggedAt).toLocaleDateString() : 'Today',
-        source: 'Nutrition Diary'
+        title: l.name || 'Meal entry',
+        time: l.date || 'Date not recorded',
+        source: 'Meal diary', recordId: String(l.id),
       }))
     ];
     return {
@@ -1394,7 +1407,7 @@ export default function AvaHealthBuddy() {
       omittedCount: Math.max(0, totalRecords - includedItems.length),
       includedItems,
     };
-  }, [messages.length, selectedCaseId]);
+  }, [messages.length, selectedCaseId, recentDiaryMeals]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
   const [isCaseSelectorOpen, setIsCaseSelectorOpen] = useState(false);
@@ -1851,7 +1864,7 @@ export default function AvaHealthBuddy() {
     // Promise 5: Inject semantic memory context so user never repeats their story
     const memorySnippet = memoryContext.includedItems.length > 0
       ? `\n\n[CASE-SCOPED HISTORY & MEMORIES — preserve provenance and do not treat AI-generated memory as a confirmed clinical fact]:\n` +
-        memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}`).join('\n')
+        memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}${'recordId' in item ? ` [record ${item.recordId}]` : ''}`).join('\n')
       : '';
     const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();
 
@@ -2311,6 +2324,7 @@ export default function AvaHealthBuddy() {
                         <>
                           <MessageRenderer
                             content={msg.content}
+                            diaryEntries={recentDiaryMeals}
                             onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
                             onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
                           />

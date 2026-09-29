@@ -137,8 +137,15 @@ export function getGutSnapshot(now = new Date()): GutSnapshot {
  */
 export function mergeGutSnapshotWithObservations(snapshot: GutSnapshot, observations: Observation[]): GutSnapshot {
   const active = observations.filter((item) => !item.deletedAt);
+  const deletedLegacyIds = new Set(observations.filter((item) => item.deletedAt && item.payload.kind === 'meal')
+    .flatMap((item) => [item.id, item.sourceRecordId].filter((id): id is string => !!id)));
+  const canonicalIds = new Set(active.filter((item) => item.payload.kind === 'meal')
+    .flatMap((item) => [item.id, item.sourceRecordId].filter((id): id is string => !!id)));
+  const legacyMeals = snapshot.meals.filter((meal) => !deletedLegacyIds.has(meal.id) &&
+    (!meal.sourceRecordId || !deletedLegacyIds.has(meal.sourceRecordId)) &&
+    !canonicalIds.has(meal.id) && (!meal.sourceRecordId || !canonicalIds.has(meal.sourceRecordId)));
   const representedIds = new Set<string>();
-  for (const meal of snapshot.meals) {
+  for (const meal of legacyMeals) {
     representedIds.add(meal.id);
     if (meal.sourceRecordId) representedIds.add(meal.sourceRecordId);
   }
@@ -163,7 +170,7 @@ export function mergeGutSnapshotWithObservations(snapshot: GutSnapshot, observat
       revision: item.revision,
     }];
   });
-  const meals = [...snapshot.meals, ...observedMeals].sort((a, b) => b.date.localeCompare(a.date) ||
+  const meals = [...legacyMeals, ...observedMeals].sort((a, b) => b.date.localeCompare(a.date) ||
     (b.occurredAt || '').localeCompare(a.occurredAt || '') || (b.loggedAt || '').localeCompare(a.loggedAt || ''));
   const undatedMealObservations: Observation[] = [];
   for (const item of active) {

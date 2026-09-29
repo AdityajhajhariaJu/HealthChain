@@ -10,57 +10,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-
-function computeTargets(p: any) {
-  let parsedWeight = parseFloat(p.weight);
-  if (p.weightUnit === 'lbs') parsedWeight = parsedWeight * 0.453592;
-  const w = Math.max(20, !Number.isNaN(parsedWeight) ? parsedWeight : 70);
-
-  let parsedHeight = parseFloat(p.height);
-  if (p.heightUnit === 'ft') {
-    const ft = parseFloat(p.heightFt) || 0;
-    const inc = parseFloat(p.heightIn) || 0;
-    parsedHeight = (ft * 30.48) + (inc * 2.54);
-  }
-  const h = Math.max(50, !Number.isNaN(parsedHeight) ? parsedHeight : 170);
-
-  const parsedAge = parseInt(p.age, 10);
-  const age = Math.max(1, !Number.isNaN(parsedAge) ? parsedAge : 30);
-  
-  let bmr = 10 * w + 6.25 * h - 5 * age;
-  bmr = p.gender === 'female' ? bmr - 161 : bmr + 5;
-
-  let multiplier = 1.2;
-  if (p.activityLevel === 'light') multiplier = 1.375;
-  if (p.activityLevel === 'moderate') multiplier = 1.55;
-  if (p.activityLevel === 'active') multiplier = 1.725;
-
-  let tdee = bmr * multiplier;
-  let targetCalories = Math.round(tdee);
-
-  const parsedDays = parseInt(p.targetDays, 10);
-  if (!Number.isNaN(parsedDays) && parsedDays > 0 && p.goal !== 'Maintain') {
-    const parsedTargetW = parseFloat(p.targetWeight);
-    const targetW = !Number.isNaN(parsedTargetW) ? parsedTargetW : w;
-    const weightDiff = Math.abs(w - targetW);
-    const totalCalorieChange = weightDiff * 7700;
-    const dailyChange = totalCalorieChange / (parsedDays || 1);
-    const safeDailyChange = Math.min(dailyChange, 1000);
-
-    if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p.goal === 'Gain muscle' || p.goal === 'Lean mass preservation') targetCalories = Math.round(tdee + safeDailyChange);
-  } else {
-    if (p.goal === 'Lose weight') targetCalories -= 500;
-    if (p.goal === 'Gain muscle' || p.goal === 'Lean mass preservation') targetCalories += 500;
-  }
-
-  targetCalories = Math.max(1200, Number.isNaN(targetCalories) ? 2000 : targetCalories);
-  const targetProtein = Math.round((targetCalories * 0.25) / 4);
-  const targetCarbs = Math.round((targetCalories * 0.45) / 4);
-  const targetFat = Math.round((targetCalories * 0.3) / 9);
-
-  return { bmr: Math.round(bmr), tdee: Math.round(tdee), targetCalories, targetProtein, targetCarbs, targetFat };
-}
+import { calculateDietTargets } from '../../services/dietTargets';
 
 export function OnboardingWizard({ 
   onComplete, 
@@ -78,7 +28,8 @@ export function OnboardingWizard({
   const defaultW = demo.weight || coreProfile?.weight || '';
   const defaultH = demo.height || coreProfile?.height || '';
   const defaultA = demo.age || coreProfile?.age || '';
-  const defaultG = (demo.gender || coreProfile?.gender || '').toLowerCase() === 'female' ? 'female' : 'male';
+  const savedSex = String(demo.gender || coreProfile?.gender || '').toLowerCase();
+  const defaultG = savedSex === 'female' || savedSex === 'male' ? savedSex : '';
 
   const [data, setData] = useState(() => {
     if (initialData) {
@@ -93,7 +44,8 @@ export function OnboardingWizard({
         heightIn: initialData.heightIn || '',
         age: initialData.age ? String(initialData.age) : (defaultA ? String(defaultA) : ''),
         gender: initialData.gender || defaultG,
-        goal: initialData.goal || 'Lose weight',
+        pregnancyStatus: initialData.pregnancyStatus || 'unknown',
+        goal: initialData.goal || 'Maintain',
         activityLevel: initialData.activityLevel || 'moderate',
         restrictions: initialData.restrictions || ['None'],
         medicalConditions: initialData.medicalConditions || ['None'],
@@ -110,7 +62,7 @@ export function OnboardingWizard({
     return {
       weight: defaultW ? String(defaultW) : '',
       weightUnit: 'kg',
-      targetWeight: defaultW ? String(Math.max(20, Number(defaultW) - 5)) : '',
+      targetWeight: '',
       targetDays: '90',
       height: defaultH ? String(defaultH) : '',
       heightUnit: 'cm',
@@ -118,7 +70,8 @@ export function OnboardingWizard({
       heightIn: '',
       age: defaultA ? String(defaultA) : '',
       gender: defaultG,
-      goal: 'Lose weight',
+      pregnancyStatus: 'unknown',
+      goal: 'Maintain',
       activityLevel: 'moderate',
       restrictions: matchedRestrictions.length > 0 ? matchedRestrictions : ['None'],
       medicalConditions: matchedConds.length > 0 ? matchedConds : ['None'],
@@ -154,11 +107,14 @@ export function OnboardingWizard({
   }, [step, onCancel]);
 
   // Live Metrics
+  const result = calculateDietTargets(data);
   const parsedW = parseFloat(data.weight);
-  const parsedH = parseFloat(data.height) / 100;
-  const w = !Number.isNaN(parsedW) ? parsedW : 0;
+  const parsedH = data.heightUnit === 'ft'
+    ? ((Number(data.heightFt) || 0) * 30.48 + (Number(data.heightIn) || 0) * 2.54) / 100
+    : parseFloat(data.height) / 100;
+  const w = !Number.isNaN(parsedW) ? (data.weightUnit === 'lbs' ? parsedW * 0.45359237 : parsedW) : 0;
   const h = !Number.isNaN(parsedH) ? parsedH : 0;
-  const targetW = parseFloat(data.targetWeight);
+  const targetW = data.weightUnit === 'lbs' ? parseFloat(data.targetWeight) * 0.45359237 : parseFloat(data.targetWeight);
   const bmi = (w > 0 && h > 0) ? (w / (h * h)).toFixed(1) : null;
   
   let bmiCategory = '';
@@ -171,7 +127,7 @@ export function OnboardingWizard({
     else { bmiCategory = 'Obesity Class'; bmiColor = '#DC2626'; }
   }
 
-  const calculated = computeTargets(data);
+  const calculated = result.available ? result.targets : null;
 
   return (
     <div
@@ -404,6 +360,21 @@ export function OnboardingWizard({
               </div>
             </div>
 
+            {data.gender === 'female' && (
+              <div style={{ marginBottom: '18px' }}>
+                <label htmlFor="diet-pregnancy-status" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  Pregnant or breastfeeding? (for target eligibility)
+                </label>
+                <select id="diet-pregnancy-status" value={data.pregnancyStatus}
+                  onChange={(e) => setData({ ...data, pregnancyStatus: e.target.value })}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}>
+                  <option value="unknown">Prefer not to say / unsure</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            )}
+
             {/* Unit Toggles */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '8px' }}>
               <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px' }}>
@@ -553,7 +524,7 @@ export function OnboardingWizard({
                 </label>
                 <input
                   type="number"
-                  min="1"
+                  min="18"
                   max="120"
                   value={data.age}
                   onChange={(e) => setData({ ...data, age: e.target.value })}
@@ -663,7 +634,6 @@ export function OnboardingWizard({
 
             <button
               onClick={next}
-              disabled={(data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null)}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -673,8 +643,7 @@ export function OnboardingWizard({
                 borderRadius: '16px',
                 fontWeight: 800,
                 fontSize: '15px',
-                cursor: (data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null) ? 'not-allowed' : 'pointer',
-                opacity: (data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null) ? 0.5 : 1,
+                cursor: 'pointer',
                 boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
@@ -683,7 +652,7 @@ export function OnboardingWizard({
                 transition: 'all 0.2s',
               }}
             >
-              Continue to Goal Setup <ArrowRight size={16} />
+              Continue (details optional) <ArrowRight size={16} />
             </button>
           </motion.div>
         )}
@@ -1113,7 +1082,7 @@ export function OnboardingWizard({
             </p>
 
             {/* Calculated Blueprint Card */}
-            <div
+            {calculated ? <div
               style={{
                 background: '#FFFFFF',
                 borderRadius: '24px',
@@ -1127,7 +1096,7 @@ export function OnboardingWizard({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Flame size={18} color="#EF4444" />
-                  <span style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A' }}>Daily Caloric Budget</span>
+                  <span style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A' }}>General daily energy estimate</span>
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669' }}>
                   {calculated.targetCalories} <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>kcal/day</span>
@@ -1153,7 +1122,9 @@ export function OnboardingWizard({
                 <ShieldCheck size={15} color="#059669" />
                 <span>Planning context: <strong>{data.goal}</strong> · {data.cuisine} cuisine · {data.mealSchedule}</span>
               </div>
-            </div>
+            </div> : <div role="status" style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '18px', marginBottom: '24px', color: '#334155', textAlign: 'left' }}>
+              <strong>No calorie target set.</strong> {result.available ? '' : result.reason} You can still save preferences and record meals without a calorie goal.
+            </div>}
 
             <motion.button
               whileTap={{ scale: 0.985 }}

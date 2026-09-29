@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const records = vi.hoisted(() => ({ digestion: {} as Record<string, unknown>, profile: { nutrition: { recentLogs: [] as unknown[] } } }));
 vi.mock('../ProfileEngine', () => ({ getDigestionLogs: () => records.digestion, getProfile: () => records.profile }));
 
-import { formatGutVisitNote, getGutSnapshot, hasRecordedDigestionEntry, summarizeRecordedBloating } from '../GutHealthSummary';
+import { formatGutVisitNote, getGutSnapshot, hasRecordedDigestionEntry, mergeGutSnapshotWithObservations, summarizeRecordedBloating } from '../GutHealthSummary';
 
 describe('Gut Health recorded-data summary', () => {
   beforeEach(() => {
@@ -58,5 +58,16 @@ describe('Gut Health recorded-data summary', () => {
     expect(snapshot.days.map((day) => day.date)).toEqual(['2026-09-23', '2026-09-22']);
     expect(formatGutVisitNote(snapshot)).toContain('bowel movements: 0');
     expect(formatGutVisitNote(snapshot)).toContain('comfort: Nausea');
+  });
+
+  it('uses canonical meal identity and hides a deleted legacy projection', () => {
+    records.profile.nutrition.recentLogs = [{ id: 'legacy-1', date: '2026-09-24', meal: 'Rice and dal' }];
+    const base = getGutSnapshot(new Date('2026-09-24T12:00:00'));
+    const canonical = { id: 'canonical-1', sourceRecordId: 'legacy-1', payload: { kind: 'meal', description: 'Rice and dal' },
+      localDate: '2026-09-24', timePrecision: 'date_only', recordedAt: '2026-09-24T10:00:00Z', revision: 1, deletedAt: null } as any;
+    const merged = mergeGutSnapshotWithObservations(base, [canonical]);
+    expect(merged.meals.map((item) => item.id)).toEqual(['canonical-1']);
+    const deleted = mergeGutSnapshotWithObservations(base, [{ ...canonical, revision: 2, deletedAt: '2026-09-24T11:00:00Z' }]);
+    expect(deleted.meals).toHaveLength(0);
   });
 });

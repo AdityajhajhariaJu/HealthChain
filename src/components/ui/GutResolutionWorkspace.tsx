@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleAlert, Clipboard, Clock3, Coffee, Compass, FileText, Flame, GitBranch, HeartHandshake, Milk, Repeat2, RotateCcw, Search, ShieldCheck, Sparkles, Utensils, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { formatGutVisitNote, getGutSnapshot, mergeGutSnapshotWithObservations } from '../../services/GutHealthSummary';
-import { getObservationSyncInfo, listObservations, loadObservationsFromCloud, type ObservationSyncInfo } from '../../services/HealthObservationService';
+import { getObservationSyncInfo, listObservationHistory, loadObservationsFromCloud, type ObservationSyncInfo } from '../../services/HealthObservationService';
 import { getActiveTrialV2, getHealthEvents } from '../../services/TrialWorkflowService';
 import type { Observation } from '../../domain/observations/types';
 import type { GutMeal } from '../../services/GutHealthSummary';
@@ -172,7 +172,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     setSnapshot(getGutSnapshot());
     setThreads(listGutThreads());
     setTrial(trialContext());
-    setObservations(await listObservations());
+    setObservations(await listObservationHistory());
     setObservationSync(await getObservationSyncInfo());
   }, []);
 

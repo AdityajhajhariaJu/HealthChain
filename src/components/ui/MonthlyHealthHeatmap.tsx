@@ -1,26 +1,38 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Activity, ShieldCheck, AlertTriangle, Clock, Utensils, Zap } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
-
-export type OrganFilter = 'all' | 'gut' | 'cardiac' | 'kinetic' | 'energy';
+import { triggerHapticSelection } from '../../services/haptics';
+import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
 
 interface DayStatus {
   dateStr: string;
   dayNumber: number;
+  hasCheckin: boolean;
   status: 'calm' | 'mild' | 'severe' | 'none';
-  score: number;
   symptom: string;
   meals: string[];
-  triggerNote?: string;
-  kineticNote?: string;
 }
 
 export const MonthlyHealthHeatmap: React.FC = () => {
   const profile = getProfile();
-  const [selectedOrgan, setSelectedOrgan] = useState<OrganFilter>('all');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [mealDiary, setMealDiary] = useState<MealDiary>({});
+
+  useEffect(() => {
+    let active = true;
+    const refreshMeals = () => {
+      void listMealDiary().then((diary) => { if (active) setMealDiary(diary); })
+        .catch(() => { if (active) setMealDiary({}); });
+    };
+    refreshMeals();
+    window.addEventListener('hc_observations_updated', refreshMeals);
+    window.addEventListener('hc_profile_updated', refreshMeals);
+    return () => {
+      active = false;
+      window.removeEventListener('hc_observations_updated', refreshMeals);
+      window.removeEventListener('hc_profile_updated', refreshMeals);
+    };
+  }, []);
 
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -35,10 +47,9 @@ export const MonthlyHealthHeatmap: React.FC = () => {
   const firstDayWeekday = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Sun
   const adjustedFirstDay = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1; // 0 = Mon
 
-  // Generate day statuses from real checkins and clinical memory
+  // Show recorded check-ins and meals without inferring a trigger or a diagnosis.
   const monthDays: DayStatus[] = useMemo(() => {
     const checkins = profile?.dailyCheckins || [];
-    const nutritionLogs = profile?.nutrition?.recentLogs || [];
 
     const days: DayStatus[] = [];
     for (let day = 1; day <= daysInMonth; day++) {
@@ -46,77 +57,47 @@ export const MonthlyHealthHeatmap: React.FC = () => {
 
       // Check for real checkin matching this day
       const checkin = checkins.find((c: any) => c.date && (c.date.startsWith(dayStr) || c.date.includes(`-${String(day).padStart(2, '0')}T`)));
-      const meals = nutritionLogs
-        .filter((l: any) => l.date === dayStr || (l.loggedAt && l.loggedAt.startsWith(dayStr)))
-        .map((l: any) => l.meal || l.name || 'Nutrient Meal');
+      const meals = (mealDiary[dayStr] || []).map((meal) => meal.name);
 
       let status: 'calm' | 'mild' | 'severe' | 'none' = 'none';
-      let score = 0;
-      let symptom = 'Asymptomatic / Baseline';
-      let triggerNote = '';
-      let kineticNote = 'Normal postural load';
+      let symptom = 'No check-in recorded';
 
       if (checkin) {
-        if (checkin.severity === 'Severe' || checkin.score >= 7) {
+        const severity = String(checkin.severity || '').toLowerCase();
+        symptom = String(checkin.symptom || checkin.note || 'Check-in recorded');
+        if (severity === 'severe') {
           status = 'severe';
-          score = checkin.score || 8;
-          symptom = checkin.symptom || 'Severe Discomfort';
-          triggerNote = 'Histamine / GOS overload combined with postprandial splanchnic pooling.';
-          kineticNote = 'High thoracic kyphosis and sacral unleveling recorded.';
-        } else if (checkin.severity === 'Moderate' || checkin.severity === 'Mild' || checkin.score >= 3) {
+        } else if (severity === 'moderate' || severity === 'mild') {
           status = 'mild';
-          score = checkin.score || 4;
-          symptom = checkin.symptom || 'Mild Discomfort';
-          triggerNote = 'Mild delayed food reaction (1.5h latency).';
-          kineticNote = 'Sustained desk immobility (>4h).';
-        } else {
+        } else if (severity === 'none' || severity === 'calm' || severity === 'stable') {
           status = 'calm';
-          score = checkin.score || 1;
-          symptom = 'Calm / Optimal';
         }
-      } else {
-        // Authentic zero-state when no check-in exists for this calendar day
-        status = 'none';
-        score = 0;
-        symptom = 'No check-in recorded';
-        triggerNote = '';
-        kineticNote = '';
       }
 
       days.push({
         dateStr: dayStr,
         dayNumber: day,
+        hasCheckin: Boolean(checkin),
         status,
-        score,
         symptom,
-        meals: meals.length > 0 ? meals : [],
-        triggerNote,
-        kineticNote,
+        meals,
       });
     }
 
     return days;
-  }, [profile, selectedOrgan, currentYear, currentMonth, daysInMonth]);
+  }, [profile, mealDiary, currentYear, currentMonth, daysInMonth]);
 
   // Aggregate metrics
   const calmCount = monthDays.filter((d) => d.status === 'calm').length;
   const mildCount = monthDays.filter((d) => d.status === 'mild').length;
   const severeCount = monthDays.filter((d) => d.status === 'severe').length;
-  const loggedDays = calmCount + mildCount + severeCount || 1;
+  const loggedDays = monthDays.filter((day) => day.hasCheckin).length;
 
   const activeDayStatus = monthDays.find((d) => d.dateStr === selectedDate);
 
-  const organFilters: { id: OrganFilter; label: string; icon: string }[] = [
-    { id: 'all', label: 'All Systems', icon: '🌐' },
-    { id: 'gut', label: 'Stomach & Bloat', icon: '🎈' },
-    { id: 'cardiac', label: 'Heart & HRV', icon: '💓' },
-    { id: 'kinetic', label: 'Kinetic & Head', icon: '🦴' },
-    { id: 'energy', label: 'Energy', icon: '⚡' },
-  ];
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {/* Month Header & Organ Filter Tabs */}
+      {/* Month header */}
       <div
         style={{
           background: '#FFFFFF',
@@ -141,56 +122,11 @@ export const MonthlyHealthHeatmap: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '6px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '999px', background: '#F0FDFA', color: '#0F766E', border: '1px solid #CCFBF1' }}>
-              {loggedDays} Days Evaluated
+              {loggedDays} days with check-ins
             </span>
           </div>
         </div>
 
-        {/* Organ System Filter Pills */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '6px',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            paddingBottom: '2px',
-          }}
-        >
-          {organFilters.map((flt) => {
-            const isCurrent = selectedOrgan === flt.id;
-            return (
-              <button
-                key={flt.id}
-                type="button"
-                onClick={() => {
-                  triggerHapticSelection();
-                  setSelectedOrgan(flt.id);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '6px 12px',
-                  borderRadius: '999px',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  border: isCurrent ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                  background: isCurrent ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                  color: isCurrent ? '#FFFFFF' : '#64748B',
-                  boxShadow: isCurrent ? '0 2px 8px rgba(13, 148, 136, 0.22)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span>{flt.icon}</span>
-                <span>{flt.label}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Calendar Matrix Grid */}
@@ -245,7 +181,7 @@ export const MonthlyHealthHeatmap: React.FC = () => {
             }
 
             const statusDescription = d.status === 'none'
-              ? 'No symptoms logged'
+              ? d.symptom
               : `${d.status} symptoms: ${d.symptom}`;
 
             return (
@@ -335,6 +271,9 @@ export const MonthlyHealthHeatmap: React.FC = () => {
           <span style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} /> Flare ({severeCount})
           </span>
+          <span style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }} /> Missing or unclassified ({monthDays.length - calmCount - mildCount - severeCount})
+          </span>
         </div>
       </div>
 
@@ -364,13 +303,13 @@ export const MonthlyHealthHeatmap: React.FC = () => {
                     fontWeight: 800,
                     padding: '3px 9px',
                     borderRadius: '999px',
-                    background: activeDayStatus.status === 'calm' ? '#ECFDF5' : activeDayStatus.status === 'mild' ? '#FFFBEB' : '#FEF2F2',
-                    color: activeDayStatus.status === 'calm' ? '#065F46' : activeDayStatus.status === 'mild' ? '#92400E' : '#991B1B',
+                    background: activeDayStatus.status === 'calm' ? '#ECFDF5' : activeDayStatus.status === 'mild' ? '#FFFBEB' : activeDayStatus.status === 'severe' ? '#FEF2F2' : '#F1F5F9',
+                    color: activeDayStatus.status === 'calm' ? '#065F46' : activeDayStatus.status === 'mild' ? '#92400E' : activeDayStatus.status === 'severe' ? '#991B1B' : '#475569',
                     border: '1px solid currentColor',
                     textTransform: 'uppercase',
                   }}
                 >
-                  {activeDayStatus.status} day
+                  {activeDayStatus.status === 'none' ? activeDayStatus.hasCheckin ? 'Severity not recorded' : 'No check-in' : `${activeDayStatus.status} day`}
                 </span>
                 <span style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
                   {activeDayStatus.dateStr}
@@ -390,11 +329,6 @@ export const MonthlyHealthHeatmap: React.FC = () => {
               <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#1E293B' }}>
                 {activeDayStatus.symptom}
               </div>
-              {activeDayStatus.triggerNote && (
-                <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px', lineHeight: 1.35 }}>
-                  <strong>Trigger Link:</strong> {activeDayStatus.triggerNote}
-                </div>
-              )}
             </div>
 
             {/* Logged Meals */}
@@ -424,12 +358,6 @@ export const MonthlyHealthHeatmap: React.FC = () => {
               </div>
             )}
 
-            {/* Kinetic / Posture Note */}
-            {activeDayStatus.kineticNote && (
-              <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                🦴 <strong>Biomechanical Load:</strong> {activeDayStatus.kineticNote}
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

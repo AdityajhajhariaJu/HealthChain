@@ -1,6 +1,9 @@
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
+import { validateGeneratedMealPlan } from './utils/diet-plan-validation.js';
+import { buildDietPlanProviderPayload, validateDietPlanRequest } from './utils/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
+import { createHash } from 'node:crypto';
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
@@ -112,6 +115,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid request id' });
   }
   const operation = String(req.headers['x-hc-operation'] || 'gemini').slice(0, 80);
+  const isDietPlan = operation.toLowerCase() === 'dietician_meal_plan';
+  let dietRequestHash = null;
+  if (isDietPlan && !userId) return res.status(401).json({ error: 'Sign in to generate a meal plan' });
   const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
   if (!API_KEY) {
     return res.status(500).json({ error: 'AI service is temporarily unavailable' });
@@ -122,7 +128,7 @@ export default async function handler(req, res) {
   const isVision = operation.includes('vision') || operation.includes('lab') || operation.includes('image');
   const isGutReasoning = operation.toLowerCase() === 'gut_reasoning';
   const isGutFrame = operation.toLowerCase() === 'gut_frame';
-  const maxBytes = isVision ? 4194304 : isGutReasoning ? 60000 : isGutFrame ? 10000 : 250000;
+  const maxBytes = isVision ? 4194304 : isGutReasoning ? 60000 : (isGutFrame || isDietPlan) ? 10000 : 250000;
   const contentLength = Number(req.headers['content-length'] || 0);
   if (contentLength > maxBytes) return res.status(413).json({ error: 'AI request is too large' });
   let bodyPayload;
@@ -173,6 +179,12 @@ export default async function handler(req, res) {
       generationConfig: { temperature: 0, maxOutputTokens: 420, responseMimeType: 'application/json', responseSchema: GUT_FRAME_SCHEMA },
     };
   }
+  if (isDietPlan) {
+    if (Object.keys(bodyPayload).length !== 1 || !validateDietPlanRequest(bodyPayload.dietPlanRequest))
+      return res.status(400).json({ error: 'Invalid meal plan request' });
+    dietRequestHash = createHash('sha256').update(JSON.stringify(bodyPayload.dietPlanRequest)).digest('hex');
+    bodyPayload = buildDietPlanProviderPayload(bodyPayload.dietPlanRequest);
+  }
 
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const adminClient = adminKey && supabaseUrl
@@ -189,6 +201,21 @@ export default async function handler(req, res) {
       status: 'in_progress',
     });
     if (ledgerError && ledgerError.code === '23505') {
+      if (isDietPlan) {
+        const { data: saved, error: savedError } = await adminClient.from('diet_plan_generations')
+          .select('request_hash, plan').eq('request_id', String(requestId)).eq('user_id', userId).maybeSingle();
+        if (savedError) return res.status(503).json({ error: 'Meal plan recovery is temporarily unavailable' });
+        if (saved) {
+          if (saved.request_hash !== dietRequestHash) return res.status(409).json({ error: 'Request id belongs to different plan details' });
+          return res.status(200).json({ candidates: [{ content: { parts: [{ text: JSON.stringify(saved.plan) }] } }] });
+        }
+        const { data: previous, error: previousError } = await adminClient.from('ai_requests')
+          .select('status, user_id').eq('request_id', String(requestId)).eq('user_id', userId).maybeSingle();
+        if (previousError) return res.status(503).json({ error: 'Meal plan recovery is temporarily unavailable' });
+        if (previous?.status === 'failed') return res.status(409).json({ error: 'Previous meal plan request failed', reason: 'request_failed' });
+        if (previous?.status === 'in_progress') return res.status(409).json({ error: 'Meal plan generation is still in progress', reason: 'request_in_progress' });
+        return res.status(503).json({ error: 'Completed meal plan is temporarily unavailable' });
+      }
       return res.status(409).json({ error: 'Duplicate AI request rejected' });
     }
     if (ledgerError) {
@@ -219,7 +246,8 @@ export default async function handler(req, res) {
     const contentsCount = Array.isArray(bodyPayload.contents) ? bodyPayload.contents.length : 0;
     
     // Bill Ava per message
-    if (opLow.includes('ava') || opLow.includes('buddy')) featureCode = 'ava_replies';
+    if (opLow === 'dietician_meal_plan') featureCode = 'dietician_meal_plan';
+    else if (opLow.includes('ava') || opLow.includes('buddy')) featureCode = 'ava_replies';
     // Bill Quick Consult ONLY on the first message (contents.length === 1) to bill per-session
     else if (opLow.includes('quick') && contentsCount <= 1) featureCode = 'quick_consult';
     // Bill Deep Collab ONLY at triage (specialist_selection) to bill per-session
@@ -229,6 +257,21 @@ export default async function handler(req, res) {
     else if (opLow.includes('lab')) featureCode = 'lab_report';
     else if (opLow.includes('pharmacy')) featureCode = 'pharmacy_hub';
 
+    if (featureCode === 'dietician_meal_plan') {
+      const { data: paidProfile, error: paidProfileError } = await adminClient.from('profiles')
+        .select('is_pro, pro_expires_at, allergies').eq('id', userId).maybeSingle();
+      if (paidProfileError) {
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'entitlement_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(503).json({ error: 'Entitlement service unavailable' });
+      }
+      if (Array.isArray(paidProfile?.allergies) && paidProfile.allergies.length > 0) {
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'ingredient_verification_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(422).json({ error: 'Saved allergies require verified recipe ingredients before automatic planning' });
+      }
+      if (paidProfile?.is_pro && paidProfile?.pro_expires_at && Date.parse(paidProfile.pro_expires_at) > Date.now()) {
+        featureCode = null; // Preserve existing paid access; AI requests remain in the request ledger.
+      }
+    }
     if (featureCode) {
       try {
         let { data: quotaResult, error: featureQuotaError } = await adminClient.rpc('consume_feature_quota_for_request', {
@@ -240,6 +283,10 @@ export default async function handler(req, res) {
         // existing environment. Once installed, the request-bound path above
         // provides exact-once release on provider failure.
         const usingLegacyQuotaFunction = featureQuotaError && (featureQuotaError.code === 'PGRST202' || /consume_feature_quota_for_request/i.test(featureQuotaError.message || ''));
+        if (usingLegacyQuotaFunction && featureCode === 'dietician_meal_plan') {
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_migration_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(503).json({ error: 'Meal plan accounting is temporarily unavailable' });
+        }
         if (usingLegacyQuotaFunction) {
           const legacy = await adminClient.rpc('consume_feature_quota', {
             p_user_id: userId,
@@ -296,6 +343,7 @@ export default async function handler(req, res) {
 
   // Use the verified gemini-2.5-flash endpoint
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+  let planSavedForRecovery = false;
 
   try {
     const existingInstruction = Array.isArray(bodyPayload.systemInstruction?.parts)
@@ -369,6 +417,31 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    let generatedPlan = null;
+    if (isDietPlan) {
+      try {
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        generatedPlan = JSON.parse(rawText);
+      } catch {}
+      if (!validateGeneratedMealPlan(generatedPlan, 7).valid) {
+        if (adminClient && userId) {
+          await releaseReservedFeatureQuota();
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'invalid_meal_plan', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        }
+        return res.status(502).json({ error: 'Meal plan was incomplete; please retry' });
+      }
+      if (adminClient && userId) {
+        const { error: savedError } = await adminClient.from('diet_plan_generations').insert({
+          request_id: String(requestId), user_id: userId, request_hash: dietRequestHash, plan: generatedPlan,
+        });
+        if (savedError) {
+          await releaseReservedFeatureQuota();
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'plan_recovery_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(503).json({ error: 'Meal plan could not be saved for recovery; please retry' });
+        }
+        planSavedForRecovery = true;
+      }
+    }
     if (adminClient && userId) {
       const usage = data?.usageMetadata || {};
       await adminClient.from('ai_requests').update({
@@ -385,10 +458,10 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
   } catch (error) {
     if (adminClient && userId) {
-      await releaseReservedFeatureQuota();
+      if (!planSavedForRecovery) await releaseReservedFeatureQuota();
       await adminClient.from('ai_requests').update({
-        status: 'failed',
-        error_code: error?.code || error?.name || 'provider_error',
+        status: planSavedForRecovery ? 'completed' : 'failed',
+        error_code: planSavedForRecovery ? null : (error?.code || error?.name || 'provider_error'),
         finished_at: new Date().toISOString(),
       }).eq('request_id', String(requestId)).catch(() => {});
     }

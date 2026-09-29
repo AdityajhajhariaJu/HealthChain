@@ -9,6 +9,7 @@ export type ObservationCommandResult =
   | { ok: false; error: 'validation' | 'scope_changed' | 'not_found' | 'revision_conflict' | 'storage_failure'; details?: string[] };
 
 const key = (scope: ObservationScope) => `hc_observations_v1:${scope.ownerId}:${scope.profileId}`;
+const failedQueueKey = (scope: ObservationScope) => `hc_observation_queue_fail:${scope.ownerId}:${scope.profileId}`;
 const newId = () => typeof crypto !== 'undefined' && crypto.randomUUID
   ? crypto.randomUUID()
   : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (digit) => {
@@ -97,11 +98,42 @@ function remoteRow(observation: Observation, expectedRevision: number) {
 
 async function queueRemote(observation: Observation, expectedRevision: number): Promise<'local_only' | 'pending' | 'queue_failed'> {
   if (observation.ownerId === 'guest') return 'local_only';
-  if (!await sameScope(observation)) return 'queue_failed';
+  const mark = (failed: boolean) => {
+    try {
+      const storageKey = failedQueueKey(observation);
+      const ids = new Set<string>(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+      if (failed) ids.add(observation.id);
+      else ids.delete(observation.id);
+      if (ids.size) localStorage.setItem(storageKey, JSON.stringify([...ids]));
+      else localStorage.removeItem(storageKey);
+    } catch { /* The caller still receives queue_failed. */ }
+  };
+  if (!await sameScope(observation)) { mark(true); return 'queue_failed'; }
   try {
     const queued = await enqueueSync('health_observation_upsert', observation.ownerId, remoteRow(observation, expectedRevision));
+    mark(!queued);
     return queued ? 'pending' : 'queue_failed';
-  } catch { return 'queue_failed'; }
+  } catch { mark(true); return 'queue_failed'; }
+}
+
+/** Re-enqueue only observations whose previous local write explicitly reported queue failure. */
+export async function retryFailedObservationQueues(): Promise<{ retried: number; remaining: number }> {
+  const scope = await captureObservationScope();
+  if (!scope || scope.ownerId === 'guest') return { retried: 0, remaining: 0 };
+  let ids: string[];
+  try { ids = JSON.parse(localStorage.getItem(failedQueueKey(scope)) || '[]'); }
+  catch { return { retried: 0, remaining: 0 }; }
+  if (!Array.isArray(ids)) return { retried: 0, remaining: 0 };
+  const records = await readLocal(scope);
+  let retried = 0;
+  for (const id of ids) {
+    if (!await sameScope(scope)) break;
+    const record = records.find((item) => item.id === id);
+    if (record && await queueRemote(record, record.revision - 1) === 'pending') retried++;
+  }
+  let remaining = 0;
+  try { remaining = JSON.parse(localStorage.getItem(failedQueueKey(scope)) || '[]').length; } catch {}
+  return { retried, remaining };
 }
 
 export async function listObservations(): Promise<Observation[]> {
@@ -110,6 +142,15 @@ export async function listObservations(): Promise<Observation[]> {
   const records = await readLocal(scope);
   if (!await sameScope(scope)) return [];
   return records.filter((record) => !record.deletedAt).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+}
+
+/** Includes tombstones so migration readers cannot resurrect deleted legacy meals. */
+export async function listObservationHistory(): Promise<Observation[]> {
+  const scope = await captureObservationScope();
+  if (!scope) return [];
+  const records = await readLocal(scope);
+  if (!await sameScope(scope)) return [];
+  return records.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
 }
 
 export type ObservationCloudLoad = { status: 'loaded' | 'local_only' | 'unavailable' | 'conflict' | 'scope_changed' | 'storage_failure'; imported: number; conflicts: number };
@@ -191,15 +232,18 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
   });
 }
 
-export async function createObservation(draft: ObservationDraft): Promise<ObservationCommandResult> {
+export async function createObservation(draft: ObservationDraft, deterministicLegacyId?: string): Promise<ObservationCommandResult> {
   const validated = validateObservationDraft(draft);
   if (!validated.ok) return { ok: false, error: 'validation', details: validated.errors };
   if (draft.evidenceType !== 'user_report') return { ok: false, error: 'validation', details: ['Imported or clinician evidence requires a verified server import.'] };
+  if (deterministicLegacyId && (draft.source !== 'legacy' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deterministicLegacyId)))
+    return { ok: false, error: 'validation', details: ['A deterministic record ID is allowed only for a legacy import.'] };
   return serialize(async () => {
     if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     const records = await readLocal(draft);
     const existing = records.find((record) => record.idempotencyKey === draft.idempotencyKey);
     if (existing) {
+      if (existing.deletedAt) return { ok: false, error: 'revision_conflict' } as const;
       const { id, schemaVersion, recordedAt, revision, createdAt, updatedAt, deletedAt, ...original } = existing;
       if (JSON.stringify(original) !== JSON.stringify(draft)) return { ok: false, error: 'revision_conflict' } as const;
       // A previous local save may have succeeded while the outbox write failed.
@@ -207,8 +251,10 @@ export async function createObservation(draft: ObservationDraft): Promise<Observ
       const sync = await queueRemote(existing, existing.revision - 1);
       return { ok: true, observation: existing, sync } as const;
     }
+    if (deterministicLegacyId && records.some((record) => record.id === deterministicLegacyId))
+      return { ok: false, error: 'revision_conflict' } as const;
     const now = new Date().toISOString();
-    const observation: Observation = { ...draft, id: newId(), schemaVersion: 1, recordedAt: now, revision: 1, createdAt: now, updatedAt: now, deletedAt: null };
+    const observation: Observation = { ...draft, id: deterministicLegacyId || newId(), schemaVersion: 1, recordedAt: now, revision: 1, createdAt: now, updatedAt: now, deletedAt: null };
     if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     if (!await writeLocal(draft, [...records, observation])) return { ok: false, error: 'storage_failure' } as const;
     const sync = await queueRemote(observation, 0);

@@ -23,6 +23,7 @@ const requiredFiles = [
   '20260911_payment_lifecycle_resilience.sql',
   '20260917_ai_quota_reservations.sql',
   '20260924_gut_observations.sql',
+  '20260930_diet_plan_generation_recovery.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -65,12 +66,14 @@ const requiredSchemaTokens = [
   'public.healthchain_profiles',
   'public.user_devices',
   'public.ai_requests',
+  'public.diet_plan_generations',
   'public.ai_usage_daily',
   'public.analytics_events',
   'public.payments',
   'public.healthchain_user_summary',
   'public.healthchain_memory_overview',
   'revoke all on table public.ai_requests from anon, authenticated',
+  'revoke all on table public.diet_plan_generations from anon, authenticated',
   'revoke all on table public.ai_usage_daily from anon, authenticated',
   'revoke all on table public.payments from anon, authenticated',
   'revoke all on table public.healthchain_profiles from anon',

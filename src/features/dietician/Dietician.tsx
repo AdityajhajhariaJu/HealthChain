@@ -72,10 +72,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   analyzeFoodEntry,
   generateMealPlan,
+  hasPendingDietPlanRequest,
+  clearPendingDietPlanRequest,
   generateNutritionalGuardrails,
-  generateGroceryList,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog, removeNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
+import { addEvent, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
+import { correctMeal, createMeal, listMealDiary, mealEntryFromAnalysis, migrateLegacyDietMeals, removeAllDietMeals, removeMeal } from '../../services/MealCommandService';
+import { loadObservationsFromCloud, retryFailedObservationQueues } from '../../services/HealthObservationService';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
@@ -116,6 +119,9 @@ import {
 } from '../../services/clinicalDietarySwaps';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
+import { targetFields } from '../../services/dietTargets';
+import { hasUnverifiableDietConstraints, validateGeneratedMealPlan } from '../../services/dietPlanValidation';
+import { projectDietGroceries } from '../../services/dietGroceryProjection';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -136,12 +142,10 @@ export const MEAL_SCHEDULES = [
 ];
 
 export const QUICK_PRESETS = [
-  { name: 'Steel-Cut Oats with Almonds & Berries', portion: '1 bowl (250g)', calories: 340, protein: 14, carbs: 52, fat: 8, emoji: '🥣', type: 'Breakfast' },
-  { name: 'Dal Tadka + 2 Whole Wheat Rotis + Salad', portion: '1 plate', calories: 450, protein: 18, carbs: 68, fat: 12, emoji: '🥗', type: 'Lunch' },
-  { name: 'Grilled Paneer / Chicken Tikka Quinoa Bowl', portion: '1 bowl (300g)', calories: 430, protein: 32, carbs: 30, fat: 18, emoji: '🍗', type: 'Lunch' },
-  { name: 'Sourdough Avocado Toast with 2 Poached Eggs', portion: '2 slices', calories: 380, protein: 20, carbs: 28, fat: 22, emoji: '🥑', type: 'Breakfast' },
-  { name: 'Moong Dal Khichdi + Desi Ghee & Curd', portion: '1 bowl', calories: 360, protein: 15, carbs: 54, fat: 10, emoji: '🍲', type: 'Dinner' },
-  { name: 'Whey Protein Isolate & Supergreens Shake', portion: '1 scoop (350ml)', calories: 220, protein: 28, carbs: 18, fat: 4, emoji: '🥤', type: 'Snack' },
+  { name: 'Oats with almonds and berries', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥣', type: 'Breakfast' },
+  { name: 'Dal with roti and salad', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥗', type: 'Lunch' },
+  { name: 'Avocado toast with eggs', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥑', type: 'Breakfast' },
+  { name: 'Moong dal khichdi with curd', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🍲', type: 'Dinner' },
 ];
 
 export const PANTRY_STAPLES = [
@@ -206,72 +210,18 @@ export const DEFAULT_GROCERY_CATEGORIES = [
 ];
 
 function calculateTargets(p: any) {
-  const safeWeight = (!p?.weight || Number.isNaN(parseFloat(p.weight))) ? 70 : Math.max(20, parseFloat(p.weight));
-  const safeHeight = (!p?.height || Number.isNaN(parseFloat(p.height))) ? 170 : Math.max(50, parseFloat(p.height));
-  const safeAge = (!p?.age || Number.isNaN(parseInt(p.age, 10))) ? 30 : Math.max(1, parseInt(p.age, 10));
-
-  let bmr = 10 * safeWeight + 6.25 * safeHeight - 5 * safeAge;
-  bmr = p?.gender === 'female' ? bmr - 161 : bmr + 5;
-
-  let multiplier = 1.2;
-  if (p?.activityLevel === 'light') multiplier = 1.375;
-  if (p?.activityLevel === 'moderate') multiplier = 1.55;
-  if (p?.activityLevel === 'active') multiplier = 1.725;
-
-  let tdee = bmr * multiplier;
-  let targetCalories = Math.round(tdee);
-
-  const targetDays = parseInt(p?.targetDays, 10);
-  if (!Number.isNaN(targetDays) && targetDays > 0 && p?.goal !== 'Maintain') {
-    const targetWeight = (!p?.targetWeight || Number.isNaN(parseFloat(p.targetWeight))) ? 65 : parseFloat(p.targetWeight);
-    const weightDiff = Math.abs(safeWeight - targetWeight);
-    const totalCalorieChange = weightDiff * 7700; // ~7700 kcal per kg
-    const dailyChange = totalCalorieChange / targetDays;
-    const safeDailyChange = Math.min(dailyChange, 1000);
-
-    if (p?.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories = Math.round(tdee + safeDailyChange);
-  } else {
-    if (p?.goal === 'Lose weight') targetCalories -= 500;
-    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories += 500;
-  }
-
-  // Safe floor
-  targetCalories = Math.max(1200, Number.isNaN(targetCalories) ? 2000 : targetCalories);
-
-  // Practical split: 25% Protein, 45% Carbs, 30% Fat
-  const targetProtein = Math.round((targetCalories * 0.25) / 4);
-  const targetCarbs = Math.round((targetCalories * 0.45) / 4);
-  const targetFat = Math.round((targetCalories * 0.3) / 9);
-
-  return { targetCalories, targetProtein, targetCarbs, targetFat };
+  return targetFields(p);
 }
 
 export function getInitialDietProfile(): any {
   try {
     const core = getCoreProfile();
+    if (core?.dietResetAt && !core?.dietProfile) return null;
     if (core?.dietician?.profile) {
       return { ...core.dietician.profile, ...calculateTargets(core.dietician.profile) };
     }
     if (core?.dietProfile) {
       return { ...core.dietProfile, ...calculateTargets(core.dietProfile) };
-    }
-    if (core?.demographics && (core.demographics.name || core.demographics.age || core.demographics.weight)) {
-      const demo = core.demographics;
-      const derived = {
-        weight: demo.weight || 70,
-        weightUnit: 'kg',
-        height: demo.height || 170,
-        heightUnit: 'cm',
-        age: demo.age || 30,
-        gender: (demo.gender || 'male').toLowerCase(),
-        goal: 'Maintain',
-        activityLevel: 'moderate',
-        medicalConditions: core.conditions || [],
-        restrictions: core.allergies || [],
-        cuisine: 'Mediterranean',
-      };
-      return { ...derived, ...calculateTargets(derived) };
     }
   } catch (e) {}
   return null;
@@ -358,6 +308,9 @@ export default function Dietician() {
     carbs: number;
     fat: number;
     description: string;
+    ingredientsText: string;
+    stepsText: string;
+    prepMinutes: number;
   }>({
     name: '',
     portion: '1 serving',
@@ -366,6 +319,7 @@ export default function Dietician() {
     carbs: 0,
     fat: 0,
     description: '',
+    ingredientsText: '', stepsText: '', prepMinutes: 0,
   });
   const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
   const [customSwapName, setCustomSwapName] = useState<string>('');
@@ -382,7 +336,7 @@ export default function Dietician() {
 
   const [advice, setAdvice] = useState<any>(null);
   const [isFetchingAdvice, setIsFetchingAdvice] = useState(false);
-  const [groceryList, setGroceryList] = useState<any[]>(DEFAULT_GROCERY_CATEGORIES);
+  const [groceryList, setGroceryList] = useState<any[]>([]);
   const [copiedGrocery, setCopiedGrocery] = useState(false);
   const [selectedPlanDay, setSelectedPlanDay] = useState<number>(1);
 
@@ -398,27 +352,9 @@ export default function Dietician() {
   const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-
-  const detectedTriggers = useMemo(() => {
-    const text = foodInput.toLowerCase();
-    const triggers: { label: string; icon: string; color: string; bg: string }[] = [];
-    if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('vinegar')) {
-      triggers.push({ label: 'Histamine/Amines', icon: '🍷', color: '#B45309', bg: '#FEF3C7' });
-    }
-    if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) {
-      triggers.push({ label: 'Gluten / Wheat', icon: '🌾', color: '#B45309', bg: '#FEF3C7' });
-    }
-    if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) {
-      triggers.push({ label: 'Dairy / Lactose', icon: '🥛', color: '#0369A1', bg: '#E0F2FE' });
-    }
-    if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea')) {
-      triggers.push({ label: 'Caffeine Active', icon: '☕', color: '#4338CA', bg: '#EEF2FF' });
-    }
-    if (text.includes('onion') || text.includes('garlic') || text.includes('apple') || text.includes('beans') || text.includes('chickpea')) {
-      triggers.push({ label: 'High FODMAP', icon: '🧄', color: '#7C3AED', bg: '#F5F3FF' });
-    }
-    return triggers;
-  }, [foodInput]);
+  const [editingDiaryMeal, setEditingDiaryMeal] = useState<any>(null);
+  const [diaryCorrection, setDiaryCorrection] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', portionGrams: '' });
+  const displayedGroceryList = useMemo(() => projectDietGroceries(mealPlan, groceryList), [mealPlan, groceryList]);
 
   // Hydrate diet state
   useEffect(() => {
@@ -426,8 +362,17 @@ export default function Dietician() {
     const load = async () => {
       try {
         const coreProfile = getCoreProfile();
+        if (coreProfile?.dietResetAt && !coreProfile?.dietProfile) return;
         if (coreProfile?.dietician) {
-          const { profile: p, foodLogs: fl, hydration: h, mealPlan: mp, advice: a, groceryList: gl } = coreProfile.dietician;
+          const nested = coreProfile.dietician;
+          const flat = (key: string, fallback: any) => Object.prototype.hasOwnProperty.call(coreProfile, key) ? coreProfile[key] : fallback;
+          const p = flat('dietProfile', nested.profile);
+          const fl = flat('dietFoodLogs', nested.foodLogs);
+          const h = flat('dietHydration', nested.hydration);
+          const mp = flat('dietMealPlan', nested.mealPlan);
+          const a = flat('dietAdvice', nested.advice);
+          const gl = flat('dietGrocery', nested.groceryList);
+          const savedGuardrails = flat('dietGuardrails', nested.guardrails);
           if (p) setProfile({ ...p, ...calculateTargets(p) });
           if (fl) setFoodLogs(fl);
           if (h) setHydration(h);
@@ -437,6 +382,7 @@ export default function Dietician() {
           }
           if (a) setAdvice(a);
           if (gl) setGroceryList(gl);
+          if (Array.isArray(savedGuardrails)) setGuardrails(savedGuardrails);
           return;
         }
         const unified = getCoreProfile() || {};
@@ -502,7 +448,7 @@ export default function Dietician() {
         }
 
         await syncHealthMemoryFromSupabase();
-        if (cancelled || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
+        if (cancelled || unified.dietResetAt || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
         const snapshot = getLatestHealthMemory('diet', 'dietician')?.payload?.state;
         if (!snapshot) return;
         if (snapshot.profile) setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
@@ -524,25 +470,35 @@ export default function Dietician() {
     };
   }, [activeCaseScope.caseId]);
 
-  // Save state to local storage when it changes (Single atomic write, no recursive loops)
   useEffect(() => {
     if (!isHydrated) return;
-    try {
-      const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans };
-      const core = getCoreProfile();
-      if (core) {
-        core.dietician = data;
-        if (profile) core.dietProfile = profile;
-        core.dietFoodLogs = foodLogs;
-        core.dietHydration = hydration;
-        if (mealPlan) core.dietMealPlan = mealPlan;
-        if (archivedPlans.length > 0) core.dietArchivedPlans = archivedPlans;
-        if (advice) core.dietAdvice = advice;
-        if (groceryList) core.dietGrocery = groceryList;
-        saveProfile(core);
+    let active = true;
+    const refreshFoodLogs = async () => {
+      const latest = await listMealDiary();
+      if (active) setFoodLogs((previous: any) => JSON.stringify(previous) === JSON.stringify(latest) ? previous : latest);
+    };
+    void refreshFoodLogs();
+    void (async () => {
+      const cloud = await loadObservationsFromCloud();
+      if (!active) return;
+      if (cloud.status === 'loaded' || cloud.status === 'conflict' || cloud.status === 'local_only') {
+        const migration = await migrateLegacyDietMeals();
+        if (migration.failed && active) toast.error('Diary migration needs attention', `${migration.failed} older meal record(s) could not be copied into the shared diary. Your older records remain available.`);
       }
-    } catch(e) {}
-  }, [isHydrated, profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
+      const retry = await retryFailedObservationQueues();
+      if (retry.remaining && active) toast.error('Diary sync needs attention', `${retry.remaining} saved record(s) could not be queued for cloud sync. Free device storage or reconnect, then reopen Diet.`);
+      if (active) await refreshFoodLogs();
+    })();
+    window.addEventListener('hc_profile_updated', refreshFoodLogs);
+    window.addEventListener('storage', refreshFoodLogs);
+    window.addEventListener('hc_observations_updated', refreshFoodLogs);
+    return () => {
+      active = false;
+      window.removeEventListener('hc_profile_updated', refreshFoodLogs);
+      window.removeEventListener('storage', refreshFoodLogs);
+      window.removeEventListener('hc_observations_updated', refreshFoodLogs);
+    };
+  }, [isHydrated]);
 
   // Record Health Memory snapshots
   useEffect(() => {
@@ -585,35 +541,14 @@ export default function Dietician() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showARLens, isLoggingFood, showResetDietConfirm, showSavedMealsModal, isEditingProfile]);
 
-  // Synthesize clinical nutritional advice deterministically (0 token burn)
+  // General planning context only; diagnoses do not authorize treatment advice.
   useEffect(() => {
     if (profile && !advice) {
-      const conditions = (profile.medicalConditions || profile.conditions || []).map((c: any) =>
-        (typeof c === 'string' ? c : c?.condition || '').toLowerCase()
-      );
       const cuisine = profile.cuisine || '';
-      const calories = profile.targetCalories || 2000;
-
-      let rule = '';
-      if (conditions.some((c: string) => c.includes('gerd') || c.includes('reflux') || c.includes('heartburn') || c.includes('lpr'))) {
-        rule = 'Prioritize alkaline, low-acid foods and finish dinner at least 3 hours before sleep to prevent esophageal micro-irritation.';
-      } else if (conditions.some((c: string) => c.includes('ibs') || c.includes('bloat') || c.includes('sibo') || c.includes('gut'))) {
-        rule = 'Incorporate gentle soluble fiber and space meals 3 to 4 hours to activate migrating motor complex (MMC) motility.';
-      } else if (conditions.some((c: string) => c.includes('pots') || c.includes('dysautonomia') || c.includes('tachycardia'))) {
-        rule = 'Maintain steady fluid volume and electrolyte balance with complex carbs to minimize postprandial splanchnic blood pooling.';
-      } else if (conditions.some((c: string) => c.includes('diabet') || c.includes('insulin') || c.includes('glucose') || c.includes('metabolic'))) {
-        rule = 'Anchor each meal with 25-30g of lean protein and healthy fats before complex carbs to stabilize postprandial glucose.';
-      } else if (conditions.some((c: string) => c.includes('histamine') || c.includes('mcas') || c.includes('allergy'))) {
-        rule = 'Prioritize fresh, non-fermented whole foods and minimize high-histamine culprits to preserve DAO enzyme capacity.';
-      } else {
-        rule = `Target ${calories} kcal/day with whole-food nutrient density and balanced macronutrient distribution.`;
-      }
-
       const cuisineNote = cuisine && !cuisine.toLowerCase().includes('not specified')
-        ? ` Optimized for your ${cuisine} culinary preferences.`
-        : ' Ensure consistent protein distribution across all feeding windows.';
-
-      const synthesizedAdvice = `${rule}${cuisineNote}`;
+        ? ` Your ${cuisine} cuisine preference is saved.`
+        : '';
+      const synthesizedAdvice = `These are editable food-planning estimates, not a condition-specific prescription.${cuisineNote} Check ingredients and labels against your own restrictions; discuss medical nutrition needs with a qualified clinician or dietitian.`;
       setAdvice(synthesizedAdvice);
       updateProfileFeatureData('dietAdvice', synthesizedAdvice);
     }
@@ -641,6 +576,7 @@ export default function Dietician() {
     for (const day of mealPlan.plan) {
       if (!day.meals) continue;
       for (const meal of day.meals) {
+        if (meal.macrosNeedReview) continue;
         if (!seen.has(meal.name)) {
           seen.add(meal.name);
           meals.push({
@@ -661,17 +597,22 @@ export default function Dietician() {
     return meals.length > 0 ? meals : QUICK_PRESETS;
   }, [mealPlan]);
 
-  const handleSaveProfile = (p: any) => {
+  const handleSaveProfile = async (p: any) => {
     const fullProfile = { ...p, ...calculateTargets(p) };
+    const unified = getCoreProfile();
+    if (!unified) {
+      toast.error('Preferences not saved', 'Your profile could not be loaded. Please try again.');
+      return;
+    }
+    await saveProfile({
+      ...unified, dietProfile: fullProfile, dietResetAt: null,
+      dietician: { ...(unified.dietician || {}), profile: fullProfile },
+    });
+    if (JSON.stringify(getCoreProfile()?.dietProfile) !== JSON.stringify(fullProfile)) {
+      toast.error('Preferences not saved', 'The profile update was not confirmed. Please try again.');
+      return;
+    }
     setProfile(fullProfile);
-    
-    // Persist to unified profile
-    const unified = getCoreProfile() || {};
-    unified.dietProfile = fullProfile;
-    try {
-      localStorage.setItem(getProfileKey(), JSON.stringify(unified));
-    } catch (e) {}
-    updateProfileFeatureData('dietProfile', fullProfile);
     toast.success('Preferences updated', 'Your food-planning preferences were refreshed.');
   };
 
@@ -699,80 +640,47 @@ export default function Dietician() {
 
   const waterGlasses = hydration[currentDate] || 0;
 
-  const syncToUnifiedNutritionLogs = (mealItem: any) => {
-    try {
-      const text = (mealItem.name || '').toLowerCase();
-      const sensitivities: string[] = [];
-      if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('pickle') || text.includes('achaar')) sensitivities.push('histamine');
-      if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) sensitivities.push('gluten');
-      if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) sensitivities.push('lactose_casein');
-      if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea') || text.includes('chai')) sensitivities.push('caffeine');
-      if (text.includes('onion') || text.includes('garlic') || text.includes('chickpea') || text.includes('beans') || text.includes('chana') || text.includes('besan') || text.includes('dal')) sensitivities.push('fructans_gos');
-
-      return addNutritionLog({
-        id: mealItem.id,
-        meal: mealItem.name,
-        calories: mealItem.calories || 0,
-        protein: mealItem.protein || 0,
-        carbs: mealItem.carbs || 0,
-        fat: mealItem.fat || 0,
-        type: mealItem.type || selectedMealType,
-        latency: mealItem.latency || mealLatency,
-        sensitivities,
-        date: currentDate,
-      });
-    } catch (e) {
-      console.warn('Failed to sync to unified nutrition logs:', e);
-      return null;
-    }
-  };
-
   const handleAddFood = async () => {
     if (isAnalyzingFood) return;
     if (!foodInput.trim()) return;
     setIsAnalyzingFood(true);
     try {
       const result = await analyzeFoodEntry(foodInput);
-      if (result && result.items) {
-        const updatedLogs = { ...foodLogs };
-        updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-
-        result.items.forEach((item: any) => {
-          const loggedEntry = {
-            ...item,
-            type: selectedMealType,
-            latency: mealLatency,
-            id: Date.now() + Math.random(),
-          };
-          updatedLogs[currentDate].push(loggedEntry);
-          syncToUnifiedNutritionLogs(loggedEntry);
-        });
+      if (result && Array.isArray(result.items) && result.items.length > 0) {
+        const entry = mealEntryFromAnalysis(foodInput, result.items, { type: selectedMealType, latency: mealLatency });
+        const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'diet_diary' });
+        if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
         if (isMounted.current) {
-          setFoodLogs(updatedLogs);
+          setFoodLogs(await listMealDiary());
           setIsLoggingFood(false);
           setFoodInput('');
           triggerHapticSuccess();
-          awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
+          awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${saved.observation.id}`);
+          if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
         }
 
-        addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`, {
-          items: result.items,
-          type: selectedMealType,
-          latency: mealLatency,
-        });
+        try {
+          addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`, {
+            items: result.items,
+            type: selectedMealType,
+            latency: mealLatency,
+          });
+        } catch (eventError) {
+          console.warn('Meal saved; optional timeline event was unavailable', eventError);
+        }
+      } else {
+        toast.error('Analysis incomplete', 'No food items were returned. Add more detail and try again.');
       }
     } catch (err) {
       console.error('Failed to analyze food:', err);
-      toast.error('Analysis Failed', 'Failed to analyze food entry. Please try again.');
+      toast.error('Meal not saved', 'The analysis or local save failed. Please try again.');
     } finally {
       if (isMounted.current) setIsAnalyzingFood(false);
     }
   };
 
-  const handleAddPreset = (preset: typeof QUICK_PRESETS[0]) => {
+  const handleAddPreset = async (preset: typeof QUICK_PRESETS[0]) => {
     triggerHapticLight();
-    const updatedLogs = { ...foodLogs };
-    updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
     const entry = {
       name: preset.name,
       portion: preset.portion,
@@ -783,26 +691,103 @@ export default function Dietician() {
       emoji: preset.emoji,
       type: selectedMealType,
       latency: mealLatency,
-      id: Date.now() + Math.random(),
+      id: crypto.randomUUID?.() || `preset_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      nutritionSource: preset.calories == null ? 'name_only' : 'plan_estimate',
     };
-    updatedLogs[currentDate].push(entry);
-    syncToUnifiedNutritionLogs(entry);
-    setFoodLogs(updatedLogs);
+    const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'diet_diary' });
+    if (!saved.ok) {
+      toast.error('Meal not saved', 'The preset could not be saved. Please try again.');
+      return false;
+    }
+    setFoodLogs(await listMealDiary());
     setIsLoggingFood(false);
-    awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
+    awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${saved.observation.id}`);
+    if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
+    toast.success('Meal saved locally', `Added ${preset.name}. Nutrition is unknown until the portion and ingredients are checked.`);
+    return true;
   };
 
-  const handleDeleteFood = (id: number) => {
+  const handleDeleteFood = async (id: string | number) => {
     triggerHapticLight();
-    const updatedLogs = { ...foodLogs };
-    if (updatedLogs[currentDate]) {
-      const removedItem = updatedLogs[currentDate].find((item: any) => item.id === id);
-      updatedLogs[currentDate] = updatedLogs[currentDate].filter((item: any) => item.id !== id);
-      setFoodLogs(updatedLogs);
-      updateProfileFeatureData('dietFoodLogs', updatedLogs);
-      updateProfileFeatureData('dietician', { foodLogs: updatedLogs });
-      toast.info('Meal Removed', `"${removedItem?.name || 'Meal'}" removed from daily nutrition log.`);
+    const removedItem = foodLogs[currentDate]?.find((item: any) => String(item.id) === String(id));
+    const deleted = await removeMeal(currentDate, id);
+    if (!deleted.ok) {
+      toast.error('Delete failed', 'The meal was not confirmed as removed. Please try again.');
+      return;
     }
+    setFoodLogs(await listMealDiary());
+    if (deleted.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal removed on this device, but cloud sync could not be queued.');
+    toast.info('Meal removed locally', `"${removedItem?.name || 'Meal'}" removed from the diary and shared nutrition records.`);
+  };
+
+  const handleConfirmPlannedMeal = async (day: number, meal: MealPlanItem) => {
+    if (!mealPlan) return;
+    const sourceRecordId = `plan:${mealPlan.id}:day:${day}:meal:${meal.id}:date:${currentDate}`;
+    if ((foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === sourceRecordId)) {
+      toast.info('Already logged', 'This planned meal is already in the diary for the selected date.');
+      return;
+    }
+    const known = !meal.macrosNeedReview;
+    const saved = await createMeal({ localDate: currentDate, captureMethod: 'plan_confirmation', entry: {
+      id: sourceRecordId, name: meal.name, type: meal.type,
+      calories: known ? meal.calories : null, protein: known ? meal.protein : null,
+      carbs: known ? meal.carbs : null, fat: known ? meal.fat : null,
+      sourceId: `${mealPlan.id}:${day}:${meal.id}`, sourceVersion: mealPlan.updatedAt,
+      ingredients: meal.ingredients || [], portion: meal.portion || 'Amount not confirmed',
+    } });
+    if (!saved.ok) {
+      toast.error('Meal not saved', 'The planned meal could not be added to your diary.');
+      return;
+    }
+    setFoodLogs(await listMealDiary());
+    if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
+    else toast.success('Meal logged', `Recorded ${meal.name} as eaten. Nutrients remain estimates from the plan.`);
+  };
+
+  const handleStartDiaryCorrection = (meal: any) => {
+    if (!meal.syncRecordId || !Number.isInteger(meal.revision)) {
+      toast.info('Older meal', 'This older record needs migration before it can be corrected here. You can still remove it.');
+      return;
+    }
+    setEditingDiaryMeal(meal);
+    const value = (number: unknown) => typeof number === 'number' && Number.isFinite(number) ? String(number) : '';
+    setDiaryCorrection({ name: meal.name || '', calories: value(meal.calories), protein: value(meal.protein),
+      carbs: value(meal.carbs), fat: value(meal.fat), portionGrams: value(meal.portionGrams) });
+  };
+
+  const handleSaveDiaryCorrection = async () => {
+    if (!editingDiaryMeal) return;
+    const parse = (value: string) => value.trim() === '' ? null : Number(value);
+    const nutrients = {
+      calories: parse(diaryCorrection.calories), protein: parse(diaryCorrection.protein),
+      carbs: parse(diaryCorrection.carbs), fat: parse(diaryCorrection.fat),
+    };
+    const portion = parse(diaryCorrection.portionGrams);
+    if (!diaryCorrection.name.trim() || Object.values(nutrients).some((value) => value !== null && (!Number.isFinite(value) || value < 0)) ||
+        (portion !== null && (!Number.isFinite(portion) || portion <= 0 || portion > 5000))) {
+      toast.error('Check correction', 'Enter a meal name and nonnegative nutrients. Leave unknown values blank.');
+      return;
+    }
+    const result = await correctMeal(editingDiaryMeal.syncRecordId, editingDiaryMeal.revision, {
+      name: diaryCorrection.name.trim(), nutrients, portionGrams: portion,
+    });
+    if (!result.ok) {
+      toast.error('Correction not saved', result.error === 'revision_conflict'
+        ? 'This meal changed elsewhere. Reopen it to review the newest version.' : 'The corrected meal could not be saved.');
+      setFoodLogs(await listMealDiary());
+      return;
+    }
+    setEditingDiaryMeal(null);
+    setFoodLogs(await listMealDiary());
+    if (result.sync === 'queue_failed') toast.error('Sync needs attention', 'Correction saved on this device, but cloud sync could not be queued.');
+    else toast.success('Meal corrected', 'The diary now shows your corrected values.');
+  };
+
+  const saveDietAncillary = async (flatKey: string, nestedKey: string, value: any) => {
+    const current = getCoreProfile();
+    if (!current) return false;
+    await saveProfile({ ...current, [flatKey]: value, dietician: { ...(current.dietician || {}), [nestedKey]: value } });
+    return JSON.stringify(getCoreProfile()?.[flatKey]) === JSON.stringify(value);
   };
 
   const handleUpdateHydration = (delta: number) => {
@@ -811,10 +796,8 @@ export default function Dietician() {
     const next = Math.round(shared.currentMl / 250);
     const updated = { ...hydration, [currentDate]: next };
     setHydration(updated);
-    updateProfileFeatureData('dietHydration', updated);
-    updateProfileFeatureData('dietician', { hydration: updated });
     if (delta > 0) {
-      toast.info('Hydration Logged', `${next * 250}ml logged for today (${next}/8 glasses).`);
+      toast.info('Hydration Logged', `${shared.currentMl}ml logged for today; your target is ${shared.targetMl}ml.`);
     }
   };
 
@@ -826,20 +809,28 @@ export default function Dietician() {
       toast.error('No Meal Plan', 'Please generate a 7-day meal plan first.');
       return;
     }
+    if (!Array.isArray(mealPlan.days) || mealPlan.days.length === 0 || !mealPlan.days.every((day) => day.meals.every((meal) => Array.isArray(meal.ingredients) && meal.ingredients.length > 0))) {
+      toast.error('Ingredients needed', 'This plan contains meals without measured ingredient drafts, so a shopping list cannot be calculated yet.');
+      return;
+    }
     setIsGeneratingGrocery(true);
     try {
-      const data = await generateGroceryList(mealPlan);
-      if (data && data.groceryList) {
-        if (isMounted.current) setGroceryList(data.groceryList);
-        updateProfileFeatureData('dietician', { groceryList: data.groceryList });
+      const next = projectDietGroceries(mealPlan, groceryList);
+      if (next.length) {
+        if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) {
+          toast.error('List not saved', 'The grocery list could not be confirmed in local storage.');
+          return;
+        }
+        if (isMounted.current) setGroceryList(next);
         awardPoints(2, '🛒 Grocery List Created', 'lifestyle', `grocery_${Date.now()}`);
         triggerHapticSuccess();
+        toast.success('Shopping draft ready', 'Quantities follow the current plan. Check ingredient names and amounts before buying.');
       } else {
-        toast.error('Generation Failed', 'Could not extract grocery list. Please try again.');
+        toast.error('Ingredients needed', 'No measured ingredients are available in this plan.');
       }
     } catch (err) {
       console.error(err);
-      toast.error('Network Error', 'Failed to generate grocery list.');
+      toast.error('List failed', 'Could not calculate the shopping list.');
     } finally {
       if (isMounted.current) setIsGeneratingGrocery(false);
     }
@@ -851,8 +842,11 @@ export default function Dietician() {
     try {
       const data = await generateNutritionalGuardrails(profile);
       if (data && data.guardrails) {
+        if (!await saveDietAncillary('dietGuardrails', 'guardrails', data.guardrails)) {
+          toast.error('Planning notes not saved', 'Please try again.');
+          return;
+        }
         if (isMounted.current) setGuardrails(data.guardrails);
-        updateProfileFeatureData('dietician', { guardrails: data.guardrails });
         awardPoints(10, 'Created Food-Planning Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
         triggerHapticSuccess();
       } else {
@@ -868,6 +862,18 @@ export default function Dietician() {
 
   const handleGeneratePlan = async () => {
     if (isGeneratingPlan) return;
+    if (!profile || !Number.isFinite(profile.targetCalories) || profile.targetCalories <= 0) {
+      toast.error('Target not available', 'Review the optional planning details. You can still log food without a calorie target.');
+      return;
+    }
+    if (hasUnverifiableDietConstraints(profile, getCoreProfile()?.allergies)) {
+      toast.error('Ingredient verification needed', 'Automatic plans cannot yet verify your saved allergies or dietary restrictions. You can still record and review meals.');
+      return;
+    }
+    if (profile.cuisine === 'Keto' || profile.mealSchedule === 'Intermittent Fasting (16:8)') {
+      toast.error('Plan setup needs review', 'Automatic plans for ketogenic or fasting patterns need a separately reviewed pathway. You can still record meals and edit existing plans.');
+      return;
+    }
     if (!(await getActiveSession())) {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
@@ -878,39 +884,62 @@ export default function Dietician() {
       return;
     }
 
-    if (!canUseTrial('dietician')) {
+    const planProfileKey = getProfileKey();
+    if (!canUseTrial('dietician') && !(await hasPendingDietPlanRequest(profile, planProfileKey))) {
       openTrialModal('Food Planner (1 Free Trial Meal Plan)');
       return;
     }
 
     setIsGeneratingPlan(true);
     try {
-      const rawPlan = await generateMealPlan(profile, 7);
-      if (rawPlan) {
+      const rawPlan = await generateMealPlan(profile, 7, planProfileKey);
+      const validation = validateGeneratedMealPlan(rawPlan, 7);
+      if (validation.valid) {
         if (isMounted.current) {
           const normalized = normalizeFullMealPlan(rawPlan, {
             caseId: activeCaseScope.caseId || undefined,
             profileKey: getProfileKey(),
           });
-          if (mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))) {
-            const updatedArchived = archiveCurrentPlan(mealPlan, archivedPlans);
-            setArchivedPlans(updatedArchived);
-            updateProfileFeatureData('dietArchivedPlans', updatedArchived);
-          }
+          const updatedArchived = mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))
+            ? archiveCurrentPlan(mealPlan, archivedPlans) : archivedPlans;
+          const current = getCoreProfile();
+          if (!current) throw new Error('profile_unavailable');
+          await saveProfile({
+            ...current,
+            dietMealPlan: normalized,
+            dietArchivedPlans: updatedArchived,
+            dietician: { ...(current.dietician || {}), mealPlan: normalized, archivedPlans: updatedArchived },
+          });
+          const persisted = getCoreProfile();
+          if (persisted?.dietMealPlan?.id !== normalized.id) throw new Error('plan_storage_failure');
+          setArchivedPlans(updatedArchived);
           setMealPlan(normalized);
-          updateProfileFeatureData('dietMealPlan', normalized);
           awardPoints(15, 'Created Editable 7-Day Meal Blueprint', 'lifestyle', `diet_plan_${Date.now()}`);
           triggerHapticSuccess();
           recordTrialUsage('dietician');
-          toast.success('Blueprint Created', '7-Day meal plan generated. You can edit meals, adjust portions, and swap ingredients.');
+          await clearPendingDietPlanRequest(planProfileKey);
+          toast.success('Blueprint saved locally', 'Seven days were saved with estimated nutrients. Ingredients and quantities still need verification.');
         }
-        addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan });
+        try { addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan }); }
+        catch (eventError) { console.warn('Plan saved; optional timeline event was unavailable', eventError); }
       } else {
-        toast.error('Generation Failed', 'Failed to parse the meal plan from AI. Please try again.');
+        toast.error('Plan incomplete', 'The generated plan had missing or invalid meals. No plan was saved or trial used. Please try again.');
       }
     } catch (err) {
       console.error('Failed to generate meal plan:', err);
-      toast.error('Generation Failed', 'Failed to generate meal plan. Please try again.');
+      if (err instanceof Error && err.message === 'diet_plan_quota_exceeded') {
+        openTrialModal('Food Planner (1 Free Trial Meal Plan)');
+      } else if (err instanceof Error && err.message === 'diet_plan_unsupported_setup') {
+        toast.error('Plan setup needs review', 'This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.');
+      } else if (err instanceof Error && err.message === 'diet_plan_in_progress') {
+        toast.error('Plan still processing', 'Please wait a moment, then retry. Your request will resume without using another plan.');
+      } else if (err instanceof Error && err.message === 'diet_plan_retry_ready') {
+        toast.error('Previous attempt failed', 'Please try again. The failed plan was not counted against your free plan.');
+      } else if (err instanceof Error && err.message === 'diet_plan_recovery_unavailable') {
+        toast.error('Plan recovery unavailable', 'This browser cannot safely save a recovery key. Please enable local storage before generating a plan.');
+      } else {
+        toast.error('Plan not saved yet', 'Please try again. The same request will resume if generation already finished.');
+      }
     } finally {
       if (isMounted.current) setIsGeneratingPlan(false);
     }
@@ -1024,11 +1053,27 @@ export default function Dietician() {
       carbs: meal.carbs,
       fat: meal.fat,
       description: meal.description || '',
+      ingredientsText: (meal.ingredients || []).map((item) => `${item.name} | ${item.amount} | ${item.unit}`).join('\n'),
+      stepsText: (meal.steps || []).join('\n'), prepMinutes: meal.prepMinutes || 0,
     });
   };
 
   const handleSaveEditMeal = () => {
     if (!mealPlan || !editingMeal) return;
+    const ingredientLines = editMealForm.ingredientsText.split('\n').map((line) => line.trim()).filter(Boolean);
+    const ingredients = ingredientLines.map((line) => {
+      const [name, amountText, unit] = line.split('|').map((part) => part.trim());
+      return { name, amount: Number(amountText), unit: unit as 'g' | 'ml' | 'piece', verified: false };
+    });
+    if (ingredients.length > 12 || ingredients.some((item) => !item.name || !Number.isFinite(item.amount) || item.amount <= 0 || item.amount > 5000 || !['g', 'ml', 'piece'].includes(item.unit))) {
+      toast.error('Check ingredients', 'Use one ingredient per line: name | amount | g, ml, or piece.');
+      return;
+    }
+    const steps = editMealForm.stepsText.split('\n').map((line) => line.trim()).filter(Boolean);
+    if (steps.length > 6 || steps.some((step) => step.length > 300) || (steps.length > 0 && (!Number.isInteger(editMealForm.prepMinutes) || editMealForm.prepMinutes < 1 || editMealForm.prepMinutes > 360))) {
+      toast.error('Check recipe', 'Use up to six preparation steps and a time from 1 to 360 minutes.');
+      return;
+    }
     triggerHapticSuccess();
 
     const parseMacro = (val: any, fallback: number) => {
@@ -1039,11 +1084,12 @@ export default function Dietician() {
     const updated = editMealContent(mealPlan, editingMeal.day, editingMeal.meal.id, {
       name: editMealForm.name.trim() || editingMeal.meal.name,
       portion: editMealForm.portion.trim() || editingMeal.meal.portion,
-      calories: parseMacro(editMealForm.calories, editingMeal.meal.calories),
-      protein: parseMacro(editMealForm.protein, editingMeal.meal.protein),
-      carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs),
-      fat: parseMacro(editMealForm.fat, editingMeal.meal.fat),
+      calories: parseMacro(editMealForm.calories, editingMeal.meal.calories) / editingMeal.meal.servingMultiplier,
+      protein: parseMacro(editMealForm.protein, editingMeal.meal.protein) / editingMeal.meal.servingMultiplier,
+      carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs) / editingMeal.meal.servingMultiplier,
+      fat: parseMacro(editMealForm.fat, editingMeal.meal.fat) / editingMeal.meal.servingMultiplier,
       description: editMealForm.description,
+      ingredients, steps, prepMinutes: steps.length ? editMealForm.prepMinutes : undefined,
     });
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
@@ -1086,10 +1132,9 @@ export default function Dietician() {
     toast.success('Blueprint Restored', 'Past blueprint restored as active plan. Historical logs remained intact.');
   };
 
-  const toggleGroceryItem = (catIndex: number, itemId: string) => {
+  const toggleGroceryItem = async (catIndex: number, itemId: string) => {
     triggerHapticLight();
-    setGroceryList((prev) =>
-      prev.map((cat, idx) => {
+    const next = displayedGroceryList.map((cat, idx) => {
         if (idx !== catIndex || !cat.items) return cat;
         return {
           ...cat,
@@ -1097,14 +1142,18 @@ export default function Dietician() {
             item.id === itemId ? { ...item, checked: !item.checked } : item
           ),
         };
-      })
-    );
+      });
+    if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) {
+      toast.error('Checklist not saved', 'The item was not confirmed as updated. Please try again.');
+      return;
+    }
+    setGroceryList(next);
   };
 
   const copyGroceryListText = async () => {
     triggerHapticLight();
     let text = `🛒 HealthChain 7-Day Grocery List (${profile?.cuisine || 'Healthy'} Plan)\n\n`;
-    groceryList.forEach(cat => {
+    displayedGroceryList.forEach(cat => {
       text += `${cat.emoji} ${cat.category}\n`;
       cat.items.forEach((item: any) => {
         text += `  ${item.checked ? '☑' : '☐'} ${item.name}\n`;
@@ -1503,6 +1552,7 @@ export default function Dietician() {
                 waterGlasses={waterGlasses}
                 onLogMeal={(mealName: string) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
                 onDeleteMeal={handleDeleteFood}
+                onEditMeal={handleStartDiaryCorrection}
                 onUpdateHydration={handleUpdateHydration}
                 onSnap={() => setShowARLens(true)}
                 onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
@@ -1641,7 +1691,7 @@ export default function Dietician() {
                   7-day meal plan
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {profile?.cuisine || 'Healthy'} · about {profile?.targetCalories || 2000} kcal/day
+                  Editable example · {profile?.cuisine || 'Any cuisine'} · {profile?.targetCalories ? `about ${profile.targetCalories} kcal/day` : 'no calorie target set'}
                 </p>
               </div>
 
@@ -1706,7 +1756,7 @@ export default function Dietician() {
                           caseId: activeCaseScope.caseId || undefined,
                           returnTo: '/app/dietician?tab=mealplan',
                           returnLabel: 'Back to Meal Plan',
-                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: about ${mealPlan.targetCalories || profile?.targetCalories || 2000} kcal/day\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\n\n${planSummary}`
+                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: ${mealPlan.targetCalories || profile?.targetCalories ? `about ${mealPlan.targetCalories || profile?.targetCalories} kcal/day` : 'not set'}\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\n\n${planSummary}`
                         }
                       });
                     }}
@@ -2261,49 +2311,11 @@ export default function Dietician() {
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || (currentSelectedDayObj as any).totalCalories || profile?.targetCalories || 2000} kcal
+                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.meals?.some((meal: MealPlanItem) => meal.macrosNeedReview)
+                            ? 'Nutrition incomplete after a meal edit'
+                            : `${currentSelectedDayObj.total_calories} estimated kcal`}
                         </span>
-                        
-                        <button
-                          onClick={() => {
-                            triggerHapticSuccess();
-                            const mealsToLog = currentSelectedDayObj.meals || [];
-                            const updatedLogs = { ...foodLogs };
-                            updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-                            
-                            mealsToLog.forEach((m: any) => {
-                              updatedLogs[currentDate].push({
-                                name: m.name,
-                                portion: m.portion || '1 serving',
-                                calories: m.calories || 300,
-                                protein: m.protein || 15,
-                                carbs: m.carbs || 40,
-                                fat: m.fat || 10,
-                                emoji: m.emoji || '🍽️',
-                                type: m.type || 'Meal',
-                                id: Date.now() + Math.random(),
-                              });
-                            });
-                            setFoodLogs(updatedLogs);
-                            awardPoints(2, '🍏 Logged Full Meal Plan Day', 'lifestyle', `diet_day_${currentDate}`);
-                            toast.success('Meals Logged', `Day ${currentSelectedDayObj.day || selectedPlanDay} meals added to today's food log!`);
-                          }}
-                          style={{
-                            background: '#F0FDF4',
-                            border: '1px solid #BBF7D0',
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#166534',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <Plus size={13} /> Log Entire Day to Tracker
-                        </button>
+                        <span style={{ color: '#64748B', fontSize: '12px' }}>Log only meals you actually ate in the diary.</span>
                       </div>
                     </div>
 
@@ -2417,6 +2429,20 @@ export default function Dietician() {
                                   {meal.description}
                                 </p>
                               )}
+                              {meal.ingredients?.length ? (
+                                <details style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>
+                                  <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Recipe draft · {meal.ingredients.length} ingredients · {meal.prepMinutes || '?'} min</summary>
+                                  <ul style={{ paddingLeft: '18px', margin: '8px 0' }}>
+                                    {meal.ingredients.map((ingredient, index) => <li key={`${ingredient.name}-${index}`}>
+                                      {ingredient.name}: {Math.round(ingredient.amount * multiplier * 10) / 10} {ingredient.unit}
+                                    </li>)}
+                                  </ul>
+                                  {meal.steps?.length ? <ol style={{ paddingLeft: '18px', margin: '8px 0' }}>
+                                    {meal.steps.map((step, index) => <li key={index}>{step}</li>)}
+                                  </ol> : null}
+                                  <span>Check ingredients and quantities before cooking or shopping.</span>
+                                </details>
+                              ) : <div style={{ fontSize: '11px', color: '#B45309' }}>Ingredients not recorded; shopping quantities unavailable.</div>}
                             </div>
 
                             {/* Serving Multiplier Selector */}
@@ -2449,13 +2475,17 @@ export default function Dietician() {
                               </div>
 
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
-                                <span style={{ color: '#059669', fontWeight: 700 }}>
-                                  {meal.calories} kcal
-                                </span>
-                                <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>
-                                  P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
-                                </span>
+                                {meal.macrosNeedReview ? <span style={{ color: '#B45309', fontWeight: 700 }}>Nutrition needs review after this change</span> : <>
+                                  <span style={{ color: '#059669', fontWeight: 700 }}>{meal.calories} estimated kcal</span>
+                                  <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</span>
+                                </>}
                               </div>
+                              <button type="button" onClick={() => void handleConfirmPlannedMeal(dayNum, meal)}
+                                disabled={(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)}
+                                style={{ width: '100%', marginTop: '10px', padding: '9px', border: '1px solid #0D9488', borderRadius: '9px', background: '#F0FDFA', color: '#0F766E', fontWeight: 700, cursor: 'pointer' }}>
+                                {(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)
+                                  ? 'Logged in diary' : 'I ate this as planned'}
+                              </button>
                             </div>
                           </div>
                         );
@@ -2580,8 +2610,14 @@ export default function Dietician() {
               </div>
             </div>
 
+            {displayedGroceryList.length === 0 && (
+              <div role="status" style={{ padding: '18px', border: '1px solid #CBD5E1', borderRadius: '14px', color: '#475569', marginBottom: '18px' }}>
+                {mealPlan ? 'No measured ingredients are available in this plan. Edit meals to add draft ingredient quantities before shopping.'
+                  : 'Create a meal plan to build a shopping list from its ingredients.'}
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
-              {groceryList.map((cat, catIdx) => {
+              {displayedGroceryList.map((cat, catIdx) => {
                 const total = cat.items.length;
                 const done = cat.items.filter((i: any) => i.checked).length;
 
@@ -2678,7 +2714,7 @@ export default function Dietician() {
                     Meal guide
                   </h2>
                   <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                    Checks the plan against your saved allergies and restrictions.
+                    General planning prompts from your saved profile. This guide does not verify the current plan, ingredients, or allergens.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -2906,7 +2942,7 @@ export default function Dietician() {
                   {/* Quick Presets */}
                   <div style={{ marginBottom: '14px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
-                      ⚡ 1-Tap Quick Nutritious Presets:
+                      ⚡ One-tap meal names (nutrition unknown):
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       {dynamicPresets.map((preset, pIdx) => (
@@ -3037,38 +3073,12 @@ export default function Dietician() {
                     />
                   </div>
 
-                  {/* Live Biochemical Trigger Sensitivity Warning */}
+                  {/* Ingredient verification is unavailable for a free-text description. */}
                   {foodInput.trim().length > 2 && (
                     <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7' }}>
-                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
-                        TriggerBite Biochemical Guard
+                      <div style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>
+                        A food description does not verify ingredients, allergens, FODMAP content or how you will react. Check the label or recipe before relying on it.
                       </div>
-                      {detectedTriggers.length > 0 ? (
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          {detectedTriggers.map((t) => (
-                            <span
-                              key={t.label}
-                              style={{
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                color: t.color,
-                                background: t.bg,
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <span>{t.icon}</span> {t.label}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span>🛡️</span> Clinically Low Flare Risk detected
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -3152,7 +3162,7 @@ export default function Dietician() {
                   Reset Diet Profile & Plan?
                 </h3>
                 <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
-                  This will reset your personalized diet profile, active meal plans, grocery checklist, and food logs for this profile.
+                  This will clear Diet settings, plans, the grocery checklist, and meals created in Diet or imported from older Diet logs. Gut Quick Log observations remain in Gut Health and the shared diary.
                 </p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
@@ -3163,22 +3173,41 @@ export default function Dietician() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      updateProfileFeatureData('dietProfile', null);
-                          updateProfileFeatureData('dietFoodLogs', null);
-                          updateProfileFeatureData('dietHydration', null);
-                          updateProfileFeatureData('dietMealPlan', null);
-                          updateProfileFeatureData('dietAdvice', null);
-                          updateProfileFeatureData('dietGrocery', null);
+                    onClick={async () => {
+                      const core = getCoreProfile();
+                      if (!core) {
+                        toast.error('Reset failed', 'Your profile could not be loaded. Please try again.');
+                        return;
+                      }
+                      const mealsRemoved = await removeAllDietMeals();
+                      if (!mealsRemoved.ok) {
+                        toast.error('Reset incomplete', 'Some meal records could not be removed. Reopen the diary and try again.');
+                        setFoodLogs(await listMealDiary());
+                        return;
+                      }
+                      const resetAt = new Date().toISOString();
+                      await saveProfile({
+                        ...core, dietResetAt: resetAt,
+                        dietician: { profile: null, foodLogs: {}, hydration: {}, mealPlan: null, advice: null, groceryList: [], archivedPlans: [], guardrails: [] },
+                        dietProfile: null, dietFoodLogs: {}, dietHydration: {}, dietMealPlan: null,
+                        dietArchivedPlans: [], dietAdvice: null, dietGrocery: [], dietGuardrails: [],
+                        nutrition: { ...(core.nutrition || {}), recentLogs: [] },
+                      });
+                      if (getCoreProfile()?.dietResetAt !== resetAt) {
+                        toast.error('Reset failed', 'The diet records were not confirmed as saved. Please try again.');
+                        return;
+                      }
                       setProfile(null);
-                        adviceFetched.current = false;
+                      adviceFetched.current = false;
                       setAdvice(null);
                       setMealPlan(null);
-                      setFoodLogs({});
+                      setArchivedPlans([]);
+                      setGuardrails([]);
+                      setFoodLogs(await listMealDiary());
                       setHydration({});
-                      setGroceryList(DEFAULT_GROCERY_CATEGORIES);
+                      setGroceryList([]);
                       setShowResetDietConfirm(false);
-                      toast.success('Diet Profile Reset', 'Your diet plan and profile targets have been reset.');
+                      toast.success('Diet Profile Reset', 'Diet plans, estimates and Diet-created meal records were cleared for this profile. Gut Quick Log records remain.');
                     }}
                     style={{
                       flex: 1,
@@ -3312,16 +3341,14 @@ export default function Dietician() {
                             {preset.name}
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                            {preset.calories} kcal · {preset.protein}g P · {preset.carbs}g C · {preset.fat}g F · {preset.portion}
+                            {preset.calories == null ? 'Nutrition unknown' : `${preset.calories} estimated kcal · ${preset.protein}g P · ${preset.carbs}g C · ${preset.fat}g F`} · {preset.portion}
                           </div>
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          handleAddPreset(preset);
-                          setShowSavedMealsModal(false);
-                          toast.success('Meal Logged', `Logged ${preset.name} to today's diary.`);
+                        onClick={async () => {
+                          if (await handleAddPreset(preset)) setShowSavedMealsModal(false);
                         }}
                         style={{
                           padding: '8px 14px',
@@ -3680,6 +3707,24 @@ export default function Dietician() {
                     />
                   </div>
 
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Draft ingredients · one per line: name | amount | g, ml, or piece</label>
+                    <textarea value={editMealForm.ingredientsText} rows={4}
+                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, ingredientsText: e.target.value }))}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Preparation steps · one per line</label>
+                    <textarea value={editMealForm.stepsText} rows={3}
+                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, stepsText: e.target.value }))}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }} />
+                  </div>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Preparation time (minutes)
+                    <input type="number" min={1} max={360} value={editMealForm.prepMinutes || ''}
+                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, prepMinutes: Number(e.target.value) || 0 }))}
+                      style={{ marginLeft: '8px', width: '80px', padding: '8px', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
+                  </label>
+
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
                     <button
                       type="button"
@@ -3963,30 +4008,49 @@ export default function Dietician() {
 
         {showARLens && <ARGroceryLens 
           onClose={() => setShowARLens(false)} 
-          onLogFood={(food) => {
-            let savedId: string | null = null;
+          onLogFood={async (food) => {
             try {
-              const entry = { ...food, id: crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`, date: currentDate };
-              savedId = syncToUnifiedNutritionLogs(entry);
-              if (!savedId) return false;
-              const updatedLogs = { ...foodLogs, [currentDate]: [...(foodLogs[currentDate] || []), entry] };
-              updateProfileFeatureData('dietFoodLogs', updatedLogs);
-              const core = getCoreProfile();
-              if (core?.dietician) {
-                updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
-              }
-              if (!getCoreProfile()?.dietFoodLogs?.[currentDate]?.some((item: any) => item.id === entry.id)) throw new Error('Diary record was not saved');
-              setFoodLogs(updatedLogs);
+              const entry = { ...food, id: crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`, date: currentDate, nutritionSource: food.nutritionBasis || 'scan_estimate' };
+              const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'clinical_lens' });
+              if (!saved.ok) return false;
+              setFoodLogs(await listMealDiary());
+              if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Food saved on this device, but cloud sync could not be queued.');
               triggerHapticSuccess();
-              toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary.`);
+              toast.success('Food saved locally', `Added "${food.name}" to your ${food.type || 'Meal'} diary.`);
               return true;
             } catch (error) {
               console.warn('Failed to log Clinical Lens estimate:', error);
-              if (savedId) removeNutritionLog(savedId);
               return false;
             }
           }} 
         />}
+
+        {editingDiaryMeal && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(15,23,42,.55)', display: 'grid', placeItems: 'center', padding: '16px' }}>
+            <FocusTrap isActive>
+              <div role="dialog" aria-modal="true" aria-label="Correct meal" style={{ width: '100%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto', background: '#FFFFFF', borderRadius: '18px', padding: '24px', boxShadow: '0 24px 50px rgba(0,0,0,.2)' }}>
+                <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>Correct meal</h3>
+                <p style={{ margin: '0 0 16px', color: '#64748B', fontSize: '13px' }}>Enter values you checked. Leave a nutrient blank when it is unknown.</p>
+                <label style={{ display: 'block', marginBottom: '12px', fontWeight: 700, fontSize: '13px' }}>Meal name
+                  <input value={diaryCorrection.name} onChange={(e) => setDiaryCorrection((current) => ({ ...current, name: e.target.value }))}
+                    style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
+                </label>
+                {(['calories', 'protein', 'carbs', 'fat', 'portionGrams'] as const).map((field) => (
+                  <label key={field} style={{ display: 'block', marginBottom: '12px', fontWeight: 700, fontSize: '13px' }}>
+                    {field === 'calories' ? 'Calories (kcal)' : field === 'portionGrams' ? 'Amount eaten (g)' : `${field[0].toUpperCase()}${field.slice(1)} (g)`}
+                    <input type="number" min={field === 'portionGrams' ? 0.1 : 0} step="any" value={diaryCorrection[field]}
+                      onChange={(e) => setDiaryCorrection((current) => ({ ...current, [field]: e.target.value }))}
+                      style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
+                  </label>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" onClick={() => setEditingDiaryMeal(null)} style={{ padding: '9px 14px', border: '1px solid #CBD5E1', borderRadius: '8px', background: '#FFF' }}>Cancel</button>
+                  <button type="button" onClick={() => void handleSaveDiaryCorrection()} style={{ padding: '9px 14px', border: 'none', borderRadius: '8px', background: '#0F766E', color: '#FFF', fontWeight: 700 }}>Save correction</button>
+                </div>
+              </div>
+            </FocusTrap>
+          </div>
+        )}
 
         <ClinicalEliminationModal
           isOpen={isEliminationModalOpen}
