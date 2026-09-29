@@ -36,7 +36,7 @@ jobs:
       - name: Validate serverless API syntax
         shell: bash
         run: |
-          for file in api/*.js api/utils/*.js; do
+          for file in api/*.js api/utils/*.js shared/*.js; do
             node --check "$file"
           done
 

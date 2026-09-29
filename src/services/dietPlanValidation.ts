@@ -1,4 +1,4 @@
-export { validateGeneratedMealPlan } from '../../api/utils/diet-plan-validation.js';
+export { validateGeneratedMealPlan } from '../../shared/diet-plan-validation.js';
 
 export function hasUnverifiableDietConstraints(profile: any, coreAllergies: unknown): boolean {
   const restrictions = Array.isArray(profile?.restrictions) ? profile.restrictions : [];

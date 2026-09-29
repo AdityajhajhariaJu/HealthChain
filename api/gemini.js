@@ -1,7 +1,7 @@
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
-import { validateGeneratedMealPlan } from './utils/diet-plan-validation.js';
-import { buildDietPlanProviderPayload, validateDietPlanRequest } from './utils/diet-plan-request.js';
+import { validateGeneratedMealPlan } from '../shared/diet-plan-validation.js';
+import { buildDietPlanProviderPayload, validateDietPlanRequest } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 
