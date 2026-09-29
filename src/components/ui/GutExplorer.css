@@ -1215,11 +1215,11 @@
     border: 0 !important;
   }
   .gr-modal-dialog .gr-modal-header {
-    padding-top: max(16px, env(safe-area-inset-top, 24px)) !important;
+    padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
     padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
     padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
     padding-bottom: 12px !important;
-    min-height: calc(56px + env(safe-area-inset-top, 24px)) !important;
+    min-height: max(96px, calc(52px + env(safe-area-inset-top, 44px))) !important;
     gap: 12px !important;
   }
   .gr-modal-dialog .gr-modal-header > span:first-child {

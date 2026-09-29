@@ -552,8 +552,8 @@
 @media (max-width: 600px) {
   .gr-modal-dialog:not(:has(.gdh[data-page="log"])) { width: 100% !important; height: 100% !important; height: 100dvh !important; max-height: 100dvh !important; border: 0 !important; border-radius: 0 !important; }
   .gr-modal-dialog:not(:has(.gdh[data-page="log"])) .gr-modal-header {
-    min-height: calc(56px + env(safe-area-inset-top, 24px)) !important;
-    padding-top: max(16px, env(safe-area-inset-top, 24px)) !important;
+    min-height: max(96px, calc(52px + env(safe-area-inset-top, 44px))) !important;
+    padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
     padding-left: max(16px, env(safe-area-inset-left, 16px)) !important;
     padding-right: max(16px, env(safe-area-inset-right, 16px)) !important;
     padding-bottom: 12px !important;

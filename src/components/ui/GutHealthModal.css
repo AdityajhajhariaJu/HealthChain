@@ -16,11 +16,11 @@
   .gr-modal-backdrop{padding:0 !important;display:flex !important;align-items:stretch !important;}
   .gr-modal-dialog{width:100% !important;height:100% !important;height:100dvh !important;max-height:100dvh !important;border-radius:0 !important;border:0 !important;box-shadow:none !important;}
   .gr-modal-header, .gr-modal-dialog .gr-modal-header{
-    padding-top:max(16px, env(safe-area-inset-top, 24px)) !important;
+    padding-top:max(52px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
     padding-left:max(16px, env(safe-area-inset-left, 16px)) !important;
     padding-right:max(16px, env(safe-area-inset-right, 16px)) !important;
     padding-bottom:12px !important;
-    min-height:calc(56px + env(safe-area-inset-top, 24px)) !important;
+    min-height:max(96px, calc(52px + env(safe-area-inset-top, 44px))) !important;
     gap:12px !important;
   }
   .gr-modal-header > span:first-child{width:36px !important;height:36px !important;border-radius:11px !important;flex-shrink:0 !important;}
