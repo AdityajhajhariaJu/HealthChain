@@ -23,6 +23,8 @@ const requiredFiles = [
   '20260911_payment_lifecycle_resilience.sql',
   '20260917_ai_quota_reservations.sql',
   '20260924_gut_observations.sql',
+  '20260929_diet_plan_trial_quota.sql',
+  '20260929195913_security_advisor_hardening.sql',
   '20260930_diet_plan_generation_recovery.sql',
 ];
 
@@ -67,6 +69,9 @@ const requiredSchemaTokens = [
   'public.user_devices',
   'public.ai_requests',
   'public.diet_plan_generations',
+  'public.user_quotas',
+  'public.payment_refunds',
+  'public.document_embeddings',
   'public.ai_usage_daily',
   'public.analytics_events',
   'public.payments',

@@ -1,18 +1,18 @@
 # HealthChain Supabase release runbook
 
-The application code and migrations are versioned together. Apply every SQL
-file in `supabase/migrations/` in filename order, including all files sharing
-the same date. Do not skip a file because a later feature is not currently
-visible in the UI; the API and deletion workflow depend on the full chain.
+The application code and migrations are versioned together. On a new database,
+apply every SQL file in `supabase/migrations/` in filename order. On an existing
+production database, inspect the migration history and schema first, then apply
+only the missing changes. Several historical migrations are not safe to rerun
+against objects that were created manually or by an older release.
 
 ## SQL Editor
 
 1. Open the production project's Supabase SQL Editor.
-2. Preferred: copy and run `supabase/APPLY_ALL.sql` once. It contains every
-   migration in the required order. Alternatively, run each migration file in
-   order, from `20260818_health_memory.sql` through
-   `20260821_payment_integrity.sql`, `20260821_data_integrity.sql`, and
-   `20260822_caregiver_profiles.sql`.
+2. For a new database, run `supabase/APPLY_ALL.sql` once. For an existing
+   database, compare `supabase/migrations/` with the migration ledger and live
+   objects, then apply the missing migrations in order. Do not rerun the entire
+   bundle as an incremental release.
 3. Run `supabase/verify_production.sql` as one query. It must not raise an
    exception, and its “Expected: zero rows” queries must return zero rows.
 4. From a checkout with the production `VITE_SUPABASE_URL` and anonymous key,
@@ -46,6 +46,8 @@ tables manually to “make the error go away.”
 - If the verifier reports missing tables or views, stop release promotion. A
   successful login alone does not prove that AI accounting, deletion, or the
   operator views are installed.
+- Check security advisors after DDL changes. The document embedding table is
+  optional, but if present it must have RLS and no browser-role table grants.
 - After the migrations pass, test with a non-production account: create a case,
   add one Health Memory item, refresh, sign in from a second device/profile,
   and confirm both records are restored. Then exercise account deletion only

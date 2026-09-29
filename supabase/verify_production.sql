@@ -11,7 +11,8 @@ begin
     into missing_tables
   from (values
     ('profiles'), ('cases'), ('health_memory'), ('user_devices'),
-    ('healthchain_profiles'), ('health_observations'), ('analytics_events'), ('ai_requests'), ('ai_usage_daily'), ('payments')
+    ('healthchain_profiles'), ('health_observations'), ('analytics_events'), ('ai_requests'), ('ai_usage_daily'), ('payments'),
+    ('user_quotas'), ('case_tombstones'), ('payment_refunds'), ('diet_plan_generations')
   ) as expected(name)
   where to_regclass('public.' || name) is null;
 
@@ -26,7 +27,8 @@ from information_schema.tables
 where table_schema = 'public'
   and table_name in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
+    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments',
+    'user_quotas', 'case_tombstones', 'payment_refunds', 'diet_plan_generations'
   )
 order by table_name;
 
@@ -37,7 +39,8 @@ join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public'
   and c.relname in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
+    'healthchain_profiles', 'health_observations', 'ai_requests', 'ai_usage_daily', 'payments',
+    'user_quotas', 'case_tombstones', 'payment_refunds', 'diet_plan_generations'
   )
 order by c.relname;
 
@@ -50,7 +53,8 @@ where n.nspname = 'public'
   and c.relkind = 'r'
   and c.relname in (
     'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
-    'health_observations', 'ai_requests', 'ai_usage_daily', 'payments'
+    'health_observations', 'ai_requests', 'ai_usage_daily', 'payments',
+    'user_quotas', 'case_tombstones', 'payment_refunds', 'diet_plan_generations'
   )
   and not c.relrowsecurity
 order by c.relname;
@@ -60,7 +64,7 @@ order by c.relname;
 select table_name, grantee, privilege_type
 from information_schema.role_table_grants
 where table_schema = 'public'
-  and table_name in ('ai_requests', 'ai_usage_daily', 'payments')
+  and table_name in ('ai_requests', 'ai_usage_daily', 'payments', 'payment_refunds', 'diet_plan_generations')
   and grantee in ('anon', 'authenticated')
 order by table_name, grantee, privilege_type;
 
@@ -85,7 +89,7 @@ begin
     into missing_policies
   from (values
     ('profiles'), ('cases'), ('health_memory'), ('user_devices'), ('analytics_events'),
-    ('healthchain_profiles'), ('health_observations')
+    ('healthchain_profiles'), ('health_observations'), ('case_tombstones'), ('user_quotas')
   ) as expected(table_name)
   where not exists (
     select 1 from pg_policies policy
@@ -152,3 +156,48 @@ where schemaname = 'public'
     'payments_razorpay_order_id_uidx'
   )
 order by indexname;
+
+-- New meal-plan accounting and payment operations must be server-only.
+do $$
+declare
+  missing_routines text;
+begin
+  select string_agg(signature, ', ' order by signature)
+    into missing_routines
+  from (values
+    ('consume_feature_quota_for_request(uuid,text,text)'),
+    ('release_feature_quota_for_request(uuid,text)'),
+    ('activate_and_provision_subscription(uuid,text,text,integer,text,timestamptz)'),
+    ('activate_and_provision_topup(uuid,text,text,integer,text,integer)')
+  ) as expected(signature)
+  where to_regprocedure('public.' || signature) is null;
+
+  if missing_routines is not null then
+    raise exception 'HealthChain migration incomplete. Missing routines: %', missing_routines;
+  end if;
+
+  if has_function_privilege('anon', 'public.activate_and_provision_subscription(uuid,text,text,integer,text,timestamptz)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.activate_and_provision_subscription(uuid,text,text,integer,text,timestamptz)', 'EXECUTE')
+     or has_function_privilege('anon', 'public.activate_and_provision_topup(uuid,text,text,integer,text,integer)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.activate_and_provision_topup(uuid,text,text,integer,text,integer)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.consume_feature_quota_for_request(uuid,text,text)', 'EXECUTE') then
+    raise exception 'HealthChain browser roles can execute server-only payment or quota routines';
+  end if;
+
+  if to_regclass('public.document_embeddings') is not null
+     and exists (
+       select 1 from pg_class
+       where oid = to_regclass('public.document_embeddings')
+         and not relrowsecurity
+     ) then
+    raise exception 'Document embeddings table is missing RLS';
+  end if;
+
+  if to_regclass('public.document_embeddings') is not null
+     and (
+       has_table_privilege('anon', 'public.document_embeddings', 'SELECT')
+       or has_table_privilege('authenticated', 'public.document_embeddings', 'SELECT')
+     ) then
+    raise exception 'Document embeddings are readable by browser roles';
+  end if;
+end $$;
