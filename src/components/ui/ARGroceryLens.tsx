@@ -51,6 +51,7 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
 
 export interface NormalizedNutrition {
   name: string;
+  foodType: 'packaged' | 'meal';
   calories: number;
   protein: number;
   carbs: number;
@@ -68,6 +69,10 @@ export interface NormalizedNutrition {
 export function normalizeNutritionTo100g(food: {
   foodName?: string;
   name?: string;
+  foodType?: 'packaged' | 'meal';
+  nutritionBasis?: 'per_100g' | 'per_serving';
+  servingGrams?: number;
+  portionGrams?: number;
   servingSize?: string;
   calories?: number;
   estimatedCalories?: number;
@@ -95,41 +100,14 @@ export function normalizeNutritionTo100g(food: {
   const rawFibre = requiredNumber(food.fibre, 'fibre');
   const rawSodium = requiredNumber(food.sodium, 'sodium');
 
-  const serving = (food.servingSize || '').trim();
-  const lowerServing = serving.toLowerCase();
-
-  // Determine scaling factor to 100g
-  let factor = 1.0;
-  let packWeightGrams: number | null = null;
-
-  // Check if serving string is already normalized to 100g
-  const isAlreadyPer100g = lowerServing.includes('per 100g') || 
-                           lowerServing.includes('per 100 g') || 
-                           lowerServing.includes('/ 100g') ||
-                           lowerServing.includes('/100g') ||
-                           lowerServing.includes('100g mark') ||
-                           lowerServing.includes('100 g mark');
-
-  if (!isAlreadyPer100g) {
-    // If not explicitly per 100g, look for explicit pack gram weight like (60g), 40g, 55 gms, etc.
-    const gramMatch = lowerServing.match(/(\d+(?:\.\d+)?)\s*(?:g|gm|gms|gram|grams)\b/i);
-    if (gramMatch) {
-      const parsedGrams = parseFloat(gramMatch[1]);
-      if (parsedGrams >= 1 && parsedGrams <= 5000 && parsedGrams !== 100) {
-        packWeightGrams = parsedGrams;
-        factor = 100 / parsedGrams;
-      } else if (parsedGrams < 1 || parsedGrams > 5000) {
-        throw new Error('Invalid serving weight');
-      }
-    }
-  } else {
-    // If it is per 100g, check if pack or plate size is noted inside parentheses (e.g., "(Pack size: 60g)" or "(Full Plate: ~370g)")
-    const packMatch = lowerServing.match(/(?:pack size|full plate|plate|portion|serving|glass):?[^)]*?~?(\d+(?:\.\d+)?)\s*g/i);
-    if (packMatch) {
-      packWeightGrams = parseFloat(packMatch[1]);
-      if (packWeightGrams < 1 || packWeightGrams > 5000) throw new Error('Invalid portion weight');
-    }
-  }
+  if (food.foodType !== 'packaged' && food.foodType !== 'meal') throw new Error('Unknown food type');
+  if (food.nutritionBasis !== 'per_100g' && food.nutritionBasis !== 'per_serving') throw new Error('Unknown nutrition basis');
+  if (food.foodType === 'meal' && food.nutritionBasis !== 'per_100g') throw new Error('Meal basis must be per 100g');
+  const servingGrams = food.nutritionBasis === 'per_serving' ? requiredNumber(food.servingGrams, 'serving weight') : 100;
+  if (servingGrams < 1 || servingGrams > 5000) throw new Error('Invalid serving weight');
+  const factor = 100 / servingGrams;
+  const portionGrams = food.portionGrams === undefined ? undefined : requiredNumber(food.portionGrams, 'portion weight');
+  if (portionGrams !== undefined && (portionGrams < 1 || portionGrams > 5000)) throw new Error('Invalid portion weight');
 
   const calories = Math.round(rawCalories * factor);
   const protein = Math.round(rawProtein * factor * 10) / 10;
@@ -142,13 +120,13 @@ export function normalizeNutritionTo100g(food: {
     throw new Error('Nutrition values are not plausible per 100g');
   }
 
-  const isPlate = lowerServing.includes('plate') || lowerServing.includes('thali') || lowerServing.includes('meal');
-  const packSizeNote = packWeightGrams 
-    ? (isPlate ? `Plate: ~${packWeightGrams}g` : `Pack: ${packWeightGrams}g`) 
-    : (serving && !isAlreadyPer100g ? `Portion: ${serving}` : undefined);
+  const packSizeNote = portionGrams
+    ? (food.foodType === 'meal' ? `Photo-estimated portion: ~${portionGrams}g` : `Pack: ${portionGrams}g`)
+    : undefined;
 
   return {
     name,
+    foodType: food.foodType,
     calories,
     protein,
     carbs,
@@ -157,7 +135,7 @@ export function normalizeNutritionTo100g(food: {
     fibre,
     sodium,
     servingSize: '100g',
-    portionGrams: packWeightGrams || undefined,
+    portionGrams,
     packSizeNote,
     warning: food.warning || null,
     subtitle: food.subtitle
@@ -353,7 +331,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         return;
       }
       const normalized = normalizeNutritionTo100g(result);
-      setPortionGrams(normalized.portionGrams ?? 100);
+      setPortionGrams(normalized.portionGrams ?? 0);
       setAnalysis(result);
       setShowResults(true);
       triggerHapticSuccess();
@@ -933,22 +911,28 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               ) : analysis && (() => {
                 const food = normalizeNutritionTo100g(analysis);
                 const suggestion = analysis.betterAlternatives?.[0]?.name;
-                const nutrients: Array<[string, string]> = [
-                  ['Calories', `${food.calories} kcal`], ['Protein', `${food.protein} g`],
-                  ['Carbs', `${food.carbs} g`], ['Fat', `${food.fats} g`],
-                  ['Sugar', `${food.sugar} g`], ['Fibre', `${food.fibre} g`],
-                  ['Sodium', `${food.sodium} mg`],
-                ];
+                const isPackaged = food.foodType === 'packaged';
+                const shown = isPackaged ? food : portionGrams >= 1 && portionGrams <= 5000 ? scaleNutritionForPortion(food, portionGrams) : null;
+                const nutrients: Array<[string, string]> = shown ? [
+                  ['Calories', `${shown.calories} kcal`], ['Protein', `${shown.protein} g`],
+                  ['Carbs', `${shown.carbs} g`], ['Fat', `${shown.fats} g`],
+                  ['Sugar', `${shown.sugar} g`], ['Fibre', `${shown.fibre} g`],
+                  ['Sodium', `${shown.sodium} mg`],
+                ] : [];
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <section style={{ background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: '24px', padding: '18px', boxShadow: '0 4px 16px rgba(15,23,42,0.04)' }}>
                       <div style={{ display: 'inline-flex', padding: '5px 10px', borderRadius: '999px', background: '#FFF1F2', color: '#BE123C', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px' }}>
-                        AI NUTRITION ESTIMATE · PER 100 G
+                        {isPackaged ? 'PACKAGE LABEL READ · PER 100 G' : shown ? `MEAL ESTIMATE · ${portionGrams} G PORTION` : 'MEAL ESTIMATE · ENTER PORTION'}
                       </div>
                       <h2 style={{ margin: '12px 0 5px', color: '#0F172A', fontSize: '21px', lineHeight: 1.25 }}>{food.name}</h2>
                       <p style={{ margin: '0 0 15px', color: '#64748B', fontSize: '12px', lineHeight: 1.5 }}>
-                        These numbers are estimates from a photo. Verify the actual label and ingredients. This scan cannot determine allergens or your glucose response.
+                        {isPackaged
+                          ? 'Per 100 g, converted from the photographed nutrition panel when needed. Compare every number with the package label before relying on it.'
+                          : 'For the amount shown below. Calories and nutrients are estimated from the photo and the portion weight; recipe and cooking method can change them.'}
+                        {' '}This scan cannot determine allergens or your glucose response.
                       </p>
+                      {!shown && <p style={{ margin: '0 0 14px', color: '#475569', fontSize: '13px' }}>Enter the grams you ate below to calculate this meal's calories and nutrients.</p>}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                         {nutrients.map(([label, value]) => (
                           <div key={label} style={{ background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: '12px', padding: '10px 11px' }}>
@@ -957,7 +941,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           </div>
                         ))}
                       </div>
-                      {food.packSizeNote && <p style={{ margin: '12px 0 0', color: '#475569', fontSize: '12px' }}>Photo suggests {food.packSizeNote}. Confirm the amount you actually consumed below.</p>}
+                      {food.packSizeNote && <p style={{ margin: '12px 0 0', color: '#475569', fontSize: '12px' }}>{food.packSizeNote}. Confirm the amount you actually consumed below.</p>}
                     </section>
                     {suggestion && (
                       <section style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '18px', padding: '13px 16px' }}>
@@ -997,7 +981,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         min="1"
                         max="5000"
                         step="1"
-                        value={portionGrams}
+                        value={portionGrams || ''}
+                        placeholder="Enter g"
                         onChange={event => { setPortionGrams(Number(event.target.value)); setEstimateConfirmed(false); }}
                         style={{ width: '88px', height: '34px', borderRadius: '9px', border: '1px solid #CBD5E1', padding: '0 8px', color: '#0F172A', background: '#FFFFFF' }}
                       />
@@ -1035,7 +1020,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                             servingSize: `${portionGrams}g consumed`,
                             portion: `${portionGrams}g consumed`,
                             portionGrams,
-                            nutritionBasis: 'ai_estimate_per_100g',
+                            foodType: food.foodType,
+                            nutritionBasis: food.foodType === 'packaged' ? 'label_photo_per_100g' : 'meal_estimate_per_100g',
                             type: mealType,
                           });
                           if (saved !== true) throw new Error('Meal was not saved');

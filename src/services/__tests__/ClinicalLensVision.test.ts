@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { analyzeFoodImage } from '../geminiService';
 import { normalizeNutritionTo100g, scaleNutritionForPortion } from '../../components/ui/ARGroceryLens';
 
-const nutrition = { detected: true, foodName: 'Example biscuits', servingSize: 'Per 100g (Pack size: 60g)', calories: 480, protein: 8, carbs: 60, fats: 20, sugar: 10, fibre: 4, sodium: 350 };
+const nutrition = { detected: true, foodName: 'Example biscuits', foodType: 'packaged' as const, nutritionBasis: 'per_100g' as const, portionGrams: 60, calories: 480, protein: 8, carbs: 60, fats: 20, sugar: 10, fibre: 4, sodium: 350 };
 
 function reply(result: object) {
   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(result) }] } }] }) } as Response);
@@ -42,7 +42,12 @@ describe('Clinical Lens safe nutrition estimate', () => {
   it('rejects implausible nutrients and unclear serving basis', async () => {
     reply({ ...nutrition, calories: 1400 });
     expect((await analyzeFoodImage('data:image/jpeg;base64,abc', {})).detected).toBe(false);
-    reply({ ...nutrition, servingSize: 'One pack' });
+    reply({ ...nutrition, nutritionBasis: 'unknown' });
+    expect((await analyzeFoodImage('data:image/jpeg;base64,abc', {})).detected).toBe(false);
+  });
+
+  it('requires a printed serving weight before converting a package label', async () => {
+    reply({ ...nutrition, nutritionBasis: 'per_serving', servingGrams: null });
     expect((await analyzeFoodImage('data:image/jpeg;base64,abc', {})).detected).toBe(false);
   });
 
@@ -61,7 +66,7 @@ describe('Clinical Lens portion calculation', () => {
   });
 
   it('normalizes a small serving without a hidden cap', () => {
-    const normalized = normalizeNutritionTo100g({ ...nutrition, servingSize: '5g', calories: 25, protein: 0.5, carbs: 3, fats: 1, sugar: 0.5, fibre: 0.2, sodium: 15 });
+    const normalized = normalizeNutritionTo100g({ ...nutrition, nutritionBasis: 'per_serving', servingGrams: 5, portionGrams: 5, calories: 25, protein: 0.5, carbs: 3, fats: 1, sugar: 0.5, fibre: 0.2, sodium: 15 });
     expect(normalized.calories).toBe(500);
     expect(normalized.portionGrams).toBe(5);
     expect(scaleNutritionForPortion(normalized, 5).calories).toBe(25);
@@ -70,5 +75,11 @@ describe('Clinical Lens portion calculation', () => {
   it('requires complete and plausible values before scaling', () => {
     expect(() => normalizeNutritionTo100g({ ...nutrition, sodium: undefined })).toThrow('Missing sodium');
     expect(() => scaleNutritionForPortion(normalizeNutritionTo100g(nutrition), 0)).toThrow();
+  });
+
+  it('calculates a prepared meal for the actual portion', () => {
+    const normalized = normalizeNutritionTo100g({ ...nutrition, foodName: 'Lunch plate', foodType: 'meal', portionGrams: 370, calories: 138 });
+    expect(normalized.foodType).toBe('meal');
+    expect(scaleNutritionForPortion(normalized, 370).calories).toBe(511);
   });
 });

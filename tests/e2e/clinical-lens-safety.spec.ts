@@ -19,7 +19,8 @@ function modelResult(food: object) {
 test('pack scan saves only the amount eaten and avoids unsupported claims', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route('**/api/gemini', route => route.fulfill({ status: 200, contentType: 'application/json', body: modelResult({
-    detected: true, foodName: 'Audit Biscuits', servingSize: 'Per 100g (Pack size: 60g)', calories: 480, protein: 6, carbs: 64, fats: 20, sugar: 18, fibre: 2, sodium: 300,
+    detected: true, foodName: 'Audit Biscuits', foodType: 'packaged', nutritionBasis: 'per_serving', servingGrams: 30, portionGrams: 60,
+    calories: 144, protein: 1.8, carbs: 19.2, fats: 6, sugar: 5.4, fibre: 0.6, sodium: 90,
     nutriScore: 'A', novaGrade: 1, allergens: ['None'], glycemicImpact: 'Low',
   }) }));
   await page.goto('/app/today');
@@ -29,6 +30,8 @@ test('pack scan saves only the amount eaten and avoids unsupported claims', asyn
   await expect(lens.getByRole('button', { name: 'Retry Camera' })).toBeVisible();
   await lens.locator('input[type=file]').setInputFiles({ name: 'pack.png', mimeType: 'image/png', buffer: whitePixel });
   await expect(lens.getByText('Audit Biscuits')).toBeVisible();
+  await expect(lens.getByText('PACKAGE LABEL READ · PER 100 G')).toBeVisible();
+  await expect(lens.getByText('480 kcal')).toBeVisible();
   await expect(lens.getByText('Nutri-Score A')).toHaveCount(0);
   await expect(lens.getByText('Low', { exact: true })).toHaveCount(0);
   await expect(lens.getByLabel('Amount you ate (grams)')).toHaveValue('60');
@@ -68,17 +71,39 @@ test('invalid upload is rejected before the AI request and camera can retry', as
   expect(requests).toBe(0);
 });
 
+test('meal with unknown portion waits for an entered weight', async ({ page }) => {
+  await page.route('**/api/gemini', route => route.fulfill({ status: 200, contentType: 'application/json', body: modelResult({
+    detected: true, foodName: 'Homemade rice', foodType: 'meal', nutritionBasis: 'per_100g', portionGrams: null,
+    calories: 130, protein: 2.7, carbs: 28, fats: 0.3, sugar: 0.1, fibre: 0.4, sodium: 1,
+  }) }));
+  await page.goto('/app/today');
+  await page.getByRole('button', { name: 'Clinical AR Food Lens' }).click();
+  const lens = page.getByRole('dialog', { name: 'Clinical AR Food & Nutrition Scanner' });
+  await lens.locator('input[type=file]').setInputFiles({ name: 'meal.png', mimeType: 'image/png', buffer: whitePixel });
+  await expect(lens.getByText('MEAL ESTIMATE · ENTER PORTION')).toBeVisible();
+  await expect(lens.getByText('130 kcal')).toHaveCount(0);
+  await expect(lens.getByRole('button', { name: 'Log estimate' })).toBeDisabled();
+  await lens.getByLabel('Amount you ate (grams)').fill('250');
+  await expect(lens.getByText('325 kcal')).toBeVisible();
+});
+
 test('dietician entry point saves the same portion math', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('hc_unified_profile_guest', JSON.stringify({ demographics: { name: 'Test', age: 28, height: 172, weight: 70 } })));
   await page.route('**/api/gemini', route => route.fulfill({ status: 200, contentType: 'application/json', body: modelResult({
-    detected: true, foodName: 'Lunch Plate', servingSize: 'Per 100g (Full Plate: ~370g)', calories: 138, protein: 4.2, carbs: 25.8, fats: 2.3, sugar: 1.1, fibre: 2.9, sodium: 185,
+    detected: true, foodName: 'Lunch Plate', foodType: 'meal', nutritionBasis: 'per_100g', portionGrams: 370,
+    calories: 138, protein: 4.2, carbs: 25.8, fats: 2.3, sugar: 1.1, fibre: 2.9, sodium: 185,
   }) }));
   await page.goto('/app/dietician');
   await page.getByRole('button', { name: 'Snap Gallery' }).click();
   const lens = page.getByRole('dialog', { name: 'Clinical AR Food & Nutrition Scanner' });
   await lens.locator('input[type=file]').setInputFiles({ name: 'plate.png', mimeType: 'image/png', buffer: whitePixel });
   await expect(lens.getByText('Lunch Plate')).toBeVisible();
+  await expect(lens.getByText('MEAL ESTIMATE · 370 G PORTION')).toBeVisible();
+  await expect(lens.getByText('511 kcal')).toBeVisible();
   await expect(lens.getByLabel('Amount you ate (grams)')).toHaveValue('370');
+  await lens.getByLabel('Amount you ate (grams)').fill('200');
+  await expect(lens.getByText('MEAL ESTIMATE · 200 G PORTION')).toBeVisible();
+  await expect(lens.getByText('276 kcal')).toBeVisible();
   await lens.getByRole('checkbox').check();
   await lens.getByRole('button', { name: 'Log estimate' }).click();
   await expect(lens).toHaveCount(0);
@@ -87,7 +112,7 @@ test('dietician entry point saves the same portion math', async ({ page }) => {
     const profile = engine.getProfile();
     return { nutrition: profile.nutrition.recentLogs.at(-1), diary: Object.values(profile.dietFoodLogs || {}).flat().at(-1) };
   });
-  expect(saved.nutrition.calories).toBe(511);
-  expect(saved.diary.calories).toBe(511);
-  expect(saved.diary.portion).toBe('370g consumed');
+  expect(saved.nutrition.calories).toBe(276);
+  expect(saved.diary.calories).toBe(276);
+  expect(saved.diary.portion).toBe('200g consumed');
 });
