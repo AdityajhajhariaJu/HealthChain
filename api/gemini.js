@@ -422,7 +422,9 @@ export default async function handler(req, res) {
       try {
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         generatedPlan = JSON.parse(rawText);
-      } catch {}
+      } catch {
+        generatedPlan = null;
+      }
       if (!validateGeneratedMealPlan(generatedPlan, 7).valid) {
         if (adminClient && userId) {
           await releaseReservedFeatureQuota();
