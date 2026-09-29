@@ -75,7 +75,7 @@ import {
   generateNutritionalGuardrails,
   generateGroceryList,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
+import { addEvent, addNutritionLog, removeNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
@@ -709,7 +709,8 @@ export default function Dietician() {
       if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea') || text.includes('chai')) sensitivities.push('caffeine');
       if (text.includes('onion') || text.includes('garlic') || text.includes('chickpea') || text.includes('beans') || text.includes('chana') || text.includes('besan') || text.includes('dal')) sensitivities.push('fructans_gos');
 
-      addNutritionLog({
+      return addNutritionLog({
+        id: mealItem.id,
         meal: mealItem.name,
         calories: mealItem.calories || 0,
         protein: mealItem.protein || 0,
@@ -722,6 +723,7 @@ export default function Dietician() {
       });
     } catch (e) {
       console.warn('Failed to sync to unified nutrition logs:', e);
+      return null;
     }
   };
 
@@ -3962,25 +3964,27 @@ export default function Dietician() {
         {showARLens && <ARGroceryLens 
           onClose={() => setShowARLens(false)} 
           onLogFood={(food) => {
-            triggerHapticSuccess();
-            const updatedLogs = { ...foodLogs };
-            updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-            const entry = {
-              ...food,
-              id: Date.now() + Math.random(),
-              date: currentDate,
-            };
-            updatedLogs[currentDate].push(entry);
-            syncToUnifiedNutritionLogs(entry);
-            setFoodLogs(updatedLogs);
-            updateProfileFeatureData('dietFoodLogs', updatedLogs);
-            const core = getCoreProfile();
-            if (core?.dietician) {
-              updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
+            let savedId: string | null = null;
+            try {
+              const entry = { ...food, id: crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`, date: currentDate };
+              savedId = syncToUnifiedNutritionLogs(entry);
+              if (!savedId) return false;
+              const updatedLogs = { ...foodLogs, [currentDate]: [...(foodLogs[currentDate] || []), entry] };
+              updateProfileFeatureData('dietFoodLogs', updatedLogs);
+              const core = getCoreProfile();
+              if (core?.dietician) {
+                updateProfileFeatureData('dietician', { ...core.dietician, foodLogs: updatedLogs });
+              }
+              if (!getCoreProfile()?.dietFoodLogs?.[currentDate]?.some((item: any) => item.id === entry.id)) throw new Error('Diary record was not saved');
+              setFoodLogs(updatedLogs);
+              triggerHapticSuccess();
+              toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary.`);
+              return true;
+            } catch (error) {
+              console.warn('Failed to log Clinical Lens estimate:', error);
+              if (savedId) removeNutritionLog(savedId);
+              return false;
             }
-            toast.success('Food Logged', `Added "${food.name}" to your ${food.type || 'Meal'} diary (+5 PTS).`);
-            setShowARLens(false);
-            awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
           }} 
         />}
 

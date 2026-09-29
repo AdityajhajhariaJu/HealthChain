@@ -96,6 +96,9 @@ export default defineConfig({
     port: 3001,
     host: true,
     open: false,
-    allowedHosts: true
+    allowedHosts: true,
+    proxy: {
+      '/api/gemini': { target: 'http://localhost:3000', changeOrigin: true }
+    }
   }
 })

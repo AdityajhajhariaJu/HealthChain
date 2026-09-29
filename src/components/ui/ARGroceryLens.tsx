@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Zap, ArrowLeft, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, Layers, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
-import { getProfile } from '../../services/ProfileEngine';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 
 function checkCanvasBrightness(canvas: HTMLCanvasElement): number {
   try {
@@ -44,9 +41,8 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
   canvas.width = Math.max(width, 1);
   canvas.height = Math.max(height, 1);
   const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.drawImage(imgSource, 0, 0, width, height);
-  }
+  if (!ctx) throw new Error('This browser could not process the image. Try another photo.');
+  ctx.drawImage(imgSource, 0, 0, width, height);
   return {
     base64: canvas.toDataURL('image/jpeg', 0.82),
     canvas
@@ -63,6 +59,7 @@ export interface NormalizedNutrition {
   fibre: number;
   sodium: number;
   servingSize: string;
+  portionGrams?: number;
   packSizeNote?: string;
   warning?: string | null;
   subtitle?: string;
@@ -84,13 +81,19 @@ export function normalizeNutritionTo100g(food: {
   subtitle?: string;
 }): NormalizedNutrition {
   const name = food.foodName || food.name || 'Identified Food';
-  const rawCalories = Number(food.calories ?? food.estimatedCalories ?? 0);
-  const rawProtein = Number(food.protein ?? 0);
-  const rawCarbs = Number(food.carbs ?? 0);
-  const rawFats = Number(food.fats ?? 0);
-  const rawSugar = Number(food.sugar ?? 0);
-  const rawFibre = Number(food.fibre ?? 0);
-  const rawSodium = Number(food.sodium ?? 0);
+  const requiredNumber = (value: unknown, label: string): number => {
+    if (value === null || value === undefined || value === '' || typeof value === 'boolean') throw new Error(`Missing ${label}`);
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0) throw new Error(`Invalid ${label}`);
+    return number;
+  };
+  const rawCalories = requiredNumber(food.calories ?? food.estimatedCalories, 'calories');
+  const rawProtein = requiredNumber(food.protein, 'protein');
+  const rawCarbs = requiredNumber(food.carbs, 'carbs');
+  const rawFats = requiredNumber(food.fats, 'fats');
+  const rawSugar = requiredNumber(food.sugar, 'sugar');
+  const rawFibre = requiredNumber(food.fibre, 'fibre');
+  const rawSodium = requiredNumber(food.sodium, 'sodium');
 
   const serving = (food.servingSize || '').trim();
   const lowerServing = serving.toLowerCase();
@@ -112,29 +115,32 @@ export function normalizeNutritionTo100g(food: {
     const gramMatch = lowerServing.match(/(\d+(?:\.\d+)?)\s*(?:g|gm|gms|gram|grams)\b/i);
     if (gramMatch) {
       const parsedGrams = parseFloat(gramMatch[1]);
-      if (parsedGrams > 0 && parsedGrams !== 100) {
+      if (parsedGrams >= 1 && parsedGrams <= 5000 && parsedGrams !== 100) {
         packWeightGrams = parsedGrams;
         factor = 100 / parsedGrams;
+      } else if (parsedGrams < 1 || parsedGrams > 5000) {
+        throw new Error('Invalid serving weight');
       }
     }
   } else {
     // If it is per 100g, check if pack or plate size is noted inside parentheses (e.g., "(Pack size: 60g)" or "(Full Plate: ~370g)")
-    const packMatch = lowerServing.match(/(?:pack size|full plate|plate|portion|serving):?\s*~?\s*(\d+(?:\.\d+)?)\s*g/i);
+    const packMatch = lowerServing.match(/(?:pack size|full plate|plate|portion|serving|glass):?[^)]*?~?(\d+(?:\.\d+)?)\s*g/i);
     if (packMatch) {
       packWeightGrams = parseFloat(packMatch[1]);
+      if (packWeightGrams < 1 || packWeightGrams > 5000) throw new Error('Invalid portion weight');
     }
   }
 
-  // Cap factor within safe bounds (0.1x to 10x)
-  const safeFactor = Math.min(Math.max(factor, 0.1), 10);
-
-  const calories = Math.round(rawCalories * safeFactor);
-  const protein = Math.round(rawProtein * safeFactor * 10) / 10;
-  const carbs = Math.round(rawCarbs * safeFactor * 10) / 10;
-  const fats = Math.round(rawFats * safeFactor * 10) / 10;
-  const sugar = Math.round(rawSugar * safeFactor * 10) / 10;
-  const fibre = Math.round(rawFibre * safeFactor * 10) / 10;
-  const sodium = Math.round(rawSodium * safeFactor);
+  const calories = Math.round(rawCalories * factor);
+  const protein = Math.round(rawProtein * factor * 10) / 10;
+  const carbs = Math.round(rawCarbs * factor * 10) / 10;
+  const fats = Math.round(rawFats * factor * 10) / 10;
+  const sugar = Math.round(rawSugar * factor * 10) / 10;
+  const fibre = Math.round(rawFibre * factor * 10) / 10;
+  const sodium = Math.round(rawSodium * factor);
+  if (calories > 900 || [protein, carbs, fats, sugar, fibre].some(value => value > 100) || sodium > 40000) {
+    throw new Error('Nutrition values are not plausible per 100g');
+  }
 
   const isPlate = lowerServing.includes('plate') || lowerServing.includes('thali') || lowerServing.includes('meal');
   const packSizeNote = packWeightGrams 
@@ -151,9 +157,24 @@ export function normalizeNutritionTo100g(food: {
     fibre,
     sodium,
     servingSize: '100g',
+    portionGrams: packWeightGrams || undefined,
     packSizeNote,
     warning: food.warning || null,
     subtitle: food.subtitle
+  };
+}
+
+export function scaleNutritionForPortion(food: NormalizedNutrition, grams: number) {
+  if (!Number.isFinite(grams) || grams < 1 || grams > 5000) throw new Error('Choose a portion between 1g and 5000g');
+  const factor = grams / 100;
+  return {
+    calories: Math.round(food.calories * factor),
+    protein: Math.round(food.protein * factor * 10) / 10,
+    carbs: Math.round(food.carbs * factor * 10) / 10,
+    fats: Math.round(food.fats * factor * 10) / 10,
+    sugar: Math.round(food.sugar * factor * 10) / 10,
+    fibre: Math.round(food.fibre * factor * 10) / 10,
+    sodium: Math.round(food.sodium * factor),
   };
 }
 
@@ -217,29 +238,44 @@ const CircularProgress = ({
   );
 };
 
-export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => void }) => {
-  const navigate = useNavigate();
+export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => boolean | Promise<boolean> }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [cameraAttempt, setCameraAttempt] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [shutterFlash, setShutterFlash] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [activeTab, setActiveTab] = useState<'scanned' | 'alternative'>('scanned');
-  const [showIngredientsDrawer, setShowIngredientsDrawer] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanError, setScanError] = useState<{ title: string; message: string } | null>(null);
+  const [portionGrams, setPortionGrams] = useState(100);
+  const [estimateConfirmed, setEstimateConfirmed] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
+  const [logError, setLogError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const profile = getProfile();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const scanSequenceRef = useRef(0);
+  const scanActiveRef = useRef(false);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<FileReader | null>(null);
   const [analysis, setAnalysis] = useState<FoodAnalysisResult | null>(null);
 
-  const targetCalories = profile?.targetCalories || 2000;
-  const targetProtein = Math.round((targetCalories * 0.3) / 4);
-  const targetCarbs = Math.round((targetCalories * 0.4) / 4);
-  const targetFats = Math.round((targetCalories * 0.3) / 9);
-  const targetSugar = 36;
-  const targetFibre = 28;
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.classList.add('lens-active');
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
+    return () => {
+      scanSequenceRef.current++;
+      activeRequestRef.current?.abort();
+      readerRef.current?.readyState === FileReader.LOADING && readerRef.current.abort();
+      document.body.classList.remove('lens-active');
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, []);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -269,179 +305,172 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       setCameraError("Camera is unavailable on this device. You can upload a photo from your gallery.");
     }
 
-    document.body.classList.add('lens-active');
-    document.body.style.overflow = 'hidden';
-
     return () => {
       isCancelled = true;
-      document.body.classList.remove('lens-active');
-      document.body.style.overflow = '';
       if (activeStream) {
         activeStream.getTracks().forEach(t => t.stop());
       }
     };
-  }, [facingMode]);
+  }, [facingMode, cameraAttempt]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const scanFailure = (error: unknown) => {
+    const message = error instanceof Error ? error.message : '';
+    if (message === 'Offline') return { title: 'You are offline', message: 'Connect to the internet, then try the scan again.' };
+    if (message === 'QUOTA_EXCEEDED') return { title: 'Scan limit reached', message: 'Your AI scan limit has been reached. Please try again later.' };
+    if (message.includes('AbortError')) return null;
+    return { title: 'Scan Inconclusive', message: 'We could not analyze this photo. Try a clearer meal photo or a readable nutrition panel.' };
+  };
+
+  const beginScan = () => {
+    if (scanActiveRef.current) return null;
+    scanActiveRef.current = true;
+    const sequence = ++scanSequenceRef.current;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
     setIsScanning(true);
     setScanError(null);
-    triggerHapticLight();
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const rawData = event.target?.result as string;
-        if (!rawData) return;
-        
-        const img = new Image();
-        img.onload = async () => {
-          try {
-            const { base64, canvas } = compressCanvas(img, img.naturalWidth || 1024, img.naturalHeight || 1024, 1024);
-            setCapturedPhoto(base64);
-            if (videoRef.current) {
-              videoRef.current.pause();
-            }
+    setShowResults(false);
+    setAnalysis(null);
+    setEstimateConfirmed(false);
+    setLogError('');
+    return { sequence, controller };
+  };
 
-            const brightness = checkCanvasBrightness(canvas);
-            if (brightness < 16) {
-              setScanError({
-                title: 'Photo is Too Dark',
-                message: 'The uploaded photo is too dark to analyze. Please upload a clear photo taken under good lighting.'
-              });
-              triggerHapticWarning();
-              setShowResults(true);
-              return;
-            }
-
-            const result = await analyzeFoodImage(base64, profile);
-            if (!result.detected || !result.foodName) {
-              setScanError({
-                title: 'No Food Detected',
-                message: result.errorMessage || 'Could not detect food or a nutrition facts panel in this photo. Please upload a clear image of your meal or package label.'
-              });
-              triggerHapticWarning();
-              setShowResults(true);
-              return;
-            }
-
-            setAnalysis(result);
-            if (result.warning) {
-              triggerHapticWarning();
-            } else {
-              triggerHapticSuccess();
-            }
-            awardPoints(5, 'Scanned Nutrition Facts via AR Lens', 'lifestyle');
-            setShowResults(true);
-          } catch (scanErr) {
-            console.error('Analysis error:', scanErr);
-            setScanError({
-              title: 'Scan Inconclusive',
-              message: 'Failed to analyze photo. Please try another angle or a clearer image.'
-            });
-            triggerHapticWarning();
-            setShowResults(true);
-          } finally {
-            setIsScanning(false);
-          }
-        };
-        img.onerror = () => {
-          setIsScanning(false);
-          setScanError({
-            title: 'Image Load Error',
-            message: 'Unable to process this image file. Please try a different photo.'
-          });
-          setShowResults(true);
-        };
-        img.src = rawData;
-      } catch (err) {
-        console.error('File scan error:', err);
+  const finishScan = async (base64: string, canvas: HTMLCanvasElement, sequence: number, controller: AbortController) => {
+    try {
+      if (checkCanvasBrightness(canvas) < 16) {
+        setScanError({ title: 'Photo is Too Dark', message: 'Try again in better light with the meal or nutrition panel in focus.' });
+        setShowResults(true);
+        triggerHapticWarning();
+        return;
+      }
+      const result = await analyzeFoodImage(base64, {}, controller.signal);
+      if (sequence !== scanSequenceRef.current || controller.signal.aborted) return;
+      if (!result.detected || !result.foodName) {
+        setScanError({ title: 'Nutrition Not Clear', message: result.errorMessage || 'Try a clearer nutrition panel or meal photo.' });
+        setShowResults(true);
+        triggerHapticWarning();
+        return;
+      }
+      const normalized = normalizeNutritionTo100g(result);
+      setPortionGrams(normalized.portionGrams ?? 100);
+      setAnalysis(result);
+      setShowResults(true);
+      triggerHapticSuccess();
+    } catch (error) {
+      if (sequence !== scanSequenceRef.current || controller.signal.aborted) return;
+      console.warn('Clinical Lens scan failed', error);
+      const failure = scanFailure(error);
+      if (failure) {
+        setScanError(failure);
+        setShowResults(true);
+        triggerHapticWarning();
+      }
+    } finally {
+      if (sequence === scanSequenceRef.current) {
+        scanActiveRef.current = false;
+        activeRequestRef.current = null;
         setIsScanning(false);
       }
-    };
-    reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || scanActiveRef.current) return;
+    if (!file.type.startsWith('image/')) {
+      setScanError({ title: 'Unsupported photo', message: 'Choose an image file such as JPEG, PNG, or HEIC.' });
+      setShowResults(true);
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setScanError({ title: 'Image too large', message: 'Use an image file under 20 MB.' });
+      setShowResults(true);
+      return;
+    }
+    const operation = beginScan();
+    if (!operation) return;
+    triggerHapticLight();
+    try {
+      const rawData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        readerRef.current = reader;
+        reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Empty image'));
+        reader.onerror = () => reject(reader.error || new Error('Image read failed'));
+        reader.onabort = () => reject(new DOMException('Image read cancelled', 'AbortError'));
+        reader.readAsDataURL(file);
+      });
+      if (operation.sequence !== scanSequenceRef.current) return;
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Image decode failed'));
+        image.src = rawData;
+      });
+      if (operation.sequence !== scanSequenceRef.current) return;
+      const { base64, canvas } = compressCanvas(img, img.naturalWidth, img.naturalHeight);
+      setCapturedPhoto(base64);
+      videoRef.current?.pause();
+      await finishScan(base64, canvas, operation.sequence, operation.controller);
+    } catch (error) {
+      if (operation.sequence !== scanSequenceRef.current) return;
+      const failure = scanFailure(error);
+      if (failure) {
+        setScanError(failure);
+        setShowResults(true);
+      }
+      scanActiveRef.current = false;
+      activeRequestRef.current = null;
+      setIsScanning(false);
+    } finally {
+      readerRef.current = null;
+    }
   };
 
   const handleResumeCamera = () => {
+    scanSequenceRef.current++;
+    activeRequestRef.current?.abort();
+    if (readerRef.current?.readyState === FileReader.LOADING) readerRef.current.abort();
+    scanActiveRef.current = false;
     setCapturedPhoto(null);
     setIsScanning(false);
-    setShowIngredientsDrawer(false);
-    if (videoRef.current && stream) {
-      videoRef.current.play().catch(() => {});
-    }
+    setShowResults(false);
+    setScanError(null);
+    setAnalysis(null);
+    setEstimateConfirmed(false);
+    setLogError('');
+    setCameraError(null);
+    if (videoRef.current && stream) videoRef.current.play().catch(() => setCameraAttempt(value => value + 1));
+    else setCameraAttempt(value => value + 1);
   };
 
   const handleScan = async () => {
-    if (!videoRef.current) return;
-    
+    if (!videoRef.current || scanActiveRef.current) return;
     if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
-      setCameraError("Camera is still warming up. Please wait a moment and try scanning again.");
+      setScanError({ title: 'Camera is warming up', message: 'Wait a moment, then choose Try Again.' });
+      setShowResults(true);
       return;
     }
-    
+    const operation = beginScan();
+    if (!operation) return;
     triggerHapticLight();
-    setCameraError(null);
-    setScanError(null);
-    
     try {
-      // 1. Instant snapshot from current camera video frame
-      const { base64, canvas } = compressCanvas(
-        videoRef.current,
-        videoRef.current.videoWidth,
-        videoRef.current.videoHeight,
-        1024
-      );
-
-      // 2. Immediate tactile shutter flash & photo freeze
-      // User does NOT need to hold the camera steady anymore; photo is already clicked!
+      const { base64, canvas } = compressCanvas(videoRef.current, videoRef.current.videoWidth, videoRef.current.videoHeight);
       setShutterFlash(true);
-      setTimeout(() => setShutterFlash(false), 220);
+      window.setTimeout(() => setShutterFlash(false), 220);
       setCapturedPhoto(base64);
-      setIsScanning(true);
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
-
-      const brightness = checkCanvasBrightness(canvas);
-      if (brightness < 16) {
-        setScanError({
-          title: 'Camera View is Too Dark',
-          message: 'The captured frame is too dark to analyze food or labels. Please aim directly at your meal or nutrition panel in good lighting.'
-        });
-        triggerHapticWarning();
+      videoRef.current.pause();
+      await finishScan(base64, canvas, operation.sequence, operation.controller);
+    } catch (error) {
+      if (operation.sequence !== scanSequenceRef.current) return;
+      const failure = scanFailure(error);
+      if (failure) {
+        setScanError(failure);
         setShowResults(true);
-        return;
       }
-      
-      const result = await analyzeFoodImage(base64, profile);
-
-      if (!result.detected || !result.foodName) {
-        setScanError({
-          title: 'No Food Detected',
-          message: result.errorMessage || 'Could not clearly recognize a food item, meal, or nutrition facts label. Please ensure the dish is well-lit and in frame.'
-        });
-        triggerHapticWarning();
-        setShowResults(true);
-        return;
-      }
-
-      setAnalysis(result);
-      if (result.warning) {
-        triggerHapticWarning();
-      } else {
-        triggerHapticSuccess();
-      }
-      awardPoints(5, 'Scanned Nutrition Facts via AR Lens', 'lifestyle');
-      setShowResults(true);
-    } catch (e) {
-      console.error(e);
-      setScanError({
-        title: 'Scan Inconclusive',
-        message: 'Could not analyze this frame. Please try again or upload a photo from your gallery.'
-      });
-      triggerHapticWarning();
-      setShowResults(true);
-    } finally {
+      scanActiveRef.current = false;
+      activeRequestRef.current = null;
       setIsScanning(false);
     }
   };
@@ -456,10 +485,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   };
 
   const handleClose = () => {
-    document.body.classList.remove('lens-active');
-    setCapturedPhoto(null);
-    setIsScanning(false);
-    setShowIngredientsDrawer(false);
+    scanSequenceRef.current++;
+    activeRequestRef.current?.abort();
+    if (readerRef.current?.readyState === FileReader.LOADING) readerRef.current.abort();
+    scanActiveRef.current = false;
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
     }
@@ -471,6 +500,17 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       if (e.key === 'Escape') {
         e.preventDefault();
         handleClose();
+      } else if (e.key === 'Tab' && dialogRef.current) {
+        const controls = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]):not([type="file"]), a[href], [tabindex]:not([tabindex="-1"])'))
+          .filter(element => element.getClientRects().length > 0);
+        if (!controls.length) { e.preventDefault(); dialogRef.current.focus(); return; }
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -479,6 +519,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
   return createPortal(
     <div 
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Clinical AR Food & Nutrition Scanner"
@@ -613,7 +655,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           width: 'max-content',
           maxWidth: 'calc(100% - 32px)',
           boxSizing: 'border-box',
-          pointerEvents: 'none'
+          pointerEvents: 'auto'
         }}>
           <Sparkles size={13} color="#34D399" style={{ flexShrink: 0 }} />
           <span style={{
@@ -625,7 +667,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             lineHeight: 1.3,
             whiteSpace: 'normal'
           }}>
-            {isScanning ? 'Snapshot captured · Analyzing nutrition...' : 'Scan packaged food, labels, or meals'}
+            {isScanning ? 'Snapshot captured · Analyzing nutrition...' : 'Photograph food or a readable nutrition label. Your photo is sent to Google Gemini via HealthChain.'}
+            {' '}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#A7F3D0', textDecoration: 'underline' }}>Privacy details</a>
           </span>
         </div>
       )}
@@ -846,7 +889,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         setScanError(null);
                         setShowResults(false);
                         setAnalysis(null);
-                        setActiveTab('scanned');
                       }}
                       style={{
                         padding: '13px 22px',
@@ -889,468 +931,42 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   </div>
                 </div>
               ) : analysis && (() => {
-                const scannedNormalized = normalizeNutritionTo100g({
-                  foodName: analysis.foodName,
-                  servingSize: analysis.servingSize,
-                  calories: analysis.calories,
-                  protein: analysis.protein,
-                  carbs: analysis.carbs,
-                  fats: analysis.fats,
-                  sugar: analysis.sugar,
-                  fibre: analysis.fibre,
-                  sodium: analysis.sodium,
-                  warning: analysis.warning
-                });
-
-                const rawAlt = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
-                  name: analysis.betterAlternative.name,
-                  reason: analysis.betterAlternative.reason,
-                  estimatedCalories: Math.round(scannedNormalized.calories * 0.7),
-                  protein: Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
-                  carbs: Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
-                  fats: Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
-                  sugar: Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
-                  fibre: Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
-                  sodium: Math.round((scannedNormalized.sodium ?? 350) * 0.35)
-                } : null);
-
-                const topAlternative = rawAlt ? {
-                  ...normalizeNutritionTo100g({
-                    name: rawAlt.name,
-                    servingSize: (rawAlt as any).servingSize || '100g',
-                    calories: (rawAlt as any).estimatedCalories ?? (rawAlt as any).calories ?? Math.round(scannedNormalized.calories * 0.7),
-                    protein: (rawAlt as any).protein ?? Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
-                    carbs: (rawAlt as any).carbs ?? Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
-                    fats: (rawAlt as any).fats ?? Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
-                    sugar: (rawAlt as any).sugar ?? Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
-                    fibre: (rawAlt as any).fibre ?? Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
-                    sodium: (rawAlt as any).sodium ?? Math.round((scannedNormalized.sodium ?? 350) * 0.35)
-                  }),
-                  reason: rawAlt.reason
-                } : null;
-
-                const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
-
-                const displayedFood = isViewingAlt && topAlternative ? {
-                  ...topAlternative,
-                  subtitle: 'Standardized to 100g mark • Clinically superior swap · Clean fuel'
-                } : {
-                  ...scannedNormalized,
-                  subtitle: `Standardized to 100g mark • ${scannedNormalized.packSizeNote ? `${scannedNormalized.packSizeNote} • ` : ''}AI-estimated from image.`
-                };
-
+                const food = normalizeNutritionTo100g(analysis);
+                const suggestion = analysis.betterAlternatives?.[0]?.name;
+                const nutrients: Array<[string, string]> = [
+                  ['Calories', `${food.calories} kcal`], ['Protein', `${food.protein} g`],
+                  ['Carbs', `${food.carbs} g`], ['Fat', `${food.fats} g`],
+                  ['Sugar', `${food.sugar} g`], ['Fibre', `${food.fibre} g`],
+                  ['Sodium', `${food.sodium} mg`],
+                ];
                 return (
-                  <>
-                    {/* The Clean Main Clinical Card */}
-                    <div style={{
-                      background: '#FFFFFF',
-                      borderRadius: '24px',
-                      padding: '16px 14px',
-                      border: '1px solid #F1E5E7',
-                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.04)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}>
-                      {/* Warning Banner (Clean Pink/Red Box) */}
-                      {displayedFood.warning && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '8px',
-                          background: '#FEF2F3',
-                          border: '1px solid #F9D2D7',
-                          borderRadius: '14px',
-                          padding: '10px 12px',
-                          boxSizing: 'border-box'
-                        }}>
-                          <AlertTriangle size={16} color="#CD3153" style={{ flexShrink: 0, marginTop: '2px' }} />
-                          <span style={{ color: '#991B1B', fontSize: '12px', fontWeight: 700, lineHeight: 1.45 }}>
-                            {displayedFood.warning}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Deception & Label Reality Check */}
-                      {!isViewingAlt && analysis?.deceptionAlert && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '8px',
-                          background: '#FFFBEB',
-                          border: '1.5px solid #FDE68A',
-                          borderRadius: '14px',
-                          padding: '10px 12px',
-                          boxSizing: 'border-box'
-                        }}>
-                          <span style={{ fontSize: '14px', lineHeight: 1, marginTop: '1px' }}>⚡</span>
-                          <div style={{ fontSize: '11.5px', color: '#92400E', lineHeight: 1.4 }}>
-                            <strong style={{ color: '#78350F' }}>Label Reality: </strong>
-                            {analysis.deceptionAlert}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Title & Calorie Pill on Same Line */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                        <div style={{ flex: 1 }}>
-                          <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', lineHeight: 1.25 }}>
-                            {displayedFood.name}
-                          </h2>
-                          <p style={{ margin: '3px 0 0', fontSize: '11.5px', color: '#64748B', fontWeight: 500, lineHeight: 1.35 }}>
-                            {isViewingAlt ? displayedFood.subtitle : `Standardized to 100g mark • NOVA ${analysis?.novaGrade || 4} ${analysis?.nutriScore ? `· Nutri-Score ${analysis.nutriScore}` : ''}`}
-                          </p>
-                        </div>
-
-                        <div style={{
-                          padding: '4px 10px',
-                          borderRadius: '12px',
-                          background: isViewingAlt ? '#ECFDF5' : '#FEF2F3',
-                          border: `1px solid ${isViewingAlt ? '#A7F3D0' : '#F9D2D7'}`,
-                          color: isViewingAlt ? '#059669' : '#CD3153',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <span style={{ fontSize: '13.5px', fontWeight: 800, lineHeight: 1.15 }}>
-                            {displayedFood.calories} kcal
-                          </span>
-                          <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.4px', textTransform: 'uppercase', opacity: 0.85 }}>
-                            per 100g
-                          </span>
-                        </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <section style={{ background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: '24px', padding: '18px', boxShadow: '0 4px 16px rgba(15,23,42,0.04)' }}>
+                      <div style={{ display: 'inline-flex', padding: '5px 10px', borderRadius: '999px', background: '#FFF1F2', color: '#BE123C', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px' }}>
+                        AI NUTRITION ESTIMATE · PER 100 G
                       </div>
-
-                      {/* Section Header with Per 100g Standard Badge */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '2px 4px 0'
-                      }}>
-                        <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
-                          Nutrition Breakdown
-                        </span>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          color: '#059669',
-                          background: '#ECFDF5',
-                          padding: '3px 8px',
-                          borderRadius: '999px',
-                          border: '1px solid #A7F3D0',
-                          letterSpacing: '0.3px',
-                          textTransform: 'uppercase'
-                        }}>
-                          Per 100g Mark
-                        </span>
-                      </div>
-
-                      {/* The 6 Original 80px Circular Macro Rings arranged in a 3x2 Matrix */}
-                      <div style={{
-                        background: '#FFFAFA',
-                        borderRadius: '18px',
-                        padding: '12px 6px',
-                        border: '1px solid #F1E5E7',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '10px 4px',
-                        justifyItems: 'center',
-                        alignItems: 'center'
-                      }}>
-                        <CircularProgress
-                          value={displayedFood.protein}
-                          max={targetProtein}
-                          color="#10B981"
-                          title="Protein"
-                          subtitle={`${targetProtein}g`}
-                        />
-                        <CircularProgress
-                          value={displayedFood.carbs}
-                          max={targetCarbs}
-                          color="#3B82F6"
-                          title="Carbs"
-                          subtitle={`${targetCarbs}g`}
-                        />
-                        <CircularProgress
-                          value={displayedFood.fats}
-                          max={targetFats}
-                          color="#F59E0B"
-                          title="Fats"
-                          subtitle={`${targetFats}g`}
-                        />
-                        <CircularProgress
-                          value={displayedFood.sugar}
-                          max={targetSugar}
-                          color="#E879F9"
-                          title="Sugar"
-                          subtitle={`${targetSugar}g`}
-                        />
-                        <CircularProgress
-                          value={displayedFood.fibre}
-                          max={targetFibre}
-                          color="#8B5CF6"
-                          title="Fibre"
-                          subtitle={`${targetFibre}g`}
-                        />
-                        <CircularProgress
-                          value={displayedFood.calories}
-                          max={targetCalories}
-                          color="#EF4444"
-                          title="Calories"
-                          subtitle={`${targetCalories} kcal`}
-                        />
-                      </div>
-
-                      {/* Quick Health Pulse (Yuka-style 2-Second Decision Chips) */}
-                      {!isViewingAlt && Boolean((analysis?.positives && analysis.positives.length > 0) || (analysis?.negatives && analysis.negatives.length > 0)) && (
-                        <div style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '6px',
-                          alignItems: 'center',
-                          padding: '2px 0'
-                        }}>
-                          {analysis?.positives?.map((pos, idx) => (
-                            <div key={`pos-${idx}`} style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '3px 8px',
-                              borderRadius: '8px',
-                              background: '#ECFDF5',
-                              border: '1px solid #A7F3D0',
-                              color: '#059669',
-                              fontSize: '11px',
-                              fontWeight: 700
-                            }}>
-                              <CheckCircle2 size={12} strokeWidth={2.5} />
-                              <span>{pos}</span>
-                            </div>
-                          ))}
-                          {analysis?.negatives?.map((neg, idx) => (
-                            <div key={`neg-${idx}`} style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '3px 8px',
-                              borderRadius: '8px',
-                              background: '#FEF2F3',
-                              border: '1px solid #F9D2D7',
-                              color: '#CD3153',
-                              fontSize: '11px',
-                              fontWeight: 700
-                            }}>
-                              <span style={{ fontWeight: 900, fontSize: '11px' }}>✕</span>
-                              <span>{neg}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Top 3 Ingredients Micro-Bar (Label Padhega India) */}
-                      {!isViewingAlt && Boolean(analysis?.topIngredients && analysis.topIngredients.length > 0) && (
-                        <div style={{
-                          background: '#FFFAFA',
-                          border: '1px solid #F1E5E7',
-                          borderRadius: '12px',
-                          padding: '8px 11px',
-                          fontSize: '11.5px',
-                          color: '#334155',
-                          lineHeight: 1.45
-                        }}>
-                          <strong style={{ color: '#0F172A', fontWeight: 800 }}>Top 3 Ingredients: </strong>
-                          <span>{analysis?.topIngredients?.map((ing, i) => `${i + 1}. ${ing}`).join(' · ')}</span>
-                        </div>
-                      )}
-
-                      {/* Collapsible Ingredients & Chemical Additives Drawer (Progressive Disclosure) */}
-                      {!isViewingAlt && Boolean((analysis?.ingredientsList && analysis.ingredientsList.length > 0) || (analysis?.additives && analysis.additives.length > 0)) && (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              triggerHapticLight();
-                              setShowIngredientsDrawer(prev => !prev);
-                            }}
-                            style={{
-                              width: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '8px 12px',
-                              borderRadius: '12px',
-                              background: showIngredientsDrawer ? '#FFFAFA' : '#FFFFFF',
-                              border: '1px solid #F1E5E7',
-                              color: '#475569',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>🔬</span>
-                              <span>
-                                {analysis?.additives?.length ? `${analysis.additives.length} Additive${analysis.additives.length > 1 ? 's' : ''} & ` : ''}Full Ingredients
-                              </span>
-                            </span>
-                            {showIngredientsDrawer ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                          </button>
-
-                          <AnimatePresence>
-                            {showIngredientsDrawer && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.22, ease: 'easeOut' }}
-                                style={{ overflow: 'hidden' }}
-                              >
-                                <div style={{
-                                  marginTop: '8px',
-                                  padding: '12px',
-                                  background: '#FFFAFA',
-                                  borderRadius: '14px',
-                                  border: '1px solid #F1E5E7',
-                                  fontSize: '11.5px',
-                                  color: '#475569',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: '8px'
-                                }}>
-                                  {analysis?.ingredientsSummary && (
-                                    <div>
-                                      <strong style={{ color: '#0F172A', display: 'block', marginBottom: '2px' }}>Ingredients List:</strong>
-                                      <span style={{ lineHeight: 1.45 }}>{analysis.ingredientsSummary}</span>
-                                    </div>
-                                  )}
-
-                                  {analysis?.additives && analysis.additives.length > 0 && (
-                                    <div>
-                                      <strong style={{ color: '#0F172A', display: 'block', marginBottom: '4px' }}>Chemical Additives Identified:</strong>
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                        {analysis.additives.map((add, idx) => {
-                                          const isHigh = add.riskLevel === 'high';
-                                          const isMod = add.riskLevel === 'moderate';
-                                          const bg = isHigh ? '#FEF2F2' : isMod ? '#FFFBEB' : '#ECFDF5';
-                                          const border = isHigh ? '#FECDD3' : isMod ? '#FDE68A' : '#A7F3D0';
-                                          const textCol = isHigh ? '#DC2626' : isMod ? '#D97706' : '#059669';
-                                          return (
-                                            <span key={idx} style={{
-                                              display: 'inline-flex',
-                                              alignItems: 'center',
-                                              padding: '2px 7px',
-                                              borderRadius: '6px',
-                                              background: bg,
-                                              border: `1px solid ${border}`,
-                                              color: textCol,
-                                              fontSize: '10.5px',
-                                              fontWeight: 700
-                                            }}>
-                                              {add.code ? `${add.code}: ` : ''}{add.name} ({add.riskLevel === 'low' ? 'Safe' : add.riskLevel})
-                                            </span>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {analysis?.allergens && analysis.allergens.length > 0 && (
-                                    <div style={{ fontSize: '11px', color: '#991B1B' }}>
-                                      <strong>Allergen Notice: </strong>
-                                      <span>Contains {analysis.allergens.join(', ')}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Better Alternative Card with Working Interactive Arrow Button */}
-                    {topAlternative && (
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => {
-                          triggerHapticLight();
-                          setActiveTab(prev => (prev === 'scanned' ? 'alternative' : 'scanned'));
-                        }}
-                        style={{
-                          background: isViewingAlt ? '#ECFDF5' : 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 50%, #FFF7F8 100%)',
-                          borderRadius: '20px',
-                          padding: '14px 16px',
-                          border: isViewingAlt ? '2px solid #10B981' : '1.5px solid #F1E5E7',
-                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          flexShrink: 0
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            color: '#059669',
-                            letterSpacing: '0.4px',
-                            textTransform: 'uppercase',
-                            marginBottom: '3px'
-                          }}>
-                            {isViewingAlt ? 'ACTIVE SWAP SELECTED' : 'OPTION TO CONSIDER · AI SUGGESTION'}
+                      <h2 style={{ margin: '12px 0 5px', color: '#0F172A', fontSize: '21px', lineHeight: 1.25 }}>{food.name}</h2>
+                      <p style={{ margin: '0 0 15px', color: '#64748B', fontSize: '12px', lineHeight: 1.5 }}>
+                        These numbers are estimates from a photo. Verify the actual label and ingredients. This scan cannot determine allergens or your glucose response.
+                      </p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+                        {nutrients.map(([label, value]) => (
+                          <div key={label} style={{ background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: '12px', padding: '10px 11px' }}>
+                            <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>{label}</div>
+                            <div style={{ color: '#0F172A', fontSize: '16px', fontWeight: 800, marginTop: '2px' }}>{value}</div>
                           </div>
-                          <div style={{
-                            fontSize: '15px',
-                            fontWeight: 800,
-                            color: '#0F172A',
-                            lineHeight: 1.3
-                          }}>
-                            {topAlternative.name}
-                          </div>
-                          <div style={{
-                            fontSize: '12px',
-                            color: '#475569',
-                            marginTop: '3px',
-                            lineHeight: 1.4
-                          }}>
-                            {topAlternative.reason}
-                          </div>
-                        </div>
-
-                        {/* Interactive Arrow Button */}
-                        <div
-                          aria-label={isViewingAlt ? 'Switch back to scanned food' : 'Switch to healthy alternative'}
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            background: isViewingAlt ? '#10B981' : '#FFFFFF',
-                            color: isViewingAlt ? '#FFFFFF' : '#059669',
-                            border: isViewingAlt ? 'none' : '1.5px solid #A7F3D0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: isViewingAlt ? '0 3px 10px rgba(16, 185, 129, 0.35)' : 'none',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          {isViewingAlt ? (
-                            <CheckCircle2 size={18} strokeWidth={2.5} />
-                          ) : (
-                            <ArrowRight size={17} strokeWidth={2.5} />
-                          )}
-                        </div>
+                        ))}
                       </div>
+                      {food.packSizeNote && <p style={{ margin: '12px 0 0', color: '#475569', fontSize: '12px' }}>Photo suggests {food.packSizeNote}. Confirm the amount you actually consumed below.</p>}
+                    </section>
+                    {suggestion && (
+                      <section style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '18px', padding: '13px 16px' }}>
+                        <div style={{ color: '#047857', fontSize: '10px', fontWeight: 800, letterSpacing: '0.4px' }}>OPTION TO CONSIDER · AI SUGGESTION</div>
+                        <div style={{ color: '#0F172A', fontSize: '15px', fontWeight: 800, marginTop: '4px' }}>{suggestion}</div>
+                        <div style={{ color: '#475569', fontSize: '12px', lineHeight: 1.4, marginTop: '3px' }}>Compare its real ingredient list and nutrition label before choosing it. It is not logged from this scan.</div>
+                      </section>
                     )}
-                  </>
+                  </div>
                 );
               })()}
             </div>
@@ -1369,141 +985,75 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               zIndex: 20,
               boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)'
             }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                maxWidth: '480px',
-                margin: '0 auto',
-                width: '100%'
-              }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    handleResumeCamera();
-                    setShowResults(false);
-                    setAnalysis(null);
-                    setActiveTab('scanned');
-                  }}
-                  style={{
-                    flex: '0 0 auto',
-                    height: '42px',
-                    padding: '0 16px',
-                    background: '#FFFAFA',
-                    color: '#475569',
-                    border: '1px solid #F1E5E7',
-                    borderRadius: '12px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <RefreshCw size={14} /> Scan Another
-                </button>
-
-                {onLogFood && analysis?.foodName && (() => {
-                  const scannedNormalized = normalizeNutritionTo100g({
-                    foodName: analysis.foodName,
-                    servingSize: analysis.servingSize,
-                    calories: analysis.calories,
-                    protein: analysis.protein,
-                    carbs: analysis.carbs,
-                    fats: analysis.fats,
-                    sugar: analysis.sugar,
-                    fibre: analysis.fibre,
-                    sodium: analysis.sodium,
-                    warning: analysis.warning
-                  });
-
-                  const rawAlt = analysis?.betterAlternatives?.[0] || (analysis?.betterAlternative ? {
-                    name: analysis.betterAlternative.name,
-                    reason: analysis.betterAlternative.reason,
-                    estimatedCalories: Math.round(scannedNormalized.calories * 0.7),
-                    protein: Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
-                    carbs: Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
-                    fats: Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
-                    sugar: Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
-                    fibre: Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
-                    sodium: Math.round((scannedNormalized.sodium ?? 350) * 0.35)
-                  } : null);
-
-                  const topAlternative = rawAlt ? {
-                    ...normalizeNutritionTo100g({
-                      name: rawAlt.name,
-                      servingSize: (rawAlt as any).servingSize || '100g',
-                      calories: (rawAlt as any).estimatedCalories ?? (rawAlt as any).calories ?? Math.round(scannedNormalized.calories * 0.7),
-                      protein: (rawAlt as any).protein ?? Math.round(scannedNormalized.protein * 1.1 * 10) / 10,
-                      carbs: (rawAlt as any).carbs ?? Math.round(scannedNormalized.carbs * 0.5 * 10) / 10,
-                      fats: (rawAlt as any).fats ?? Math.round(scannedNormalized.fats * 0.6 * 10) / 10,
-                      sugar: (rawAlt as any).sugar ?? Math.max(0.5, Math.round(scannedNormalized.sugar * 0.4 * 10) / 10),
-                      fibre: (rawAlt as any).fibre ?? Math.max(3, Math.round(scannedNormalized.fibre * 2 * 10) / 10),
-                      sodium: (rawAlt as any).sodium ?? Math.round((scannedNormalized.sodium ?? 350) * 0.35)
-                    }),
-                    reason: rawAlt.reason
-                  } : null;
-
-                  const isViewingAlt = activeTab === 'alternative' && topAlternative !== null;
-                  const logFood = isViewingAlt && topAlternative ? topAlternative : scannedNormalized;
-
-                  // Auto-detect realistic meal slot from current time
-                  const currentHour = new Date().getHours();
-                  const detectedMealType = 
-                    currentHour < 11 ? 'Breakfast' :
-                    currentHour < 14 ? 'Lunch' :
-                    currentHour < 18 ? 'Evening Snack' : 'Dinner';
-
-                  const portionLabel = logFood.packSizeNote || analysis?.servingSize || '100g';
-
-                  return (
+              <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {logError && <p role="alert" style={{ margin: 0, color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}>{logError}</p>}
+                {onLogFood && analysis?.foodName && (
+                  <>
+                    <label htmlFor="clinical-lens-portion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', color: '#334155', fontSize: '12px', fontWeight: 700 }}>
+                      Amount you ate (grams)
+                      <input
+                        id="clinical-lens-portion"
+                        type="number"
+                        min="1"
+                        max="5000"
+                        step="1"
+                        value={portionGrams}
+                        onChange={event => { setPortionGrams(Number(event.target.value)); setEstimateConfirmed(false); }}
+                        style={{ width: '88px', height: '34px', borderRadius: '9px', border: '1px solid #CBD5E1', padding: '0 8px', color: '#0F172A', background: '#FFFFFF' }}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '11px', lineHeight: 1.35 }}>
+                      <input type="checkbox" checked={estimateConfirmed} onChange={event => setEstimateConfirmed(event.target.checked)} />
+                      I checked this estimate and the amount. I will use the real label for allergy decisions.
+                    </label>
+                  </>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { triggerHapticLight(); handleResumeCamera(); }}
+                    style={{ flex: '0 0 auto', height: '42px', padding: '0 13px', background: '#FFFAFA', color: '#475569', border: '1px solid #F1E5E7', borderRadius: '12px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <RefreshCw size={14} /> Scan Another
+                  </button>
+                  {onLogFood && analysis?.foodName && (
                     <button
                       type="button"
-                      onClick={() => {
-                        triggerHapticSuccess();
-                        onLogFood({
-                          name: logFood.name,
-                          calories: logFood.calories,
-                          protein: logFood.protein,
-                          carbs: logFood.carbs,
-                          fat: logFood.fats,
-                          sugar: logFood.sugar,
-                          fibre: logFood.fibre,
-                          sodium: logFood.sodium,
-                          servingSize: portionLabel,
-                          portion: portionLabel,
-                          type: detectedMealType
-                        });
-                        handleClose();
+                      disabled={!estimateConfirmed || !Number.isFinite(portionGrams) || portionGrams < 1 || portionGrams > 5000 || isLogging}
+                      onClick={async () => {
+                        if (!analysis || !onLogFood || isLogging) return;
+                        setIsLogging(true);
+                        try {
+                          const food = normalizeNutritionTo100g(analysis);
+                          const scaled = scaleNutritionForPortion(food, portionGrams);
+                          const hour = new Date().getHours();
+                          const mealType = hour < 11 ? 'Breakfast' : hour < 14 ? 'Lunch' : hour < 18 ? 'Evening Snack' : 'Dinner';
+                          const saved = await onLogFood({
+                            name: food.name,
+                            ...scaled,
+                            fat: scaled.fats,
+                            servingSize: `${portionGrams}g consumed`,
+                            portion: `${portionGrams}g consumed`,
+                            portionGrams,
+                            nutritionBasis: 'ai_estimate_per_100g',
+                            type: mealType,
+                          });
+                          if (saved !== true) throw new Error('Meal was not saved');
+                          triggerHapticSuccess();
+                          handleClose();
+                        } catch (error) {
+                          console.warn('Clinical Lens meal log failed', error);
+                          setLogError('Meal not saved. Please try again; your scan is still available.');
+                        } finally {
+                          setIsLogging(false);
+                        }
                       }}
-                      style={{
-                        flex: 1,
-                        height: '42px',
-                        padding: '0 16px',
-                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '7px',
-                        boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
-                        transition: 'all 0.15s ease'
-                      }}
+                      style={{ flex: 1, height: '42px', padding: '0 12px', background: '#047857', color: '#FFFFFF', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: 800, opacity: estimateConfirmed ? 1 : 0.55, cursor: estimateConfirmed ? 'pointer' : 'not-allowed' }}
                     >
-                      <CheckCircle2 size={16} />
-                      Log to Diet Diary (+5 PTS)
+                      Log estimate
                     </button>
-                  );
-                })()}
+                  )}
+                </div>
               </div>
             </footer>
           </motion.div>
@@ -1537,6 +1087,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#94A3B8', lineHeight: 1.5 }}>
               {cameraError}
             </p>
+            <p style={{ color: '#CBD5E1', fontSize: '12px', lineHeight: 1.5 }}>Uploaded photos are sent to Google Gemini via HealthChain for nutrition estimation. <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#A7F3D0' }}>Privacy details</a></p>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="btn btn-primary"
@@ -1544,6 +1095,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             >
               <Upload size={16} /> Choose Photo from Device
             </button>
+            <button type="button" onClick={() => { setCameraError(null); setCameraAttempt(value => value + 1); }} style={{ marginTop: 12, padding: '12px 24px', borderRadius: 12, width: '100%', border: '1px solid rgba(255,255,255,.35)', color: '#fff', background: 'transparent', cursor: 'pointer' }}>Retry Camera</button>
           </div>
         </div>
       )}
