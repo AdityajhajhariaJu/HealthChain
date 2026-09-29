@@ -1,0 +1,5 @@
+## 2025-02-27 - Authorization Bypass in Admin API
+
+**Vulnerability:** The `api/admin-content.js` serverless function only verified if a user was authenticated (had a valid token), but included a TODO stub for admin authorization. This allowed any authenticated user to pass the auth check and make destructive operations (insert/update/delete) on the `fitness_content` table since the file initializes Supabase with a `service_role` key bypassing RLS. Furthermore, the endpoint exposed internal DB error messages.
+**Learning:** Hardcoded placeholders ("TODO: Add strict admin role check here") in security-sensitive endpoints involving `service_role` clients introduce massive risk, essentially granting total backend control to regular users.
+**Prevention:** Always implement fail-closed admin checks immediately when constructing a route with a `service_role` client. If `process.env.ADMIN_USER_ID` is missing or undefined, the endpoint must abort via `403 Forbidden` rather than continuing. Never leak `error.message` strings directly to API consumers in catch blocks; return a generic "Internal Server Error".
