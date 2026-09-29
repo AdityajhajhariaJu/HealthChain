@@ -12,6 +12,7 @@ import { GutSourceRecord, type GutSourceReference } from './GutSourceRecord';
 import { GutLinkStrip } from './GutLinkStrip';
 import FocusTrap from './FocusTrap';
 import './GutHealthModal.css';
+import './GutClinicalTheme.css';
 
 interface Props { isOpen: boolean; initialThreadId?: string | null; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
 type Tab = 'daily' | 'research' | 'studio' | 'records' | 'visit';

@@ -1,0 +1,570 @@
+/* Gut Health shares the Clinical Review Workstation's visual language.
+   Scope every rule to the modal so the rest of HealthChain stays unchanged. */
+.gr-modal-dialog {
+  --gut-ink: #18181b;
+  --gut-copy: #334155;
+  --gut-muted: #64748b;
+  --gut-line: #e4e4e7;
+  --gut-soft-line: #eef0f3;
+  --gut-rose: #e11d48;
+  --gut-rose-dark: #be123c;
+  --gut-rose-soft: #fff1f2;
+  --gut-rose-line: #fecdd3;
+  --gut-shadow: 0 18px 48px -22px rgba(136, 37, 65, .18), 0 3px 12px rgba(24, 24, 27, .035);
+  width: min(96vw, 1400px) !important;
+  height: min(94vh, 980px) !important;
+  background: #fff !important;
+  border: 1px solid var(--gut-line) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 28px 90px rgba(34, 26, 35, .24), 0 8px 30px rgba(225, 29, 72, .06) !important;
+  color: var(--gut-ink) !important;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.gr-modal-dialog .gr-modal-header {
+  min-height: 100px;
+  padding: 20px clamp(18px, 3vw, 42px) !important;
+  border-bottom: 1px solid var(--gut-soft-line) !important;
+  background: linear-gradient(120deg, #fff5f6 0%, #fff 64%, #fafafb 100%) !important;
+}
+.gr-modal-dialog .gr-modal-header > span:first-child {
+  background: linear-gradient(135deg, #e11d48, #be123c) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 7px 17px rgba(225, 29, 72, .22) !important;
+}
+.gr-modal-dialog .gr-modal-eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border: 1px solid var(--gut-rose-line);
+  border-radius: 999px;
+  background: var(--gut-rose-soft);
+  color: var(--gut-rose-dark) !important;
+  letter-spacing: .06em !important;
+}
+.gr-modal-dialog .gr-modal-header h1 {
+  color: var(--gut-ink) !important;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(26px, 2.7vw, 36px) !important;
+  line-height: 1.1;
+  letter-spacing: -.025em !important;
+}
+.gr-modal-dialog .gr-modal-header button {
+  background: #fff !important;
+  border-color: var(--gut-line) !important;
+  color: var(--gut-copy) !important;
+  box-shadow: none !important;
+}
+.gr-modal-dialog .gr-modal-header button:hover {
+  border-color: #a1a1aa !important;
+  background: #fafafa !important;
+}
+.gr-modal-dialog .gr-modal-header button[aria-label="Close Gut Health"] {
+  width: 42px !important;
+  min-height: 42px !important;
+}
+.gr-modal-dialog nav[aria-label="Gut Health sections"] {
+  padding: 10px clamp(18px, 3vw, 42px) !important;
+  gap: 8px !important;
+  border-bottom: 1px solid var(--gut-soft-line) !important;
+  background: #fafafa !important;
+}
+.gr-modal-dialog nav[aria-label="Gut Health sections"] button {
+  min-height: 39px !important;
+  padding: 8px 13px !important;
+  border: 1px solid var(--gut-line) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--gut-copy) !important;
+  box-shadow: none !important;
+}
+.gr-modal-dialog nav[aria-label="Gut Health sections"] button[aria-current="page"] {
+  border-color: var(--gut-rose) !important;
+  background: var(--gut-rose) !important;
+  color: #fff !important;
+}
+.gr-modal-dialog > main {
+  padding: clamp(20px, 2.8vw, 34px) clamp(16px, 3vw, 42px) !important;
+  background: radial-gradient(circle at 12% 0%, #fff7f8 0%, #fff 38%) !important;
+}
+.gr-modal-dialog .gr-modal-footer {
+  min-height: 37px;
+  padding: 8px clamp(18px, 3vw, 42px) !important;
+  border-top: 1px solid var(--gut-soft-line) !important;
+  background: #fff !important;
+  color: var(--gut-muted) !important;
+}
+.gr-modal-dialog button:focus-visible,
+.gr-modal-dialog a:focus-visible,
+.gr-modal-dialog input:focus-visible,
+.gr-modal-dialog textarea:focus-visible,
+.gr-modal-dialog select:focus-visible {
+  outline: 3px solid #fb7185 !important;
+  outline-offset: 2px;
+}
+
+/* Quick Log, understanding, research and weekly review */
+.gr-modal-dialog .gdh {
+  --navy: var(--gut-copy);
+  --ink: var(--gut-ink);
+  --muted: var(--gut-muted);
+  --line: var(--gut-line);
+  --coral: var(--gut-rose);
+  --blue: var(--gut-rose-soft);
+  max-width: 790px;
+}
+.gr-modal-dialog .gdh-page-head { padding: 0 2px 10px; }
+.gr-modal-dialog .gdh-kicker {
+  color: var(--gut-rose-dark);
+  font-size: 11px;
+  letter-spacing: .075em;
+}
+.gr-modal-dialog .gdh-history {
+  color: var(--gut-copy);
+  font-size: 13px;
+  padding: 6px 3px;
+}
+.gr-modal-dialog .gdh-history:hover { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gdh-page {
+  padding: clamp(19px, 3vw, 32px);
+  border: 1px solid var(--gut-line);
+  border-radius: 23px;
+  background: #fff;
+  box-shadow: var(--gut-shadow);
+}
+.gr-modal-dialog .gdh-brand { color: var(--gut-copy); font-size: 13px; gap: 10px; }
+.gr-modal-dialog .gdh-brand > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  box-shadow: 0 5px 12px rgba(225, 29, 72, .2);
+}
+.gr-modal-dialog .gdh-brand em {
+  border: 1px solid var(--gut-rose-line);
+  background: var(--gut-rose-soft);
+  color: var(--gut-rose-dark);
+  font-size: 10px;
+  padding: 5px 9px;
+}
+.gr-modal-dialog .gdh h2 {
+  margin: 15px 0 4px;
+  color: var(--gut-ink);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(31px, 4vw, 43px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.12;
+}
+.gr-modal-dialog .gdh-subtitle {
+  margin-bottom: 19px;
+  color: var(--gut-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.gr-modal-dialog .gdh-input-line {
+  min-height: 49px;
+  padding: 10px 15px;
+  border: 1px solid var(--gut-line);
+  border-radius: 999px;
+  color: #71717a;
+  box-shadow: 0 2px 6px rgba(24, 24, 27, .025);
+}
+.gr-modal-dialog .gdh-input-line:focus-within { border-color: var(--gut-rose); box-shadow: 0 0 0 3px var(--gut-rose-soft); }
+.gr-modal-dialog .gdh-input-line input { color: var(--gut-ink); font-size: 14px; }
+.gr-modal-dialog .gdh-input-line input::placeholder { color: #71717a; }
+.gr-modal-dialog .gdh-segment,
+.gr-modal-dialog .gdh-research-tabs,
+.gr-modal-dialog .gdh-explain-tabs { gap: 8px; margin: 12px 0; }
+.gr-modal-dialog .gdh-segment button,
+.gr-modal-dialog .gdh-research-tabs button,
+.gr-modal-dialog .gdh-explain-tabs button {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--gut-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--gut-copy);
+  font-size: 13px;
+  font-weight: 750;
+}
+.gr-modal-dialog .gdh-segment button:hover,
+.gr-modal-dialog .gdh-research-tabs button:hover,
+.gr-modal-dialog .gdh-explain-tabs button:hover,
+.gr-modal-dialog .gdh-pill-grid button:hover { border-color: #fda4af; background: #fffafb; }
+.gr-modal-dialog .gdh-segment button.active,
+.gr-modal-dialog .gdh-segment button.active:nth-child(2),
+.gr-modal-dialog .gdh-research-tabs button.active,
+.gr-modal-dialog .gdh-explain-tabs button.active {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(225, 29, 72, .16);
+}
+.gr-modal-dialog .gdh-pill-grid { gap: 9px; margin: 14px 0 18px; }
+.gr-modal-dialog .gdh-pill-grid button {
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--gut-ink);
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: 0 2px 6px rgba(24, 24, 27, .035);
+}
+.gr-modal-dialog .gdh-pill-grid button.chosen {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose-soft);
+  color: var(--gut-ink);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, .07);
+}
+.gr-modal-dialog .gdh-pill-grid button.chosen > svg:last-child { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gdh-pill-icon {
+  width: 33px;
+  height: 33px;
+  box-shadow: 0 4px 10px rgba(69, 48, 67, .12);
+}
+.gr-modal-dialog .gdh-tone-bloating { background: linear-gradient(135deg, #fb7185, #f43f5e); }
+.gr-modal-dialog .gdh-tone-reflux { background: linear-gradient(135deg, #6ee7b7, #10b981); }
+.gr-modal-dialog .gdh-tone-discomfort { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); }
+.gr-modal-dialog .gdh-tone-nausea { background: linear-gradient(135deg, #fcd34d, #fb923c); }
+.gr-modal-dialog .gdh-tone-bowel_changes { background: linear-gradient(135deg, #5eead4, #14b8a6); }
+.gr-modal-dialog .gdh-tone-more { background: #dbeafe; color: #2563eb; }
+.gr-modal-dialog .gdh-rule { margin: 20px 0 16px; background: var(--gut-soft-line); }
+.gr-modal-dialog .gdh-field-label { margin: 14px 0 5px; color: var(--gut-ink); font-size: 13px; }
+.gr-modal-dialog .gdh-field-label small { color: var(--gut-muted); }
+.gr-modal-dialog .gdh-date-input,
+.gr-modal-dialog .gdh-detail-label input,
+.gr-modal-dialog .gdh-detail-label textarea,
+.gr-modal-dialog .gdh-question textarea {
+  border-color: var(--gut-line);
+  border-radius: 12px;
+  color: var(--gut-ink);
+  font-size: 13px;
+}
+.gr-modal-dialog .gdh-primary,
+.gr-modal-dialog .gdh-thread-foot button {
+  min-height: 46px;
+  border: 1px solid var(--gut-rose);
+  border-radius: 12px;
+  background: linear-gradient(100deg, #e11d48, #ee4b72);
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 7px 16px rgba(225, 29, 72, .16);
+}
+.gr-modal-dialog .gdh-primary:hover,
+.gr-modal-dialog .gdh-thread-foot button:hover { background: #be123c; }
+.gr-modal-dialog .gdh-primary:disabled { box-shadow: none; }
+.gr-modal-dialog .gdh-secondary {
+  min-height: 42px;
+  border: 1px solid var(--gut-line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--gut-copy);
+  font-size: 13px;
+}
+.gr-modal-dialog .gdh-secondary:hover { border-color: #fda4af; background: #fffafb; }
+.gr-modal-dialog .gdh-footnote { color: var(--gut-muted); font-size: 11px; line-height: 1.4; }
+.gr-modal-dialog .gdh-text-link,
+.gr-modal-dialog .gdh-inline-link,
+.gr-modal-dialog .gdh-utility button { color: var(--gut-copy); font-size: 12px; }
+.gr-modal-dialog .gdh-text-link:hover,
+.gr-modal-dialog .gdh-inline-link:hover,
+.gr-modal-dialog .gdh-utility button:hover { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gdh-preview,
+.gr-modal-dialog .gdh-helper,
+.gr-modal-dialog .gdh-question,
+.gr-modal-dialog .gdh-explain-panel {
+  border: 1px solid var(--gut-line);
+  border-radius: 14px;
+  background: #fafafa;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gdh-preview span,
+.gr-modal-dialog .gdh-record-strip > span { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gdh-contexts button {
+  border-color: var(--gut-line);
+  background: #fff;
+  color: var(--gut-copy);
+  font-size: 12px;
+}
+.gr-modal-dialog .gdh-contexts button.chosen {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose-soft);
+  color: var(--gut-rose-dark);
+}
+.gr-modal-dialog .gdh-bottom-nav {
+  gap: 9px;
+  padding: 12px 4px 4px;
+  border-top: 1px solid var(--gut-soft-line);
+  background: #fff;
+  box-shadow: 0 -10px 20px rgba(255, 255, 255, .95);
+}
+.gr-modal-dialog .gdh-bottom-nav button {
+  min-height: 43px;
+  border-color: var(--gut-line);
+  background: #fff;
+  color: var(--gut-copy);
+  font-size: 12px;
+}
+.gr-modal-dialog .gdh-bottom-nav button.active {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose);
+  color: #fff;
+}
+.gr-modal-dialog .gdh-insight-list button,
+.gr-modal-dialog .gdh-day-list button,
+.gr-modal-dialog .gdh-source-list a,
+.gr-modal-dialog .gdh-list-action,
+.gr-modal-dialog .gdh-record-strip button {
+  min-height: 55px;
+  border: 1px solid var(--gut-line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--gut-copy);
+  box-shadow: 0 2px 7px rgba(24, 24, 27, .025);
+}
+.gr-modal-dialog .gdh-insight-list button:nth-child(even) { background: #fff; }
+.gr-modal-dialog .gdh-insight-list button:hover,
+.gr-modal-dialog .gdh-day-list button:hover,
+.gr-modal-dialog .gdh-source-list a:hover,
+.gr-modal-dialog .gdh-list-action:hover { border-color: #fda4af; background: #fffafb; }
+.gr-modal-dialog .gdh-insight-list strong,
+.gr-modal-dialog .gdh-day-list strong,
+.gr-modal-dialog .gdh-source-list strong { color: var(--gut-ink); font-size: 13px; }
+.gr-modal-dialog .gdh-insight-list small,
+.gr-modal-dialog .gdh-day-list small,
+.gr-modal-dialog .gdh-source-list small { color: var(--gut-muted); font-size: 11px; }
+.gr-modal-dialog .gdh-thread {
+  padding: 16px;
+  border: 1px solid var(--gut-line);
+  border-left: 4px solid var(--gut-rose);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(24, 24, 27, .04);
+}
+.gr-modal-dialog .gdh-thread-top strong { color: var(--gut-ink); font-size: 14px; }
+.gr-modal-dialog .gdh-thread p { color: var(--gut-copy); font-size: 12px; line-height: 1.5; }
+.gr-modal-dialog .gdh-thread-foot { border-color: var(--gut-soft-line); color: var(--gut-muted); }
+.gr-modal-dialog .gdh-thread-foot button { min-height: 30px; padding: 6px 11px; border-radius: 999px; font-size: 11px; }
+.gr-modal-dialog .gdh-week-banner,
+.gr-modal-dialog .gdh-reminder-banner,
+.gr-modal-dialog .gdh-next {
+  border: 1px solid var(--gut-rose-line);
+  border-radius: 14px;
+  background: var(--gut-rose-soft);
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gdh-week-banner small,
+.gr-modal-dialog .gdh-reminder-banner small { color: var(--gut-muted); }
+.gr-modal-dialog .gdh-week-switch button,
+.gr-modal-dialog .gdh-week-controls button { border-color: var(--gut-line); color: var(--gut-copy); }
+.gr-modal-dialog .gdh-week-switch button.active {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose);
+  color: #fff;
+}
+.gr-modal-dialog .gdh-calendar button {
+  border-color: var(--gut-line);
+  background: #fff;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gdh-calendar button.selected,
+.gr-modal-dialog .gdh-calendar button.selected.empty {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose-soft);
+  color: var(--gut-rose-dark);
+}
+.gr-modal-dialog .gdh-dots i.log,
+.gr-modal-dialog .gdh-legend i.log { background: var(--gut-rose); }
+.gr-modal-dialog .gdh-week-heading { color: var(--gut-ink); border-color: var(--gut-soft-line); font-size: 14px; }
+.gr-modal-dialog .gdh-status { border-color: var(--gut-rose-line); background: var(--gut-rose-soft); color: var(--gut-copy); }
+
+/* The guided understanding screens previously used a separate blue palette. */
+.gr-modal-dialog .gij { --ink: var(--gut-copy); --coral: var(--gut-rose); --line: var(--gut-line); }
+.gr-modal-dialog .gij-topline span { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gij-card {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--gut-line);
+  border-radius: 23px;
+  background: #fff;
+  box-shadow: var(--gut-shadow);
+}
+.gr-modal-dialog .gij-brand > span {
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  box-shadow: 0 5px 12px rgba(225, 29, 72, .2);
+}
+.gr-modal-dialog .gij-brand small { border: 1px solid var(--gut-rose-line); background: var(--gut-rose-soft); color: var(--gut-rose-dark); }
+.gr-modal-dialog .gij h2 { color: var(--gut-ink); font-family: "Newsreader", Georgia, serif; letter-spacing: -.025em; }
+.gr-modal-dialog .gij-sub,
+.gr-modal-dialog .gij-empty p,
+.gr-modal-dialog .gij-caveat { color: var(--gut-muted); }
+.gr-modal-dialog .gij-state,
+.gr-modal-dialog .gij-headline,
+.gr-modal-dialog .gij-record,
+.gr-modal-dialog .gij-list > button,
+.gr-modal-dialog .gij-metrics > div,
+.gr-modal-dialog .gij-lens-grid button,
+.gr-modal-dialog .gij-action-grid button {
+  border: 1px solid var(--gut-line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gij-state.coral { border-color: var(--gut-rose-line); background: var(--gut-rose-soft); }
+.gr-modal-dialog .gij-state.coral > svg,
+.gr-modal-dialog .gij-state.coral strong { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gij-lens-grid button:first-child,
+.gr-modal-dialog .gij-list > button:nth-child(odd) { background: #fff; }
+.gr-modal-dialog .gij-lens-grid button:hover,
+.gr-modal-dialog .gij-action-grid button:hover,
+.gr-modal-dialog .gij-list > button:hover { border-color: #fda4af; background: #fffafb; }
+.gr-modal-dialog .gij-section-label { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gij-primary {
+  min-height: 44px;
+  border-color: var(--gut-rose);
+  border-radius: 12px;
+  background: var(--gut-rose);
+  color: #fff;
+}
+.gr-modal-dialog .gij-secondary {
+  min-height: 42px;
+  border-color: var(--gut-line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gij-quiet,
+.gr-modal-dialog .gij-more button { color: var(--gut-copy); }
+.gr-modal-dialog .gij-quiet:hover,
+.gr-modal-dialog .gij-more button:hover { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gij-label input,
+.gr-modal-dialog .gij-label textarea,
+.gr-modal-dialog .gij-label select { border-color: var(--gut-line); color: var(--gut-ink); }
+.gr-modal-dialog .gij-conclusion,
+.gr-modal-dialog .gij-conclusion.has-data {
+  padding: 17px;
+  border: 1px solid var(--gut-line);
+  border-radius: 14px;
+  background: #fafafa;
+}
+.gr-modal-dialog .gij-conclusion > strong { color: var(--gut-ink); font-size: clamp(19px, 2.4vw, 24px); }
+.gr-modal-dialog .gij-conclusion p { color: var(--gut-muted); font-size: 12px; }
+.gr-modal-dialog .gij-tabs { gap: 8px; }
+.gr-modal-dialog .gij-tabs button {
+  min-height: 39px;
+  border-color: var(--gut-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gij-tabs button:first-child {
+  border-color: var(--gut-rose);
+  background: var(--gut-rose);
+  color: #fff;
+}
+.gr-modal-dialog .gij-evidence-pills span {
+  border-color: var(--gut-line);
+  background: #fafafa;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gij-uncertainty,
+.gr-modal-dialog .gij-abstract,
+.gr-modal-dialog .gij-detail-rows { border-color: var(--gut-line); border-radius: 12px; }
+.gr-modal-dialog .gij-uncertainty summary,
+.gr-modal-dialog .gij-uncertainty > button,
+.gr-modal-dialog .gij-external { color: var(--gut-copy); }
+.gr-modal-dialog .gij-uncertainty p { color: var(--gut-muted); }
+.gr-modal-dialog .gij-pills button,
+.gr-modal-dialog .gij-pair button,
+.gr-modal-dialog .gij-footer button { border-color: var(--gut-line); background: #fff; color: var(--gut-copy); }
+.gr-modal-dialog .gij-pills button.selected { border-color: var(--gut-rose); background: var(--gut-rose); color: #fff; }
+.gr-modal-dialog .gij-message { border-color: var(--gut-rose-line); background: var(--gut-rose-soft); color: var(--gut-copy); }
+.gr-modal-dialog .gij-footer { border-color: var(--gut-soft-line); }
+
+/* Deep dive, saved records and visit preparation */
+.gr-modal-dialog .gr-workspace {
+  --gr-ink: var(--gut-ink);
+  --gr-muted: var(--gut-muted);
+  --gr-rose: var(--gut-rose);
+  --gr-rose-soft: var(--gut-rose-soft);
+  --gr-border: var(--gut-line);
+  --gr-paper: #fff;
+}
+.gr-modal-dialog .gx-start,
+.gr-modal-dialog .gx-map { --gx-ink: var(--gut-ink); --gx-muted: var(--gut-muted); --gx-rose: var(--gut-rose); --gx-border: var(--gut-line); }
+.gr-modal-dialog .gx-start,
+.gr-modal-dialog .gr-conclusion {
+  border-color: var(--gut-line);
+  border-radius: 23px;
+  background: #fff;
+  box-shadow: var(--gut-shadow);
+}
+.gr-modal-dialog .gx-start-heading h2,
+.gr-modal-dialog .gr-title,
+.gr-modal-dialog .gr-conclusion-heading h3 { color: var(--gut-ink); font-family: "Newsreader", Georgia, serif; letter-spacing: -.025em; }
+.gr-modal-dialog .gx-progress li[aria-current] > span { background: var(--gut-rose) !important; }
+.gr-modal-dialog .gx-progress li.gx-progress-active,
+.gr-modal-dialog .gx-eyebrow,
+.gr-modal-dialog .gr-eyebrow,
+.gr-modal-dialog .gr-conclusion-eyebrow { color: var(--gut-rose-dark); }
+.gr-modal-dialog .gx-workspace-nav { border-color: var(--gut-line); background: #fafafa; }
+.gr-modal-dialog .gx-workspace-nav button { color: var(--gut-copy); }
+.gr-modal-dialog .gx-workspace-nav button[aria-current] { color: var(--gut-rose-dark); border-color: var(--gut-rose); background: var(--gut-rose-soft); }
+.gr-modal-dialog .gx-primary,
+.gr-modal-dialog .gr-primary,
+.gr-modal-dialog .gr-visit-primary {
+  border-color: var(--gut-rose) !important;
+  border-radius: 12px;
+  background: var(--gut-rose) !important;
+  color: #fff !important;
+  box-shadow: 0 7px 16px rgba(225, 29, 72, .16);
+}
+.gr-modal-dialog .gr-secondary,
+.gr-modal-dialog .gr-source,
+.gr-modal-dialog .gr-quiet-button {
+  border-color: var(--gut-line);
+  background: #fff;
+  color: var(--gut-copy);
+}
+.gr-modal-dialog .gr-secondary:hover,
+.gr-modal-dialog .gr-source:hover,
+.gr-modal-dialog .gr-quiet-button:hover { border-color: #fda4af; background: #fffafb; color: var(--gut-rose-dark); }
+.gr-modal-dialog .gr-support-page {
+  max-width: 900px !important;
+  padding: clamp(20px, 3vw, 32px);
+  border: 1px solid var(--gut-line);
+  border-radius: 23px;
+  background: #fff !important;
+  color: var(--gut-copy) !important;
+  box-shadow: var(--gut-shadow);
+}
+.gr-modal-dialog .gr-support-page > div:first-child > div:first-child { color: var(--gut-rose-dark) !important; }
+.gr-modal-dialog .gr-support-heading { color: var(--gut-ink) !important; font-family: "Newsreader", Georgia, serif; letter-spacing: -.025em; }
+.gr-modal-dialog .gr-records-calendar-title { color: var(--gut-ink); }
+.gr-modal-dialog .gr-recorded-trend,
+.gr-modal-dialog .gr-visit-detail { border-color: var(--gut-line); background: #fff; }
+.gr-modal-dialog .gr-recorded-trend > summary,
+.gr-modal-dialog .gr-visit-detail > summary { color: var(--gut-copy); }
+.gr-modal-dialog .gr-support-page .gr-visit-primary { min-height: 44px; }
+
+@media (max-width: 600px) {
+  .gr-modal-dialog { width: 100% !important; height: 100dvh !important; border: 0 !important; border-radius: 0 !important; }
+  .gr-modal-dialog .gr-modal-header { min-height: 76px; padding: 12px 15px !important; }
+  .gr-modal-dialog .gr-modal-header h1 { font-size: 22px !important; }
+  .gr-modal-dialog > main { padding: 14px 12px 24px !important; }
+  .gr-modal-dialog .gdh-page { padding: 17px 14px; min-height: 0; border-radius: 17px; }
+  .gr-modal-dialog .gdh h2 { font-size: 30px; }
+  .gr-modal-dialog .gdh-subtitle { font-size: 13px; }
+  .gr-modal-dialog .gdh-pill-grid button { min-height: 48px; padding: 6px 8px; font-size: 11px; white-space: normal; }
+  .gr-modal-dialog .gdh-pill-icon { width: 28px; height: 28px; }
+  .gr-modal-dialog .gdh-segment button { min-height: 39px; padding: 7px 5px; font-size: 11px; }
+  .gr-modal-dialog .gdh-bottom-nav { position: static; padding-bottom: max(8px, env(safe-area-inset-bottom)); box-shadow: none; }
+  .gr-modal-dialog .gij-card { padding: 18px 15px; border-radius: 17px; }
+  .gr-modal-dialog .gr-support-page { padding: 18px 14px; border-radius: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-modal-dialog *, .gr-modal-dialog *::before, .gr-modal-dialog *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

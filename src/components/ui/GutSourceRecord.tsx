@@ -19,7 +19,7 @@ interface Props {
 }
 
 const row = (label: string, value: string | number | null | undefined) => value === null || value === undefined || value === '' ? null :
-  <div key={label} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 1fr) 2fr', gap: 10, padding: '8px 0', borderBottom: '1.5px solid #15375c', fontSize: 13 }}><strong style={{ color: '#64748B' }}>{label}</strong><span style={{ color: '#1F2937', overflowWrap: 'anywhere' }}>{value}</span></div>;
+  <div key={label} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 1fr) 2fr', gap: 10, padding: '10px 0', borderBottom: '1px solid #E4E4E7', fontSize: 13 }}><strong style={{ color: '#64748B' }}>{label}</strong><span style={{ color: '#18181B', overflowWrap: 'anywhere' }}>{value}</span></div>;
 
 export const GutSourceRecord: React.FC<Props> = ({ source, meals, days, onBack, onOpenDate }) => {
   const [observation, setObservation] = useState<Observation | null>(null);
@@ -42,10 +42,10 @@ export const GutSourceRecord: React.FC<Props> = ({ source, meals, days, onBack, 
   const payload = observation?.payload;
   const title = meal?.name || (day ? `Digestion on ${day.date}` : payload ? `${payload.kind.replace('_', ' ')} observation` : 'Source record');
 
-  return <section aria-label="Exact source record" style={{ background: '#fffefa', border: '1.5px solid #15375c', borderRadius: 18, padding: '18px clamp(14px,3vw,22px)', marginBottom: 16, boxShadow: '0 4px 18px rgba(189,44,88,.05)' }}>
-    <button type="button" onClick={onBack} style={{ border: 0, background: 'none', color: '#15375c', fontWeight: 750, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}><ArrowLeft size={15} /> Back to records</button>
-    <div style={{ color: '#15375c', fontWeight: 800, fontSize: 11, letterSpacing: '.08em', marginTop: 18 }}>EXACT SOURCE RECORD</div>
-    <h3 style={{ color: '#102c4c', margin: '5px 0 12px', fontSize: 20 }}>{title}</h3>
+  return <section aria-label="Exact source record" style={{ background: '#FFFFFF', border: '1px solid #E4E4E7', borderRadius: 20, padding: '20px clamp(15px,3vw,26px)', marginBottom: 16, boxShadow: '0 12px 30px -18px rgba(136,37,65,.18)' }}>
+    <button type="button" onClick={onBack} style={{ border: 0, background: 'none', color: '#334155', fontWeight: 750, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}><ArrowLeft size={15} /> Back to records</button>
+    <div style={{ color: '#BE123C', fontWeight: 800, fontSize: 11, letterSpacing: '.08em', marginTop: 18 }}>EXACT SOURCE RECORD</div>
+    <h3 style={{ color: '#18181B', margin: '5px 0 12px', fontSize: 22 }}>{title}</h3>
     {loading ? <p role="status">Loading this source record…</p> : !found ? <p role="status" style={{ color: '#8D354B' }}>This exact source record is no longer available in the current profile. No other record has been substituted.</p> : <>
       {row('Source', source.sourceKind === 'diet_meal' ? 'Diet meal' : source.sourceKind === 'daily_digest' ? 'Digestion day' : 'Health observation')}
       {row('Record ID', source.sourceId)}
@@ -64,7 +64,7 @@ export const GutSourceRecord: React.FC<Props> = ({ source, meals, days, onBack, 
         {payload?.kind === 'context' && <>{row('Context type', payload.contextType)}{row('Description', payload.description)}</>}
       </>}
       <p style={{ display: 'flex', gap: 7, alignItems: 'flex-start', color: '#8D7167', fontSize: 12, lineHeight: 1.5 }}><ShieldCheck size={15} style={{ flexShrink: 0 }} />This is the saved source, not proof of a cause or a dose taken.</p>
-      {(day || meal) && <button type="button" onClick={() => onOpenDate(day?.date || meal!.date)} style={{ border: '1px solid #bcd7e8', borderRadius: 10, background: '#eaf6ff', color: '#15375c', padding: '8px 12px', cursor: 'pointer', fontWeight: 700 }}>Open this date in history</button>}
+      {(day || meal) && <button type="button" onClick={() => onOpenDate(day?.date || meal!.date)} style={{ border: '1px solid #E4E4E7', borderRadius: 10, background: '#FFFFFF', color: '#334155', padding: '9px 13px', cursor: 'pointer', fontWeight: 700 }}>Open this date in history</button>}
     </>}
   </section>;
 };
