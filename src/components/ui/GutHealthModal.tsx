@@ -75,7 +75,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   if (!isOpen) return null;
   return createPortal(<>
     <FocusTrap isActive={!quickMealOpen}>
-      <div role="dialog" aria-modal="true" aria-label="Gut Health" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 'clamp(0px, 1vw, 10px)' }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div role="dialog" aria-modal="true" aria-label="Gut Health" className="gr-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 'clamp(0px, 1vw, 10px)' }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
         <div className="gr-modal-dialog" style={{ width: 'min(100%,1160px)', height: 'min(94vh,980px)', background: '#fffefa', borderRadius: 24, border: '1.5px solid #17375a', boxShadow: '0 24px 80px rgba(21, 55, 92, 0.24)', display: 'flex', flexDirection: 'column', overflow: 'hidden', color: '#102c4c' }}>
           <header className="gr-modal-header" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px clamp(16px,3.5vw,38px)', borderBottom: '1.5px solid #adc5d8', background: '#fffefa' }}>
             <span aria-hidden="true" style={icon}><Activity size={22} /></span>
