@@ -19,7 +19,7 @@ vi.mock('../supabaseClient', () => ({
   },
 }));
 
-import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from '../SyncOutbox';
+import { enqueueSync, flushSyncOutbox, getPendingSyncCount, getSyncStatus } from '../SyncOutbox';
 
 describe('SyncOutbox', () => {
   beforeEach(() => {
@@ -176,5 +176,19 @@ describe('SyncOutbox', () => {
     } finally {
       Object.defineProperty(navigator, 'onLine', { value: originalOnLine, configurable: true });
     }
+  });
+
+  it('reports a retained sync failure even when a later record syncs successfully', async () => {
+    const errorEvent = vi.fn();
+    window.addEventListener('hc_sync_error', errorEvent);
+    const query = { upsert: vi.fn(async (payload: any) => ({ error: payload.id === 'failure' ? { message: 'Temporary sync failure' } : null })) };
+    from.mockReturnValue(query);
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-errors' } } } });
+    await enqueueSync('profile_upsert', 'user-errors', { id: 'failure' });
+    await enqueueSync('profile_upsert', 'user-errors', { id: 'success' });
+    await flushSyncOutbox('user-errors');
+    expect(await getSyncStatus('user-errors')).toMatchObject({ state: 'sync_failed', pendingCount: 1, lastError: 'Temporary sync failure' });
+    expect(errorEvent).toHaveBeenCalled();
+    window.removeEventListener('hc_sync_error', errorEvent);
   });
 });

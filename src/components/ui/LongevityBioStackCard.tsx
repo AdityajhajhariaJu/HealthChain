@@ -495,7 +495,7 @@ export default function LongevityBioStackCard() {
                       color: selectedColors.length >= 3 ? '#34D399' : '#CBD5E1',
                     }}
                   >
-                    {selectedColors.length} / 5 Colors · {selectedColors.length * 20}% Shield
+                    {selectedColors.length} / 5 Colors recorded
                   </span>
                 </div>
               </div>
@@ -584,7 +584,7 @@ export default function LongevityBioStackCard() {
                   {selectedColors.length >= 3 ? (
                     <strong style={{ color: '#34D399' }}>✓ Rainbow diet logged! +2 Vitality PTS Claimed Today.</strong>
                   ) : (
-                    <span>Select at least 3 distinct plant colors to activate daily polyphenol defense.</span>
+                    <span>Record the plant-food colors you ate today to track variety.</span>
                   )}
                 </span>
               </div>

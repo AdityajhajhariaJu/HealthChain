@@ -574,8 +574,11 @@ export async function flushSyncOutbox(userId?: string) {
     }
 
     if (persistedRemaining.length) {
+      const failedEntry = persistedRemaining.find(entry => entry.lastError);
+      lastSyncError = failedEntry?.lastError || null;
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: persistedRemaining.length } }));
+        if (lastSyncError) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: { message: lastSyncError, count: persistedRemaining.length } }));
       }
       if (typeof navigator === 'undefined' || navigator.onLine) {
         const attempts = Math.min(...persistedRemaining.map((entry) => entry.attempts));

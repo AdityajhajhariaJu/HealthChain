@@ -101,7 +101,7 @@ test('dietician entry point saves the same portion math', async ({ page }) => {
     calories: 138, protein: 4.2, carbs: 25.8, fats: 2.3, sugar: 1.1, fibre: 2.9, sodium: 185,
   }) }));
   await page.goto('/app/dietician');
-  await page.getByRole('button', { name: 'Snap Gallery' }).click();
+  await page.getByRole('button', { name: 'Food Scanner' }).click();
   const lens = page.getByRole('dialog', { name: 'Clinical AR Food & Nutrition Scanner' });
   await lens.locator('input[type=file]').setInputFiles({ name: 'plate.png', mimeType: 'image/png', buffer: whitePixel });
   await expect(lens.getByText('Lunch Plate')).toBeVisible();

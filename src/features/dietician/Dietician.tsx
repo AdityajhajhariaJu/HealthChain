@@ -348,6 +348,7 @@ export default function Dietician() {
   const [mealLatency, setMealLatency] = useState<'<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'>('<30m Acute');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [planGenerationError, setPlanGenerationError] = useState('');
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
   const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -885,14 +886,18 @@ export default function Dietician() {
     }
 
     const planProfileKey = getProfileKey();
+    const planProfileId = getCoreProfile()?.id;
     if (!canUseTrial('dietician') && !(await hasPendingDietPlanRequest(profile, planProfileKey))) {
       openTrialModal('Food Planner (1 Free Trial Meal Plan)');
       return;
     }
 
     setIsGeneratingPlan(true);
+    setPlanGenerationError('');
     try {
       const rawPlan = await generateMealPlan(profile, 7, planProfileKey);
+      if (getProfileKey() !== planProfileKey || getCoreProfile()?.id !== planProfileId)
+        throw new Error('diet_plan_context_changed');
       const validation = validateGeneratedMealPlan(rawPlan, 7);
       if (validation.valid) {
         if (isMounted.current) {
@@ -923,6 +928,7 @@ export default function Dietician() {
         try { addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan }); }
         catch (eventError) { console.warn('Plan saved; optional timeline event was unavailable', eventError); }
       } else {
+        setPlanGenerationError('The generated week was incomplete. No plan was saved. Please try again.');
         toast.error('Plan incomplete', 'The generated plan had missing or invalid meals. No plan was saved or trial used. Please try again.');
       }
     } catch (err) {
@@ -930,14 +936,27 @@ export default function Dietician() {
       if (err instanceof Error && err.message === 'diet_plan_quota_exceeded') {
         openTrialModal('Food Planner (1 Free Trial Meal Plan)');
       } else if (err instanceof Error && err.message === 'diet_plan_unsupported_setup') {
+        setPlanGenerationError('This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.');
         toast.error('Plan setup needs review', 'This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.');
       } else if (err instanceof Error && err.message === 'diet_plan_in_progress') {
+        setPlanGenerationError('Your plan is still processing. Wait a moment, then retry to resume the same request.');
         toast.error('Plan still processing', 'Please wait a moment, then retry. Your request will resume without using another plan.');
       } else if (err instanceof Error && err.message === 'diet_plan_retry_ready') {
+        setPlanGenerationError('The previous request failed. Please try again; it was not counted against your free plan.');
         toast.error('Previous attempt failed', 'Please try again. The failed plan was not counted against your free plan.');
       } else if (err instanceof Error && err.message === 'diet_plan_recovery_unavailable') {
+        setPlanGenerationError('This browser cannot save the recovery key. Enable local storage before generating a plan.');
         toast.error('Plan recovery unavailable', 'This browser cannot safely save a recovery key. Please enable local storage before generating a plan.');
+      } else if (err instanceof Error && err.message === 'diet_plan_context_changed') {
+        setPlanGenerationError('The selected profile changed during generation. Return to the original profile and retry to recover its plan.');
+      } else if (err instanceof Error && ['diet_plan_incomplete', 'diet_plan_generation_failed'].includes(err.message)) {
+        const message = err.message === 'diet_plan_incomplete'
+          ? 'The food planner returned an incomplete week. Please try again. Your free plan was not used.'
+          : 'The food planner could not complete this request. Please try again. Your free plan was not used.';
+        setPlanGenerationError(message);
+        toast.error('Plan generation failed', message);
       } else {
+        setPlanGenerationError('The plan was not received or saved in this browser. Retry to recover the same request without generating a duplicate.');
         toast.error('Plan not saved yet', 'Please try again. The same request will resume if generation already finished.');
       }
     } finally {
@@ -1691,7 +1710,7 @@ export default function Dietician() {
                   7-day meal plan
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {profile?.cuisine || 'Any cuisine'} · {profile?.targetCalories ? `about ${profile.targetCalories} kcal/day` : 'no calorie target set'}
+                  Editable example · {profile?.cuisine || 'Any cuisine'} · {profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set'}
                 </p>
               </div>
 
@@ -1815,6 +1834,16 @@ export default function Dietician() {
               </p>
             </div>
 
+            {planGenerationError && (
+              <div role="alert" style={{ margin: '0 0 20px', padding: '14px 16px', borderRadius: '14px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#7C2D12', fontSize: '14px', lineHeight: 1.5 }}>
+                <strong>Plan generation needs attention.</strong> {planGenerationError}
+              </div>
+            )}
+            {isGeneratingPlan && (
+              <p role="status" style={{ color: '#475569', margin: '0 0 16px', fontSize: '14px' }}>
+                Creating all seven days and saving your plan. This can take up to a minute.
+              </p>
+            )}
             {!mealPlan ? (
               <div
                 style={{

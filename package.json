@@ -14,6 +14,7 @@
     "build:migrations": "node scripts/build-migration-bundle.mjs",
     "smoke:supabase": "node scripts/smoke-supabase.mjs",
     "eval:model": "tsx scripts/eval-live-model.ts",
+    "eval:diet-plan": "node scripts/eval-diet-plan.mjs",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md}\"",
     "starthealthchain10": "npm run dev"
   },

@@ -238,7 +238,7 @@ export function DieticianDashboardTracker({
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={16} color="#FFF" />
           </div>
-          Snap Gallery
+          Food Scanner
         </button>
         <button onClick={onOpenSavedMeals} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -348,7 +348,7 @@ export function DieticianDashboardTracker({
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Insights</div>
-            <div style={{ fontSize: '11px', color: '#64748B' }}>Match Ratios</div>
+            <div style={{ fontSize: '11px', color: '#64748B' }}>Food & symptom records</div>
           </div>
         </button>
 
@@ -422,7 +422,7 @@ export function DieticianDashboardTracker({
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Timeline</div>
-            <div style={{ fontSize: '11px', color: '#64748B' }}>Reaction Timing</div>
+            <div style={{ fontSize: '11px', color: '#64748B' }}>Recorded history</div>
           </div>
         </button>
       </div>
@@ -590,7 +590,7 @@ export function DieticianDashboardTracker({
       >
         <Info size={16} color="#94A3B8" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <strong style={{ color: '#0F172A' }}>Nutritional Estimates Basis:</strong> Calculated from standard household measures and Indian Food Composition Tables (IFCT/NIN). Cooking methods, ingredient variations, and digestive absorption vary. Not intended as laboratory calorimetry.
+          <strong style={{ color: '#0F172A' }}>Nutritional estimates:</strong> Totals use the nutrients and portions recorded with each meal. Check food labels and ingredient quantities when confirming estimates. Meals with unknown nutrition are excluded from nutrient totals.
         </div>
       </div>
     </div>

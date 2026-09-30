@@ -1,7 +1,7 @@
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
 import { validateGeneratedMealPlan } from '../shared/diet-plan-validation.js';
-import { buildDietPlanProviderPayload, validateDietPlanRequest } from '../shared/diet-plan-request.js';
+import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT_TOKENS } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 
@@ -357,7 +357,7 @@ export default async function handler(req, res) {
       ? bodyPayload.generationConfig
       : {};
     const requestedOutputTokens = Number(incomingGenerationConfig.maxOutputTokens);
-    const operationOutputCap = isGutReasoning ? 4096 : isGutFrame ? 500 : MAX_OUTPUT_TOKENS;
+    const operationOutputCap = isDietPlan ? DIET_PLAN_OUTPUT_TOKENS : isGutReasoning ? 4096 : isGutFrame ? 500 : MAX_OUTPUT_TOKENS;
     bodyPayload.generationConfig = {
       ...incomingGenerationConfig,
       thinkingConfig: incomingGenerationConfig.thinkingConfig || { thinkingBudget: 0 },
@@ -370,6 +370,8 @@ export default async function handler(req, res) {
     let response;
     let attempts = 0;
     const maxAttempts = 3;
+    // Leave time inside the 60s function limit to persist or refund the request.
+    const dietProviderDeadline = Date.now() + 50000;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -380,6 +382,7 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(bodyPayload),
+          ...(isDietPlan ? { signal: AbortSignal.timeout(Math.max(1, dietProviderDeadline - Date.now())) } : {}),
         });
 
         if (response.ok) break;
@@ -393,6 +396,7 @@ export default async function handler(req, res) {
 
         break;
       } catch (fetchErr) {
+        if (isDietPlan && (fetchErr?.name === 'TimeoutError' || fetchErr?.name === 'AbortError' || Date.now() >= dietProviderDeadline)) throw fetchErr;
         if (attempts < maxAttempts) {
           console.warn(`Gemini fetch error on attempt ${attempts}. Retrying...`, fetchErr);
           await new Promise(r => setTimeout(r, attempts * 1000));
@@ -413,24 +417,29 @@ export default async function handler(req, res) {
           finished_at: new Date().toISOString(),
         }).eq('request_id', String(requestId));
       }
-      return res.status(502).json({ error: 'AI provider request failed' });
+      return res.status(502).json({ error: 'AI provider request failed', ...(isDietPlan ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
     }
 
     const data = await response.json();
     let generatedPlan = null;
     if (isDietPlan) {
+      const candidate = data?.candidates?.[0];
       try {
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const rawText = candidate?.content?.parts?.filter(part => !part.thought && typeof part.text === 'string').map(part => part.text).join('');
         generatedPlan = JSON.parse(rawText);
       } catch {
         generatedPlan = null;
       }
-      if (!validateGeneratedMealPlan(generatedPlan, 7).valid) {
+      const validation = validateGeneratedMealPlan(generatedPlan, 7);
+      if ((candidate?.finishReason && candidate.finishReason !== 'STOP') || !validation.valid) {
+        const errorCode = candidate?.finishReason === 'MAX_TOKENS' ? 'meal_plan_truncated' : 'invalid_meal_plan';
+        // Log structure diagnostics only; never log the user's profile or generated food records.
+        console.warn('Meal plan rejected', { requestId: String(requestId), finishReason: candidate?.finishReason, errors: validation.errors?.slice(0, 5) });
         if (adminClient && userId) {
           await releaseReservedFeatureQuota();
-          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'invalid_meal_plan', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: errorCode, finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
         }
-        return res.status(502).json({ error: 'Meal plan was incomplete; please retry' });
+        return res.status(502).json({ error: 'Meal plan was incomplete; please retry', reason: errorCode, requestState: 'failed' });
       }
       if (adminClient && userId) {
         const { error: savedError } = await adminClient.from('diet_plan_generations').insert({
@@ -439,10 +448,12 @@ export default async function handler(req, res) {
         if (savedError) {
           await releaseReservedFeatureQuota();
           await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'plan_recovery_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-          return res.status(503).json({ error: 'Meal plan could not be saved for recovery; please retry' });
+          return res.status(503).json({ error: 'Meal plan could not be saved for recovery; please retry', reason: 'plan_recovery_unavailable', requestState: 'failed' });
         }
         planSavedForRecovery = true;
       }
+      // Use one canonical text part for both fresh results and recovery responses.
+      data.candidates[0].content.parts = [{ text: JSON.stringify(generatedPlan) }];
     }
     if (adminClient && userId) {
       const usage = data?.usageMetadata || {};
@@ -468,7 +479,7 @@ export default async function handler(req, res) {
       }).eq('request_id', String(requestId)).catch(() => {});
     }
     console.error('Gemini API Proxy Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error', ...(isDietPlan && !planSavedForRecovery ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
   }
 }
 

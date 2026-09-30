@@ -77,6 +77,12 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
           }));
           throw new Error('QUOTA_EXCEEDED');
         } else if ((response.status === 502 || response.status === 503 || response.status === 504) && retryCount < 2) {
+          // A confirmed failed plan has been refunded. Replaying its ID hides the
+          // original failure behind a duplicate-request 409 and cannot recover it.
+          if (secureOptions.headers['X-HC-Operation'] === 'dietician_meal_plan') {
+            const failure = await response.clone().json().catch(() => ({}));
+            if (failure.requestState === 'failed') return response;
+          }
           const delay = (retryCount + 1) * 800;
           await new Promise(res => setTimeout(res, delay));
           return executeFetch(retryCount + 1);
@@ -1376,11 +1382,21 @@ export async function generateMealPlan(profile: any, days: number = 7, profileKe
         const failure = await res.json().catch(() => ({}));
         if (failure.reason === 'request_failed') {
           await clearPendingDietPlanRequest(profileKey);
+          // Resume a failed request left by an earlier page/version in this click.
+          // With the key cleared the next call cannot recurse on that old ID again.
+          if (previous?.id === requestId) return generateMealPlan(profile, days, profileKey);
           throw new Error('diet_plan_retry_ready');
         }
         throw new Error('diet_plan_in_progress');
       }
-      throw new Error('Meal plan request failed');
+      const failure = await res.json().catch(() => ({}));
+      if (failure.requestState === 'failed') {
+        await clearPendingDietPlanRequest(profileKey);
+        if (failure.reason === 'meal_plan_truncated' || failure.reason === 'invalid_meal_plan')
+          throw new Error('diet_plan_incomplete');
+        throw new Error('diet_plan_generation_failed');
+      }
+      throw new Error('diet_plan_not_received');
     }
     const data = await res.json();
     if (data.candidates?.[0]) {
@@ -1390,8 +1406,10 @@ export async function generateMealPlan(profile: any, days: number = 7, profileKe
   } catch (err) {
     console.error('Meal plan generation error:', err);
     if (err instanceof Error && err.message === 'QUOTA_EXCEEDED') throw new Error('diet_plan_quota_exceeded');
-    if (err instanceof Error && ['diet_plan_quota_exceeded', 'diet_plan_unsupported_setup', 'diet_plan_retry_ready', 'diet_plan_in_progress', 'diet_plan_recovery_unavailable'].includes(err.message)) throw err;
-    return null;
+    if (err instanceof Error && err.message.startsWith('diet_plan_')) throw err;
+    // Keep the recovery key for uncertain transport outcomes: the server may
+    // already have saved the plan. Never disguise a network failure as bad meals.
+    throw new Error('diet_plan_not_received');
   }
 }
 
