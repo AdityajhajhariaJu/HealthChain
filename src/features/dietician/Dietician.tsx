@@ -1,6 +1,7 @@
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
@@ -3335,13 +3336,13 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
-        {showSavedMealsModal && <div style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(15,23,42,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }} onClick={() => setShowSavedMealsModal(false)}>
+        {showSavedMealsModal && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 11000, background: 'rgba(15,23,42,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }} onClick={() => setShowSavedMealsModal(false)}>
           <FocusTrap isActive={true} style={{width:'min(860px, 94vw)',height:'auto'}}><div role="dialog" aria-modal="true" aria-label="Everyday food tools" style={{ width: 'min(860px, 94vw)', maxHeight: '90vh', overflowY: 'auto', borderRadius: 20, background: '#fff' }} onClick={e => e.stopPropagation()}>
             <DietEverydayTools key={`${getProfileKey()}:${getCoreProfile()?.id}`} profile={profile} date={currentDate} diary={foodLogs} plan={mealPlan} initialPanel={everydayPanel}
               onClose={() => setShowSavedMealsModal(false)} onPreferences={handleSaveProfile} onLogged={async () => setFoodLogs(await listMealDiary())}
               onPlan={async next => { if(isGeneratingPlan)return false; return persistPlanUpdate(next); }} />
           </div></FocusTrap>
-        </div>}
+        </div>, document.body)}
 
         {/* Package 7: Stop Plan Modal with Structured Reasons */}
         <AnimatePresence>

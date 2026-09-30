@@ -85,3 +85,5 @@ Deployment verification caught Vercel counting a new helper as an API function, 
 - Native-origin preflight: HTTP 204 and `Access-Control-Allow-Origin: https://localhost`.
 - The helper move was covered by 19 gateway/product/origin regression tests. Complete tests, release logs, screenshots and production smoke JSON are retained in the task's `diet-generation-incident` artifact directory.
 - D15 is closed for this release. D13's physical-device gate and D16's participant sessions remain explicitly open. Ava's remaining work is tracked separately in [AVA-DEEP-RECHECK.md](AVA-DEEP-RECHECK.md).
+
+Final visual QA also found the feedback control sitting above food dialogs on mobile. Food tools and consumption confirmation now use a body portal above that control; confirmation supports Escape before a save starts. Four Chromium/WebKit interaction checks passed, including actual hit testing that proves feedback cannot cover the form. TypeScript compilation passed.

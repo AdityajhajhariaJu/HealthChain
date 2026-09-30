@@ -149,6 +149,10 @@ test('plan meals are only logged after reviewing actual portion and eating date'
   await page.getByRole('button', { name: '7-Day Plan', exact: true }).click();
   await page.getByRole('button', { name: 'Record this meal as eaten' }).first().click();
   const confirm = page.getByRole('dialog', { name: 'Confirm planned meal eaten' });
+  await expect(confirm).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(confirm).toHaveCount(0);
+  await page.getByRole('button', { name: 'Record this meal as eaten' }).first().click();
   await confirm.getByLabel('Portion compared with this planned serving').selectOption('0.5');
   await confirm.getByRole('button', { name: 'Confirm meal was eaten' }).click();
   await expect(confirm).toHaveCount(0);
@@ -263,6 +267,12 @@ test('preferences survive unrelated profile updates and fit a narrow screen', as
   await expect(dialog.getByText('Everyday preferences saved.')).toBeVisible();
   const overflow = await dialog.evaluate((el) => el.scrollWidth > el.clientWidth + 2);
   expect(overflow).toBe(false);
+  const feedbackCanCoverForm = await page.getByRole('button', { name: 'Send Feedback', exact: true }).evaluate((button) => {
+    const rect = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return hit === button || button.contains(hit);
+  });
+  expect(feedbackCanCoverForm).toBe(false);
   await dialog.getByRole('button', { name: 'Close tools' }).click();
   await page.reload();
   await page.getByRole('button', { name: 'Preferences', exact: true }).click();

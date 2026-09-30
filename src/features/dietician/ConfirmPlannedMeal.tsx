@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { MealPlanItem } from '../../services/dietPlanLifecycle';
 import { MealDetailsFields, emptyMealDetails, mealDetailsEntry } from './MealDetailsFields';
 import FocusTrap from '../../components/ui/FocusTrap';
@@ -19,19 +20,20 @@ export function ConfirmPlannedMeal({
     [details, setDetails] = useState(emptyMealDetails),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState('');
-  return (
+  const dismiss = useCallback(() => { if (!busy) onClose(); }, [busy, onClose]);
+  return createPortal(
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 1250,
+        zIndex: 11010,
         background: 'rgba(15,23,42,.55)',
         display: 'grid',
         placeItems: 'center',
         padding: 16,
       }}
     >
-      <FocusTrap isActive style={{ width: 'min(480px,90vw)', height: 'auto' }}>
+      <FocusTrap isActive onEscape={dismiss} style={{ width: 'min(480px,90vw)', height: 'auto' }}>
         <div
           className="diet-everyday diet-tools"
           role="dialog"
@@ -96,6 +98,6 @@ export function ConfirmPlannedMeal({
           </div>
         </div>
       </FocusTrap>
-    </div>
+    </div>, document.body
   );
 }
