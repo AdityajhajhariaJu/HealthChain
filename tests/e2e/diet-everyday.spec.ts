@@ -69,7 +69,9 @@ async function seed(page: Page) {
   });
   await page.route(/https:\/\//, (route) => route.abort());
   await page.goto('/app/dietician');
-  await expect(page.getByRole('heading', { name: 'AI Food Planner' })).toBeVisible({timeout:15000});
+  await expect(page.getByRole('heading', { name: 'AI Food Planner' })).toBeVisible({
+    timeout: 15000,
+  });
 }
 const tools = (page: Page) =>
   page.getByRole('dialog', { name: 'Everyday food tools', exact: true });
@@ -82,7 +84,9 @@ test('personal library, name-only offline logging and reload preserve unknown nu
   await expect(page.getByRole('heading', { name: 'Morning Snack', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'My meals & history', exact: true }).click();
   const dialog = tools(page);
-  await dialog.getByLabel('New favorite name').fill('My familiar breakfast');
+  await dialog
+    .getByLabel('New favorite name')
+    .pressSequentially('My familiar breakfast', { delay: 20 });
   await dialog.getByRole('button', { name: 'Save favorite', exact: true }).click();
   await expect(
     dialog.getByText('Meal saved to your library. It has not been logged as eaten.')
@@ -267,11 +271,13 @@ test('preferences survive unrelated profile updates and fit a narrow screen', as
   await expect(dialog.getByText('Everyday preferences saved.')).toBeVisible();
   const overflow = await dialog.evaluate((el) => el.scrollWidth > el.clientWidth + 2);
   expect(overflow).toBe(false);
-  const feedbackCanCoverForm = await page.getByRole('button', { name: 'Send Feedback', exact: true }).evaluate((button) => {
-    const rect = button.getBoundingClientRect();
-    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    return hit === button || button.contains(hit);
-  });
+  const feedbackCanCoverForm = await page
+    .getByRole('button', { name: 'Send Feedback', exact: true })
+    .evaluate((button) => {
+      const rect = button.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return hit === button || button.contains(hit);
+    });
   expect(feedbackCanCoverForm).toBe(false);
   await dialog.getByRole('button', { name: 'Close tools' }).click();
   await page.reload();

@@ -36,6 +36,8 @@ Recovered reply JSON is available for 24 hours. The existing daily cron purges e
 - Final shared gateway/reliability check: **50 passed** across four files after the last request/context changes.
 - Final release build, lint, API/shared JavaScript syntax, and migration contract passed (**31 migrations, 25 schema checks**). Runtime dependency audit returned **0 vulnerabilities** after the Axios/DOMPurify lockfile updates; this is not a claim about development-only dependencies.
 
+The first GitHub full browser run on `46ef2ffb` returned 135 passes, two flaky food-library journeys and three failures. It exposed two fixture assumptions and a shared modal-focus defect. Missing catalog configuration now produces an immediate unavailable state; the midnight fixture constructs its instant in the browser's local zone and installs the clock before mounting timers. `FocusTrap` now keeps focus during form rerenders and invokes the latest Escape callback without restarting initialization. Two mounted focus regressions cover early editing, rerenders, current callbacks and focus restoration; a third regression verifies prompt failure without a request to a fallback catalog host. The affected Ava and food-library browser journeys passed in both browsers. Explicit UTC and Asia/Kolkata midnight checks and real sequential keyboard entry passed: six browser checks, plus three unit regressions. CI now has 142 browser cases including both timezones.
+
 Machine-readable logs and synthetic probe screenshots are retained in this Codex task's `ava-further-review` directory. Tests live in the repository for repeatable CI execution. The final deployed commit and deployment result are reported in the release message.
 
 ## Remaining validation and bounded follow-ups

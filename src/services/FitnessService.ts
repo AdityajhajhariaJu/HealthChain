@@ -126,6 +126,9 @@ export const FitnessService = {
   },
 
   async getAllActiveContent(signal?:AbortSignal) {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      throw new Error('Activity service is not configured.');
+    }
     if (memoryCache.activeContent && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
       return memoryCache.activeContent;
     }

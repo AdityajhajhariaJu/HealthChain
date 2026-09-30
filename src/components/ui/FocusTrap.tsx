@@ -21,6 +21,10 @@ export default function FocusTrap({
 }: FocusTrapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const escapeRef = useRef(onEscape);
+  const initialFocusTargetRef = useRef(initialFocusRef);
+  escapeRef.current = onEscape;
+  initialFocusTargetRef.current = initialFocusRef;
 
   useEffect(() => {
     if (!isActive) return;
@@ -41,14 +45,25 @@ export default function FocusTrap({
       return Array.from(nodes).filter((el) => {
         if (el.getAttribute('aria-hidden') === 'true') return false;
         // In real browser, check dimensions; in jsdom/test env allow visible focusable elements
-        return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0 || (typeof window !== 'undefined' && !('visualViewport' in window) && !('layoutViewport' in window)) || process.env.NODE_ENV === 'test';
+        return (
+          el.offsetWidth > 0 ||
+          el.offsetHeight > 0 ||
+          el.getClientRects().length > 0 ||
+          (typeof window !== 'undefined' &&
+            !('visualViewport' in window) &&
+            !('layoutViewport' in window)) ||
+          process.env.NODE_ENV === 'test'
+        );
       });
     };
 
     // Auto-focus initial element
     const timer = window.setTimeout(() => {
-      if (initialFocusRef?.current) {
-        initialFocusRef.current.focus();
+      // A person may already have focused an input while the dialog appeared.
+      // Keep that focus, and do not restart initialization on every form render.
+      if (root.contains(document.activeElement)) return;
+      if (initialFocusTargetRef.current?.current) {
+        initialFocusTargetRef.current.current.focus();
       } else {
         const focusable = getFocusable();
         if (focusable.length > 0) {
@@ -58,10 +73,10 @@ export default function FocusTrap({
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onEscape) {
+      if (e.key === 'Escape' && escapeRef.current) {
         e.preventDefault();
         e.stopPropagation();
-        onEscape();
+        escapeRef.current();
         return;
       }
 
@@ -102,7 +117,7 @@ export default function FocusTrap({
         }
       }
     };
-  }, [isActive, onEscape, restoreFocus, initialFocusRef]);
+  }, [isActive, restoreFocus]);
 
   return (
     <div ref={rootRef} className={className} style={{ width: '100%', height: '100%', ...style }}>
