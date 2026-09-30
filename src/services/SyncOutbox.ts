@@ -7,6 +7,7 @@ import { recordTombstone, isTombstoned } from './TombstoneManager';
 import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 import { mergeGutThreads } from './GutThreadMerge';
+import { preserveDietPlanState } from './DietProfileMerge';
 
 type OutboxKind = 
   | 'case_upsert' 
@@ -457,15 +458,18 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     if (readError) return { error: readError };
     const localData = entry.payload.data;
     const remoteData = remote?.data && typeof remote.data === 'object' ? remote.data : {};
-    const remoteNewer = !!remote?.updated_at && remote.updated_at > String(entry.payload.updated_at || '');
-    const mergedData = {
+    // Compare actual edits, not a later delivery timestamp from an older queued write.
+    const remoteEditedAt = remoteData.updatedAt || remote?.updated_at;
+    const localEditedAt = localData.updatedAt || entry.payload.updated_at;
+    const remoteNewer = !!remoteEditedAt && remoteEditedAt > String(localEditedAt || '');
+    const mergedData = preserveDietPlanState({
       ...(remoteNewer ? localData : remoteData),
       ...(remoteNewer ? remoteData : localData),
       id: profileId,
       gutResolutionThreads: mergeGutThreads(
         localData.gutResolutionThreads, remoteData.gutResolutionThreads, getProfileKey(), profileId
       ),
-    };
+    }, localData, remoteData);
     const updatedAt = new Date(Math.max(Date.now(), Date.parse(entry.payload.updated_at) || 0,
       Date.parse(remote?.updated_at || '') || 0) + 1).toISOString();
     return supabase.from('healthchain_profiles').upsert({
@@ -504,7 +508,11 @@ export async function flushSyncOutbox(userId?: string) {
 
     const startScope = getCurrentScope();
     const queue = await readQueue(accountId);
-    if (!queue.length) return;
+    if (!queue.length) {
+      lastSyncError = null;
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { at: lastSyncedAt } }));
+      return;
+    }
 
     const remaining: OutboxEntry[] = [];
     for (const entry of queue) {

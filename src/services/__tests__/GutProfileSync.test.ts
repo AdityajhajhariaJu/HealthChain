@@ -23,6 +23,30 @@ describe('Gut questions during profile download', () => {
     flushSyncOutbox.mockClear();
   });
 
+  it('preserves a newer diet plan while downloading newer edits to other profile fields', async () => {
+    const olderPlan = { id: 'old-plan', updatedAt: '2026-09-30T09:00:00.000Z' };
+    const newerPlan = { id: 'new-plan', updatedAt: '2026-09-30T09:10:00.000Z' };
+    window.localStorage.setItem('hc_unified_profile_account-a', JSON.stringify({
+      activeId: 'profile_1', profiles: { profile_1: { id: 'profile_1', profileName: 'Local',
+        updatedAt: '2026-09-30T09:10:00.000Z', dietMealPlan: newerPlan, dietArchivedPlans: [olderPlan] } },
+    }));
+    const legacy = { select: vi.fn(() => legacy), eq: vi.fn(() => legacy),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })) };
+    const snapshot = { select: vi.fn(() => snapshot), eq: vi.fn(() => snapshot),
+      order: vi.fn(async () => ({ data: [{ profile_id: 'profile_1', profile_name: 'Remote',
+        updated_at: '2026-09-30T09:30:00.000Z', data: { id: 'profile_1', profileName: 'Remote',
+          updatedAt: '2026-09-30T09:20:00.000Z', dietMealPlan: olderPlan } }], error: null })) };
+    from.mockImplementation((table: string) => table === 'profiles' ? legacy : snapshot);
+    await syncProfileFromSupabase('account-a');
+    const saved = getProfileEngineState().profiles.profile_1;
+    expect(saved.profileName).toBe('Remote');
+    expect(saved.dietMealPlan.id).toBe('new-plan');
+    expect(saved.dietician.mealPlan.id).toBe('new-plan');
+    expect(saved.dietArchivedPlans.map((plan: any) => plan.id)).toEqual(['old-plan']);
+    expect(enqueueSync).toHaveBeenCalledWith('caregiver_profile_upsert', 'account-a',
+      expect.objectContaining({ data: expect.objectContaining({ dietMealPlan: newerPlan }) }));
+  });
+
   it('keeps a local question with no selected symptom when a newer cloud profile arrives', async () => {
     const ownerKey = 'hc_unified_profile_account-a';
     const question = (id: string, updatedAt: string) => ({

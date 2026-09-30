@@ -4,6 +4,7 @@ import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
 import { mergeGutThreads } from './GutThreadMerge';
+import { preserveDietPlanState } from './DietProfileMerge';
 
 export function getProfileKey() {
   try {
@@ -1112,12 +1113,12 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       if (!row?.profile_id || !row.data || typeof row.data !== 'object') continue;
       const local = state.profiles[row.profile_id];
       const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
-      const remoteUpdated = row.updated_at || row.data.updatedAt;
+      const remoteUpdated = row.data.updatedAt || row.updated_at;
       const gutResolutionThreads = mergeGutThreads(
         local?.gutResolutionThreads, row.data.gutResolutionThreads, getProfileKey(), row.profile_id
       );
       if (localUpdated && remoteUpdated && new Date(localUpdated).getTime() > new Date(remoteUpdated).getTime()) {
-        const mergedLocal = { ...local, gutResolutionThreads };
+        const mergedLocal = preserveDietPlanState({ ...local, gutResolutionThreads }, local, row.data);
         state.profiles[row.profile_id] = mergedLocal;
         changed = true;
         await enqueueSync('caregiver_profile_upsert', userId, {
@@ -1147,7 +1148,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
         }
       });
 
-      state.profiles[row.profile_id] = {
+      state.profiles[row.profile_id] = preserveDietPlanState({
         ...(local || {}),
         ...row.data,
         id: row.profile_id,
@@ -1159,9 +1160,11 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
         digestionLogs: { ...(row.data.digestionLogs || {}), ...(local?.digestionLogs || {}) },
         eliminationProtocols: { ...(row.data.eliminationProtocols || {}), ...(local?.eliminationProtocols || {}) },
         gutResolutionThreads
-      };
+      }, local, row.data);
 
-      if (JSON.stringify(gutResolutionThreads) !== JSON.stringify(row.data.gutResolutionThreads || [])) {
+      if (JSON.stringify(gutResolutionThreads) !== JSON.stringify(row.data.gutResolutionThreads || []) ||
+          JSON.stringify(state.profiles[row.profile_id].dietMealPlan) !== JSON.stringify(row.data.dietMealPlan) ||
+          JSON.stringify(state.profiles[row.profile_id].dietArchivedPlans) !== JSON.stringify(row.data.dietArchivedPlans)) {
         await enqueueSync('caregiver_profile_upsert', userId, {
           user_id: userId, profile_id: row.profile_id,
           profile_name: state.profiles[row.profile_id].profileName,

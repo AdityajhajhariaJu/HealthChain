@@ -39,6 +39,18 @@ describe('SyncOutbox', () => {
     ]));
   });
 
+  it('clears a stale pending indicator when manual retry finds an empty queue', async () => {
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-empty' } } } });
+    const completed = vi.fn();
+    window.addEventListener('hc_sync_complete', completed);
+    try {
+      await flushSyncOutbox('user-empty');
+      expect(completed).toHaveBeenCalledOnce();
+    } finally {
+      window.removeEventListener('hc_sync_complete', completed);
+    }
+  });
+
   it('bounds a queue instead of allowing unbounded browser growth', async () => {
     let accepted = true;
     for (let i = 0; i < 505; i += 1) {
@@ -114,6 +126,30 @@ describe('SyncOutbox', () => {
     expect(payload.data.gutResolutionThreads.map((item: any) => item.id)).toEqual(['shared', 'remote-only', 'local-only']);
     expect(payload.data.gutResolutionThreads[0].reflection).toBe('revised');
     expect(await getPendingSyncCount('user-gut')).toBe(0);
+  });
+
+  it('keeps a newer plan when an older snapshot was delivered later', async () => {
+    const olderPlan = { id: 'old-plan', updatedAt: '2026-09-30T09:00:00.000Z' };
+    const newerPlan = { id: 'new-plan', updatedAt: '2026-09-30T09:10:00.000Z' };
+    const query = {
+      select: vi.fn(() => query), eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: { updated_at: '2026-09-30T09:20:00.000Z',
+        data: { updatedAt: '2026-09-30T09:00:00.000Z', dietMealPlan: olderPlan } }, error: null })),
+      upsert: vi.fn(async (_payload: any) => ({ error: null })),
+    };
+    from.mockReturnValue(query);
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-diet' } } } });
+    await enqueueSync('caregiver_profile_upsert', 'user-diet', {
+      user_id: 'user-diet', profile_id: 'profile_1',
+      data: { updatedAt: '2026-09-30T09:10:00.000Z', dietMealPlan: newerPlan, dietArchivedPlans: [olderPlan] },
+      updated_at: '2026-09-30T09:10:00.000Z',
+    });
+    await flushSyncOutbox('user-diet');
+    const payload = query.upsert.mock.calls[0][0] as any;
+    expect(payload.data.dietMealPlan.id).toBe('new-plan');
+    expect(payload.data.dietician.mealPlan.id).toBe('new-plan');
+    expect(payload.data.dietArchivedPlans.map((plan: any) => plan.id)).toEqual(['old-plan']);
+    expect(await getPendingSyncCount('user-diet')).toBe(0);
   });
 
   it('recovers a fallback localStorage queue when IndexedDB is empty', async () => {
