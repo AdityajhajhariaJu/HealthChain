@@ -43,3 +43,28 @@ export function validateGeneratedMealPlan(value, expectedDays) {
   }
   return { valid: errors.length === 0, errors };
 }
+
+/** Match a planning target by scaling the whole recipe, never calories alone. */
+export function alignMealPlanPortions(value, targetCalories) {
+  if (!Number.isInteger(targetCalories) || targetCalories < 1200 || targetCalories > 4500 || !validateGeneratedMealPlan(value, 7).valid) return null;
+  const round = (number) => Math.round(number * 100) / 100;
+  const days = value.plan || value.days;
+  const plan = [];
+  for (const day of days) {
+    const total = day.meals.reduce((sum, meal) => sum + meal.calories, 0);
+    const factor = targetCalories / total;
+    // Extreme changes indicate a bad draft; don't turn it into an impractical recipe.
+    if (factor < 0.5 || factor > 2) return null;
+    const meals = day.meals.map(meal => ({
+      ...meal,
+      calories: Math.round(meal.calories * factor),
+      protein: round(meal.protein * factor), carbs: round(meal.carbs * factor), fat: round(meal.fat * factor),
+      ingredients: meal.ingredients.map(ingredient => ({ ...ingredient, amount: Math.max(0.01, round(ingredient.amount * factor)) })),
+    }));
+    // Allocate integer rounding to the final meal so displayed day totals match.
+    meals[meals.length - 1].calories += targetCalories - meals.reduce((sum, meal) => sum + meal.calories, 0);
+    plan.push({ ...day, meals });
+  }
+  const aligned = { ...value, targetCalories, plan, ...(value.days ? { days: plan } : {}) };
+  return validateGeneratedMealPlan(aligned, 7).valid ? aligned : null;
+}

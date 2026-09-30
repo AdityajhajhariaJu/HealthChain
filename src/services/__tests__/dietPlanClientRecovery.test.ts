@@ -4,6 +4,7 @@ import { webcrypto } from 'node:crypto';
 
 vi.mock('../supabaseClient', () => ({ supabase: { auth: { getSession: vi.fn(async () => ({ data: { session: { access_token: 'test-token', user: { id: 'account-a' } } } })) } } }));
 import { generateMealPlan, hasPendingDietPlanRequest } from '../geminiService';
+import { getTrialStatus, recordTrialUsage } from '../TrialEngine';
 
 const profile = { age: 28, gender: 'male', targetCalories: 2114, cuisine: 'North Indian', mealSchedule: '5 Small Meals', goal: 'Maintain' };
 const storageKey = 'hc_diet_plan_pending_v1:account-a:profile_1';
@@ -12,6 +13,12 @@ const validResponse = () => new Response(JSON.stringify({ candidates: [{ content
 describe('meal plan transport and recovery', () => {
   beforeEach(() => { localStorage.clear(); vi.stubGlobal('crypto', webcrypto); });
   afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('keeps the free-trial display bounded when a saved plan is recovered or corrected', () => {
+    recordTrialUsage('dietician');
+    recordTrialUsage('dietician');
+    expect(getTrialStatus().dietician).toMatchObject({ used: 1, total: 1, remaining: 0 });
+  });
 
   it('shows a terminal generation failure without retrying it or keeping a dead recovery key', async () => {
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ error: 'Incomplete week', reason: 'meal_plan_truncated', requestState: 'failed' }), { status: 502 }));

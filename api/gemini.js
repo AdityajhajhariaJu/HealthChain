@@ -1,6 +1,6 @@
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
-import { validateGeneratedMealPlan } from '../shared/diet-plan-validation.js';
+import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet-plan-validation.js';
 import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT_TOKENS } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
@@ -132,6 +132,7 @@ export default async function handler(req, res) {
   const contentLength = Number(req.headers['content-length'] || 0);
   if (contentLength > maxBytes) return res.status(413).json({ error: 'AI request is too large' });
   let bodyPayload;
+  let dietPlanRequest;
   try {
     bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   } catch {
@@ -183,6 +184,7 @@ export default async function handler(req, res) {
     if (Object.keys(bodyPayload).length !== 1 || !validateDietPlanRequest(bodyPayload.dietPlanRequest))
       return res.status(400).json({ error: 'Invalid meal plan request' });
     dietRequestHash = createHash('sha256').update(JSON.stringify(bodyPayload.dietPlanRequest)).digest('hex');
+    dietPlanRequest = bodyPayload.dietPlanRequest;
     bodyPayload = buildDietPlanProviderPayload(bodyPayload.dietPlanRequest);
   }
 
@@ -431,7 +433,8 @@ export default async function handler(req, res) {
         generatedPlan = null;
       }
       const validation = validateGeneratedMealPlan(generatedPlan, 7);
-      if ((candidate?.finishReason && candidate.finishReason !== 'STOP') || !validation.valid) {
+      if (validation.valid) generatedPlan = alignMealPlanPortions(generatedPlan, dietPlanRequest.targetCalories);
+      if ((candidate?.finishReason && candidate.finishReason !== 'STOP') || !validation.valid || !generatedPlan) {
         const errorCode = candidate?.finishReason === 'MAX_TOKENS' ? 'meal_plan_truncated' : 'invalid_meal_plan';
         // Log structure diagnostics only; never log the user's profile or generated food records.
         console.warn('Meal plan rejected', { requestId: String(requestId), finishReason: candidate?.finishReason, errors: validation.errors?.slice(0, 5) });
@@ -441,6 +444,9 @@ export default async function handler(req, res) {
         }
         return res.status(502).json({ error: 'Meal plan was incomplete; please retry', reason: errorCode, requestState: 'failed' });
       }
+      generatedPlan.cuisine = dietPlanRequest.cuisine;
+      generatedPlan.goal = dietPlanRequest.goal;
+      generatedPlan.mealSchedule = dietPlanRequest.mealSchedule;
       if (adminClient && userId) {
         const { error: savedError } = await adminClient.from('diet_plan_generations').insert({
           request_id: String(requestId), user_id: userId, request_hash: dietRequestHash, plan: generatedPlan,

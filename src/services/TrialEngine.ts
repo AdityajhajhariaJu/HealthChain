@@ -103,8 +103,8 @@ export function recordTrialUsage(feature: 'quick_consult' | 'ava' | 'dietician')
       const next = (parseInt(localStorage.getItem(STORAGE_KEYS.AVA) || '0', 10) || 0) + 1;
       localStorage.setItem(STORAGE_KEYS.AVA, next.toString());
     } else if (feature === 'dietician') {
-      const next = (parseInt(localStorage.getItem(STORAGE_KEYS.DIETICIAN) || '0', 10) || 0) + 1;
-      localStorage.setItem(STORAGE_KEYS.DIETICIAN, next.toString());
+      // This is a free-trial display marker; the server owns purchasable quotas.
+      localStorage.setItem(STORAGE_KEYS.DIETICIAN, TRIAL_LIMITS.DIETICIAN.toString());
     }
     window.dispatchEvent(new Event('hc_trial_updated'));
   } catch (e) {

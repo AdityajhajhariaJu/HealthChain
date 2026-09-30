@@ -1,7 +1,7 @@
 /** Real-provider release check using synthetic profiles only; no account quota or health records. */
 import 'dotenv/config';
 import { buildDietPlanProviderPayload } from '../shared/diet-plan-request.js';
-import { validateGeneratedMealPlan } from '../shared/diet-plan-validation.js';
+import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet-plan-validation.js';
 
 const key = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 if (!key) throw new Error('Set GEMINI_API_KEY to run the live meal-plan evaluation.');
@@ -20,9 +20,10 @@ for (const mealSchedule of schedules.length ? schedules : ['3 Meals', '3 Meals +
   let plan;
   try { plan = JSON.parse(text); } catch { throw new Error('The provider returned incomplete meal-plan JSON.'); }
   const validation = validateGeneratedMealPlan(plan, 7);
+  const adjusted = validation.valid ? alignMealPlanPortions(plan, 2200) : null;
   const mealCount = mealSchedule === '5 Small Meals' ? 5 : mealSchedule === '3 Meals' ? 3 : 4;
-  if (candidate.finishReason !== 'STOP' || !validation.valid || plan.plan.some(day => day.meals.length !== mealCount))
+  if (candidate.finishReason !== 'STOP' || !validation.valid || !adjusted || plan.plan.some(day => day.meals.length !== mealCount))
     throw new Error(`Meal-plan contract failed: ${candidate.finishReason}; ${validation.errors.join('; ')}`);
   console.log(JSON.stringify({ mealSchedule, days: plan.plan.length, mealsPerDay: mealCount, outputTokens: data.usageMetadata?.candidatesTokenCount,
-    durationMs: Date.now() - start, dailyEstimatedCalories: plan.plan.map(day => day.meals.reduce((sum, meal) => sum + meal.calories, 0)), valid: true }));
+    durationMs: Date.now() - start, dailyEstimatedCalories: adjusted.plan.map(day => day.meals.reduce((sum, meal) => sum + meal.calories, 0)), valid: true }));
 }

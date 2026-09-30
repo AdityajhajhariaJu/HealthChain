@@ -78,7 +78,7 @@ describe('server meal plan accounting', () => {
   });
 
   it('completes the request only for seven structured days', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: `Meal ${index + 1}`, type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: `Meal ${index + 1}`, type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Rice', amount: 80, unit: 'g' }], steps: ['Cook rice'], prepMinutes: 20 }] })) };
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) })));
     const res = response();
@@ -90,7 +90,7 @@ describe('server meal plan accounting', () => {
   });
 
   it('replays a saved plan without another provider call or quota charge', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 }] })) };
     const provider = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) }));
     vi.stubGlobal('fetch', provider);
@@ -101,13 +101,14 @@ describe('server meal plan accounting', () => {
     await handler(req, second);
     expect(first.statusCode).toBe(200);
     expect(second.statusCode).toBe(200);
-    expect(JSON.parse(second.body.candidates[0].content.parts[0].text)).toEqual(plan);
+    expect(JSON.parse(second.body.candidates[0].content.parts[0].text)).toMatchObject(plan);
+    expect(second.body.candidates[0].content.parts[0].text).toBe(first.body.candidates[0].content.parts[0].text);
     expect(provider).toHaveBeenCalledTimes(1);
     expect(gateway.rpc.mock.calls.filter(([name]) => name === 'consume_feature_quota_for_request')).toHaveLength(1);
   });
 
   it('rejects replay when plan details change under the same request id', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 }] })) };
     const provider = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) }));
     vi.stubGlobal('fetch', provider);
@@ -123,7 +124,7 @@ describe('server meal plan accounting', () => {
 
   it('releases the reserved plan when the recoverable result cannot be saved', async () => {
     gateway.failPlanSave = true;
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 }] })) };
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) })));
     const res = response();
@@ -146,7 +147,7 @@ describe('server meal plan accounting', () => {
   });
 
   it('sends gateway-owned instructions to the provider', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 }] })) };
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) }));
     vi.stubGlobal('fetch', fetchMock);
@@ -164,7 +165,7 @@ describe('server meal plan accounting', () => {
   });
 
   it('rejects token-truncated output even when the partial JSON happens to be valid', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: [{ name: 'Dal', type: 'Lunch', calories: 2200, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 }] })) };
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: JSON.stringify(plan) }] } }] }) })));
     const res = response();
@@ -176,7 +177,7 @@ describe('server meal plan accounting', () => {
   });
 
   it('accepts a complete five-meal week split across text parts and excludes thought text', async () => {
-    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: Array.from({ length: 5 }, () => ({ name: 'Dal', type: 'Small meal', calories: 400, protein: 20, carbs: 40, fat: 15,
+    const plan = { plan: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, meals: Array.from({ length: 5 }, () => ({ name: 'Dal', type: 'Small meal', calories: 440, protein: 20, carbs: 40, fat: 15,
       ingredients: [{ name: 'Lentils', amount: 90, unit: 'g' }], steps: ['Cook lentils'], prepMinutes: 20 })) })) };
     const text = JSON.stringify(plan);
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ thought: true, text: 'Internal reasoning' }, { text: text.slice(0, 1000) }, { text: text.slice(1000) }] } }] }) })));
@@ -185,8 +186,8 @@ describe('server meal plan accounting', () => {
     const res = response();
     await handler(req, res);
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body.candidates[0].content.parts[0].text)).toEqual(plan);
+    expect(JSON.parse(res.body.candidates[0].content.parts[0].text)).toMatchObject(plan);
     expect(res.body.candidates[0].content.parts).toHaveLength(1);
-    expect(gateway.plans.get(req.headers['x-hc-request-id']).plan).toEqual(plan);
+    expect(gateway.plans.get(req.headers['x-hc-request-id']).plan).toMatchObject(plan);
   });
 });
