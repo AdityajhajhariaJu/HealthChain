@@ -343,7 +343,10 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
       return { error: new Error('Scope switched during case sync operation') };
     }
 
-    return supabase.from('cases').upsert(entry.payload, { onConflict: 'id' });
+    const caseRow = { ...entry.payload };
+    // This controls the RPC; it is not a column in the cases table.
+    delete caseRow.expected_revision;
+    return supabase.from('cases').upsert(caseRow, { onConflict: 'id' });
   }
 
   if (entry.kind === 'case_delete') {
@@ -513,6 +516,9 @@ export async function flushSyncOutbox(userId?: string) {
       if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { at: lastSyncedAt } }));
       return;
     }
+    // send() updates revisions and conflict payloads. Compare concurrent
+    // enqueues against an immutable snapshot, not those mutated entries.
+    const initialPayloadById = new Map(queue.map(entry => [entry.id, JSON.stringify(entry.payload)]));
 
     const remaining: OutboxEntry[] = [];
     for (const entry of queue) {
@@ -568,10 +574,9 @@ export async function flushSyncOutbox(userId?: string) {
     // merge new or updated entries instead of replacing them with the stale
     // snapshot captured at the beginning of this flush.
     const latestQueue = await readQueue(accountId);
-    const initialById = new Map(queue.map((entry) => [entry.id, entry]));
     const concurrentEntries = latestQueue.filter((entry) => {
-      const initial = initialById.get(entry.id);
-      return !initial || JSON.stringify(initial.payload) !== JSON.stringify(entry.payload);
+      const initial = initialPayloadById.get(entry.id);
+      return initial === undefined || initial !== JSON.stringify(entry.payload);
     });
     const merged = new Map(remaining.map((entry) => [entry.id, entry]));
     concurrentEntries.forEach((entry) => merged.set(entry.id, entry));

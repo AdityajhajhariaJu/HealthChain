@@ -2,20 +2,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const idbStore = new Map<string, unknown>();
-const { getSession, from } = vi.hoisted(() => ({
+const { getSession, from, rpc } = vi.hoisted(() => ({
   getSession: vi.fn(async (): Promise<any> => ({ data: { session: null } })),
   from: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock('idb-keyval', () => ({
-  get: vi.fn(async (key: string) => idbStore.get(key)),
-  set: vi.fn(async (key: string, value: unknown) => { idbStore.set(key, value); }),
+  get: vi.fn(async (key: string) => {
+    const value = idbStore.get(key);
+    return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  }),
+  set: vi.fn(async (key: string, value: unknown) => { idbStore.set(key, JSON.parse(JSON.stringify(value))); }),
 }));
 
 vi.mock('../supabaseClient', () => ({
   supabase: {
     auth: { getSession },
     from,
+    rpc,
   },
 }));
 
@@ -27,6 +32,7 @@ describe('SyncOutbox', () => {
     window.localStorage.clear();
     getSession.mockResolvedValue({ data: { session: null } });
     from.mockReset();
+    rpc.mockReset();
   });
 
   it('deduplicates pending updates for the same record', async () => {
@@ -49,6 +55,33 @@ describe('SyncOutbox', () => {
     } finally {
       window.removeEventListener('hc_sync_complete', completed);
     }
+  });
+
+  it('removes a completed case after the server updates its revision, matching IndexedDB copy semantics', async () => {
+    const query = { select: vi.fn(() => query), eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })) };
+    from.mockReturnValue(query);
+    rpc.mockResolvedValue({ data: { success: true, new_revision: 2 }, error: null });
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-case' } } } });
+    await enqueueSync('case_upsert', 'user-case', { id: 'case-1', user_id: 'user-case',
+      revision: 1, expected_revision: 1, data: { id: 'case-1', revision: 1 } });
+    await flushSyncOutbox('user-case');
+    expect(rpc).toHaveBeenCalledOnce();
+    expect(await getPendingSyncCount('user-case')).toBe(0);
+  });
+
+  it('excludes RPC-only revision metadata from a fallback table write', async () => {
+    const query = { select: vi.fn(() => query), eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      upsert: vi.fn(async (_payload: any) => ({ error: null })) };
+    from.mockReturnValue(query);
+    rpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'RPC does not exist' } });
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-case' } } } });
+    await enqueueSync('case_upsert', 'user-case', { id: 'case-1', user_id: 'user-case',
+      revision: 1, expected_revision: 1, data: { id: 'case-1', revision: 1 } });
+    await flushSyncOutbox('user-case');
+    expect(query.upsert.mock.calls[0][0]).not.toHaveProperty('expected_revision');
+    expect(await getPendingSyncCount('user-case')).toBe(0);
   });
 
   it('bounds a queue instead of allowing unbounded browser growth', async () => {
