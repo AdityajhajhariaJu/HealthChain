@@ -29,7 +29,7 @@
 | D12    | E3,E7,E8,E9,E10    | Recheck shared hydration, Ava handoff, guide/notes, optional rainbow checklist and movement. Do not equate checklist choices with consumed food or compensated calories.                                                                                         | Implemented |
 | D13    | F2                 | Optional meal/preparation reminders: chosen slots/time, permission status, quiet hours and deduplication. Native scheduling supported; web in-app prompts described honestly and do not claim delivery after browser closes.                                     | Implemented; physical-device gate pending |
 | D14    | F5,F6,C13          | Account/profile boundaries, record tombstones, multi-device merge, accessibility labels, narrow screens and offline failures. Save confirmation precedes UI success.                                                                                             | Implemented |
-| D15    | All                | Focused regression suite, Chromium/WebKit journeys, production build/lint, deployment commit/status and isolated live smoke test. No customer meals fabricated during verification.                                                                              | Automated gates passed; deployment verification pending |
+| D15    | All                | Focused regression suite, Chromium/WebKit journeys, production build/lint, deployment commit/status and isolated live smoke test. No customer meals fabricated during verification.                                                                              | Complete; production verified |
 | D16    | Research           | Prepare participant tasks, interview guide and outcome measures. Recruit 12–18 consenting users across situations; observe task success and burden. Actual interviews require participants; never fabricate validation results.                                  | Protocol complete; participant sessions pending |
 
 ## Release gates
@@ -75,3 +75,13 @@ Native delivery validation, actual user research, and a representative dietitian
 - Deployment and live smoke results are recorded after pushing the release commit.
 
 Deployment verification caught Vercel counting a new helper as an API function, exceeding the existing plan's 12-function limit. The origin helper was moved into shared code; the public product route remains enabled. The original failed deployment did not replace the existing production site.
+
+## Production release evidence
+
+- Code and plan pushed on existing `master`: `98c05d29`; hosting correction and Ava audit: `bb0927f9`.
+- Vercel confirmed successful deployment `HMx7PWFNiV2URovohrGUpkBRoXBW` for `bb0927f9`.
+- Isolated smoke at `https://healthchain360.com/app/dietician`: preferences and packaged-food tools rendered, real product lookup worked, reload succeeded, no horizontal overflow at 390 px, no page errors. This used disposable guest-only local data and did not invoke AI generation or create production patient records.
+- Real `GET /api/food-product?code=3017620422003`: HTTP 200, documented product source, `per_100g` basis, 539 catalog kcal per 100 g. This is an example catalog response, not an endorsement that every package variant has that label.
+- Native-origin preflight: HTTP 204 and `Access-Control-Allow-Origin: https://localhost`.
+- The helper move was covered by 19 gateway/product/origin regression tests. Complete tests, release logs, screenshots and production smoke JSON are retained in the task's `diet-generation-incident` artifact directory.
+- D15 is closed for this release. D13's physical-device gate and D16's participant sessions remain explicitly open. Ava's remaining work is tracked separately in [AVA-DEEP-RECHECK.md](AVA-DEEP-RECHECK.md).
