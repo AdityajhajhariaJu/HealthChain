@@ -5,7 +5,7 @@ import { validateDietPreferenceFit } from '../shared/diet-preference-fit.js';
 import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT_TOKENS } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
-import { allowedOrigin } from './utils/origins.js';
+import { allowedOrigin } from '../shared/http-origins.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {

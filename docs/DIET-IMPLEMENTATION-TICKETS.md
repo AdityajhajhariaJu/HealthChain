@@ -73,3 +73,5 @@ Native delivery validation, actual user research, and a representative dietitian
 - Primary-profile database constraint and existing disabled caregiver boundary were verified read-only; no Diet schema migration was required.
 - The Ava diary card is now a pure read view; mounting/rerendering/opening it cannot create another meal or symptom observation. Its visual card and navigation are retained.
 - Deployment and live smoke results are recorded after pushing the release commit.
+
+Deployment verification caught Vercel counting a new helper as an API function, exceeding the existing plan's 12-function limit. The origin helper was moved into shared code; the public product route remains enabled. The original failed deployment did not replace the existing production site.

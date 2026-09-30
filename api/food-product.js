@@ -1,6 +1,6 @@
 import { checkRateLimit } from './utils/rate-limit.js';
 import { validProductBarcode, normalizeFoodProduct } from '../shared/food-product.js';
-import { allowedOrigin } from './utils/origins.js';
+import { allowedOrigin } from '../shared/http-origins.js';
 export default async function handler(req, res) {
   const origin = req.headers?.origin;
   res.setHeader('Vary', 'Origin');
