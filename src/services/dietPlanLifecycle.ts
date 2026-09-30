@@ -120,6 +120,8 @@ export interface FullMealPlan {
   profileKey?: string;
   goal?: string;
   cuisine?: string;
+  countryCode?: string;
+  region?: string;
   days: DayPlanItem[];
   plan?: DayPlanItem[];
   targetCalories?: number;
@@ -264,6 +266,8 @@ export function normalizeFullMealPlan(rawPlan: any, options?: { caseId?: string;
     profileKey: options?.profileKey || rawPlan?.profileKey,
     goal: rawPlan?.goal,
     cuisine: rawPlan?.cuisine,
+    countryCode: rawPlan?.countryCode,
+    region: rawPlan?.region,
     days,
     plan: days,
     targetCalories: rawPlan?.targetCalories,

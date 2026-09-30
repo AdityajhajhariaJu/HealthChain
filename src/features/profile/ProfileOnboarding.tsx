@@ -26,7 +26,9 @@ import {
   Stethoscope,
   Shield
 } from 'lucide-react';
-import { completeProfileOnboarding, getProfileKey } from '../../services/ProfileEngine';
+import { completeProfileOnboarding, getProfileKey, getProfile } from '../../services/ProfileEngine';
+import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
+import { normalizeFoodLocation } from '../../../shared/food-location';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
@@ -139,6 +141,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
   // Step 0: Demographics & Biometrics
   const [name, setName] = useState(account.name || '');
+  const [foodLocation, setFoodLocation] = useState(() => normalizeFoodLocation(getProfile()?.demographics));
   const [age, setAge] = useState<number>(28);
   const [gender, setGender] = useState<'Female' | 'Male' | 'Non-binary' | 'Other'>('Female');
   const [bloodGroup, setBloodGroup] = useState('O+');
@@ -283,6 +286,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
     completeProfileOnboarding({
       demographics: {
+        ...normalizeFoodLocation(foodLocation),
         name: name.trim(),
         age: String(age),
         gender,
@@ -586,6 +590,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   </div>
 
                   {/* Height & Weight Steppers */}
+                  <FoodLocationFields {...foodLocation} onChange={setFoodLocation} />
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     {/* Height */}
                     <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 18, border: '1px solid #E2E8F0' }}>

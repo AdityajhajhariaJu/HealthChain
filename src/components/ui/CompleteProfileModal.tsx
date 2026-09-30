@@ -33,6 +33,8 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CalmApothecaryCapsule, CalmCategoryKey } from './CalmApothecaryCapsule';
+import { FoodLocationFields } from './FoodLocationFields';
+import { normalizeFoodLocation } from '../../../shared/food-location';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';
@@ -143,6 +145,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
   
   // Demographics state pre-filled from existing profile
   const [name, setName] = useState('');
+  const [foodLocation, setFoodLocation] = useState({ countryCode: '', region: '' });
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [bloodGroup, setBloodGroup] = useState('Unknown');
@@ -250,6 +253,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
       const p = getProfile();
       if (p?.demographics) {
         setName(p.demographics.name || '');
+        setFoodLocation(normalizeFoodLocation(p.demographics));
         setAge(p.demographics.age ? String(p.demographics.age) : '');
         setGender(p.demographics.gender || '');
         setBloodGroup(p.demographics.bloodGroup || 'Unknown');
@@ -563,6 +567,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     // 1. Save to ProfileEngine
     completeProfileOnboarding({
       demographics: {
+        ...normalizeFoodLocation(foodLocation),
         name: name.trim() || 'Patient',
         age: age.trim(),
         gender: gender || 'Not Specified',
@@ -1156,6 +1161,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 </div>
 
                 {/* Height & Weight with Real-Time Steppers and Unit Toggles */}
+                <FoodLocationFields {...foodLocation} onChange={setFoodLocation} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   {/* Height Column */}
                   <div style={{

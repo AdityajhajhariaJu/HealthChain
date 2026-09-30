@@ -11,6 +11,8 @@ import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { calculateDietTargets } from '../../services/dietTargets';
+import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
+import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
 
 export function OnboardingWizard({ 
   onComplete, 
@@ -49,7 +51,8 @@ export function OnboardingWizard({
         activityLevel: initialData.activityLevel || 'moderate',
         restrictions: initialData.restrictions || ['None'],
         medicalConditions: initialData.medicalConditions || ['None'],
-        cuisine: initialData.cuisine || 'North Indian',
+        ...resolveFoodLocation(initialData, demo),
+        cuisine: initialData.cuisine || 'Local',
         mealSchedule: initialData.mealSchedule || '3 Meals + 1 Snack',
       };
     }
@@ -75,7 +78,8 @@ export function OnboardingWizard({
       activityLevel: 'moderate',
       restrictions: matchedRestrictions.length > 0 ? matchedRestrictions : ['None'],
       medicalConditions: matchedConds.length > 0 ? matchedConds : ['None'],
-      cuisine: 'North Indian',
+      ...normalizeFoodLocation(demo),
+      cuisine: 'Local',
       mealSchedule: '3 Meals + 1 Snack',
     };
   });
@@ -958,11 +962,13 @@ export function OnboardingWizard({
         {step === 6 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              Culinary style
+              Location & culinary style
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Recipes will prioritize authentic native spices, ingredients, and realistic prep methods.
+              Local meals follow where you live. You can also choose a different cuisine using ingredients available in your country.
             </p>
+
+            <FoodLocationFields countryCode={data.countryCode} region={data.region} required={data.cuisine === 'Local'} onChange={location => setData({ ...data, ...location })} />
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
               {CUISINES.map((c) => {
@@ -974,7 +980,6 @@ export function OnboardingWizard({
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setData({ ...data, cuisine: c });
-                      setTimeout(next, 160);
                     }}
                     style={{
                       padding: '18px 14px',
@@ -991,11 +996,13 @@ export function OnboardingWizard({
                     }}
                   >
                     <Utensils size={18} style={{ margin: '0 auto 6px', color: isSelected ? '#D97706' : '#94A3B8' }} />
-                    {c}
+                    {c === 'Local' ? 'Local meals (recommended)' : c}
                   </motion.button>
                 );
               })}
             </div>
+            {data.cuisine === 'Local' && !data.countryCode && <p style={{ color: '#475569', fontSize: 13 }}>Select your country to use local meals.</p>}
+            <button type="button" onClick={next} disabled={data.cuisine === 'Local' && !data.countryCode} style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#059669', color: '#FFFFFF', fontWeight: 800, cursor: 'pointer', opacity: data.cuisine === 'Local' && !data.countryCode ? 0.5 : 1 }}>Continue to Meal Schedule</button>
           </motion.div>
         )}
 
@@ -1120,7 +1127,7 @@ export function OnboardingWizard({
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', fontSize: '12px', color: '#475569' }}>
                 <ShieldCheck size={15} color="#059669" />
-                <span>Planning context: <strong>{data.goal}</strong> · {data.cuisine} cuisine · {data.mealSchedule}</span>
+                <span>Planning context: <strong>{data.goal}</strong> · {data.cuisine === 'Local' ? 'Local meals' : `${data.cuisine} cuisine`} · {formatFoodLocation(data) || 'Location not shared'} · {data.mealSchedule}</span>
               </div>
             </div> : <div role="status" style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '18px', marginBottom: '24px', color: '#334155', textAlign: 'left' }}>
               <strong>No calorie target set.</strong> {result.available ? '' : result.reason} You can still save preferences and record meals without a calorie goal.

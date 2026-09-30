@@ -445,6 +445,8 @@ export default async function handler(req, res) {
         return res.status(502).json({ error: 'Meal plan was incomplete; please retry', reason: errorCode, requestState: 'failed' });
       }
       generatedPlan.cuisine = dietPlanRequest.cuisine;
+      generatedPlan.countryCode = dietPlanRequest.countryCode || '';
+      generatedPlan.region = dietPlanRequest.region || '';
       generatedPlan.goal = dietPlanRequest.goal;
       generatedPlan.mealSchedule = dietPlanRequest.mealSchedule;
       if (adminClient && userId) {

@@ -6,8 +6,10 @@ import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet
 const key = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 if (!key) throw new Error('Set GEMINI_API_KEY to run the live meal-plan evaluation.');
 const schedules = process.argv.slice(2);
+const countryCode = process.env.DIET_EVAL_COUNTRY_CODE;
+const region = process.env.DIET_EVAL_REGION || '';
 for (const mealSchedule of schedules.length ? schedules : ['3 Meals', '3 Meals + 1 Snack', '5 Small Meals']) {
-  const body = buildDietPlanProviderPayload({ age: 30, gender: 'male', targetCalories: 2200, cuisine: 'North Indian', mealSchedule, goal: 'Maintain' });
+  const body = buildDietPlanProviderPayload({ age: 30, gender: 'male', targetCalories: 2200, cuisine: countryCode ? 'Local' : 'North Indian', mealSchedule, goal: 'Maintain', ...(countryCode ? { countryCode, region } : {}) });
   const start = Date.now();
   const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -24,6 +26,6 @@ for (const mealSchedule of schedules.length ? schedules : ['3 Meals', '3 Meals +
   const mealCount = mealSchedule === '5 Small Meals' ? 5 : mealSchedule === '3 Meals' ? 3 : 4;
   if (candidate.finishReason !== 'STOP' || !validation.valid || !adjusted || plan.plan.some(day => day.meals.length !== mealCount))
     throw new Error(`Meal-plan contract failed: ${candidate.finishReason}; ${validation.errors.join('; ')}`);
-  console.log(JSON.stringify({ mealSchedule, days: plan.plan.length, mealsPerDay: mealCount, outputTokens: data.usageMetadata?.candidatesTokenCount,
+  console.log(JSON.stringify({ mealSchedule, countryCode, region, firstDayMeals: plan.plan[0].meals.map(meal => meal.name), days: plan.plan.length, mealsPerDay: mealCount, outputTokens: data.usageMetadata?.candidatesTokenCount,
     durationMs: Date.now() - start, dailyEstimatedCalories: adjusted.plan.map(day => day.meals.reduce((sum, meal) => sum + meal.calories, 0)), valid: true }));
 }

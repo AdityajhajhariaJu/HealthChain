@@ -32,6 +32,8 @@ import {
   Sunset
 } from 'lucide-react';
 import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
+import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
+import { normalizeFoodLocation } from '../../../shared/food-location';
 
 interface GoalOption {
   title: string;
@@ -168,6 +170,7 @@ export default function OnboardingFlow() {
   // Form State initialized from storage
   const existingProfile = getProfile();
   const [name, setName] = useState<string>(existingProfile?.demographics?.name || '');
+  const [foodLocation, setFoodLocation] = useState(() => normalizeFoodLocation(existingProfile?.demographics));
   const [age, setAge] = useState<number>(existingProfile?.demographics?.age ? Number(existingProfile.demographics.age) : 28);
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(
     (existingProfile?.demographics?.gender as any) || 'Male'
@@ -312,6 +315,7 @@ export default function OnboardingFlow() {
     try {
       completeProfileOnboarding({
         demographics: {
+          ...normalizeFoodLocation(foodLocation),
           name: name.trim() || existingProfile?.demographics?.name || 'Patient',
           age: age ? String(age).trim() : (existingProfile?.demographics?.age || ''),
           gender: gender || existingProfile?.demographics?.gender || 'Not Specified',
@@ -712,6 +716,7 @@ export default function OnboardingFlow() {
                 </div>
 
                 {/* Height & Weight Stepper Grid */}
+                <FoodLocationFields {...foodLocation} onChange={setFoodLocation} />
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
                   {/* Height */}
                   <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>

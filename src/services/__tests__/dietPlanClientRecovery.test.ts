@@ -52,4 +52,15 @@ describe('meal plan transport and recovery', () => {
     await generateMealPlan(profile, 7, 'profile_1');
     expect(fetchMock.mock.calls[0][1].headers['X-HC-Request-Id']).toBe(pendingId);
   });
+
+  it('sends location and starts a distinct request when the region changes', async () => {
+    const fetchMock = vi.fn(async (_input: any, _init: any) => validResponse());
+    vi.stubGlobal('fetch', fetchMock);
+    const localProfile = { ...profile, cuisine: 'Local', countryCode: 'JP', region: 'Osaka' };
+    await generateMealPlan(localProfile, 7, 'profile_1');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.dietPlanRequest).toMatchObject({ cuisine: 'Local', countryCode: 'JP', region: 'Osaka' });
+    await generateMealPlan({ ...localProfile, region: 'Tokyo' }, 7, 'profile_1');
+    expect(fetchMock.mock.calls[1][1].headers['X-HC-Request-Id']).not.toBe(fetchMock.mock.calls[0][1].headers['X-HC-Request-Id']);
+  });
 });

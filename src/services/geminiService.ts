@@ -8,6 +8,7 @@ import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
 import { getDeterministicMedicineData } from './clinicalPharmacyData';
 import { buildVersionedEvidenceSet, runSubstantiveDebateRound } from './MultiPerspectiveReviewEngine';
 import { getCanonicalFeatureRegistryPrompt } from './FeatureArchitectureContract';
+import { normalizeFoodLocation } from '../../shared/food-location';
 
 // Vite proxies /api/gemini to the local backend in development. A same-origin default
 // also keeps the request inside the page's Content Security Policy.
@@ -1320,11 +1321,15 @@ Rules:
   }
 }
 
-const dietPlanPayload = (profile: any) => ({ dietPlanRequest: {
+const dietPlanPayload = (profile: any) => {
+  const location = normalizeFoodLocation(profile);
+  return { dietPlanRequest: {
     age: Number(profile?.age), gender: profile?.gender, pregnancyStatus: profile?.pregnancyStatus,
     targetCalories: Number(profile?.targetCalories), cuisine: profile?.cuisine || 'Any',
     mealSchedule: profile?.mealSchedule || '3 Meals + 1 Snack', goal: profile?.goal,
-  } });
+    ...(location.countryCode ? location : {}),
+  } };
+};
 
 const pendingPlanKey = async (profileKey: string): Promise<string> => {
   const { data } = await supabase.auth.getSession();

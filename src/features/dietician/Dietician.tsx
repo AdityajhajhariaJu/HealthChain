@@ -121,6 +121,7 @@ import { adjustWaterAmount, getHydrationData } from '../../services/HydrationSer
 import { targetFields } from '../../services/dietTargets';
 import { hasUnverifiableDietConstraints, validateGeneratedMealPlan } from '../../services/dietPlanValidation';
 import { projectDietGroceries } from '../../services/dietGroceryProjection';
+import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -132,7 +133,7 @@ export const ACTIVITY_LEVELS = [
 ];
 export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
 export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
-export const CUISINES = ['North Indian', 'South Indian', 'Mediterranean', 'Middle Eastern', 'Mexican', 'East Asian', 'Western', 'Keto', 'Any'];
+export const CUISINES = ['Local', 'North Indian', 'South Indian', 'Mediterranean', 'Middle Eastern', 'Mexican', 'East Asian', 'Western', 'Keto', 'Any'];
 export const MEAL_SCHEDULES = [
   '3 Meals',
   '3 Meals + 1 Snack',
@@ -212,15 +213,19 @@ function calculateTargets(p: any) {
   return targetFields(p);
 }
 
+function withFoodLocation(p: any) {
+  return { ...p, ...resolveFoodLocation(p, getCoreProfile()?.demographics), ...calculateTargets(p) };
+}
+
 export function getInitialDietProfile(): any {
   try {
     const core = getCoreProfile();
     if (core?.dietResetAt && !core?.dietProfile) return null;
     if (core?.dietician?.profile) {
-      return { ...core.dietician.profile, ...calculateTargets(core.dietician.profile) };
+      return withFoodLocation(core.dietician.profile);
     }
     if (core?.dietProfile) {
-      return { ...core.dietProfile, ...calculateTargets(core.dietProfile) };
+      return withFoodLocation(core.dietProfile);
     }
   } catch (e) {}
   return null;
@@ -373,7 +378,7 @@ export default function Dietician() {
           const a = flat('dietAdvice', nested.advice);
           const gl = flat('dietGrocery', nested.groceryList);
           const savedGuardrails = flat('dietGuardrails', nested.guardrails);
-          if (p) setProfile({ ...p, ...calculateTargets(p) });
+          if (p) setProfile(withFoodLocation(p));
           if (fl) setFoodLogs(fl);
           if (h) setHydration(h);
           if (mp) setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
@@ -425,7 +430,7 @@ export default function Dietician() {
         if (savedProfile) {
           try {
             const parsed = JSON.parse(savedProfile);
-            setProfile({ ...parsed, ...calculateTargets(parsed) });
+            setProfile(withFoodLocation(parsed));
           } catch (e) {
             console.warn('Corrupt savedProfile in diet', e);
           }
@@ -451,7 +456,7 @@ export default function Dietician() {
         if (cancelled || unified.dietResetAt || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
         const snapshot = getLatestHealthMemory('diet', 'dietician')?.payload?.state;
         if (!snapshot) return;
-        if (snapshot.profile) setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
+        if (snapshot.profile) setProfile(withFoodLocation(snapshot.profile));
         if (snapshot.foodLogs) setFoodLogs(snapshot.foodLogs);
         if (snapshot.hydration) setHydration(snapshot.hydration);
         if (snapshot.mealPlan) setMealPlan(normalizeFullMealPlan(snapshot.mealPlan, { caseId: activeCaseScope.caseId || undefined }));
@@ -501,6 +506,16 @@ export default function Dietician() {
   }, [isHydrated]);
 
   // Record Health Memory snapshots
+  useEffect(() => {
+    const refreshLocation = () => setProfile((previous: any) => {
+      if (!previous) return previous;
+      const next = withFoodLocation(previous);
+      return previous.countryCode === next.countryCode && previous.region === next.region ? previous : next;
+    });
+    window.addEventListener('hc_profile_updated', refreshLocation);
+    return () => window.removeEventListener('hc_profile_updated', refreshLocation);
+  }, []);
+
   useEffect(() => {
     if (!profile) return;
     const safeOccurredAt = (() => {
@@ -598,7 +613,7 @@ export default function Dietician() {
   }, [mealPlan]);
 
   const handleSaveProfile = async (p: any) => {
-    const fullProfile = { ...p, ...calculateTargets(p) };
+    const fullProfile = { ...p, ...normalizeFoodLocation(p), ...calculateTargets(p) };
     const unified = getCoreProfile();
     if (!unified) {
       toast.error('Preferences not saved', 'Your profile could not be loaded. Please try again.');
@@ -606,6 +621,7 @@ export default function Dietician() {
     }
     await saveProfile({
       ...unified, dietProfile: fullProfile, dietResetAt: null,
+      demographics: { ...unified.demographics, ...normalizeFoodLocation(fullProfile) },
       dietician: { ...(unified.dietician || {}), profile: fullProfile },
     });
     if (JSON.stringify(getCoreProfile()?.dietProfile) !== JSON.stringify(fullProfile)) {
@@ -889,10 +905,16 @@ export default function Dietician() {
     // The authenticated gateway owns paid access, refunds and free-plan quota.
     // A stale browser trial counter must not block an available server quota.
 
+    const requestProfile = withFoodLocation(profile);
+    if (requestProfile.cuisine === 'Local' && !requestProfile.countryCode) {
+      toast.error('Country needed for local meals', 'Choose your current country in food preferences so recipes fit where you live.');
+      setIsEditingProfile(true);
+      return;
+    }
     setIsGeneratingPlan(true);
     setPlanGenerationError('');
     try {
-      const rawPlan = await generateMealPlan(profile, 7, planProfileKey);
+      const rawPlan = await generateMealPlan(requestProfile, 7, planProfileKey);
       if (getProfileKey() !== planProfileKey || getCoreProfile()?.id !== planProfileId)
         throw new Error('diet_plan_context_changed');
       const validation = validateGeneratedMealPlan(rawPlan, 7);
@@ -1707,7 +1729,7 @@ export default function Dietician() {
                   7-day meal plan
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {profile?.cuisine || 'Any cuisine'} · {profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set'}
+                  Editable example · {(mealPlan?.cuisine || profile?.cuisine) === 'Local' ? 'Local meals' : mealPlan?.cuisine || profile?.cuisine || 'Any cuisine'}{formatFoodLocation(mealPlan || profile) ? ` · ${formatFoodLocation(mealPlan || profile)}` : ''} · {profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set'}
                 </p>
               </div>
 
@@ -1772,7 +1794,7 @@ export default function Dietician() {
                           caseId: activeCaseScope.caseId || undefined,
                           returnTo: '/app/dietician?tab=mealplan',
                           returnLabel: 'Back to Meal Plan',
-                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: ${mealPlan.targetCalories || profile?.targetCalories ? `about ${mealPlan.targetCalories || profile?.targetCalories} kcal/day` : 'not set'}\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\n\n${planSummary}`
+                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: ${mealPlan.targetCalories || profile?.targetCalories ? `about ${mealPlan.targetCalories || profile?.targetCalories} kcal/day` : 'not set'}\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\nLocation used for this plan: ${formatFoodLocation(mealPlan) || 'Not recorded'}\n\n${planSummary}`
                         }
                       });
                     }}
@@ -3278,8 +3300,8 @@ export default function Dietician() {
                 <OnboardingWizard
                   initialData={profile}
                   onCancel={() => setIsEditingProfile(false)}
-                  onComplete={(data) => {
-                    handleSaveProfile(data);
+                  onComplete={async (data) => {
+                    await handleSaveProfile(data);
                     setIsEditingProfile(false);
                   }}
                 />

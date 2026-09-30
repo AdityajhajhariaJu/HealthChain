@@ -95,6 +95,7 @@ describe('server meal plan accounting', () => {
     const provider = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }] }) }));
     vi.stubGlobal('fetch', provider);
     const req = request();
+    req.body.dietPlanRequest = { ...req.body.dietPlanRequest, cuisine: 'Local', countryCode: 'JP', region: 'Osaka' };
     const first = response();
     await handler(req, first);
     const second = response();
@@ -102,6 +103,7 @@ describe('server meal plan accounting', () => {
     expect(first.statusCode).toBe(200);
     expect(second.statusCode).toBe(200);
     expect(JSON.parse(second.body.candidates[0].content.parts[0].text)).toMatchObject(plan);
+    expect(JSON.parse(first.body.candidates[0].content.parts[0].text)).toMatchObject({ cuisine: 'Local', countryCode: 'JP', region: 'Osaka' });
     expect(second.body.candidates[0].content.parts[0].text).toBe(first.body.candidates[0].content.parts[0].text);
     expect(provider).toHaveBeenCalledTimes(1);
     expect(gateway.rpc.mock.calls.filter(([name]) => name === 'consume_feature_quota_for_request')).toHaveLength(1);
@@ -120,6 +122,18 @@ describe('server meal plan accounting', () => {
     expect(changed.statusCode).toBe(409);
     expect(changed.body).not.toEqual(expect.objectContaining({ candidates: expect.anything() }));
     expect(provider).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an invalid local-food location before charging or calling the provider', async () => {
+    const provider = vi.fn();
+    vi.stubGlobal('fetch', provider);
+    const req = request();
+    req.body.dietPlanRequest = { ...req.body.dietPlanRequest, cuisine: 'Local', countryCode: 'ZZ', region: 'Unknown' };
+    const res = response();
+    await handler(req, res);
+    expect(res.statusCode).toBe(400);
+    expect(provider).not.toHaveBeenCalled();
+    expect(gateway.rpc).not.toHaveBeenCalled();
   });
 
   it('releases the reserved plan when the recoverable result cannot be saved', async () => {
