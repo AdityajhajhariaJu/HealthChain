@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import {captureAccountScope,isAccountScopeCurrent} from './AccountScope';
 
 export interface FitnessProgram {
   id: string;
@@ -24,6 +25,7 @@ export interface FitnessContent {
   id: string;
   category_id: string;
   is_active: boolean;
+  publish_at?: string;
   completed_count?: number;
   started_count?: number;
   type: 'workout' | 'meditation' | 'soundscape' | 'sleep_story' | 'article' | 'breathwork';
@@ -55,6 +57,22 @@ const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 let memoryCache: FitnessCache = {};
 
 export const FitnessService = {
+  async startSession(contentId: string, sessionId: string = crypto.randomUUID()) {
+    const owner=captureAccountScope();
+    const {data:{session}}=await supabase.auth.getSession();
+    if(owner.accountId==='guest' || !isAccountScopeCurrent(owner) || session?.user?.id!==owner.accountId)throw new Error('Sign in to start this activity in your account.');
+    const {data,error}=await supabase.rpc('start_fitness_session',{p_content_id:contentId,p_session_id:sessionId,p_expected_owner:owner.accountId});
+    if(!isAccountScopeCurrent(owner))throw new Error('Account changed. Activity was not started in this conversation.');
+    if(error)throw error;
+    if(!data?.session_id)throw new Error('Activity session could not be started.');
+    return data;
+  },
+  async completeSession(sessionId: string, durationSeconds: number) {
+    const {data,error}=await supabase.rpc('complete_fitness_session',{p_session_id:sessionId,p_duration_seconds:durationSeconds,p_calories:null});
+    if(error)throw error;
+    if(!data?.completed)throw new Error('Participation was not saved.');
+    return data;
+  },
   async getUserFitnessHistory(userId: string) {
     const { data, error } = await supabase
       .from('user_fitness_history')
@@ -107,7 +125,7 @@ export const FitnessService = {
     return (data || []).map((d: any) => d.fitness_content).filter(Boolean) as FitnessContent[];
   },
 
-  async getAllActiveContent() {
+  async getAllActiveContent(signal?:AbortSignal) {
     if (memoryCache.activeContent && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
       return memoryCache.activeContent;
     }
@@ -115,7 +133,7 @@ export const FitnessService = {
       .from('fitness_content')
       .select('*')
       .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true }).abortSignal(signal || AbortSignal.timeout(15000));
       
     if (error) throw error;
     memoryCache.activeContent = data as FitnessContent[];

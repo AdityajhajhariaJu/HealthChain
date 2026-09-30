@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { extractBalancedWidget, cleanChatMessageText } from '../../features/consultation/AvaHealthBuddy';
 
 describe('Ava extractBalancedWidget Parser', () => {
+  it('isolates a truncated card and keeps the next independent card', () => {
+    const result=extractBalancedWidget('Before [WIDGET:DIARY_TIMELINE:{"entries":[\n[WIDGET:WORKOUT] After','DIARY_TIMELINE');
+    expect(result.payload).toBeNull();
+    expect(result.after).toBe('[WIDGET:WORKOUT] After');
+  });
   it('extracts DIARY_TIMELINE widget with nested arrays without leaking JSON', () => {
     const raw = `I have logged your meal in your diary:\n[WIDGET:DIARY_TIMELINE:{"title":"Logged in your diary","date":"Today","entries":[{"time":"08:00","category":"Breakfast","items":["🥣 Oats","🫐 Blueberries","☕ Coffee"]},{"time":"13:00","category":"Lunch","items":["🥩 Salami","🍷 Red Wine"]}]}]\nMake sure to stay well hydrated this afternoon!`;
 
@@ -59,7 +64,7 @@ describe('Ava extractBalancedWidget Parser', () => {
     expect(before).not.toContain('entries');
   });
 
-  it('scrubs trailing JSON fragments matching media_1788704773816.png leak', () => {
+  it('preserves source JSON outside the identified widget span', () => {
     const raw = `Logged in your timeline:\n[WIDGET:DIARY_TIMELINE:{"title":"Logged in your diary","date":"Today","entries":[{"time":"08:00","category":"Breakfast","items":["🥣 Oats"]},{"time":"15:00","category":"Symptoms","items":["💨 Bloating"]}]}]\n},\n{"time":"13:00","category":"Lunch","items":["🥩 Salami","🍕 Pizza","🍷 Red Wine"]},\n{"time":"15:00","category":"Symptoms","items":["💨 Bloating","🌫️ Brain Fog"]}\nStay hydrated today!`;
 
     const { payload, before, after, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
@@ -68,15 +73,15 @@ describe('Ava extractBalancedWidget Parser', () => {
     expect(payload).toBeDefined();
     expect(before).toBe('Logged in your timeline:');
     // Ensure all trailing JSON was cleaned up and only consultation text remains
-    expect(after).toBe('Stay hydrated today!');
-    expect(after).not.toContain('{"time"');
-    expect(after).not.toContain('},');
+    expect(after).toContain('Stay hydrated today!');
+    expect(after).toContain('{"time"');
+    expect(after).toContain('},');
   });
 
-  it('cleanChatMessageText removes standalone JSON fragments and brackets', () => {
+  it('cleanChatMessageText preserves literal source JSON', () => {
     const dirty = '},\n{"time":"12:00","category":"Lunch","items":["salad"]}\nYour digestive report is ready.';
     const clean = cleanChatMessageText(dirty);
-    expect(clean).toBe('Your digestive report is ready.');
+    expect(clean).toBe(dirty);
   });
 
   it('returns found: false when no widget tag is present', () => {

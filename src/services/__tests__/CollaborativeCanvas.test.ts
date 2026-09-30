@@ -17,7 +17,7 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
       const triage = evaluateEmergencyTriage(input);
       expect(triage.isEmergency).toBe(true);
       expect(triage.category).toBe('CARDIOVASCULAR');
-      expect(triage.suggestedContact).toBe('911');
+      expect(triage.suggestedContact).toBe('');
     });
 
     it('catches acute cerebrovascular emergencies before any agent processing', () => {

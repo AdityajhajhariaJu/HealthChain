@@ -36,6 +36,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to revoke expired profiles' });
     }
 
+    const {data:recovery,error:recoveryError}=await supabase.rpc('recover_interrupted_ai_requests',{p_limit:5000});
+    if(recoveryError || recovery?.failed)return res.status(500).json({error:'AI request recovery needs attention'});
     console.log(`Revoked pro status for ${data?.length || 0} profiles`);
     return res.status(200).json({ status: 'ok', revoked_count: data?.length || 0 });
   } catch (error) {

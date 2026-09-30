@@ -2,6 +2,7 @@ import { get, set } from 'idb-keyval';
 import { supabase } from './supabaseClient';
 import { enqueueSync, getPendingObservationIds } from './SyncOutbox';
 import { getProfileEngineState } from './ProfileEngine';
+import { captureAccountScope as captureHealthMemoryScope, isAccountScopeCurrent as isHealthMemoryScopeCurrent } from './AccountScope';
 import { validateObservationDraft, type Observation, type ObservationDraft, type ObservationScope } from '../domain/observations/types';
 
 export type ObservationCommandResult =
@@ -25,11 +26,14 @@ function serialize<T>(work: () => Promise<T>): Promise<T> {
 }
 
 export async function captureObservationScope(): Promise<ObservationScope | null> {
+  const account = captureHealthMemoryScope();
   const profileId = getProfileEngineState()?.activeId || 'profile_1';
   // The current caregiver release is disabled. The SQL policy also accepts only profile_1.
   if (profileId !== 'profile_1') return null;
+  if (account.accountId === 'guest' && localStorage.getItem('hc_guest_mode') === 'true') return {ownerId:'guest',profileId};
   const { data: { session } } = await supabase.auth.getSession();
-  if (session?.user?.id) return { ownerId: session.user.id, profileId };
+  if (!isHealthMemoryScopeCurrent(account)) return null;
+  if (session?.user?.id && session.user.id === account.accountId) return { ownerId: session.user.id, profileId };
   return typeof localStorage !== 'undefined' && localStorage.getItem('hc_guest_mode') === 'true'
     ? { ownerId: 'guest', profileId } : null;
 }

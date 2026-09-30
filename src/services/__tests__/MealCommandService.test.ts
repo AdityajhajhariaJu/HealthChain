@@ -24,7 +24,7 @@ import {dietDiaryCsv} from '../dietDiaryExport';
 import { listObservationHistory, retryFailedObservationQueues } from '../HealthObservationService';
 
 describe('shared meal command and diary', () => {
-  beforeEach(() => { state.records.clear(); state.queueOk = true; state.profile = { dietFoodLogs: {}, nutrition: { recentLogs: [] } }; localStorage.clear(); });
+  beforeEach(() => { state.records.clear(); state.queueOk = true; state.profile = { dietFoodLogs: {}, nutrition: { recentLogs: [] } }; localStorage.clear(); localStorage.setItem('hc_account',JSON.stringify({id:'account-a'})); });
 
   it('preserves actual timing and optional context without inventing nutrients',async()=>{
     const result=await createMeal({localDate:'2026-09-29',captureMethod:'diet_diary',entry:{id:'timed-meal',name:'Restaurant noodles',occurredAt:'2026-09-29T12:30:00Z',timePrecision:'approximate',amountValue:350,amountUnit:'g',hunger:3,fullness:4,note:'Shared meal'}});

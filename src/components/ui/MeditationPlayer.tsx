@@ -25,7 +25,8 @@ import {
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
-import { supabase } from '../../services/supabaseClient';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { recordHealthMemory, flushHealthMemory } from '../../services/HealthMemory';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import Confetti from 'react-confetti';
 import { 
@@ -397,6 +398,13 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [mediaActive,setMediaActive] = useState(false);
+  const [saveError,setSaveError] = useState('');
+  const scopeRef=useRef(captureAccountScope());
+  const sessionIdRef=useRef(crypto.randomUUID());
+  const sessionStartRef=useRef<Promise<any>|null>(null);
+  const participationRef=useRef(0);
+  const completingRef=useRef(false);
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -624,8 +632,23 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       setIsPlaying(true);
       setIsCompleted(false);
       setActiveTrackIndex(0);
+      setMediaActive(false);
+      setSaveError('');
+      scopeRef.current=captureAccountScope();
+      sessionIdRef.current=crypto.randomUUID();
+      sessionStartRef.current=null;
+      participationRef.current=0;
+      completingRef.current=false;
     }
-  }, [content, totalDuration]);
+  }, [content?.id, totalDuration]);
+
+  useEffect(()=>{
+    if(!mediaActive || !content || scopeRef.current.accountId==='guest' || sessionStartRef.current)return;
+    if(!isAccountScopeCurrent(scopeRef.current)){setIsPlaying(false);setSaveError('Account changed. Close this session before starting another.');return;}
+    if(!/^[0-9a-f-]{36}$/i.test(content.id))return;
+    sessionStartRef.current=FitnessService.startSession(content.id,sessionIdRef.current);
+    void sessionStartRef.current.catch(()=>{setIsPlaying(false);setSaveError('This activity could not be started. Close and reopen it to retry.');});
+  },[mediaActive,content?.id]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -664,8 +687,12 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   // Point 4: Session Countdown Timer & 10s Exponential Volume Fade-Out
   useEffect(() => {
-    if (!isPlaying || isCompleted || timeRemaining <= 0) return;
+    if (!isPlaying || !mediaActive || isCompleted || timeRemaining <= 0) return;
+    let previous=performance.now();
     const timer = setInterval(() => {
+      const now=performance.now();
+      participationRef.current+=(now-previous)/1000;
+      previous=now;
       setTimeRemaining(prev => {
         const next = Math.max(0, prev - 1);
         // Fade volume out over last 10 seconds
@@ -676,7 +703,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, isCompleted, timeRemaining, isMuted]);
+  }, [isPlaying, mediaActive, isCompleted, timeRemaining, isMuted]);
 
   useEffect(() => {
     if (timeRemaining === 0 && isPlaying && !isCompleted) {
@@ -690,12 +717,29 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   // Point 3: Post-Session Mindful Summary & Streak Celebration
   const handleComplete = async () => {
-    setIsCompleted(true);
+    if(completingRef.current || isCompleted)return;
+    completingRef.current=true;
     setIsPlaying(false);
+    const scope=scopeRef.current;
+    const actualSeconds=Math.floor(participationRef.current);
+    try {
+      if(!isAccountScopeCurrent(scope))throw new Error('Account changed. This session was not saved.');
+      if(actualSeconds<1)throw new Error('No playback participation was recorded. Play the audio before saving.');
+      if(content && /^[0-9a-f-]{36}$/i.test(content.id) && scope.accountId!=='guest'){
+        if(!sessionStartRef.current)throw new Error('No started activity session was found.');
+        const started=await sessionStartRef.current;
+        if(!isAccountScopeCurrent(scope))throw new Error('Account changed.');
+        await FitnessService.completeSession(started.session_id,actualSeconds);
+      }
+      if(!isAccountScopeCurrent(scope))throw new Error('Account changed.');
+      recordHealthMemory({kind:'health_buddy',source:'wellness_participation',title:content?.title || 'Audio relaxation',occurredAt:new Date().toISOString(),dedupeKey:'wellness_'+sessionIdRef.current,payload:{userConfirmed:true,participationSeconds:actualSeconds,contentId:content?.id,calories:null}});
+      await flushHealthMemory(scope);
+      setSaveError('');
+      setIsCompleted(true);
     triggerHapticSuccess();
     setShowConfetti(true);
 
-    const minutesLogged = Math.max(1, Math.round((totalDuration - timeRemaining) / 60) || 5);
+    const minutesLogged = Math.round(actualSeconds / 60 * 10) / 10;
     const pointsAwarded = awardPoints(5, 'Completed Mindful Meditation Session', 'mindful') ? 5 : 0;
 
     setSessionStats({
@@ -705,19 +749,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     });
     setShowSummaryModal(true);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user && content) {
-      try {
-        await FitnessService.completeWellnessSession(
-          session.user.id, 
-          content.id, 
-          totalDuration, 
-          content.calories_estimate || 0
-        );
-      } catch (err) {
-        console.error("Failed to log session", err);
-      }
-    }
+    } catch(error:any){setSaveError(error.message || 'Participation could not be saved. Retry.');toast.error('Session needs attention',error.message || 'Save failed.');}
+    finally{completingRef.current=false;}
   };
 
   // Point 5: Action Island Calm Trigger on Player Minimize
@@ -900,6 +933,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             }
           }}
         >
+          {saveError && <div role="alert" style={{position:'absolute',top:20,left:20,right:20,zIndex:20,background:'#fff',color:'#0f172a',padding:16,borderRadius:16}}>
+            {saveError} <button type="button" style={{minHeight:44}} onClick={()=>void handleComplete()}>Retry saving participation</button>
+          </div>}
           {/* Point 8: Zen Mode Floating Feedback Pill */}
           <AnimatePresence>
             {zenToastVisible && (
@@ -1034,7 +1070,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   autoPlay={isPlaying}
                   preload="auto"
                   playsInline
+                  onPlaying={()=>setMediaActive(true)}
+                  onPause={()=>setMediaActive(false)}
+                  onWaiting={()=>setMediaActive(false)}
                   onError={() => {
+                    setMediaActive(false);
                     console.warn('Track audio playback error, resetting playing state');
                     setIsPlaying(false);
                   }}

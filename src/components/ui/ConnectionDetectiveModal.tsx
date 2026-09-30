@@ -8,6 +8,7 @@ import { triggerHapticLight } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface ConnectionDetectiveModalProps {
+  caseId?: string | null;
   isOpen: boolean;
   onClose: () => void;
   initialTab?: string;
@@ -21,6 +22,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   isOpen,
   onClose,
   initialTab,
+  caseId,
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
@@ -211,7 +213,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 <div style={{ minWidth: 0 }}><strong style={{ display: 'block', color: '#263147', fontSize: 13 }}>Have a personal gut question?</strong><span style={{ display: 'block', marginTop: 3, color: '#68768C', fontSize: 12, lineHeight: 1.4 }}>Open your saved meals, symptom reports and research together.</span></div>
                 <button type="button" onClick={onOpenGutHealth} style={{ minHeight: 38, flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 11px', border: '1px solid #E78CA2', borderRadius: 11, background: '#FFF', color: '#B51E49', fontWeight: 750, cursor: 'pointer' }}>My Gut Health <ArrowRight size={15} /></button>
               </section>}
-              <ConnectionDetectiveView
+              <ConnectionDetectiveView caseId={caseId}
                 initialTab={initialTab as any}
                 openedPillarId={openedPillarId as any}
                 onOpenedPillarChange={(id) => setOpenedPillarId(id)}

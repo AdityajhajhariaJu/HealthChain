@@ -40,6 +40,7 @@ describe('canonical observation local commands', () => {
     state.records.clear(); state.queued = []; state.owner = 'account-a'; state.profile = 'profile_1'; state.queueOk = true; state.idbWriteFail = false;
     state.remoteRows = []; state.remoteError = null; state.pendingIds = new Set();
     localStorage.clear();
+    localStorage.setItem('hc_account', JSON.stringify({id: state.owner}));
   });
 
   it('saves once for the same command and keeps revisions in order', async () => {

@@ -1,6 +1,17 @@
+import {
+  captureAccountScope as captureHealthMemoryScope,
+  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+  type AccountScope as HealthMemoryScope,
+} from './AccountScope';
+export {
+  captureAccountScope as captureHealthMemoryScope,
+  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+} from './AccountScope';
+export type { AccountScope as HealthMemoryScope } from './AccountScope';
 import { supabase } from './supabaseClient';
 import { getItemSync, setItemSync } from './storage';
 import { enqueueSync } from './SyncOutbox';
+import * as idb from 'idb-keyval';
 
 export type HealthMemoryKind =
   | 'case_prep'
@@ -14,7 +25,6 @@ export type HealthMemoryKind =
   | 'pharmacy'
   | 'research'
   | 'discussion_guide';
-
 export interface HealthMemoryItem {
   id: string;
   profileId: string;
@@ -27,237 +37,368 @@ export interface HealthMemoryItem {
   dedupeKey?: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 }
+const kinds = new Set([
+  'case_prep',
+  'quick_consult',
+  'deep_collab',
+  'jarvis_analysis',
+  'lab_report',
+  'diet',
+  'health_buddy',
+  'profile_event',
+  'pharmacy',
+  'research',
+  'discussion_guide',
+]);
+const cache = new Map<string, HealthMemoryItem[]>();
+const hydration = new Map<string, Promise<void>>();
+const writes = new Map<string, Promise<void>>();
+const isUuid = (value?: string) =>
+  !!value &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+const uuid = () => crypto.randomUUID();
+const date = (value: unknown) => typeof value === 'string' && Number.isFinite(Date.parse(value));
 
-const uuid = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (part) => {
-    const random = Math.random() * 16 | 0;
-    return (part === 'x' ? random : (random & 0x3 | 0x8)).toString(16);
+if (typeof window !== 'undefined')
+  window.addEventListener('hc_logout', () => {
+    cache.clear();
+    hydration.clear();
+    writes.clear();
   });
-};
-const isUuid = (value?: string) => !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-
-const accountId = () => {
-  try { return JSON.parse(localStorage.getItem('hc_account') || '{}').id || 'guest'; } catch { return 'guest'; }
-};
-
-const profileId = () => {
-  try {
-    const raw = getItemSync(`hc_unified_profile_${accountId()}`) || getItemSync('hc_unified_profile_guest') || getItemSync('hc_unified_profile');
-    return JSON.parse(raw || '{}').activeId || 'profile_1';
-  } catch { return 'profile_1'; }
-};
-
-const storageKey = () => `hc_health_memory_${accountId()}_${profileId()}`;
-
-const isSchemaUnavailable = (error: any) => error?.code === '42P01' || error?.code === 'PGRST205';
-
-function safePayload(payload: any) {
-  // Health Memory contains structured knowledge, not original files, data URLs, or unlimited transcripts.
-  const json = JSON.stringify(payload ?? {});
-  if (json.length <= 30000) return payload ?? {};
-  return {
-    summary: json.slice(0, 28000),
-    truncated: true,
-    notice: 'A large AI artefact was condensed for durable Health Memory storage.'
-  };
+export function normalizeHealthMemoryItems(raw: unknown): HealthMemoryItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (item) =>
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.title === 'string' &&
+        typeof item.source === 'string' &&
+        item.profileId === 'profile_1' &&
+        kinds.has(item.kind) &&
+        date(item.occurredAt) &&
+        date(item.updatedAt) &&
+        date(item.createdAt) &&
+        item.payload &&
+        typeof item.payload === 'object' &&
+        !Array.isArray(item.payload)
+    )
+    .slice(0, 3000);
 }
-
-let memoryCache: Record<string, HealthMemoryItem[]> = {};
-
-export function getHealthMemory(): HealthMemoryItem[] {
-  const key = storageKey();
-  if (memoryCache[key]) return memoryCache[key];
+const validate = normalizeHealthMemoryItems;
+function parse(raw: unknown) {
   try {
-    const parsed = JSON.parse(getItemSync(key) || '[]');
-    memoryCache[key] = parsed;
-    return parsed;
+    return validate(typeof raw === 'string' ? JSON.parse(raw) : raw);
   } catch {
     return [];
   }
 }
-
-export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string): HealthMemoryItem | undefined {
-  return getHealthMemory().find((item) => item.kind === kind && (!source || item.source === source));
+function merge(...collections: HealthMemoryItem[][]) {
+  const merged = new Map<string, HealthMemoryItem>();
+  for (const items of collections)
+    for (const item of items) {
+      const old = merged.get(item.id);
+      if (
+        !old ||
+        (item.deletedAt && !old.deletedAt) ||
+        (!old.deletedAt && Date.parse(item.updatedAt) >= Date.parse(old.updatedAt)) ||
+        (item.deletedAt && old.deletedAt && Date.parse(item.updatedAt) >= Date.parse(old.updatedAt))
+      )
+        merged.set(item.id, item);
+    }
+  const forgotten = new Set(
+    [...merged.values()]
+      .filter((item) => item.deletedAt && item.dedupeKey)
+      .map((item) => item.dedupeKey)
+  );
+  return [...merged.values()]
+    .filter((item) => item.deletedAt || !item.dedupeKey || !forgotten.has(item.dedupeKey))
+    .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt))
+    .slice(0, 3000);
 }
-
-function writeLocal(items: HealthMemoryItem[]) {
-  const key = storageKey();
-  const bounded = items.slice(0, 3000);
-  memoryCache[key] = bounded;
-  
-  import('idb-keyval').then(idb => {
-    idb.set(key, JSON.stringify(bounded)).catch(console.warn);
-    try { localStorage.removeItem(key); } catch {}
-  }).catch(() => {});
-  
-  window.dispatchEvent(new Event('hc_health_memory_updated'));
+function local(scope: HealthMemoryScope) {
+  if (!cache.has(scope.key)) cache.set(scope.key, parse(getItemSync(scope.key)));
+  return cache.get(scope.key)!;
 }
-
-function replaceLocalMemoryId(oldId: string, newId: string) {
-  if (oldId === newId) return;
-  const items = getHealthMemory();
-  if (!items.some((item) => item.id === oldId)) return;
-  writeLocal(items.map((item) => item.id === oldId ? { ...item, id: newId } : item));
+function notify(scope: HealthMemoryScope) {
+  if (isHealthMemoryScopeCurrent(scope))
+    window.dispatchEvent(new Event('hc_health_memory_updated'));
 }
-
-function remotePayload(item: HealthMemoryItem, id = item.id): any {
+export async function hydrateHealthMemory(scope = captureHealthMemoryScope()) {
+  if (!hydration.has(scope.key))
+    hydration.set(
+      scope.key,
+      (async () => {
+        let disk: HealthMemoryItem[] = [];
+        try {
+          disk = parse(await idb.get(scope.key));
+        } catch {}
+        if (!isHealthMemoryScopeCurrent(scope)) return;
+        cache.set(scope.key, merge(disk, local(scope)));
+        notify(scope);
+      })()
+    );
+  await hydration.get(scope.key);
+}
+export function getHealthMemory(): HealthMemoryItem[] {
+  const scope = captureHealthMemoryScope();
+  void hydrateHealthMemory(scope);
+  return local(scope).filter((item) => !item.deletedAt);
+}
+export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string) {
+  return getHealthMemory().find(
+    (item) => item.kind === kind && (!source || item.source === source)
+  );
+}
+function writeLocal(items: HealthMemoryItem[], scope: HealthMemoryScope) {
+  if (!isHealthMemoryScopeCurrent(scope)) return;
+  cache.set(scope.key, items.slice(0, 3000));
+  // Keep a synchronous mirror; never remove the only reload-readable copy.
+  try {
+    setItemSync(scope.key, JSON.stringify(local(scope)));
+  } catch {}
+  const pending = (writes.get(scope.key) || Promise.resolve())
+    .catch(() => {})
+    .then(async () => {
+      await hydrateHealthMemory(scope);
+      if (!isHealthMemoryScopeCurrent(scope)) return;
+      const json = JSON.stringify(local(scope));
+      let mirrored = false;
+      try {
+        setItemSync(scope.key, json);
+        mirrored = getItemSync(scope.key) === json;
+      } catch {}
+      try {
+        await idb.set(scope.key, json);
+      } catch (error) {
+        if (!mirrored) throw error;
+      }
+    });
+  writes.set(scope.key, pending);
+  void pending.catch(() => {
+    if (isHealthMemoryScopeCurrent(scope))
+      window.dispatchEvent(
+        new CustomEvent('hc_sync_error', {
+          detail: { area: 'health_memory', code: 'LOCAL_STORAGE_FAILED' },
+        })
+      );
+  });
+  notify(scope);
+}
+export async function flushHealthMemory(scope = captureHealthMemoryScope()) {
+  await hydrateHealthMemory(scope);
+  await writes.get(scope.key);
+  if (!isHealthMemoryScopeCurrent(scope))
+    throw new Error('Account changed. Please retry in the original account.');
+}
+export async function exportHealthMemory() {
+  const scope = captureHealthMemoryScope();
+  await flushHealthMemory(scope);
+  return local(scope);
+}
+function safePayload(payload: any) {
+  const json = JSON.stringify(payload ?? {});
+  if (json.length <= 30000) return payload ?? {};
+  return { summary: json.slice(0, 28000), truncated: true };
+}
+function remotePayload(item: HealthMemoryItem, scope: HealthMemoryScope, id = item.id) {
   return {
     id,
-    user_id: undefined,
-    profile_id: item.profileId,
-    case_id: item.caseId || null,
-    kind: item.kind,
+    user_id: scope.accountId,
+    profile_id: scope.profileId,
+    case_id: isUuid(item.caseId) ? item.caseId : null,
+    kind: item.kind === 'jarvis_analysis' ? 'deep_collab' : item.kind,
     source: item.source,
     title: item.title,
     occurred_at: item.occurredAt,
     payload: item.payload,
     dedupe_key: item.dedupeKey || null,
     updated_at: item.updatedAt,
+    ...(item.deletedAt ? { deleted_at: item.deletedAt } : {}),
   };
 }
-
-async function syncItem(item: HealthMemoryItem) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return;
-  const row = remotePayload(item);
-  row.user_id = session.user.id;
-  const { error } = await supabase.from('health_memory').upsert(row,
-    { onConflict: 'id' });
-  if (error) {
-    if (error.code === '23505' && item.dedupeKey) {
-      const { data: existing, error: lookupError } = await supabase
+async function syncItem(item: HealthMemoryItem, scope: HealthMemoryScope) {
+  await hydrateHealthMemory(scope);
+  if (scope.accountId === 'guest' || !isHealthMemoryScopeCurrent(scope)) return;
+  if (!local(scope).some((entry) => entry.id === item.id && entry.updatedAt === item.updatedAt))
+    return;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!isHealthMemoryScopeCurrent(scope) || session?.user?.id !== scope.accountId) return;
+  const row = remotePayload(item, scope);
+  const { error } = await supabase.from('health_memory').upsert(row, { onConflict: 'id' });
+  if (!isHealthMemoryScopeCurrent(scope)) return;
+  if (error?.code === '23505' && item.dedupeKey) {
+    const { data: existing, error: lookupError } = await supabase
+      .from('health_memory')
+      .select('id,deleted_at')
+      .eq('user_id', scope.accountId)
+      .eq('profile_id', scope.profileId)
+      .eq('dedupe_key', item.dedupeKey)
+      .maybeSingle();
+    if (!isHealthMemoryScopeCurrent(scope)) return;
+    if (!lookupError && existing?.id) {
+      if (existing.deleted_at && !item.deletedAt) {
+        writeLocal(
+          local(scope).map((entry) =>
+            entry.id === item.id
+              ? { ...entry, id: existing.id, deletedAt: existing.deleted_at }
+              : entry
+          ),
+          scope
+        );
+        return;
+      }
+      const replacement = remotePayload(item, scope, existing.id);
+      const { error: updateError } = await supabase
         .from('health_memory')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .eq('profile_id', item.profileId)
-        .eq('dedupe_key', item.dedupeKey)
-        .maybeSingle();
-      if (!lookupError && existing?.id) {
-        const replacement = remotePayload(item, existing.id);
-        replacement.user_id = session.user.id;
-        const { error: updateError } = await supabase
-          .from('health_memory')
-          .update(replacement)
-          .eq('id', existing.id)
-          .eq('user_id', session.user.id);
-        if (!updateError) {
-          replaceLocalMemoryId(item.id, existing.id);
-          window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { area: 'health_memory', at: new Date().toISOString() } }));
-          return;
-        }
+        .update(replacement)
+        .eq('id', existing.id)
+        .eq('user_id', scope.accountId);
+      if (!isHealthMemoryScopeCurrent(scope)) return;
+      if (!updateError) {
+        writeLocal(
+          local(scope).map((entry) =>
+            entry.id === item.id ? { ...entry, id: existing.id } : entry
+          ),
+          scope
+        );
+        return;
       }
     }
-    if (isSchemaUnavailable(error)) {
-      // The feature can ship before its migration. Queue the compact,
-      // structured item so applying the migration later in this session (or
-      // reconnecting on another device) does not strand processed knowledge
-      // in browser storage.
-      await enqueueSync('health_memory_upsert', session.user.id, {
-        id: item.id,
-        user_id: session.user.id,
-        profile_id: item.profileId,
-        case_id: item.caseId || null,
-        kind: item.kind,
-        source: item.source,
-        title: item.title,
-        occurred_at: item.occurredAt,
-        payload: item.payload,
-        dedupe_key: item.dedupeKey || null,
-        updated_at: item.updatedAt,
-      });
-      window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { area: 'health_memory' } }));
-      return;
-    }
-    await enqueueSync('health_memory_upsert', session.user.id, {
-      id: item.id,
-      user_id: session.user.id,
-      profile_id: item.profileId,
-      case_id: item.caseId || null,
-      kind: item.kind,
-      source: item.source,
-      title: item.title,
-      occurred_at: item.occurredAt,
-      payload: item.payload,
-      dedupe_key: item.dedupeKey || null,
-      updated_at: item.updatedAt,
-    });
-    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
-    throw error;
   }
-  window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { area: 'health_memory', at: new Date().toISOString() } }));
+  if (error) {
+    const queued = await enqueueSync('health_memory_upsert', scope.accountId, row);
+    if (!queued) {
+      if (isHealthMemoryScopeCurrent(scope))
+        window.dispatchEvent(
+          new CustomEvent('hc_sync_error', {
+            detail: { area: 'health_memory', code: 'QUEUE_FAILED' },
+          })
+        );
+      throw new Error('Memory is saved on this device, but account sync could not be queued.');
+    }
+    if (isHealthMemoryScopeCurrent(scope))
+      window.dispatchEvent(
+        new CustomEvent('hc_sync_pending', { detail: { area: 'health_memory' } })
+      );
+    return;
+  }
+  window.dispatchEvent(
+    new CustomEvent('hc_sync_complete', {
+      detail: { area: 'health_memory', at: new Date().toISOString() },
+    })
+  );
 }
-
-export function recordHealthMemory(input: Omit<HealthMemoryItem, 'id' | 'profileId' | 'createdAt' | 'updatedAt'> & { id?: string }) {
+export function recordHealthMemory(
+  input: Omit<HealthMemoryItem, 'id' | 'profileId' | 'createdAt' | 'updatedAt'> & { id?: string }
+) {
+  const scope = captureHealthMemoryScope();
+  void hydrateHealthMemory(scope);
+  const existing = local(scope);
   const now = new Date().toISOString();
-  const existing = getHealthMemory();
-  const match = input.dedupeKey ? existing.find(item => item.dedupeKey === input.dedupeKey) : undefined;
+  if (typeof input.title !== 'string' || !input.title.trim() || !kinds.has(input.kind))
+    throw new Error('Invalid health memory.');
+  const match = input.dedupeKey
+    ? existing.find((item) => item.dedupeKey === input.dedupeKey)
+    : undefined;
+  // A forgotten proposal must not silently reappear during background extraction.
+  if (match?.deletedAt) return match;
   const item: HealthMemoryItem = {
-    // Older timeline IDs use an evt_ prefix; the database intentionally uses UUIDs.
     id: isUuid(input.id) ? input.id! : match?.id || uuid(),
-    profileId: profileId(),
+    profileId: scope.profileId,
     kind: input.kind,
     source: input.source,
-    title: input.title,
-    occurredAt: input.occurredAt || now,
+    title: input.title.trim().slice(0, 2000),
+    occurredAt: date(input.occurredAt) ? input.occurredAt : now,
     payload: safePayload(input.payload),
     caseId: input.caseId,
     dedupeKey: input.dedupeKey,
     createdAt: match?.createdAt || now,
     updatedAt: now,
   };
-  writeLocal([item, ...existing.filter(existingItem => existingItem.id !== item.id)]);
-  syncItem(item).catch((error) => console.warn('Health Memory will retry on the next sign-in.', error));
+  writeLocal([item, ...existing.filter((entry) => entry.id !== item.id)], scope);
+  void syncItem(item, scope).catch(() => {
+    /* Local copy remains available for retry. */
+  });
   return item;
 }
-
+export async function reviseHealthMemory(
+  id: string,
+  title: string | null,
+  scope = captureHealthMemoryScope()
+) {
+  await hydrateHealthMemory(scope);
+  if (!isHealthMemoryScopeCurrent(scope)) throw new Error('Account changed.');
+  const item = local(scope).find((entry) => entry.id === id);
+  if (!item) throw new Error('Memory is no longer available.');
+  if (title !== null && !title.trim()) throw new Error('Enter a correction.');
+  const revised = {
+    ...item,
+    title: title === null ? item.title : title.trim().slice(0, 2000),
+    updatedAt: new Date().toISOString(),
+    ...(title === null ? { deletedAt: new Date().toISOString() } : {}),
+    payload: { ...item.payload, userConfirmed: true, corrected: title !== null },
+  };
+  writeLocal(
+    local(scope).map((entry) => (entry.id === id ? revised : entry)),
+    scope
+  );
+  await flushHealthMemory(scope);
+  await syncItem(revised, scope);
+  return revised;
+}
 export async function syncHealthMemoryFromSupabase() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return;
-  const key = storageKey();
-  try {
-    const idb = await import('idb-keyval');
-    const raw = await idb.get(key) as string;
-    if (raw) memoryCache[key] = JSON.parse(raw);
-  } catch {}
-  const pageSize = 500;
+  const scope = captureHealthMemoryScope();
+  await hydrateHealthMemory(scope);
+  if (scope.accountId === 'guest' || !isHealthMemoryScopeCurrent(scope)) return;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!isHealthMemoryScopeCurrent(scope) || session?.user?.id !== scope.accountId) return;
   const rows: any[] = [];
-  let page = 0;
-  while (true) {
-    const { data, error } = await supabase.from('health_memory')
+  for (let page = 0; page < 6; page++) {
+    const { data, error } = await supabase
+      .from('health_memory')
       .select('*')
-      .eq('user_id', session.user.id)
-      .eq('profile_id', profileId())
+      .eq('user_id', scope.accountId)
+      .eq('profile_id', scope.profileId)
       .order('occurred_at', { ascending: false })
-      .range(page * pageSize, (page + 1) * pageSize - 1);
+      .range(page * 500, (page + 1) * 500 - 1);
+    if (!isHealthMemoryScopeCurrent(scope)) return;
     if (error) {
-      if (isSchemaUnavailable(error)) {
-        // Existing local items are already queued when created. Do not mark
-        // the module permanently unavailable: once the migration is applied,
-        // the normal outbox retry can deliver them without a reload.
-        return;
-      }
+      if (error.code === '42P01' || error.code === 'PGRST205') return;
       throw error;
     }
     rows.push(...(data || []));
-    if (!data || data.length < pageSize) break;
-    page += 1;
+    if (!data || data.length < 500) break;
   }
-
-  const remote = rows.map((row: any): HealthMemoryItem => ({
-    id: row.id, profileId: row.profile_id, kind: row.kind, source: row.source, title: row.title,
-    occurredAt: row.occurred_at, payload: row.payload || {}, caseId: row.case_id || undefined,
-    dedupeKey: row.dedupe_key || undefined, createdAt: row.created_at, updatedAt: row.updated_at,
-  }));
-  const local = getHealthMemory();
-  const merged = new Map(remote.map(item => [item.id, item]));
-  for (const item of local) {
-    const cloud = merged.get(item.id);
-    if (!cloud || new Date(item.updatedAt) > new Date(cloud.updatedAt)) {
-      merged.set(item.id, item);
-      await syncItem(item);
-    }
+  const remote = validate(
+    rows.map((row) => ({
+      id: row.id,
+      profileId: row.profile_id,
+      kind: row.kind,
+      source: row.source,
+      title: row.title,
+      occurredAt: row.occurred_at,
+      payload: row.payload || {},
+      caseId: row.case_id || undefined,
+      dedupeKey: row.dedupe_key || undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at || undefined,
+    }))
+  );
+  for (const item of local(scope)) {
+    const cloud = remote.find((entry) => entry.id === item.id);
+    if (cloud?.deletedAt && !item.deletedAt) continue;
+    if (!cloud || Date.parse(item.updatedAt) > Date.parse(cloud.updatedAt))
+      await syncItem(item, scope);
+    if (!isHealthMemoryScopeCurrent(scope)) return;
   }
-  writeLocal([...merged.values()].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()));
+  writeLocal(merge(remote, local(scope)), scope);
+  await flushHealthMemory(scope);
 }

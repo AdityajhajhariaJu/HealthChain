@@ -1,17 +1,25 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import {AvaDisclosure} from '../../components/ui/AvaDisclosure';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle, ChevronDown, Check, CheckCircle2, ExternalLink, ArrowRight } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { chatWithTherapyGemini, analyzeLabReport, extractClinicalMemory } from '../../services/geminiService';
-import { addEvent, getProfile, updateVitals, getProfileEngineState, getProfileKey, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
+import { addEvent, getProfile, updateVitals, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
 import { recordHealthMemory, getHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { useToast } from '../../components/ui/ToastProvider';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { compilePatientContext } from '../../services/MemoryService';
+import { AvaMemoryPanel } from '../../components/ui/AvaMemoryPanel';
+import { AvaDayCheckin } from '../../components/ui/AvaDayCheckin';
+import { AvaActivityBrowser } from '../../components/ui/AvaActivityBrowser';
+import FocusTrap from '../../components/ui/FocusTrap';
+import { GuidedBreathingSession } from '../../components/ui/GuidedBreathingSession';
+import { loadAvaMessages, hydrateAvaMessages, persistAvaMessages, mergeAvaMessages, newAvaMessage, normalizeAvaMessages, normalizeAvaSourceStudy } from '../../services/AvaConversationRepository';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
@@ -19,10 +27,13 @@ import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
-import { getCase, getCases, addCaseEvent, addCaseQuestion, type CaseItem } from '../../services/CaseEngine';
+import { getCase, getCases, addCaseEvent, addCaseQuestion, saveAvaCaseAction, type CaseItem } from '../../services/CaseEngine';
 import { buildCaseContext, getUnifiedCaseScope, getCaseDocumentedAnswers } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { listObservations } from '../../services/HealthObservationService';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import type { Observation } from '../../domain/observations/types';
 import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
@@ -100,30 +111,9 @@ const CASE_RECHECK_SUGGESTIONS = [
   "Can you explain the underlying biological mechanism in simple terms?"
 ];
 
-import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
-import { FitnessContent } from '../../services/FitnessService';
+
 import { getItemSync, setItemSync } from '../../services/storage';
 
-
-const DEFAULT_CALM_TRACK: FitnessContent = {
-  id: 'ava-calm-reset-1',
-  category_id: 'mindfulness',
-  is_active: true,
-  type: 'breathwork',
-  title: '4-7-8 Breathing Reset',
-  subtitle: 'Guided Breathing',
-  description: 'Calming rhythmic breathwork to reduce stress and ease cognitive tension.',
-  cover_image_url: '/images/nature_calm.webp',
-  audio_url: 'https://cdn.freesound.org/previews/518/518888_11504996-lq.mp3',
-  video_url: '',
-  duration_minutes: 5,
-  calories_estimate: 15,
-  difficulty: 'Beginner',
-  equipment: [],
-  is_premium: false,
-  is_featured: true,
-  music_genre: 'Ambient Tibetan Singing Bowl & Drone',
-};
 
 const getAvaVaultKey = () => {
   const state = getProfileEngineState();
@@ -136,18 +126,14 @@ const INITIAL_MSG = {
     "Hi, I'm Ava. I can help you reflect on your day, understand your records, and prepare questions for your clinician. Connect a case to keep our conversation focused. What would you like help with?",
 };
 
-type AvaRequest = { messages: any[]; caseId: string; context: string; scope: string; requestId: string };
+type AvaRequest = {messages:any[];caseId:string;context:string;scope:string;requestId:string;safetyContext?:string;diarySnapshot?:any[];sourceStudy?:any;contextManifest?:any};
 
 function getSavedMessages() {
-  const profile = getProfile();
-  if (profile && Array.isArray(profile.avaData) && profile.avaData.length > 0) return profile.avaData;
-  try {
-    const saved = getItemSync(getAvaVaultKey());
-    const parsed = saved ? JSON.parse(saved) : null;
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [INITIAL_MSG];
-  } catch {
-    return [INITIAL_MSG];
-  }
+ let legacy: unknown=getProfile()?.avaData;
+ if (!Array.isArray(legacy) || !legacy.length) {
+   try {legacy=JSON.parse(getItemSync(getAvaVaultKey()) || '[]');} catch {}
+ }
+ return loadAvaMessages(legacy);
 }
 
 const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
@@ -198,22 +184,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
 };
 
 export function cleanChatMessageText(text: string): string {
-  if (!text) return '';
-  let cleaned = text;
-  // Strip any unparsed [WIDGET:...] tags
-  cleaned = cleaned.replace(/\[WIDGET:[^\]]*\]/g, '');
-  // Strip lines that start with }, or are raw JSON fragments like {"time":...
-  cleaned = cleaned.replace(/^\s*\},?\s*$/gm, '');
-  cleaned = cleaned.replace(/^\s*\{"time"[\s\S]*?\}(,\s*)?$/gm, '');
-  cleaned = cleaned.replace(/^\s*\[\{"time"[\s\S]*?\]\s*$/gm, '');
-  // Strip multi-line JSON key-value fragments containing "time": or "category": or "items":
-  cleaned = cleaned.replace(/\{[^{}]*"time"\s*:\s*"[^"]*"[^{}]*\}/g, '');
-  cleaned = cleaned.replace(/\{[^{}]*"category"\s*:\s*"[^"]*"[^{}]*\}/g, '');
-  cleaned = cleaned.replace(/\{[^{}]*"items"\s*:\s*\[[^{}]*\]\}/g, '');
-  // Strip dangling JSON brackets or commas left at the very start or end
-  cleaned = cleaned.replace(/^[\s,}\]]+/, '');
-  cleaned = cleaned.replace(/[\s,{\[]+$/, '');
-  return cleaned.trim();
+ return typeof text === 'string' ? text.trim() : '';
 }
 
 export function extractBalancedWidget(text: string, tag: string): { payload: any | null; before: string; after: string; found: boolean } {
@@ -240,6 +211,7 @@ export function extractBalancedWidget(text: string, tag: string): { payload: any
     let escape = false;
 
     for (let i = 0; i < jsonStr.length; i++) {
+      if (jsonStr.startsWith('[WIDGET:',i)) break;
       const char = jsonStr[i];
       if (escape) {
         escape = false;
@@ -287,187 +259,56 @@ export function extractBalancedWidget(text: string, tag: string): { payload: any
     }
   }
 
-  // Fallback: strip to the last bracket so raw JSON doesn't leak into view
-  const lastBracket = text.lastIndexOf(']');
-  if (lastBracket > startIdx) {
-    return { payload: null, before, after: cleanChatMessageText(text.substring(lastBracket + 1)), found: true };
+  // Isolate a malformed card without consuming a later independent card.
+  const nextWidget = text.indexOf('[WIDGET:',startIdx + prefix.length);
+  const firstBracket = text.indexOf(']',startIdx + prefix.length);
+  if (nextWidget !== -1 && (firstBracket === -1 || nextWidget < firstBracket)) {
+    return {payload:null,before,after:text.substring(nextWidget),found:true};
+  }
+  if (firstBracket > startIdx) {
+    return { payload: null, before, after: cleanChatMessageText(text.substring(firstBracket + 1)), found: true };
   }
 
   return { payload: null, before, after: '', found: true };
 }
 
-const MessageRenderer = ({
-  content,
-  onOpenCalm,
-  onOpenWholeHealth,
-  diaryEntries = [],
-}: {
-  content: string;
-  onOpenCalm?: () => void;
-  onOpenWholeHealth?: () => void;
-  diaryEntries?: Array<{ id: string | number; name: string; date?: string; occurredAt?: unknown; timePrecision?: unknown; type?: unknown }>;
+export const MessageRenderer = ({content,onOpenCalm,onOpenWholeHealth,onOpenWorkout,diaryEntries=[],messageId}: {
+ content:string;onOpenCalm?:()=>void;onOpenWholeHealth?:()=>void;onOpenWorkout?:()=>void;diaryEntries?:any[];messageId?:string;
 }) => {
-  const handleStartCalm = () => {
-    triggerHapticLight();
-    if (onOpenCalm) {
-      onOpenCalm();
-    } else {
-      window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
-    }
-  };
-
-  // DIARY TIMELINE WIDGET (Triggerbites Diary Reference)
-  if (content.includes('[WIDGET:DIARY_TIMELINE')) {
-    const { before, after } = extractBalancedWidget(content, 'DIARY_TIMELINE');
-    const dynamicEntries = diaryEntries.slice(0, 3).map((meal) => ({
-      time: typeof meal.occurredAt === 'string' && ['exact', 'approximate'].includes(String(meal.timePrecision))
-        ? new Date(meal.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not recorded',
-      category: typeof meal.type === 'string' ? meal.type : 'Meal',
-      items: [meal.name || 'Logged meal'],
-    }));
-    const parsed = {
-      title: 'Logged in your diary',
-      date: 'Recent records',
-      entries: dynamicEntries,
-    };
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-        {before && <span>{before}</span>}
-        <DiaryTimelineCard
-          title={parsed.title}
-          date={parsed.date}
-          entries={parsed.entries}
-        />
-        {after && <span>{after}</span>}
-      </div>
-    );
+ if (typeof content !== 'string') return <span>Saved reply is unreadable. Please retry.</span>;
+ const segments:any[]=[];
+ let remaining=content;
+ for(let count=0;count<20;count++) {
+  const match=/\[WIDGET:([A-Z_]+)/.exec(remaining);
+  if(!match){if(remaining.trim())segments.push(<span key={'text'+count} style={{whiteSpace:'pre-wrap'}}>{remaining}</span>);break;}
+  const tag=match[1],parsed=extractBalancedWidget(remaining,tag);
+  if(parsed.before)segments.push(<span key={'before'+count} style={{whiteSpace:'pre-wrap'}}>{parsed.before}</span>);
+  const buttonStyle={minHeight:44,borderRadius:12,padding:'10px 16px',border:'1px solid #99F6E4',background:'#FFFFFF',color:'#0F766E',fontWeight:700,cursor:'pointer'};
+  if(tag==='DIARY_TIMELINE'){
+   const entries=diaryEntries.map(meal=>({
+    time:typeof meal.occurredAt==='string' && Number.isFinite(Date.parse(meal.occurredAt)) && ['exact','approximate'].includes(meal.timePrecision)
+      ?new Date(meal.occurredAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'Time not recorded',
+    category:meal.type || 'Meal',items:[meal.name || 'Logged meal'],
+   }));
+   segments.push(<DiaryTimelineCard key={'diary'+count} title="Diary records included in this reply" date="Captured when you sent your message" entries={entries}/>);
+  }else if(['CALM','BREATHWORK','WORKOUT','SOMATIC'].includes(tag)){
+   const movement=['WORKOUT','SOMATIC'].includes(tag);
+   segments.push(<AvaDisclosure key={'action'+count} storageId={messageId?messageId+'_'+tag+'_'+count:undefined} initiallyOpen style={{padding:16,borderRadius:18,background:'#F0FDFA',border:'1px solid #99F6E4'}}>
+    <summary style={{minHeight:44,cursor:'pointer',fontWeight:700}}>{movement?'Explore movement activities':'Optional comfortable breathing'}</summary>
+    <p>{movement?'Choose an available activity and review its instructions before starting.':'Follow a gentle visual pace at your comfort. Pause or stop if you feel dizzy or uncomfortable.'}</p>
+    <button type="button" style={buttonStyle} disabled={movement?!onOpenWorkout:!onOpenCalm} onClick={movement?onOpenWorkout:onOpenCalm}>{movement?'Browse activities':'Open breathing guide'}</button>
+   </AvaDisclosure>);
+  }else{
+   segments.push(<AvaDisclosure key={'review'+count} storageId={messageId?messageId+'_review_'+count:undefined} style={{padding:16,borderRadius:16,border:'1px solid #ECD9D0'}}>
+    <summary style={{minHeight:44,cursor:'pointer'}}>This card needs source review</summary>
+    <p>The proposed card is unavailable. Review saved observations before acting.</p>
+    <button type="button" style={buttonStyle} disabled={!onOpenWholeHealth} onClick={onOpenWholeHealth}>Review observations</button>
+   </AvaDisclosure>);
   }
-
-  // Legacy food-sensitivity widgets were generated from unverified reference data.
-  if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD') ||
-      content.includes('[WIDGET:TRIGGER_CARD') ||
-      content.includes('[WIDGET:SYMPTOM_SENSITIVITY_CAPSULE_CARD')) {
-    return <div style={{ padding: 15, border: '1px solid #ECD9D0', borderRadius: 15, background: 'linear-gradient(145deg,#FFFCFA,#FFF3EF)', color: '#66554F', lineHeight: 1.5 }}>
-      This food-sensitivity card needs source review before it can be shown. You can review your recorded meals and symptoms in the observation view.
-      {onOpenWholeHealth && <button type="button" onClick={onOpenWholeHealth} style={{ display: 'block', marginTop: 10, minHeight: 40, padding: '8px 12px', borderRadius: 9, border: '1px solid #D8A999', background: '#FFFDFC', color: '#765248', fontWeight: 700, cursor: 'pointer' }}>Review observations</button>}
-    </div>;
-  }
-
-  if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {
-    const splitKey = content.includes('[WIDGET:CALM]') ? '[WIDGET:CALM]' : '[WIDGET:BREATHWORK]';
-    const parts = content.split(splitKey);
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {parts[0] && <span>{parts[0]}</span>}
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(15, 118, 110, 0.95) 0%, rgba(13, 148, 136, 0.9) 100%)',
-          borderRadius: '18px',
-          padding: '18px',
-          color: 'white',
-          boxShadow: '0 12px 28px rgba(13, 148, 136, 0.25)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#A7F3D0' }}>
-            <Wind size={18} />
-            <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              GUIDED BREATHING RESET
-            </span>
-          </div>
-          <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#FFFFFF' }}>
-            4-7-8 Calm Breathing Session
-          </h4>
-          <p style={{ margin: 0, fontSize: '13px', color: '#CCFBF1', lineHeight: 1.5 }}>
-            Evidence-based rhythmic breathwork engineered to lower sympathetic overdrive, steady heart rate, and restore prefrontal clarity.
-          </p>
-          <button
-            type="button"
-            onClick={handleStartCalm}
-            style={{
-              marginTop: '8px',
-              background: '#FFFFFF',
-              color: '#0F766E',
-              border: 'none',
-              padding: '12px 20px',
-              minHeight: '44px',
-              borderRadius: '12px',
-              fontWeight: 700,
-              fontSize: '13.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-            }}
-          >
-            <Play size={16} fill="#0F766E" /> Begin 5-Min Calm Reset
-          </button>
-        </div>
-        {parts[1] && <span>{parts[1]}</span>}
-      </div>
-    );
-  }
-
-  if (content.includes('[WIDGET:WORKOUT]') || content.includes('[WIDGET:SOMATIC]')) {
-    const delimiter = content.includes('[WIDGET:SOMATIC]') ? '[WIDGET:SOMATIC]' : '[WIDGET:WORKOUT]';
-    const parts = content.split(delimiter);
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {parts[0] && <span>{parts[0]}</span>}
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%)',
-          borderRadius: '18px',
-          padding: '18px',
-          color: 'white',
-          boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34D399' }}>
-            <Activity size={18} />
-            <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              RESTORATIVE SOMATIC RESET
-            </span>
-          </div>
-          <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>
-            Gentle Autonomic Decompression
-          </h4>
-          <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', lineHeight: 1.5 }}>
-            Restorative nervous system reset with somatic breath regulation.
-          </p>
-          <button
-            type="button"
-            onClick={handleStartCalm}
-            style={{
-              marginTop: '6px',
-              background: '#10B981',
-              color: '#0F172A',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '12px',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Play size={16} fill="#0F172A" /> Start Restorative Session
-          </button>
-        </div>
-        {parts[1] && <span>{parts[1]}</span>}
-      </div>
-    );
-  }
-
-  return <span>{content}</span>;
+  if(parsed.after===remaining)break;
+  remaining=parsed.after;
+ }
+ return <div style={{display:'flex',flexDirection:'column',gap:12,width:'100%'}}>{segments}</div>;
 };
 
 export function extractActionSuggestions(
@@ -501,13 +342,6 @@ export function extractActionSuggestions(
   if (questionMatches && questionMatches[1]) {
     canAddQuestion = true;
     questionDraft = questionMatches[1].trim();
-  } else {
-    const lines = cleanModel.split('\n');
-    const qLine = lines.find(l => l.includes('?') && l.length > 12 && l.length < 200 && !/^(how are you|anything else|what do you think)/i.test(l.trim()));
-    if (qLine) {
-      canAddQuestion = true;
-      questionDraft = qLine.replace(/^[-*•\d.]\s*/, '').trim();
-    }
   }
 
   // 3. Explain Source:
@@ -540,7 +374,7 @@ export const AvaActionToolbar = ({
   onExplainSource,
   onOpenReview,
 }: {
-  msgIndex: number;
+  msgIndex: number | string;
   modelContent: string;
   userContent?: string;
   selectedCase?: CaseItem | null;
@@ -716,7 +550,7 @@ export const CaseSelectorModal = ({
   if (!isOpen) return null;
 
   return (
-    <div
+    <FocusTrap onEscape={onClose} style={{height:0}}><div
       role="dialog"
       aria-modal="true"
       aria-label="Select Case Workspace"
@@ -905,7 +739,7 @@ export const CaseSelectorModal = ({
           })}
         </div>
       </div>
-    </div>
+    </div></FocusTrap>
   );
 };
 
@@ -924,11 +758,12 @@ export const SaveTaskModal = ({
   activeCaseId: string;
   availableCases: CaseItem[];
   onClose: () => void;
-  onConfirm: (text: string, targetCaseId: string, specialty?: string) => void;
+  onConfirm: (text: string, targetCaseId: string, specialty?: string) => void | Promise<void>;
 }) => {
-  const [targetCaseId, setTargetCaseId] = useState(() => activeCaseId || (availableCases[0]?.id || ''));
+  const [targetCaseId, setTargetCaseId] = useState(() => activeCaseId || '');
   const [text, setText] = useState(initialText);
   const [specialty, setSpecialty] = useState('General');
+  const [saving,setSaving] = useState(false);
 
   useEffect(() => {
     setText(initialText);
@@ -936,7 +771,7 @@ export const SaveTaskModal = ({
 
   useEffect(() => {
     if (activeCaseId) setTargetCaseId(activeCaseId);
-    else if (availableCases.length > 0 && !targetCaseId) setTargetCaseId(availableCases[0].id);
+    else setTargetCaseId('');
   }, [activeCaseId, availableCases]);
 
   if (!isOpen) return null;
@@ -944,7 +779,7 @@ export const SaveTaskModal = ({
   const targetCase = availableCases.find(c => c.id === targetCaseId);
 
   return (
-    <div
+    <FocusTrap onEscape={onClose} style={{height:0}}><div
       role="dialog"
       aria-modal="true"
       aria-label={type === 'observation' ? 'Save Observation to Case' : 'Add Appointment Question'}
@@ -1065,6 +900,7 @@ export const SaveTaskModal = ({
                     outline: 'none',
                   }}
                 >
+                  <option value="">Choose a destination case</option>
                   {availableCases.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.title}
@@ -1195,10 +1031,12 @@ export const SaveTaskModal = ({
           </button>
           <button
             type="button"
-            disabled={!text.trim() || !targetCaseId}
-            onClick={() => {
+            disabled={saving || !text.trim() || !targetCaseId}
+            onClick={async () => {
               if (text.trim() && targetCaseId) {
-                onConfirm(text.trim(), targetCaseId, specialty);
+                setSaving(true);
+                try { await onConfirm(text.trim(), targetCaseId, specialty); }
+                finally { setSaving(false); }
               }
             }}
             style={{
@@ -1216,11 +1054,11 @@ export const SaveTaskModal = ({
               gap: '6px',
             }}
           >
-            <Check size={16} /> Confirm & Save
+            <Check size={16} /> {saving ? 'Saving…' : 'Confirm & Save'}
           </button>
         </div>
       </div>
-    </div>
+    </div></FocusTrap>
   );
 };
 
@@ -1246,8 +1084,9 @@ export default function AvaHealthBuddy() {
     };
   }, []);
   const [messages, setMessages] = useState(getSavedMessages());
-  const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
-  const lastMeditationRef = useRef<FitnessContent | null>(null);
+  const [accountScope,setAccountScope]=useState(getAvaVaultKey());
+  const [activeMeditation, setActiveMeditation] = useState<boolean | null>(null);
+  const lastMeditationRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     if (activeMeditation) {
@@ -1257,7 +1096,7 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     const handleReopen = (e?: any) => {
-      setActiveMeditation(e?.detail || lastMeditationRef.current || DEFAULT_CALM_TRACK);
+      setActiveMeditation(e?.detail || lastMeditationRef.current || true);
     };
     window.addEventListener('hc_reopen_meditation', handleReopen);
     return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
@@ -1270,7 +1109,7 @@ export default function AvaHealthBuddy() {
     try { 
       if (incomingPrompt) return incomingPrompt;
       const scope = getAvaVaultKey();
-      return localStorage.getItem(getDraftStorageKey(scope, initialCaseIdParam)) || sessionStorage.getItem(`${scope}_draft`) || '';
+      return localStorage.getItem(getDraftStorageKey(scope, initialCaseIdParam)) || '';
     } catch { 
       return ''; 
     } 
@@ -1281,27 +1120,42 @@ export default function AvaHealthBuddy() {
     }
   }, [incomingPrompt]);
   const studyIdParam = new URLSearchParams(location.search).get('studyId') || new URLSearchParams(location.search).get('study');
-  const incomingStudy = location.state?.sourceStudy || (() => {
+  const incomingStudy = useMemo(() => {
+    const routed=normalizeAvaSourceStudy(location.state?.sourceStudy);
+    if(routed?.ownerScope===getProfileKey())return routed;
+    return (() => {
     if (studyIdParam) {
       try {
-        const stored = sessionStorage.getItem(`hc_study_${studyIdParam}`);
-        if (stored) return JSON.parse(stored);
+        const stored = sessionStorage.getItem(`hc_study_${getProfileKey()}_${studyIdParam}`);
+        if (stored) return normalizeAvaSourceStudy(JSON.parse(stored));
       } catch {}
-      return { nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` };
+      return normalizeAvaSourceStudy({ nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` });
     }
-    try {
-      const activeStored = sessionStorage.getItem('hc_active_source_study');
-      if (activeStored) return JSON.parse(activeStored);
-    } catch {}
     return null;
-  })();
+    })();
+  }, [studyIdParam, location.state?.sourceStudy,accountScope]);
   const [activeSourceStudy, setActiveSourceStudy] = useState<any>(() => incomingStudy);
+  useEffect(()=>{
+    if(!studyIdParam || !/^NCT\d{8}$/i.test(studyIdParam) || incomingStudy?.abstract)return;
+    const owner=getAvaVaultKey(),controller=new AbortController();
+    void fetch('https://clinicaltrials.gov/api/v2/studies/'+encodeURIComponent(studyIdParam),{signal:controller.signal}).then(response=>{
+      if(!response.ok)throw new Error('Study unavailable');return response.json();
+    }).then(raw=>{
+      if(owner!==getAvaVaultKey() || controller.signal.aborted)return;
+      const protocol=raw?.protocolSection;
+      if(protocol?.identificationModule?.nctId!==studyIdParam.toUpperCase())return;
+      setActiveSourceStudy({nctId:protocol.identificationModule.nctId,title:protocol.identificationModule.briefTitle,
+        abstract:protocol.descriptionModule?.briefSummary || '',conditions:protocol.conditionsModule?.conditions || [],
+        sourceUrl:'https://clinicaltrials.gov/study/'+studyIdParam,sourceType:'trial_registration',hasResults:raw.hasResults===true});
+    }).catch(()=>{});
+    return()=>controller.abort();
+  },[studyIdParam,accountScope]);
   useEffect(() => {
     if (incomingStudy) {
       setActiveSourceStudy(incomingStudy);
       if (incomingStudy.nctId) {
         try {
-          sessionStorage.setItem(`hc_study_${incomingStudy.nctId}`, JSON.stringify(incomingStudy));
+          sessionStorage.setItem(`hc_study_${getProfileKey()}_${incomingStudy.nctId}`, JSON.stringify(incomingStudy));
         } catch {}
       }
     }
@@ -1320,6 +1174,11 @@ export default function AvaHealthBuddy() {
   useEffect(() => { if (new URLSearchParams(location.search).get('tool') === 'connection-detective') setIsDetectiveOpen(true); }, [location.search]);
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showContextModal, setShowContextModal] = useState(false);
+  const [showMemoryPanel,setShowMemoryPanel]=useState(false);
+  const [showDayCheckin,setShowDayCheckin]=useState(false);
+  const [showActivities,setShowActivities]=useState(false);
+  const [memoryVersion,setMemoryVersion]=useState(0);
+  useEffect(()=>{const refresh=()=>setMemoryVersion(value=>value+1);window.addEventListener('hc_health_memory_updated',refresh);return()=>window.removeEventListener('hc_health_memory_updated',refresh);},[]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1361,20 +1220,32 @@ export default function AvaHealthBuddy() {
       const scope = getUnifiedCaseScope(paramId);
       return scope.isRequestedCaseMissing ? '' : (scope.caseId || '');
     }
-    const scope = getUnifiedCaseScope();
-    return scope.caseId || '';
+    return '';
   });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
+ const conversationMessages=messages.filter((message:any)=>(message.caseId || '')===selectedCaseId);
+ const visibleMessages=conversationMessages.length?conversationMessages:[{...INITIAL_MSG,id:'welcome_'+selectedCaseId,caseId:selectedCaseId}];
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
   const [mealDiary, setMealDiary] = useState<MealDiary>({});
+  const [dailyObservations, setDailyObservations] = useState<Observation[]>([]);
   useEffect(() => {
     let active = true;
-    const refresh = () => { void listMealDiary().then((diary) => { if (active) setMealDiary(diary); }); };
+    const owner = captureAccountScope();
+    setMealDiary({});
+    setDailyObservations([]);
+    const refresh = () => {
+      void Promise.all([listMealDiary(), listObservations()]).then(([diary, observations]) => {
+        if (active && isAccountScopeCurrent(owner)) {
+          setMealDiary(diary);
+          setDailyObservations(observations);
+        }
+      }).catch(() => { /* Retain the last captured local snapshot during a read failure. */ });
+    };
     refresh();
     window.addEventListener('hc_observations_updated', refresh);
     window.addEventListener('hc_profile_updated', refresh);
     return () => { active = false; window.removeEventListener('hc_observations_updated', refresh); window.removeEventListener('hc_profile_updated', refresh); };
-  }, []);
+  }, [accountScope]);
   const recentDiaryMeals = useMemo(() => Object.values(mealDiary).flat()
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.loggedAt || '').localeCompare(String(a.loggedAt || '')))
     .slice(0, 3), [mealDiary]);
@@ -1383,11 +1254,24 @@ export default function AvaHealthBuddy() {
     const prof = getProfile() || {};
     const logs = recentDiaryMeals;
     const vitals = prof?.vitals || {};
-    const relevantMemories = allMemories
-      .filter((memory) => selectedCaseId ? memory.caseId === selectedCaseId : !memory.caseId)
-      .slice(0, 5);
+    const scopedMemories = allMemories
+      .filter(memory=>memory.kind!=='health_buddy' || memory.payload.userConfirmed===true)
+      .filter((memory) => selectedCaseId ? memory.caseId === selectedCaseId : !memory.caseId);
+    const relevantMemories = scopedMemories.slice(0, 5);
     const relevantLogs = selectedCaseId ? [] : logs.slice(0, 2);
-    const totalRecords = relevantMemories.length + relevantLogs.length + (selectedCaseId ? 0 : ((vitals.bloodPressure ? 1 : 0) + (vitals.restingHeartRate ? 1 : 0)));
+    const scopedObservations = dailyObservations.filter(record => {
+      if (record.payload.kind === 'meal') return false;
+      const cases = (record.references || []).filter(reference => reference.kind === 'case');
+      return selectedCaseId ? cases.some(reference => reference.id === selectedCaseId) : cases.length === 0;
+    });
+    // Include whole records, preserving explicit negatives, zeroes and unknown occurrence times.
+    const observationSnapshots = scopedObservations.slice(0, 5).map(record => ({
+      id: record.id, payload: record.payload, localDate: record.localDate,
+      occurredAt: record.occurredAt, timePrecision: record.timePrecision,
+      timezone: record.timezone, source: record.source, evidenceType: record.evidenceType,
+      recordedAt: record.recordedAt, revision: record.revision,
+    })).filter(record => JSON.stringify(record).length <= 6000);
+    const totalRecords = scopedMemories.length + (selectedCaseId ? 0 : logs.length) + scopedObservations.length;
     const includedItems = [
       ...relevantMemories.map(m => ({
         type: 'Clinical Memory',
@@ -1400,14 +1284,21 @@ export default function AvaHealthBuddy() {
         title: l.name || 'Meal entry',
         time: l.date || 'Date not recorded',
         source: 'Meal diary', recordId: String(l.id),
+      })),
+      ...observationSnapshots.map(record => ({
+        type: 'Daily observation',
+        title: record.payload.kind === 'daily_checkin' ? 'Daily check-in' : record.payload.kind,
+        time: record.localDate || record.occurredAt || 'Occurrence time not recorded',
+        source: record.source, recordId: record.id,
       }))
     ];
     return {
       evaluatedCount: Math.max(totalRecords, includedItems.length),
       omittedCount: Math.max(0, totalRecords - includedItems.length),
       includedItems,
+      observationSnapshots,
     };
-  }, [messages.length, selectedCaseId, recentDiaryMeals]);
+  }, [messages.length, selectedCaseId, recentDiaryMeals,dailyObservations,memoryVersion]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
   const [isCaseSelectorOpen, setIsCaseSelectorOpen] = useState(false);
@@ -1417,9 +1308,9 @@ export default function AvaHealthBuddy() {
     initialText: string;
     caseId: string;
     specialty?: string;
-    msgIndex?: number;
+    msgIndex?: number | string;
   } | null>(null);
-  const [savedActionIds, setSavedActionIds] = useState<Set<string>>(() => new Set());
+  const savedActionIds=new Set<string>(messages.flatMap((message:any)=>Object.keys(message.receipts || {}).map(kind=>kind+'_'+message.id)));
   const [failedDraft, setFailedDraft] = useState<string | null>(null);
   const selectedCaseIdRef = useRef(selectedCaseId);
   const lastFailedDraftRef = useRef<string | null>(null);
@@ -1434,10 +1325,8 @@ export default function AvaHealthBuddy() {
       const draftKey = getDraftStorageKey(scope, selectedCaseId);
       if (input.trim()) {
         localStorage.setItem(draftKey, input);
-        sessionStorage.setItem(`${scope}_draft`, input);
       } else {
         localStorage.removeItem(draftKey);
-        sessionStorage.removeItem(`${scope}_draft`);
       }
     } catch (e) {}
   }, [input, selectedCaseId]);
@@ -1451,7 +1340,9 @@ export default function AvaHealthBuddy() {
       } catch (e) {}
     }
     setSelectedCaseId(newCaseId);
-    activeRequestIdRef.current = '';
+    setAttachments([]);setActiveSourceStudy(null);setSaveModalState(null);setFailedDraft(null);setShowMemoryPanel(false);
+    lastRequestRef.current=null;
+    requestControllerRef.current?.abort(); activeRequestIdRef.current = '';
     sendingRef.current = false;
     setIsTyping(false);
     setIsStreaming(false);
@@ -1472,39 +1363,23 @@ export default function AvaHealthBuddy() {
     navigate({ search: nextQuery ? `?${nextQuery}` : '' }, { replace: true });
   };
 
-  const handleConfirmSave = (confirmedText: string, targetCaseId: string, specialty?: string) => {
-    if (!confirmedText.trim() || !targetCaseId) return;
-    try {
-      const targetCase = getCase(targetCaseId);
-      if (!targetCase) throw new Error('Target case unavailable');
-
-      if (saveModalState?.type === 'observation') {
-        addCaseEvent(targetCaseId, confirmedText.trim(), 'Patient observation (Ava conversation)');
-        setSavedUpdate({ caseId: targetCaseId, title: targetCase.title });
-        toast.success('Observation Saved', `Added to case timeline for "${targetCase.title}".`);
-        triggerHapticSuccess();
-        if (saveModalState.msgIndex !== undefined) {
-          setSavedActionIds(prev => new Set([...prev, `obs_${saveModalState.msgIndex}`]));
-        }
-      } else {
-        addCaseQuestion(targetCaseId, {
-          questionText: confirmedText.trim(),
-          raisedBySpecialty: specialty || 'General',
-          supportingEvidenceIds: [],
-          status: 'open',
-        });
-        setSavedUpdate({ caseId: targetCaseId, title: targetCase.title });
-        toast.success('Question Added', `Added to doctor visit brief for "${targetCase.title}".`);
-        triggerHapticSuccess();
-        if (saveModalState?.msgIndex !== undefined) {
-          setSavedActionIds(prev => new Set([...prev, `q_${saveModalState.msgIndex}`]));
-        }
-      }
-    } catch (e: any) {
-      toast.error('Save failed', e?.message || 'Could not save to case.');
-    } finally {
-      setSaveModalState(null);
-    }
+  const handleConfirmSave=async(confirmedText:string,targetCaseId:string,specialty?:string)=>{
+   if(!confirmedText.trim() || !targetCaseId || saveUpdateBusy.current || !saveModalState)return;
+   const owner=getAvaVaultKey(),originCase=selectedCaseIdRef.current,action=saveModalState;
+   saveUpdateBusy.current=true;
+   try{
+    const target=getCase(targetCaseId);if(!target)throw new Error('Target case unavailable.');
+    const messageId=String(action.msgIndex || crypto.randomUUID());
+    const recordId=await saveAvaCaseAction(targetCaseId,messageId,action.type,confirmedText,specialty);
+    if(owner!==getAvaVaultKey() || originCase!==selectedCaseIdRef.current)return;
+    const kind=action.type==='observation'?'obs':'q';
+    const next=normalizeAvaMessages(messages).map(message=>message.id!==messageId?message:{...message,receipts:{...message.receipts,[kind]:{caseId:targetCaseId,recordId,savedAt:new Date().toISOString()}}});
+    await persistAvaMessages(next);
+    if(owner!==getAvaVaultKey() || originCase!==selectedCaseIdRef.current)return;
+    setMessages(next);setSavedUpdate({caseId:targetCaseId,title:target.title});setSaveModalState(null);
+    toast.success('Saved on this device','Added to '+target.title+'. Account sync status is shown in the sidebar.');
+   }catch(error:any){toast.error('Save needs attention',error.message || 'Could not save. Your draft is still here.');}
+   finally{saveUpdateBusy.current=false;}
   };
 
   useEffect(() => { setSavedUpdate(null); if (activeSourceStudy?.caseId && activeSourceStudy.caseId !== selectedCaseId) setActiveSourceStudy(null); }, [selectedCaseId]);
@@ -1529,6 +1404,8 @@ export default function AvaHealthBuddy() {
   const [sendError, setSendError] = useState(false);
   const lastRequestRef = useRef<AvaRequest | null>(null);
   const sendingRef = useRef(false);
+  const requestControllerRef=useRef<AbortController|null>(null);
+  useEffect(()=>()=>requestControllerRef.current?.abort(),[]);
   const activeRequestIdRef = useRef('');
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -1544,10 +1421,20 @@ export default function AvaHealthBuddy() {
       }
     } else {
       setMissingCaseNotice(null);
-      setSelectedCaseId(getUnifiedCaseScope().caseId || '');
+      setSelectedCaseId('');
     }
   }, [location.search, location.state?.caseId]);
 
+  useEffect(()=>{
+    const scope=getAvaVaultKey();
+    try{
+      const raw=localStorage.getItem('hc_ava_pending_'+scope+'_'+(selectedCaseId || 'general'));
+      const saved=raw?JSON.parse(raw):null;
+      if(saved?.scope===scope && saved.caseId===selectedCaseId && typeof saved.requestId==='string' && typeof saved.context==='string' && Array.isArray(saved.messages)){
+        lastRequestRef.current=saved;setSendError(true);setFailedDraft(saved.messages[saved.messages.length-1]?.content || '');
+      }
+    }catch{}
+  },[selectedCaseId]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -1573,6 +1460,8 @@ export default function AvaHealthBuddy() {
       const scope = getAvaVaultKey();
       if (scope !== currentProfileId.current) {
         currentProfileId.current = scope;
+        setAccountScope(scope);
+        requestControllerRef.current?.abort();activeRequestIdRef.current='';sendingRef.current=false;setSaveModalState(null);setShowMemoryPanel(false);setShowDayCheckin(false);setShowActivities(false);
         setMessages(getSavedMessages());
         setSelectedCaseId('');
         setInput('');
@@ -1589,24 +1478,24 @@ export default function AvaHealthBuddy() {
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [newAnswerAvailable,setNewAnswerAvailable]=useState(false);
+  const readingPositionKey='hc_ava_reading_'+getAvaVaultKey()+'_'+(selectedCaseId || 'general');
 
-  useEffect(() => {
-    try {
-      const sanitized = messages.map(m => { const { isStreaming, ...rest } = m; return rest; });
-      updateProfileFeatureData('avaData', sanitized);
-      setItemSync(getAvaVaultKey(), JSON.stringify(sanitized));
-    } catch (e: any) {
-      if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-        const keepCount = Math.floor(messages.length * 0.8);
-        const newMsgs = [messages[0], ...messages.slice(messages.length - keepCount)];
-        const sanitized = newMsgs.map(m => { const { isStreaming, ...rest } = m; return rest; });
-        try {
-          updateProfileFeatureData('avaData', sanitized);
-          setItemSync(getAvaVaultKey(), JSON.stringify(sanitized));
-        } catch (e2) {}
-      }
-    }
-  }, [messages]);
+  const [chatHydrated,setChatHydrated]=useState(false);
+  const [storageError,setStorageError]=useState('');
+  useEffect(()=>{
+   const scope=getAvaVaultKey();let active=true;
+   setChatHydrated(false);
+   void hydrateAvaMessages(getSavedMessages()).then(restored=>{
+    if(active && scope===getAvaVaultKey() && restored)setMessages((current:any[])=>mergeAvaMessages(restored,normalizeAvaMessages(current)));
+    if(active && scope===getAvaVaultKey())setChatHydrated(true);
+   }).catch(()=>{if(active)setChatHydrated(true);});
+   return()=>{active=false;};
+  },[selectedCaseId,accountScope]);
+  useEffect(()=>{
+   if(!chatHydrated)return;
+   void persistAvaMessages(normalizeAvaMessages(messages)).then(()=>setStorageError('')).catch(error=>setStorageError(error.message));
+  },[messages,chatHydrated]);
 
   // Theme colors - Clinical Teal & Parasympathetic Rest
   const theme = {
@@ -1630,75 +1519,75 @@ export default function AvaHealthBuddy() {
       const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 250;
       
-      if (isNearBottom || isTyping) {
+      if (isNearBottom) {
         requestAnimationFrame(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         });
+      } else if(!isTyping) {
+        setNewAnswerAvailable(true);
       }
     }
   }, [messages.length, isTyping]); // Only run on length change or typing status change
+  useEffect(()=>{
+    if(!chatHydrated)return;
+    const frame=requestAnimationFrame(()=>{
+      const container=chatContainerRef.current;if(!container)return;
+      try{const saved=sessionStorage.getItem(readingPositionKey);container.scrollTop=saved!==null?Number(saved):container.scrollHeight;}catch{}
+      setNewAnswerAvailable(false);
+    });
+    return()=>cancelAnimationFrame(frame);
+  },[selectedCaseId,chatHydrated,readingPositionKey]);
 
   const chatMutation = useMutation({
-    mutationFn: (request: AvaRequest) => chatWithTherapyGemini(request.messages.filter(message => (message.caseId || '') === request.caseId), request.context),
+    mutationFn: (request: AvaRequest) => {
+      requestControllerRef.current?.abort();
+      const controller=new AbortController();requestControllerRef.current=controller;
+      return chatWithTherapyGemini(request.messages.filter(message => (message.caseId || '') === request.caseId), request.context,request.requestId,request.caseId?'case':'general',request.safetyContext,controller.signal);
+    },
     onMutate: () => { setIsTyping(true); setSendError(false); },
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, request: AvaRequest) => {
-        if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey()) return;
+        if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
         const newMessages = request.messages;
         lastFailedDraftRef.current = null;
         setIsTyping(false);
         const hasWidget = response && response.includes('[WIDGET:');
         setIsStreaming(!hasWidget);
-        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: !hasWidget, caseId: request.caseId }];
-        
-        if (finalMessages.length >= 10) {
-          extractClinicalMemory(finalMessages).then((facts) => {
-            if (request.scope === getAvaVaultKey() && Array.isArray(facts) && facts.length > 0) {
-              facts.forEach((fact: string) => {
-                recordHealthMemory({
-                  kind: 'health_buddy',
-                  source: 'health_buddy',
-                  title: fact,
-                  occurredAt: new Date().toISOString(),
-                  payload: { extractedFact: fact },
-                  dedupeKey: fact.toLowerCase().substring(0, 50)
-                });
-              });
-            }
-          });
-          setMessages([finalMessages[0], ...finalMessages.slice(-20)]);
-        } else {
-          setMessages(finalMessages);
-        }
-
-        addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
-            lastMessage: response,
-            messageCount: newMessages.length + 1,
-        }, false, null as any, sessionId as any);
+        const reply=newAvaMessage('model',response,request.caseId,{
+          id:request.requestId,
+          isStreaming:!hasWidget,
+          diarySnapshot:request.diarySnapshot || [],sourceStudy:request.sourceStudy,contextManifest:request.contextManifest,
+        });
+        setMessages((current:any[])=>mergeAvaMessages(normalizeAvaMessages(current),[reply]));
+        try{
+          await persistAvaMessages(mergeAvaMessages(normalizeAvaMessages(request.messages),[reply]));
+          if(request.scope!==getAvaVaultKey())return;
+          localStorage.removeItem('hc_ava_pending_'+request.scope+'_'+(request.caseId || 'general'));
+        }catch(error:any){if(request.scope===getAvaVaultKey())setStorageError(error.message || 'Reply could not be saved. Retry to recover it.');}
         const todayDateStr = new Date().toISOString().split('T')[0];
         awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
     onError: (error: any, request: AvaRequest) => {
-      if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey()) return;
+      if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
       setIsTyping(false);
       setIsStreaming(false);
 
+      if(error?.requestState==='failed' && lastRequestRef.current?.requestId===request.requestId){
+        lastRequestRef.current={...request,requestId:crypto.randomUUID()};
+        try{localStorage.setItem('hc_ava_pending_'+request.scope+'_'+(request.caseId || 'general'),JSON.stringify(lastRequestRef.current));}catch{}
+      }
       const errorMsg = String(error?.message || error || '');
-      const isQuota = 
-        errorMsg.includes('QUOTA_EXCEEDED') || 
-        errorMsg.toLowerCase().includes('quota') ||
-        errorMsg.includes('402') ||
-        errorMsg.includes('429');
+      const isQuota = errorMsg === 'QUOTA_EXCEEDED';
 
       if (isQuota) {
         const quotaUpgradeMsg = {
           role: 'model',
-          content: "You've reached your free consultation limit with Ava. Upgrade to HealthChain Pro for unlimited real-time clinical consultations, lab analysis, and 24/7 care support.",
+          content: "You've used the available Ava replies in your plan. View your plan's allowance to continue. Ava provides health information and appointment preparation.",
           isUpgradePrompt: true,
           caseId: request.caseId,
         };
-        setMessages(prev => [...prev, quotaUpgradeMsg]);
+        setMessages(prev => [...prev,newAvaMessage('model',quotaUpgradeMsg.content,request.caseId,{isUpgradePrompt:true})]);
         setSendError(false);
       } else {
         setSendError(true);
@@ -1721,8 +1610,8 @@ export default function AvaHealthBuddy() {
       return;
     }
 
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error("File Too Large", "Maximum file size is 3MB.");
+    if (file.size > 2.5 * 1024 * 1024) {
+      toast.error("File Too Large", "Maximum file size is 2.5MB.");
       return;
     }
     if (file.size === 0) {
@@ -1741,6 +1630,7 @@ export default function AvaHealthBuddy() {
     }
     
     const attachmentScope = getAvaVaultKey();
+    const attachmentCaseId=selectedCaseIdRef.current;
     attachmentBusyRef.current = true;
     setIsProcessingAttachment(true);
     const reader = new FileReader();
@@ -1759,7 +1649,7 @@ export default function AvaHealthBuddy() {
         const profile = getProfile() || {};
         const parsed = await analyzeLabReport(cleanBase64, file.type, profile);
         if (parsed?.keyFindings) {
-          attachmentItem.findings = `Test: ${parsed.testName || 'Lab/Image Report'} | Key Findings: ${parsed.keyFindings}${parsed.interpretation ? ' | Interpretation: ' + parsed.interpretation : ''}`;
+          attachmentItem.findings=JSON.stringify({filename:file.name,testName:parsed.testName,date:parsed.date,biomarkers:parsed.biomarkers,keyFindings:parsed.keyFindings,interpretation:parsed.interpretation,verification:'AI extraction; check against original document'});
         }
       } catch (e) {
         toast.error('Document could not be read', 'Try another copy, or paste the relevant text into your message.');
@@ -1767,7 +1657,7 @@ export default function AvaHealthBuddy() {
       attachmentBusyRef.current = false;
       if (!isMounted.current) return;
       setIsProcessingAttachment(false);
-      if (attachmentScope !== getAvaVaultKey()) return;
+      if (attachmentScope !== getAvaVaultKey() || attachmentCaseId!==selectedCaseIdRef.current) return;
       if (attachmentItem.findings) setAttachments(prev => [...prev, attachmentItem]);
       else toast.error('No readable findings', 'Paste the relevant text or try a clearer report.');
     };
@@ -1789,8 +1679,17 @@ export default function AvaHealthBuddy() {
 
     sendingRef.current = true;
     const messageScope = getAvaVaultKey();
-    const session = await getActiveSession();
-    if (!isMounted.current || messageScope !== getAvaVaultKey()) { sendingRef.current = false; return; }
+    const messageCaseId=selectedCaseIdRef.current;
+    let safetyContext:string;
+    try {
+      safetyContext=compilePatientContext({includeActiveCase:false,includeDailyCheckins:!messageCaseId,includeProfile:true,includeLabs:false,includeImportedCase:false});
+    } catch {
+      sendingRef.current=false;
+      toast.error('Context needs review','Your saved safety information could not be prepared. Review your profile, then try again.');
+      return;
+    }
+    let session; try {session=await getActiveSession();} catch {sendingRef.current=false;toast.error('Connection unavailable','Your draft is still here. Retry in a moment.');return;}
+    if (!isMounted.current || messageScope !== getAvaVaultKey() || messageCaseId!==selectedCaseIdRef.current) { sendingRef.current = false; return; }
     if (!session) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
@@ -1799,11 +1698,11 @@ export default function AvaHealthBuddy() {
         const userMsg = { role: 'user', content: text.trim(), caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) };
         const upgradeMsg = {
           role: 'model',
-          content: "You've reached the free guest limit of 5 messages with Ava. Upgrade to HealthChain Pro to unlock unlimited conversations, continuous biomarker tracking, and personalized clinical guidance.",
+          content: "You've used the five guest requests. Sign in to continue with your account's available Ava allowance.",
           isUpgradePrompt: true,
           caseId: selectedCaseId,
         };
-        setMessages(prev => [...prev, userMsg, upgradeMsg]);
+        setMessages(prev => [...prev,...normalizeAvaMessages([userMsg,upgradeMsg])]);
         setInput('');
         setAttachments([]);
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
@@ -1821,11 +1720,11 @@ export default function AvaHealthBuddy() {
       const userMsg = { role: 'user', content: text.trim(), caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) };
       const upgradeMsg = {
         role: 'model',
-        content: "You've used all 10 free trial replies with Ava. Upgrade to HealthChain Pro to continue your consultation with unlimited messages, deep lab insights, and 24/7 care support.",
+        content: "You've used all 10 free trial replies with Ava. Upgrade to HealthChain Pro to continue your consultation with more replies, deep lab insights, and On-demand care support.",
         isUpgradePrompt: true,
         caseId: selectedCaseId,
       };
-      setMessages(prev => [...prev, userMsg, upgradeMsg]);
+      setMessages(prev => [...prev,...normalizeAvaMessages([userMsg,upgradeMsg])]);
       setInput('');
       setAttachments([]);
       openTrialModal('Ava Health Buddy (10 Free Trial Replies)');
@@ -1845,7 +1744,7 @@ export default function AvaHealthBuddy() {
     }
     lastFailedDraftRef.current = finalContent;
 
-    const newMessages = [...messages, { role: 'user', content: finalContent, caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) }];
+    const newMessages = [...messages,newAvaMessage('user',finalContent,selectedCaseId,{attachments:attachments.map(a=>a.name)})];
     sendingRef.current = true;
     const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
     const baseCaseContext = contextCase ? buildCaseContext(contextCase) : '';
@@ -1858,25 +1757,36 @@ export default function AvaHealthBuddy() {
 
     // Order 8: Research content handoff — inject full study abstract and criteria breakdown so Ava summarizes the retrieved source, not merely its title
     const studySnippet = activeSourceStudy
-      ? `\n\n[RETRIEVED RESEARCH SOURCE STUDY TO SUMMARIZE]:\nTitle: "${activeSourceStudy.title || activeSourceStudy.briefTitle}"\nNCT ID: ${activeSourceStudy.nctId}\nPhase: ${activeSourceStudy.phase || 'N/A'}\nTarget Conditions: ${(activeSourceStudy.conditions || []).join(', ')}\nMatch Evaluation: ${activeSourceStudy.matchStatus}\nEligibility & Criteria Breakdown:\n- Age Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.ageCriteria || null)}\n- Gender Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.genderCriteria || null)}\n- Condition Match: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.conditionMatch || null)}\n- Clinical Note: ${activeSourceStudy.criteriaBreakdown?.overallNote || ''}\nAbstract / Objectives:\n${activeSourceStudy.abstract || 'No abstract provided'}\n\n[CRITICAL INSTRUCTION FOR AVA]: The patient is discussing this retrieved clinical research study. You must summarize the actual scientific objectives and findings of this study in compassionate, clear language. Highlight why it matches or differs from their profile, and prepare 2-3 specific questions for them to discuss with their clinician.`
+      ? `\n\n[RETRIEVED RESEARCH SOURCE STUDY TO SUMMARIZE]:\nTitle: "${activeSourceStudy.title || activeSourceStudy.briefTitle}"\nNCT ID: ${activeSourceStudy.nctId}\nPhase: ${activeSourceStudy.phase || 'N/A'}\nTarget Conditions: ${(activeSourceStudy.conditions || []).join(', ')}\nMatch Evaluation: ${activeSourceStudy.matchStatus}\nEligibility & Criteria Breakdown:\n- Age Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.ageCriteria || null)}\n- Gender Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.genderCriteria || null)}\n- Condition Match: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.conditionMatch || null)}\n- Clinical Note: ${activeSourceStudy.criteriaBreakdown?.overallNote || ''}\nAbstract / Objectives:\n${activeSourceStudy.abstract || 'No abstract provided'}\n\n[CRITICAL INSTRUCTION FOR AVA]: The patient is discussing this retrieved clinical research study. You must describe only the supplied study information. A title or abstract is not proof of completed results; say when findings or eligibility details are missing in compassionate, clear language. Highlight why it matches or differs from their profile, and prepare 2-3 specific questions for them to discuss with their clinician.`
       : '';
     
     // Promise 5: Inject semantic memory context so user never repeats their story
     const memorySnippet = memoryContext.includedItems.length > 0
       ? `\n\n[CASE-SCOPED HISTORY & MEMORIES — preserve provenance and do not treat AI-generated memory as a confirmed clinical fact]:\n` +
-        memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}${'recordId' in item ? ` [record ${item.recordId}]` : ''}`).join('\n')
+        memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}${'recordId' in item ? ` [record ${item.recordId}]` : ''}`).join('\n') +
+        '\n[USER-REPORTED OBSERVATIONS — occurrence dates and unanswered values are explicit; recordedAt is the save time, not a symptom onset]:\n' + JSON.stringify(memoryContext.observationSnapshots)
       : '';
     const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();
+    if(finalContext.length>50000){
+      sendingRef.current=false;
+      toast.error('Choose a smaller set of records','This conversation contains too much material for one answer. Choose the specific record or question to discuss. Your draft is still here.');
+      return;
+    }
 
     const request = {
       messages: newMessages,
       caseId: selectedCaseId,
       context: finalContext,
       scope: messageScope,
+      safetyContext,
+      diarySnapshot:(selectedCaseId ? [] : recentDiaryMeals).map(meal=>({id:meal.id,name:meal.name,occurredAt:meal.occurredAt,timePrecision:meal.timePrecision,type:meal.type})),
+      sourceStudy:activeSourceStudy || undefined,
+      contextManifest:{...memoryContext,safetyFactsIncluded:['Profile','Allergies (including unknown status)','Medications with recorded dose and status'],caseId:selectedCaseId,sourceStudyId:activeSourceStudy?.nctId,records:(baseCaseContext?JSON.parse(baseCaseContext).records || []:[]).map((rec:any)=>({id:rec.id,filename:rec.name,content:JSON.stringify(rec)}))},
       requestId: crypto.randomUUID?.() || `ava_${Date.now()}`,
     };
     activeRequestIdRef.current = request.requestId;
     lastRequestRef.current = request;
+    try {localStorage.setItem('hc_ava_pending_'+request.scope+'_'+(request.caseId || 'general'),JSON.stringify(request));}catch{}
     setMessages(newMessages);
     setInput('');
     setAttachments([]);
@@ -2072,7 +1982,13 @@ export default function AvaHealthBuddy() {
         {/* Chat Area */}
         <div
           ref={chatContainerRef}
-            onScroll={(e) => window.dispatchEvent(new CustomEvent('hc_scroll_intent', { detail: { scrollTop: e.currentTarget.scrollTop } }))}
+              role="log" aria-label="Ava conversation" aria-live="off"
+            onScroll={(e) => {
+              const container=e.currentTarget;
+              try{sessionStorage.setItem(readingPositionKey,String(container.scrollTop));}catch{}
+              if(container.scrollHeight-container.scrollTop-container.clientHeight<100)setNewAnswerAvailable(false);
+              window.dispatchEvent(new CustomEvent('hc_scroll_intent', { detail: { scrollTop: container.scrollTop } }));
+            }}
           style={{
             flex: 1, minHeight: 0, overflowY: 'auto',
             padding: isMobile ? '20px 16px' : '32px',
@@ -2246,9 +2162,14 @@ export default function AvaHealthBuddy() {
             </div>
 
             <AnimatePresence initial={false}>
-              {messages.map((msg, idx) => (
+              <button type="button" aria-haspopup="dialog" aria-expanded={isCaseSelectorOpen} onClick={()=>setIsCaseSelectorOpen(true)} style={{minHeight:44,padding:'8px 14px',borderRadius:12,border:'1px solid #CCFBF1',color:'#0F766E',background:'#FFFFFF',marginBottom:12}}>Conversation: {selectedCase?.title || 'General health'} · Change</button>
+              <button type="button" aria-haspopup="dialog" onClick={()=>setShowMemoryPanel(true)} style={{minHeight:44,marginLeft:8}}>Review memories</button>
+              {storageError && <p role="alert">{storageError}</p>}
+              <div role="status" aria-live="polite" style={{position:'absolute',width:1,height:1,overflow:'hidden'}}>{isTyping?'Ava is preparing a reply':visibleMessages[visibleMessages.length-1]?.role==='model'?'Ava reply ready':''}</div>
+
+              {visibleMessages.map((msg:any,idx:number) => (
                 <motion.div
-                  key={idx}
+                  key={msg.id || idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   style={{
@@ -2323,11 +2244,19 @@ export default function AvaHealthBuddy() {
                       msg.content ? (
                         <>
                           <MessageRenderer
+                            messageId={msg.id}
                             content={msg.content}
-                            diaryEntries={recentDiaryMeals}
-                            onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
+                            diaryEntries={msg.diarySnapshot || []}
+                            onOpenCalm={() => setActiveMeditation(true)}
+                            onOpenWorkout={() => setShowActivities(true)}
                             onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
                           />
+                          {msg.contextManifest && <AvaDisclosure key={msg.id+'_context'} storageId={msg.id+'_context'} style={{marginTop:12}}>
+                            <summary style={{minHeight:44,cursor:'pointer'}}>Context included in this reply</summary>
+                            <p>Mode: {msg.caseId?'Selected case':'General health'}. Profile, recorded allergies and medication details were included. Missing safety facts remain unknown.</p>
+                            <ul>{(msg.contextManifest.includedItems || []).map((item:any,index:number)=><li key={index}>{item.title} · {item.source} · {item.time}</li>)}</ul>
+                            {msg.sourceStudy && <p>Research source: {msg.sourceStudy.nctId}. Trial registration does not establish published results.</p>}
+                          </AvaDisclosure>}
                           {msg.isUpgradePrompt && (
                             <motion.div
                               initial={{ opacity: 0, y: 8 }}
@@ -2368,7 +2297,7 @@ export default function AvaHealthBuddy() {
                                       HealthChain Pro
                                     </div>
                                     <div style={{ fontSize: '11px', color: '#A7F3D0' }}>
-                                      Unlimited Clinical AI Consultations
+                                      Health information and planning support
                                     </div>
                                   </div>
                                 </div>
@@ -2445,122 +2374,21 @@ export default function AvaHealthBuddy() {
                               </div>
                             </motion.div>
                           )}
-                          {msg.role === 'model' && documentedAnswers.length > 0 && (() => {
-                            const matched = documentedAnswers.filter(ans => {
-                              const topicWords = ans.topic.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                              const valWords = ans.value.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                              const lowerContent = msg.content.toLowerCase();
-                              return topicWords.some(tw => lowerContent.includes(tw)) || 
-                                     (valWords.length > 0 && valWords.some(vw => lowerContent.includes(vw)));
-                            });
-                            if (matched.length === 0) return null;
-                            const item = matched[0];
-                            return (
-                              <div 
-                                style={{
-                                  marginTop: '10px',
-                                  padding: '7px 11px',
-                                  borderRadius: '8px',
-                                  background: '#F0FDF4',
-                                  border: '1px solid #BBF7D0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  fontSize: '11.5px',
-                                  color: '#166534',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                <span>✅ Already documented in case records:</span>
-                                <span style={{ fontWeight: 700, color: '#14532D' }}>
-                                  {item.topic} ({item.value.slice(0, 45)}{item.value.length > 45 ? '...' : ''})
-                                </span>
-                              </div>
-                            );
-                          })()}
-                          {msg.role === 'model' && /(mental peace|calm space|de-stress|relax|anxiety|breathe|breathing|4-7-8|meditat|insomnia)/i.test(msg.content) && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 8 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              style={{
-                                marginTop: '14px',
-                                background: 'linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(204, 251, 241, 0.75) 100%)',
-                                border: '1px solid #99F6E4',
-                                borderRadius: '16px',
-                                padding: '14px 16px',
-                                boxShadow: '0 8px 20px rgba(13, 148, 136, 0.12)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '10px'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{
-                                  width: '36px',
-                                  height: '36px',
-                                  borderRadius: '10px',
-                                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#FFF',
-                                  boxShadow: '0 4px 10px rgba(13, 148, 136, 0.3)',
-                                  flexShrink: 0
-                                }}>
-                                  <Sparkles size={18} />
-                                </div>
-                                <div>
-                                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                                    Recommended Clinical Protocol
-                                  </div>
-                                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
-                                    4-7-8 Breathing Reset
-                                  </div>
-                                </div>
-                              </div>
-                              <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
-                                Guided breathing to help steady heart rate and calm the body in 5 minutes.
-                              </p>
-                              <button
-                                onClick={() => {
-                                  triggerHapticLight();
-                                  setActiveMeditation(DEFAULT_CALM_TRACK);
-                                }}
-                                style={{
-                                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                                  color: '#FFF',
-                                  border: 'none',
-                                  borderRadius: '12px',
-                                  padding: '10px 16px',
-                                  fontSize: '13.5px',
-                                  fontWeight: 700,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '8px',
-                                  cursor: 'pointer',
-                                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
-                                }}
-                              >
-                                <Play size={15} fill="#FFF" /> Begin Calm Session Now
-                              </button>
-                            </motion.div>
-                          )}
                           {msg.role === 'model' && !msg.isUpgradePrompt && (
                             <AvaActionToolbar
-                              msgIndex={idx}
+                              msgIndex={msg.id}
                               modelContent={msg.content}
-                              userContent={messages[idx - 1]?.role === 'user' ? messages[idx - 1].content : undefined}
-                              selectedCase={selectedCase}
-                              activeSourceStudy={activeSourceStudy}
+                              userContent={visibleMessages[idx - 1]?.role === 'user' ? visibleMessages[idx - 1].content : undefined}
+                              selectedCase={getCase(msg.caseId) || null}
+                              activeSourceStudy={msg.sourceStudy}
                               savedActionIds={savedActionIds}
                               onSaveObservation={(draft) => {
                                 setSaveModalState({
                                   isOpen: true,
                                   type: 'observation',
-                                  initialText: draft || (messages[idx - 1]?.role === 'user' ? messages[idx - 1].content : 'Patient observation'),
-                                  caseId: selectedCaseId || (availableCases[0]?.id || ''),
-                                  msgIndex: idx,
+                                  initialText: draft || (visibleMessages[idx - 1]?.role === 'user' ? visibleMessages[idx - 1].content : 'Patient observation'),
+                                  caseId: msg.caseId || '',
+                                  msgIndex: msg.id,
                                 });
                               }}
                               onAddQuestion={(draft) => {
@@ -2568,21 +2396,27 @@ export default function AvaHealthBuddy() {
                                   isOpen: true,
                                   type: 'question',
                                   initialText: draft || 'What are the recommended next steps for my doctor visit?',
-                                  caseId: selectedCaseId || (availableCases[0]?.id || ''),
-                                  msgIndex: idx,
+                                  caseId: msg.caseId || '',
+                                  msgIndex: msg.id,
                                 });
                               }}
                               onExplainSource={() => {
-                                if (activeSourceStudy) {
+                                setActiveSourceStudy(msg.sourceStudy || null);
+                                if (msg.sourceStudy) {
+                                  const activeSourceStudy=msg.sourceStudy;
                                   setInput(`Can you explain the clinical objectives, findings, and patient relevance of study ${activeSourceStudy.nctId} (${activeSourceStudy.title || activeSourceStudy.briefTitle}) in simple terms?`);
-                                } else if (selectedCase?.medicalRecords && selectedCase.medicalRecords.length > 0) {
-                                  const rec = selectedCase.medicalRecords[0];
-                                  setInput(`Can you explain the clinical significance and key findings of my uploaded record '${rec.filename}'?`);
+                                } else if (msg.contextManifest?.records?.length) {
+                                  const records=msg.contextManifest.records;
+                                  setInput('Please explain the records captured for this earlier answer, including missing information and uncertainty:\n'+records.map((rec:any)=>rec.content).join('\n'));
+                                } else {
+                                  toast.error('Source unavailable','This earlier answer has no captured record source. Choose a record to discuss.');
+                                  return;
                                 }
                                 textareaRef.current?.focus();
                               }}
                               onOpenReview={() => {
-                                if (selectedCase) {
+                                if (getCase(msg.caseId)) {
+                                  const selectedCase=getCase(msg.caseId)!;
                                   navigate(`/app/jarvis?caseId=${encodeURIComponent(selectedCase.id)}`);
                                 }
                               }}
@@ -2727,6 +2561,8 @@ export default function AvaHealthBuddy() {
           </div>
         </div>
 
+        {newAnswerAvailable && <button type="button" style={{minHeight:44}} onClick={()=>{messagesEndRef.current?.scrollIntoView({behavior:'smooth'});setNewAnswerAvailable(false);}}>Go to latest answer</button>}
+        {isStreaming && <button type="button" style={{minHeight:44}} onClick={()=>{setMessages(current=>current.map(message=>({...message,isStreaming:false})));setIsStreaming(false);}}>Show full reply now</button>}
         {/* Input Area */}
         <div
           style={{
@@ -2745,7 +2581,7 @@ export default function AvaHealthBuddy() {
           {attachments.length > 0 && (
             <div style={{ width: '100%', maxWidth: '720px', display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
               {attachments.map((att, idx) => (
-                <div key={idx} style={{
+                <div key={att.name+idx} style={{
                   background: 'rgba(255, 255, 255, 0.65)',
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
@@ -2844,7 +2680,7 @@ export default function AvaHealthBuddy() {
                 bottom: isMobile ? '6px' : '8px',
                 width: isMobile ? '32px' : '34px',
                 height: isMobile ? '32px' : '34px',
-                minHeight: 'unset',
+                minHeight: '44px',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.9)',
                 color: '#64748B',
@@ -2904,16 +2740,13 @@ export default function AvaHealthBuddy() {
               {/* Photo Meal Snap Button */}
               <button
                 type="button"
-                aria-label="Snap photo of meal or plate"
+                aria-label="Log a meal or food photo"
                 title="Snap meal photo"
-                onClick={() => {
-                  triggerHapticLight();
-                  fileInputRef.current?.click();
-                }}
+                onClick={() => setIsQuickMealOpen(true)}
                 style={{
-                  width: isMobile ? '30px' : '34px',
-                  height: isMobile ? '30px' : '34px',
-                  minHeight: 'unset',
+                  width: '44px',
+                  height: '44px',
+                  minHeight: '44px',
                   borderRadius: '50%',
                   background: '#F8FAFC',
                   color: '#64748B',
@@ -2936,7 +2769,7 @@ export default function AvaHealthBuddy() {
                 style={{
                   width: isMobile ? '34px' : '36px',
                   height: isMobile ? '34px' : '36px',
-                  minHeight: 'unset',
+                  minHeight: '44px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
@@ -2959,7 +2792,7 @@ export default function AvaHealthBuddy() {
               {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
               {sendError && (
                 <div role="alert" style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '8px 12px', borderRadius: '10px', color: '#991B1B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                  <span>Ava couldn’t respond. Your message has been safely retained.</span>
+                  <span>Ava couldn’t respond. You can retry or restore your message to the editor.</span>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {failedDraft && (
                       <button
@@ -3029,7 +2862,7 @@ export default function AvaHealthBuddy() {
                     if (input.trim()) {
                       toast.info('Your draft is ready', 'Send or save your current draft before starting a daily check-in.');
                     } else {
-                      setInput('Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.');
+                      setShowDayCheckin(true);
                     }
                     textareaRef.current?.focus();
                   } else if (pill.action === 'river') {
@@ -3098,10 +2931,12 @@ export default function AvaHealthBuddy() {
         </div>
       )}
 
+      {showMemoryPanel && <AvaMemoryPanel key={selectedCaseId} caseId={selectedCaseId} messages={conversationMessages} onClose={()=>setShowMemoryPanel(false)}/>}
+      {showDayCheckin && <AvaDayCheckin onClose={()=>setShowDayCheckin(false)}/>}
+      {showActivities && <AvaActivityBrowser onClose={()=>setShowActivities(false)}/>}
       {/* Interactive In-Chat Meditation Player Modal */}
       {activeMeditation && (
-        <MeditationPlayer
-          content={activeMeditation}
+        <GuidedBreathingSession
           onClose={() => setActiveMeditation(null)}
         />
       )}
@@ -3110,7 +2945,7 @@ export default function AvaHealthBuddy() {
       <TriggerSensitivityModal
         isOpen={isWholeHealthOpen}
         onClose={() => setIsWholeHealthOpen(false)}
-        onOpenMindfulness={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
+        onOpenMindfulness={() => setActiveMeditation(true)}
         initialTab={wholeHealthTab}
       />
 
@@ -3119,7 +2954,7 @@ export default function AvaHealthBuddy() {
         isOpen={isRiverOpen}
         onClose={() => setIsRiverOpen(false)}
         onAskAvaAboutConnection={(upstream, downstream) => {
-          handleSend(`Ava, I noticed a connection in my Whole Health River: my "${upstream}" is followed by "${downstream}". How are these anatomically and biochemically linked in your clinical view?`);
+          handleSend(`Ava, I noticed a connection in my Whole Health River: my "${upstream}" is followed by "${downstream}". What does the recorded timing tell us, what remains unknown, and what should I ask my clinician? Do not infer causation.`);
         }}
       />
 
@@ -3135,6 +2970,7 @@ export default function AvaHealthBuddy() {
       {/* Gut Health Multi-System Intelligence Modal */}
       <ConnectionDetectiveModal
         isOpen={isDetectiveOpen}
+        caseId={selectedCaseId || null}
         initialTab={detectiveTab}
         onClose={() => setIsDetectiveOpen(false)}
         onOpenFoodDetective={() => {
@@ -3163,6 +2999,7 @@ export default function AvaHealthBuddy() {
       {/* Context scope */}
       <AnimatePresence>
         {showContextModal && (
+          <FocusTrap onEscape={()=>setShowContextModal(false)}>
           <div
             style={{
               position: 'fixed',
@@ -3224,8 +3061,8 @@ export default function AvaHealthBuddy() {
                     background: '#F1F5F9',
                     border: 'none',
                     borderRadius: '8px',
-                    width: '28px',
-                    height: '28px',
+                    width: '44px',
+                    height: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -3239,7 +3076,7 @@ export default function AvaHealthBuddy() {
               </div>
 
               <p style={{ margin: 0, fontSize: '13.5px', color: '#475569', lineHeight: 1.55 }}>
-                Ava uses recent saved items for this conversation.
+                These saved items are available for your next reply. Each completed answer has its own captured context details.
               </p>
 
               <div>
@@ -3283,7 +3120,7 @@ export default function AvaHealthBuddy() {
                   Not included ({memoryContext.omittedCount})
                 </div>
                 <p style={{ margin: 0, fontSize: '12.5px', color: '#92400E', lineHeight: 1.5 }}>
-                  Other saved items were left out because they were less relevant to this conversation.
+                  Other saved items were not selected for this conversation. This list does not establish their clinical relevance.
                 </p>
               </div>
 
@@ -3292,6 +3129,7 @@ export default function AvaHealthBuddy() {
               </div>
             </motion.div>
           </div>
+          </FocusTrap>
         )}
       </AnimatePresence>
 

@@ -82,7 +82,7 @@ describe('Package 6 — Ava Task Completion: Action Suggestions', () => {
     expect(suggestions.questionDraft).toBe('Would a lactulose breath test be appropriate to evaluate for small intestinal bacterial overgrowth?');
   });
 
-  it('extracts standalone question bullet points if explicit ask-prefix is absent', () => {
+  it('requires explicit clinician-question framing instead of guessing from question bullets', () => {
     const userMessage = 'I have persistent histamine-like flushing.';
     const modelMessage = `To help narrow this down with your care team:\n• Have we tested serum tryptase levels during a flare?\n• Have you kept a histamine food diary?`;
 
@@ -93,8 +93,8 @@ describe('Package 6 — Ava Task Completion: Action Suggestions', () => {
       hasReview: false,
     });
 
-    expect(suggestions.canAddQuestion).toBe(true);
-    expect(suggestions.questionDraft).toContain('Have we tested serum tryptase levels during a flare?');
+    expect(suggestions.canAddQuestion).toBe(false);
+    expect(suggestions.questionDraft).toBe('');
   });
 
   it('offers study explanation when a research study is active', () => {

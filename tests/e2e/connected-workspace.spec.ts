@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
   });
-  await page.route(/https:\/\//, route => route.abort());
+  await page.route(/https:\/\//, (route) => route.abort());
 });
 
 async function advanceToClinicalStep(page: any, step: 4 | 5 | 6) {
@@ -19,9 +19,14 @@ async function advanceToClinicalStep(page: any, step: 4 | 5 | 6) {
 }
 
 test('a draft remains visible and connects My Cases, Ava, and the engine', async ({ page }) => {
+  // This journey opens three workspaces and advances six steps. Windows WebKit
+  // actionability checks can exhaust 30 seconds while each action still succeeds.
+  test.setTimeout(60_000);
   await page.goto('/app/my-cases?new=true', { waitUntil: 'domcontentloaded' });
   await page.getByLabel('Case title', { exact: true }).fill('My energy timeline');
-  await page.getByLabel('What would you like help with?', { exact: true }).fill('My energy changes after lunch. I want to prepare for my appointment.');
+  await page
+    .getByLabel('What would you like help with?', { exact: true })
+    .fill('My energy changes after lunch. I want to prepare for my appointment.');
   await page.getByRole('button', { name: 'Save case draft', exact: true }).click();
   await expect(page).toHaveURL(/\/app\/cases\//);
   const caseId = new URL(page.url()).pathname.split('/').pop();
@@ -48,7 +53,12 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input, init) => {
       if (String(input).includes('/api/gemini')) {
-        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Let us review that together.' }] } }] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        return new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: 'Let us review that together.' }] } }],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
       }
       return originalFetch(input, init);
     };
@@ -63,7 +73,9 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   const quickWater = page.getByRole('button', { name: 'Quick log 250ml water' });
   await quickWater.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Daily Hydration - Open intake tracker' })).toContainText(/250\s*\/\s*2,000 ml/);
+  await expect(
+    page.getByRole('button', { name: 'Daily Hydration - Open intake tracker' })
+  ).toContainText(/250\s*\/\s*2,000 ml/);
   await expect(page.getByRole('dialog', { name: /Hydration/i })).toHaveCount(0);
   await page.getByRole('button', { name: 'View all 10 articles' }).click();
   await expect(page.getByRole('button', { name: 'Show recommended' })).toBeVisible();
@@ -75,15 +87,18 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await expect(garden.getByRole('button', { name: /Water Garden/i })).toBeVisible();
   await garden.getByRole('button', { name: 'Close modal' }).click();
   await page.getByRole('link', { name: 'Ava', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();
+  await expect(
+    page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Send message', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Log your day/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /Guided Calm/i })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Connection Detective/i })).toHaveCount(0);
   const avaInput = page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' });
   await page.getByRole('button', { name: /Log your day/i }).click();
-  await expect(avaInput).toHaveValue(/Help me log my day/);
-  await avaInput.fill('');
+  await expect(page.getByRole('dialog', { name: 'Log your day' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close day check-in' }).click();
+  await expect(avaInput).toHaveValue('');
   await page.getByRole('button', { name: /Discomfort Check/i }).click();
   await expect(page.getByText('Let us review that together.', { exact: true })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
@@ -91,31 +106,46 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await page.screenshot({ path: 'test-results/connected-ava-mobile.png', fullPage: true });
 });
 
-test('Connection Detective keeps empty domains clear without duplicating engine or dossier workspaces', async ({ page }) => {
+test('Connection Detective keeps empty domains clear without duplicating engine or dossier workspaces', async ({
+  page,
+}) => {
   await page.goto('/app/ava?tool=connection-detective', { waitUntil: 'domcontentloaded' });
   const detective = page.getByRole('dialog', { name: 'Clinical Connections' });
   await expect(detective.getByRole('heading', { name: 'Gut Health & Connections' })).toBeVisible();
   const gutDomain = detective.getByRole('button', { name: 'Open Gut & Food' });
   await expect(gutDomain).toContainText('No food history in this case');
   await gutDomain.click();
-  await expect(detective.getByRole('button', { name: 'Open Meal Records & Digestion Calendar' })).toBeVisible();
-  await expect(detective.getByRole('button', { name: 'Open Food Records & Patterns' })).toBeVisible();
+  await expect(
+    detective.getByRole('button', { name: 'Open Meal Records & Digestion Calendar' })
+  ).toBeVisible();
+  await expect(
+    detective.getByRole('button', { name: 'Open Food Records & Patterns' })
+  ).toBeVisible();
   await expect(detective.getByText('Evidence Connection Graph')).toHaveCount(0);
 });
 
 test('the engine rejects unsupported documents and preserves written notes', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto('/app/consult', { waitUntil: 'domcontentloaded' });
   await advanceToClinicalStep(page, 4);
   const notes = page.getByRole('textbox', { name: 'Clinical timeline and symptom notes' });
   await notes.fill('My own timeline, with no invented measurements.');
   await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
-  await page.getByLabel('Upload medical records, lab reports, or health documents').setInputFiles({ name: 'not-a-report.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
+  await page
+    .getByLabel('Upload medical records, lab reports, or health documents')
+    .setInputFiles({
+      name: 'not-a-report.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('text'),
+    });
   await expect(page.getByText('Unsupported document', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '← Back to Story' }).click();
   await expect(notes).toHaveValue('My own timeline, with no invented measurements.');
 });
 
-test('Ava retries a failed reply without duplicating the question or spending trial usage on failure', async ({ page }) => {
+test('Ava retries a failed reply without duplicating the question or spending trial usage on failure', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(() => {
     const originalFetch = window.fetch.bind(window);
@@ -124,21 +154,44 @@ test('Ava retries a failed reply without duplicating the question or spending tr
     window.fetch = async (input, init) => {
       if (String(input).includes('/api/gemini')) {
         (window as any).__avaRequests.push(JSON.parse(String(init?.body || '{}')));
-        if ((window as any).__avaShouldFail) return new Response('{"error":"Temporary failure"}', { status: 500, headers: { 'Content-Type': 'application/json' } });
-        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Let us prepare your appointment questions together.' }] } }] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        if ((window as any).__avaShouldFail)
+          return new Response('{"error":"Temporary failure"}', {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        return new Response(
+          JSON.stringify({
+            candidates: [
+              {
+                content: {
+                  parts: [{ text: 'Let us prepare your appointment questions together.' }],
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
       }
       return originalFetch(input, init);
     };
   });
   await page.goto('/app/ava', { waitUntil: 'domcontentloaded' });
-  await page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' }).fill('Help me prepare for my visit');
+  await page
+    .getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })
+    .fill('Help me prepare for my visit');
   await page.getByRole('button', { name: 'Send message', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Retry message' })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('hc_trial_ava_count'))).toBeNull();
-  await page.evaluate(() => { (window as any).__avaShouldFail = false; });
+  await page.evaluate(() => {
+    (window as any).__avaShouldFail = false;
+  });
   await page.getByRole('button', { name: 'Retry message' }).click();
-  await expect(page.getByText('Let us prepare your appointment questions together.', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Let us prepare your appointment questions together.', { exact: true })
+  ).toBeVisible();
   const requests = await page.evaluate(() => (window as any).__avaRequests);
-  expect(requests[requests.length - 1].contents.filter((entry: any) => entry.role === 'user')).toHaveLength(1);
+  expect(
+    requests[requests.length - 1].avaRequest.messages.filter((entry: any) => entry.role === 'user')
+  ).toHaveLength(1);
   expect(await page.evaluate(() => localStorage.getItem('hc_trial_ava_count'))).toBe('1');
 });

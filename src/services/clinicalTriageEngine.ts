@@ -1,6 +1,6 @@
 /**
  * Deterministic Clinical Emergency Triage Engine
- * Zero-tolerance safety guardrail running client-side in < 2ms.
+ * Fast client-side urgent-phrase screen; this is not a diagnosis or complete triage.
  * Catches acute life threats before any remote LLM network call.
  */
 
@@ -74,20 +74,34 @@ export function evaluateEmergencyTriage(input: string): TriageEvaluation {
     return {
       isEmergency: false,
       immediateAction: '',
-      suggestedContact: '911'
+      suggestedContact: ''
     };
   }
 
   const normalized = input.trim();
+  const clauses=normalized.split(/[.!;\n]|\bbut\b/i);
+  const currentClauses=clauses.filter(clause=>!/^\s*(?:what (?:is|are|does)|how (?:does|do)|can you explain|tell me about|for (?:a|my) (?:class|assignment)|in a (?:book|movie)|hypothetically)/i.test(clause));
+  const extraDanger=[
+   {category:'PSYCHIATRIC_CRISIS' as const,pattern:/(?:i (?:am|feel) suicidal|i (?:might|will|intend to) (?:kill|hurt) myself|i want to (?:die|end my life)|i (?:have a plan|plan|intend) to (?:kill|hurt) myself|i (?:have|already) (?:taken|took) an overdose|i overdosed|मुझे आत्महत्या|मैं (?:खुद को|अपनी जान).*(?:मार|खत्म))/i},
+   {category:'RESPIRATORY' as const,pattern:/(?:i (?:cannot|can't|can’t) breathe|unable to breathe|mujhe saans nahi aa rahi|severe (?:difficulty|trouble) breathing|सांस नहीं (?:आ|ले)|साँस नहीं (?:आ|ले))/i},
+   {category:'CARDIOVASCULAR' as const,pattern:/(?:severe chest pain|सीने में (?:तेज|बहुत|भयंकर) दर्द)/i},
+  ];
+  for(const extra of extraDanger)if(currentClauses.some(clause=>extra.pattern.test(clause) && !/\b(?:not|never)\s+(?:feeling\s+)?suicidal|\bdo not want to die/i.test(clause))){
+   return {isEmergency:true,category:extra.category,redFlagReason:'Your words may describe immediate danger. Seek urgent human help now.',immediateAction:'Contact local emergency services now. Ask a trusted nearby person to stay with you. Do not wait for an AI reply.',suggestedContact:''};
+  }
 
   for (const rule of RED_FLAG_RULES) {
-    if (rule.pattern.test(normalized)) {
+    if (currentClauses.some(clause=>{
+      const match=rule.pattern.exec(clause);if(!match)return false;
+      const before=clause.slice(Math.max(0,match.index-50),match.index);
+      return !/\b(?:no|not|without|denies|never had)\s+(?:any\s+|currently\s+|having\s+|experiencing\s+|a\s+|the\s+){0,3}$/i.test(before);
+    })) {
       return {
         isEmergency: true,
         category: rule.category,
         redFlagReason: rule.reason,
-        immediateAction: rule.immediateAction,
-        suggestedContact: rule.category === 'PSYCHIATRIC_CRISIS' ? '988' : '911'
+        immediateAction: 'Contact local emergency services now. Do not wait for an AI reply. Ask a trusted nearby person to help.',
+        suggestedContact: ''
       };
     }
   }
@@ -95,6 +109,6 @@ export function evaluateEmergencyTriage(input: string): TriageEvaluation {
   return {
     isEmergency: false,
     immediateAction: '',
-    suggestedContact: '911'
+    suggestedContact: ''
   };
 }

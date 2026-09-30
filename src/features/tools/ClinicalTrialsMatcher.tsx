@@ -1,3 +1,4 @@
+import { getProfileKey } from '../../services/ProfileEngine';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -433,7 +434,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             onClick={(e) => {
               e.stopPropagation();
               triggerHapticLight();
-              const sourceStudy = {
+              const sourceStudy = { ownerScope:getProfileKey(),
                 caseId: getUnifiedCaseScope().caseId,
                 nctId: item.id,
                 title: displayTitle,
@@ -445,9 +446,9 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                 retrievedAt: item.retrievedAt,
               };
               try {
-                sessionStorage.setItem('hc_active_source_study', JSON.stringify(sourceStudy));
+                // The handoff is stored only in the owning profile scope.
                 if (item.id) {
-                  sessionStorage.setItem(`hc_study_${item.id}`, JSON.stringify(sourceStudy));
+                  sessionStorage.setItem(`hc_study_${getProfileKey()}_${item.id}`, JSON.stringify(sourceStudy));
                 }
               } catch {}
               navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (item.id ? '&studyId=' + encodeURIComponent(item.id) : ''), {
@@ -1124,7 +1125,7 @@ export default function ClinicalTrialsMatcher() {
                       className="btn btn-outline"
                       onClick={() => {
                         triggerHapticLight();
-                        const sourceStudy = {
+                        const sourceStudy = { ownerScope:getProfileKey(),
                           caseId: getUnifiedCaseScope().caseId,
                           nctId: selectedItem.id,
                           title: modalTitle,
@@ -1136,9 +1137,9 @@ export default function ClinicalTrialsMatcher() {
                           retrievedAt: selectedItem.retrievedAt,
                         };
                         try {
-                          sessionStorage.setItem('hc_active_source_study', JSON.stringify(sourceStudy));
+                          // The handoff is stored only in the owning profile scope.
                           if (selectedItem.id) {
-                            sessionStorage.setItem(`hc_study_${selectedItem.id}`, JSON.stringify(sourceStudy));
+                            sessionStorage.setItem(`hc_study_${getProfileKey()}_${selectedItem.id}`, JSON.stringify(sourceStudy));
                           }
                         } catch {}
                         navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (selectedItem.id ? '&studyId=' + encodeURIComponent(selectedItem.id) : ''), {

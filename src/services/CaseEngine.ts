@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
+import {captureAccountScope as captureHealthMemoryScope,isAccountScopeCurrent as isHealthMemoryScopeCurrent} from './AccountScope';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
@@ -300,6 +301,7 @@ function safeIsoDate(val?: string | number | Date | null): string {
 }
 
 async function save(cases: CaseItem[]) {
+  const accountScope = captureHealthMemoryScope();
   const storageKey = getCasesKey();
   const profileId = getActiveProfileId();
 
@@ -333,7 +335,7 @@ async function save(cases: CaseItem[]) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (storageKey !== getCasesKey() || profileId !== getActiveProfileId()) return;
-    if (session?.user) {
+    if (session?.user && isHealthMemoryScopeCurrent(accountScope) && session.user.id === accountScope.accountId) {
       const currentProfileId = profileId;
       for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
@@ -1412,4 +1414,20 @@ if (typeof window !== 'undefined') {
       safeDispatchEvent(new Event('hc_cases_updated'));
     }
   }) as EventListener);
+}
+
+export async function saveAvaCaseAction(caseId:string,messageId:string,type:'observation'|'question',text:string,specialty='General'){
+ const cases=getCases();const target=cases.find(item=>item.id===caseId);
+ if(!target || !text.trim())throw new Error('Case or action is unavailable.');
+ const actionId='ava_'+type+'_'+messageId;
+ const existing=type==='observation'?target.events?.find(item=>item.id===actionId):target.questions?.find(item=>item.id===actionId || item.questionText.trim().toLowerCase()===text.trim().toLowerCase());
+ if(existing)return existing.id;
+ const now=new Date().toISOString();
+ const updated=type==='observation'?{...target,updatedAt:now,events:[{id:actionId,date:now,label:'Patient observation (Ava conversation)',note:text.trim()},...(target.events || [])]}
+  :{...target,updatedAt:now,questions:[...(target.questions || []),{id:actionId,questionText:text.trim(),raisedBySpecialty:specialty,supportingEvidenceIds:[],status:'open' as const,createdAt:now}]};
+ await save(cases.map(item=>item.id===caseId?updated:item));
+ // LocalStorage is the synchronous durable mirror used by save().
+ const raw=getItemSync(getCasesKey());
+ if(!raw || !raw.includes(actionId))throw new Error('The action could not be saved on this device.');
+ return actionId;
 }

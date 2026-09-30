@@ -10,14 +10,14 @@ describe('Clinical Emergency Triage Engine', () => {
     const res = evaluateEmergencyTriage('I have a sudden thunderclap headache and my neck feels stiff');
     expect(res.isEmergency).toBe(true);
     expect(res.category).toBe('CEREBROVASCULAR');
-    expect(res.suggestedContact).toBe('911');
+    expect(res.suggestedContact).toBe('');
   });
 
   it('should immediately detect acute coronary syndrome (crushing chest pain radiating to arm)', () => {
     const res = evaluateEmergencyTriage('Experiencing crushing chest pain radiating to left arm with cold sweats');
     expect(res.isEmergency).toBe(true);
     expect(res.category).toBe('CARDIOVASCULAR');
-    expect(res.suggestedContact).toBe('911');
+    expect(res.suggestedContact).toBe('');
   });
 
   it('should immediately detect stroke symptoms (facial droop and slurred speech)', () => {
@@ -26,11 +26,11 @@ describe('Clinical Emergency Triage Engine', () => {
     expect(res.category).toBe('CEREBROVASCULAR');
   });
 
-  it('should immediately detect psychiatric crisis with appropriate 988 contact', () => {
+  it('should immediately detect psychiatric crisis without assuming the user is in the US', () => {
     const res = evaluateEmergencyTriage('I feel overwhelmed and have suicidal thoughts right now');
     expect(res.isEmergency).toBe(true);
     expect(res.category).toBe('PSYCHIATRIC_CRISIS');
-    expect(res.suggestedContact).toBe('988');
+    expect(res.suggestedContact).toBe('');
   });
 
   it('should NOT flag benign chronic symptoms as emergencies', () => {

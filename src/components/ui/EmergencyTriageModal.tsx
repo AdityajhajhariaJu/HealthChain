@@ -1,6 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, PhoneCall, ShieldAlert, X, MapPin } from 'lucide-react';
+import FocusTrap from './FocusTrap';
+import { getProfile } from '../../services/ProfileEngine';
+import { effectiveFoodLocation } from '../../services/dietEveryday';
 import { TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { triggerHapticSelection } from '../../services/haptics';
 
@@ -25,13 +28,15 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const [country,setCountry]=useState(()=>effectiveFoodLocation(getProfile()?.dietProfile,new Date().toISOString().slice(0,10)).countryCode || '');
   if (!isOpen || !triage || !triage.isEmergency) return null;
 
   const isPsych = triage.category === 'PSYCHIATRIC_CRISIS';
-  const emergencyNumber = triage.suggestedContact || (isPsych ? '988' : '911');
+  const emergencyNumber=country==='IN'?'112':country==='US'?'911':'';
+  const supportNumber=country==='IN'?'14416':country==='US'?'988':'';
 
   return (
-    <AnimatePresence>
+    <AnimatePresence><FocusTrap onEscape={onClose}>
       <div
         style={{
           position: 'fixed',
@@ -107,7 +112,7 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
                   marginBottom: '2px',
                 }}
               >
-                CRITICAL CLINICAL RED FLAG DETECTED
+                POSSIBLE URGENT CONCERN
               </div>
               <h2
                 id="emergency-title"
@@ -180,52 +185,15 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
               </p>
             </div>
 
-            {/* High-Contrast Immediate Call Buttons (US & India/EU) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-              <a
-                href={`tel:${isPsych ? '988' : '911'}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '14px',
-                  borderRadius: '16px',
-                  background: '#DC2626',
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-              >
-                <PhoneCall size={18} /> {isPsych ? 'Call 988 (US)' : 'Call 911 (US)'}
-              </a>
-              <a
-                href={`tel:${isPsych ? '14416' : '112'}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '14px',
-                  borderRadius: '16px',
-                  background: '#991B1B',
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  boxShadow: '0 4px 14px rgba(153, 27, 27, 0.35)',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-              >
-                <PhoneCall size={18} /> {isPsych ? 'Call 14416 (IN)' : 'Call 112 (IN/EU)'}
-              </a>
-            </div>
-
+            <label style={{display:'block',marginBottom:12}}>Where are you now?
+              <select aria-label="Current country for emergency help" value={country} onChange={event=>setCountry(event.target.value)} style={{display:'block',minHeight:44,width:'100%'}}>
+                <option value="">Another country / not sure</option><option value="IN">India</option><option value="US">United States</option>
+              </select>
+            </label>
+            <p>Choose your current country, including when travelling. For immediate danger, use emergency services. Mental health support is an additional option.</p>
+            {emergencyNumber ? <a href={'tel:'+emergencyNumber} style={{display:'block',padding:14,minHeight:44,borderRadius:12,background:'#DC2626',color:'white',fontWeight:800,marginBottom:12}}>Call emergency services: {emergencyNumber}</a>
+              : <p>Contact your local emergency number or nearest emergency department now. Ask a trusted nearby person to help you find the correct service.</p>}
+            {isPsych && supportNumber && <a href={'tel:'+supportNumber} style={{display:'block',padding:14,minHeight:44,borderRadius:12,background:'#991B1B',color:'white',fontWeight:700,marginBottom:12}}>Mental health support: {supportNumber}</a>}
             {!isPsych && (
               <a
                 href="https://www.google.com/maps/search/nearest+emergency+room"
@@ -276,6 +244,6 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </FocusTrap></AnimatePresence>
   );
 };

@@ -1,3 +1,4 @@
+import { validateAvaRequest, buildAvaProviderPayload, usableAvaReply, validateAvaMemoryRequest, buildAvaMemoryProviderPayload } from '../shared/ava-request.js';
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
 import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet-plan-validation.js';
@@ -49,6 +50,7 @@ HEALTHCHAIN SAFETY GATE:
 `;
 
 export default async function handler(req, res) {
+  const requestStartedAt=Date.now();
   const origin = req.headers.origin;
   const isAllowed = allowedOrigin(origin);
   if (isAllowed) {
@@ -88,7 +90,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // Development and production allow guest access up to 5 messages, enforced by local storage on frontend.
+  if (authHeader && !userId) return res.status(401).json({error:'Session could not be verified. Sign in again.'});
+
+  // Guest access is also bounded by the server rate limiter.
 
   if (!checkRateLimit(req, 40, 60000)) return res.status(429).json({ error: 'Too many requests' });
   if (!userId && !checkRateLimit(req, 5, 24 * 60 * 60 * 1000, `guest:${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`)) {
@@ -103,6 +107,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid request id' });
   }
   const operation = String(req.headers['x-hc-operation'] || 'gemini').slice(0, 80);
+  const isAva=operation.toLowerCase()==='ava_chat';
+  const supportedOperations=new Set(['ava_chat','gut_frame','gut_reasoning','quick_chat','pharmacy','lab_analysis','specialist_selection','deep_import_specialist','deep_specialist','deep_conference','deep_import_summary','deep_summary','dietician_food_log','dietician_advice','dietician_guardrails','dietician_grocery','dietician_meal_plan','suggest_specialists','differential_generation','health_synthesis','drug_interaction','treatment_simulation','case_prep_analysis','case_connection_map','appointment_questions','case_prep_coach','case_prep_refine','jarvis_investigation','memory_extraction','food_vision','medicine_vision']);
+  if(!supportedOperations.has(operation.toLowerCase()))return res.status(400).json({error:'Unsupported AI operation'});
+  let avaRequestHash=null;
   const isDietPlan = operation.toLowerCase() === 'dietician_meal_plan';
   let dietRequestHash = null;
   if (isDietPlan && !userId) return res.status(401).json({ error: 'Sign in to generate a meal plan' });
@@ -176,6 +184,20 @@ export default async function handler(req, res) {
     bodyPayload = buildDietPlanProviderPayload(bodyPayload.dietPlanRequest);
   }
 
+  if(operation.toLowerCase()==='memory_extraction'){
+    if(Object.keys(bodyPayload).length!==1 || !validateAvaMemoryRequest(bodyPayload.avaMemoryRequest))return res.status(400).json({error:'Invalid memory proposal request'});
+    bodyPayload=buildAvaMemoryProviderPayload(bodyPayload.avaMemoryRequest);
+  }else if(bodyPayload.avaMemoryRequest){
+    return res.status(400).json({error:'Memory proposals require the memory operation'});
+  }
+  if(isAva){
+    if(Object.keys(bodyPayload).length!==1 || !validateAvaRequest(bodyPayload.avaRequest))return res.status(400).json({error:'Invalid Ava request'});
+    avaRequestHash=createHash('sha256').update(JSON.stringify(bodyPayload.avaRequest)).digest('hex');
+    bodyPayload=buildAvaProviderPayload(bodyPayload.avaRequest);
+  }else if(bodyPayload.avaRequest){
+    return res.status(400).json({error:'Ava requests require the Ava operation'});
+  }
+
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const adminClient = adminKey && supabaseUrl
     ? createClient(supabaseUrl, adminKey)
@@ -189,8 +211,18 @@ export default async function handler(req, res) {
       user_id: userId,
       operation,
       status: 'in_progress',
+      ...(isAva ? {request_hash:avaRequestHash} : {}),
     });
     if (ledgerError && ledgerError.code === '23505') {
+      if(isAva){
+        const {data:previous,error:recoveryError}=await adminClient.from('ai_requests')
+          .select('status, request_hash, result_json, result_expires_at').eq('request_id',String(requestId)).eq('user_id',userId).maybeSingle();
+        if(recoveryError)return res.status(503).json({error:'Ava recovery is temporarily unavailable'});
+        if(!previous || previous.request_hash!==avaRequestHash)return res.status(409).json({error:'Request id belongs to different details',reason:'request_mismatch'});
+        if(previous.status==='completed' && previous.result_json && Date.parse(previous.result_expires_at)>Date.now())return res.status(200).json(previous.result_json);
+        if(previous.status==='in_progress')return res.status(409).json({error:'Ava is still preparing this reply. Retry shortly.',reason:'request_in_progress'});
+        return res.status(409).json({error:'This request failed or its recovery window expired. Start a new attempt.',reason:'request_failed',requestState:'failed'});
+      }
       if (isDietPlan) {
         const { data: saved, error: savedError } = await adminClient.from('diet_plan_generations')
           .select('request_hash, plan').eq('request_id', String(requestId)).eq('user_id', userId).maybeSingle();
@@ -273,7 +305,7 @@ export default async function handler(req, res) {
         // existing environment. Once installed, the request-bound path above
         // provides exact-once release on provider failure.
         const usingLegacyQuotaFunction = featureQuotaError && (featureQuotaError.code === 'PGRST202' || /consume_feature_quota_for_request/i.test(featureQuotaError.message || ''));
-        if (usingLegacyQuotaFunction && featureCode === 'dietician_meal_plan') {
+        if (usingLegacyQuotaFunction && (featureCode === 'dietician_meal_plan' || isAva)) {
           await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_migration_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
           return res.status(503).json({ error: 'Meal plan accounting is temporarily unavailable' });
         }
@@ -303,18 +335,18 @@ export default async function handler(req, res) {
           }
         }
         if (featureQuotaError) {
-          console.warn('Feature quota check encountered error, defaulting to upgrade prompt:', featureQuotaError.message || featureQuotaError);
-          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'upgrade_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-          return res.status(402).json({ error: 'Feature quota exceeded', reason: 'upgrade_required' });
+          console.warn('Feature allowance service unavailable:', featureQuotaError.message || featureQuotaError);
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+          return res.status(503).json({ error: 'Feature allowance service unavailable. Please retry.', reason: 'quota_unavailable', requestState:'failed' });
         }
         if (!quotaResult?.allowed) {
           await adminClient.from('ai_requests').update({ status: 'failed', error_code: quotaResult?.reason || 'feature_quota_exceeded', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
           return res.status(402).json({ error: 'Feature quota exceeded', reason: quotaResult?.reason || 'quota_exceeded' });
         }
       } catch (error) {
-        console.error('Feature quota enforcement failed, defaulting to upgrade prompt:', error);
-        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'upgrade_required', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-        return res.status(402).json({ error: 'Feature quota exceeded', reason: 'upgrade_required' });
+        console.error('Feature allowance service unavailable:', error);
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(503).json({ error: 'Feature allowance service unavailable. Please retry.', reason: 'quota_unavailable', requestState:'failed' });
       }
     }
   }
@@ -322,10 +354,11 @@ export default async function handler(req, res) {
   const releaseReservedFeatureQuota = async () => {
     if (!adminClient || !userId) return;
     try {
-      await adminClient.rpc('release_feature_quota_for_request', {
+      const {error:releaseError}=await adminClient.rpc('release_feature_quota_for_request', {
         p_user_id: userId,
         p_request_id: String(requestId),
       });
+      if(releaseError)throw releaseError;
     } catch (releaseError) {
       console.error('Feature quota release failed:', releaseError);
     }
@@ -361,7 +394,7 @@ export default async function handler(req, res) {
     let attempts = 0;
     const maxAttempts = 3;
     // Leave time inside the 60s function limit to persist or refund the request.
-    const dietProviderDeadline = Date.now() + 50000;
+    const dietProviderDeadline = requestStartedAt + 50000;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -372,7 +405,7 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(bodyPayload),
-          ...(isDietPlan ? { signal: AbortSignal.timeout(Math.max(1, dietProviderDeadline - Date.now())) } : {}),
+          ...((isDietPlan || isAva) ? { signal: AbortSignal.timeout(Math.max(1, dietProviderDeadline - Date.now())) } : {}),
         });
 
         if (response.ok) break;
@@ -386,7 +419,7 @@ export default async function handler(req, res) {
 
         break;
       } catch (fetchErr) {
-        if (isDietPlan && (fetchErr?.name === 'TimeoutError' || fetchErr?.name === 'AbortError' || Date.now() >= dietProviderDeadline)) throw fetchErr;
+        if ((isDietPlan || isAva) && (fetchErr?.name === 'TimeoutError' || fetchErr?.name === 'AbortError' || Date.now() >= dietProviderDeadline)) throw fetchErr;
         if (attempts < maxAttempts) {
           console.warn(`Gemini fetch error on attempt ${attempts}. Retrying...`, fetchErr);
           await new Promise(r => setTimeout(r, attempts * 1000));
@@ -397,8 +430,7 @@ export default async function handler(req, res) {
     }
 
     if (!response || !response.ok) {
-      const errorData = response ? await response.text() : 'No response from AI provider';
-      console.error('Gemini API returned an error:', response?.status, errorData.slice(0, 1000));
+      console.error('Gemini provider request failed', {status:response?.status,requestId:String(requestId)});
       if (adminClient && userId) {
         await releaseReservedFeatureQuota();
         await adminClient.from('ai_requests').update({
@@ -407,10 +439,17 @@ export default async function handler(req, res) {
           finished_at: new Date().toISOString(),
         }).eq('request_id', String(requestId));
       }
-      return res.status(502).json({ error: 'AI provider request failed', ...(isDietPlan ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
+      return res.status(502).json({ error: 'AI provider request failed', ...((isDietPlan || isAva) ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
     }
 
     const data = await response.json();
+    if(isAva && !usableAvaReply(data)){
+      if(adminClient && userId){
+        await releaseReservedFeatureQuota();
+        await adminClient.from('ai_requests').update({status:'failed',error_code:'invalid_ava_reply',finished_at:new Date().toISOString()}).eq('request_id',String(requestId)).eq('user_id',userId);
+      }
+      return res.status(502).json({error:'Ava returned an incomplete reply. Please retry.',reason:'invalid_ava_reply',requestState:'failed'});
+    }
     let generatedPlan = null;
     if (isDietPlan) {
       const candidate = data?.candidates?.[0];
@@ -453,13 +492,15 @@ export default async function handler(req, res) {
     }
     if (adminClient && userId) {
       const usage = data?.usageMetadata || {};
-      await adminClient.from('ai_requests').update({
+      const {error:completionError}=await adminClient.from('ai_requests').update({
+        ...(isAva?{result_json:data,result_expires_at:new Date(Date.now()+86400000).toISOString()}:{}),
         status: 'completed',
         input_tokens: usage.promptTokenCount || null,
         output_tokens: usage.candidatesTokenCount || null,
         total_tokens: usage.totalTokenCount || null,
         finished_at: new Date().toISOString(),
       }).eq('request_id', String(requestId));
+      if(isAva && completionError)throw new Error('Ava recovery could not be saved.');
       if (usage.totalTokenCount) {
         await adminClient.rpc('record_ai_tokens', { p_user_id: userId, p_total_tokens: usage.totalTokenCount });
       }
@@ -468,14 +509,14 @@ export default async function handler(req, res) {
   } catch (error) {
     if (adminClient && userId) {
       if (!planSavedForRecovery) await releaseReservedFeatureQuota();
-      await adminClient.from('ai_requests').update({
+      await Promise.resolve(adminClient.from('ai_requests').update({
         status: planSavedForRecovery ? 'completed' : 'failed',
         error_code: planSavedForRecovery ? null : (error?.code || error?.name || 'provider_error'),
         finished_at: new Date().toISOString(),
-      }).eq('request_id', String(requestId)).catch(() => {});
+      }).eq('request_id', String(requestId))).catch(() => {});
     }
     console.error('Gemini API Proxy Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error', ...(isDietPlan && !planSavedForRecovery ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
+    return res.status(500).json({ error: 'Internal Server Error', ...((isDietPlan || isAva) && !planSavedForRecovery ? { reason: 'provider_unavailable', requestState: 'failed' } : {}) });
   }
 }
 

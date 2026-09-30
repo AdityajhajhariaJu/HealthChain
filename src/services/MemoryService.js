@@ -14,19 +14,27 @@ export function compilePatientContext(options = {}) {
   const profile = getProfile();
   const activeCase = includeActiveCase ? getActiveCase() : null;
 
+  // Required safety facts precede optional context and are never cut mid-item.
+  const textFact=value=>typeof value==='string'?value:JSON.stringify(value);
+  const safety=[];
+  if (includeProfile) {
+    safety.push('ALLERGIES (user reported): '+(Array.isArray(profile?.allergies) && profile.allergies.length ? profile.allergies.map(textFact).join('; ') : 'Not recorded; do not assume none.'));
+    safety.push('MEDICATIONS (user reported; preserve doses, schedule and status): '+(Array.isArray(profile?.medications) && profile.medications.length ? profile.medications.map(textFact).join('; ') : 'Not recorded.'));
+  }
+
   // 1. Profile Context (compact & sanitized)
   let profileStr = `PATIENT PROFILE:\n`;
   if (profile?.demographics?.age || profile?.demographics?.gender) {
     profileStr += `- ${profile.demographics.age || '?'} yr ${profile.demographics.gender || ''}\n`;
   }
   
-  const cleanConditions = (profile?.conditions || []).filter((c) => {
-    const l = (c || '').toLowerCase();
+  const cleanConditions = (Array.isArray(profile?.conditions) ? profile.conditions : []).filter((c) => {
+    const l = textFact(c || '').toLowerCase();
     return !l.includes('diagnostic ambig') && !l.includes('undifferentiated') && !l.includes('unknown') && !l.includes('review');
   });
 
   if (cleanConditions.length > 0) {
-    profileStr += `- Known Conditions: ${cleanConditions.join(', ')}\n`;
+    profileStr += `- User-reported Conditions: ${cleanConditions.map(textFact).join(', ')}\n`;
   }
   if (profile?.medications && profile.medications.length > 0) {
     const medNames = profile.medications
@@ -56,7 +64,7 @@ export function compilePatientContext(options = {}) {
     labEntries.slice(0, 10).forEach(([key, data]) => {
       if (data && typeof data === 'object') {
         const funcAlert = data.functionalStatus ? `[${data.functionalStatus}]` : '';
-        vitalsStr += `- ${key}: ${data.value || ''} ${data.unit || ''} ${funcAlert || (data.status ? `(${data.status})` : '')}\n`.replace(/\s+/g, ' ');
+        vitalsStr += `- ${key}: ${data.value ?? ''} ${data.unit || ''} ${funcAlert || (data.status ? `(${data.status})` : '')}\n`.replace(/\s+/g, ' ');
       } else if (data !== undefined && data !== null) {
         vitalsStr += `- ${key}: ${data}\n`;
       }
@@ -102,14 +110,14 @@ export function compilePatientContext(options = {}) {
     }
   }
 
-  if (contextParts.length === 0) {
+  if (contextParts.length === 0 && safety.length === 0) {
     return `\n\n=== SAVED CONTEXT ===\nNo additional saved context was included for this conversation.\n=====================\n`;
   }
 
-  // Hard cap to prevent runaway context growth
-  const fullText = `\n\n=== PATIENT CONTEXT ===\n${contextParts.join('\n')}\n========================\n`;
-  if (fullText.length > 1800) {
-    return fullText.substring(0, 1800) + `\n[Context truncated]...\n========================\n`;
-  }
-  return fullText;
+  const safetyText=safety.join('\n');
+  if(safetyText.length>12000)throw new Error('Safety history is too large for this reply. Review the medical profile before continuing.');
+  const optional=[];
+  let budget=3000;
+  for(const part of contextParts){if(part.length<=budget){optional.push(part);budget-=part.length;}}
+  return '\n=== PATIENT CONTEXT (user reported) ===\n'+safetyText+'\n'+optional.join('\n')+'\n========================\n';
 }

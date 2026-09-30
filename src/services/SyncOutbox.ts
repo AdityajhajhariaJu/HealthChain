@@ -10,6 +10,7 @@ import { mergeGutThreads } from './GutThreadMerge';
 import { preserveDietPlanState } from './DietProfileMerge';
 
 type OutboxKind = 
+  | 'ava_message_upsert'
   | 'case_upsert' 
   | 'case_delete' 
   | 'health_memory_upsert' 
@@ -97,7 +98,14 @@ function entryId() {
   try { return crypto.randomUUID(); } catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 }
 
-export async function enqueueSync(kind: OutboxKind, userId: string, payload: any) {
+let queueMutation:Promise<unknown>=Promise.resolve();
+function serializeQueue<T>(work:()=>Promise<T>):Promise<T>{
+ const result=queueMutation.then(work,work);queueMutation=result.catch(()=>{});return result;
+}
+export function enqueueSync(kind:OutboxKind,userId:string,payload:any){
+ return serializeQueue(()=>enqueueSyncUnserialized(kind,userId,payload));
+}
+async function enqueueSyncUnserialized(kind: OutboxKind, userId: string, payload: any) {
   if (!userId) return false;
   const queue = await readQueue(userId);
   const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
@@ -137,6 +145,7 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
 async function send(entry: OutboxEntry, expectedScope?: string) {
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
+    : entry.kind === 'ava_message_upsert' ? 'ava_messages'
     : entry.kind === 'health_memory_upsert' ? 'health_memory'
       : entry.kind === 'health_observation_upsert' ? 'health_observations'
       : entry.kind === 'caregiver_profile_upsert' ? 'healthchain_profiles'
@@ -488,6 +497,12 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     return supabase.from('user_fitness_history').upsert(entry.payload, { onConflict: 'id' });
   }
 
+  if (entry.kind === 'ava_message_upsert') {
+    if (entry.payload?.user_id !== entry.userId || entry.payload?.profile_id !== 'profile_1') return {error:new Error('Invalid Ava owner')};
+    if (expectedScope && getCurrentScope() !== expectedScope) return {error:new Error('Account changed during Ava sync')};
+    return supabase.from('ava_messages').upsert(entry.payload, {onConflict:'id'});
+  }
+
   if (entry.kind === 'body_measurements_upsert') {
     return supabase.from('user_body_measurements').upsert(entry.payload, { onConflict: 'id' });
   }
@@ -573,6 +588,7 @@ export async function flushSyncOutbox(userId?: string) {
     // Enqueues can occur while network requests are in flight. Re-read and
     // merge new or updated entries instead of replacing them with the stale
     // snapshot captured at the beginning of this flush.
+    const persistedRemaining = await serializeQueue(async()=>{
     const latestQueue = await readQueue(accountId);
     const concurrentEntries = latestQueue.filter((entry) => {
       const initial = initialPayloadById.get(entry.id);
@@ -580,11 +596,14 @@ export async function flushSyncOutbox(userId?: string) {
     });
     const merged = new Map(remaining.map((entry) => [entry.id, entry]));
     concurrentEntries.forEach((entry) => merged.set(entry.id, entry));
-    const persistedRemaining = Array.from(merged.values());
-    if (!await writeQueue(accountId, persistedRemaining)) {
+    const result = Array.from(merged.values());
+    if (!await writeQueue(accountId, result)) {
       lastSyncError = 'Sync results could not be saved on this device.';
       throw new Error(lastSyncError);
     }
+
+    return result;
+    });
 
     if (persistedRemaining.length) {
       const failedEntry = persistedRemaining.find(entry => entry.lastError);

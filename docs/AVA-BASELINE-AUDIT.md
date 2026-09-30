@@ -1,5 +1,7 @@
 # Ava audit and implementation plan
 
+Implementation update: see [Ava implementation and release checks](AVA-IMPLEMENTATION-STATUS.md). The findings below describe the historical audit baseline.
+
 Date: 30 September 2026
 Code reviewed: HealthChain-Live, master, `bbb51f15`
 Live database checked: Supabase project `cikikocfvfshloqwnyfe`

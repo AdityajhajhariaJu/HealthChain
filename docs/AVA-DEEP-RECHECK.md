@@ -1,5 +1,7 @@
 # Ava: deeper architecture and interaction recheck
 
+Implementation update: see [Ava implementation and release checks](AVA-IMPLEMENTATION-STATUS.md). The findings below describe the historical audit baseline.
+
 30 September 2026. Baseline application: `98c05d29`. Preserve the current theme, floral background, conversational tone and the user's preferred combination of dropdowns and interactive cards. This is a functional and behavioral audit, with a concrete implementation backlog. It is not a claim of clinical validation or universal satisfaction.
 
 ## Current assessment

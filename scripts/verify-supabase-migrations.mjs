@@ -26,6 +26,7 @@ const requiredFiles = [
   '20260929_diet_plan_trial_quota.sql',
   '20260929195913_security_advisor_hardening.sql',
   '20260930_diet_plan_generation_recovery.sql',
+  '20260930164327_ava_reliability_foundation.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -64,6 +65,9 @@ const migrationText = await Promise.all(
 const allSql = migrationText.map(([, sql]) => sql).join('\n');
 const requiredSchemaTokens = [
   'public.health_memory',
+  'public.ava_messages',
+  'public.start_fitness_session',
+  'public.complete_fitness_session',
   'public.health_observations',
   'public.healthchain_profiles',
   'public.user_devices',

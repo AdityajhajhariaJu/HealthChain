@@ -22,6 +22,19 @@ begin
   end if;
 end $$;
 
+-- Ava conversation ownership and exact wellness completion contract.
+do $$
+begin
+ if to_regclass('public.ava_messages') is null then raise exception 'Ava conversation storage is missing';end if;
+ if not (select relrowsecurity from pg_class where oid='public.ava_messages'::regclass) then raise exception 'Ava RLS is missing';end if;
+ if has_table_privilege('anon','public.ava_messages','SELECT,INSERT,UPDATE,DELETE') then raise exception 'Anonymous Ava table access is open';end if;
+ if to_regprocedure('public.start_fitness_session(uuid,uuid,uuid)') is null or to_regprocedure('public.complete_fitness_session(uuid,integer,integer)') is null then raise exception 'Exact wellness session routines are missing';end if;
+ if has_function_privilege('anon','public.start_fitness_session(uuid,uuid,uuid)','EXECUTE') or has_function_privilege('anon','public.complete_fitness_session(uuid,integer,integer)','EXECUTE') then raise exception 'Anonymous wellness execution is open';end if;
+ if not exists(select 1 from information_schema.columns where table_schema='public' and table_name='health_memory' and column_name='deleted_at')
+ or not exists(select 1 from information_schema.columns where table_schema='public' and table_name='ai_requests' and column_name='result_json') then raise exception 'Ava recovery or memory deletion storage is missing';end if;
+ if has_function_privilege('authenticated','public.recover_interrupted_ai_requests(integer)','EXECUTE') or has_function_privilege('anon','public.recover_interrupted_ai_requests(integer)','EXECUTE') then raise exception 'Server-only request recovery is open';end if;
+end $$;
+
 select table_name
 from information_schema.tables
 where table_schema = 'public'

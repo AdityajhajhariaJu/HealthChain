@@ -1,3 +1,4 @@
+import { addDurableArchiveData, restoreHealthArchive, validateHealthArchive } from '../../services/HealthArchive';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
@@ -30,6 +31,7 @@ const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_diet_profile',
   'hc_active_case',
   'hc_ava_vault',
+  'hc_ava_messages',
   'hc_food_logs',
   'hc_hydration',
   'hc_meal_plan',
@@ -48,6 +50,8 @@ export default function Settings() {
   const [isPremium, setIsPremium] = useState(isProUser());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [archivePreview,setArchivePreview]=useState<{raw:any;count:number;skipped:number}|null>(null);
+  const [restoring,setRestoring]=useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [hapticsEnabled, setHapticsEnabled] = useState(() => getItemSync('hc_haptics_enabled') !== 'false');
   const [isDarkMode, setIsDarkMode] = useState(() => typeof document !== 'undefined' && document.documentElement.classList.contains('dark-theme'));
@@ -116,7 +120,7 @@ export default function Settings() {
   const accountStr = getItemSync('hc_account');
   let account: any = null;
   try { account = accountStr ? JSON.parse(accountStr) : null; } catch {}
-  const storageScope = account?.id || 'guest';
+  const storageScope = getItemSync('hc_guest_mode')==='true'?'guest':account?.id || 'guest';
   const scopedExportPrefixes = EXPORTABLE_STORAGE_PREFIXES.map((prefix) => `${prefix}_${storageScope}`);
   const userEmail = account?.email || account?.user?.email || 'No email linked';
 
@@ -896,13 +900,14 @@ export default function Settings() {
               try {
                 const allKeys = (() => { try { return Object.keys(localStorage); } catch { return []; } })();
                 const exportedData = allKeys.reduce<Record<string, string>>((data, key) => {
-                  if (scopedExportPrefixes.some((prefix) => key.startsWith(prefix))) {
+                  if (scopedExportPrefixes.some((prefix) => key === prefix || key.startsWith(prefix+'_'))) {
                     const value = getItemSync(key);
                     if (value !== null) data[key] = value;
                   }
                   return data;
                 }, {});
 
+                const durable=await addDurableArchiveData(exportedData);
                 let cloudData: Record<string, unknown> | null = null;
                 if (isAuthenticated) {
                   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -933,6 +938,7 @@ export default function Settings() {
                 }
 
                 const dataStr = JSON.stringify({
+                  ...durable,
                   exportedAt: new Date().toISOString(),
                   format: 'healthchain-user-data-v2',
                   scope: cloudData ? 'local-cache-and-supabase-records' : 'local-cache-only',
@@ -989,34 +995,18 @@ export default function Settings() {
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
+                if(file.size>20*1024*1024){toastError('Import Failed','Archive exceeds the 20MB limit.');return;}
                 const reader = new FileReader();
                 reader.onerror = () => {
                   toastError('Import Failed', 'Failed to read the backup file.');
                 };
-                reader.onload = (ev) => {
+                reader.onload = async (ev) => {
                   try {
                     const parsed = JSON.parse(ev.target?.result as string);
-                    const result = parsed?.data && typeof parsed.data === 'object' ? parsed.data : parsed;
-                    if (!result || typeof result !== 'object') {
-                      throw new Error('Invalid JSON format');
-                    }
-                    const FORBIDDEN_KEYS = ['isAuthenticated', 'hc_account', 'hc_remember', 'hc_guest_mode', 'hc_premium_status'];
-                    const ALLOWED_PREFIXES = [...scopedExportPrefixes, 'hc_theme'];
-
-                    let importedCount = 0;
-                    Object.keys(result).forEach(key => {
-                      if (FORBIDDEN_KEYS.includes(key)) return;
-                      const isAllowed = ALLOWED_PREFIXES.some(prefix => key.startsWith(prefix));
-                      if (isAllowed) {
-                        const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
-                        setItemSync(key, val);
-                        importedCount++;
-                      }
-                    });
-                    success('Import Complete', `Successfully restored ${importedCount} data entries. Refreshing...`);
-                    setTimeout(() => window.location.reload(), 1500);
-                  } catch (err) {
-                    toastError('Import Failed', 'Invalid or unverified JSON file.');
+                    const checked=validateHealthArchive(parsed,scopedExportPrefixes);
+                    setArchivePreview({raw:parsed,count:Object.keys(checked.entries).length+Object.keys(checked.indexed).length,skipped:checked.skipped});
+                  } catch (err:any) {
+                    toastError('Import Failed', err?.message || 'Invalid or unverified JSON file.');
                   }
                 };
                 reader.readAsText(file);
@@ -1227,6 +1217,25 @@ export default function Settings() {
       )}
 
       {/* Offline Unsynced Changes Logout Confirmation Modal */}
+      {archivePreview && <div style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(15,23,42,.55)',display:'grid',placeItems:'center',padding:16}}>
+        <FocusTrap onEscape={()=>{if(!restoring)setArchivePreview(null);}}>
+          <div role="dialog" aria-modal="true" aria-label="Review backup restore" style={{background:'white',color:'#0f172a',borderRadius:24,padding:24,maxWidth:480}}>
+            <h3>Review backup restore</h3>
+            <p>{archivePreview.count} local data stores can be restored. {archivePreview.skipped} unsupported or other-account entries will be skipped.</p>
+            <p>This replaces matching data on this device. Your account's cloud records remain available for synchronization.</p>
+            <button className="btn btn-outline" disabled={restoring} onClick={()=>setArchivePreview(null)}>Cancel</button>
+            <button className="btn btn-primary" disabled={restoring} onClick={async()=>{
+              setRestoring(true);
+              try{
+                const result=await restoreHealthArchive(archivePreview.raw,scopedExportPrefixes);
+                success('Import Complete',result.count+' local data stores restored. Refreshing…');
+                setArchivePreview(null);setTimeout(()=>window.location.reload(),1500);
+              }catch(error:any){toastError('Import Failed',error.message || 'The backup could not be restored.');}
+              finally{setRestoring(false);}
+            }}>{restoring?'Restoring…':'Restore backup'}</button>
+          </div>
+        </FocusTrap>
+      </div>}
       {showLogoutConfirm && (
         <div
           style={{

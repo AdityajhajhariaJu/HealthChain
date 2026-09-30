@@ -285,6 +285,7 @@ export const PILLAR_FILTERS: PillarFilterOption[] = [
 ];
 
 interface ConnectionDetectiveViewProps {
+  caseId?: string | null;
   initialTab?: TabId;
   openedPillarId?: PillarId | null;
   onOpenedPillarChange?: (id: PillarId | null) => void;
@@ -295,6 +296,7 @@ interface ConnectionDetectiveViewProps {
 
 export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = ({
   initialTab,
+  caseId,
   openedPillarId: controlledOpenedPillarId,
   onOpenedPillarChange,
   onOpenFoodDetective,
@@ -302,8 +304,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   onOpenCasePrep,
 }) => {
   const isMobile = useIsMobile();
-  const caseScope = getUnifiedCaseScope();
-  const activeCase = caseScope.caseItem;
+  const caseScope = getUnifiedCaseScope(caseId || undefined);
+  const activeCase = caseId===null?null:caseScope.caseItem;
   const activeReview = activeCase?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || activeCase?.reviews?.[0];
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport(activeReview?.report, activeCase));
   const semanticGraph = useMemo(() => {
@@ -413,9 +415,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   useEffect(() => {
     const handleUpdate = () => {
-      const scope = getUnifiedCaseScope();
-      const rev = scope.caseItem?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || scope.caseItem?.reviews?.[0];
-      setReport(getConnectionDetectiveReport(rev?.report, scope.caseItem));
+      const scope = getUnifiedCaseScope(caseId || undefined);
+      const scopedCase=caseId===null?null:scope.caseItem;
+      const rev = scopedCase?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || scopedCase?.reviews?.[0];
+      setReport(getConnectionDetectiveReport(rev?.report, scopedCase));
     };
     window.addEventListener('hc_detective_edges_updated', handleUpdate);
     window.addEventListener('hc_biomarkers_updated', handleUpdate);
@@ -430,7 +433,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       window.removeEventListener('hc_cases_updated', handleUpdate);
       window.removeEventListener('hc_triggers_updated', handleUpdate);
     };
-  }, []);
+  }, [caseId]);
 
   const resolvedCulpritFoods = useMemo(() => {
     const intakeTriggers: string[] = Array.isArray(activeCase?.intakeData?.triggers)
