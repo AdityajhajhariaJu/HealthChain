@@ -39,24 +39,26 @@ function assessmentFrom(entry: DietMealEntry, captureMethod: MealCaptureMethod, 
     sugar: nutrient(entry.sugar), fibre: nutrient(entry.fibre), sodium: nutrient(entry.sodium),
   };
   const known = Object.values(nutrients).some((value) => value !== null);
-  const packaged = captureMethod === 'clinical_lens' && entry.foodType === 'packaged';
+  const catalog = entry.nutritionSource === 'food_catalog';
+  const packaged = !catalog && (entry.nutritionSource === 'package_label' || captureMethod === 'clinical_lens' && entry.foodType === 'packaged');
   const planned = captureMethod === 'plan_confirmation';
-  const amount = nutrient(entry.portionGrams);
+  const amount = nutrient(entry.amountValue ?? entry.portionGrams);
+  const amountUnit = entry.amountUnit === 'ml' ? 'ml' : 'g';
   const originalServing = nutrient(entry.originalServingGrams);
   return {
     version: 1, status: !known ? 'unknown' : packaged ? 'label_transcribed_unverified' : 'estimated',
-    sourceType: !known ? 'none' : packaged ? 'package_label' : planned ? 'recipe' : captureMethod === 'clinical_lens' ? 'photo_ai' : 'text_ai',
+    sourceType: !known ? 'none' : entry.nutritionSource === 'food_catalog' ? 'food_catalog' : entry.nutritionSource === 'manual' ? 'manual' : packaged ? 'package_label' : planned || ['plan_estimate','recipe'].includes(entry.nutritionSource as string) ? 'recipe' : entry.nutritionSource === 'photo_ai' || captureMethod === 'clinical_lens' ? 'photo_ai' : entry.nutritionSource === 'legacy' ? 'legacy' : 'text_ai',
     sourceId: typeof entry.sourceId === 'string' ? entry.sourceId : undefined,
     sourceVersion: typeof entry.sourceVersion === 'string' ? entry.sourceVersion : undefined,
-    originalBasis: captureMethod === 'clinical_lens' ? {
+    originalBasis: entry.originalNutritionBasis ? {
       kind: entry.originalNutritionBasis === 'per_serving' ? 'per_serving' :
-        entry.originalNutritionBasis === 'per_100g' ? 'per_100g' : 'unknown',
+        entry.originalNutritionBasis === 'per_100g' ? 'per_100g' : entry.originalNutritionBasis === 'per_100ml' ? 'per_100ml' : 'unknown',
       metricServing: entry.originalNutritionBasis === 'per_serving' && originalServing && originalServing > 0
         ? { value: originalServing, unit: 'g' } : undefined,
     } : undefined,
-    originalNutrients: packaged ? nutrientSet(entry.originalLabelNutrients) : undefined,
-    per100Nutrients: captureMethod === 'clinical_lens' ? nutrientSet(entry.per100Nutrients) : undefined,
-    consumedAmount: amount && amount > 0 ? { value: amount, unit: 'g' } : null,
+    originalNutrients: nutrientSet(entry.originalLabelNutrients),
+    per100Nutrients: nutrientSet(entry.per100Nutrients),
+    consumedAmount: amount && amount > 0 ? { value: amount, unit: amountUnit } : null,
     nutrients, assessedAt, calculationVersion: 'meal-capture-v1',
   };
 }
@@ -68,9 +70,13 @@ export async function createMeal(command: MealCommand): Promise<ObservationComma
   const { localDate, entry, captureMethod } = command;
   const name = String(entry.name || '').trim();
   const sourceRecordId = String(entry.id || '').trim();
+  if(localDate > new Date().toLocaleDateString('en-CA') || typeof entry.occurredAt==='string' && Date.parse(entry.occurredAt)>Date.now()) return {ok:false,error:'validation',details:['Only log food that was actually eaten. Choose a date and time that are not in the future.']};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate) || !name || !sourceRecordId)
     return { ok: false, error: 'validation', details: ['Choose a date and describe the meal.'] };
-  const grams = nutrient(entry.portionGrams);
+  const grams = nutrient(entry.amountValue ?? entry.portionGrams);
+  const amountUnit = entry.amountUnit === 'ml' ? 'ml' : 'g';
+  const occurredAt = typeof entry.occurredAt === 'string' ? entry.occurredAt : null;
+  const precision = occurredAt ? entry.timePrecision === 'approximate' ? 'approximate' : 'exact' : 'date_only';
   const prior = (await listObservationHistory()).filter((item) => item.payload.kind === 'meal' &&
     item.sourceRecordId === sourceRecordId && item.idempotencyKey.startsWith(`meal:${sourceRecordId}`));
   const previous = prior.find((item) => !item.deletedAt);
@@ -85,15 +91,18 @@ export async function createMeal(command: MealCommand): Promise<ObservationComma
     ...scope,
     payload: {
       kind: 'meal', description: name, mealType: typeof entry.type === 'string' ? entry.type : undefined,
+      note: typeof entry.note === 'string' ? entry.note : undefined,
+      hunger: typeof entry.hunger === 'number' ? entry.hunger : undefined, fullness: typeof entry.fullness === 'number' ? entry.fullness : undefined,
       captureMethod,
-      amount: grams && grams > 0 ? { value: grams, unit: 'g' } : null,
+      amount: grams && grams > 0 ? { value: grams, unit: amountUnit } : null,
       nutritionAssessment: assessmentFrom(entry, captureMethod, assessedAt),
       ingredients: Array.isArray(entry.ingredients) ? entry.ingredients
         .filter((ingredient: any) => typeof ingredient?.name === 'string' && ingredient.name.trim())
-        .map((ingredient: any) => ({ name: ingredient.name.trim(), status: ingredient.verified === true ? 'user_confirmed' as const : 'unverified' as const })) : undefined,
+        .map((ingredient: any) => ({ name: ingredient.name.trim(), status: ingredient.verified === true || ingredient.status === 'user_confirmed' ? 'user_confirmed' as const : 'unverified' as const, ...(Number.isFinite(ingredient.amount) && ['g','ml','piece'].includes(ingredient.unit) ? {amount:ingredient.amount,unit:ingredient.unit} : {}) })) : undefined,
+      steps: Array.isArray(entry.steps) ? entry.steps : undefined, prepMinutes: typeof entry.prepMinutes === 'number' && entry.prepMinutes > 0 ? entry.prepMinutes : undefined,
     },
-    occurredAt: null, localDate, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-    timePrecision: 'date_only', source: 'diet', evidenceType: 'user_report', sourceRecordId,
+    occurredAt, localDate, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+    timePrecision: precision, source: 'diet', evidenceType: 'user_report', sourceRecordId,
     idempotencyKey,
   });
 }
@@ -108,9 +117,14 @@ function toDiaryEntry(item: Observation): DietMealEntry {
     date: item.localDate || undefined, loggedAt: item.recordedAt,
     occurredAt: item.occurredAt, timePrecision: item.timePrecision, timezone: item.timezone,
     type: item.payload.mealType || 'Meal',
+    note: item.payload.note, hunger: item.payload.hunger, fullness: item.payload.fullness,
+    ingredients: item.payload.ingredients, steps: item.payload.steps, prepMinutes: item.payload.prepMinutes,
+    amountValue: item.payload.amount?.value, amountUnit: item.payload.amount?.unit,
     calories: nutrients?.calories ?? null, protein: nutrients?.protein ?? null,
     carbs: nutrients?.carbs ?? null, fat: nutrients?.fat ?? null,
     sugar: nutrients?.sugar ?? null,
+    fibre: nutrients?.fibre ?? null, sodium: nutrients?.sodium ?? null,
+    sourceId: assessment?.sourceId, sourceVersion: assessment?.sourceVersion,
     nutritionSource: assessment?.sourceType || 'name_only', nutritionStatus: assessment?.status || 'unknown',
     originalNutritionBasis: assessment?.originalBasis?.kind, originalServingGrams: assessment?.originalBasis?.metricServing?.value,
     per100Nutrients: assessment?.per100Nutrients, originalLabelNutrients: assessment?.originalNutrients,
@@ -136,6 +150,21 @@ export function projectMealDiary(legacy: MealDiary, observations: Observation[])
   for (const item of observations) {
     if (item.deletedAt || item.payload.kind !== 'meal' || !item.localDate) continue;
     (diary[item.localDate] ||= []).push(toDiaryEntry(item));
+  }
+  const reactions = new Map<string, Observation>();
+  for(const record of observations) if(!record.deletedAt && record.payload.kind === 'daily_checkin' && record.payload.mealReaction) {
+    for(const reference of record.references || []) if(reference.kind === 'observation') {
+      const prior=reactions.get(reference.id);
+      if(!prior || record.updatedAt > prior.updatedAt) reactions.set(reference.id,record);
+    }
+  }
+  for(const entries of Object.values(diary)) for(const entry of entries) {
+    const report=reactions.get(String(entry.id));
+    if(report?.payload.kind === 'daily_checkin') entry.reaction=report.payload.mealReaction;
+    else if(entry.sourceRecordId) {
+      const old=Object.values(legacy || {}).flat().find(item=>String(item.id)===entry.sourceRecordId);
+      if(old?.reaction)entry.reaction=old.reaction;
+    }
   }
   for (const entries of Object.values(diary)) entries.sort((a, b) => String(b.loggedAt || '').localeCompare(String(a.loggedAt || '')));
   return diary;
@@ -252,25 +281,36 @@ export async function removeAllDietMeals(): Promise<{ ok: boolean; removed: numb
   return { ok: true, removed };
 }
 
-export async function correctMeal(id: string, expectedRevision: number, changes: { name?: string; nutrients?: Partial<NutritionAssessmentV1['nutrients']>; portionGrams?: number | null }): Promise<ObservationCommandResult> {
+export async function correctMeal(id: string, expectedRevision: number, changes: { name?: string; nutrients?: Partial<NutritionAssessmentV1['nutrients']>; portionGrams?: number | null; amountValue?:number|null; amountUnit?:'g'|'ml'; localDate?: string; occurredAt?: string | null; timePrecision?: 'exact' | 'approximate' | 'date_only'; note?: string; hunger?: number|null; fullness?: number|null }): Promise<ObservationCommandResult> {
+  if (changes.localDate && changes.localDate > new Date().toLocaleDateString('en-CA') || changes.occurredAt && Date.parse(changes.occurredAt) > Date.now()) return {ok:false,error:'validation',details:['Choose an eating date and time that are not in the future.']};
   const original = (await listObservationHistory()).find((item) => item.id === id && !item.deletedAt);
   if (!original || original.payload.kind !== 'meal') return { ok: false, error: 'not_found' };
   const payload = original.payload;
   const assessment = payload.nutritionAssessment || assessmentFrom({ id, name: payload.description }, 'diet_diary', new Date().toISOString());
   const correctedNutrients = { ...assessment.nutrients, ...changes.nutrients };
   const hasKnown = Object.values(correctedNutrients).some((value) => typeof value === 'number' && Number.isFinite(value));
-  const nextAssessment: NutritionAssessmentV1 = changes.nutrients ? {
+  let nextAssessment: NutritionAssessmentV1 = changes.nutrients ? {
     ...assessment, status: hasKnown ? 'estimated' : 'unknown', sourceType: hasKnown ? 'manual' : 'none',
-    nutrients: correctedNutrients, assessedAt: new Date().toISOString(),
+    nutrients: correctedNutrients, per100Nutrients: undefined, assessedAt: new Date().toISOString(),
   } : assessment;
-  const nextAmount = changes.portionGrams === undefined ? payload.amount :
-    changes.portionGrams === null ? null : { value: changes.portionGrams, unit: 'g' };
+  const amountValue=changes.amountValue===undefined?changes.portionGrams:changes.amountValue;
+  const amountUnit=changes.amountUnit||'g';
+  const nextAmount = amountValue === undefined ? payload.amount : amountValue === null ? null : {value:amountValue,unit:amountUnit};
+  const amountChanged=amountValue!==undefined && (nextAmount?.value!==payload.amount?.value || nextAmount?.unit!==payload.amount?.unit);
+  if(amountChanged&&!changes.nutrients) {
+    const basisMatches=nextAmount && assessment.per100Nutrients && assessment.originalBasis?.kind===(amountUnit==='ml'?'per_100ml':'per_100g');
+    const nutrients=basisMatches?Object.fromEntries(Object.entries(assessment.per100Nutrients!).map(([key,value])=>[key,value===null?null:Math.round(value*nextAmount!.value)/100])):Object.fromEntries(Object.keys(assessment.nutrients).map(key=>[key,null]));
+    nextAssessment={...assessment,nutrients:nutrients as NutritionAssessmentV1['nutrients'],status:basisMatches?'estimated':'unknown',sourceType:basisMatches?assessment.sourceType:'none',assessedAt:new Date().toISOString()};
+  }
   const { id: _id, schemaVersion: _schema, recordedAt: _recorded, revision: _revision,
     createdAt: _created, updatedAt: _updated, deletedAt: _deleted, ...draft } = original;
   return reviseObservation(id, expectedRevision, {
-    ...draft, payload: { ...payload, description: changes.name ?? payload.description,
-      amount: nextAmount, nutritionAssessment: changes.portionGrams !== undefined
-        ? { ...nextAssessment, consumedAmount: changes.portionGrams === null ? null : { value: changes.portionGrams, unit: 'g' } }
+    ...draft, localDate: changes.localDate ?? draft.localDate, occurredAt: changes.occurredAt === undefined ? draft.occurredAt : changes.occurredAt,
+    timePrecision: changes.timePrecision ?? draft.timePrecision,
+    payload: { ...payload, description: changes.name ?? payload.description,
+      note: changes.note ?? payload.note, hunger: changes.hunger === null ? undefined : changes.hunger ?? payload.hunger, fullness: changes.fullness === null ? undefined : changes.fullness ?? payload.fullness,
+      amount: nextAmount, nutritionAssessment: amountValue !== undefined
+        ? { ...nextAssessment, consumedAmount: amountValue === null ? null : { value: amountValue, unit: amountUnit } }
         : nextAssessment },
   });
 }

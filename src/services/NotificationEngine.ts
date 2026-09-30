@@ -11,6 +11,7 @@ export type NotificationCategory =
   | 'medication_reminder'
   | 'daily_checkin'
   | 'hydration_check'
+  | 'meal_reminder'
   | 'system_info';
 
 export interface AppNotification {
@@ -62,6 +63,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
     medication_reminder: true,
     daily_checkin: true,
     hydration_check: true,
+    meal_reminder: true,
     system_info: true,
   },
 };
@@ -160,7 +162,8 @@ export function getNotificationPreferences(profileId?: string): NotificationPref
   const raw = getItemSync(`hc_notifications_prefs_${scope}`);
   if (!raw) return { ...DEFAULT_NOTIFICATION_PREFERENCES };
   try {
-    return { ...DEFAULT_NOTIFICATION_PREFERENCES, ...JSON.parse(raw) };
+    const saved=JSON.parse(raw);
+    return { ...DEFAULT_NOTIFICATION_PREFERENCES, ...saved, enabledCategories:{ ...DEFAULT_NOTIFICATION_PREFERENCES.enabledCategories,...saved.enabledCategories } };
   } catch {
     return { ...DEFAULT_NOTIFICATION_PREFERENCES };
   }

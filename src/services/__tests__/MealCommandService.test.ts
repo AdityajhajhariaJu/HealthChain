@@ -18,10 +18,49 @@ vi.mock('../SyncOutbox', () => ({
 }));
 
 import { correctMeal, createMeal, listMealDiary, mealEntryFromAnalysis, migrateLegacyDietMeals, previewLegacyMealMigration, projectMealDiary, removeMeal } from '../MealCommandService';
+import {recordDietMealReaction} from '../DietMealReactionService';
+import {dietPatternAnswers} from '../dietPatternRecords';
+import {dietDiaryCsv} from '../dietDiaryExport';
 import { listObservationHistory, retryFailedObservationQueues } from '../HealthObservationService';
 
 describe('shared meal command and diary', () => {
   beforeEach(() => { state.records.clear(); state.queueOk = true; state.profile = { dietFoodLogs: {}, nutrition: { recentLogs: [] } }; localStorage.clear(); });
+
+  it('preserves actual timing and optional context without inventing nutrients',async()=>{
+    const result=await createMeal({localDate:'2026-09-29',captureMethod:'diet_diary',entry:{id:'timed-meal',name:'Restaurant noodles',occurredAt:'2026-09-29T12:30:00Z',timePrecision:'approximate',amountValue:350,amountUnit:'g',hunger:3,fullness:4,note:'Shared meal'}});
+    expect(result.ok).toBe(true);if(!result.ok)return;
+    expect(result.observation).toMatchObject({occurredAt:'2026-09-29T12:30:00Z',timePrecision:'approximate',payload:{hunger:3,fullness:4,note:'Shared meal',nutritionAssessment:{status:'unknown',nutrients:{calories:null}}}});
+    expect((await listMealDiary())['2026-09-29'][0]).toMatchObject({amountValue:350,note:'Shared meal'});
+  });
+  it('only rescales portions from a matching saved per-100 source and preserves its original snapshot',async()=>{
+    const result=await createMeal({localDate:'2026-09-29',captureMethod:'clinical_lens',entry:{id:'catalog-meal',name:'Packaged drink',nutritionSource:'food_catalog',foodType:'packaged',sourceId:'https://world.openfoodfacts.org/product/123',originalNutritionBasis:'per_100ml',originalLabelNutrients:{calories:40,protein:2,carbs:6,fat:1},per100Nutrients:{calories:40,protein:2,carbs:6,fat:1},amountValue:250,amountUnit:'ml',calories:100,protein:5,carbs:15,fat:2.5}});
+    expect(result.ok).toBe(true);if(!result.ok)return;
+    const corrected=await correctMeal(result.observation.id,result.observation.revision,{amountValue:125,amountUnit:'ml'});
+    expect(corrected.ok).toBe(true);if(!corrected.ok||corrected.observation.payload.kind!=='meal')return;
+    expect(corrected.observation.payload.nutritionAssessment).toMatchObject({sourceType:'food_catalog',nutrients:{calories:50,protein:2.5},originalNutrients:{calories:40},consumedAmount:{value:125,unit:'ml'}});
+    const wrongUnit=await correctMeal(corrected.observation.id,corrected.observation.revision,{amountValue:100,amountUnit:'g'});
+    expect(wrongUnit.ok&&wrongUnit.observation.payload.kind==='meal'&&wrongUnit.observation.payload.nutritionAssessment?.status).toBe('unknown');
+  });
+
+  it('preserves recipe quantities and records a linked reaction without inventing onset or other symptoms',async()=>{
+    const result=await createMeal({localDate:'2026-09-29',captureMethod:'plan_confirmation',entry:{id:'reaction-meal',name:'Rice bowl',calories:500,ingredients:[{name:'Raw rice',amount:80,unit:'g'}],steps:['Cook the rice'],prepMinutes:20}});
+    expect(result.ok).toBe(true);if(!result.ok)return;
+    const reaction=await recordDietMealReaction(result.observation.id,{reactionType:'bloat',system:'bloating',severity:2,label:'Bloating',emoji:'x',incubationHours:3,loggedAt:new Date().toISOString()});
+    expect(reaction.ok).toBe(true);
+    const diary=await listMealDiary();expect(diary['2026-09-29'][0]).toMatchObject({ingredients:[{amount:80,unit:'g'}],steps:['Cook the rice'],reaction:{reactionType:'bloat',incubationHours:null}});
+    expect(dietPatternAnswers({},await listObservationHistory())['2026-09-29']).toMatchObject({Bloating:true});
+    expect(dietPatternAnswers({},await listObservationHistory())['2026-09-29'].Stomach).toBeUndefined();
+    const noReaction=await recordDietMealReaction(result.observation.id,{reactionType:'none',system:'bloating',severity:0,label:'No reaction',emoji:'x',incubationHours:null,loggedAt:new Date().toISOString()});expect(noReaction.ok).toBe(true);
+    expect(dietPatternAnswers({},await listObservationHistory())['2026-09-29']).toMatchObject({Bloating:false,Stomach:false});
+    expect(dietDiaryCsv(diary)).toContain('"2026-09-29"');expect(dietDiaryCsv(diary)).toContain('"recipe"');
+  });
+  it('rejects future corrections, clears optional context and never rescales from an overridden source',async()=>{
+    const meal=await createMeal({localDate:'2026-09-29',captureMethod:'clinical_lens',entry:{id:'source-correction',name:'Drink',calories:50,protein:2,carbs:7,fat:1,nutritionSource:'food_catalog',originalNutritionBasis:'per_100ml',originalLabelNutrients:{calories:50,protein:2,carbs:7,fat:1},per100Nutrients:{calories:50,protein:2,carbs:7,fat:1},amountValue:100,amountUnit:'ml',hunger:3}});expect(meal.ok).toBe(true);if(!meal.ok)return;
+    expect(await correctMeal(meal.observation.id,meal.observation.revision,{localDate:'2999-01-01'})).toMatchObject({ok:false,error:'validation'});
+    const edit=await correctMeal(meal.observation.id,meal.observation.revision,{nutrients:{calories:80},hunger:null});expect(edit.ok).toBe(true);if(!edit.ok)return;
+    expect((await listMealDiary())['2026-09-29'][0].hunger).toBeUndefined();
+    const amount=await correctMeal(edit.observation.id,edit.observation.revision,{amountValue:200,amountUnit:'ml'});expect(amount.ok && amount.observation.payload.kind==='meal' && amount.observation.payload.nutritionAssessment).toMatchObject({status:'unknown',nutrients:{calories:null},originalNutrients:{calories:50}});
+  });
 
   it('keeps one identity across retries and hides a deleted meal from all diary views', async () => {
     const command = { localDate: '2026-09-29', captureMethod: 'diet_diary' as const,

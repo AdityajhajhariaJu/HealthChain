@@ -179,14 +179,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
   const openModal = () => {
     triggerHapticSelection();
     editScope.current = getActiveProfileScope();
+    // Profile events can precede React's render; edit the latest saved snapshot.
+    const latest = getProfile();
+    const latestDemographics = latest.demographics || {};
     setEditError('');
-    setEditAge(demographics.age ? Number(demographics.age) : '');
-    setEditGender(demographics.gender || '');
-    setEditHeight(demographics.height ? Number(demographics.height) : '');
-    setEditWeight(demographics.weight ? Number(demographics.weight) : '');
-    setEditConditions([...conditions]);
-    setEditMeds(medications.map(m => ({ id: m.id, name: m.name, slot: m.circadianSlot, dosage: m.dosage })));
-    setEditAllergies(allergies.map(a => ({ name: a.name, severity: a.severity })));
+    setEditAge(latestDemographics.age ? Number(latestDemographics.age) : '');
+    setEditGender(latestDemographics.gender || '');
+    setEditHeight(latestDemographics.height ? Number(latestDemographics.height) : '');
+    setEditWeight(latestDemographics.weight ? Number(latestDemographics.weight) : '');
+    setEditConditions((latest.conditions || []).map((item: any) => typeof item === 'string' ? item : item?.name || '').filter(Boolean));
+    setEditMeds((latest.medications || []).map((item: any) => typeof item === 'string'
+      ? { name: item, slot: 'morning' as CircadianSlot, dosage: '' }
+      : { id: item.id, name: item.name, slot: (item.circadianSlot || 'morning') as CircadianSlot, dosage: item.dosage || '' }).filter((item: any) => Boolean(item.name)));
+    setEditAllergies((latest.allergies || []).map((item: any) => typeof item === 'string'
+      ? { name: item, severity: 'moderate' as AllergySeverity }
+      : { name: item.name, severity: (item.severity || 'moderate') as AllergySeverity }).filter((item: any) => Boolean(item.name)));
     setIsEditModalOpen(true);
   };
 

@@ -18,10 +18,11 @@ import {
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import {
-  getProfile,
   getDigestionLogs,
 } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import {useDietReviewData} from '../../hooks/useDietReviewData';
+import {dietPatternAnswers} from '../../services/dietPatternRecords';
 
 export type InsightCategory = 'All' | 'Stomach' | 'Bloating' | 'Bowel' | 'Brain/Energy';
 
@@ -64,6 +65,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
   onOpenHeatmap,
 }) => {
   const isMobile = useIsMobile();
+  const {diary,observations,error}=useDietReviewData();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InsightCategory>('All');
@@ -84,21 +86,13 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
 
   // Real-time empirical match computation from user logs
   const dynamicInsights = useMemo(() => {
-    const profile = getProfile();
     const digestionLogs = getDigestionLogs();
-    const recentNutrition = profile?.nutrition?.recentLogs || [];
-    const dietFoodLogs = profile?.dietFoodLogs || {};
+    const dietFoodLogs = diary;
 
     // Group descriptions by their reported local date. This is a date match,
     // never proof that a meal preceded a symptom or that two foods are equivalent.
     const mealsByDate: Record<string, string[]> = {};
     const normalizedName = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
-    recentNutrition.forEach((log: any) => {
-      if (log.date && log.name) {
-        if (!mealsByDate[log.date]) mealsByDate[log.date] = [];
-        mealsByDate[log.date].push(normalizedName(log.name));
-      }
-    });
     Object.entries(dietFoodLogs).forEach(([dateStr, items]: [string, any]) => {
       if (Array.isArray(items)) {
         if (!mealsByDate[dateStr]) mealsByDate[dateStr] = [];
@@ -108,27 +102,10 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       }
     });
 
-    // Check days where digestion symptoms occurred
-    const symptomDays: Record<string, { bloating: boolean; stomach: boolean; bowel: boolean }> = {};
-    Object.entries(digestionLogs).forEach(([dateStr, log]: [string, any]) => {
-      const bloat = (log.bloatingScore || 0) >= 4;
-      const stomach = (log.stomachScore || 0) >= 4 || log.acidReflux;
-      const bowel = log.bristolType && (log.bristolType <= 2 || log.bristolType >= 6);
-      if (bloat || stomach || bowel) {
-        symptomDays[dateStr] = { bloating: bloat, stomach, bowel };
-      }
-    });
-
-    const observedDates = Object.keys(digestionLogs);
-    const symptomMatches = (item: Pick<SmartInsightItem, 'category'>, dateStr: string) => {
-      const symptom = symptomDays[dateStr];
-      if (!symptom) return false;
-      if (item.category === 'Bloating') return symptom.bloating;
-      if (item.category === 'Stomach') return symptom.stomach;
-      if (item.category === 'Bowel') return symptom.bowel;
-      return false;
-    };
+    const symptomAnswers = dietPatternAnswers(digestionLogs, observations);
+    const symptomMatches = (item: Pick<SmartInsightItem, 'category'>, dateStr: string) => symptomAnswers[dateStr]?.[item.category] === true;
     const buildObserved = (item: SmartInsightItem): SmartInsightItem[] => {
+      const observedDates = Object.keys(symptomAnswers).filter(date => typeof symptomAnswers[date]?.[item.category] === 'boolean');
       const isExposure = (food: string) => food === normalizedName(item.foodName);
       let userExposures = 0;
       let userMatches = 0;
@@ -145,7 +122,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       });
 
       if (userExposures < 2) return [];
-      const nonExposureDates = observedDates.filter((dateStr) => !(mealsByDate[dateStr] || []).some(isExposure));
+      const nonExposureDates = observedDates.filter((dateStr) => (mealsByDate[dateStr] || []).length > 0 && !(mealsByDate[dateStr] || []).some(isExposure));
       const nonExposureMatches = nonExposureDates.filter((dateStr) => symptomMatches(item, dateStr)).length;
       const exposurePercent = Math.round((userMatches / userExposures) * 100);
       const nonExposurePercent = nonExposureDates.length > 0 ? Math.round((nonExposureMatches / nonExposureDates.length) * 100) : undefined;
@@ -168,7 +145,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         const generic: SmartInsightItem = {
           id: `observed_${foodIndex}_${categoryIndex}_${foodName.replace(/[^a-z0-9]+/g, '_')}`,
           foodName,
-          symptomName: category === 'Stomach' ? 'Stomach discomfort' : category,
+          symptomName: category === 'Stomach' ? 'Stomach discomfort or reflux' : category === 'Bowel' ? 'Stool form 1, 2, 6 or 7' : category,
           category,
           iconType: category === 'Bloating' ? 'wind' : category === 'Bowel' ? 'bowel' : 'flame',
           matchingDays: 0,
@@ -184,7 +161,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       });
     });
     return observedResults;
-  }, [dataRevision]);
+  }, [dataRevision, diary, observations]);
 
   // Filter insights based on category and search
   const filteredInsights = useMemo(() => {
@@ -224,6 +201,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         boxSizing: 'border-box',
       }}
     >
+      {error && <p role="alert">{error}</p>}
       {/* 1. Header Bar (Matching media_1788703634311.png) */}
       <div
         style={{
@@ -488,7 +466,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                     >
                       {`${item.symptomName} was recorded on ${item.matchingDays} of ${item.totalDays} reviewed days with `}
                       <strong style={{ color: '#0F172A', fontWeight: 800 }}>{item.foodName}</strong>
-                      . Timing and cause are unknown.
+                      . Timing and cause are unknown. {item.totalDays < 5 || (item.nonExposureTotalDays || 0) < 5 ? 'Too few reviewed days to compare consistently.' : 'Descriptive counts only; this does not establish an association or cause.'}
                     </div>
 
                     {/* Day Match Ratio Badge */}
@@ -509,7 +487,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           </span>
                           {typeof item.nonExposurePercent === 'number' && (
                             <span style={{ fontSize: '11px', color: '#64748B' }}>
-                              and on {item.nonExposureMatchingDays} of {item.nonExposureTotalDays} other reviewed days
+                              and on {item.nonExposureMatchingDays} of {item.nonExposureTotalDays} reviewed days with food logs but no matching food name
                             </span>
                           )}
                           <span

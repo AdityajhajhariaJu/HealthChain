@@ -3,6 +3,22 @@ import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 import { createClient } from '@supabase/supabase-js'
+import foodProductHandler from './api/food-product.js'
+
+// Use the same public catalog endpoint during development and in production.
+const foodProductPlugin = () => ({
+  name: 'food-product-api',
+  configureServer(server) {
+    server.middlewares.use(async (req, res, next) => {
+      const url = new URL(req.url || '/', 'http://localhost');
+      if (url.pathname !== '/api/food-product') return next();
+      req.query = Object.fromEntries(url.searchParams);
+      res.status = code => { res.statusCode = code; return res; };
+      res.json = value => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(value)); return res; };
+      await foodProductHandler(req, res);
+    });
+  },
+});
 
 // Custom Vite plugin to mock the Vercel /api/admin-content Edge Function locally
 const adminContentPlugin = () => ({
@@ -67,6 +83,7 @@ const adminContentPlugin = () => ({
 export default defineConfig({
   plugins: [
     react(),
+    foodProductPlugin(),
     adminContentPlugin(),
     ViteImageOptimizer({
       png: { quality: 80 },

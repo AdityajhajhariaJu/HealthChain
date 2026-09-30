@@ -1,20 +1,12 @@
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
 import { checkRateLimit } from './utils/rate-limit.js';
 import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet-plan-validation.js';
+import { validateDietPreferenceFit } from '../shared/diet-preference-fit.js';
 import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT_TOKENS } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
+import { allowedOrigin } from './utils/origins.js';
 
-const ALLOWED_ORIGINS = [
-  'https://www.healthchain360.com',
-  'https://healthchain360.com',
-  'https://healthchain-live.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173',
-  'capacitor://localhost',
-  'http://localhost'
-];
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
   type: 'OBJECT',
@@ -58,11 +50,7 @@ HEALTHCHAIN SAFETY GATE:
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
-  const isAllowed = origin && (
-    ALLOWED_ORIGINS.includes(origin) ||
-    origin.endsWith('.vercel.app') ||
-    origin.endsWith('healthchain360.com')
-  );
+  const isAllowed = allowedOrigin(origin);
   if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -434,7 +422,7 @@ export default async function handler(req, res) {
       }
       const validation = validateGeneratedMealPlan(generatedPlan, 7);
       if (validation.valid) generatedPlan = alignMealPlanPortions(generatedPlan, dietPlanRequest.targetCalories);
-      if ((candidate?.finishReason && candidate.finishReason !== 'STOP') || !validation.valid || !generatedPlan) {
+      if ((candidate?.finishReason && candidate.finishReason !== 'STOP') || !validation.valid || !generatedPlan || !validateDietPreferenceFit(generatedPlan, dietPlanRequest.preferences, dietPlanRequest.mealSchedule).valid) {
         const errorCode = candidate?.finishReason === 'MAX_TOKENS' ? 'meal_plan_truncated' : 'invalid_meal_plan';
         // Log structure diagnostics only; never log the user's profile or generated food records.
         console.warn('Meal plan rejected', { requestId: String(requestId), finishReason: candidate?.finishReason, errors: validation.errors?.slice(0, 5) });

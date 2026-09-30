@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Utensils, Clock, Sparkles, Plus } from 'lucide-react';
-import { getProfile, updateNutritionLogReaction } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
+import '../../features/dietician/DietEveryday.css';
+import {useDietReviewData} from '../../hooks/useDietReviewData';
+import {recordDietMealReaction} from '../../services/DietMealReactionService';
 
 export interface PostMealReaction {
   reactionType: 'none' | 'bloat' | 'heartburn' | 'palpitations' | 'brain_fog' | 'stomach_upset';
@@ -111,7 +113,13 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
   onOpenQuickMeal,
   className = '',
 }) => {
+  const reactionPending=useRef(false);
+  const [savingReaction,setSavingReaction]=useState(false);
   const [profileVersion, setProfileVersion] = useState(0);
+  const {diary,error}=useDietReviewData();
+  const [fromDate, setFromDate] = useState(new Date().toLocaleDateString('en-CA'));
+  const [toDate, setToDate] = useState(new Date().toLocaleDateString('en-CA'));
+  const [search, setSearch] = useState('');
   const [selectedMealForReaction, setSelectedMealForReaction] = useState<string | null>(null);
   const [reactionIntensity, setReactionIntensity] = useState<1 | 2 | 3 | null>(null);
   const [isQuickMealSheetOpen, setIsQuickMealSheetOpen] = useState(false);
@@ -135,24 +143,22 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
   }, []);
 
   const timelineItems = useMemo<PostMealTimelineItem[]>(() => {
-    const profile = getProfile();
-    const recentLogs: any[] = profile?.nutrition?.recentLogs || [];
+    const recentLogs: any[] = Object.entries(diary).flatMap(([date,meals])=>meals.map(meal=>({...meal,date})));
 
     if (recentLogs.length === 0) {
       return [];
     }
 
-    const todayKey = new Date().toLocaleDateString('en-CA');
     return recentLogs.filter((log: any) => {
       const date = String(log.date || '').slice(0, 10);
-      return date === todayKey;
-    }).slice(-6).reverse().map((log: any, idx: number) => {
+      return date >= fromDate && date <= toDate && String(log.meal || log.name || '').toLowerCase().includes(search.toLowerCase());
+    }).sort((a,b) => String(b.date).localeCompare(String(a.date)) || String(b.occurredAt || b.loggedAt || '').localeCompare(String(a.occurredAt || a.loggedAt || ''))).map((log: any, idx: number) => {
       const logDate = log.occurredAt && ['exact', 'approximate'].includes(log.timePrecision) && !Number.isNaN(new Date(log.occurredAt).getTime()) ? new Date(log.occurredAt) : null;
       const hours = logDate?.getHours() ?? null;
       const minutes = logDate ? String(logDate.getMinutes()).padStart(2, '0') : '';
       const ampm = hours !== null && hours >= 12 ? 'PM' : 'AM';
       const formattedHours = hours === null ? null : hours % 12 || 12;
-      const timeStr = formattedHours === null ? 'Time not recorded' : `${formattedHours}:${minutes} ${ampm}`;
+      const timeStr = `${String(log.date || '').slice(0,10)} · ${formattedHours === null ? 'Time not recorded' : `${formattedHours}:${minutes} ${ampm}`}${log.timePrecision === 'approximate' ? ' (approximate)' : ''}`;
 
       let slot: PostMealTimelineItem['slot'] = 'unknown';
       let slotLabel = 'Time unknown';
@@ -189,10 +195,12 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
         tags: log.tags || [],
       };
     });
-  }, [profileVersion]);
+  }, [profileVersion, diary, fromDate, toDate, search]);
 
 
-  const handleSelectReaction = (item: PostMealTimelineItem, reactionOption: typeof REACTION_OPTIONS[0]) => {
+  const handleSelectReaction = async (item: PostMealTimelineItem, reactionOption: typeof REACTION_OPTIONS[0]) => {
+    if(reactionPending.current)return;
+    reactionPending.current=true;setSavingReaction(true);
     const reactionPayload: PostMealReaction = {
       reactionType: reactionOption.type,
       system: reactionOption.system,
@@ -200,17 +208,18 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
       label: reactionOption.label,
       sublabel: reactionOption.sublabel,
       emoji: reactionOption.emoji,
-      incubationHours: item.timestamp === null ? null : Math.max(0, Math.round((Date.now() - item.timestamp) / 360000) / 10),
+      incubationHours: null,
       loggedAt: new Date().toISOString(),
     };
 
-    const saved = updateNutritionLogReaction(item.id, reactionPayload);
-    if (!saved.success) {
+    let saved;
+    try { saved=await recordDietMealReaction(item.id, reactionPayload); } catch { saved={ok:false}; } finally {reactionPending.current=false;setSavingReaction(false);}
+    if (!saved.ok) {
       setToastMessage('Could not save this reaction. Please try again.');
       return;
     }
     triggerHapticSuccess();
-    setToastMessage(`Recorded: ${reactionOption.label}`);
+    setToastMessage(saved.sync==='queue_failed'?'Reaction recorded on this device; cloud sync needs attention.':`Recorded: ${reactionOption.label}`);
     setTimeout(() => setToastMessage(null), 2800);
     setSelectedMealForReaction(null);
     setReactionIntensity(null);
@@ -232,6 +241,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
         overflow: 'hidden',
       }}
     >
+      {error && <p role="alert">{error}</p>}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
@@ -309,6 +319,11 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
         </div>
       </div>
 
+      <div className="diet-everyday diet-form-grid" style={{ margin: '16px 0' }}><label>From date<input type="date" value={fromDate} max={toDate} onChange={e => setFromDate(e.target.value)} /></label><label>Through date<input type="date" value={toDate} min={fromDate} max={new Date().toLocaleDateString('en-CA')} onChange={e => setToDate(e.target.value)} /></label><label>Search recorded meals<input value={search} onChange={e => setSearch(e.target.value)} /></label><button onClick={() => { setFromDate('1900-01-01'); setToDate(new Date().toLocaleDateString('en-CA')); }}>All recorded history</button><button onClick={() => {
+        const records = Object.entries(diary).flatMap(([date,meals])=>meals.map(meal=>({...meal,date}))).filter(log => String(log.date || '').slice(0,10) >= fromDate && String(log.date || '').slice(0,10) <= toDate && String(log.name || '').toLowerCase().includes(search.toLowerCase()));
+        const blob = new Blob([JSON.stringify({ exportedAt:new Date().toISOString(), fromDate, toDate, records, note:'User records. Unknowns and source metadata are retained; no causality inferred.' },null,2)],{ type:'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`food-records-${fromDate}-${toDate}.json`; a.click(); URL.revokeObjectURL(url);
+      }}>Export selected records</button></div>
       {timelineItems.length === 0 ? (
         <div
           style={{
@@ -341,7 +356,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
           </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-              No Meals Logged Today
+              No meals in this selection
             </div>
             <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px', maxWidth: '320px', lineHeight: 1.4 }}>
               Log meals to track post-meal digestive and autonomic reactions.
@@ -620,6 +635,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
                         <button
                           key={opt.type}
                           type="button"
+                          disabled={savingReaction}
                           onClick={() => handleSelectReaction(item, opt)}
                           style={{
                             display: 'flex',

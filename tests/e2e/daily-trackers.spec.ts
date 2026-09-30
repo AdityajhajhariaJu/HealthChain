@@ -60,6 +60,7 @@ test('mobile scheduler additions appear in the baseline and baseline removal rem
 
 test('open dashboard and scheduler reset daily status at local midnight', async ({ page }) => {
   await page.clock.install({ time: new Date(2026, 8, 29, 23, 59, 55) });
+  await page.clock.pauseAt(new Date(2026, 8, 29, 23, 59, 55));
   await seedProfile(page);
   await page.getByRole('button', { name: 'Quick log 250ml water' }).click();
   await page.getByRole('button', { name: 'Mark daily meds taken' }).click();

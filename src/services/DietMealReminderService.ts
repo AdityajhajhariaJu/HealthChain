@@ -1,0 +1,161 @@
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { getDietEveryday } from './dietEveryday';
+import { getActiveProfileScope } from './profileScope';
+import { getNotificationPreferences, dispatchNotification } from './NotificationEngine';
+import {
+  ensureNotificationChannel,
+  hasNativeNotificationPermission,
+  NOTIFICATION_CHANNEL_ID,
+} from './NotificationDeviceService';
+import { mealReminderEvents, quietMealMinute } from '../../shared/diet-reminders';
+const ids = Array.from({ length: 24 }, (_, i) => ({ id: 3000 + i }));
+let queue = Promise.resolve();
+let signature = '';
+export const supportsNativeMealReminders = () => Capacitor.isNativePlatform();
+export function reconcileDietMealReminders(force = false): Promise<boolean> {
+  const scope = getActiveProfileScope();
+  const config = getDietEveryday(),
+    preferences = getNotificationPreferences();
+  const next = JSON.stringify([
+    scope,
+    config.reminders,
+    config.quietStart,
+    config.quietEnd,
+    preferences.quietHoursEnabled,
+    preferences.quietHoursStart,
+    preferences.quietHoursEnd,
+    preferences.enabledCategories.meal_reminder,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ]);
+  if (!force && signature === next) return Promise.resolve(true);
+  let success = true;
+  queue = queue
+    .catch(() => {})
+    .then(async () => {
+      if (!supportsNativeMealReminders()) {
+        signature = next;
+        return;
+      }
+      try {
+        await LocalNotifications.cancel({ notifications: ids });
+        if (scope !== getActiveProfileScope()) {
+          success = false;
+          return;
+        }
+        const events =
+          preferences.enabledCategories.meal_reminder === false
+            ? []
+            : mealReminderEvents(config.reminders, config.quietStart, config.quietEnd).filter(
+                (event) =>
+                  !preferences.quietHoursEnabled ||
+                  !quietMealMinute(
+                    event.minute,
+                    preferences.quietHoursStart,
+                    preferences.quietHoursEnd
+                  )
+              );
+        if (events.length && !(await hasNativeNotificationPermission())) {
+          success = false;
+          return;
+        }
+        if (events.length) {
+          await ensureNotificationChannel();
+          if (scope !== getActiveProfileScope()) {
+            success = false;
+            return;
+          }
+          await LocalNotifications.schedule({
+            notifications: events.map((event) => ({
+              id: event.id,
+              title: 'HealthChain food reminder',
+              body: 'Your requested food reminder is ready. Open HealthChain to review it.',
+              channelId: NOTIFICATION_CHANNEL_ID,
+              schedule: {
+                on: { hour: Math.floor(event.minute / 60), minute: event.minute % 60 },
+                repeats: true,
+                allowWhileIdle: true,
+              },
+              extra: { route: '/app/dietician', type: 'meal_reminder', scope },
+            })),
+          });
+        }
+        signature = next;
+      } catch {
+        success = false;
+      }
+    });
+  return queue.then(() => success);
+}
+export function checkInAppMealReminders(now = new Date()): number {
+  if (supportsNativeMealReminders()) return 0;
+  const config = getDietEveryday(),
+    preferences = getNotificationPreferences();
+  if (preferences.enabledCategories.meal_reminder === false) return 0;
+  const minute = now.getHours() * 60 + now.getMinutes(),
+    date = now.toLocaleDateString('en-CA'),
+    scope = getActiveProfileScope();
+  const events = mealReminderEvents(config.reminders, config.quietStart, config.quietEnd);
+  let count = 0;
+  for (const event of events)
+    if (event.minute <= minute && minute - event.minute <= 5) {
+      if (
+        preferences.quietHoursEnabled &&
+        quietMealMinute(minute, preferences.quietHoursStart, preferences.quietHoursEnd)
+      )
+        continue;
+      if (
+        dispatchNotification({
+          id: `meal:${scope}:${date}:${event.reminderId}:${event.kind}`,
+          category: 'meal_reminder',
+          title: 'Requested food reminder',
+          body: `${event.kind === 'prep' ? 'Preparation' : 'Meal'} reminder: ${event.label}. You can skip or adjust it.`,
+          previewBody: 'Your requested food reminder is ready.',
+          destination: '/app/dietician',
+          fallbackDestination: '/app/today',
+          actionLabel: 'Open food planner',
+        })
+      )
+        count++;
+    }
+  return count;
+}
+export function initDietMealReminderService() {
+  let loggedOut = false;
+  const refresh = () => {
+    if (!loggedOut) {
+      void reconcileDietMealReminders();
+      checkInAppMealReminders();
+    }
+  };
+  const logout = () => {
+    loggedOut = true;
+    signature = '';
+    queue = queue
+      .catch(() => {})
+      .then(async () => {
+        if (supportsNativeMealReminders()) await LocalNotifications.cancel({ notifications: ids });
+      });
+  };
+  const visible = () => {
+    if (!loggedOut && document.visibilityState === 'visible') {
+      void reconcileDietMealReminders(true);
+      checkInAppMealReminders();
+    }
+  };
+  refresh();
+  const timer = window.setInterval(() => {
+    if (!loggedOut) checkInAppMealReminders();
+  }, 30000);
+  for (const name of ['hc_profile_updated', 'hc_notifications_prefs_updated'])
+    window.addEventListener(name, refresh);
+  window.addEventListener('hc_logout', logout);
+  document.addEventListener('visibilitychange', visible);
+  return () => {
+    window.clearInterval(timer);
+    for (const name of ['hc_profile_updated', 'hc_notifications_prefs_updated'])
+      window.removeEventListener(name, refresh);
+    window.removeEventListener('hc_logout', logout);
+    document.removeEventListener('visibilitychange', visible);
+  };
+}

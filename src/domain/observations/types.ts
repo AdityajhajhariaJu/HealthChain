@@ -2,6 +2,12 @@ export type ObservationSource = 'gut' | 'diet' | 'today' | 'ava' | 'import' | 'l
 export type EvidenceType = 'user_report' | 'imported_record' | 'documented_clinician_record';
 export type TimePrecision = 'exact' | 'approximate' | 'date_only' | 'unknown';
 export type Answer = 'yes' | 'no' | 'unanswered';
+export interface MealReactionRecord {
+  reactionType:'none'|'bloat'|'heartburn'|'palpitations'|'brain_fog'|'stomach_upset';
+  system:'stomach'|'bloating'|'vitals'|'neuro';
+  severity:0|1|2|3|null; label:string; sublabel?:string; emoji:string;
+  incubationHours:number|null; loggedAt:string;
+}
 
 export interface NutritionAssessmentV1 {
   version: 1;
@@ -19,10 +25,10 @@ export interface NutritionAssessmentV1 {
 }
 
 export type ObservationPayload =
-  | { kind: 'meal'; description: string; amount?: { value: number; unit: string } | null; portionSize?: 'smaller' | 'usual' | 'larger'; ingredients?: Array<{ name: string; status: 'user_confirmed' | 'unverified' }>; nutritionAssessment?: NutritionAssessmentV1; mealType?: string; captureMethod?: 'gut_quick_log' | 'diet_diary' | 'quick_nutrition' | 'clinical_lens' | 'plan_confirmation' | 'legacy_import' }
+  | { kind: 'meal'; description: string; note?: string; hunger?: number; fullness?: number; amount?: { value: number; unit: string } | null; portionSize?: 'smaller' | 'usual' | 'larger'; ingredients?: Array<{ name: string; status: 'user_confirmed' | 'unverified'; amount?: number; unit?: 'g' | 'ml' | 'piece' }>; steps?: string[]; prepMinutes?: number; nutritionAssessment?: NutritionAssessmentV1; mealType?: string; captureMethod?: 'gut_quick_log' | 'diet_diary' | 'quick_nutrition' | 'clinical_lens' | 'plan_confirmation' | 'legacy_import' }
   | { kind: 'symptom'; symptom: string; symptomCode?: 'bloating' | 'discomfort' | 'reflux' | 'nausea' | 'bowel_changes'; severity?: { value: number; max: number } | null; severityLabel?: 'mild' | 'moderate' | 'severe'; note?: string; explicitMealIds?: string[] }
   | { kind: 'bowel'; bristolType?: number | null; urgency?: Answer; straining?: Answer; note?: string }
-  | { kind: 'daily_checkin'; localDate: string; answers: Record<string, Answer>; note?: string }
+  | { kind: 'daily_checkin'; localDate: string; answers: Record<string, Answer>; note?: string; mealReaction?:MealReactionRecord }
   | { kind: 'context'; description: string; contextType: 'medication' | 'illness' | 'sleep' | 'stress' | 'other' };
 
 export interface ObservationScope { ownerId: string; profileId: string }
@@ -90,9 +96,14 @@ export function validateObservationDraft(draft: ObservationDraft): ObservationVa
   if (!payload || typeof payload !== 'object') errors.push('Add an observation.');
   else if (payload.kind === 'meal') {
     if (!text(payload.description)) errors.push('Describe the meal.');
+    if (payload.note !== undefined && (typeof payload.note !== 'string' || payload.note.length > 500)) errors.push('Keep meal notes within 500 characters.');
+    for (const value of [payload.hunger, payload.fullness]) if (value !== undefined && (!Number.isInteger(value) || value < 1 || value > 5)) errors.push('Hunger and fullness must be 1–5 or unrecorded.');
     if (payload.portionSize !== undefined && !['smaller', 'usual', 'larger'].includes(payload.portionSize)) errors.push('Choose a valid portion size.');
     if (payload.amount != null && (!Number.isFinite(payload.amount.value) || payload.amount.value <= 0 || !text(payload.amount.unit))) errors.push('Enter a valid amount and unit or leave the amount unknown.');
     if (payload.ingredients?.some((ingredient) => !text(ingredient.name) || !['user_confirmed', 'unverified'].includes(ingredient.status))) errors.push('Check the ingredient names and their source status.');
+    if (payload.ingredients?.some(item => item.amount !== undefined && (!Number.isFinite(item.amount) || item.amount <= 0 || item.amount > 60000 || !['g','ml','piece'].includes(item.unit || '')))) errors.push('Check the recipe ingredient quantities and units.');
+    if (payload.steps && (!Array.isArray(payload.steps) || payload.steps.length > 6 || payload.steps.some(step => !text(step) || step.length > 300))) errors.push('Use up to six recipe steps.');
+    if (payload.prepMinutes !== undefined && (!Number.isInteger(payload.prepMinutes) || payload.prepMinutes < 1 || payload.prepMinutes > 360)) errors.push('Check the recipe preparation time.');
     if (payload.mealType !== undefined && (typeof payload.mealType !== 'string' || payload.mealType.length > 60)) errors.push('Choose a valid meal type.');
     if (payload.captureMethod !== undefined && !['gut_quick_log', 'diet_diary', 'quick_nutrition', 'clinical_lens', 'plan_confirmation', 'legacy_import'].includes(payload.captureMethod)) errors.push('Choose a valid meal capture method.');
     const assessment = payload.nutritionAssessment;
@@ -128,6 +139,7 @@ export function validateObservationDraft(draft: ObservationDraft): ObservationVa
   } else if (payload.kind === 'daily_checkin') {
     if (!isDate(payload.localDate) || payload.localDate !== draft.localDate) errors.push('The check-in period must match its local date.');
     if (!payload.answers || Object.keys(payload.answers).length === 0 || Object.values(payload.answers).some((answer) => !isAnswer(answer))) errors.push('Record at least one explicit answer.');
+    if(payload.mealReaction && (!['none','bloat','heartburn','palpitations','brain_fog','stomach_upset'].includes(payload.mealReaction.reactionType) || !isInstant(payload.mealReaction.loggedAt) || !text(payload.mealReaction.label) || payload.mealReaction.label.length>120 || payload.mealReaction.severity!==null && (!Number.isInteger(payload.mealReaction.severity) || payload.mealReaction.severity<0 || payload.mealReaction.severity>3))) errors.push('Check the explicit meal reaction and report time.');
   } else if (payload.kind === 'context') {
     if (!text(payload.description) || !['medication', 'illness', 'sleep', 'stress', 'other'].includes(payload.contextType)) errors.push('Describe the context and choose its type.');
   } else errors.push('Select a supported observation type.');

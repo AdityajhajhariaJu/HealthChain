@@ -121,6 +121,14 @@ import { adjustWaterAmount, getHydrationData } from '../../services/HydrationSer
 import { targetFields } from '../../services/dietTargets';
 import { hasUnverifiableDietConstraints, validateGeneratedMealPlan } from '../../services/dietPlanValidation';
 import { projectDietGroceries } from '../../services/dietGroceryProjection';
+import { DietEverydayTools, datedPlanDay } from './DietEverydayTools';
+import { emptyMealDetails, MealDetailsFields, mealDetailsEntry } from './MealDetailsFields';
+import { dietPlanningPreferences, normalizeDietPreferences, locationMealIdeas, dietMealSlots } from '../../../shared/diet-preferences';
+import { getDietEveryday, effectiveFoodLocation } from '../../services/dietEveryday';
+import { GroceryControls } from './GroceryControls';
+import { ConfirmPlannedMeal } from './ConfirmPlannedMeal';
+import { preserveAcceptedMeals } from '../../services/dietPlanChoices';
+import { validateDietPreferenceFit } from '../../../shared/diet-preference-fit';
 import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
 
 // --- Constants & Helpers ---
@@ -355,15 +363,30 @@ export default function Dietician() {
   const [planGenerationError, setPlanGenerationError] = useState('');
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
   const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
+  const [everydayPanel, setEverydayPanel] = useState('Meals');
+  const [mealDetails, setMealDetails] = useState(emptyMealDetails);
+  const [editNutrientsConfirmed,setEditNutrientsConfirmed]=useState(false);
+  const [confirmPlanned,setConfirmPlanned]=useState<{day:number;meal:MealPlanItem}|null>(null);
+  const [correctionDate,setCorrectionDate]=useState(currentDate);
+  const [correctionDetails,setCorrectionDetails]=useState(emptyMealDetails);
+  const [undoMeal,setUndoMeal]=useState<any>(null);
+  const [everydayState, setEverydayState] = useState(getDietEveryday);
+  const [activeFoodScope,setActiveFoodScope]=useState(()=>`${getProfileKey()}:${getCoreProfile()?.id}`);
+  useEffect(() => { const refresh = () => {setEverydayState(getDietEveryday());setActiveFoodScope(`${getProfileKey()}:${getCoreProfile()?.id}`);}; window.addEventListener('hc_profile_updated', refresh); return () => window.removeEventListener('hc_profile_updated', refresh); }, []);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [editingDiaryMeal, setEditingDiaryMeal] = useState<any>(null);
   const [diaryCorrection, setDiaryCorrection] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', portionGrams: '' });
-  const displayedGroceryList = useMemo(() => projectDietGroceries(mealPlan, groceryList), [mealPlan, groceryList]);
+  const groceryOptions = useMemo(() => ({ householdSize: normalizeDietPreferences(profile?.practical).householdSize,
+    pantry: profile?.practical?.usePantry ? everydayState.pantry : [],
+    selectedMeals: everydayState.selectedPlanId === mealPlan?.id ? everydayState.selectedMeals : undefined }), [profile, everydayState, mealPlan?.id]);
+  const displayedGroceryList = useMemo(() => projectDietGroceries(mealPlan, groceryList, groceryOptions), [mealPlan, groceryList, groceryOptions]);
 
   // Hydrate diet state
   useEffect(() => {
     let cancelled = false;
+    setProfile(getInitialDietProfile());setMealPlan(null);setArchivedPlans([]);setFoodLogs({});setGroceryList([]);setGuardrails([]);setAdvice(null);
+    setShowSavedMealsModal(false);setEditingDiaryMeal(null);setConfirmPlanned(null);setUndoMeal(null);setIsLoggingFood(false);
     const load = async () => {
       try {
         const coreProfile = getCoreProfile();
@@ -473,7 +496,7 @@ export default function Dietician() {
     return () => { 
       cancelled = true; 
     };
-  }, [activeCaseScope.caseId]);
+  }, [activeCaseScope.caseId,activeFoodScope]);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -503,14 +526,14 @@ export default function Dietician() {
       window.removeEventListener('storage', refreshFoodLogs);
       window.removeEventListener('hc_observations_updated', refreshFoodLogs);
     };
-  }, [isHydrated]);
+  }, [isHydrated,activeFoodScope]);
 
   // Record Health Memory snapshots
   useEffect(() => {
     const refreshLocation = () => setProfile((previous: any) => {
       if (!previous) return previous;
-      const next = withFoodLocation(previous);
-      return previous.countryCode === next.countryCode && previous.region === next.region ? previous : next;
+      const next = withFoodLocation(getCoreProfile()?.dietProfile || previous);
+      return JSON.stringify(previous)===JSON.stringify(next) ? previous : next;
     });
     window.addEventListener('hc_profile_updated', refreshLocation);
     return () => window.removeEventListener('hc_profile_updated', refreshLocation);
@@ -582,7 +605,8 @@ export default function Dietician() {
 
   // Dynamic Presets from Meal Plan
   const dynamicPresets = React.useMemo(() => {
-    if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return QUICK_PRESETS;
+    const names = locationMealIdeas(effectiveFoodLocation(profile, currentDate).countryCode, profile?.cuisine).map(name => ({ name, portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🍽️' }));
+    if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return names;
     
     // Extract up to 6 unique meals from the generated plan
     const meals: any[] = [];
@@ -609,11 +633,11 @@ export default function Dietician() {
       }
     }
     
-    return meals.length > 0 ? meals : QUICK_PRESETS;
-  }, [mealPlan]);
+    return meals.length > 0 ? meals : names;
+  }, [mealPlan, profile, currentDate]);
 
   const handleSaveProfile = async (p: any) => {
-    const fullProfile = { ...p, ...normalizeFoodLocation(p), ...calculateTargets(p) };
+    const fullProfile = { ...p, preferencesUpdatedAt:new Date().toISOString(), practical: normalizeDietPreferences(p.practical), ...normalizeFoodLocation(p), ...calculateTargets(p) };
     const unified = getCoreProfile();
     if (!unified) {
       toast.error('Preferences not saved', 'Your profile could not be loaded. Please try again.');
@@ -626,10 +650,11 @@ export default function Dietician() {
     });
     if (JSON.stringify(getCoreProfile()?.dietProfile) !== JSON.stringify(fullProfile)) {
       toast.error('Preferences not saved', 'The profile update was not confirmed. Please try again.');
-      return;
+      return false;
     }
     setProfile(fullProfile);
     toast.success('Preferences updated', 'Your food-planning preferences were refreshed.');
+    return true;
   };
 
   useEffect(() => {
@@ -656,43 +681,24 @@ export default function Dietician() {
 
   const waterGlasses = hydration[currentDate] || 0;
 
-  const handleAddFood = async () => {
-    if (isAnalyzingFood) return;
-    if (!foodInput.trim()) return;
+  const handleAddFood = async (estimate = false) => {
+    if (isAnalyzingFood || !foodInput.trim()) return;
     setIsAnalyzingFood(true);
+    const scopeKey = getProfileKey(); const profileId = getCoreProfile()?.id;
     try {
-      const result = await analyzeFoodEntry(foodInput);
-      if (result && Array.isArray(result.items) && result.items.length > 0) {
-        const entry = mealEntryFromAnalysis(foodInput, result.items, { type: selectedMealType, latency: mealLatency });
-        const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'diet_diary' });
-        if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
-        if (isMounted.current) {
-          setFoodLogs(await listMealDiary());
-          setIsLoggingFood(false);
-          setFoodInput('');
-          triggerHapticSuccess();
-          awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${saved.observation.id}`);
-          if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
-        }
-
-        try {
-          addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`, {
-            items: result.items,
-            type: selectedMealType,
-            latency: mealLatency,
-          });
-        } catch (eventError) {
-          console.warn('Meal saved; optional timeline event was unavailable', eventError);
-        }
-      } else {
-        toast.error('Analysis incomplete', 'No food items were returned. Add more detail and try again.');
-      }
-    } catch (err) {
-      console.error('Failed to analyze food:', err);
-      toast.error('Meal not saved', 'The analysis or local save failed. Please try again.');
-    } finally {
-      if (isMounted.current) setIsAnalyzingFood(false);
-    }
+      const details = mealDetailsEntry(currentDate, mealDetails);
+      const analysis = estimate ? await analyzeFoodEntry(`${foodInput}${details.amountValue ? `; actual amount eaten: ${details.amountValue} ${details.amountUnit}` : ''}`) : null;
+      if (estimate && !analysis?.items?.length) throw new Error('Estimate unavailable. Save the meal name now, or try again.');
+      if (getProfileKey() !== scopeKey || getCoreProfile()?.id !== profileId) throw new Error('Profile changed. Reopen the food diary.');
+      const entry = mealEntryFromAnalysis(foodInput, analysis?.items || [], { type: selectedMealType, ...details });
+      const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'diet_diary' });
+      if (!saved.ok) throw new Error('Meal save was not confirmed. Check the date and try again.');
+      setFoodLogs(await listMealDiary()); setIsLoggingFood(false); setFoodInput(''); setMealDetails(emptyMealDetails());
+      triggerHapticSuccess();
+      if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
+      else toast.success('Meal saved', estimate ? 'Nutrition is estimated; check the portion and ingredients.' : 'Meal recorded. Nutrition stays unknown until you add a source.');
+    } catch (error) { toast.error('Meal not saved', error instanceof Error ? error.message : 'Please try again.'); }
+    finally { if (isMounted.current) setIsAnalyzingFood(false); }
   };
 
   const handleAddPreset = async (preset: typeof QUICK_PRESETS[0]) => {
@@ -719,7 +725,7 @@ export default function Dietician() {
     setIsLoggingFood(false);
     awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${saved.observation.id}`);
     if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
-    toast.success('Meal saved locally', `Added ${preset.name}. Nutrition is unknown until the portion and ingredients are checked.`);
+    toast.success('Meal saved locally', `Added ${preset.name}. ${preset.calories == null ? 'Nutrition is unknown until the portion and ingredients are checked.' : 'Nutrients are estimates for the saved serving.'}`);
     return true;
   };
 
@@ -732,32 +738,37 @@ export default function Dietician() {
       return;
     }
     setFoodLogs(await listMealDiary());
+    setUndoMeal({ entry:removedItem,date:currentDate,scope:`${getProfileKey()}:${getCoreProfile()?.id}` });
     if (deleted.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal removed on this device, but cloud sync could not be queued.');
     toast.info('Meal removed locally', `"${removedItem?.name || 'Meal'}" removed from the diary and shared nutrition records.`);
   };
 
-  const handleConfirmPlannedMeal = async (day: number, meal: MealPlanItem) => {
-    if (!mealPlan) return;
-    const sourceRecordId = `plan:${mealPlan.id}:day:${day}:meal:${meal.id}:date:${currentDate}`;
-    if ((foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === sourceRecordId)) {
+  const handleConfirmPlannedMeal = async (day: number, meal: MealPlanItem) => { setConfirmPlanned({ day,meal }); };
+  const saveConfirmedPlanMeal = async (day:number,meal:MealPlanItem,eatingDate:string,ratio:number|null,details:any) => {
+    if (!mealPlan) return false;
+    const sourceRecordId = `plan:${mealPlan.id}:day:${day}:meal:${meal.id}:date:${eatingDate}`;
+    if ((foodLogs[eatingDate] || []).some((item: any) => item.sourceRecordId === sourceRecordId)) {
       toast.info('Already logged', 'This planned meal is already in the diary for the selected date.');
-      return;
+      return false;
     }
-    const known = !meal.macrosNeedReview;
-    const saved = await createMeal({ localDate: currentDate, captureMethod: 'plan_confirmation', entry: {
-      id: sourceRecordId, name: meal.name, type: meal.type,
-      calories: known ? meal.calories : null, protein: known ? meal.protein : null,
-      carbs: known ? meal.carbs : null, fat: known ? meal.fat : null,
+    const known = !meal.macrosNeedReview && ratio !== null;
+    const factor = ratio || 1;
+    const saved = await createMeal({ localDate: eatingDate, captureMethod: 'plan_confirmation', entry: {
+      id: sourceRecordId, name: meal.name, type: meal.type, ...details,
+      calories: known ? Math.round(meal.calories * factor) : null, protein: known ? Math.round(meal.protein * factor * 100)/100 : null,
+      carbs: known ? Math.round(meal.carbs * factor * 100)/100 : null, fat: known ? Math.round(meal.fat * factor * 100)/100 : null,
       sourceId: `${mealPlan.id}:${day}:${meal.id}`, sourceVersion: mealPlan.updatedAt,
-      ingredients: meal.ingredients || [], portion: meal.portion || 'Amount not confirmed',
+      ingredients: ratio === null ? undefined : (meal.ingredients || []).map(item=>({...item,amount:item.amount*meal.servingMultiplier*factor})), steps:meal.steps,prepMinutes:meal.prepMinutes, portion: meal.portion || 'Amount not confirmed',
     } });
     if (!saved.ok) {
       toast.error('Meal not saved', 'The planned meal could not be added to your diary.');
-      return;
+      return false;
     }
     setFoodLogs(await listMealDiary());
+    setCurrentDate(eatingDate);
     if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
     else toast.success('Meal logged', `Recorded ${meal.name} as eaten. Nutrients remain estimates from the plan.`);
+    return true;
   };
 
   const handleStartDiaryCorrection = (meal: any) => {
@@ -766,6 +777,9 @@ export default function Dietician() {
       return;
     }
     setEditingDiaryMeal(meal);
+    setCorrectionDate(meal.date || currentDate);
+    const when=meal.occurredAt?new Date(meal.occurredAt):null;
+    setCorrectionDetails({ ...emptyMealDetails(),time:when?`${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}`:'',approximate:meal.timePrecision==='approximate',amount:String(meal.amountValue||meal.portionGrams||''),unit:meal.amountUnit==='ml'?'ml':'g',note:meal.note||'',hunger:String(meal.hunger||''),fullness:String(meal.fullness||'') });
     const value = (number: unknown) => typeof number === 'number' && Number.isFinite(number) ? String(number) : '';
     setDiaryCorrection({ name: meal.name || '', calories: value(meal.calories), protein: value(meal.protein),
       carbs: value(meal.carbs), fat: value(meal.fat), portionGrams: value(meal.portionGrams) });
@@ -784,8 +798,11 @@ export default function Dietician() {
       toast.error('Check correction', 'Enter a meal name and nonnegative nutrients. Leave unknown values blank.');
       return;
     }
+    let timing;
+    try { timing=mealDetailsEntry(correctionDate,correctionDetails); } catch(error) { toast.error('Check correction',error instanceof Error?error.message:'Check the eating details.'); return; }
+    const changedNutrients=Object.entries(nutrients).some(([key,value])=>value!==(editingDiaryMeal[key]??null));
     const result = await correctMeal(editingDiaryMeal.syncRecordId, editingDiaryMeal.revision, {
-      name: diaryCorrection.name.trim(), nutrients, portionGrams: portion,
+      name: diaryCorrection.name.trim(), ...(changedNutrients?{nutrients}:{}), ...timing, timePrecision:timing.timePrecision as any, localDate:correctionDate, amountValue:correctionDetails.amount?Number(correctionDetails.amount):null, amountUnit:correctionDetails.unit as any,
     });
     if (!result.ok) {
       toast.error('Correction not saved', result.error === 'revision_conflict'
@@ -802,7 +819,7 @@ export default function Dietician() {
   const saveDietAncillary = async (flatKey: string, nestedKey: string, value: any) => {
     const current = getCoreProfile();
     if (!current) return false;
-    await saveProfile({ ...current, [flatKey]: value, dietician: { ...(current.dietician || {}), [nestedKey]: value } });
+    await saveProfile({ ...current, [flatKey]: value,[`${flatKey}UpdatedAt`]:new Date().toISOString(), dietician: { ...(current.dietician || {}), [nestedKey]: value } });
     return JSON.stringify(getCoreProfile()?.[flatKey]) === JSON.stringify(value);
   };
 
@@ -825,14 +842,16 @@ export default function Dietician() {
       toast.error('No Meal Plan', 'Please generate a 7-day meal plan first.');
       return;
     }
-    if (!Array.isArray(mealPlan.days) || mealPlan.days.length === 0 || !mealPlan.days.every((day) => day.meals.every((meal) => Array.isArray(meal.ingredients) && meal.ingredients.length > 0))) {
+    const selected = groceryOptions.selectedMeals;
+    const shoppingMeals = mealPlan.days.flatMap(day => day.meals.filter(meal => !selected || selected.includes(`${day.day}:${meal.id}`)));
+    if (shoppingMeals.some(meal => !Array.isArray(meal.ingredients) || !meal.ingredients.length)) {
       toast.error('Ingredients needed', 'This plan contains meals without measured ingredient drafts, so a shopping list cannot be calculated yet.');
       return;
     }
     setIsGeneratingGrocery(true);
     try {
-      const next = projectDietGroceries(mealPlan, groceryList);
-      if (next.length) {
+      const next = projectDietGroceries(mealPlan, groceryList, groceryOptions);
+      {
         if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) {
           toast.error('List not saved', 'The grocery list could not be confirmed in local storage.');
           return;
@@ -840,9 +859,7 @@ export default function Dietician() {
         if (isMounted.current) setGroceryList(next);
         awardPoints(2, '🛒 Grocery List Created', 'lifestyle', `grocery_${Date.now()}`);
         triggerHapticSuccess();
-        toast.success('Shopping draft ready', 'Quantities follow the current plan. Check ingredient names and amounts before buying.');
-      } else {
-        toast.error('Ingredients needed', 'No measured ingredients are available in this plan.');
+        toast.success('Shopping draft ready', next.length ? 'Quantities follow selected meals and saved pantry stock. Check ingredient names and amounts before buying.' : shoppingMeals.length ? 'Saved pantry quantities cover the selected measured ingredients.' : 'No plan meals are selected for shopping. Manual additions remain available.');
       }
     } catch (err) {
       console.error(err);
@@ -905,12 +922,15 @@ export default function Dietician() {
     // The authenticated gateway owns paid access, refunds and free-plan quota.
     // A stale browser trial counter must not block an available server quota.
 
-    const requestProfile = withFoodLocation(profile);
+    const requestProfile = { ...withFoodLocation(profile), ...effectiveFoodLocation(withFoodLocation(profile), currentDate), planningPreferences: profile.practical || profile.restrictions?.some((value:string)=>['Vegan','Vegetarian'].includes(value)) ? dietPlanningPreferences(profile) : undefined };
+    if (profile?.practical?.usePantry && requestProfile.planningPreferences) requestProfile.planningPreferences.pantry = getDietEveryday().pantry.filter(item => !item.deletedAt).slice(0, 20).map(item => item.name);
     if (requestProfile.cuisine === 'Local' && !requestProfile.countryCode) {
       toast.error('Country needed for local meals', 'Choose your current country in food preferences so recipes fit where you live.');
       setIsEditingProfile(true);
       return;
     }
+    const accepted=(mealPlan?.days||[]).flatMap(day=>day.meals.filter(meal=>meal.pinned));
+    if(!validateDietPreferenceFit({days:[{meals:accepted}]},requestProfile.planningPreferences).valid){toast.error('Review accepted meals','A pinned recipe conflicts with your current food preferences. Review or unpin it before regeneration.');return;}
     setIsGeneratingPlan(true);
     setPlanGenerationError('');
     try {
@@ -920,10 +940,11 @@ export default function Dietician() {
       const validation = validateGeneratedMealPlan(rawPlan, 7);
       if (validation.valid) {
         if (isMounted.current) {
-          const normalized = normalizeFullMealPlan(rawPlan, {
+          if(getCoreProfile()?.dietMealPlan?.updatedAt!==mealPlan?.updatedAt)throw new Error('diet_plan_context_changed');
+          const normalized = preserveAcceptedMeals(normalizeFullMealPlan({...rawPlan,startDate:currentDate}, {
             caseId: activeCaseScope.caseId || undefined,
             profileKey: getProfileKey(),
-          });
+          }),mealPlan);
           const updatedArchived = mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))
             ? archiveCurrentPlan(mealPlan, archivedPlans) : archivedPlans;
           const current = getCoreProfile();
@@ -983,74 +1004,73 @@ export default function Dietician() {
     }
   };
 
+  const persistPlanUpdate = async (next:FullMealPlan, nextArchives?:FullMealPlan[]) => {
+    const current=getCoreProfile(), scope=getProfileKey(); if(!current)return false;
+    await saveProfile({...current,dietMealPlan:next,...(nextArchives?{dietArchivedPlans:nextArchives}:{}),dietician:{...(current.dietician||{}),mealPlan:next,...(nextArchives?{archivedPlans:nextArchives}:{})}});
+    if(getProfileKey()!==scope||getCoreProfile()?.id!==current.id||JSON.stringify(getCoreProfile()?.dietMealPlan)!==JSON.stringify(next)){toast.error('Plan not saved','Your plan update was not confirmed. Please retry.');return false;}
+    setMealPlan(next);if(nextArchives)setArchivedPlans(nextArchives);return true;
+  };
   // --- Package 7 Plan Lifecycle Handlers ---
-  const handleSelectPlan = () => {
+  const handleSelectPlan = async () => {
     if (!mealPlan) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'selected');
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     toast.success('Plan Selected', 'Plan selected as your active blueprint.');
   };
 
-  const handleActivatePlan = () => {
+  const handleActivatePlan = async () => {
     if (!mealPlan) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     toast.success('Plan Active', 'You are now actively following this meal blueprint!');
   };
 
-  const handlePausePlan = () => {
+  const handlePausePlan = async () => {
     if (!mealPlan) return;
     triggerHapticLight();
     const updated = transitionPlanStatus(mealPlan, 'paused');
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     toast.info('Plan Paused', 'Meal plan paused. Your daily logs and reactions remain completely safe.');
   };
 
-  const handleResumePlan = () => {
+  const handleResumePlan = async () => {
     if (!mealPlan) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     toast.success('Plan Resumed', 'Welcome back! Plan adherence resumed.');
   };
 
-  const handleCompletePlan = () => {
+  const handleCompletePlan = async () => {
     if (!mealPlan) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'completed', {
-      completionNotes: 'Completed 7-Day structured nutritional blueprint.',
+      completionNotes: 'User marked this plan complete; this does not verify all meals were eaten.',
     });
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     awardPoints(25, 'Completed Clinical Meal Blueprint', 'lifestyle', `diet_complete_${Date.now()}`);
-    toast.success('Cycle Completed!', 'Congratulations on completing this plan! Full history preserved in your calendar.');
+    toast.success('Cycle Completed!', 'Congratulations on completing this plan! Plan history preserved; eating records stay separate.');
   };
 
-  const handleConfirmStopPlan = () => {
+  const handleConfirmStopPlan = async () => {
     if (!mealPlan) return;
     triggerHapticLight();
     const updated = transitionPlanStatus(mealPlan, 'stopped', {
       stopReason: selectedStopReason,
       stopReasonDetails: stopReasonDetails.trim() || undefined,
     });
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     setShowStopPlanModal(false);
     toast.info('Plan Stopped', 'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.');
   };
 
-  const handleServingMultiplierChange = (dayNum: number, mealId: string, multiplier: number) => {
+  const handleServingMultiplierChange = async (dayNum: number, mealId: string, multiplier: number) => {
     if (!mealPlan) return;
     triggerHapticLight();
     const updated = updateMealServing(mealPlan, dayNum, mealId, multiplier);
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     toast.success('Portion Adjusted', `Serving updated to ${multiplier}x. Daily totals recalculated.`);
   };
 
@@ -1083,6 +1103,7 @@ export default function Dietician() {
 
   const handleStartEditMeal = (day: number, meal: MealPlanItem) => {
     setEditingMeal({ day, meal });
+    setEditNutrientsConfirmed(false);
     setEditMealForm({
       name: meal.name,
       portion: meal.portion || '1 serving',
@@ -1096,7 +1117,7 @@ export default function Dietician() {
     });
   };
 
-  const handleSaveEditMeal = () => {
+  const handleSaveEditMeal = async () => {
     if (!mealPlan || !editingMeal) return;
     const ingredientLines = editMealForm.ingredientsText.split('\n').map((line) => line.trim()).filter(Boolean);
     const ingredients = ingredientLines.map((line) => {
@@ -1112,6 +1133,7 @@ export default function Dietician() {
       toast.error('Check recipe', 'Use up to six preparation steps and a time from 1 to 360 minutes.');
       return;
     }
+    if(editNutrientsConfirmed && ['calories','protein','carbs','fat'].some(key=>editMealForm[key]==='' || !Number.isFinite(Number(editMealForm[key])) || Number(editMealForm[key])<0 || Number(editMealForm[key])>(key==='calories'?3000:500))){toast.error('Check nutrients','Enter checked nonnegative nutrient values, or leave the confirmation off.');return;}
     triggerHapticSuccess();
 
     const parseMacro = (val: any, fallback: number) => {
@@ -1122,21 +1144,22 @@ export default function Dietician() {
     const updated = editMealContent(mealPlan, editingMeal.day, editingMeal.meal.id, {
       name: editMealForm.name.trim() || editingMeal.meal.name,
       portion: editMealForm.portion.trim() || editingMeal.meal.portion,
-      calories: parseMacro(editMealForm.calories, editingMeal.meal.calories) / editingMeal.meal.servingMultiplier,
-      protein: parseMacro(editMealForm.protein, editingMeal.meal.protein) / editingMeal.meal.servingMultiplier,
-      carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs) / editingMeal.meal.servingMultiplier,
-      fat: parseMacro(editMealForm.fat, editingMeal.meal.fat) / editingMeal.meal.servingMultiplier,
+      ...(editNutrientsConfirmed ? {calories: parseMacro(editMealForm.calories, editingMeal.meal.calories) / editingMeal.meal.servingMultiplier} : {}),
+      ...(editNutrientsConfirmed ? {protein: parseMacro(editMealForm.protein, editingMeal.meal.protein) / editingMeal.meal.servingMultiplier} : {}),
+      ...(editNutrientsConfirmed ? {carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs) / editingMeal.meal.servingMultiplier} : {}),
+      ...(editNutrientsConfirmed ? {fat: parseMacro(editMealForm.fat, editingMeal.meal.fat) / editingMeal.meal.servingMultiplier} : {}),
       description: editMealForm.description,
       ingredients, steps, prepMinutes: steps.length ? editMealForm.prepMinutes : undefined,
+      macrosNeedReview:editNutrientsConfirmed?false:editingMeal.meal.macrosNeedReview || editMealForm.name.trim()!==editingMeal.meal.name || editMealForm.portion.trim()!==(editingMeal.meal.portion||'') || JSON.stringify(ingredients.map(({name,amount,unit})=>({name,amount,unit})))!==JSON.stringify((editingMeal.meal.ingredients||[]).map(({name,amount,unit})=>({name,amount,unit}))),
     });
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     setEditingMeal(null);
     toast.success('Meal Updated', 'Nutritional estimates and day totals recalculated.');
   };
 
-  const handleApplyCustomSwap = () => {
+  const handleApplyCustomSwap = async () => {
     if (!mealPlan || !swappingMeal || !customSwapName.trim()) return;
+    if(swappingMeal.meal.pinned){toast.info('Meal pinned','Unpin this accepted meal before replacing it.');return;}
     triggerHapticSuccess();
     const customSwap: DietarySwap = {
       triggerName: swappingMeal.meal.name,
@@ -1148,26 +1171,18 @@ export default function Dietician() {
       expectedReliefTimeline: '',
     };
     const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, customSwap);
-    setMealPlan(updated);
-    updateProfileFeatureData('dietMealPlan', updated);
+    if(!await persistPlanUpdate(updated))return;
     setSwappingMeal(null);
     setCustomSwapName('');
     setCustomSwapRationale('');
     toast.success('Custom Swap Applied', `Replaced with ${customSwap.smartReplacement}.`);
   };
 
-  const handleRestoreArchivedPlan = (archived: FullMealPlan) => {
-    triggerHapticSuccess();
-    if (mealPlan) {
-      const updatedArchived = archiveCurrentPlan(mealPlan, archivedPlans);
-      setArchivedPlans(updatedArchived);
-      updateProfileFeatureData('dietArchivedPlans', updatedArchived);
-    }
-    const reactivated = transitionPlanStatus(archived, 'active');
-    setMealPlan(reactivated);
-    updateProfileFeatureData('dietMealPlan', reactivated);
-    setShowArchivedPlansModal(false);
-    toast.success('Blueprint Restored', 'Past blueprint restored as active plan. Historical logs remained intact.');
+  const handleRestoreArchivedPlan = async (archived:FullMealPlan) => {
+    const nextArchives=mealPlan?archiveCurrentPlan(mealPlan,archivedPlans):archivedPlans;
+    const reactivated=transitionPlanStatus({...archived,id:`plan_${crypto.randomUUID()}`,archivedFromId:archived.id},'active');
+    if(!await persistPlanUpdate(reactivated,nextArchives))return;
+    setShowArchivedPlansModal(false);toast.success('Plan restored','Historical eating records remain unchanged.');
   };
 
   const toggleGroceryItem = async (catIndex: number, itemId: string) => {
@@ -1468,6 +1483,8 @@ export default function Dietician() {
           </div>
         </div>
 
+        {undoMeal && <div className="diet-everyday diet-row" role="status"><span>{undoMeal.entry?.name || 'Meal'} removed.</span><button onClick={async()=>{ const undo=undoMeal; if(undo.scope!==`${getProfileKey()}:${getCoreProfile()?.id}`){setUndoMeal(null);return;} const saved=await createMeal({localDate:undo.date,captureMethod:'diet_diary',entry:{...undo.entry,id:`undo:${undo.entry.id}`,nutritionSource:undo.entry.nutritionSource}}); if(saved.ok){setFoodLogs(await listMealDiary());setUndoMeal(null);}else toast.error('Undo failed','The meal could not be restored.'); }}>Undo meal removal</button><button onClick={()=>setUndoMeal(null)}>Dismiss</button></div>}
+        <div className="diet-everyday diet-row" style={{ marginBottom: 16 }}>{['Ideas', 'Meals', 'Plan choices', 'Pantry', 'Packaged food', 'Reminders', 'Preferences'].map(panel => <button key={panel} onClick={() => { setEverydayPanel(panel); setShowSavedMealsModal(true); }}>{panel === 'Meals' ? 'My meals & history' : panel}</button>)}</div>
         {/* TAB 1: DASHBOARD */}
         {activeTab === 'dashboard' && (
           <motion.div
@@ -1594,7 +1611,8 @@ export default function Dietician() {
                 onUpdateHydration={handleUpdateHydration}
                 onSnap={() => setShowARLens(true)}
                 onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
-                onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
+                onOpenSavedMeals={() => { triggerHapticLight(); setEverydayPanel('Meals'); setShowSavedMealsModal(true); }}
+                onOpenIdeas={(mealName: string) => { setSelectedMealType(mealName); setEverydayPanel('Ideas'); setShowSavedMealsModal(true); }}
                 onOpenGallery={() => setShowARLens(true)}
                 onSelectTab={(t: any) => setActiveTab(t)}
               />
@@ -1726,10 +1744,10 @@ export default function Dietician() {
             >
               <div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  7-day meal plan
+                  {mealPlan && mealPlan.days.length !== 7 ? `${mealPlan.days.length}-day chosen meal plan` : '7-day meal plan'}
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {(mealPlan?.cuisine || profile?.cuisine) === 'Local' ? 'Local meals' : mealPlan?.cuisine || profile?.cuisine || 'Any cuisine'}{formatFoodLocation(mealPlan || profile) ? ` · ${formatFoodLocation(mealPlan || profile)}` : ''} · {profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set'}
+                  Editable example · {(mealPlan?.cuisine || profile?.cuisine) === 'Local' ? 'Local meals' : mealPlan?.cuisine || profile?.cuisine || 'Any cuisine'}{formatFoodLocation(mealPlan || profile) ? ` · ${formatFoodLocation(mealPlan || profile)}` : ''} · {normalizeDietPreferences(profile?.practical).showNumbers ? profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set' : 'qualitative food planning'}
                 </p>
               </div>
 
@@ -2354,11 +2372,11 @@ export default function Dietician() {
                       }}
                     >
                       <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                        Day {currentSelectedDayObj.day || selectedPlanDay} Nutritional Blueprint
+                        Day {currentSelectedDayObj.day || selectedPlanDay} · {datedPlanDay(mealPlan?.startDate,currentSelectedDayObj.day || selectedPlanDay) || 'Date not assigned'}
                       </h3>
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: normalizeDietPreferences(profile?.practical).showNumbers?'flex':'none', alignItems: 'center', gap: '4px' }}>
                           <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.meals?.some((meal: MealPlanItem) => meal.macrosNeedReview)
                             ? 'Nutrition incomplete after a meal edit'
                             : `${currentSelectedDayObj.total_calories} estimated kcal`}
@@ -2488,7 +2506,7 @@ export default function Dietician() {
                                   {meal.steps?.length ? <ol style={{ paddingLeft: '18px', margin: '8px 0' }}>
                                     {meal.steps.map((step, index) => <li key={index}>{step}</li>)}
                                   </ol> : null}
-                                  <span>Check ingredients and quantities before cooking or shopping.</span>
+                                  <span>Ingredient amounts are for one selected portion, raw/dry unless the name says cooked or ready-to-eat. Household recipe quantities are in Plan choices. Check the ingredients and cooking oil before cooking.</span>
                                 </details>
                               ) : <div style={{ fontSize: '11px', color: '#B45309' }}>Ingredients not recorded; shopping quantities unavailable.</div>}
                             </div>
@@ -2524,15 +2542,15 @@ export default function Dietician() {
 
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
                                 {meal.macrosNeedReview ? <span style={{ color: '#B45309', fontWeight: 700 }}>Nutrition needs review after this change</span> : <>
-                                  <span style={{ color: '#059669', fontWeight: 700 }}>{meal.calories} estimated kcal</span>
-                                  <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</span>
+                                  <span style={{ display:normalizeDietPreferences(profile?.practical).showNumbers?undefined:'none',color: '#059669', fontWeight: 700 }}>{meal.calories} estimated kcal</span>
+                                  <span style={{ display:normalizeDietPreferences(profile?.practical).showNumbers?undefined:'none',color: '#94A3B8', fontSize: '11.5px' }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</span>
                                 </>}
                               </div>
                               <button type="button" onClick={() => void handleConfirmPlannedMeal(dayNum, meal)}
                                 disabled={(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)}
                                 style={{ width: '100%', marginTop: '10px', padding: '9px', border: '1px solid #0D9488', borderRadius: '9px', background: '#F0FDFA', color: '#0F766E', fontWeight: 700, cursor: 'pointer' }}>
                                 {(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)
-                                  ? 'Logged in diary' : 'I ate this as planned'}
+                                  ? 'Logged in diary' : 'Record this meal as eaten'}
                               </button>
                             </div>
                           </div>
@@ -2658,9 +2676,11 @@ export default function Dietician() {
               </div>
             </div>
 
+            <div className="diet-everyday"><p>Shopping follows selected meals and {groceryOptions.householdSize} person(s) per recipe. {profile?.practical?.usePantry ? 'Matching pantry stock is subtracted.' : 'Enable pantry use in everyday preferences to subtract stock.'}</p></div>
+            <GroceryControls list={displayedGroceryList} onSave={async next => { if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) return false; setGroceryList(next); return true; }} />
             {displayedGroceryList.length === 0 && (
               <div role="status" style={{ padding: '18px', border: '1px solid #CBD5E1', borderRadius: '14px', color: '#475569', marginBottom: '18px' }}>
-                {mealPlan ? 'No measured ingredients are available in this plan. Edit meals to add draft ingredient quantities before shopping.'
+                {mealPlan ? 'Nothing to buy for the selected measured ingredients after pantry stock is applied. Review Plan choices, or add missing recipe quantities and manual items.'
                   : 'Create a meal plan to build a shopping list from its ingredients.'}
               </div>
             )}
@@ -2959,14 +2979,14 @@ export default function Dietician() {
                         Log Meal / Nutrition
                       </h3>
                       <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                        AI-assisted estimates • verify labels and portions
+                        Save a name now; estimate nutrition only if you want
                       </span>
                     </div>
                   </div>
 
                   {/* Meal type selection */}
                   <div style={{ display: 'flex', gap: '6px', margin: '18px 0 14px 0', flexWrap: 'wrap' }}>
-                    {['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'].map((type) => (
+                    {[...dietMealSlots(profile.mealSchedule).map(slot => slot.name), 'Other meals'].map((type) => (
                       <button
                         key={type}
                         onClick={() => setSelectedMealType(type)}
@@ -3100,7 +3120,7 @@ export default function Dietician() {
                     </label>
                     <textarea
                       id="dietician-food-input"
-                      aria-label="Meal items in plain English or Hindi"
+                      aria-label="Describe your meal"
                       value={foodInput}
                       onChange={(e) => setFoodInput(e.target.value)}
                       placeholder="e.g. 2 whole wheat rotis with 1 bowl of moong dal, a small bowl of curd, and cucumber salad..."
@@ -3121,6 +3141,8 @@ export default function Dietician() {
                     />
                   </div>
 
+                  <MealDetailsFields date={currentDate} onDate={setCurrentDate} value={mealDetails} onChange={setMealDetails} />
+                  <div className="diet-everyday"><button disabled={isAnalyzingFood || !foodInput.trim()} onClick={() => handleAddFood(true)}>Estimate nutrition and save</button><p>Optional AI estimate. A name-only record works without a network connection.</p></div>
                   {/* Ingredient verification is unavailable for a free-text description. */}
                   {foodInput.trim().length > 2 && (
                     <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7' }}>
@@ -3131,7 +3153,7 @@ export default function Dietician() {
                   )}
 
                   <button
-                    onClick={handleAddFood}
+                    onClick={() => handleAddFood(false)}
                     disabled={isAnalyzingFood || !foodInput.trim()}
                     style={{
                       width: '100%',
@@ -3156,7 +3178,7 @@ export default function Dietician() {
                         <Loader2 size={18} className="spin" /> Estimating meal details…
                       </>
                     ) : (
-                      'Analyze & Log Meal (+2 PTS)'
+                      'Save meal name'
                     )}
                   </button>
                 </motion.div>
@@ -3210,7 +3232,7 @@ export default function Dietician() {
                   Reset Diet Profile & Plan?
                 </h3>
                 <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
-                  This will clear Diet settings, plans, the grocery checklist, and meals created in Diet or imported from older Diet logs. Gut Quick Log observations remain in Gut Health and the shared diary.
+                  This will clear Diet settings, plans, the grocery checklist, favorites, pantry stock, food reminders, and meals created in Diet or imported from older Diet logs. Gut Quick Log observations remain in Gut Health and the shared diary.
                 </p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
@@ -3227,15 +3249,19 @@ export default function Dietician() {
                         toast.error('Reset failed', 'Your profile could not be loaded. Please try again.');
                         return;
                       }
+                      const resetKey=getProfileKey();
                       const mealsRemoved = await removeAllDietMeals();
                       if (!mealsRemoved.ok) {
                         toast.error('Reset incomplete', 'Some meal records could not be removed. Reopen the diary and try again.');
                         setFoodLogs(await listMealDiary());
                         return;
                       }
+                      if(resetKey!==getProfileKey()||core.id!==getCoreProfile()?.id){toast.error('Profile changed','Reopen Diet before resetting.');return;}
                       const resetAt = new Date().toISOString();
                       await saveProfile({
-                        ...core, dietResetAt: resetAt,
+                        ...getCoreProfile(), dietResetAt: resetAt,
+                        dietEveryday:{...getDietEveryday(),updatedAt:resetAt,reminders:[],selectedPlanId:undefined,selectedMeals:[],favorites:getDietEveryday().favorites.map(item=>({...item,updatedAt:resetAt,deletedAt:resetAt})),pantry:getDietEveryday().pantry.map(item=>({...item,updatedAt:resetAt,deletedAt:resetAt}))},
+                        dietGroceryUpdatedAt:resetAt,dietGuardrailsUpdatedAt:resetAt,
                         dietician: { profile: null, foodLogs: {}, hydration: {}, mealPlan: null, advice: null, groceryList: [], archivedPlans: [], guardrails: [] },
                         dietProfile: null, dietFoodLogs: {}, dietHydration: {}, dietMealPlan: null,
                         dietArchivedPlans: [], dietAdvice: null, dietGrocery: [], dietGuardrails: [],
@@ -3301,8 +3327,7 @@ export default function Dietician() {
                   initialData={profile}
                   onCancel={() => setIsEditingProfile(false)}
                   onComplete={async (data) => {
-                    await handleSaveProfile(data);
-                    setIsEditingProfile(false);
+                    if(await handleSaveProfile(data)) setIsEditingProfile(false);
                   }}
                 />
               </div>
@@ -3310,116 +3335,13 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
-        {/* Saved Meals Modal */}
-        <AnimatePresence>
-          {showSavedMealsModal && (
-            <div
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 1050,
-                background: 'rgba(15, 23, 42, 0.65)',
-                backdropFilter: 'blur(6px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-              }}
-              onClick={() => setShowSavedMealsModal(false)}
-            >
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Saved Meals"
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '24px',
-                  width: '100%',
-                  maxWidth: '560px',
-                  maxHeight: '85vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                  border: '1px solid #E2E8F0',
-                  overflow: 'hidden',
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(5, 150, 105, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
-                      <BookOpen size={18} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Saved Meals Library</h3>
-                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>Quick-log your curated &amp; plan-derived meals</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowSavedMealsModal(false)}
-                    style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {dynamicPresets.map((preset: any, idx: number) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '14px 16px',
-                        borderRadius: '16px',
-                        background: '#FFFAFA',
-                        border: '1px solid #F1E5E7',
-                        gap: '12px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: '24px', flexShrink: 0 }}>{preset.emoji}</span>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 750, fontSize: '14px', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {preset.name}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                            {preset.calories == null ? 'Nutrition unknown' : `${preset.calories} estimated kcal · ${preset.protein}g P · ${preset.carbs}g C · ${preset.fat}g F`} · {preset.portion}
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (await handleAddPreset(preset)) setShowSavedMealsModal(false);
-                        }}
-                        style={{
-                          padding: '8px 14px',
-                          borderRadius: '10px',
-                          background: '#059669',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          flexShrink: 0,
-                          boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
-                        }}
-                      >
-                        Log Meal
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        {showSavedMealsModal && <div style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(15,23,42,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }} onClick={() => setShowSavedMealsModal(false)}>
+          <FocusTrap isActive={true} style={{width:'min(860px, 94vw)',height:'auto'}}><div role="dialog" aria-modal="true" aria-label="Everyday food tools" style={{ width: 'min(860px, 94vw)', maxHeight: '90vh', overflowY: 'auto', borderRadius: 20, background: '#fff' }} onClick={e => e.stopPropagation()}>
+            <DietEverydayTools key={`${getProfileKey()}:${getCoreProfile()?.id}`} profile={profile} date={currentDate} diary={foodLogs} plan={mealPlan} initialPanel={everydayPanel}
+              onClose={() => setShowSavedMealsModal(false)} onPreferences={handleSaveProfile} onLogged={async () => setFoodLogs(await listMealDiary())}
+              onPlan={async next => { if(isGeneratingPlan)return false; return persistPlanUpdate(next); }} />
+          </div></FocusTrap>
+        </div>}
 
         {/* Package 7: Stop Plan Modal with Structured Reasons */}
         <AnimatePresence>
@@ -3773,6 +3695,7 @@ export default function Dietician() {
                       style={{ marginLeft: '8px', width: '80px', padding: '8px', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
                   </label>
 
+                    <label className="diet-everyday" style={{display:'block',marginBottom:12}}><input type="checkbox" checked={editNutrientsConfirmed} onChange={e=>setEditNutrientsConfirmed(e.target.checked)} /> I checked these nutrient values for this portion</label>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
                     <button
                       type="button"
@@ -3781,7 +3704,7 @@ export default function Dietician() {
                     >
                       Cancel
                     </button>
-                    <button
+                  <button
                       type="button"
                       onClick={handleSaveEditMeal}
                       style={{ padding: '8px 18px', borderRadius: '10px', background: '#059669', border: 'none', color: '#FFFFFF', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
@@ -4073,6 +3996,7 @@ export default function Dietician() {
           }} 
         />}
 
+        {confirmPlanned && <ConfirmPlannedMeal meal={confirmPlanned.meal} date={datedPlanDay(mealPlan?.startDate,confirmPlanned.day)||currentDate} onClose={()=>setConfirmPlanned(null)} onConfirm={(date,ratio,details)=>saveConfirmedPlanMeal(confirmPlanned.day,confirmPlanned.meal,date,ratio,details)} />}
         {editingDiaryMeal && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(15,23,42,.55)', display: 'grid', placeItems: 'center', padding: '16px' }}>
             <FocusTrap isActive>
@@ -4083,14 +4007,15 @@ export default function Dietician() {
                   <input value={diaryCorrection.name} onChange={(e) => setDiaryCorrection((current) => ({ ...current, name: e.target.value }))}
                     style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
                 </label>
-                {(['calories', 'protein', 'carbs', 'fat', 'portionGrams'] as const).map((field) => (
+                {(['calories', 'protein', 'carbs', 'fat'] as const).map((field) => (
                   <label key={field} style={{ display: 'block', marginBottom: '12px', fontWeight: 700, fontSize: '13px' }}>
-                    {field === 'calories' ? 'Calories (kcal)' : field === 'portionGrams' ? 'Amount eaten (g)' : `${field[0].toUpperCase()}${field.slice(1)} (g)`}
-                    <input type="number" min={field === 'portionGrams' ? 0.1 : 0} step="any" value={diaryCorrection[field]}
+                    {field === 'calories' ? 'Calories (kcal)' : `${field[0].toUpperCase()}${field.slice(1)} (g)`}
+                    <input type="number" min={0} step="any" value={diaryCorrection[field]}
                       onChange={(e) => setDiaryCorrection((current) => ({ ...current, [field]: e.target.value }))}
                       style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
                   </label>
                 ))}
+                <MealDetailsFields date={correctionDate} onDate={setCorrectionDate} value={correctionDetails} onChange={setCorrectionDetails} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <button type="button" onClick={() => setEditingDiaryMeal(null)} style={{ padding: '9px 14px', border: '1px solid #CBD5E1', borderRadius: '8px', background: '#FFF' }}>Cancel</button>
                   <button type="button" onClick={() => void handleSaveDiaryCorrection()} style={{ padding: '9px 14px', border: 'none', borderRadius: '8px', background: '#0F766E', color: '#FFF', fontWeight: 700 }}>Save correction</button>

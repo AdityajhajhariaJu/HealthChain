@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff, ArrowRight, Clock3 } from 'lucide-react';
-import { addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
+import { getProfile, addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import FocusTrap from './FocusTrap';
 import './QuickMealIntakeSheet.css';
+import { normalizeDietPreferences, locationMealIdeas } from '../../../shared/diet-preferences';
+import { effectiveFoodLocation } from '../../services/dietEveryday';
 
 export type CircadianSlot = 'Morning' | 'Noon' | 'Evening' | 'Night';
 
@@ -52,23 +54,6 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     organTip: 'Choose this slot if it matches when you ate.',
     desc: 'Dinner & Fasting Onset',
   },
-];
-
-const QUICK_INDIAN_CAPSULES = [
-  { id: 'chai', name: 'Masala Chai', icon: '☕' },
-  { id: 'poha', name: 'Poha with Peanuts', icon: '🥣' },
-  { id: 'besan_chilla', name: 'Besan Chilla', icon: '🥞' },
-  { id: 'curd_dahi', name: 'Curd / Dahi', icon: '🥛' },
-  { id: 'achaar', name: 'Mango / Lime Achaar', icon: '🥭' },
-  { id: 'chana_dal', name: 'Chana Dal Tadka', icon: '🍲' },
-  { id: 'paneer_bhurji', name: 'Paneer Bhurji', icon: '🧀' },
-  { id: 'roti_sabzi', name: 'Roti + Seasonal Sabzi', icon: '🫓' },
-  { id: 'khichdi', name: 'Moong Dal Khichdi + Ghee', icon: '🍚' },
-  { id: 'coffee', name: 'Filter Coffee', icon: '☕' },
-  { id: 'makhana', name: 'Roasted Makhana', icon: '🍿' },
-  { id: 'rusk', name: 'Tea Rusk / Biscuits', icon: '🍪' },
-  { id: 'idli_sambar', name: 'Idli + Veg Sambar', icon: '🥘' },
-  { id: 'sprout_salad', name: 'Sprouted Moong Salad', icon: '🥗' },
 ];
 
 const slotForHour = (hour: number): CircadianSlot => {
@@ -132,7 +117,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-IN';
+      recognition.lang = normalizeDietPreferences(getProfile()?.dietProfile?.practical).voiceLocale || navigator.language || 'en-US';
 
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
@@ -500,7 +485,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Quick Indian foods
+                  Quick meal names
                   </span>
                   <span style={{ fontSize: '11px', color: '#CD3153', fontWeight: 700 }}>Multi-select</span>
                 </div>
@@ -514,7 +499,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     paddingRight: '4px',
                   }}
                 >
-                  {QUICK_INDIAN_CAPSULES.map((cap) => {
+                  {locationMealIdeas(effectiveFoodLocation(getProfile()?.dietProfile || getProfile()?.demographics, new Date().toLocaleDateString('en-CA')).countryCode, getProfile()?.dietProfile?.cuisine).map((name, index) => ({ id: String(index), name, icon: '•' })).map((cap) => {
                     const isSelected = selectedCapsules.includes(cap.name);
                     return (
                       <button

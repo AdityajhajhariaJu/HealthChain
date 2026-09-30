@@ -3,6 +3,7 @@ import { Activity, CalendarDays, ChevronLeft, ChevronRight, Clipboard, Plus, X }
 import { getDigestionLogs, getProfile, saveDigestionLog } from '../../services/ProfileEngine';
 import { hasRecordedDigestionEntry } from '../../services/GutHealthSummary';
 import { useToast } from './ToastProvider';
+import {useDietReviewData} from '../../hooks/useDietReviewData';
 
 export type BristolStoolType = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StomachComfortLevel = 'calm' | 'mild_acid' | 'moderate_reflux' | 'severe_burning' | 'nausea';
@@ -56,6 +57,7 @@ const isStool = (value: unknown): value is BristolStoolType => Number.isInteger(
 interface Props { onOpenQuickMeal?: () => void; onOpenConsult?: () => void; initialDate?: string | null; hideHeader?: boolean }
 export const DigestionCalendarHeatmap: React.FC<Props> = ({ onOpenQuickMeal, onOpenConsult, initialDate, hideHeader }) => {
   const toast = useToast();
+  const {diary,observations,error}=useDietReviewData();
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [logs, setLogs] = useState<Record<string, DigestionDayEntry>>(() => getDigestionLogs());
   const [profile, setProfile] = useState<any>(() => getProfile());
@@ -85,8 +87,8 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({ onOpenQuickMeal, onO
     .map(([date, item]) => ({ ...item, date })), [logs, monthPrefix, today]);
   const bloatScores = recorded.map((item) => item.bloatingScore).filter(isScore);
   const stoolRecords = recorded.filter((item) => isStool(item.bristolType));
-  const meals = useMemo(() => (profile?.nutrition?.recentLogs || []).filter((meal: any) =>
-    selected && String(meal.date || meal.loggedAt || '').slice(0, 10) === selected), [profile, selected]);
+  const meals = selected ? diary[selected] || [] : [];
+  const sharedReports = observations.filter(record=>record.localDate===selected&&record.payload.kind!=='meal');
 
   const openDate = (date: string) => {
     if (date > today) return;
@@ -130,6 +132,7 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({ onOpenQuickMeal, onO
   </>;
 
   return <section aria-label="Digestion calendar" style={{ maxWidth: 780, margin: '0 auto', color: '#0F172A', fontFamily: 'inherit' }}>
+    {error && <p role="alert">{error}</p>}
     {!hideHeader && (
       <div style={{ ...surface, padding: '18px', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -167,6 +170,7 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({ onOpenQuickMeal, onO
         {hideHeader ? <details style={{ border:'1px solid #eedfe4', borderRadius:12, background:'#fff' }}><summary style={{ padding:'11px 12px', color:'#a9234a', fontSize:12, fontWeight:800, cursor:'pointer' }}>Add other details (optional)</summary><div style={{ display:'grid', gap:11, padding:'0 12px 12px' }}>{extraObservationFields}</div></details> : extraObservationFields}
       </div>
       {meals.length > 0 && <div style={{ marginTop: 14, borderTop: '1px solid #F1E5E7', paddingTop: 10 }}><strong>Meals already logged this date</strong>{meals.map((meal: any, index: number) => <div key={meal.id || index} style={{ marginTop: 4, color: '#64748B', fontSize: 13 }}>{meal.meal || meal.name || 'Meal'}{meal.time ? ` · ${meal.time}` : ''}</div>)}</div>}
+      {sharedReports.length>0 && <details style={{marginTop:12}}><summary>Other shared reports on this date ({sharedReports.length})</summary>{sharedReports.map(record=><p key={record.id}>{record.payload.kind==='symptom'?record.payload.symptom:record.payload.kind==='daily_checkin'?Object.entries(record.payload.answers).map(([name,value])=>`${name.replace(/_/g,' ')}: ${value}`).join('; '):record.payload.kind==='bowel'?`Stool form: ${record.payload.bristolType??'unknown'}`:record.payload.description}. {record.timePrecision==='date_only'?'Time not recorded':record.occurredAt}. These reports do not supply a missing calendar rating.</p>)}</details>}
       <p style={{ fontSize: 12, color: '#94A3B8', lineHeight: 1.45, margin: '12px 0 14px' }}>This record describes your observation. It does not identify a cause or measure transit time.</p>
       <button type="button" disabled={saving} onClick={save} style={{ ...field, background: 'linear-gradient(135deg, #D32C56 0%, #B31943 100%)', color: 'white', border: 'none', fontWeight: 800, boxShadow: '0 4px 14px rgba(205, 49, 83, 0.25)' }}>{saving ? 'Saving…' : 'Save observation'}</button>
     </div></div>}

@@ -26,6 +26,7 @@ import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
+import { initDietMealReminderService } from '../../services/DietMealReminderService';
 import { rescheduleVitaminNotifications } from '../../services/VitaminScheduleService';
 import { restoreHydrationNotifications } from '../../services/HydrationService';
 import { getUnreadNotificationCount } from '../../services/NotificationEngine';
@@ -151,9 +152,11 @@ export default function AppShell() {
     window.addEventListener('keydown', handleKeyDown);
 
     initDailyReminderService((route) => navigate(route));
+    const stopDietReminders=initDietMealReminderService();
     void rescheduleVitaminNotifications();
     void restoreHydrationNotifications();
     return () => {
+      stopDietReminders();
       window.removeEventListener('hc_daily_checkin_completed', refreshNotifications);
       window.removeEventListener('hc_profile_updated', refreshNotifications);
       window.removeEventListener('hc_notifications_updated', refreshNotifications);

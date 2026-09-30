@@ -1,0 +1,123 @@
+.diet-everyday {
+  color: #0f172a;
+  font-size: 14px;
+  text-align: left;
+}
+.diet-everyday h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.diet-everyday h4 {
+  margin: 12px 0 8px;
+}
+.diet-everyday p {
+  color: #64748b;
+  line-height: 1.5;
+  margin: 8px 0 16px;
+}
+.diet-everyday label {
+  display: block;
+  font-weight: 600;
+  margin: 10px 0;
+}
+.diet-everyday input:not([type='checkbox']),
+.diet-everyday select,
+.diet-everyday textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  border-radius: 10px;
+  margin-top: 6px;
+  font: inherit;
+}
+.diet-everyday input[type='checkbox'] {
+  accent-color: #059669;
+}
+.diet-everyday fieldset {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin: 14px 0;
+  padding: 8px 12px;
+}
+.diet-everyday legend {
+  font-weight: 700;
+}
+.diet-everyday button {
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 650;
+  min-height: 42px;
+}
+.diet-everyday button.primary {
+  color: white;
+  background: #059669;
+  border-color: #059669;
+}
+.diet-everyday button[aria-selected='true'] {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+.diet-everyday button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.diet-everyday :focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
+.diet-everyday summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 12px 0;
+}
+.diet-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.diet-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0 16px;
+}
+.diet-tools {
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #fff;
+  padding: 20px;
+  margin: 18px 0;
+}
+.diet-tool-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  margin: 12px 0;
+}
+.diet-tool-card.selected {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+.diet-everyday [role='status'] {
+  margin: 12px 0;
+  color: #065f46;
+}
+@media (max-width: 480px) {
+  .diet-tools {
+    padding: 14px;
+  }
+  .diet-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

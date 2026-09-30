@@ -65,6 +65,7 @@ export interface PlanLifecycleMetadata {
 
 export interface MealPlanItem {
   id: string;
+  pinned?: boolean;
   name: string;
   type: string;
   portion?: string;
@@ -102,6 +103,7 @@ export interface DayPlanItem {
 
 export interface FullMealPlan {
   id: string;
+  startDate?: string;
   title: string;
   status: PlanLifecycleStatus;
   lifecycle: PlanLifecycleMetadata;
@@ -162,6 +164,7 @@ export function normalizeMealItem(rawMeal: any, index: number): MealPlanItem {
 
   return {
     id: getStableMealId(rawMeal, index),
+    pinned: rawMeal.pinned === true,
     name: rawMeal.name || 'Balanced Meal',
     type: rawMeal.type || 'Meal',
     portion: rawMeal.portion || '1 serving',
@@ -250,6 +253,7 @@ export function normalizeFullMealPlan(rawPlan: any, options?: { caseId?: string;
 
   const planObj: FullMealPlan = {
     id,
+    startDate: /^\d{4}-\d{2}-\d{2}$/.test(rawPlan?.startDate || '') && Number.isFinite(Date.parse(`${rawPlan.startDate}T12:00:00Z`)) && new Date(`${rawPlan.startDate}T12:00:00Z`).toISOString().slice(0,10)===rawPlan.startDate ? rawPlan.startDate : undefined,
     title: rawPlan?.title || 'Personalized Clinical Nutrition Plan',
     status,
     lifecycle,
@@ -340,7 +344,7 @@ export function editMealContent(
   dayNumber: number,
   mealId: string,
   updates: { name?: string; portion?: string; description?: string; calories?: number; protein?: number; carbs?: number; fat?: number;
-    ingredients?: MealPlanItem['ingredients']; steps?: string[]; prepMinutes?: number }
+    ingredients?: MealPlanItem['ingredients']; steps?: string[]; prepMinutes?: number; macrosNeedReview?:boolean }
 ): FullMealPlan {
   const updatedDays = plan.days.map((day) => {
     if (day.day !== dayNumber) return day;
@@ -372,8 +376,8 @@ export function editMealContent(
         carbs: Math.round(baseCarbs * meal.servingMultiplier),
         fat: Math.round(baseFat * meal.servingMultiplier),
         userEdited: true,
-        macrosNeedReview: meal.macrosNeedReview && !(['calories', 'protein', 'carbs', 'fat'] as const).every((key) =>
-          typeof updates[key] === 'number' && Number.isFinite(updates[key]) && updates[key]! >= 0),
+        macrosNeedReview: updates.macrosNeedReview ?? (meal.macrosNeedReview && !(['calories', 'protein', 'carbs', 'fat'] as const).every((key) =>
+          typeof updates[key] === 'number' && Number.isFinite(updates[key]) && updates[key]! >= 0)),
       };
     });
 
@@ -566,7 +570,7 @@ export function generateDietObservationsSummary(
   let planStatusSummary = 'No structured meal plan was active.';
   if (plan) {
     planStatusSummary = `Plan "${plan.title}" (Status: ${plan.status.toUpperCase()}). ` +
-      `Target calories: ${plan.targetCalories || 'Standard'} kcal. ` +
+      (plan.targetCalories ? `Optional estimated planning target: ${plan.targetCalories} kcal. ` : 'No calorie target recorded. ') +
       (plan.startedAt ? `Started on ${new Date(plan.startedAt).toLocaleDateString()}. ` : '') +
       (plan.status === 'stopped' && plan.stopReason
         ? `Stopped on ${plan.stoppedAt ? new Date(plan.stoppedAt).toLocaleDateString() : 'recent date'} due to: ${PLAN_STOP_REASON_LABELS[plan.stopReason] || plan.stopReason}. `
@@ -583,7 +587,12 @@ export function generateDietObservationsSummary(
     }
   });
 
+  const datedMeals = Object.entries(foodLogs || {}).sort(([a],[b])=>a.localeCompare(b)).flatMap(([date,meals])=>Array.isArray(meals)?meals.map(meal=>({date,...meal})):[]);
+  const unknownCount=datedMeals.filter(meal=>!Number.isFinite(meal.calories)).length;
   const findingsList = [
+    `Food record range: ${datedMeals[0]?.date || 'none'} through ${datedMeals[datedMeals.length-1]?.date || 'none'}; ${datedMeals.length} meal occasions, ${unknownCount} with unknown calories.`,
+    ...datedMeals.slice(-50).map(meal=>`${meal.date}: ${meal.name || 'Meal'}; ${meal.occurredAt || 'time unknown'} (${meal.timePrecision || 'date only'}); nutrients ${meal.nutritionStatus || 'unverified'}; source ${meal.sourceId || meal.nutritionSource || 'user description'}; record ${meal.id || 'legacy'}.`),
+    ...(datedMeals.length>50?[`${datedMeals.length-50} earlier meal occasions omitted from this brief. Export the full dated CSV from My meals & history.`]:[]),
     `Logging consistency: ${totalLoggedDays} unique days with meal records.`,
     `Current Plan State: ${planStatusSummary}`,
     loggedItems.length > 0

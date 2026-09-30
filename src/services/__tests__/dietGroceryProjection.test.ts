@@ -13,11 +13,12 @@ const plan = () => normalizeFullMealPlan({ id: 'plan-1', plan: [
 describe('deterministic Diet shopping projection', () => {
   it('aggregates ingredient amounts, scales servings, and keeps checks by stable key', () => {
     const original = projectDietGroceries(plan());
-    expect(original[0].items.find((item) => item.ingredient === 'Oats')?.amount).toBe(120);
-    const checked = [{ ...original[0], items: original[0].items.map((item) => ({ ...item, checked: item.ingredient === 'Oats' })) }];
+    expect(original.flatMap(category=>category.items).find((item) => item.ingredient === 'oats')?.amount).toBe(120);
+    const checked = original.map(category=>({...category,items:category.items.map(item=>({...item,checked:item.ingredient==='oats'}))}));
     const scaled = projectDietGroceries(updateMealServing(plan(), 1, 'breakfast', 1.5), checked);
-    expect(scaled[0].items.find((item) => item.ingredient === 'Oats')).toMatchObject({ amount: 160, checked: true });
-    expect(scaled[0].items.find((item) => item.ingredient === 'Milk')?.amount).toBe(300);
+    expect(scaled.flatMap(category=>category.items).find((item) => item.ingredient === 'oats')).toMatchObject({ amount: 160, checked: false });
+    expect(scaled.flatMap(category=>category.items).find((item) => item.ingredient === 'milk')?.amount).toBe(300);
+    expect(projectDietGroceries(plan(),checked).flatMap(category=>category.items).find(item=>item.ingredient==='oats')?.checked).toBe(true);
   });
 
   it('removes old recipe ingredients after a replacement', () => {
@@ -25,5 +26,21 @@ describe('deterministic Diet shopping projection', () => {
     const items = projectDietGroceries(replacement)[0].items;
     expect(items).toHaveLength(1);
     expect(items[0].amount).toBe(40);
+  });
+
+  it('selects meals, scales household portions, subtracts matching stock and rounds packages',()=>{
+    const original=projectDietGroceries(plan());
+    const packages=original.map(category=>({...category,items:category.items.map(item=>({...item,packageSize:100}))}));
+    const items=projectDietGroceries(plan(),packages,{householdSize:3,selectedMeals:['1:breakfast'],pantry:[{id:'stock',name:'oats',amount:100,unit:'g',updatedAt:'2026-09-30T00:00:00Z'},{id:'wrong-unit',name:'milk',amount:1000,unit:'g',updatedAt:'2026-09-30T00:00:00Z'}]}).flatMap(category=>category.items);
+    expect(items.find(item=>item.ingredient==='oats')).toMatchObject({amount:140,requiredAmount:240,pantryUsed:100,packages:2});
+    expect(items.find(item=>item.ingredient==='milk')).toMatchObject({amount:600,pantryUsed:0});
+    expect(projectDietGroceries(plan(),[],{selectedMeals:[]})).toEqual([]);
+  });
+
+  it('merges conservative aliases and preserves manual extras when the plan is empty',()=>{
+    const draft=plan();draft.days[0].meals[0].ingredients=[{name:'Garbanzo beans',amount:100,unit:'g'}];draft.days[1].meals[0].ingredients=[{name:'chickpeas',amount:80,unit:'g'}];
+    expect(projectDietGroceries(draft)[0].items[0]).toMatchObject({ingredient:'chickpeas',amount:180});
+    const manual:any=[{category:'Extra',emoji:'',items:[{id:'manual:1',name:'Soap',ingredient:'Soap',amount:1,unit:'piece',manual:true,checked:true}]}];
+    expect(projectDietGroceries(null,manual)[0].items[0]).toMatchObject({id:'manual:1',checked:true});
   });
 });

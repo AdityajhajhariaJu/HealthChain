@@ -54,9 +54,10 @@ describe('Diet estimate and generated-plan boundary', () => {
     expect(validateGeneratedMealPlan({ plan: plan.plan.map((day, index) => index === 1 ? { ...day, meals: [{ ...day.meals[0], protein: undefined }] } : day) }, 7).valid).toBe(false);
   });
 
-  it('blocks name-only generation when ingredient constraints cannot be checked', () => {
+  it('permits broad menu preferences while blocking constraints requiring verified ingredients', () => {
     expect(hasUnverifiableDietConstraints({ restrictions: ['None'] }, [])).toBe(false);
-    expect(hasUnverifiableDietConstraints({ restrictions: ['Vegan'] }, [])).toBe(true);
+    expect(hasUnverifiableDietConstraints({ restrictions: ['Vegan'] }, [])).toBe(false);
+    expect(hasUnverifiableDietConstraints({ restrictions: ['Gluten Free'] }, [])).toBe(true);
     expect(hasUnverifiableDietConstraints({ restrictions: ['None'] }, [{ name: 'Peanut' }])).toBe(true);
   });
 });

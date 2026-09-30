@@ -20,9 +20,10 @@ test('a planned meal becomes one shared eaten record and a retry does not duplic
   });
   await page.route(/https:\/\//, route => route.abort());
   await page.goto('/app/dietician?tab=mealplan');
-  const log = page.getByRole('button', { name: 'I ate this as planned' });
+  const log = page.getByRole('button', { name: 'Record this meal as eaten' });
   await expect(log).toBeVisible();
   await log.click();
+  await page.getByRole('dialog',{name:'Confirm planned meal eaten'}).getByRole('button',{name:'Confirm meal was eaten'}).click();
   await expect(page.getByRole('button', { name: 'Logged in diary' })).toBeDisabled();
   const records = await page.evaluate(async () => {
     const meals = await import(/* @vite-ignore */ '/src/services/MealCommandService.ts');

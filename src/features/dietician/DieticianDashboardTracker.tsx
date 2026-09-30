@@ -4,6 +4,7 @@ import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Tras
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
 import { getHydrationData } from '../../services/HydrationService';
+import { dietMealSlots, mealSlotFor, normalizeDietPreferences } from '../../../shared/diet-preferences';
 
 export function DieticianDashboardTracker({ 
   profile, 
@@ -18,12 +19,14 @@ export function DieticianDashboardTracker({
   onOpenSettings,
   onOpenGallery,
   onOpenSavedMeals,
+  onOpenIdeas,
   onSelectTab,
 }: any) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  const hasTarget = Number.isFinite(profile?.targetCalories) && profile.targetCalories > 0;
+  const showNumbers = normalizeDietPreferences(profile?.practical).showNumbers;
+  const hasTarget = showNumbers && Number.isFinite(profile?.targetCalories) && profile.targetCalories > 0;
   const targetCalories = hasTarget ? profile.targetCalories : 0;
   const hydrationToday = getHydrationData(currentDate);
   const dailyMeals: any[] = Array.isArray(foodLogs[currentDate]) ? foodLogs[currentDate] : [];
@@ -89,29 +92,8 @@ export function DieticianDashboardTracker({
   };
 
 
-  const mealConfig = [
-    { name: 'Breakfast', percent: 0.25 },
-    { name: 'Morning Snack', percent: 0.125 },
-    { name: 'Lunch', percent: 0.25 },
-    { name: 'Evening Snack', percent: 0.125 },
-    { name: 'Dinner', percent: 0.25 }
-  ];
-
-  const isLogForMeal = (l: any, mealName: string) => {
-    const t = (l.type || '').trim().toLowerCase();
-    const m = mealName.toLowerCase();
-    if (t === m) return true;
-    if (mealName === 'Breakfast' && t.includes('breakfast')) return true;
-    if (mealName === 'Morning Snack' && (t.includes('morning') || t === 'snack')) return true;
-    if (mealName === 'Evening Snack' && t.includes('evening')) return true;
-    if (mealName === 'Dinner' && (t.includes('dinner') || t.includes('supper'))) return true;
-    if (mealName === 'Lunch') {
-      if (t.includes('lunch') || t === 'meal' || t === 'quick meal' || !t) return true;
-      const matchesOther = t.includes('breakfast') || t.includes('morning') || t.includes('evening') || t.includes('dinner') || t.includes('supper');
-      if (!matchesOther) return true;
-    }
-    return false;
-  };
+  const mealConfig = [...dietMealSlots(profile?.mealSchedule), ...(dailyMeals.some(entry => mealSlotFor(entry.type, profile?.mealSchedule) === 'Other meals') ? [{ name: 'Other meals', percent: 0 }] : [])];
+  const isLogForMeal = (entry: any, name: string) => mealSlotFor(entry.type, profile?.mealSchedule) === name;
 
   const getConsumedForMeal = (mealName: string) => {
     if (!Array.isArray(foodLogs[currentDate])) return 0;
@@ -134,9 +116,9 @@ export function DieticianDashboardTracker({
               <Activity size={20} color="#059669" />
             </div>
             <div>
-              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Diet & Goals</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{hasTarget ? `Estimated target: ${targetCalories} kcal` : 'No calorie target set'}</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{profile?.goal || 'Maintain Weight'}</div>
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>{showNumbers ? 'Diet & Goals' : 'Food preferences'}</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{showNumbers ? hasTarget ? `Estimated target: ${targetCalories} kcal` : 'No calorie target set' : 'Qualitative food records'}</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{showNumbers ? profile?.goal || 'Maintain Weight' : 'Meals at your own pace'}</div>
             </div>
           </div>
           <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
@@ -205,7 +187,7 @@ export function DieticianDashboardTracker({
       </div>
 
       {/* 2. Main Budget Card */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', display: showNumbers ? undefined : 'none' }}>
           {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
           <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
           <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
@@ -268,7 +250,7 @@ export function DieticianDashboardTracker({
           <div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>Discuss your food records with Ava</div>
             <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-              {dailyMeals.length === 0
+              {!showNumbers ? `${dailyMeals.length} recorded meal(s); discuss ingredients and practical choices` : dailyMeals.length === 0
                 ? 'Ask what information is missing from your food records'
                 : `${consumed} kcal in recorded estimates${hasTarget ? ` of ${targetCalories} kcal planning target` : ''}${hasUnknownNutrition ? ' • Some values unknown' : ''}`}
             </div>
@@ -281,7 +263,7 @@ export function DieticianDashboardTracker({
               state: {
                 returnTo: '/app/dietician?tab=dashboard',
                 returnLabel: 'Back to Diet Dashboard',
-                initialPrompt: `Help me review today's user-entered food records and their missing or estimated values. The screen shows ${consumed} kcal, ${Math.round(consumedProtein)}g protein, ${Math.round(consumedCarbs)}g carbs, and ${Math.round(consumedFats)}g fat from available estimates only${hasUnknownNutrition ? '; at least one meal has unknown nutrition, so these are incomplete subtotals' : ''}${hasTarget ? ` against an optional ${targetCalories} kcal planning estimate` : ' with no calorie target set'}. Shared hydration is ${hydrationToday.currentMl} of ${hydrationToday.targetMl} ml. Do not treat these numbers as verified or give condition-specific treatment advice.`
+                initialPrompt: showNumbers ? `Help me review today's user-entered food records and their missing or estimated values. The screen shows ${consumed} kcal, ${Math.round(consumedProtein)}g protein, ${Math.round(consumedCarbs)}g carbs, and ${Math.round(consumedFats)}g fat from available estimates only${hasUnknownNutrition ? '; at least one meal has unknown nutrition, so these are incomplete subtotals' : ''}${hasTarget ? ` against an optional ${targetCalories} kcal planning estimate` : ' with no calorie target set'}. Shared hydration is ${hydrationToday.currentMl} of ${hydrationToday.targetMl} ml. Do not treat these numbers as verified or give condition-specific treatment advice.` : `Help me review these user-entered meals qualitatively: ${dailyMeals.map(meal=>meal.name).join('; ')}. Do not show calories, weight targets or nutrient totals. Discuss practical choices and missing ingredient details without grading food.`,
               }
             });
           }}
@@ -439,7 +421,7 @@ export function DieticianDashboardTracker({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>{meal.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{hasTarget ? `${mealConsumed} known of ${mealBudget} estimated kcal` : `${mealConsumed} known kcal`}{loggedMeals.some((entry) => !Number.isFinite(entry.calories)) ? ' + unknown' : ''}</span>
+                  <span style={{ display: showNumbers ? undefined : 'none', fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{hasTarget ? `${mealConsumed} known of ${mealBudget} estimated kcal` : `${mealConsumed} known kcal`}{loggedMeals.some((entry) => !Number.isFinite(entry.calories)) ? ' + unknown' : ''}</span>
                   <button 
                     type="button"
                     aria-label={`Log meal for ${meal.name}`}
@@ -453,14 +435,14 @@ export function DieticianDashboardTracker({
               
               {loggedMeals.length === 0 && (
                 <div 
-                  onClick={() => onLogMeal(meal.name)} 
+                  onClick={() => onOpenIdeas?.(meal.name)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Log meal for ${meal.name}`}
+                  aria-label={`Meal ideas for ${meal.name}`}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      onLogMeal(meal.name);
+                      onOpenIdeas?.(meal.name);
                     }
                   }}
                   style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #F1E5E7', color: '#94A3B8', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s, transform 0.1s' }} 
@@ -469,11 +451,7 @@ export function DieticianDashboardTracker({
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'} 
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  {meal.name === 'Breakfast' && 'Hey, here are some Healthy Breakfast Suggestions for you'}
-                  {meal.name === 'Morning Snack' && 'Get energized by grabbing a morning snack 🥜'}
-                  {meal.name === 'Lunch' && 'Don\'t miss lunch 🍱 It\'s time to get a tasty meal'}
-                  {meal.name === 'Evening Snack' && 'Refuel your body with a delicious evening snack 🍐'}
-                  {meal.name === 'Dinner' && 'An early dinner can help you sleep better 🍽️😴'}
+                  No meal recorded. Explore ideas, or use + to log what you ate.
                 </div>
               )}
 
@@ -481,20 +459,20 @@ export function DieticianDashboardTracker({
                   <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
                     <div style={{ flex: 1, minWidth: '160px' }}>
                       <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: showNumbers ? 'flex' : 'none', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontWeight: 700, color: '#EF4444' }}>🔥 {displayNutrient(log.calories, ' kcal')}</span>
                         <span style={{ fontWeight: 600, color: '#10B981' }}>🥩 {displayNutrient(log.protein, 'g')} P</span>
                         <span style={{ fontWeight: 600, color: '#3B82F6' }}>🍚 {displayNutrient(log.carbs, 'g')} C</span>
                         <span style={{ fontWeight: 600, color: '#F59E0B' }}>🥑 {displayNutrient(log.fat ?? log.fats, 'g')} F</span>
                         {(log.fibre || log.fiber) ? <span style={{ fontWeight: 600, color: '#8B5CF6' }}>🌾 {log.fibre || log.fiber}g Fibre</span> : null}
                       </div>
-                      {log.nutritionSource === 'package_label' && log.per100Nutrients && (
+                      {showNumbers && ['package_label','food_catalog'].includes(log.nutritionSource) && log.per100Nutrients && (
                         <div style={{ fontSize: '11px', color: '#475569', marginTop: '5px' }}>
-                          Label photo · per 100 g: {displayNutrient(log.per100Nutrients.calories, ' kcal')} ·
+                          {log.nutritionSource === 'food_catalog' ? 'Food catalog' : 'Label photo'} · per 100 {log.originalNutritionBasis === 'per_100ml' ? 'ml' : 'g'}: {displayNutrient(log.per100Nutrients.calories, ' kcal')} ·
                           {' '}{displayNutrient(log.per100Nutrients.protein, ' g')} protein ·
                           {' '}{displayNutrient(log.per100Nutrients.carbs, ' g')} carbs ·
                           {' '}{displayNutrient(log.per100Nutrients.fat, ' g')} fat.
-                          {' '}Transcription unverified; check the package.
+                          {' '}Source unverified; check the package.
                           {log.originalNutritionBasis === 'per_serving' && log.originalServingGrams ? ` Printed basis: per ${log.originalServingGrams} g serving.` : ''}
                         </div>
                       )}
@@ -513,7 +491,7 @@ export function DieticianDashboardTracker({
                             state: {
                               returnTo: '/app/dietician?tab=dashboard',
                               returnLabel: 'Back to Diet Dashboard',
-                              initialPrompt: `I logged "${log.name}" with an estimated ${log.calories ?? 'unknown'} kcal. Explain what is recorded, what is uncertain about the portion or ingredients, and what source or label detail I could check. Do not infer a glycemic response or clinical benefit.`
+                              initialPrompt: showNumbers ? `I logged "${log.name}" with an estimated ${log.calories ?? 'unknown'} kcal. Explain what is recorded, what is uncertain about the portion or ingredients, and what source or label detail I could check. Do not infer a glycemic response or clinical benefit.` : `I logged "${log.name}". Review this meal qualitatively without calories, weight targets or nutrient totals. Explain ingredient and portion uncertainties without grading food.`
                             }
                           });
                         }}

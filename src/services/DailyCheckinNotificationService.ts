@@ -222,6 +222,7 @@ export async function initDailyReminderService(onNotificationClick?: (route: str
     try {
       await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
         const extra = notification.notification?.extra;
+        if (extra?.type === 'meal_reminder' && extra.scope !== getActiveProfileScope()) return;
         const route = extra?.route || '/app/today';
         if (onNotificationClick) {
           onNotificationClick(route);

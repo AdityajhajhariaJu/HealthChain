@@ -13,6 +13,8 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { calculateDietTargets } from '../../services/dietTargets';
 import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
 import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
+import { DietPracticalPreferences } from './DietPracticalPreferences';
+import { normalizeDietPreferences } from '../../../shared/diet-preferences';
 
 export function OnboardingWizard({ 
   onComplete, 
@@ -54,6 +56,7 @@ export function OnboardingWizard({
         ...resolveFoodLocation(initialData, demo),
         cuisine: initialData.cuisine || 'Local',
         mealSchedule: initialData.mealSchedule || '3 Meals + 1 Snack',
+        practical: normalizeDietPreferences(initialData.practical),
       };
     }
 
@@ -81,6 +84,7 @@ export function OnboardingWizard({
       ...normalizeFoodLocation(demo),
       cuisine: 'Local',
       mealSchedule: '3 Meals + 1 Snack',
+      practical: normalizeDietPreferences({}),
     };
   });
 
@@ -1064,6 +1068,9 @@ export function OnboardingWizard({
             animate={{ opacity: 1, scale: 1 }}
             style={{ textAlign: 'center' }}
           >
+            <details style={{ marginBottom: 24, textAlign: 'left' }}><summary style={{ cursor: 'pointer', fontWeight: 800, padding: 12 }}>Make meals fit my everyday life</summary>
+              <DietPracticalPreferences value={data.practical} onChange={practical => setData({ ...data, practical })} />
+            </details>
             <div
               style={{
                 width: '76px',
@@ -1089,7 +1096,7 @@ export function OnboardingWizard({
             </p>
 
             {/* Calculated Blueprint Card */}
-            {calculated ? <div
+            {calculated && data.practical.showNumbers ? <div
               style={{
                 background: '#FFFFFF',
                 borderRadius: '24px',

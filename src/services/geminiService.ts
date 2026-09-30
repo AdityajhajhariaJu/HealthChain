@@ -1328,6 +1328,7 @@ const dietPlanPayload = (profile: any) => {
     targetCalories: Number(profile?.targetCalories), cuisine: profile?.cuisine || 'Any',
     mealSchedule: profile?.mealSchedule || '3 Meals + 1 Snack', goal: profile?.goal,
     ...(location.countryCode ? location : {}),
+    ...(profile?.planningPreferences ? { preferences: profile.planningPreferences } : {}),
   } };
 };
 

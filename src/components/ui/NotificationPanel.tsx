@@ -91,6 +91,8 @@ function getCategoryConfig(category: NotificationCategory) {
         bg: '#FEF3C7',
         border: '#FDE68A',
       };
+    case 'meal_reminder':
+      return {label: 'Food reminder', icon: Clock, color: '#059669', bg: '#ECFDF5', border: '#A7F3D0'};
     case 'daily_checkin':
       return {
         label: 'Care Rhythm',

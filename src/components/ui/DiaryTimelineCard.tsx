@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, Edit3, ArrowRight, CheckCircle2, Waves, Activity } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
-import { addNutritionLog, recordDailyCheckin } from '../../services/ProfileEngine';
-import { useNavigate } from 'react-router-dom';
 
 export interface DiaryEntry {
   time: string;
@@ -15,68 +13,19 @@ export interface DiaryTimelineCardProps {
   title?: string;
   date?: string;
   entries: DiaryEntry[];
-  autoSync?: boolean;
   onOpenRiver?: () => void;
 }
 
 export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
-  title = 'Diary entry logged',
+  title = 'Your diary records',
   date = 'Today',
   entries = [],
-  autoSync = true,
   onOpenRiver,
 }) => {
-  const navigate = useNavigate();
-  const [synced, setSynced] = useState(false);
-
-  useEffect(() => {
-    if (autoSync && !synced && entries.length > 0) {
-      try {
-        entries.forEach((entry) => {
-          const cat = (entry.category || '').toLowerCase();
-          const itemsText = entry.items.join(', ');
-          const isSymptom = cat.includes('symptom') || 
-            entry.items.some(i => i.toLowerCase().includes('bloat') || i.toLowerCase().includes('pain') || i.toLowerCase().includes('headache') || i.toLowerCase().includes('fog') || i.toLowerCase().includes('back'));
-
-          const isPosture = cat.includes('posture') || cat.includes('desk') || cat.includes('sitting') || cat.includes('ergonomic');
-
-          if (isSymptom) {
-            recordDailyCheckin({
-              symptom: itemsText,
-              severity: 'Moderate',
-              score: 2,
-              note: `Logged via Ava Health Journal at ${entry.time} (${entry.category || 'Symptom'})`,
-              lifestyle: {}
-            });
-          } else if (isPosture) {
-            recordDailyCheckin({
-              symptom: 'Posture & Ergonomics',
-              severity: 'Mild',
-              score: 1,
-              note: `Posture & Ergonomics: ${itemsText} at ${entry.time}`,
-              lifestyle: { mobility: itemsText }
-            });
-          } else {
-            addNutritionLog({
-              name: itemsText,
-              calories: entry.items.length * 90, // metabolic estimate
-              protein: entry.items.length * 4,
-              carbs: entry.items.length * 12,
-              fat: entry.items.length * 3,
-              type: entry.category || 'Meal',
-              time: entry.time
-            });
-          }
-        });
-        setSynced(true);
-      } catch (e) {
-        console.error('Auto sync diary error:', e);
-      }
-    }
-  }, [autoSync, synced, entries]);
+  // Displaying an existing record is never a command to create another record.
 
   const getCategoryMeta = (cat = '', items: string[]) => {
-    const text = (cat + ' ' + items.join(' ')).toLowerCase();
+    const text = cat.toLowerCase();
     if (text.includes('posture') || text.includes('sitting') || text.includes('chair') || text.includes('desk') || text.includes('lumbar')) {
       return { icon: '🪑', label: 'Posture & Ergonomics', bg: '#F0FDFA', color: '#0F766E', border: '#CCFBF1' };
     }
@@ -243,7 +192,7 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
           <span style={{ fontSize: '11.5px', color: entries.length > 0 ? '#059669' : '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
             {entries.length > 0 ? (
               <>
-                <CheckCircle2 size={13} /> Synced to Health River
+                <CheckCircle2 size={13} /> From your saved diary
               </>
             ) : (
               'Awaiting diary input'
@@ -270,7 +219,8 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              padding: '4px 6px',
+              padding: '8px 6px',
+              minHeight: '44px',
             }}
           >
             <Waves size={13} /> View Health River <ArrowRight size={13} />
