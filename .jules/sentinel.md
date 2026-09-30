@@ -1,0 +1,4 @@
+## 2026-09-30 - Authorization Bypass in Admin Endpoint
+**Vulnerability:** The admin endpoint (`api/admin-content.js`) authenticated the user's JWT but failed to check if the user actually held admin privileges before executing sensitive database operations (insert/update/delete) with the Supabase service_role key.
+**Learning:** Development placeholders (e.g., `// TODO: Add strict admin role check here`) for critical security controls create a severe risk of authorization bypass if deployed to production without implementation.
+**Prevention:** Always implement a fail-closed authorization approach immediately during development. Require an explicit check against a configured `ADMIN_USER_ID` environment variable and immediately return a 403 Forbidden status if the variable is missing or the user ID does not match.
