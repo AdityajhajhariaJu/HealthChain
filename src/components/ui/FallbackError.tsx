@@ -4,20 +4,24 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function FallbackError({ error, resetErrorBoundary }) {
   const isMobile = useIsMobile();
+  const isChunkError = typeof error?.message === 'string' &&
+    (error.message.includes('dynamically imported module') || error.message.includes('Importing a module script failed'));
   
   useEffect(() => {
-    if (error && (error.message.includes('dynamically imported module') || error.message.includes('Importing a module script failed'))) {
+    if (isChunkError) {
       try {
-        if (!sessionStorage.getItem('hc_reloaded_for_chunk')) {
-          sessionStorage.setItem('hc_reloaded_for_chunk', 'true');
+        // A new deployment has different asset URLs. Permit one recovery for
+        // each failed asset, rather than only one for the entire browser session.
+        const recoveryKey = `hc_reloaded_for_chunk:${error.message}`;
+        if (!sessionStorage.getItem(recoveryKey)) {
+          sessionStorage.setItem(recoveryKey, 'true');
           window.location.reload();
         }
       } catch (e) {
-        // Fallback if sessionStorage is blocked
-        window.location.reload();
+        // Without a durable retry guard, keep manual recovery available.
       }
     }
-  }, [error]);
+  }, [error, isChunkError]);
 
   return (
     <div
@@ -84,7 +88,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
       )}
 
       <button
-        onClick={resetErrorBoundary}
+        onClick={() => isChunkError ? window.location.reload() : resetErrorBoundary()}
         style={{
           padding: '14px 28px',
           background: '#EF4444',
