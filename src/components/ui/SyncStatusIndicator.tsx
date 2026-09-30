@@ -17,8 +17,10 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
 
   useEffect(() => {
     let mounted = true;
+    let syncRevision = 0;
 
     async function checkInitialStatus() {
+      const revision = syncRevision;
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) {
@@ -26,7 +28,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
           return;
         }
         const count = await getPendingSyncCount(session.user.id);
-        if (mounted) {
+        if (mounted && revision === syncRevision) {
           setPendingCount(count);
           setStatus(count > 0 ? 'sync_pending' : 'synced');
         }
@@ -38,20 +40,39 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     checkInitialStatus();
 
     const onPending = (e: Event) => {
+      syncRevision += 1;
       const count = (e as CustomEvent)?.detail?.count || 1;
       setPendingCount(count);
       setStatus('sync_pending');
       setErrorMessage(null);
     };
 
-    const onComplete = () => {
-      setPendingCount(0);
-      setStatus('synced');
-      setErrorMessage(null);
-      setIsSyncing(false);
+    const onComplete = (event: Event) => {
+      const revision = ++syncRevision;
+      const complete = () => {
+        if (!mounted || revision !== syncRevision) return;
+        setPendingCount(0);
+        setStatus('synced');
+        setErrorMessage(null);
+        setIsSyncing(false);
+      };
+      if ((event as CustomEvent)?.detail?.area) {
+        // One ledger write completing does not confirm all queued profile saves.
+        void (async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) return;
+          const count = await getPendingSyncCount(session.user.id);
+          if (!mounted || revision !== syncRevision) return;
+          if (count > 0) {
+            setPendingCount(count);
+            setStatus(previous => previous === 'sync_failed' || previous === 'conflict_needs_review' ? previous : 'sync_pending');
+          } else complete();
+        })().catch(() => {});
+      } else complete();
     };
 
     const onError = (e: Event) => {
+      syncRevision += 1;
       const err = (e as CustomEvent)?.detail;
       setErrorMessage(err?.message || 'Sync failed');
       setStatus('sync_failed');
@@ -59,6 +80,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     };
 
     const onConflict = () => {
+      syncRevision += 1;
       setStatus('conflict_needs_review');
       setIsSyncing(false);
     };
