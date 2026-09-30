@@ -72,7 +72,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   analyzeFoodEntry,
   generateMealPlan,
-  hasPendingDietPlanRequest,
   clearPendingDietPlanRequest,
   generateNutritionalGuardrails,
 } from '../../services/geminiService';
@@ -88,7 +87,7 @@ import { getActiveSession } from '../../services/authSession';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
-import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
+import { recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
@@ -887,10 +886,8 @@ export default function Dietician() {
 
     const planProfileKey = getProfileKey();
     const planProfileId = getCoreProfile()?.id;
-    if (!canUseTrial('dietician') && !(await hasPendingDietPlanRequest(profile, planProfileKey))) {
-      openTrialModal('Food Planner (1 Free Trial Meal Plan)');
-      return;
-    }
+    // The authenticated gateway owns paid access, refunds and free-plan quota.
+    // A stale browser trial counter must not block an available server quota.
 
     setIsGeneratingPlan(true);
     setPlanGenerationError('');
