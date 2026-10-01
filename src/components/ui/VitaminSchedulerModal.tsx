@@ -1159,9 +1159,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           aria-modal="true"
           aria-label="Medication & Chrono-Schedule"
           initial={{ y: '100%' }}
-          animate={{ y: 0 }}
+          animate={{ y: '0%' }}
           exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
           style={{
             width: '100%',
             maxWidth: '520px',

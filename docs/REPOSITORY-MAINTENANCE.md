@@ -36,6 +36,7 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 - Catalog request deadlines use `AbortController` and clear their timers after completion, including in environments without `AbortSignal.timeout`.
 - Bounded the entire native Preferences restore, including value reads, to two seconds with at most eight concurrent reads. Late reads cannot overwrite newer edits or revive cleared values. Native clear/set/remove operations now share one ordered queue. Apply the saved theme after restoration.
 - Responsive hooks observe breakpoint changes instead of every browser resize; older environments retain a resize fallback.
+- The medication panel uses a bounded 220 ms entrance transition with matching percentage units. One hosted WebKit journey previously timed out while its dose button remained unstable; six repeated Chromium/WebKit medication journeys pass after the correction. Baseline editing, schedule identity, chosen time and adherence assertions remain intact.
 - Reused the 36 optimized image files from the prior production build in source, saving **14,582,869 bytes** without introducing another recompression generation. Removed the automatic image optimizer and its unused development dependencies. Bundle visualization runs only when requested and is outside `dist`.
 - Refreshed generated Capacitor configuration from the current source and fixed Windows-only Swift package path separators. CI builds and generates both platform copies before the native configuration regression checks, which also cover portable package paths. Generated assets/configuration remain ignored. Signed builds are still a separate gate.
 - Added repository hygiene and emitted-manifest startup-size gates to CI/build. Rewrote the inaccurate placeholder README/architecture guide and ignored CLI/build caches.
@@ -51,9 +52,9 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 | Measurement | Before | After |
 |---|---:|---:|
 | Initial static JavaScript | 2,173,698 bytes | 854,127 bytes |
-| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,723 bytes |
+| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,720 bytes |
 | Dashboard screen JavaScript chunk | 500,023 bytes | 92,939 bytes |
-| Built deployment files | 273,725,683 bytes | 252,905,733 bytes |
+| Built deployment files | 273,725,683 bytes | 252,905,738 bytes |
 | Repository working files | 1,565 | 767 |
 
 The initial JavaScript graph is **60.7% smaller** (59.6% for the gzip comparison). The dashboard chunk is **81.4% smaller**. These measure emitted bytes; route-specific requests, network/device conditions and provider response time also affect what users experience. The used audio library remains the largest part of the deployed/native asset footprint and was retained.
