@@ -258,6 +258,20 @@ begin
   end if;
 end $$;
 -- Profile CAS and archive recovery run with the caller's RLS privileges.
+-- Legacy function search paths must be fixed even when the optional vector helpers exist.
+do $$ begin
+  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname in ('update_updated_at_column','match_documents')
+      and not exists(select 1 from unnest(p.proconfig) c where c like 'search_path=%')) then
+    raise exception 'Legacy function search paths are mutable';
+  end if;
+end $$;
+do $$ begin
+  if to_regprocedure('public.recover_subscription_entitlement(uuid)') is null then raise exception 'Missing transactional entitlement recovery'; end if;
+  if has_function_privilege('authenticated','public.recover_subscription_entitlement(uuid)','execute') or has_function_privilege('anon','public.recover_subscription_entitlement(uuid)','execute') then raise exception 'Entitlement recovery exposed to clients'; end if;
+  if (select count(*) from pg_policies where schemaname='public' and tablename='payments' and cmd='SELECT') <> 1 then raise exception 'Duplicate payment owner policies'; end if;
+  if exists(select 1 from pg_policies where schemaname='public' and tablename='user_feedback' and cmd='INSERT' and with_check='true') then raise exception 'Feedback can be attributed to another owner'; end if;
+end $$;
 do $$ begin
   if to_regprocedure('public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb)') is null
     or to_regprocedure('public.restore_health_archive_records(jsonb)') is null then raise exception 'Missing profile/archive recovery functions'; end if;

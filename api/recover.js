@@ -1,58 +1,51 @@
 import { createClient } from '@supabase/supabase-js';
+import { PRODUCT_CATALOG } from '../shared/productCatalog.js';
+
+export function latestRecoverableEntitlements(payments, now = Date.now()) {
+  const latest = new Map();
+  for (const payment of payments || []) {
+    const subscription = payment.product_type === 'subscription' || PRODUCT_CATALOG[payment.plan_id]?.type === 'subscription' ||
+      (!payment.plan_id && !payment.product_type); // Older subscription receipts lack product metadata.
+    const expiry = Date.parse(payment.entitlement_expires_at);
+    if (!payment.user_id || !['paid', 'partially_refunded'].includes(payment.status) || !subscription || !Number.isFinite(expiry) || expiry <= now) continue;
+    const previous = latest.get(payment.user_id);
+    if (!previous || expiry > Date.parse(previous)) latest.set(payment.user_id, new Date(expiry).toISOString());
+  }
+  return latest;
+}
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'method_not_allowed' });
+  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return res.status(401).json({ error: 'unauthorized' });
   try {
-    const authHeader = req.headers.authorization;
-    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return res.status(401).json({ error: 'Unauthorized. Admin access required.' });
-    }
-
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !serviceRoleKey) {
-      return res.status(500).json({ error: 'Database service configuration missing' });
-    }
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-    // Read all valid payments
-    const { data: payments, error: paymentsError } = await supabase
-      .from('payments')
-      .select('user_id, entitlement_expires_at')
-      .eq('status', 'paid')
-      .gt('entitlement_expires_at', new Date().toISOString());
-    
-    if (paymentsError) {
-      return res.status(500).json({ error: paymentsError.message });
-    }
-
-    if (!payments || payments.length === 0) {
-      return res.json({ success: true, message: 'No lost entitlements found.' });
-    }
-
-    let recovered = 0;
-    for (const p of payments) {
-      const { data: profile } = await supabase.from('profiles').select('is_pro').eq('id', p.user_id).single();
-      if (profile && !profile.is_pro) {
-        const future = new Date(Date.now() + 60000).toISOString();
-        await supabase.from('profiles')
-          .update({ 
-            is_pro: true, 
-            pro_expires_at: p.entitlement_expires_at,
-            updated_at: future
-          })
-          .eq('id', p.user_id);
-        recovered++;
+    const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return res.status(503).json({ error: 'recovery_unavailable' });
+    const database = createClient(url, key, { auth: { persistSession: false } });
+    const now = Date.now();
+    const latest = new Map();
+    // Page the ledger so paid owners beyond PostgREST's row limit are included.
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await database.from('payments').select('user_id,status,plan_id,product_type,entitlement_expires_at')
+        .in('status', ['paid', 'partially_refunded']).gt('entitlement_expires_at', new Date(now).toISOString()).order('id').range(offset, offset + 499);
+      if (error) throw error;
+      for (const [owner, expiry] of latestRecoverableEntitlements(data, now)) {
+        if (!latest.has(owner) || Date.parse(expiry) > Date.parse(latest.get(owner))) latest.set(owner, expiry);
       }
+      if (!data || data.length < 500) break;
     }
-
-    return res.json({ success: true, message: `Recovered ${recovered} lost entitlements.` });
-  } catch (err) {
-    console.error('Recover handler error:', err);
-    return res.status(500).json({ error: err.message || 'Internal recovery error' });
+    let recovered = 0;
+    let failed = 0;
+    for (const owner of latest.keys()) {
+      const result = await database.rpc('recover_subscription_entitlement', { p_user_id: owner });
+      if (result.error) failed++;
+      else if (result.data?.recovered === true) recovered++;
+    }
+    return res.status(failed ? 503 : 200).json({ success: failed === 0, recovered, failed, message: failed ? 'Some entitlements need another recovery attempt.' : `Recovered ${recovered} lost entitlements.` });
+  } catch (error) {
+    console.error('Entitlement recovery failed:', error);
+    return res.status(503).json({ error: 'recovery_unavailable' });
   }
 }

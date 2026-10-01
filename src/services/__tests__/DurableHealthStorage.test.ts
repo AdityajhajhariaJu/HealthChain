@@ -12,6 +12,9 @@ describe('logout preserves unsynced owned records', () => {
       'hc_medication_schedule_linked:hc_unified_profile_account-a:profile_1': 'true',
       'healthchain_hydration_data_2026-10-01:hc_unified_profile_account-a:profile_1': '{"currentMl":300}',
       'healthchain_vitamins_taken_logs_2026-10-01:hc_unified_profile_account-a:profile_1': '{"dose-a":true}',
+      'hc_progress_photo:hc_unified_profile_account-a:profile_1': 'data:image/png;base64,original-photo',
+      'hc_pending_charge_account-a': '{"orderId":"pending-owner-receipt"}',
+      'hc_interrupted_task_account-a': '{"returnPath":"/app/ava"}',
     };
     Object.entries({ ...records, hc_account: '{"id":"account-a"}', isAuthenticated: 'true', 'sb-project-auth-token': 'private-token', hc_temporary_patient_cache: 'temporary' }).forEach(([key, value]) => localStorage.setItem(key, value));
     expect(retainHealthStorage(localStorage)).toEqual(records);

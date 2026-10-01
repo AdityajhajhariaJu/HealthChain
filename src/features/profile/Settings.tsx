@@ -30,7 +30,7 @@ import {
   sendTestNotification
 } from '../../services/DailyCheckinNotificationService';
 
-const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
+import { apiEndpoint } from '../../services/ApiEndpoint';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -204,7 +204,7 @@ export default function Settings() {
         const deleteController = new AbortController();
         const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
 
-        const response = await fetch(`${BACKEND_BASE}/api/delete-account`, {
+        const response = await fetch(apiEndpoint('/api/delete-account'), {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${session?.access_token}` },
           signal: deleteController.signal

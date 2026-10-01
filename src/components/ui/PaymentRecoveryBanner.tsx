@@ -10,6 +10,7 @@ import {
 } from '../../services/razorpay';
 import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 interface PaymentRecoveryBannerProps {
   onSuccess?: () => void;
@@ -27,21 +28,19 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
     let mounted = true;
 
     async function checkPending() {
+      const scope = captureAccountScope();
       try {
         const { data } = await supabase.auth.getSession();
-        if (!mounted) return;
+        if (!mounted || !isAccountScopeCurrent(scope)) return;
         setSession(data.session);
 
         const userId = data.session?.user?.id;
         if (userId) {
           const item = getPendingPayment(userId);
-          // Only show if younger than 24 hours
-          if (item && Date.now() - item.timestamp < 24 * 60 * 60 * 1000) {
+          if (item) {
             setPending(item);
-          } else if (item) {
-            clearPendingPayment(userId);
-          }
-        }
+          } else setPending(null);
+        } else setPending(null);
       } catch (err) {
         console.warn('Failed to check pending payment status', err);
       }
@@ -49,26 +48,37 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
 
     checkPending();
 
-    const handlePaymentCompleted = () => {
-      setPending(null);
-    };
+    const handlePaymentCompleted = () => { void checkPending(); };
+    const clear = () => { setPending(null); setSession(null); setIsRecovering(false); };
 
     window.addEventListener('hc_payment_completed', handlePaymentCompleted);
+    window.addEventListener('hc_payment_pending', handlePaymentCompleted);
+    window.addEventListener('hc_profile_updated', handlePaymentCompleted);
+    window.addEventListener('hc_logout', clear);
     return () => {
       mounted = false;
       window.removeEventListener('hc_payment_completed', handlePaymentCompleted);
+      window.removeEventListener('hc_payment_pending', handlePaymentCompleted);
+      window.removeEventListener('hc_profile_updated', handlePaymentCompleted);
+      window.removeEventListener('hc_logout', clear);
     };
   }, []);
 
   if (!pending || !session) return null;
 
   const handleVerify = async () => {
+    if (isRecovering) return;
+    const scope = captureAccountScope();
     triggerHapticLight();
     setIsRecovering(true);
     setFeedback(null);
 
     try {
-      const recovered = await recoverPendingPayment(session.user.id, session.access_token);
+      const { data } = await supabase.auth.getSession();
+      if (!isAccountScopeCurrent(scope) || data.session?.user?.id !== session.user.id) return;
+      if (!data.session?.access_token) throw new Error('Sign in again to verify this saved receipt.');
+      const recovered = await recoverPendingPayment(data.session.user.id, data.session.access_token);
+      if (!isAccountScopeCurrent(scope)) return;
       if (recovered) {
         triggerHapticSuccess();
         setFeedback('Payment verified! Your access has been unlocked.');
@@ -76,15 +86,15 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
         if (onSuccess) onSuccess();
 
         setTimeout(() => {
-          resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
+          if (isAccountScopeCurrent(scope)) resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
         }, 1200);
       } else {
         setFeedback('Payment confirmation is still pending from the bank. Please try again shortly.');
       }
     } catch {
-      setFeedback('Unable to reach verification servers. Please check your network.');
+      if (isAccountScopeCurrent(scope)) setFeedback('Unable to reach verification servers. Please check your network.');
     } finally {
-      setIsRecovering(false);
+      if (isAccountScopeCurrent(scope)) setIsRecovering(false);
     }
   };
 

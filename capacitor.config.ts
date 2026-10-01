@@ -4,7 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.healthchain.app',
   appName: 'HealthChain',
   webDir: 'dist',
-  server: { androidScheme: 'https', iosScheme: 'https' },
+  server: { androidScheme: 'https', iosScheme: 'capacitor' },
   plugins: {
     StatusBar: { style: 'dark', backgroundColor: '#0F172A' },
     SplashScreen: { launchShowDuration: 2000, backgroundColor: '#0F172A', showSpinner: false },

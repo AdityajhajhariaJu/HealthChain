@@ -4,6 +4,7 @@ import { Activity, ArrowRight, CalendarDays, Clipboard, FileText, ShieldCheck, S
 import { getGutSnapshot, formatGutVisitNote, mergeGutSnapshotWithObservations, summarizeRecordedBloating } from '../../services/GutHealthSummary';
 import { listObservationHistory } from '../../services/HealthObservationService';
 import type { Observation } from '../../domain/observations/types';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 import { GutResolutionWorkspace } from './GutResolutionWorkspace';
@@ -31,25 +32,32 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   const snapshot = useMemo(() => mergeGutSnapshotWithObservations(baseSnapshot, observations), [baseSnapshot, observations]);
   const [message, setMessage] = useState('');
   const mainRef = useRef<HTMLElement>(null);
+  const refreshSequence = useRef(0);
+  const snapshotOwner = useRef('');
+
+  const refreshData = async () => {
+    const scope = captureAccountScope();
+    const ownerKey = `${scope.key}:${scope.epoch}`;
+    const request = ++refreshSequence.current;
+    if (snapshotOwner.current && snapshotOwner.current !== ownerKey) {
+      setObservations([]); setSelectedSource(null); setOpenThreadId(null);
+      setHistoryInitialDate(null); setMessage(''); setTab('daily');
+    }
+    snapshotOwner.current = ownerKey;
+    setBaseSnapshot(getGutSnapshot());
+    const current = () => request === refreshSequence.current && isAccountScopeCurrent(scope);
+    try { const records = await listObservationHistory(); if (current()) setObservations(records); }
+    catch { if (current()) setObservations([]); }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
-    let active = true;
-    const refresh = async () => {
-      setBaseSnapshot(getGutSnapshot());
-      try { const records = await listObservationHistory(); if (active) setObservations(records); }
-      catch { if (active) setObservations([]); }
-    };
+    const refresh = () => { void refreshData(); };
     void refresh();
     const events = ['hc_profile_updated', 'hc_digestion_updated', 'hc_nutrition_reaction_updated', 'hc_observations_updated'];
     for (const event of events) window.addEventListener(event, refresh);
-    return () => { active = false; for (const event of events) window.removeEventListener(event, refresh); };
+    return () => { refreshSequence.current++; for (const event of events) window.removeEventListener(event, refresh); };
   }, [isOpen]);
-
-  const refreshData = async () => {
-    setBaseSnapshot(getGutSnapshot());
-    try { setObservations(await listObservationHistory()); } catch { setObservations([]); }
-  };
 
   useEffect(() => {
     if (!isOpen || quickMealOpen) return;
@@ -61,8 +69,7 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
   const openHistory = (date?: string) => { setSelectedSource(null); setHistoryInitialDate(date || null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
   const openThread = (id: string) => { setOpenThreadId(id); setTab('studio'); mainRef.current?.scrollTo(0, 0); };
   const openSource = (source: GutSourceReference) => {
-    setBaseSnapshot(getGutSnapshot());
-    void listObservationHistory().then(setObservations).catch(() => setObservations([]));
+    void refreshData();
     setSelectedSource(source); setHistoryInitialDate(null); setTab('records'); mainRef.current?.scrollTo(0, 0);
   };
   const copyVisitNote = async () => {
@@ -114,6 +121,6 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
         </div>
       </div>
     </FocusTrap>
-    <QuickMealIntakeSheet simple isOpen={quickMealOpen} onClose={() => setQuickMealOpen(false)} onMealLogged={() => { setBaseSnapshot(getGutSnapshot()); void listObservationHistory().then(setObservations).catch(() => setObservations([])); }} />
+    <QuickMealIntakeSheet simple isOpen={quickMealOpen} onClose={() => setQuickMealOpen(false)} onMealLogged={() => { void refreshData(); }} />
   </>, document.body);
 };

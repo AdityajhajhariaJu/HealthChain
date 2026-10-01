@@ -7,6 +7,7 @@ import { trackButtonClick } from '../../services/analytics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 const faqs = [
   {
@@ -40,20 +41,26 @@ export default function HelpCenter() {
   const [userEmail, setUserEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
+  const feedbackLock = useRef(false);
   const [copied, setCopied] = useState(false);
 
   const filteredFaqs = faqs.filter(f => f.question.toLowerCase().includes(search.toLowerCase()) || f.answer.toLowerCase().includes(search.toLowerCase()));
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feedbackMsg.trim()) return;
+    if (!feedbackMsg.trim() || feedbackLock.current) return;
+    feedbackLock.current = true;
+    const scope = captureAccountScope();
 
     setIsSubmitting(true);
+    setFeedbackError('');
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!isAccountScopeCurrent(scope)) return;
       const emailToLog = userEmail.trim() || session?.user?.email || 'Anonymous Guest';
 
-      await supabase.from('user_feedback').insert({
+      const { error } = await supabase.from('user_feedback').insert({
         user_id: session?.user?.id || null,
         user_email: emailToLog,
         category,
@@ -66,6 +73,8 @@ export default function HelpCenter() {
           appVersion: '10.0.0'
         }
       });
+      if (!isAccountScopeCurrent(scope)) return;
+      if (error) throw error;
 
       trackButtonClick('feedback_submitted', 'help_center');
       awardPoints(5, 'Submitted Platform Feedback & Community Insights', 'research');
@@ -73,10 +82,10 @@ export default function HelpCenter() {
       setIsSubmitted(true);
     } catch (err) {
       console.error('Error submitting feedback:', err);
-      // Fallback: Still show success and offer email client
-      setIsSubmitted(true);
+      if (isAccountScopeCurrent(scope)) setFeedbackError('Your message was not saved. Your draft is still here. Retry or send it by email.');
     } finally {
-      setIsSubmitting(false);
+      feedbackLock.current = false;
+      if (isAccountScopeCurrent(scope)) setIsSubmitting(false);
     }
   };
 
@@ -244,6 +253,7 @@ export default function HelpCenter() {
           </div>
         ) : (
           <form onSubmit={handleFeedbackSubmit} style={{ display: 'grid', gap: 16 }}>
+            {feedbackError && <div role="alert"><p>{feedbackError}</p><a href={`mailto:healthchain360@gmail.com?subject=${encodeURIComponent(`HealthChain Feedback (${category})`)}&body=${encodeURIComponent(feedbackMsg)}`}>Send this message by email</a></div>}
             <div>
               <label style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Category</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

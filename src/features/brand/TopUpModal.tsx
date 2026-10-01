@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Loader2, X } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackPurchase } from '../../services/analytics';
-import { loadRazorpaySDK } from '../../services/razorpay';
+import { initiateRazorpayCheckout, PaymentPlanId } from '../../services/razorpay';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
 import { triggerHapticLight } from '../../services/haptics';
-const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'lab_report';
@@ -17,7 +18,7 @@ interface TopUpModalProps {
 const TOPUPS = {
   ava_replies: { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '10 Replies' },
   quick_consult: { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '1 Session' },
-  deep_collab: { id: 'topup_deep_collab', name: 'Specialist Consensus', price: 149, qty: '1 Session' },
+  deep_collab: { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: 149, qty: '1 Session' },
   jarvis: { id: 'topup_jarvis', name: 'Clinical Review', price: 169, qty: '1 Session' },
   lab_report: { id: 'topup_lab_report', name: 'Clinical document review', price: 99, qty: '2 Reports' },
 };
@@ -26,7 +27,10 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
   const navigate = useNavigate();
   const toast = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const plan = TOPUPS[feature];
+  const checkoutLock = useRef(false);
+  const metadata = TOPUPS[feature];
+  const product = metadata && PRODUCT_CATALOG[metadata.id as keyof typeof PRODUCT_CATALOG];
+  const plan = metadata && product && 'quantity' in product ? { ...metadata, price: product.amount / 100, qty: `${product.quantity} ${feature === 'ava_replies' ? 'Replies' : feature === 'lab_report' ? 'Reports' : 'Session'}` } : null;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,91 +44,38 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
   }, [onClose]);
 
   const handleCheckout = async () => {
-    if (isProcessing) return;
+    if (!plan) return;
+    if (checkoutLock.current) return;
+    checkoutLock.current = true;
+    const scope = captureAccountScope();
+    setIsProcessing(true);
     try {
-      setIsProcessing(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const sdkLoaded = await loadRazorpaySDK();
-      if (!sdkLoaded) {
-        toast.error('Payment Error', 'Razorpay SDK failed to load. Please check your internet connection.');
-        setIsProcessing(false);
+      if (!isAccountScopeCurrent(scope)) return;
+      if (!session) {
+        toast.error('Sign in required', 'Sign in again to purchase a top-up.');
         return;
       }
-
-      const authHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      };
-
-      const orderController = new AbortController();
-      const orderTimeout = setTimeout(() => orderController.abort(), 20000);
-
-      const orderRes = await fetch(`${BACKEND_BASE}/api/create-order`, {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({ plan_id: plan.id }),
-        signal: orderController.signal
-      }).finally(() => clearTimeout(orderTimeout));
-
-      if (!orderRes.ok) {
-        const errData = await orderRes.json().catch(() => ({ error: `Failed to create top-up order (${orderRes.status})` }));
-        throw new Error(errData.error || 'Failed to create top-up order');
+      const result = await initiateRazorpayCheckout(plan.id as PaymentPlanId, {
+        id: session.user.id, email: session.user.email,
+      }, session.access_token, { planTitle: `${plan.name} (${plan.qty})` });
+      if (!isAccountScopeCurrent(scope)) return;
+      if (result.success) {
+        trackPurchase(plan.price, plan.id);
+        toast.success('Top-Up Activated!', `${plan.name} credit added successfully.`);
+        onSuccess();
+      } else if (result.reason !== 'cancelled') {
+        if (result.pendingOrderId) {
+          toast.info('Payment confirmation pending', result.message);
+          onClose();
+          navigate('/pricing');
+        } else toast.error('Checkout Error', result.message);
       }
-
-      const orderData = await orderRes.json();
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-      
-      const options = {
-        key: razorpayKey,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'HealthChain Top-Up',
-        description: `${plan.name} (${plan.qty})`,
-        order_id: orderData.id,
-        handler: async function (response: any) {
-          try {
-            const verifyController = new AbortController();
-            const verifyTimeout = setTimeout(() => verifyController.abort(), 25000);
-
-            const verifyRes = await fetch(`${BACKEND_BASE}/api/verify-payment`, {
-              method: 'POST',
-              headers: authHeaders,
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_id: plan.id
-              }),
-              signal: verifyController.signal
-            }).finally(() => clearTimeout(verifyTimeout));
-            const verifyData = await verifyRes.json().catch(() => ({ success: false, error: `Verification failed (${verifyRes.status})` }));
-            if (verifyData.success) {
-              trackPurchase(orderData.amount / 100, plan.id);
-              toast.success('Top-Up Activated!', `${plan.name} credit added successfully.`);
-              onSuccess();
-            } else {
-              toast.error('Verification Failed', verifyData.error || 'Unable to verify payment.');
-            }
-          } catch (err) {
-            toast.error('Network Issue', 'Payment verification encountered a network error.');
-          } finally {
-            setIsProcessing(false);
-            onClose();
-          }
-        },
-        prefill: { email: session.user.email },
-        theme: { color: '#14b8a6' },
-        modal: { ondismiss: () => setIsProcessing(false) }
-      };
-
-      const paymentObject = new (window as any).Razorpay(options);
-      paymentObject.open();
-
     } catch (err: any) {
-      toast.error('Checkout Error', err.message || 'Unable to start checkout.');
-      setIsProcessing(false);
+      if (isAccountScopeCurrent(scope)) toast.error('Checkout Error', err.message || 'Unable to start checkout.');
+    } finally {
+      checkoutLock.current = false;
+      if (isAccountScopeCurrent(scope)) setIsProcessing(false);
     }
   };
 
@@ -195,7 +146,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
               padding: 0
             }}
           >
-            Looking for unlimited usage? Compare Pro Plans
+            Compare Pro plans and included usage
           </button>
         </div>
       </div>

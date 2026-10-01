@@ -4,6 +4,7 @@ import { createMeal } from '../../services/MealCommandService';
 import { getActiveProfileScope } from '../../services/profileScope';
 import { emptyMealDetails, MealDetailsFields, mealDetailsEntry } from './MealDetailsFields';
 import './DietEveryday.css';
+import { apiEndpoint } from '../../services/ApiEndpoint';
 export function BarcodeFoodLookup({
   date,
   onLogged,
@@ -35,7 +36,7 @@ export function BarcodeFoodLookup({
     setMessage('');
     try {
       const response = await fetch(
-        `${(import.meta.env.VITE_BACKEND_URL || '').replace(/\/+$/, '')}/api/food-product?code=${barcode}`,
+        apiEndpoint(`/api/food-product?code=${barcode}`),
         { signal: AbortSignal.timeout(12000) }
       );
       const data = await response.json();

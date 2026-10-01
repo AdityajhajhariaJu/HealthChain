@@ -3057,3 +3057,77 @@ end $$;
 revoke all on function public.restore_health_archive_records(jsonb) from public,anon;
 grant execute on function public.restore_health_archive_records(jsonb) to authenticated;
 
+-- ===== 20261001142000_whole_app_feedback_and_payment_policies.sql =====
+-- Feedback belongs to the authenticated sender or to an anonymous guest.
+-- Never let a sender attribute feedback to a different account.
+drop policy if exists "Users can insert feedback" on public.user_feedback;
+create policy "Users can insert feedback" on public.user_feedback
+  for insert to anon, authenticated
+  with check (user_id = (select auth.uid()) or (user_id is null and (select auth.uid()) is null));
+drop policy if exists "Users can read own feedback" on public.user_feedback;
+create policy "Users can read own feedback" on public.user_feedback
+  for select to authenticated using (user_id = (select auth.uid()));
+
+-- The two legacy payment policies were identical; keep one owner read policy.
+drop policy if exists "Users can view own payments" on public.payments;
+drop policy if exists "Users can view their own payments" on public.payments;
+create policy "Users can view own payments" on public.payments
+  for select to authenticated using (user_id = (select auth.uid()));
+
+create index if not exists idx_payments_owner_created on public.payments(user_id, created_at desc);
+create index if not exists idx_feedback_owner_created on public.user_feedback(user_id, created_at desc);
+
+-- ===== 20261001143200_atomic_subscription_recovery.sql =====
+-- Lock payment rows before profiles, matching checkout/refund lock ordering.
+-- Service-only, transactional recovery cannot resurrect a concurrently refunded receipt.
+create or replace function public.recover_subscription_entitlement(p_user_id uuid)
+returns jsonb language plpgsql security invoker set search_path = '' as $$
+declare
+  v_profile public.profiles%rowtype;
+  v_expiry timestamptz;
+begin
+  perform id from public.payments where user_id=p_user_id order by id for update;
+  select * into v_profile from public.profiles where id=p_user_id for update;
+  if not found or coalesce(v_profile.is_pro,false) then return jsonb_build_object('recovered',false); end if;
+  select max(entitlement_expires_at) into v_expiry from public.payments
+    where user_id=p_user_id and status in ('paid','partially_refunded') and entitlement_expires_at>now()
+      and (product_type='subscription' or plan_id in ('pro_30_days','pro_90_days') or (product_type is null and plan_id is null));
+  if v_expiry is null then return jsonb_build_object('recovered',false); end if;
+  update public.profiles set is_pro=true,
+    pro_expires_at=greatest(v_expiry,v_profile.pro_expires_at),updated_at=now()
+    where id=p_user_id;
+  return jsonb_build_object('recovered',true);
+end $$;
+revoke all on function public.recover_subscription_entitlement(uuid) from public, anon, authenticated;
+grant execute on function public.recover_subscription_entitlement(uuid) to service_role;
+
+-- ===== 20261001151500_legacy_function_search_paths.sql =====
+-- Preserve optional legacy functions while removing caller-controlled name resolution.
+-- These helpers are invoker functions; existing ownership and grants are retained.
+do $migration$
+begin
+  if to_regprocedure('public.update_updated_at_column()') is not null then
+    execute 'alter function public.update_updated_at_column() set search_path = ''''';
+  end if;
+  if to_regtype('public.vector') is not null then
+    if to_regprocedure('public.match_documents(public.vector,double precision,integer)') is not null
+      and to_regclass('public.document_embeddings') is not null then
+      execute $definition$
+        create or replace function public.match_documents(query_embedding public.vector, match_threshold double precision, match_count integer)
+        returns table(id uuid, source_file text, chunk_content text, similarity double precision)
+        language plpgsql security invoker set search_path = '' as $body$
+        begin
+          return query
+          select d.id, d.source_file, d.chunk_content,
+            1 - (d.embedding operator(public.<=>) query_embedding) as similarity
+          from public.document_embeddings d
+          where 1 - (d.embedding operator(public.<=>) query_embedding) > match_threshold
+          order by d.embedding operator(public.<=>) query_embedding
+          limit match_count;
+        end;
+        $body$;
+      $definition$;
+    end if;
+  end if;
+end $migration$;
+

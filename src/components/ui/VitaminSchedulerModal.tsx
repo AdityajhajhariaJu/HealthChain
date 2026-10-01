@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { isMedicationTime } from '../../services/MedicationScheduleModel';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -1008,18 +1008,22 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     onClose();
   };
 
+  const dismissRef = useRef(handleDismiss);
+  dismissRef.current = handleDismiss;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+        if (dialogs.length && dialogs[dialogs.length - 1].getAttribute('aria-label') !== 'Medication & Chrono-Schedule') return;
         e.preventDefault();
-        handleDismiss();
+        void dismissRef.current();
       }
     };
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown, true);
+      return () => window.removeEventListener('keydown', handleKeyDown, true);
     }
-  }, [isOpen, vitamins]);
+  }, [isOpen]);
 
   const handleSaveAndClose = async () => {
     triggerHapticSuccess();

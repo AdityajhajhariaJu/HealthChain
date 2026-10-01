@@ -1,6 +1,6 @@
 # Cross-feature pillar audit
 
-> This document preserves the original audit baseline. The latest implementation and remaining limits are recorded in **October 1 continuation: concurrent profiles and archive recovery** at the end.
+> This document preserves the original audit baseline. Its dated continuations record subsequent fixes. For the latest broader page, checkout, native connection and backend review, see [Whole-app functional audit](WHOLE-APP-FUNCTIONAL-AUDIT.md).
 
 Audit date: 1 October 2026. Baseline: `e98083238ab932e9da96ae6d009c35c77dbf3b70`.
 Scope: Health Memory, Ava, Clinical Review, hydration, medications, Gut Health, Diet Plan, My Cases, their subfeatures, API boundaries, local persistence, cloud ownership and notifications.

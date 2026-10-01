@@ -7,6 +7,7 @@ import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { allowedOrigin } from '../shared/http-origins.js';
+import { inspectModelOutput } from '../shared/model-output-validation.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
@@ -443,6 +444,17 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    if (!isAva && !isDietPlan) {
+      const output = inspectModelOutput(data, bodyPayload.generationConfig?.responseMimeType === 'application/json');
+      if (!output.valid) {
+        if (adminClient && userId) {
+          await releaseReservedFeatureQuota();
+          await adminClient.from('ai_requests').update({ status: 'failed', error_code: output.reason, finished_at: new Date().toISOString() }).eq('request_id', String(requestId)).eq('user_id', userId);
+        }
+        return res.status(502).json({ error: 'AI returned an incomplete response. Please retry.', reason: output.reason, requestState: 'failed' });
+      }
+      data.candidates[0].content.parts = [{ text: output.text }];
+    }
     if(isAva && !usableAvaReply(data)){
       if(adminClient && userId){
         await releaseReservedFeatureQuota();

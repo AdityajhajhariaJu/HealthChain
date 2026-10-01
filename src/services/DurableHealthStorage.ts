@@ -10,11 +10,12 @@ const prefixes = [
   'hc_device_metrics:',
   'hc_profile_sync_base:',
   'hc_ava_vault_', 'hc_plan_',
+  'hc_pending_charge_', 'hc_interrupted_task_',
   'hc_food_logs_', 'hc_diet_profile_', 'hc_hydration_', 'hc_meal_plan_', 'hc_diet_advice_',
 ];
 export function isDurableHealthStorageKey(key: unknown): key is string {
   return typeof key === 'string' && (prefixes.some(prefix => key.startsWith(prefix)) ||
-    /^(hc_daily_checkin_reminder_(enabled|time)|hc_notifications_(state|prefs)|hc_custom_notifications|hc_active_elimination_trial|hc_elimination_trial_history|hc_wellness_zen_garden):hc_unified_profile_[^:]+:profile_\d+$/.test(key) ||
+    /^(hc_progress_photo|hc_daily_checkin_reminder_(enabled|time)|hc_notifications_(state|prefs)|hc_custom_notifications|hc_active_elimination_trial|hc_elimination_trial_history|hc_wellness_zen_garden):hc_unified_profile_[^:]+:profile_\d+$/.test(key) ||
     /^healthchain_(hydration|vitamins|habits)[^:]*:hc_unified_profile_[^:]+:profile_\d+$/.test(key));
 }
 export function retainHealthStorage(storage: Storage): Record<string, string> {

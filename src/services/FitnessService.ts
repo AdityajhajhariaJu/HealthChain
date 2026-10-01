@@ -84,7 +84,7 @@ export const FitnessService = {
     if (error) throw error;
     
     // We'll also fetch categories manually if nested join fails, but let's try to get them
-    const { data: categories } = await supabase.from('fitness_categories').select('id, name, slug');
+    const { data: categories } = await supabase.from('fitness_categories').select('id, label, slug');
     const catMap = (categories || []).reduce((acc: any, curr: any) => {
       acc[curr.id] = curr;
       return acc;

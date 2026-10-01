@@ -1,3 +1,5 @@
+import { apiEndpoint } from './ApiEndpoint';
+
 export interface ClinicalTrial {
   id: string;
   title: string;
@@ -42,7 +44,6 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 1200
   }
 };
 
-const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 function mapStudiesFromRaw(studies: any[]): ClinicalTrial[] {
   const retrievedAt = new Date().toISOString();
@@ -106,9 +107,9 @@ export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTri
   const primaryCondition = sanitizedConditions[0];
 
   // Try backend proxy if available
-  if (BACKEND_BASE || import.meta.env.DEV) {
+  {
     try {
-      const backendRes = await fetchWithTimeout(`${BACKEND_BASE}/api/trials?condition=${encodeURIComponent(primaryCondition)}&pageSize=6`, {}, 4000);
+      const backendRes = await fetchWithTimeout(apiEndpoint(`/api/trials?condition=${encodeURIComponent(primaryCondition)}&pageSize=6`), {}, 4000);
       if (backendRes.ok) {
         const json = await backendRes.json();
         if (json.studies && Array.isArray(json.studies) && json.studies.length > 0) {

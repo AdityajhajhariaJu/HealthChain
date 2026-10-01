@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   getCases,
   CaseItem,
@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { safeNavigateBack } from '../../services/navigation';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
@@ -71,6 +72,8 @@ export default function CasePrep() {
 
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseItem | null>(null);
+  const selectedCaseRef = useRef<CaseItem | null>(null);
+  selectedCaseRef.current = selectedCase;
   const [brief, setBrief] = useState<AppointmentBrief | null>(null);
   const [selectedBriefVersion, setSelectedBriefVersion] = useState<number | null>(null);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
@@ -79,6 +82,7 @@ export default function CasePrep() {
   const [showPicker, setShowPicker] = useState(false);
   const [caseNotFoundId, setCaseNotFoundId] = useState<string | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [profileRevision, setProfileRevision] = useState(0);
 
   // Outcome recorder state
   const [outcomeNotes, setOutcomeNotes] = useState<Record<string, string>>({});
@@ -162,8 +166,13 @@ export default function CasePrep() {
     // Mark selected questions as prepared
     setQuestionsForAppointment(selectedCase.id, selectedQuestionIds);
 
-    // Generate new version of deterministic brief with the user-selected questions
-    const updated = generateDeterministicBrief(selectedCase, profile, {
+    // Include the questions just persisted to the case in the new brief.
+    const latestCase = getCase(selectedCase.id);
+    if (!latestCase) {
+      toast.error('Brief not saved', 'This case is no longer available.');
+      return;
+    }
+    const updated = generateDeterministicBrief(latestCase, profile, {
       selectedQuestionIds,
     });
     const saved = saveAppointmentBrief(selectedCase.id, updated);
@@ -173,7 +182,8 @@ export default function CasePrep() {
       setBrief(saved.appointmentBriefs?.current || updated);
       setSelectedBriefVersion(null); // Return to current
     } else {
-      setBrief(updated);
+      toast.error('Brief not saved', 'The updated questions could not be saved. Please retry.');
+      return;
     }
 
     awardPoints(10, 'Updated Appointment Questions', 'consult', `brief_q_update_${selectedCase.id}`);
@@ -202,10 +212,15 @@ export default function CasePrep() {
     }
 
     // Record outcome with strict provenance tag and status differentiation
-    recordCaseQuestionOutcome(selectedCase.id, targetId, status, note, {
+    const outcomeSaved = recordCaseQuestionOutcome(selectedCase.id, targetId, status, note, {
       doctorAction,
       provenance: 'user_reported_clinician_statement',
     });
+    if (!outcomeSaved) {
+      setSavingOutcomeId(null);
+      toast.error('Visit note not saved', 'This question or case is no longer available.');
+      return;
+    }
 
     awardPoints(15, 'Recorded visit note', 'consult', `visit_outcome_${targetId}`);
     triggerHapticSuccess();
@@ -263,6 +278,41 @@ export default function CasePrep() {
   }, [caseIdParam]);
 
   useEffect(() => {
+    let owner = captureAccountScope();
+    const refresh = (event: Event) => {
+      const nextOwner = captureAccountScope();
+      const changedOwner = !isAccountScopeCurrent(owner);
+      owner = nextOwner;
+      setCases(getCases().filter(c => c.status === 'active'));
+      if (changedOwner || event.type === 'hc_logout') {
+        setSelectedCase(null);
+        selectedCaseRef.current = null;
+        setBrief(null);
+        setSelectedBriefVersion(null);
+        setOutcomeNotes({}); setOutcomeStatuses({}); setOutcomeDoctorActions({});
+        setIsRefining(false);
+        setShowPicker(true);
+        return;
+      }
+      const id = selectedCaseRef.current?.id;
+      if (id) {
+        const latest = getCase(id) || null;
+        setSelectedCase(previous => JSON.stringify(previous) === JSON.stringify(latest) ? previous : latest);
+        if (!latest) { setBrief(null); setSelectedBriefVersion(null); setShowPicker(true); }
+      }
+      if (event.type === 'hc_profile_updated') setProfileRevision(value => value + 1);
+    };
+    window.addEventListener('hc_cases_updated', refresh);
+    window.addEventListener('hc_profile_updated', refresh);
+    window.addEventListener('hc_logout', refresh);
+    return () => {
+      window.removeEventListener('hc_cases_updated', refresh);
+      window.removeEventListener('hc_profile_updated', refresh);
+      window.removeEventListener('hc_logout', refresh);
+    };
+  }, []);
+
+  useEffect(() => {
     if (selectedCase) {
       const profile = getProfile();
       let currentBrief = selectedCase.appointmentBriefs?.current;
@@ -273,7 +323,7 @@ export default function CasePrep() {
       setBrief(currentBrief);
       awardPoints(15, 'Generated Physician Appointment Brief', 'consult', 'brief_gen_' + selectedCase.id);
     }
-  }, [selectedCase]);
+  }, [selectedCase, profileRevision]);
 
   useEffect(() => {
     if (!showDrawer && !showPicker) return;
@@ -288,17 +338,27 @@ export default function CasePrep() {
   }, [showDrawer, showPicker, selectedCase]);
 
   const handleRefine = async () => {
-    if (!displayedBrief || !selectedCase || isViewingArchived) return;
+    if (!displayedBrief || !selectedCase || isViewingArchived || isRefining) return;
+    const owner = captureAccountScope();
+    const caseId = selectedCase.id;
+    const stillSelected = () => isAccountScopeCurrent(owner) && selectedCaseRef.current?.id === caseId;
     setIsRefining(true);
     try {
       const refined = await refineAppointmentBrief(displayedBrief);
+      if (!stillSelected()) return;
+      const latest = getCase(caseId);
+      if (!latest || !isBriefUpToDate(displayedBrief, latest, getProfile())) {
+        toast.error('Case changed', 'The case or profile changed during refinement. Generate a current brief and retry.');
+        return;
+      }
       if (refined) {
         const saved = saveAppointmentBrief(selectedCase.id, refined);
         if (saved) {
           setSelectedCase(saved);
           setBrief(saved.appointmentBriefs?.current || refined);
         } else {
-          setBrief(refined);
+          toast.error('Refinement not saved', 'This case is no longer available.');
+          return;
         }
         awardPoints(10, 'AI Refined Appointment Brief', 'consult', 'brief_refined_' + selectedCase.id);
         triggerHapticSuccess();
@@ -308,9 +368,9 @@ export default function CasePrep() {
       }
     } catch (e) {
       console.error('Failed to refine appointment brief:', e);
-      toast.error('Refinement Failed', 'Could not refine appointment brief. Please try again.');
+      if (stillSelected()) toast.error('Refinement Failed', 'Could not refine appointment brief. Please try again.');
     } finally {
-      setIsRefining(false);
+      if (isAccountScopeCurrent(owner)) setIsRefining(false);
     }
   };
 

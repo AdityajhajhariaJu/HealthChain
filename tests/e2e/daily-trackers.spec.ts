@@ -155,6 +155,7 @@ test('baseline medicines reach the schedule and baseline edits preserve time, ID
   await time.fill('21:30');
   await page.getByRole('button', { name: 'Take Dose', exact: true }).click();
   await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
   await expect(card).toHaveAttribute('aria-label', /All Taken/);
   await page.getByRole('button', { name: 'Edit Baseline' }).click();
   await page.getByRole('button', { name: 'Save Baseline & Sync Across Features' }).click();

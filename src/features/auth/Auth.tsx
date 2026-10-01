@@ -9,6 +9,8 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { awardSignupBonus } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { HCLogo } from '../../components/ui/HCLogo';
+import { authRedirectUrl, openAuthProvider } from '../../services/NativeAuth';
+import { Capacitor } from '@capacitor/core';
 
 export default function Auth() {
   const isMobile = useIsMobile();
@@ -49,19 +51,17 @@ export default function Auth() {
     try {
       setLoading(true);
       setError('');
-      const callbackOrigin = window.location.hostname === 'www.healthchain360.com'
-        ? 'https://healthchain360.com'
-        : window.location.origin;
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${callbackOrigin}/auth/callback`,
+          redirectTo: authRedirectUrl('/auth/callback'),
           skipBrowserRedirect: true,
         }
       });
       if (error) throw error;
       if (!data?.url) throw new Error('The secure Google sign-in URL could not be created. Please try again.');
-      window.location.assign(data.url);
+      await openAuthProvider(data.url);
+      if (Capacitor.getPlatform() !== 'web') setLoading(false);
     } catch (err: any) {
       const message = err?.message || 'Google sign-in could not be started. Please try again.';
       setError(message);
@@ -79,7 +79,7 @@ export default function Auth() {
     try {
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-          redirectTo: `${window.location.origin}/update-password`,
+          redirectTo: authRedirectUrl('/update-password'),
         });
 
         if (error) {
@@ -164,6 +164,7 @@ export default function Auth() {
           password: formData.password,
           options: {
             data: { full_name: formData.name },
+            emailRedirectTo: authRedirectUrl('/auth/callback'),
           }
         });
 

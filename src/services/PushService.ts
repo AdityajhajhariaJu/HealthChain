@@ -1,6 +1,7 @@
 import { PushNotifications } from '@capacitor/push-notifications';
 import { supabase } from './supabaseClient';
 import { Capacitor } from '@capacitor/core';
+import { apiEndpoint } from './ApiEndpoint';
 import { captureAccountScope, isAccountScopeCurrent, type AccountScope } from './AccountScope';
 import { getItemSync, setItemSync, removeItemSync } from './storage';
 import { ensureNotificationChannel } from './NotificationDeviceService';
@@ -110,7 +111,7 @@ export async function testRemotePush(): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!isAccountScopeCurrent(scope) || session?.user.id !== scope.accountId) throw new Error('Account changed.');
   const requestId = crypto.randomUUID();
-  const response = await fetch('https://healthchain360.com/api/push-test', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, requestId }), signal: AbortSignal.timeout(25000) });
+  const response = await fetch(apiEndpoint('/api/push-test'), { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, requestId }), signal: AbortSignal.timeout(25000) });
   const result = await response.json();
   if (!isAccountScopeCurrent(scope)) throw new Error('Account changed.');
   const messages: Record<string, string> = { remote_push_not_configured: 'The remote sending service still needs configuration.', device_not_registered: 'Register this phone again before testing.', device_registration_expired: 'This phone registration expired. Register again before testing.', test_rate_limited: 'Wait one minute before another remote test.' };

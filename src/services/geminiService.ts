@@ -1,5 +1,6 @@
 import { captureAccountScope as captureHealthMemoryScope, isAccountScopeCurrent as isHealthMemoryScopeCurrent } from './AccountScope';
 import { compilePatientContext } from './MemoryService';
+import { apiEndpoint } from './ApiEndpoint';
 import { buildClinicalReviewPrompt, buildReviewEvidence, normalizeClinicalReview } from './clinicalReview';
 import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
@@ -12,8 +13,7 @@ import { normalizeFoodLocation } from '../../shared/food-location';
 
 // Vite proxies /api/gemini to the local backend in development. A same-origin default
 // also keeps the request inside the page's Content Security Policy.
-const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
-const API_URL = `${BACKEND_BASE}/api/gemini`;
+const API_URL = apiEndpoint('/api/gemini');
 
 async function sha256Hash(text: string): Promise<string> {
   try {
@@ -1923,7 +1923,6 @@ ${JSON.stringify(brief, null, 2)}
 
 export async function runJarvisInvestigation(history: string, files: { mimeType: string; data: string; name?: string }[], profile: any, sourceCase?: any): Promise<any> {
   const fileHashes = await Promise.all(files.map(file => sha256Hash(file.mimeType + ':' + file.data)));
-  const idempotencyKey = await sha256Hash(JSON.stringify({ operation: 'jarvis', history, fileHashes, profile }));
 
   const cleanConditions = (profile?.conditions || []).filter((c: string) => {
     const l = (c || '').toLowerCase();
@@ -1932,6 +1931,7 @@ export async function runJarvisInvestigation(history: string, files: { mimeType:
 
   const evidence = buildReviewEvidence(history, sourceCase);
   const prompt = buildClinicalReviewPrompt(history, profile, evidence) + '\nATTACHMENT FILENAMES: ' + JSON.stringify(files.map(f => f.name).filter(Boolean)) + '\nUSER REQUESTED SEPARATE RELATIONSHIPS (do not silently restore these as established connections): ' + JSON.stringify(sourceCase?.connectionMap?.decoupledEdgeIds || []);
+  const idempotencyKey = await sha256Hash(JSON.stringify({ operation: 'jarvis', fileHashes, prompt }));
 
   const payload = {
     contents: [

@@ -16,6 +16,7 @@ import { getCases } from '../../services/CaseEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getActiveProfileScope, getScopedStorageKey } from '../../services/profileScope';
 import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -24,6 +25,9 @@ export const ProgressGallery: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
+  const historyRequest = useRef(0);
+  const historyScope = useRef('');
+  const [historyError, setHistoryError] = useState('');
   const [mealDiary, setMealDiary] = useState<MealDiary>({});
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
   const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync(getScopedStorageKey('hc_progress_photo')));
@@ -31,68 +35,113 @@ export const ProgressGallery: React.FC = () => {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) {
+      toast.error('Photo not saved', 'Choose an image smaller than 2 MB.');
+      return;
+    }
+    const scope = captureAccountScope();
+    const key = getScopedStorageKey('hc_progress_photo');
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
-      if (dataUrl) {
+      if (dataUrl && isAccountScopeCurrent(scope)) {
+        setItemSync(key, dataUrl);
+        if (getItemSync(key) !== dataUrl) {
+          toast.error('Photo not saved', 'Device storage is full. Free some space and retry.');
+          return;
+        }
         setUserPhoto(dataUrl);
-        setItemSync(getScopedStorageKey('hc_progress_photo'), dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
         toast.success('Private photo saved', 'Visual note added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
       }
     };
+    reader.onerror = () => { if (isAccountScopeCurrent(scope)) toast.error('Photo not saved', 'This image could not be read. Choose another image.'); };
     reader.readAsDataURL(file);
   };
 
   useEffect(() => {
-    loadData();
+    const refresh = () => { void loadData(); };
+    const refreshOwner = () => {
+      const scope = captureAccountScope();
+      if (historyScope.current !== `${scope.key}:${scope.epoch}`) refresh();
+    };
+    refresh();
+    window.addEventListener('hc_profile_updated', refreshOwner);
+    window.addEventListener('hc_logout', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      historyRequest.current++;
+      window.removeEventListener('hc_profile_updated', refreshOwner);
+      window.removeEventListener('hc_logout', refresh);
+      window.removeEventListener('focus', refresh);
+    };
   }, []);
 
   useEffect(() => {
     let active = true;
+    let sequence = 0;
     const refreshMeals = () => {
-      void listMealDiary().then((diary) => { if (active) setMealDiary(diary); })
-        .catch(() => { if (active) setMealDiary({}); });
+      const scope = captureAccountScope();
+      const request = ++sequence;
+      setMealDiary({});
+      setUserPhoto(getItemSync(getScopedStorageKey('hc_progress_photo')));
+      const current = () => active && request === sequence && isAccountScopeCurrent(scope);
+      void listMealDiary().then((diary) => { if (current()) setMealDiary(diary); })
+        .catch(() => { if (current()) setMealDiary({}); });
     };
     refreshMeals();
     window.addEventListener('hc_observations_updated', refreshMeals);
     window.addEventListener('hc_profile_updated', refreshMeals);
+    window.addEventListener('hc_cases_updated', refreshMeals);
+    window.addEventListener('hc_logout', refreshMeals);
     return () => {
       active = false;
       window.removeEventListener('hc_observations_updated', refreshMeals);
       window.removeEventListener('hc_profile_updated', refreshMeals);
+      window.removeEventListener('hc_cases_updated', refreshMeals);
+      window.removeEventListener('hc_logout', refreshMeals);
     };
   }, []);
 
   const loadData = async () => {
+    const scope = captureAccountScope();
+    const request = ++historyRequest.current;
+    historyScope.current = `${scope.key}:${scope.epoch}`;
+    const current = () => request === historyRequest.current && isAccountScopeCurrent(scope);
     try {
       setLoading(true);
+      setHistory([]);
+      setHistoryError('');
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      if (!current()) return;
+      if (session?.user?.id === scope.accountId) {
         const rawHistory = await FitnessService.getUserFitnessHistory(session.user.id);
+        if (!current()) return;
         setHistory(rawHistory || []);
-      }
+      } else setHistory([]);
     } catch (e) {
       console.error(e);
+      if (current()) setHistoryError('Activity history could not be loaded. Retry to check your saved sessions.');
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   };
 
   // 1. Process data for 7-day Trend Lines
+  const localDay = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+    return localDay(d);
   });
 
   const trendsData = last7Days.map(dateStr => {
     // find all history for this day
-    const dayRecords = history.filter(h => h.completed_at?.startsWith(dateStr));
+    const dayRecords = history.filter(h => h.completed_at && localDay(new Date(h.completed_at)) === dateStr);
     const cals = dayRecords.reduce((sum, r) => sum + (r.calories_burned || 0), 0);
     const mins = dayRecords.reduce((sum, r) => sum + Math.round((r.duration_seconds || 0) / 60), 0);
-    const dObj = new Date(dateStr);
+    const dObj = new Date(dateStr + 'T12:00:00');
     return {
       date: dateStr,
       displayDate: dObj.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -113,7 +162,7 @@ export const ProgressGallery: React.FC = () => {
     history.forEach(h => {
       const type = h.fitness_content?.type || h.content_type || 'unknown';
       if (type === 'meditation' || type === 'soundscape' || type === 'sleep_story' || type === 'breathwork') {
-        mindfulnessMinutes += Math.round((h.duration_seconds || 300) / 60);
+        mindfulnessMinutes += Math.round((h.duration_seconds || 0) / 60);
       }
     });
 
@@ -182,6 +231,7 @@ export const ProgressGallery: React.FC = () => {
       <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><VitalityNav /></div>
 
       <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
+        {historyError && <div role="alert" style={{ padding: 12, marginBottom: 16, color: '#92400E', background: '#FFFBEB', borderRadius: 12 }}>{historyError} <button type="button" onClick={() => void loadData()}>Retry history</button></div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px 0' }}>
@@ -199,7 +249,7 @@ export const ProgressGallery: React.FC = () => {
               const totalRest = trendsData.reduce((s, d) => s + d.minutes, 0);
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `Can you summarize what I actually logged in the last 7 days? I recorded ${totalEnergy} kcal of activity estimates and ${totalRest} calming minutes. Please separate the recorded facts from assumptions, identify gaps, and suggest what may be useful to discuss with my clinician.`
+                  initialPrompt: `Can you summarize what I actually logged in the last 7 days? I recorded ${totalEnergy} kcal of activity estimates and ${totalRest} activity minutes. Please separate the recorded facts from assumptions, identify gaps, and suggest what may be useful to discuss with my clinician.`
                 }
               });
             }}

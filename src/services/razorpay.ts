@@ -3,6 +3,8 @@
  * interrupted task resumption, and idempotent verification.
  */
 import { verifyProStatus } from './ProfileEngine';
+import { apiEndpoint } from './ApiEndpoint';
+import { PRODUCT_CATALOG } from '../../shared/productCatalog.js';
 
 export type PaymentPlanId =
   | 'pro_30_days'
@@ -60,6 +62,21 @@ const INTERRUPTED_TASK_PREFIX = 'hc_interrupted_task_';
  */
 let loadPromise: Promise<boolean> | null = null;
 
+async function paymentFetch(path: string, options: RequestInit, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(apiEndpoint(path), { ...options, signal: controller.signal });
+    // The deadline includes reading the response body, not only receiving headers.
+    const body = await response.json().catch(() => null);
+    return { ok: response.ok, status: response.status, json: async () => {
+      if (body === null) throw new Error('Payment service returned an unreadable response.');
+      return body;
+    } };
+  }
+  finally { clearTimeout(timer); }
+}
+
 export function loadRazorpaySDK(): Promise<boolean> {
   if (typeof window === 'undefined') return Promise.resolve(false);
 
@@ -80,13 +97,22 @@ export function loadRazorpaySDK(): Promise<boolean> {
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
+    const timeout = setTimeout(() => {
+      script.onload = null;
+      script.onerror = null;
+      loadPromise = null;
+      script.remove();
+      resolve(false);
+    }, 20000);
 
     script.onload = () => {
+      clearTimeout(timeout);
       loadPromise = null;
       resolve(Boolean((window as any).Razorpay));
     };
 
     script.onerror = () => {
+      clearTimeout(timeout);
       loadPromise = null;
       script.remove();
       resolve(false);
@@ -152,6 +178,7 @@ export function recordPendingPayment(record: PendingPaymentRecord): void {
   try {
     const key = `${PENDING_PAYMENT_PREFIX}${record.userId}`;
     localStorage.setItem(key, JSON.stringify(record));
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_payment_pending', { detail: { userId: record.userId } }));
   } catch (err) {
     console.warn('[Razorpay] Failed to record pending payment', err);
   }
@@ -163,7 +190,10 @@ export function getPendingPayment(userId?: string): PendingPaymentRecord | null 
     const key = `${PENDING_PAYMENT_PREFIX}${userId}`;
     const data = localStorage.getItem(key);
     if (!data) return null;
-    return JSON.parse(data) as PendingPaymentRecord;
+    const record = JSON.parse(data);
+    if (!record || record.userId !== userId || typeof record.orderId !== 'string' || !record.orderId ||
+      !Object.prototype.hasOwnProperty.call(PRODUCT_CATALOG, record.planId) || !Number.isFinite(record.timestamp)) return null;
+    return record as PendingPaymentRecord;
   } catch {
     return null;
   }
@@ -187,11 +217,10 @@ export async function pollPaymentEntitlement(
   maxAttempts: number = 5,
   intervalMs: number = 2000
 ): Promise<boolean> {
-  const backendBase = ((import.meta.env?.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const res = await fetch(`${backendBase}/api/verify-payment`, {
+      const res = await paymentFetch('/api/verify-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,14 +271,20 @@ export async function recoverPendingPayment(userId: string, token: string): Prom
 // Unified Razorpay Checkout Flow
 // ---------------------------------------------------------------------------
 
-export async function initiateRazorpayCheckout(
+type CheckoutOptions = { onPending?: (orderId: string) => void; planTitle?: string };
+const activeCheckouts = new Set<string>();
+export async function initiateRazorpayCheckout(planId: PaymentPlanId, user: { id: string; email?: string; name?: string; phone?: string }, token: string, options?: CheckoutOptions): Promise<CheckoutResult> {
+  if (activeCheckouts.has(user.id)) return { success: false, reason: 'network_error', message: 'A checkout is already in progress for this account.', pendingOrderId: getPendingPayment(user.id)?.orderId };
+  activeCheckouts.add(user.id);
+  try { return await performRazorpayCheckout(planId, user, token, options); }
+  finally { activeCheckouts.delete(user.id); }
+}
+
+async function performRazorpayCheckout(
   planId: PaymentPlanId,
   user: { id: string; email?: string; name?: string; phone?: string },
   token: string,
-  options?: {
-    onPending?: (orderId: string) => void;
-    planTitle?: string;
-  }
+  options?: CheckoutOptions
 ): Promise<CheckoutResult> {
   if (!token) {
     return {
@@ -258,6 +293,8 @@ export async function initiateRazorpayCheckout(
       message: 'You must be signed in to upgrade or top up.',
     };
   }
+  const pending = getPendingPayment(user.id);
+  if (pending) return { success: false, reason: 'network_error', pendingOrderId: pending.orderId, message: 'A previous payment is awaiting confirmation. Check its saved status before starting another payment.' };
 
   const isLoaded = await loadRazorpaySDK();
   if (!isLoaded) {
@@ -268,12 +305,11 @@ export async function initiateRazorpayCheckout(
     };
   }
 
-  const backendBase = ((import.meta.env?.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
   // 1. Create order on server
   let orderData: any = null;
   try {
-    const orderRes = await fetch(`${backendBase}/api/create-order`, {
+    const orderRes = await paymentFetch('/api/create-order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -303,6 +339,10 @@ export async function initiateRazorpayCheckout(
   const razorpayKey =
     (import.meta.env?.VITE_RAZORPAY_KEY_ID as string | undefined) ||
     (typeof window !== 'undefined' && (window as any).__ENV__?.VITE_RAZORPAY_KEY_ID);
+
+  if (!orderData || typeof orderData.id !== 'string' || !orderData.id || !Number.isInteger(orderData.amount) || orderData.amount <= 0 || orderData.currency !== 'INR') {
+    return { success: false, reason: 'order_creation_failed', message: 'The payment order could not be confirmed. Please retry.' };
+  }
 
   if (!razorpayKey) {
     return {
@@ -362,7 +402,7 @@ export async function initiateRazorpayCheckout(
         handled = true;
 
         try {
-          const verifyRes = await fetch(`${backendBase}/api/verify-payment`, {
+          const verifyRes = await paymentFetch('/api/verify-payment', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -381,7 +421,7 @@ export async function initiateRazorpayCheckout(
             error: `Verification response format error (${verifyRes.status})`,
           }));
 
-          if (verifyData.success) {
+          if (verifyRes.ok && verifyData.success) {
             clearPendingPayment(user.id);
             await verifyProStatus();
 
@@ -400,12 +440,13 @@ export async function initiateRazorpayCheckout(
               orderId: orderData.id,
             });
           } else {
-            // Verification reported explicit failure
-            clearPendingPayment(user.id);
+            // Capture/provisioning/provider failures can be recoverable. Keep
+            // the order receipt until authoritative confirmation or dismissal.
+            options?.onPending?.(orderData.id);
             resolve({
               success: false,
               reason: 'verification_failed',
-              message: verifyData.error || 'Payment signature could not be verified.',
+              message: `${verifyData.error || 'Payment confirmation could not be completed.'} Check the saved payment status before paying again.`,
               pendingOrderId: orderData.id,
             });
           }
@@ -445,7 +486,12 @@ export async function initiateRazorpayCheckout(
       return;
     }
 
-    const rzp = new RazorpayConstructor(rzpOptions);
-    rzp.open();
+    try {
+      const rzp = new RazorpayConstructor(rzpOptions);
+      rzp.open();
+    } catch {
+      clearPendingPayment(user.id);
+      resolve({ success: false, reason: 'sdk_failed', message: 'Checkout could not be opened. Please retry.' });
+    }
   });
 }

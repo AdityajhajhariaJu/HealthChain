@@ -1,5 +1,5 @@
 import { VitalityNav } from '../../components/ui/VitalityNav';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Share, X, Star, MessageSquare } from 'lucide-react';
@@ -9,6 +9,7 @@ import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
@@ -28,6 +29,10 @@ export const TrophyCabinet: React.FC = () => {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [earnedSlugs, setEarnedSlugs] = useState<Set<string>>(new Set());
+  const badgeRequest = useRef(0);
+  const badgeScope = useRef('');
+  const [badgeError, setBadgeError] = useState('');
+  const [, setPointsRevision] = useState(0);
   const [selectedBadge, setSelectedBadge] = useState<any | null>(null);
 
   useEffect(() => {
@@ -41,16 +46,42 @@ export const TrophyCabinet: React.FC = () => {
   }, [selectedBadge]);
 
   useEffect(() => {
-    loadBadges();
+    const refresh = () => { void loadBadges(); };
+    const refreshOwner = () => {
+      const scope = captureAccountScope();
+      if (badgeScope.current !== `${scope.key}:${scope.epoch}`) refresh();
+    };
+    const refreshPoints = () => setPointsRevision(value => value + 1);
+    refresh();
+    window.addEventListener('hc_profile_updated', refreshOwner);
+    window.addEventListener('hc_points_updated', refreshPoints);
+    window.addEventListener('hc_logout', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      badgeRequest.current++;
+      window.removeEventListener('hc_profile_updated', refreshOwner);
+      window.removeEventListener('hc_points_updated', refreshPoints);
+      window.removeEventListener('hc_logout', refresh);
+      window.removeEventListener('focus', refresh);
+    };
   }, []);
 
   const loadBadges = async () => {
+    const scope = captureAccountScope();
+    const request = ++badgeRequest.current;
+    badgeScope.current = `${scope.key}:${scope.epoch}`;
+    const current = () => request === badgeRequest.current && isAccountScopeCurrent(scope);
     try {
       setLoading(true);
+      setEarnedSlugs(new Set());
+      setSelectedBadge(null);
+      setBadgeError('');
       const { data: { session } } = await supabase.auth.getSession();
+      if (!current()) return;
       
-      if (session?.user) {
+      if (session?.user?.id === scope.accountId) {
         const badges = await FitnessService.getUserBadges(session.user.id);
+        if (!current()) return;
         const slugs = new Set(badges.map(b => b.badge_slug));
         setEarnedSlugs(slugs);
       } else {
@@ -59,8 +90,9 @@ export const TrophyCabinet: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
+      if (current()) setBadgeError('Saved milestones could not be loaded. Retry to check your recorded achievements.');
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   };
 
@@ -92,6 +124,7 @@ export const TrophyCabinet: React.FC = () => {
       </div>
 
       <div style={{ padding: isMobile ? '0 24px 24px' : '0 40px 40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {badgeError && <div role="alert" style={{ padding: 12, color: '#92400E', background: '#FFFBEB', borderRadius: 12 }}>{badgeError} <button type="button" onClick={() => void loadBadges()}>Retry milestones</button></div>}
         
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', backgroundColor: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.05)' }}>

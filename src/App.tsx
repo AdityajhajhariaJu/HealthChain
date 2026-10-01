@@ -5,6 +5,7 @@ import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfill
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
 import { initGlobalHaptics } from './services/haptics';
 import { initNativeLifecycle } from './services/NativeLifecycle';
+import { installNativeAuthCallbacks } from './services/NativeAuth';
 import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory, getActiveCaseId } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -201,6 +202,8 @@ export default function App() {
   const navigate = useNavigate();
   const { info } = useToast();
   const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
+
+  useEffect(() => installNativeAuthCallbacks(navigate), [navigate]);
 
   useEffect(() => {
     const checkVip = async () => {
@@ -739,6 +742,4 @@ export default function App() {
     </SafeRoute>
   );
 }
-
-
 

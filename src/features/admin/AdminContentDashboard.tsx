@@ -5,12 +5,14 @@ import { supabase } from '../../services/supabaseClient';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { apiEndpoint } from '../../services/ApiEndpoint';
 
 export const AdminContentDashboard: React.FC = () => {
   const toast = useToast();
   const [contentList, setContentList] = useState<FitnessContent[]>([]);
   const [categories, setCategories] = useState<FitnessCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<FitnessContent>>({});
   const [contentToDelete, setContentToDelete] = useState<string | null>(null);
@@ -38,12 +40,16 @@ export const AdminContentDashboard: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const { data: contentData } = await supabase.from('fitness_content').select('*').order('created_at', { ascending: false });
-      const { data: catData } = await supabase.from('fitness_categories').select('*');
-      setContentList(contentData || []);
-      setCategories(catData || []);
+      setAccessError('');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sign in with an authorized content administrator account.');
+      const response = await fetch(apiEndpoint('/api/admin-content'), { headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(response.status === 403 ? 'This account does not have content administrator access.' : 'Content could not be loaded. Please retry.');
+      const data = await response.json();
+      setContentList(data.content || []);
+      setCategories(data.categories || []);
     } catch (err) {
-      console.error(err);
+      setAccessError(err instanceof Error ? err.message : 'Content could not be loaded. Please retry.');
     } finally {
       setLoading(false);
     }
@@ -58,7 +64,7 @@ export const AdminContentDashboard: React.FC = () => {
 
       const action = editForm.id ? 'update' : 'insert';
       
-      const res = await fetch('/api/admin-content', {
+      const res = await fetch(apiEndpoint('/api/admin-content'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +113,7 @@ export const AdminContentDashboard: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const res = await fetch('/api/admin-content', {
+      const res = await fetch(apiEndpoint('/api/admin-content'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,20 +151,24 @@ export const AdminContentDashboard: React.FC = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      toast.error('Upload Failed', 'Choose a JPEG, PNG or WebP image smaller than 2 MB.');
+      return;
+    }
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `covers/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('fitness-content')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from('fitness-content').getPublicUrl(filePath);
-      setEditForm({ ...editForm, cover_image_url: data.publicUrl });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sign in with an authorized content administrator account.');
+      const data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = () => reject(new Error('The image could not be read.'));
+        reader.readAsDataURL(file);
+      });
+      const response = await fetch(apiEndpoint('/api/admin-content'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ action: 'upload', payload: { data, mimeType: file.type } }), signal: AbortSignal.timeout(25000) });
+      const result = await response.json();
+      if (!response.ok || !result.url) throw new Error(result.error || 'The image could not be uploaded.');
+      setEditForm(current => ({ ...current, cover_image_url: result.url }));
       toast.success('Uploaded', 'Cover image uploaded successfully.');
     } catch (error) {
       console.error('Error uploading image: ', error);
@@ -167,6 +177,7 @@ export const AdminContentDashboard: React.FC = () => {
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading CMS...</div>;
+  if (accessError) return <div className="p-8"><h1>Content management</h1><p role="alert">{accessError}</p><button type="button" onClick={() => void loadData()}>Retry</button></div>;
   
     const getTypeColor = (type: string) => {
       switch(type) {

@@ -1,5 +1,5 @@
 import { getProfileKey } from '../../services/ProfileEngine';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FlaskConical, ExternalLink, Activity, Filter, ShieldCheck, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
@@ -15,6 +15,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { getScopedStorageKey } from '../../services/profileScope';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 
 
@@ -487,6 +488,16 @@ export default function ClinicalTrialsMatcher() {
   const toast = useToast();
   const { caseItem: activeCase } = getUnifiedCaseScope();
   const profile = getProfile();
+  const [, refreshScope] = useState(0);
+  const requestSequence = useRef(0);
+  const currentContext = useRef('');
+  const displayedContext = useRef('');
+  useEffect(() => {
+    const refresh = () => refreshScope(value => value + 1);
+    const events = ['hc_profile_updated', 'hc_cases_updated', 'hc_active_case_updated', 'hc_logout'];
+    events.forEach(name => window.addEventListener(name, refresh));
+    return () => { requestSequence.current++; events.forEach(name => window.removeEventListener(name, refresh)); };
+  }, []);
   const [loading, setLoading] = useState(true);
   const [researchItems, setResearchItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -533,6 +544,10 @@ export default function ClinicalTrialsMatcher() {
 
   const handleSaveToDossier = (item: any) => {
     if (!item) return;
+    if (loading || displayedContext.current !== currentContext.current) {
+      toast.error('Research changed', 'Wait for the current case search before saving evidence.');
+      return;
+    }
     if (!activeCase?.id) {
       toast.error('Select a case first', 'Research is saved as evidence in a specific case dossier.');
       return;
@@ -587,9 +602,13 @@ export default function ClinicalTrialsMatcher() {
   const chiefComplaint = activeCase?.intakeData?.chiefComplaint || '';
   const differentialsKey = caseDifferentials.slice().sort().join('|');
   const termsKey = effectiveTerms.slice().sort().join('|');
-  const cacheKey = `researchHub_v8_${activeCase?.id || 'manual'}_${termsKey}_${differentialsKey}_${patientAge}_${patientGender}_${chiefComplaint}`;
+  const cacheKey = `researchHub_v9_${getProfileKey()}_${activeCase?.id || 'manual'}_${termsKey}_${differentialsKey}_${patientAge}_${patientGender}_${chiefComplaint}`;
+  currentContext.current = cacheKey;
 
   const loadResearch = async (sourceToReload: 'trials' | 'literature' | 'all' = 'all') => {
+    const sequence = ++requestSequence.current;
+    const owner = captureAccountScope();
+    const current = () => sequence === requestSequence.current && currentContext.current === cacheKey && isAccountScopeCurrent(owner);
     setLoading(true);
     const searchTerms = effectiveTerms;
 
@@ -599,8 +618,8 @@ export default function ClinicalTrialsMatcher() {
       if (cached) {
         try {
           const parsedCache = JSON.parse(cached);
-          if (Array.isArray(parsedCache)) {
-            const sanitizedCache = parsedCache.map((item: any) => {
+          if (Array.isArray(parsedCache.items)) {
+            const sanitizedCache = parsedCache.items.map((item: any) => {
               const base = {
                 ...item,
                 title: cleanMedicalText(item.title),
@@ -621,7 +640,9 @@ export default function ClinicalTrialsMatcher() {
               return base;
             });
             setResearchItems(sanitizedCache);
-            setSourceHealth({ trials: 'success', literature: 'success' });
+            displayedContext.current = cacheKey;
+            setSourceHealth(parsedCache.sources || { trials: 'idle', literature: 'idle' });
+            setRetrievalError(parsedCache.error || '');
             setLoading(false);
             return;
           }
@@ -636,6 +657,8 @@ export default function ClinicalTrialsMatcher() {
       const targetCase = activeCase || { id: 'manual_search', title: searchTerms.join(', ') };
       let newTrials: any[] = [];
       let newPapers: any[] = [];
+      let sources = { ...sourceHealth };
+      let sourceError = '';
 
       if (sourceToReload === 'trials' || sourceToReload === 'all') {
         setSourceHealth(prev => ({ ...prev, trials: 'loading' }));
@@ -649,36 +672,49 @@ export default function ClinicalTrialsMatcher() {
           fetchLiveTrials(searchTerms),
           fetchRecentLiterature(searchTerms)
         ]);
+        if (!current()) return;
         const trialsRes = results[0];
         const papersRes = results[1];
         newTrials = trialsRes.status === 'fulfilled' ? trialsRes.value : [];
         newPapers = papersRes.status === 'fulfilled' ? papersRes.value : [];
-        setSourceHealth({
+        sources = {
           trials: trialsRes.status === 'fulfilled' ? 'success' : 'failed',
           literature: papersRes.status === 'fulfilled' ? 'success' : 'failed',
-        });
+        };
+        setSourceHealth(sources);
         if (trialsRes.status !== 'fulfilled' || papersRes.status !== 'fulfilled') {
-          setRetrievalError('One or more research sources could not be reached. These results may be incomplete.');
+          sourceError = 'One or more research sources could not be reached. These results may be incomplete.';
+          setRetrievalError(sourceError);
         }
       } else if (sourceToReload === 'trials') {
         newPapers = researchItems.filter(i => !!i.journal);
         try {
           newTrials = await fetchLiveTrials(searchTerms);
+          if (!current()) return;
+          sources.trials = 'success';
           setSourceHealth(prev => ({ ...prev, trials: 'success' }));
         } catch {
+          if (!current()) return;
+          sources.trials = 'failed';
           newTrials = researchItems.filter(i => !i.journal);
           setSourceHealth(prev => ({ ...prev, trials: 'failed' }));
-          setRetrievalError('ClinicalTrials.gov could not be reached.');
+          sourceError = 'ClinicalTrials.gov could not be reached.';
+          setRetrievalError(sourceError);
         }
       } else if (sourceToReload === 'literature') {
         newTrials = researchItems.filter(i => !i.journal);
         try {
           newPapers = await fetchRecentLiterature(searchTerms);
+          if (!current()) return;
+          sources.literature = 'success';
           setSourceHealth(prev => ({ ...prev, literature: 'success' }));
         } catch {
+          if (!current()) return;
+          sources.literature = 'failed';
           newPapers = researchItems.filter(i => !!i.journal);
           setSourceHealth(prev => ({ ...prev, literature: 'failed' }));
-          setRetrievalError('Europe PMC / PubMed literature could not be reached.');
+          sourceError = 'Europe PMC / PubMed literature could not be reached.';
+          setRetrievalError(sourceError);
         }
       }
 
@@ -701,6 +737,8 @@ export default function ClinicalTrialsMatcher() {
       const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 0);
       const sortedItems = filteredItems.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
 
+      if (!current()) return;
+      displayedContext.current = cacheKey;
       setResearchItems(sortedItems);
       recordHealthMemory({
         kind: 'research',
@@ -717,18 +755,23 @@ export default function ClinicalTrialsMatcher() {
         awardPoints(2, `Clinical Research: ${searchTerms[0] || 'Topics'}`, 'research', `research_${todayStr}`);
       }
       try {
-        sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems));
+        sessionStorage.setItem(cacheKey, JSON.stringify({ items: sortedItems, sources, error: sourceError }));
       } catch {}
     } catch (err) {
-      console.error('Failed to load research items', err);
+      if (current()) setRetrievalError('Research could not be loaded. Please retry.');
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   };
 
   useEffect(() => {
+    displayedContext.current = '';
+    setResearchItems([]);
+    setSelectedItem(null);
+    try { const stored = getItemSync(savedTrialsKey); setSavedItems(stored ? JSON.parse(stored) : {}); } catch { setSavedItems({}); }
     loadResearch('all');
-  }, [activeCase?.id, termsKey, differentialsKey, patientAge, patientGender, chiefComplaint]);
+    return () => { requestSequence.current++; };
+  }, [cacheKey]);
 
   return (
     <div style={{

@@ -34,6 +34,9 @@ const requiredFiles = [
   '20261001113341_profile_atomic_field_sync.sql',
   '20261001114032_archive_complete_recovery.sql',
   '20261001115502_archive_case_identity_compatibility.sql',
+  '20261001142000_whole_app_feedback_and_payment_policies.sql',
+  '20261001143200_atomic_subscription_recovery.sql',
+  '20261001151500_legacy_function_search_paths.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -50,6 +53,8 @@ const requiredVerifierTokens = [
   'sync_health_profile_snapshot',
   'restore_health_archive_records',
   'activate_payment_entitlement',
+  'recover_subscription_entitlement',
+  'Legacy function search paths',
 ];
 
 const files = (await readdir(migrationsDir, { withFileTypes: true }))

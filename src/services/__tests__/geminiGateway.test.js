@@ -26,7 +26,7 @@ describe('Gut Gemini gateway contract', () => {
   });
 
   it('builds the Gut framing prompt and schema on the server', async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [] }) }));
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"proposedSymptom":"bloating","proposedMealPhrase":"Masala Chai","researchTopic":"caffeine","researchConcept":"tea","oneClarification":""}' }] } }] }) }));
     vi.stubGlobal('fetch', fetchMock);
     const res = response();
     await handler(request('gut_frame', { gutFramePayload: { question: 'Is tea linked to bloating?', savedMealNames: ['Masala Chai'] } }), res);
@@ -48,7 +48,7 @@ describe('Gut Gemini gateway contract', () => {
   });
 
   it('owns the research synthesis rules and action schema on the server', async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [] }) }));
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"summary":"No saved personal evidence was supplied.","nextAction":"leave_open","citationPassageIds":[]}' }] } }] }) }));
     vi.stubGlobal('fetch', fetchMock);
     const res = response();
     await handler(request('gut_reasoning', { gutPayload: { question: 'Is tea linked to bloating?', intent: 'understand', symptom: 'bloating', selectedMealPhrase: 'tea', deterministicRecordCounts: {}, personalRecords: [], nearbyContext: [], retrievedResearch: [], allowedSourceIds: [] } }), res);
@@ -67,5 +67,15 @@ describe('Gut Gemini gateway contract', () => {
     await handler(request('dietician_meal_plan', { contents: [{ parts: [{ text: 'Generate a plan' }] }], generationConfig: { responseMimeType: 'application/json' } }), res);
     expect(res.statusCode).toBe(401);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not complete a Gut request with blank or truncated provider output', async () => {
+    for (const provider of [{ candidates: [] }, { candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: '{"partial":true}' }] } }] }]) {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => provider })));
+      const res = response();
+      await handler(request('gut_frame', { gutFramePayload: { question: 'Is tea linked to bloating?', savedMealNames: [] } }), res);
+      expect(res.statusCode).toBe(502);
+      expect(res.body.requestState).toBe('failed');
+    }
   });
 });
