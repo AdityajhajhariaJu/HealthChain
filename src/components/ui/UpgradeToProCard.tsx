@@ -1,7 +1,7 @@
+import { motion } from 'framer-motion';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 
 interface UpgradeToProCardProps {

@@ -1,9 +1,8 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { safeNavigateBack } from '../../services/navigation';
 import { triggerHapticLight } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 
 const sectionStyle = { fontSize: '20px', marginTop: '32px', marginBottom: '12px', color: 'var(--text-primary)' };
 const bodyStyle = { marginBottom: '14px', color: 'var(--text-secondary)' };

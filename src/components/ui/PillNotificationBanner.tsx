@@ -1,13 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, Pill, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Pill, Check, X, Sparkles, Clock, Bell } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { toggleVitaminTaken, getTodayDateString, getVitaminSchedule } from '../../services/VitaminScheduleService';
+import {
+  isQuietHoursActive,
+  markNotificationAsDismissed,
+  markNotificationAsRead,
+} from '../../services/NotificationEngine';
 import { getActiveProfileScope } from '../../services/profileScope';
-import { isQuietHoursActive, markNotificationAsRead, markNotificationAsDismissed } from '../../services/NotificationEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import {
+  getTodayDateString,
+  getVitaminSchedule,
+  toggleVitaminTaken,
+} from '../../services/VitaminScheduleService';
 
 interface PillNotificationData {
   id?: string;

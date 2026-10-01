@@ -1,78 +1,76 @@
-import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { VitalityRing } from '../../components/ui/VitalityRing';
-import { SensualLineChart } from '../../components/ui/SensualLineChart';
-import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
-import { getItemSync, removeItemSync } from '../../services/storage';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { useToast } from '../../components/ui/ToastProvider';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  FolderHeart,
   Activity,
-  Clock,
-  ShieldCheck,
-  Link2,
-  User,
-  Users,
-  HeartPulse,
-  Beaker,
-  FileText,
-  Download,
-  Trash2,
-  X,
-  Plus,
-  Edit2,
-  Check,
   AlertTriangle,
-  BriefcaseBusiness,
-  Stethoscope,
-  ChevronRight,
-  ChevronDown,
   ArrowRight,
-  Sparkles,
-  ClipboardCheck,
-  Dna,
+  Beaker,
+  BriefcaseBusiness,
   Camera,
+  Check,
+  ChevronDown,
+  Clock,
+  Dna,
+  Download,
+  FolderHeart,
+  HeartPulse,
+  Lock,
   Mail,
   MessageSquare,
-  Lock,
+  Moon,
   Pill,
+  Plus,
+  ShieldCheck,
+  Sparkles,
   Sun,
   Sunrise,
   Sunset,
-  Moon,
+  Trash2,
+  User,
+  X,
 } from 'lucide-react';
-import { CalmApothecaryCapsule, CalmBadge } from '../../components/ui/CalmApothecaryCapsule';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { useNavigate } from 'react-router-dom';
 import {
-  getProfile,
-  updateDemographics,
-  addCondition,
-  removeCondition,
-  removeMedication,
-  addMedication,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { CalmApothecaryCapsule, CalmBadge } from '../../components/ui/CalmApothecaryCapsule';
+import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
+import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
+import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import { useToast } from '../../components/ui/ToastProvider';
+import { VitalityRing } from '../../components/ui/VitalityRing';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import {
   addAllergy,
-  removeAllergy,
+  addCondition,
   addFamilyHistory,
-  removeFamilyHistory,
-  toggleActionItem,
-  removeActionItem,
-  clearProfile,
+  addMedication,
   calculateHealthScore,
-
+  clearProfile,
+  getProfile,
   getProfileEngineState,
   getProfileKey,
+  removeActionItem,
+  removeAllergy,
+  removeCondition,
+  removeFamilyHistory,
+  removeMedication,
+  toggleActionItem,
+  updateDemographics,
 } from '../../services/ProfileEngine';
-import { getActiveCase } from '../../services/CaseEngine';
+import { getRunScope } from '../../services/RunContext';
+import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { generateProfileSynthesis } from '../../services/geminiService';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { getRunScope } from '../../services/RunContext';
-import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getItemSync, removeItemSync } from '../../services/storage';
 
 
 export default function MedicalProfile() {

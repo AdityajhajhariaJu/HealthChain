@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowLeft, Send, ArrowRight } from 'lucide-react';
-import { analyzeFoodEntry } from '../../services/geminiService';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { ArrowLeft, ArrowRight, Send, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { safeNavigateBack } from '../../services/navigation';
-import { createMeal, mealEntryFromAnalysis } from '../../services/MealCommandService';
-import { recordHealthMemory } from '../../services/HealthMemory';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { analyzeFoodEntry } from '../../services/geminiService';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { recordHealthMemory } from '../../services/HealthMemory';
+import { createMeal, mealEntryFromAnalysis } from '../../services/MealCommandService';
+import { safeNavigateBack } from '../../services/navigation';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const RAPID_MEAL_BUILDERS = [
   '🥑 Avocado Toast & Poached Egg',

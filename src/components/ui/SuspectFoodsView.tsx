@@ -1,5 +1,5 @@
+import { ArrowRight, BookOpen } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { BookOpen, ArrowRight } from 'lucide-react';
 import { getGutSnapshot } from '../../services/GutHealthSummary';
 
 interface SuspectFoodsViewProps {

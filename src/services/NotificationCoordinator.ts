@@ -1,5 +1,5 @@
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 import { getActiveProfileScope } from './profileScope';
 

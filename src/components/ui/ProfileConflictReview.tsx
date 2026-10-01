@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import FocusTrap from './FocusTrap';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
-import { getProfileConflicts, settleProfileConflict, flushSyncOutbox } from '../../services/SyncOutbox';
+import {
+  flushSyncOutbox,
+  getProfileConflicts,
+  settleProfileConflict,
+} from '../../services/SyncOutbox';
+import FocusTrap from './FocusTrap';
 
 function valueText(value: any, missing: boolean) { return missing ? 'Removed' : typeof value === 'string' ? value || '(empty)' : JSON.stringify(value, null, 2); }
 export default function ProfileConflictReview() {

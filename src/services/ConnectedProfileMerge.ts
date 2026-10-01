@@ -1,6 +1,6 @@
-import { mergeProfileFields } from './ProfileFieldMerge';
-import { mergeGutThreads } from './GutThreadMerge';
 import { preserveDietPlanState } from './DietProfileMerge';
+import { mergeGutThreads } from './GutThreadMerge';
+import { mergeProfileFields } from './ProfileFieldMerge';
 const aliases = [['dietProfile','profile'], ['dietMealPlan','mealPlan'], ['dietArchivedPlans','archivedPlans'], ['dietGrocery','groceryList'], ['dietGuardrails','guardrails']];
 function canonical(profile: any) {
   const result = { ...(profile || {}), ...(profile?.dietician ? { dietician: { ...profile.dietician } } : {}) };

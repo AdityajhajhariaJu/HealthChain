@@ -1,10 +1,28 @@
-import React from 'react';
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  Calendar,
+  Camera,
+  Clock,
+  Droplet,
+  Edit2,
+  Info,
+  Lightbulb,
+  Minus,
+  Plus,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, Edit2, ArrowRight, Info, Lightbulb, Calendar } from 'lucide-react';
+import {
+  dietMealSlots,
+  mealSlotFor,
+  normalizeDietPreferences,
+} from '../../../shared/diet-preferences';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
 import { getHydrationData } from '../../services/HydrationService';
-import { dietMealSlots, mealSlotFor, normalizeDietPreferences } from '../../../shared/diet-preferences';
 
 export function DieticianDashboardTracker({ 
   profile, 

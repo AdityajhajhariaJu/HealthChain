@@ -1,7 +1,7 @@
+import { AlertOctagon, Check, Cloud, HardDrive, X } from 'lucide-react';
 import React, { useState } from 'react';
-import { AlertOctagon, X, Check, ArrowRight, HardDrive, Cloud } from 'lucide-react';
+import { CaseItem } from '../../services/CaseEngine';
 import { ConflictRecord } from '../../services/SyncTypes';
-import { CaseItem, getCases, saveCasePrepCase } from '../../services/CaseEngine';
 
 interface ConflictResolutionModalProps {
   isOpen: boolean;

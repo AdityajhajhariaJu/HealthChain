@@ -1,15 +1,21 @@
-import { captureAccountScope as captureHealthMemoryScope, isAccountScopeCurrent as isHealthMemoryScopeCurrent } from './AccountScope';
-import { compilePatientContext } from './MemoryService';
-import { apiEndpoint } from './ApiEndpoint';
-import { buildClinicalReviewPrompt, buildReviewEvidence, normalizeClinicalReview } from './clinicalReview';
-import { getActiveCase, AppointmentBrief } from './CaseEngine';
-import { supabase } from './supabaseClient';
-import { parseModelJson } from './modelJson';
-export { parseModelJson } from './modelJson';
-import { getDeterministicMedicineData } from './clinicalPharmacyData';
-import { buildVersionedEvidenceSet, runSubstantiveDebateRound } from './MultiPerspectiveReviewEngine';
-import { getCanonicalFeatureRegistryPrompt } from './FeatureArchitectureContract';
 import { normalizeFoodLocation } from '../../shared/food-location';
+import {
+  captureAccountScope as captureHealthMemoryScope,
+  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+} from './AccountScope';
+import { apiEndpoint } from './ApiEndpoint';
+import { AppointmentBrief } from './CaseEngine';
+import { getDeterministicMedicineData } from './clinicalPharmacyData';
+import {
+  buildClinicalReviewPrompt,
+  buildReviewEvidence,
+  normalizeClinicalReview,
+} from './clinicalReview';
+import { getCanonicalFeatureRegistryPrompt } from './FeatureArchitectureContract';
+import { compilePatientContext } from './MemoryService';
+import { parseModelJson } from './modelJson';
+import { supabase } from './supabaseClient';
+export { parseModelJson } from './modelJson';
 
 // Vite proxies /api/gemini to the local backend in development. A same-origin default
 // also keeps the request inside the page's Content Security Policy.

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import React, { useMemo, useState } from 'react';
 import { triggerHapticLight } from '../../services/haptics';
 import { getProfile } from '../../services/ProfileEngine';
 

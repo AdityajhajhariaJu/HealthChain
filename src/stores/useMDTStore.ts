@@ -1,10 +1,10 @@
-import { setOwned as set } from '../services/OwnedIdb';
+import { del, get } from 'idb-keyval';
 import { create } from 'zustand';
-import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
-import { get, del } from 'idb-keyval';
-import { getItemSync, setItemSync, removeItemSync } from '../services/storage';
+import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import { setOwned as set } from '../services/OwnedIdb';
 import { getAccountScope } from '../services/RunContext';
 import { getActiveProfileScope } from '../services/profileScope';
+import { getItemSync, removeItemSync, setItemSync } from '../services/storage';
 
 const scopedKey = (name: string) => `${name}_${getAccountScope()}_${getActiveProfileScope()}`;
 

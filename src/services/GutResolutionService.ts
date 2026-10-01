@@ -1,9 +1,13 @@
-import { getProfile, getProfileEngineState, getProfileKey, saveProfile } from './ProfileEngine';
-import { captureObservationScope, createObservation, listObservations, reviseObservation } from './HealthObservationService';
-import { getAccountScope } from './RunContext';
-import type { Answer, Observation } from '../domain/observations/types';
-import type { TimePrecision } from '../domain/observations/types';
+import type { Answer, Observation, TimePrecision } from '../domain/observations/types';
 import type { GutDay, GutMeal } from './GutHealthSummary';
+import {
+  captureObservationScope,
+  createObservation,
+  listObservations,
+  reviseObservation,
+} from './HealthObservationService';
+import { getProfile, getProfileEngineState, getProfileKey, saveProfile } from './ProfileEngine';
+import { getAccountScope } from './RunContext';
 
 export type GutIntent = 'understand' | 'decide' | 'now' | 'care';
 export type GutSymptom = 'unspecified' | 'bloating' | 'discomfort' | 'reflux' | 'nausea' | 'bowel_changes';

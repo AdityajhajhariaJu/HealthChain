@@ -1,69 +1,50 @@
+import { motion } from 'framer-motion';
+import { ArrowRight, Check, Droplet, FolderHeart, Plus, Scan, Utensils } from 'lucide-react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useActionIslandStore } from '../../store/actionIslandStore';
-import { 
-  Activity, 
-  ChevronRight, 
-  Clock, 
-  Crosshair, 
-  Flame, 
-  Gamepad2, 
-  Heart, 
-  Wind, 
-  Share2, 
-  Bookmark, 
-  Scan, 
-  Check, 
-  Droplet,
-  Droplets, 
-  BookOpen, 
-  Award, 
-  X, 
-  ShieldCheck,
-  ArrowRight,
-  FolderHeart,
-  Pill,
-  Plus,
-  FileText,
-  GitMerge,
-  Zap,
-  Leaf,
-  Utensils
-} from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { FeatureLoading } from '../../components/ui/FeatureLoading';
 
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
-import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
-import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
-import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
-import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
-import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
-import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
-import { getVitaminSchedule, markAllVitaminsTaken, VitaminItem } from '../../services/VitaminScheduleService';
-import { HydrationTrackerModal } from '../../components/ui/HydrationTrackerModal';
-import { getHydrationData, addWaterLog, HydrationDayData, getTodayDateString } from '../../services/HydrationService';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { useDeferredFeature } from '../../hooks/useDeferredFeature';
+import { FitnessContent } from '../../services/FitnessService';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import {
+  addWaterLog,
+  getHydrationData,
+  getTodayDateString,
+  HydrationDayData,
+} from '../../services/HydrationService';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
-import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import {
+  getVitaminSchedule,
+  markAllVitaminsTaken,
+  VitaminItem,
+} from '../../services/VitaminScheduleService';
+const MeditationPlayer = React.lazy(() => import('../../components/ui/MeditationPlayer').then(m => ({ default: m.MeditationPlayer })));
+const ARGroceryLens = React.lazy(() => import('../../components/ui/ARGroceryLens').then(m => ({ default: m.ARGroceryLens })));
+const CompleteProfileModal = React.lazy(() => import('../../components/ui/CompleteProfileModal').then(m => ({ default: m.CompleteProfileModal })));
+const VitaminSchedulerModal = React.lazy(() => import('../../components/ui/VitaminSchedulerModal').then(m => ({ default: m.VitaminSchedulerModal })));
+const HydrationTrackerModal = React.lazy(() => import('../../components/ui/HydrationTrackerModal').then(m => ({ default: m.HydrationTrackerModal })));
 
-import { VitalityNav } from '../../components/ui/FitnessNav';
 import { AnimatedTrackThumbnail } from '../../components/ui/AnimatedTrackThumbnail';
-import { getItemSync, setItemSync } from '../../services/storage';
+import { VitalityNav } from '../../components/ui/FitnessNav';
 import { getHabitStorageKey } from '../../services/profileScope';
+import { getItemSync, setItemSync } from '../../services/storage';
 
-import { getProfile } from '../../services/ProfileEngine';
-import { createMeal } from '../../services/MealCommandService';
 import { useToast } from '../../components/ui/ToastProvider';
+import { createMeal } from '../../services/MealCommandService';
+import { getProfile } from '../../services/ProfileEngine';
 
-import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
+import { ClinicalArticleSection } from './ClinicalArticleSection';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { GutHealthModal } from '../../components/ui/GutHealthModal';
-import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
-import { ClinicalArticleSection } from './ClinicalArticleSection';
+const GutHealthModal = React.lazy(() => import('../gut-health/components/GutHealthModal').then(m => ({ default: m.GutHealthModal })));
+const TriggerSensitivityModal = React.lazy(() => import('../../components/ui/TriggerSensitivityModal').then(m => ({ default: m.TriggerSensitivityModal })));
 
 interface CalmAudioItem {
   id: string;
@@ -405,6 +386,11 @@ export default function CaseDashboard() {
   const lastMeditationRef = useRef<FitnessContent | null>(null);
   const calmSpaceRef = useRef<HTMLDivElement | null>(null);
   const [showZenGardenModal, setShowZenGardenModal] = useState(false);
+  const loadCompleteProfile = useDeferredFeature(showCompleteProfileModal);
+  const loadVitamins = useDeferredFeature(showVitaminModal);
+  const loadHydration = useDeferredFeature(showHydrationModal);
+  const loadGutHealth = useDeferredFeature(showDetectiveModal);
+  const loadZenGarden = useDeferredFeature(showZenGardenModal);
 
   useEffect(() => {
     if (activeMeditation) {
@@ -1540,13 +1526,13 @@ export default function CaseDashboard() {
 
       <ClinicalArticleSection />
 
-      <CompleteProfileModal
+      {loadCompleteProfile && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><CompleteProfileModal
         isOpen={showCompleteProfileModal}
         onClose={() => setShowCompleteProfileModal(false)}
         onCompleted={refreshProfileAndTasks}
-      />
+      /></Suspense>)}
 
-      <VitaminSchedulerModal
+      {loadVitamins && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><VitaminSchedulerModal
         isOpen={showVitaminModal}
         onClose={() => {
           setShowVitaminModal(false);
@@ -1565,9 +1551,9 @@ export default function CaseDashboard() {
             // ignore
           }
         }}
-      />
+      /></Suspense>)}
 
-      <HydrationTrackerModal
+      {loadHydration && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><HydrationTrackerModal
         isOpen={showHydrationModal}
         onClose={() => {
           setShowHydrationModal(false);
@@ -1586,16 +1572,16 @@ export default function CaseDashboard() {
             // ignore
           }
         }}
-      />
+      /></Suspense>)}
 
       {activeMeditation && (
-        <MeditationPlayer 
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}><MeditationPlayer
           content={activeMeditation} 
           onClose={() => setActiveMeditation(null)} 
-        />
+        /></Suspense>
       )}
 
-      <GutHealthModal
+      {loadGutHealth && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><GutHealthModal
         isOpen={showDetectiveModal}
         initialThreadId={initialGutThreadId}
         onClose={() => setShowDetectiveModal(false)}
@@ -1604,9 +1590,9 @@ export default function CaseDashboard() {
         onOpenDiet={() => { setShowDetectiveModal(false); navigate('/app/dietician'); }}
         onOpenCasePrep={(caseId) => { setShowDetectiveModal(false); navigate(`/app/case-prep?caseId=${encodeURIComponent(caseId)}`, { state: { returnTo: '/app/today?gut=1', returnLabel: 'Back to Gut Health' } }); }}
         onOpenCases={() => { setShowDetectiveModal(false); navigate('/app/my-cases?new=true'); }}
-      />
+      /></Suspense>)}
 
-      <TriggerSensitivityModal
+      {loadZenGarden && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><TriggerSensitivityModal
         isOpen={showZenGardenModal}
         onClose={() => setShowZenGardenModal(false)}
         initialTab="garden"
@@ -1617,10 +1603,10 @@ export default function CaseDashboard() {
             calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         }}
-      />
+      /></Suspense>)}
 
       {showARLens && (
-        <ARGroceryLens
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}><ARGroceryLens
           onClose={() => setShowARLens(false)}
           onLogFood={async (food) => {
             try {
@@ -1639,7 +1625,7 @@ export default function CaseDashboard() {
               return false;
             }
           }}
-        />
+        /></Suspense>
       )}
 
     </div>

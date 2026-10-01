@@ -1,6 +1,6 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Activity } from 'lucide-react';
+import { Activity, Check, X } from 'lucide-react';
+import React from 'react';
 
 export type CalmCategoryKey = 
   | 'cardio'

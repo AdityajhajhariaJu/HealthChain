@@ -1,8 +1,8 @@
 import { Health } from '@capgo/capacitor-health';
-import { enqueueSync } from './SyncOutbox';
-import { supabase } from './supabaseClient';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 import { saveDeviceMetricLocally } from './DeviceMetricRepository';
+import { enqueueSync } from './SyncOutbox';
+import { supabase } from './supabaseClient';
 
 export type SupportedHealthMetric = 'steps' | 'sleep' | 'heartRate' | 'calories';
 export interface HealthSyncResult { queued: number; skipped: number; failures: number; status: 'queued' | 'partial' | 'no_data' }

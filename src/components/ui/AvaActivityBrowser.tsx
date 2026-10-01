@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import FocusTrap from './FocusTrap';
 import { FitnessService, type FitnessContent } from '../../services/FitnessService';
 import { captureHealthMemoryScope, isHealthMemoryScopeCurrent } from '../../services/HealthMemory';
+import FocusTrap from './FocusTrap';
 
 export function AvaActivityBrowser({ onClose }: { onClose: () => void }) {
   const scope = useRef(captureHealthMemoryScope()).current;

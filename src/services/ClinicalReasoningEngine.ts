@@ -1,4 +1,4 @@
-import { CategorizedInformationItem, classifyClinicalInformation } from './ClinicalInformationClassifier';
+import { CategorizedInformationItem } from './ClinicalInformationClassifier';
 
 // ==========================================
 // 10 REASONING STAGES DATA CONTRACTS

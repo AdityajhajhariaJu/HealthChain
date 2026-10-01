@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { BookOpen, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
 import { CLINICAL_ARTICLES, type MedicalArticle } from '../../data/ClinicalArticles';
-import { triggerHapticLight } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHapticLight } from '../../services/haptics';
 
 const DASHBOARD_ARTICLES = CLINICAL_ARTICLES.slice(0, 3).map((article, index) => ({
   article,

@@ -1,15 +1,18 @@
-import { setOwned as idbSet } from './OwnedIdb';
-import { supabase } from './supabaseClient';
-import { setItemSync, getItemSync, removeItemSync } from './storage';
-import { recordHealthMemory } from './HealthMemory';
-import {captureAccountScope as captureHealthMemoryScope,isAccountScopeCurrent as isHealthMemoryScopeCurrent} from './AccountScope';
-import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
 import { get as idbGet } from 'idb-keyval';
-import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
-import { cleanupCaseOriginalFiles, deleteOriginalCaseFile } from './caseRecordFiles';
-import { ConflictRecord } from './SyncTypes';
+import {
+  captureAccountScope as captureHealthMemoryScope,
+  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+} from './AccountScope';
 import { mergeCaseItems } from './CaseMergeEngine';
-import { recordTombstone, fetchRemoteTombstones } from './TombstoneManager';
+import { cleanupCaseOriginalFiles, deleteOriginalCaseFile } from './caseRecordFiles';
+import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
+import { recordHealthMemory } from './HealthMemory';
+import { setOwned as idbSet } from './OwnedIdb';
+import { getItemSync, removeItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
+import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
+import { ConflictRecord } from './SyncTypes';
+import { fetchRemoteTombstones, recordTombstone } from './TombstoneManager';
 
 function safeDispatchEvent(event: Event) {
   if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {

@@ -1,28 +1,42 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, 
-  BookOpen, Brain, BrainCircuit, FileText, Sparkles, MessageCircle,
-  Zap, AlertTriangle, Heart, Copy, Check, Activity, ArrowRight, ShieldCheck, AlertCircle
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  BrainCircuit,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  Copy,
+  Download,
+  FileText,
+  GitMerge,
+  Heart,
+  MessageCircle,
+  Network,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
-import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { useToast } from '../../components/ui/ToastProvider';
-import { triggerHapticLight } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import PathwaySimulator from './PathwaySimulator';
-import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
-import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
+import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { CaseItem } from '../../services/CaseEngine';
 import { classifyClinicalInformation } from '../../services/ClinicalInformationClassifier';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
-import { 
-  buildVersionedEvidenceSet, 
-  generateMeaningfulPerspectives, 
-  executeBoundedComparison 
+import { triggerHapticLight } from '../../services/haptics';
+import {
+  buildVersionedEvidenceSet,
+  executeBoundedComparison,
+  generateMeaningfulPerspectives,
 } from '../../services/MultiPerspectiveReviewEngine';
+import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import PathwaySimulator from './PathwaySimulator';
 
 const formatDate = (value: string) => {
   try {

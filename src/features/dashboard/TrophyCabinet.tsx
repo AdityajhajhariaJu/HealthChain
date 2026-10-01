@@ -1,15 +1,15 @@
-import { VitalityNav } from '../../components/ui/VitalityNav';
-import React, { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { MessageSquare, Share, Star, Trophy, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Share, X, Star, MessageSquare } from 'lucide-react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { FitnessService } from '../../services/FitnessService';
-import { supabase } from '../../services/supabaseClient';
-import { triggerHapticLight } from '../../services/haptics';
-import { getVitalityState } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { VitalityNav } from '../../components/ui/VitalityNav';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { FitnessService } from '../../services/FitnessService';
+import { triggerHapticLight } from '../../services/haptics';
+import { supabase } from '../../services/supabaseClient';
+import { getVitalityState } from '../../services/VitalityPointsEngine';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [

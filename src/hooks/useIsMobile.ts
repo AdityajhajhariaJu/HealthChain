@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(() => {
@@ -9,14 +9,21 @@ export function useIsMobile(breakpoint = 768) {
   });
 
   useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < breakpoint);
-    };
-    
-    checkIsMobile(); // Check on mount
-    
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
+    if (typeof window.matchMedia !== 'function') {
+      const check = () => setIsMobile(window.innerWidth < breakpoint);
+      check();
+      window.addEventListener('resize', check, { passive: true });
+      return () => window.removeEventListener('resize', check);
+    }
+    const query = window.matchMedia(`(max-width: ${breakpoint - 0.02}px)`);
+    const checkIsMobile = () => setIsMobile(query.matches);
+    checkIsMobile();
+    if (query.addEventListener) {
+      query.addEventListener('change', checkIsMobile);
+      return () => query.removeEventListener('change', checkIsMobile);
+    }
+    query.addListener(checkIsMobile);
+    return () => query.removeListener(checkIsMobile);
   }, [breakpoint]);
 
   return isMobile;

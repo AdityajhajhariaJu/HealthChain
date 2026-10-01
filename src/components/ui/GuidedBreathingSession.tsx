@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import FocusTrap from './FocusTrap';
+import type { FitnessContent } from '../../services/FitnessService';
 import {
   captureHealthMemoryScope,
+  flushHealthMemory,
   isHealthMemoryScopeCurrent,
   recordHealthMemory,
-  flushHealthMemory,
 } from '../../services/HealthMemory';
-import type { FitnessContent } from '../../services/FitnessService';
+import FocusTrap from './FocusTrap';
 
 export function GuidedBreathingSession({
   onClose,

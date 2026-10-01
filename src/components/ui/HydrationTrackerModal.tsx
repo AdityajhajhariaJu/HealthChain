@@ -1,29 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Droplets, 
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bell,
+  BellOff,
+  Check,
   Droplet,
+  Droplets,
+  RotateCcw,
+  Sparkles,
+  Trash2,
   Waves,
-  X, 
-  Trash2, 
-  Bell, 
-  BellOff, 
-  Check, 
-  Sparkles, 
-  RotateCcw
+  X,
 } from 'lucide-react';
-import { 
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  addWaterLog,
   getHydrationData,
   getTodayDateString,
-  addWaterLog, 
-  removeWaterLog, 
-  setHydrationTarget, 
-  setHydrationReminders, 
-  HydrationDayData, 
-  HydrationLogItem 
+  HydrationDayData,
+  HydrationLogItem,
+  removeWaterLog,
+  setHydrationReminders,
+  setHydrationTarget,
 } from '../../services/HydrationService';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 
 interface HydrationTrackerModalProps {
   isOpen: boolean;

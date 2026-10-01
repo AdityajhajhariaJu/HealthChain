@@ -1,11 +1,11 @@
 import {
+  AppointmentBrief,
+  CaseAction,
   CaseItem,
   CaseUpdate,
   ClinicalQuestion,
   MedicalRecord,
   ReviewSnapshot,
-  CaseAction,
-  AppointmentBrief,
 } from './CaseEngine';
 import { ConflictRecord } from './SyncTypes';
 

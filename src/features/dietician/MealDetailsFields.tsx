@@ -1,4 +1,3 @@
-import React from 'react';
 import './DietEveryday.css';
 export const emptyMealDetails = () => ({
   time: '',

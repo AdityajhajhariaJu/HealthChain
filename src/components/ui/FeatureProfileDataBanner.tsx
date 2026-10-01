@@ -1,37 +1,30 @@
-import { getActiveProfileScope } from '../../services/profileScope';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, 
-  ShieldCheck, 
-  HeartPulse, 
-  Pill, 
-  Edit3, 
-  Plus, 
-  X, 
-  Check, 
-  Activity, 
-  Flame, 
-  Scale, 
-  Ruler, 
-  AlertTriangle,
-  ChevronRight,
-  Info,
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  Check,
+  Edit3,
+  Pill,
+  Plus,
+  Shield,
+  ShieldCheck,
   Stethoscope,
-  Shield
+  X,
 } from 'lucide-react';
-import { 
-  getProfile, 
-  saveProfile, 
-  addCondition, 
-  removeCondition, 
-  addMedication, 
-  removeMedication, 
-  addAllergy, 
-  removeAllergy 
-} from '../../services/ProfileEngine';
-import { triggerHapticLight, triggerHapticSelection, triggerHapticSuccess } from '../../services/haptics';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import {
+  getProfile,
+  removeAllergy,
+  removeCondition,
+  removeMedication,
+  saveProfile,
+} from '../../services/ProfileEngine';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import { getActiveProfileScope } from '../../services/profileScope';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';

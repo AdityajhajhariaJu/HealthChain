@@ -1,24 +1,33 @@
-import { setOwned } from './OwnedIdb';
 import * as idb from 'idb-keyval';
-import { getItemSync, setItemSync, removeItemSync } from './storage';
+import { validateObservationDraft } from '../domain/observations/types';
 import {
-  captureHealthMemoryScope,
-  isHealthMemoryScopeCurrent,
-  exportHealthMemory,
-  normalizeHealthMemoryItems,
-} from './HealthMemory';
+  CLOUD_ARCHIVE_TABLES,
+  validateArchiveQueue,
+  validateCloudRecovery,
+} from './ArchiveRecoveryValidation';
 import {
   avaConversationKey,
   hydrateAvaMessages,
   normalizeAvaMessages,
 } from './AvaConversationRepository';
+import {
+  ALLOWED_FILE_MIME_TYPES,
+  MAX_FILE_SIZE_BYTES,
+  originalBlobFromStored,
+  storeOriginalBlob,
+} from './caseRecordFiles';
+import { isDurableHealthStorageKey, isOwnerStorageKey } from './DurableHealthStorage';
+import {
+  captureHealthMemoryScope,
+  exportHealthMemory,
+  isHealthMemoryScopeCurrent,
+  normalizeHealthMemoryItems,
+} from './HealthMemory';
 import { listObservationHistory } from './HealthObservationService';
-import { validateObservationDraft } from '../domain/observations/types';
-import { isOwnerStorageKey, isDurableHealthStorageKey } from './DurableHealthStorage';
-import { ALLOWED_FILE_MIME_TYPES, MAX_FILE_SIZE_BYTES, originalBlobFromStored, storeOriginalBlob } from './caseRecordFiles';
+import { setOwned } from './OwnedIdb';
+import { getItemSync, removeItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
-import { restoreArchivedSyncQueue, exportSyncQueue } from './SyncOutbox';
-import { CLOUD_ARCHIVE_TABLES, validateCloudRecovery, validateArchiveQueue } from './ArchiveRecoveryValidation';
+import { exportSyncQueue, restoreArchivedSyncQueue } from './SyncOutbox';
 
 type ArchivedOriginal = { encoding: 'base64'; data: string; type: string; size: number; sha256: string };
 const MAX_ARCHIVE_ORIGINAL_BYTES = 100 * 1024 * 1024;

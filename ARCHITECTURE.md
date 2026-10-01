@@ -1,87 +1,63 @@
-﻿# HealthChain360 Architecture Guide
+# HealthChain architecture
 
-Welcome to the HealthChain360 codebase. This document serves as the primary map for new developers onboarding onto the project. 
+This guide describes the active source tree as of 1 October 2026. The [functional audit](docs/WHOLE-APP-FUNCTIONAL-AUDIT.md) records provider/device boundaries and known remaining work.
 
-This application uses a highly modular **Feature-Sliced Design**, optimized for Vite code-splitting, aggressive offline caching, and strict serverless security.
+## Directory responsibilities
 
-## Core Tech Stack
-* **Frontend:** React 18, Vite, React Router, TailwindCSS, Lucide Icons
-* **Global State:** Zustand (stores/), React Query
-* **Offline Storage:** \idb-keyval\ (IndexedDB) for heavy data, \localStorage\ for sync state
-* **Backend:** Vercel Serverless Functions (Node.js)
-* **Database & Auth:** Supabase (PostgreSQL, Row-Level Security)
-* **AI Provider:** Google Gemini 2.5 Flash
-* **Payments:** Razorpay
+```text
+api/                       Vercel endpoints and authenticated/provider guards
+server/                    Server-only validation, rate limits and transports
+shared/                    Pure contracts used by frontend and backend
+src/
+  App.tsx                  Routes, account lifecycle and global recovery
+  main.tsx                 Native preference restore, providers and mount
+  features/                Auth, daily dashboard, Gut, Diet, Ava/clinical,
+                           profiles, case preparation, tools and legal pages
+    gut-health/components/ Gut views and their scoped styles
+  components/layout/       Protected shell and navigation
+  components/ui/           UI shared across feature domains
+  domain/                  Observation and clinical domain types/contracts
+  services/                Scoped repositories, commands, sync and integrations
+  stores/                  Zustand stores, including the action island
+  hooks/                   Reusable React hooks
+  data/                    Maintained local catalogs and reference definitions
+scripts/                   Build/schema guards and operational evaluations
+  lib/                     Maintainer-only legacy migration preview
+tests/e2e/                 Browser user journeys and failure-path fixtures
+supabase/
+  migrations/              Append-only schema/policy history
+  tests/                   Rolled-back synthetic database checks
+  verify_production.sql    Live schema and permission assertions
+  APPLY_ALL.sql            Generated initial-install migration bundle
+public/                    Referenced static assets and discovery files
+android/, ios/             Native project source and platform configuration
+docs/                      Audits, use cases, implementation and release records
+```
 
----
+## Runtime and loading
 
-## Directory Structure
+Routes load their own screen modules. The dashboard defers Gut Health, medication/hydration dialogs, photo analysis and meditation until opened. The progress archive loads its 3D renderer only in the archive tab. PDF export is dynamic and absent from the initial static JavaScript graph. `SafeRoute` supplies loading/error recovery; feature boundaries preserve the surrounding page during tool loading.
 
-\\\	ext
-/
-├── api/                  # Vercel Serverless Functions (Backend)
-│   ├── cron/             # Scheduled tasks (e.g., revoking expired entitlements)
-│   ├── utils/            # Shared backend logic (e.g., IP & User rate limiting)
-│   └── gemini.js         # Secure AI Proxy (Hides API keys from the browser)
-│
-├── src/                  # React Frontend
-│   ├── components/       # Shared UI components
-│   │   ├── layout/       # AppShell, ProtectedRoutes
-│   │   └── ui/           # Buttons, Modals, ErrorBoundaries
-│   │
-│   ├── features/         # Feature-Sliced Domains (Code-Split Entry Points)
-│   │   ├── auth/         # Login, Password Reset
-│   │   ├── dashboard/    # Case Management, DDx Board
-│   │   ├── mdt/          # Multi-Disciplinary Team (AI Collaboration)
-│   │   └── profile/      # Settings, Medical Profile
-│   │
-│   ├── hooks/            # Custom React Hooks (\useIsMobile\, etc.)
-│   ├── services/         # Core Business Logic & External APIs
-│   │   ├── CaseEngine.ts # AI prompt engineering & case management
-│   │   └── SyncOutbox.ts # Offline-first synchronization engine
-│   │
-│   └── stores/           # Zustand Global State
-│
-└── supabase/             # Database Infrastructure
-    └── migrations/       # PostgreSQL Schema & RLS Policies
-\\\
+Vite chooses shared chunks automatically. The previous PDF manual chunk pulled nearly 1 MB of export dependencies into startup. `scripts/check-build-budget.mjs` uses the actual emitted manifest to reject regressions. Bundle analysis is optional and is not a public production asset.
 
----
+Public catalog reads share in-flight requests, have independent five-minute expiration and bounded cache keys. A cancelled view does not cancel another consumer's public request. Failed requests can retry; confirmed content mutations invalidate the cache. Account health records do not use this public cache.
 
-## Key Architectural Patterns
+## Data ownership and synchronization
 
-### 1. Offline-First Synchronization (\SyncOutbox.ts\)
-The app is designed to work in intermittent network conditions (e.g., inside hospitals).
-* **Local Mutations First:** When a user creates a case, it is immediately written to IndexedDB.
-* **Sync Outbox:** A mutation event is queued in \SyncOutbox.ts\. 
-* **Conflict Resolution:** We use **Last-Write-Wins (LWW)** based on timestamps. If the cloud version has a newer \updated_at\, the local device will gracefully drop its sync payload to prevent overwriting newer data from another device.
+The active account/profile scopes repositories and storage. Local events, source records, AI interpretations, reviewed memory and plans retain separate meaning. Commands write the canonical owner-scoped records; cross-feature views use their shared projections and explicit links.
 
-### 2. Large Payload Storage (\idb-keyval\)
-Medical transcripts and multi-agent AI JSON payloads can easily exceed the browser's 5MB \localStorage\ limit. 
-* To prevent \QuotaExceededError\ crashes, all heavy arrays (Cases, MDT transcripts, Health Memory) are serialized into **IndexedDB** using \idb-keyval\.
-* \localStorage\ is reserved exclusively for small, synchronous state (UI preferences, active profile ID).
+Cases, observations, conversations and sync queues use IndexedDB where appropriate. Small settings and compatibility projections use local storage. Native Preferences writes are serialized; startup restores with bounded parallel reads and an overall deadline. Delayed restore reads cannot overwrite later edits or revive cleared values. Native restore timing and two-device convergence still require signed-device acceptance.
 
-### 3. Defensive AI & Array Capping (\CaseEngine.ts\)
-To prevent infinite payload expansion (which causes AI token exhaustion and database bloat), all chronological arrays are strictly capped:
-* \events.slice(0, 100)\
-* \medicalRecords.slice(0, 50)\
-* \differentialHistory.slice(0, 20)\
+The sync outbox keeps version and conflict information. Concurrent conflicts are preserved for review; it is inaccurate to describe all sync as silently dropping an older device's work. Logout retains owned durable records and recovery receipts; confirmed erasure removes only the selected owner's data with retry tracking.
 
-### 4. Secure AI Proxying (\pi/gemini.js\)
-The Gemini API key is **never** bundled in the Vite frontend.
-* The frontend makes requests to \/api/gemini\.
-* The Vercel Serverless Function attaches the secret \GEMINI_API_KEY\.
-* The proxy enforces a dual-tier rate limit (IP-based and User-ID-based) to prevent billing abuse.
-* \ercel.json\ sets \maxDuration: 60\ to ensure long-running AI streaming requests do not timeout.
+## APIs, authority and persistence
 
-### 5. Server-Only Ledger Tables & RLS (\supabase/migrations/\)
-The database security model utilizes **Row-Level Security (RLS)** to the maximum extent.
-* Standard tables (\cases\, \profiles\) strictly enforce \uth.uid() = user_id\.
-* **Ledger Tables** (\payments\, \i_requests\, \i_usage_daily\) have explicit \evoke all from anon, authenticated\ constraints.
-* This means even if a malicious user compromises a JWT, they cannot mutate their billing status or AI quota, as those tables are only readable/writable by the Vercel \service_role\ backend.
+Browser APIs use the page origin. Bundled native APIs use the configured HTTPS backend or `https://healthchain360.com`; CSP and CORS must allow the chosen backend. Native Auth callbacks use PKCE and the registered app scheme. Provider redirect configuration and phone return acceptance remain external gates.
 
-### 6. Seamless Deployment Recovery (\FallbackError.tsx\)
-Vite code-splits the app into hashed chunks (e.g., \CaseDashboard-X9y8z7.js\). 
-* When a new deployment occurs, Vercel deletes the old chunks.
-* If a user with a stale browser tab attempts to navigate, Vite throws a \dynamically imported module\ error.
-* The global \ErrorBoundary\ catches this specific error and silently reloads the window to pull the latest \index.html\, preventing broken sessions without disrupting the user experience.
+Model calls pass through `/api/gemini`, operation controls, bounded transport, request/quota ledgers and response validation. Structure checks are distinct from clinical or food-composition correctness. Razorpay creates/verifies orders through the shared server catalog and authoritative fulfillment/refund ledger. Pending receipts survive interruption and block duplicate checkout until reconciled.
+
+Supabase RLS enforces owner boundaries. Internal ledger mutations stay server-only; some owned history is readable by clients. Content-admin authority comes from fresh server-controlled metadata or a server-only allowlist. Public fitness covers are distinct from private medical originals.
+
+## Maintenance and deployment
+
+Use the committed lockfile and keep generated folders ignored. Run schema, repository, unit, build and browser gates before release. Apply only missing database migrations on an existing project; `APPLY_ALL.sql` is for initial installation, not repeated incremental deployment. Verify the exact pushed SHA and deployed assets. The [maintenance record](docs/REPOSITORY-MAINTENANCE.md) explains the measured changes and limits.

@@ -1,11 +1,11 @@
+import type { Answer, MealReactionRecord } from '../domain/observations/types';
 import {
   captureObservationScope,
-  listObservationHistory,
   createObservation,
+  listObservationHistory,
   reviseObservation,
   type ObservationCommandResult,
 } from './HealthObservationService';
-import type { Answer, MealReactionRecord } from '../domain/observations/types';
 /** An explicit reaction is a user report linked to the meal; report time is not symptom onset. */
 export async function recordDietMealReaction(
   mealId: string,

@@ -1,8 +1,8 @@
-import { supabase } from './supabaseClient';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
-import { legacyProfileData, cleanProfile } from './ProfileFieldMerge';
 import { mergeConnectedProfiles } from './ConnectedProfileMerge';
+import { cleanProfile, legacyProfileData } from './ProfileFieldMerge';
 import { acceptProfileSync } from './ProfileSyncBaseline';
+import { supabase } from './supabaseClient';
 export async function sendProfileSnapshot(entry: any) {
   const scope = captureAccountScope();
   const profileId = entry.kind === 'profile_upsert' ? 'profile_1' : entry.payload.profile_id;

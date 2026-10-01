@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { previewLegacyDigestionMigration } from '../LegacyGutObservationMigration';
+import { previewLegacyDigestionMigration } from '../../../scripts/lib/legacy-gut-observations';
 import { validateObservationDraft } from '../../domain/observations/types';
 
 const scope = { ownerId: 'account-a', profileId: 'profile_1' };

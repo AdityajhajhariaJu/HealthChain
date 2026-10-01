@@ -1,39 +1,38 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Confetti from 'react-confetti';
-import { useNavigate } from 'react-router-dom';
-import { 
-  triggerHapticLight, 
-  triggerHapticMedium, 
-  triggerHapticSuccess, 
-  triggerHapticSelection 
-} from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { getProfile, completeProfileOnboarding } from '../../services/ProfileEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { 
-  Flame, 
-  Moon, 
-  ChevronRight, 
-  Sparkles, 
-  HeartPulse, 
-  ArrowLeft, 
-  Check, 
-  Ruler, 
-  Scale, 
-  Pill, 
-  ShieldCheck, 
-  Activity, 
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  Flame,
+  HeartPulse,
   Loader2,
+  Moon,
+  Pill,
   Plus,
-  X,
+  Ruler,
+  Scale,
+  ShieldCheck,
+  Sparkles,
   Sun,
   Sunrise,
-  Sunset
+  Sunset,
 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Confetti from 'react-confetti';
+import { useNavigate } from 'react-router-dom';
+import { normalizeFoodLocation } from '../../../shared/food-location';
 import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
 import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
-import { normalizeFoodLocation } from '../../../shared/food-location';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import {
+  triggerHapticLight,
+  triggerHapticMedium,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import { completeProfileOnboarding, getProfile } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 interface GoalOption {
   title: string;

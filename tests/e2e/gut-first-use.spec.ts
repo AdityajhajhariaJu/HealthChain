@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 const guest = () => { localStorage.setItem('hc_guest_mode','true'); localStorage.setItem('hc_onboarded','true'); localStorage.setItem('hc_cookies_accepted','declined'); };
 
+// These multi-screen journeys should not wait on real fonts/analytics providers.
+test.setTimeout(90000);
+test.beforeEach(async ({ page }) => {
+  await page.route(/https:\/\//, route => route.abort());
+});
+
 test('guided start fits a narrow phone and map branches open real destinations', async ({ page }) => {
   await page.addInitScript(guest); await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/app/today?gut=1&view=deep'); const gut = page.getByRole('dialog', { name: 'Gut Health' });

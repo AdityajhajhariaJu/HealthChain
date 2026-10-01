@@ -1,7 +1,7 @@
 import { fetchGutQuestionFrame } from './geminiService';
-import { parseModelJson } from './modelJson';
-import type { GutSymptom } from './GutResolutionService';
 import type { GutResearchTopic } from './GutResearchService';
+import type { GutSymptom } from './GutResolutionService';
+import { parseModelJson } from './modelJson';
 
 export interface GutQuestionFrame {
   proposedSymptom: GutSymptom;

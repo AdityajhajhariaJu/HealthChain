@@ -2,8 +2,8 @@
  * Centralized Analytics Service
  * Handles dispatching events to Meta Pixel, AppsFlyer, and Supabase Analytics.
  */
-import { supabase } from './supabaseClient';
 import { Capacitor } from '@capacitor/core';
+import { supabase } from './supabaseClient';
 
 declare global {
   interface Window {

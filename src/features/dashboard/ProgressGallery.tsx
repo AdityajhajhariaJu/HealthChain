@@ -1,22 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { VitalityNav } from '../../components/ui/VitalityNav';
 import { motion } from 'framer-motion';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { FitnessService } from '../../services/FitnessService';
-import { supabase } from '../../services/supabaseClient';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { Camera, Clock, Flame, ListChecks, MessageSquare } from 'lucide-react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { FeatureLoading } from '../../components/ui/FeatureLoading';
 import { useToast } from '../../components/ui/ToastProvider';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Flame, Clock, Camera, MessageSquare, ListChecks } from 'lucide-react';
-import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
-import { getProfile } from '../../services/ProfileEngine';
-import { getCases } from '../../services/CaseEngine';
-import { getItemSync, setItemSync } from '../../services/storage';
-import { getActiveProfileScope, getScopedStorageKey } from '../../services/profileScope';
-import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { VitalityNav } from '../../components/ui/VitalityNav';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { getCases } from '../../services/CaseEngine';
+import { FitnessService } from '../../services/FitnessService';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { getProfile } from '../../services/ProfileEngine';
+import { getActiveProfileScope, getScopedStorageKey } from '../../services/profileScope';
+import { getItemSync, setItemSync } from '../../services/storage';
+import { supabase } from '../../services/supabaseClient';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+const SpatialGalleryCanvas = React.lazy(() => import('../../components/ui/SpatialGalleryCanvas').then(m => ({ default: m.SpatialGalleryCanvas })));
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -480,7 +490,7 @@ export const ProgressGallery: React.FC = () => {
                   Explore saved laboratory records, imaging, and case snapshots by date. Items shown here remain source records, not diagnoses.
                 </p>
               </div>
-              <SpatialGalleryCanvas />
+              <Suspense fallback={<FeatureLoading label="Loading records…" />}><SpatialGalleryCanvas /></Suspense>
             </div>
           </motion.div>
         )}

@@ -7,10 +7,12 @@ tests/
 playwright-report/
 test-results/
 
-# Ignore python scripts or build stats
-scripts/
+# Operational build checks in scripts/ are needed by the production build.
+docs/
+supabase/
 bundle-stats.html
 *.py
 *.ps1
 *.bat
 *.cjs
+!lighthouserc.cjs

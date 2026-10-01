@@ -1,5 +1,12 @@
 import type { NutritionAssessmentV1, Observation } from '../domain/observations/types';
-import { captureObservationScope, createObservation, deleteObservation, listObservationHistory, reviseObservation, type ObservationCommandResult } from './HealthObservationService';
+import {
+  captureObservationScope,
+  createObservation,
+  deleteObservation,
+  listObservationHistory,
+  reviseObservation,
+  type ObservationCommandResult,
+} from './HealthObservationService';
 import { getProfile } from './ProfileEngine';
 import { deleteDietMealEntry, type DietMealEntry } from './legacyDietMealWrites';
 

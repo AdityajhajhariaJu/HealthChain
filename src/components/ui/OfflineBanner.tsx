@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { WifiOff, Wifi } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Network } from '@capacitor/network';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Wifi, WifiOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { flushSyncOutbox } from '../../services/SyncOutbox';
 
 export default function OfflineBanner() {

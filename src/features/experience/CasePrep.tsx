@@ -1,56 +1,57 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  getCases,
-  CaseItem,
-  getCase,
-  saveAppointmentBrief,
-  AppointmentBrief,
-  getCaseQuestions,
-  addCaseQuestion,
-  ClinicalQuestion,
-  transitionCaseQuestionLifecycle,
-  recordCaseQuestionOutcome,
-  setQuestionsForAppointment,
-  QuestionLifecycleStatus,
-} from '../../services/CaseEngine';
-import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
-import { refineAppointmentBrief } from '../../services/geminiService';
-import { getProfile } from '../../services/ProfileEngine';
-import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Briefcase,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  Loader2,
-  Printer,
-  Sparkles,
-  AlertCircle,
-  Eye,
-  Info,
-  CheckCircle2,
-  Copy,
-  MessageSquare,
-  CheckSquare,
-  Square,
-  History,
-  RotateCcw,
-  Clock,
   Check,
-  Tag,
+  CheckCircle2,
+  CheckSquare,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Copy,
+  Eye,
+  History,
+  Info,
   ListFilter,
+  Loader2,
+  MessageSquare,
+  Printer,
+  RotateCcw,
+  Sparkles,
+  Square,
+  Tag,
 } from 'lucide-react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { safeNavigateBack } from '../../services/navigation';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../../components/ui/ToastProvider';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import {
+  generateDeterministicBrief,
+  isBriefUpToDate,
+} from '../../services/AppointmentBriefService';
+import {
+  addCaseQuestion,
+  AppointmentBrief,
+  CaseItem,
+  ClinicalQuestion,
+  getCase,
+  getCaseQuestions,
+  getCases,
+  QuestionLifecycleStatus,
+  recordCaseQuestionOutcome,
+  saveAppointmentBrief,
+  setQuestionsForAppointment,
+} from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
+import { refineAppointmentBrief } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
+import { getProfile } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { GutLinkedQuestionSummary } from '../../components/ui/GutLinkedQuestionSummary';
+import { GutLinkedQuestionSummary } from '../gut-health/components/GutLinkedQuestionSummary';
 
 const DOCTOR_ACTION_PRESETS = [
   'General discussion / clinical reassurance',

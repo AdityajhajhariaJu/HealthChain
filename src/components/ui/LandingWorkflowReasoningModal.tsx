@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { 
-  X, Sparkles, ShieldAlert, ArrowRight, CheckCircle2, 
-  HelpCircle, Split, Layers, FileText, AlertTriangle 
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Layers,
+  ShieldAlert,
+  Sparkles,
+  X,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
 import { LandingWorkflowScenario } from '../../services/LandingCaseWorkflowEngine';
 import { triggerHapticLight } from '../../services/haptics';
 

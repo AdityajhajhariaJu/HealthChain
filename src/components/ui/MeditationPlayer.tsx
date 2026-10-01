@@ -1,43 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useToast } from './ToastProvider';
-import { 
-  Pause, 
-  Play, 
-  SkipBack, 
-  SkipForward, 
-  ListMusic, 
-  Volume2, 
-  VolumeX, 
-  X, 
-  Clock, 
-  Wind,
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   Check,
-  Moon,
+  Clock,
+  Flame,
   Layers,
-  Sliders,
-  Trophy,
+  ListMusic,
+  Moon,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
   Sparkles,
-  Flame
+  Trophy,
+  Volume2,
+  VolumeX,
+  Wind,
+  X,
 } from 'lucide-react';
-import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
-import { FitnessContent, FitnessService } from '../../services/FitnessService';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
-import { recordHealthMemory, flushHealthMemory } from '../../services/HealthMemory';
-import { useActionIslandStore } from '../../store/actionIslandStore';
+import React, { useEffect, useRef, useState } from 'react';
 import Confetti from 'react-confetti';
-import { 
-  MEDITATION_TRACKS, 
-  DEEP_SLEEP_TRACKS, 
-  DEEP_FOCUS_TRACKS, 
-  HAPPY_HIGH_ENERGY_TRACKS, 
-  FOCUS_FREQUENCIES_TRACKS, 
-  FOREST_AMBIENCE_TRACKS, 
-  RAIN_SOUNDS_TRACKS 
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import {
+  DEEP_FOCUS_TRACKS,
+  DEEP_SLEEP_TRACKS,
+  FOCUS_FREQUENCIES_TRACKS,
+  FOREST_AMBIENCE_TRACKS,
+  HAPPY_HIGH_ENERGY_TRACKS,
+  MEDITATION_TRACKS,
+  RAIN_SOUNDS_TRACKS,
 } from '../../data/MeditationTracks';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { FitnessContent, FitnessService } from '../../services/FitnessService';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { flushHealthMemory, recordHealthMemory } from '../../services/HealthMemory';
+import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
+import { useActionIslandStore } from '../../stores/actionIslandStore';
+import { useToast } from './ToastProvider';
 
 export type AtmosphereTheme = 'meditation' | 'sleep' | 'focus' | 'energy' | 'rain' | 'frequency' | 'forest';
 

@@ -84,7 +84,8 @@ test('meal with unknown portion waits for an entered weight', async ({ page }) =
   await page.getByRole('button', { name: 'Clinical AR Food Lens' }).click();
   const lens = page.getByRole('dialog', { name: 'Clinical AR Food & Nutrition Scanner' });
   await lens.locator('input[type=file]').setInputFiles({ name: 'meal.png', mimeType: 'image/png', buffer: whitePixel });
-  await expect(lens.getByText('MEAL ESTIMATE · ENTER PORTION')).toBeVisible();
+  // Image decoding, compression and the asynchronous result render run before this assertion.
+  await expect(lens.getByText('MEAL ESTIMATE · ENTER PORTION')).toBeVisible({ timeout: 15000 });
   await expect(lens.getByText('130 kcal')).toHaveCount(0);
   await expect(lens.getByRole('button', { name: 'Log estimate' })).toBeDisabled();
   await lens.getByLabel('Amount you ate (grams)').fill('250');

@@ -1,9 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  Camera,
+  Image as ImageIcon,
+  RefreshCw,
+  Scan,
+  Sparkles,
+  Upload,
+  X,
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowLeft, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles, CheckCircle2, Layers, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { FoodAnalysisResult, analyzeFoodImage } from '../../services/geminiService';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
+import {
+  triggerHapticLight,
+  triggerHapticSuccess,
+  triggerHapticWarning,
+} from '../../services/haptics';
 
 function checkCanvasBrightness(canvas: HTMLCanvasElement): number {
   try {

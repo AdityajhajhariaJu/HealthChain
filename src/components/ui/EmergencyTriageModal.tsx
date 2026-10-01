@@ -1,11 +1,11 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, MapPin, ShieldAlert, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, PhoneCall, ShieldAlert, X, MapPin } from 'lucide-react';
-import FocusTrap from './FocusTrap';
 import { getProfile } from '../../services/ProfileEngine';
-import { effectiveFoodLocation } from '../../services/dietEveryday';
 import { TriageEvaluation } from '../../services/clinicalTriageEngine';
+import { effectiveFoodLocation } from '../../services/dietEveryday';
 import { triggerHapticSelection } from '../../services/haptics';
+import FocusTrap from './FocusTrap';
 
 interface EmergencyTriageModalProps {
   isOpen: boolean;

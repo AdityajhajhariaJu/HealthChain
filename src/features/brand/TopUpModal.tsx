@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { Loader2, Sparkles, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Loader2, X } from 'lucide-react';
-import { supabase } from '../../services/supabaseClient';
-import { useToast } from '../../components/ui/ToastProvider';
-import { trackPurchase } from '../../services/analytics';
-import { initiateRazorpayCheckout, PaymentPlanId } from '../../services/razorpay';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
+import { useToast } from '../../components/ui/ToastProvider';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { trackPurchase } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
+import { initiateRazorpayCheckout, PaymentPlanId } from '../../services/razorpay';
+import { supabase } from '../../services/supabaseClient';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'lab_report';

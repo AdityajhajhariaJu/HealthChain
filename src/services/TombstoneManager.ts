@@ -1,8 +1,8 @@
+import { del, get } from 'idb-keyval';
 import { setOwned as set } from './OwnedIdb';
-import { get, del } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
-import { Tombstone } from './SyncTypes';
 import { supabase } from './supabaseClient';
+import { Tombstone } from './SyncTypes';
 
 const MAX_TOMBSTONES = 1000;
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { listObservations } from '../../services/HealthObservationService';
-import { attachReviewedDailyEvidence } from '../../services/ClinicalDailyEvidence';
 import type { Observation } from '../../domain/observations/types';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { attachReviewedDailyEvidence } from '../../services/ClinicalDailyEvidence';
+import { listObservations } from '../../services/HealthObservationService';
 
 export default function ClinicalDailyEvidencePicker({ caseId, onSaved }: { caseId: string; onSaved?: () => void }) {
   const [records, setRecords] = useState<Observation[]>([]), [selected, setSelected] = useState<string[]>([]), [busy, setBusy] = useState(false), [message, setMessage] = useState('');

@@ -1,13 +1,19 @@
-import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 import { isErasedStorageKey } from './DurableHealthStorage';
 
 let nativeStorageQueue: Promise<unknown> = Promise.resolve();
+let hydrationPromise: Promise<void> | null = null;
+let hydrationChanges: Set<string> | null = null;
+let hydrationCleared = false;
+let clearingThroughHelper = false;
 function queueNativeStorage(work: () => Promise<unknown>) {
   nativeStorageQueue = nativeStorageQueue.catch(() => {}).then(work);
-  void nativeStorageQueue.catch(error => console.warn('Native storage error:', error));
+  void nativeStorageQueue.catch((error) => console.warn('Native storage error:', error));
 }
-export async function flushNativeStorage() { await nativeStorageQueue; }
+export async function flushNativeStorage() {
+  await nativeStorageQueue;
+}
 
 /**
  * A hybrid storage solution for React + Capacitor.
@@ -15,44 +21,78 @@ export async function flushNativeStorage() { await nativeStorageQueue; }
  * and asynchronously syncs to Capacitor Preferences (which is safer on native).
  */
 
-export async function syncStorageFromPreferences() {
+export function syncStorageFromPreferences(): Promise<void> {
   if (Capacitor.getPlatform() === 'web') {
-    return; // Web just uses localStorage under the hood
+    return Promise.resolve();
   }
-
-  try {
-    const keysPromise = Preferences.keys();
-    // 2-second timeout to prevent white-screen hang if native bridge fails
-    const timeoutPromise = new Promise<{ keys: string[] }>((_, reject) => 
-      setTimeout(() => reject(new Error('Preferences.keys() timeout')), 2000)
+  if (hydrationPromise) return hydrationPromise;
+  const changes = new Set<string>();
+  hydrationChanges = changes;
+  hydrationCleared = false;
+  let finished = false;
+  let timeout: ReturnType<typeof setTimeout>;
+  const restore = async () => {
+    const { keys } = await Preferences.keys();
+    if (finished) return;
+    const snapshots = new Map(keys.map((key) => [key, getItemSync(key)]));
+    let next = 0;
+    // Bound bridge concurrency and the complete operation, including value reads.
+    await Promise.all(
+      Array.from({ length: Math.min(8, keys.length) }, async () => {
+        while (!finished && next < keys.length) {
+          const key = keys[next++];
+          try {
+            const { value } = await Preferences.get({ key });
+            if (
+              !finished &&
+              !hydrationCleared &&
+              !changes.has(key) &&
+              value !== null &&
+              !isErasedStorageKey(key) &&
+              getItemSync(key) === snapshots.get(key)
+            ) {
+              localStorage.setItem(key, value);
+            }
+          } catch (error) {
+            console.warn('Native preference could not be restored:', key, error);
+          }
+        }
+      })
     );
-    
-    const keys = await Promise.race([keysPromise, timeoutPromise]);
-    
-    for (const key of keys.keys) {
-      const { value } = await Preferences.get({ key });
-      if (value && !isErasedStorageKey(key)) {
-        try {
-          localStorage.setItem(key, value);
-        } catch {}
-      }
-    }
-    if (import.meta.env.DEV) console.log('✨ Storage synced from Capacitor Preferences');
-  } catch (e) {
-    console.warn('Failed to sync from preferences (or timed out)', e);
-  }
+  };
+  hydrationPromise = Promise.race([
+    restore(),
+    new Promise<void>((_, reject) => {
+      timeout = setTimeout(() => reject(new Error('Native storage startup timeout')), 2000);
+    }),
+  ])
+    .catch((error) => {
+      console.warn('Failed to restore native preferences:', error);
+    })
+    .finally(() => {
+      finished = true;
+      clearTimeout(timeout);
+      if (hydrationChanges === changes) hydrationChanges = null;
+      hydrationPromise = null;
+    });
+  return hydrationPromise;
 }
 
 export function setItemSync(key: string, value: string) {
   if (isErasedStorageKey(key)) return;
+  hydrationChanges?.add(key);
   try {
     localStorage.setItem(key, value);
   } catch (e) {
-    console.warn(`localStorage quota exceeded for ${key}, but syncing to native Preferences anyway.`);
+    console.warn(
+      `localStorage quota exceeded for ${key}, but syncing to native Preferences anyway.`
+    );
   }
-  
+
   if (Capacitor.getPlatform() !== 'web') {
-    queueNativeStorage(async () => { if (!isErasedStorageKey(key)) await Preferences.set({ key, value }); });
+    queueNativeStorage(async () => {
+      if (!isErasedStorageKey(key)) await Preferences.set({ key, value });
+    });
   }
 }
 
@@ -62,15 +102,16 @@ export function getItemSync(key: string): string | null {
     // Backward compatibility if any compressed strings are lingering
     if (val && val.startsWith('??LZ??')) {
       // Just return null to force a fresh fetch from cloud (safest since LZString is gone)
-      return null; 
+      return null;
     }
     return val;
-  } catch(e) {
+  } catch (e) {
     return null;
   }
 }
 
 export function removeItemSync(key: string) {
+  hydrationChanges?.add(key);
   try {
     localStorage.removeItem(key);
   } catch (e) {
@@ -82,13 +123,17 @@ export function removeItemSync(key: string) {
 }
 
 export function clearSync() {
+  hydrationCleared = true;
+  clearingThroughHelper = true;
   try {
     localStorage.clear();
   } catch (e) {
     console.warn('localStorage.clear failed', e);
+  } finally {
+    clearingThroughHelper = false;
   }
   if (Capacitor.getPlatform() !== 'web') {
-    Preferences.clear().catch(e => console.warn('Native clear error:', e));
+    queueNativeStorage(() => Preferences.clear());
   }
 }
 
@@ -120,14 +165,15 @@ export function removeSessionItemSync(key: string) {
 try {
   if (typeof localStorage !== 'undefined' && localStorage.clear) {
     const originalClear = localStorage.clear.bind(localStorage);
-    localStorage.clear = function() {
+    localStorage.clear = function () {
+      hydrationCleared = true;
       try {
         originalClear();
       } catch (e) {
         console.warn('localStorage.clear failed', e);
       }
-      if (Capacitor.getPlatform() !== 'web') {
-        Preferences.clear().catch(e => console.warn('Native clear error:', e));
+      if (Capacitor.getPlatform() !== 'web' && !clearingThroughHelper) {
+        queueNativeStorage(() => Preferences.clear());
       }
     };
   }

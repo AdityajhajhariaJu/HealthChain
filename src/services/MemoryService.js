@@ -1,5 +1,5 @@
-import { getProfile } from './ProfileEngine';
 import { getActiveCase } from './CaseEngine';
+import { getProfile } from './ProfileEngine';
 
 
 export function compilePatientContext(options = {}) {

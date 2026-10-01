@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
+import FocusTrap from '../../components/ui/FocusTrap';
 import type { MealPlanItem } from '../../services/dietPlanLifecycle';
 import { MealDetailsFields, emptyMealDetails, mealDetailsEntry } from './MealDetailsFields';
-import FocusTrap from '../../components/ui/FocusTrap';
 export function ConfirmPlannedMeal({
   meal,
   date,

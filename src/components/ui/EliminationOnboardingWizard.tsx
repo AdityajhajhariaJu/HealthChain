@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, ClipboardList, ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
 import type { TrialIntakeAssessment } from '../../domain/trials/types';
 
 export interface EliminationOnboardingWizardProps {

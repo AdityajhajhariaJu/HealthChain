@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { AlertCircle, RefreshCw, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw, CheckCircle2, X } from 'lucide-react';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import {
-  getPendingPayment,
   clearPendingPayment,
+  getPendingPayment,
+  PendingPaymentRecord,
   recoverPendingPayment,
   resumeInterruptedTask,
-  PendingPaymentRecord,
 } from '../../services/razorpay';
 import { supabase } from '../../services/supabaseClient';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 interface PaymentRecoveryBannerProps {
   onSuccess?: () => void;

@@ -1,5 +1,5 @@
-import type { FullMealPlan } from './dietPlanLifecycle';
 import type { PantryItem } from './dietEveryday';
+import type { FullMealPlan } from './dietPlanLifecycle';
 const planMealKey = (day: number, id: string) => `${day}:${id}`;
 export interface GroceryItem {
   id: string;

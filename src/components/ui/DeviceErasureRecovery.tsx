@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { pendingErasedOwners } from '../../services/DurableHealthStorage';
+import { useEffect, useState } from 'react';
 import { eraseOwnerHealthData } from '../../services/AccountErasure';
+import { pendingErasedOwners } from '../../services/DurableHealthStorage';
 
 export default function DeviceErasureRecovery() {
   const [owners, setOwners] = useState(pendingErasedOwners);

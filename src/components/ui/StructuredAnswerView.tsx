@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
-import { 
-  CheckCircle2, ChevronDown, ChevronUp, FileText, 
-  HelpCircle, ArrowRight, Sparkles, Copy, Check,
-  AlertCircle, Link2, ShieldCheck, Scale, Compass, Calendar
+import {
+  ArrowRight,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Compass,
+  Copy,
+  FileText,
+  HelpCircle,
+  Scale,
+  Sparkles,
 } from 'lucide-react';
-import { 
-  StructuredClinicalAnswer, 
-  EpistemicRelationshipStatus, 
-  DoctorVisitBrief 
+import React, { useState } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import {
+  EpistemicRelationshipStatus,
+  StructuredClinicalAnswer,
 } from '../../services/StructuredAnswerEngine';
 import { InformationCategoryBadge } from './InformationCategoryBadge';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface StructuredAnswerViewProps {
   answer: StructuredClinicalAnswer;

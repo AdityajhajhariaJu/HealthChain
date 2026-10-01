@@ -1,45 +1,41 @@
-import { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
-  ArrowLeft,
-  Check,
-  Sparkles,
-  Loader2,
-  Info,
-  Stethoscope,
-  Brain,
-  Network,
-  Heart,
-  FolderHeart,
-  FileText,
   Apple,
-  FlaskConical,
-  ShieldCheck,
-  Zap,
-  Star,
-  Lock,
+  ArrowLeft,
+  Brain,
+  BrainCircuit,
   ChevronDown,
   ChevronUp,
-  HelpCircle,
   Clock,
-  Shield,
+  FileText,
+  FlaskConical,
+  FolderHeart,
+  Heart,
+  Info,
+  Loader2,
+  Network,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Stethoscope,
   Trophy,
-  BrainCircuit,
+  Zap,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { supabase } from '../../services/supabaseClient';
-import { useToast } from '../../components/ui/ToastProvider';
-import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
-import {
-  initiateRazorpayCheckout,
-  resumeInterruptedTask,
-  PaymentPlanId,
-} from '../../services/razorpay';
+import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
 import { PaymentRecoveryBanner } from '../../components/ui/PaymentRecoveryBanner';
+import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { trackCheckoutInitiated, trackPurchase } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
-import { motion } from 'framer-motion';
-import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
+import {
+  initiateRazorpayCheckout,
+  PaymentPlanId,
+  resumeInterruptedTask,
+} from '../../services/razorpay';
+import { supabase } from '../../services/supabaseClient';
 
 const PRO_30_PLAN = PRODUCT_CATALOG.pro_30_days;
 const PRO_90_PLAN = PRODUCT_CATALOG.pro_90_days;

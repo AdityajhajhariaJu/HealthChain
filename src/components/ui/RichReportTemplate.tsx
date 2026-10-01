@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
-import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle, GitMerge, Copy, Check, Stethoscope, FlaskConical, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  AlertCircle,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Copy,
+  FlaskConical,
+  GitMerge,
+  HelpCircle,
+  ListChecks,
+  Network,
+  Sparkles,
+  Stethoscope,
+  Users,
+} from 'lucide-react';
+import { useState } from 'react';
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export function cleanClinicalText(text?: string): string {
   if (!text || typeof text !== 'string') return '';
@@ -83,7 +100,6 @@ export const Accordion = ({ title, icon: Icon, iconColor, bgColor, borderColor, 
     </div>
   );
 };
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export interface RichReportData {
   executiveSummary?: string;

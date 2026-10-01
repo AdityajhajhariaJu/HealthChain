@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
-import FocusTrap from './FocusTrap';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { getActiveSession } from '../../services/authSession';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import FocusTrap from './FocusTrap';
 
 const TOUR_STEPS = [
   {

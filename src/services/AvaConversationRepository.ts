@@ -1,12 +1,12 @@
-import { setOwned } from './OwnedIdb';
 import * as idb from 'idb-keyval';
-import { getItemSync, setItemSync } from './storage';
-import { supabase } from './supabaseClient';
-import { enqueueSync } from './SyncOutbox';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
 } from './AccountScope';
+import { setOwned } from './OwnedIdb';
+import { getItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
+import { enqueueSync } from './SyncOutbox';
 
 export interface AvaMessage {
   id: string;

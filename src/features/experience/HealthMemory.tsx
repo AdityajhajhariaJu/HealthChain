@@ -1,6 +1,23 @@
+import {
+  BookOpen,
+  Brain,
+  CalendarDays,
+  CheckCircle2,
+  Cloud,
+  Cpu,
+  FileText,
+  FlaskConical,
+  Heart,
+  Pill,
+  Users,
+  Utensils,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Brain, CalendarDays, CheckCircle2, Cloud, FileText, Heart, Utensils, Users, Pill, FlaskConical, Cpu, BookOpen, Sparkles } from 'lucide-react';
-import { getHealthMemory, HealthMemoryItem, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
+import {
+  getHealthMemory,
+  HealthMemoryItem,
+  syncHealthMemoryFromSupabase,
+} from '../../services/HealthMemory';
 import { getProfile } from '../../services/ProfileEngine';
 
 const iconFor = (kind: HealthMemoryItem['kind']) => {

@@ -1,7 +1,7 @@
-import React, { useRef, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { getProfile } from '../../services/ProfileEngine';
 

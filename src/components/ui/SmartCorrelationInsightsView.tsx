@@ -1,28 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ChevronLeft,
-  Search,
-  Flame,
-  Wind,
-  Brain,
   Activity,
-  Sparkles,
-  ChevronRight,
-  ShieldAlert,
-  ArrowRight,
+  Brain,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
   Clock,
-  ExternalLink,
+  Flame,
   Info,
+  Search,
+  ShieldAlert,
+  Wind,
 } from 'lucide-react';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
-import {
-  getDigestionLogs,
-} from '../../services/ProfileEngine';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useDietReviewData } from '../../hooks/useDietReviewData';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import {useDietReviewData} from '../../hooks/useDietReviewData';
-import {dietPatternAnswers} from '../../services/dietPatternRecords';
+import { dietPatternAnswers } from '../../services/dietPatternRecords';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { getDigestionLogs } from '../../services/ProfileEngine';
 
 export type InsightCategory = 'All' | 'Stomach' | 'Bloating' | 'Bowel' | 'Brain/Energy';
 

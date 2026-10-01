@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
-import FocusTrap from './FocusTrap';
+import { captureHealthMemoryScope, isHealthMemoryScopeCurrent } from '../../services/HealthMemory';
 import {
   captureObservationScope,
   createObservation,
 } from '../../services/HealthObservationService';
-import { captureHealthMemoryScope, isHealthMemoryScopeCurrent } from '../../services/HealthMemory';
+import FocusTrap from './FocusTrap';
 
 export function AvaDayCheckin({ onClose }: { onClose: () => void }) {
   const [note, setNote] = useState('');

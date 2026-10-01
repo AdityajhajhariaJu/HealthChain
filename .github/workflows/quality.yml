@@ -33,6 +33,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Validate repository hygiene
+        run: npm run verify:repository
+
       - name: Validate serverless API syntax
         shell: bash
         run: |

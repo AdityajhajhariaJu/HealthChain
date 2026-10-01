@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, HeartPulse, AlertTriangle, Sparkles, FileText, ArrowRight } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, FileText, HeartPulse, HelpCircle, Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export interface CaseConnectionMapProps {
   data: any;

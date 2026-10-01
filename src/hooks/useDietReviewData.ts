@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { listMealDiary, type MealDiary } from '../services/MealCommandService';
-import { listObservationHistory } from '../services/HealthObservationService';
-import { getActiveProfileScope } from '../services/profileScope';
 import type { Observation } from '../domain/observations/types';
+import { listObservationHistory } from '../services/HealthObservationService';
+import { listMealDiary, type MealDiary } from '../services/MealCommandService';
+import { getActiveProfileScope } from '../services/profileScope';
 /** Review screens use the same diary/tombstones as logging and never cross an account change. */
 export function useDietReviewData() {
   const [diary, setDiary] = useState<MealDiary>({});

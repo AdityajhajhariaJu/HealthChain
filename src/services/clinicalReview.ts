@@ -1,30 +1,25 @@
 import {
   classifyClinicalInformation,
-  INFORMATION_CATEGORY_REGISTRY,
-  partitionBeforeReasoning,
   ExtractionStatus,
-  InterpretationStatus,
   GroundedClaimRecord,
+  INFORMATION_CATEGORY_REGISTRY,
   InformationAuditEntry,
+  partitionBeforeReasoning,
 } from './ClinicalInformationClassifier';
 import {
-  runClinicalReasoningPipeline,
   ClinicalReasoningPayload,
-  SourceLinkedEvidence,
   CorrectionQueueItem,
+  runClinicalReasoningPipeline,
 } from './ClinicalReasoningEngine';
 import {
-  buildVersionedEvidenceSet,
-  generateMeaningfulPerspectives,
-  executeBoundedComparison,
-  MeaningfulPerspective,
   BoundedComparisonSummary,
+  buildVersionedEvidenceSet,
+  executeBoundedComparison,
+  generateMeaningfulPerspectives,
+  MeaningfulPerspective,
   VersionedEvidenceSet,
 } from './MultiPerspectiveReviewEngine';
-import {
-  buildStructuredClinicalAnswer,
-  StructuredClinicalAnswer,
-} from './StructuredAnswerEngine';
+import { buildStructuredClinicalAnswer, StructuredClinicalAnswer } from './StructuredAnswerEngine';
 
 export interface ContradictionRecord {
   id: string;

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Activity, Coffee, AlertCircle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, Clock, Coffee } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { triggerHapticLight } from '../../services/haptics';
 import { getProfile } from '../../services/ProfileEngine';
 

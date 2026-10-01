@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowLeft, ArrowRight, Sparkles, Network, GitMerge } from 'lucide-react';
-import FocusTrap from './FocusTrap';
-import { ConnectionDetectiveView, ALL_12_STATIONS, TAB_TO_PILLAR, resolveStationTab } from './ConnectionDetectiveView';
-import { triggerHapticLight } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHapticLight } from '../../services/haptics';
+import {
+  ALL_12_STATIONS,
+  ConnectionDetectiveView,
+  TAB_TO_PILLAR,
+  resolveStationTab,
+} from './ConnectionDetectiveView';
+import FocusTrap from './FocusTrap';
 
 interface ConnectionDetectiveModalProps {
   caseId?: string | null;

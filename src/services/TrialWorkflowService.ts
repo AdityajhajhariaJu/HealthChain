@@ -1,18 +1,16 @@
-import { getItemSync, setItemSync } from './storage';
-import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 import {
-  TrialV2,
-  TrialIntakeAssessment,
-  FoodChallenge,
-  HealthEvent,
-  TrialDailyObservation,
-  TrialChecklistCompletion,
   AdherenceLevel,
   ChallengeOutcome,
+  ClinicalVerdictData,
+  FoodChallenge,
+  HealthEvent,
+  TrialIntakeAssessment,
   TrialStatus,
-  ClinicalVerdictData
+  TrialV2,
 } from '../domain/trials/types';
-import { stopActiveTrial, getActiveTrial } from './TriggerEngine';
+import { getProfileEngineState, getProfileKey } from './ProfileEngine';
+import { getItemSync, setItemSync } from './storage';
+import { getActiveTrial, stopActiveTrial } from './TriggerEngine';
 
 // No protocol in the legacy catalogue has a verified, versioned clinical approval
 // record. Keep new dietary challenges closed until that governance exists.

@@ -12,3 +12,6 @@ skills-lock.json
 .agents/
 test-results/
 playwright-report/
+coverage/
+supabase/.temp/
+*.tsbuildinfo

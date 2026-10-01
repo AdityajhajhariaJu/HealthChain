@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Waves,
-  Sparkles,
-  GitMerge,
-  Clock,
-  Plus,
-  ArrowDown,
-  Check,
-  ChevronRight,
-  Stethoscope,
-  Activity
-} from 'lucide-react';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
-import { listObservations, createObservation, captureObservationScope } from '../../services/HealthObservationService';
-import { captureHealthMemoryScope, isHealthMemoryScopeCurrent } from '../../services/HealthMemory';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronRight, GitMerge, Plus, Sparkles, Waves, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import type { Observation } from '../../domain/observations/types';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { captureHealthMemoryScope, isHealthMemoryScopeCurrent } from '../../services/HealthMemory';
+import {
+  captureObservationScope,
+  createObservation,
+  listObservations,
+} from '../../services/HealthObservationService';
 import { getProfile } from '../../services/ProfileEngine';
 
 export interface RiverMoment {

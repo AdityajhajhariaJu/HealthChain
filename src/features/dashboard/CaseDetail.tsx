@@ -1,21 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, CalendarClock, GitMerge, Brain, FileText, 
-  Stethoscope, MessageSquare, Clock, FolderOpen, AlertCircle
+import {
+  AlertCircle,
+  ArrowLeft,
+  Brain,
+  CalendarClock,
+  Clock,
+  FileText,
+  FolderOpen,
+  GitMerge,
+  MessageSquare,
+  Stethoscope,
 } from 'lucide-react';
-import { getCase, getActiveCaseId, setActiveCase, CaseItem } from '../../services/CaseEngine';
-import { getProfile } from '../../services/ProfileEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import ClinicalDailyEvidencePicker from '../../components/ui/ClinicalDailyEvidencePicker';
+import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import InvestigationBoard from '../../components/ui/InvestigationBoard';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { CaseItem, getActiveCaseId, getCase, setActiveCase } from '../../services/CaseEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
-import SnapshotViewer from './SnapshotViewer';
+import { getProfile } from '../../services/ProfileEngine';
 import DDxBoard from './DDxBoard';
-import InvestigationBoard from '../../components/ui/InvestigationBoard';
-import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
-import ClinicalDailyEvidencePicker from '../../components/ui/ClinicalDailyEvidencePicker';
+import SnapshotViewer from './SnapshotViewer';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';

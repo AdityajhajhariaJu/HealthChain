@@ -1,6 +1,6 @@
-import { getProfile, getProfileEngineState, getProfileKey } from './ProfileEngine';
-import { getItemSync, setItemSync, removeItemSync } from './storage';
 import { ProtocolGovernance } from '../domain/trials/types';
+import { getProfile, getProfileEngineState, getProfileKey } from './ProfileEngine';
+import { getItemSync, removeItemSync, setItemSync } from './storage';
 
 export interface SensitivityProfile {
   id: string;

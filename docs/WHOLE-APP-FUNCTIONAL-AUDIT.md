@@ -8,6 +8,8 @@ The app has real working connections, including **Razorpay**. This wider pass fo
 
 This report covers the registered routes, the main cards and their subfeatures, the screen-to-service handlers, API destinations, owner isolation, persistence, failure recovery and live Supabase metadata. It extends [the pillar audit](CROSS-FEATURE-PILLAR-AUDIT.md). Earlier baseline findings in that document are historical; its dated continuation sections describe subsequent fixes.
 
+The subsequent [repository cleanup and performance record](REPOSITORY-MAINTENANCE.md) describes source reorganization, removed retired code, deferred feature loading, native configuration consistency and the remaining query-efficiency migration. Gut views now live under `src/features/gut-health/components`; older source paths and test counts in this audit are historical evidence.
+
 ### What the evidence means
 
 - **Source traced:** the actual mounted component and its handler were followed to the reader/writer or API. An unused service is not proof that the live feature is missing.

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import JarvisInvestigator from '../jarvis/JarvisInvestigator';
+import { useEffect } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import JarvisInvestigator from '../jarvis/JarvisInvestigator';
 
 export default function ConsultPage() {
   const isMobile = useIsMobile();

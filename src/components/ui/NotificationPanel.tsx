@@ -1,43 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, X, CheckCircle2, Clock, Droplets, BriefcaseBusiness, 
-  HeartPulse, Sparkles, ArrowRight, Plus, BellRing, Send, Check,
-  Pill, Moon, CheckCheck, Info, ShieldCheck, Inbox, AlertCircle
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowRight,
+  Bell,
+  BellRing,
+  BriefcaseBusiness,
+  Check,
+  CheckCheck,
+  CheckCircle2,
+  Clock,
+  Droplets,
+  HeartPulse,
+  Moon,
+  Pill,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  X,
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTodayCheckin, recordDailyCheckin } from '../../services/ProfileEngine';
-import { getTodayDateString, getVitaminSchedule, toggleVitaminTaken } from '../../services/VitaminScheduleService';
-import { getActiveCase } from '../../services/CaseEngine';
-import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import DailySymptomCheckinWidget from '../../features/dashboard/DailySymptomCheckinWidget';
-import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { useToast } from '../ui/ToastProvider';
-import FocusTrap from './FocusTrap';
-import { 
-  isDailyReminderEnabled, 
-  getDailyReminderTime, 
-  setDailyReminderEnabled, 
-  setDailyReminderTime, 
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
+import {
+  getDailyReminderTime,
+  isDailyReminderEnabled,
   sendTestNotification,
-  supportsDailyReminders
+  setDailyReminderEnabled,
+  setDailyReminderTime,
+  supportsDailyReminders,
 } from '../../services/DailyCheckinNotificationService';
+import {
+  triggerHapticLight,
+  triggerHapticMedium,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 import {
   AppNotification,
   NotificationCategory,
   getActiveNotifications,
-  markNotificationAsRead,
-  markNotificationAsDismissed,
-  markAllNotificationsAsRead,
-  resolveNotificationDestination,
-  getWaterGlassesForDate,
-  setWaterGlassesForDate,
+  getActiveProfileId,
   getNotificationPreferences,
+  getWaterGlassesForDate,
+  markAllNotificationsAsRead,
+  markNotificationAsDismissed,
+  markNotificationAsRead,
+  resolveNotificationDestination,
   saveNotificationPreferences,
-  getActiveProfileId
+  setWaterGlassesForDate,
 } from '../../services/NotificationEngine';
+import { getTodayCheckin, recordDailyCheckin } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import {
+  getTodayDateString,
+  getVitaminSchedule,
+  toggleVitaminTaken,
+} from '../../services/VitaminScheduleService';
+import { useToast } from '../ui/ToastProvider';
+import FocusTrap from './FocusTrap';
 
 const REMINDER_PRESETS = [
   { label: '9:00 AM (Morning)', value: '09:00' },

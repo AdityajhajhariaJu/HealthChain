@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import {
+  CheckCircle,
+  Edit2,
+  Image as ImageIcon,
+  Play,
+  Plus,
+  Save,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import '../../admin.css';
-import { Plus, Edit2, Trash2, UploadCloud, Save, X, Image as ImageIcon, Play, CheckCircle } from 'lucide-react';
-import { supabase } from '../../services/supabaseClient';
-import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { useToast } from '../../components/ui/ToastProvider';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { apiEndpoint } from '../../services/ApiEndpoint';
+import { FitnessCategory, FitnessContent, FitnessService } from '../../services/FitnessService';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { supabase } from '../../services/supabaseClient';
 
 export const AdminContentDashboard: React.FC = () => {
   const toast = useToast();
@@ -88,6 +98,7 @@ export const AdminContentDashboard: React.FC = () => {
       setIsEditing(false);
       setEditForm({});
       toast.success('Saved', 'Content updated successfully.');
+      FitnessService.invalidateContentCache();
       loadData();
     } catch (err: any) {
       console.error('Save failed', err);
@@ -136,6 +147,7 @@ export const AdminContentDashboard: React.FC = () => {
 
       triggerHapticSuccess();
       toast.success('Deactivated', 'Content item has been successfully deactivated.');
+      FitnessService.invalidateContentCache();
       loadData();
     } catch (err: any) {
       console.error(err);

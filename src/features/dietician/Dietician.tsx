@@ -1,10 +1,11 @@
-import { planningConstraintSnapshot } from '../../../shared/health-source-freshness';
-import { DieticianDashboardTracker } from './DieticianDashboardTracker';
-import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { planningConstraintSnapshot } from '../../../shared/health-source-freshness';
+import { FeatureLoading } from '../../components/ui/FeatureLoading';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
+import { DieticianDashboardTracker } from './DieticianDashboardTracker';
+const ARGroceryLens = React.lazy(() => import('../../components/ui/ARGroceryLens').then(m => ({ default: m.ARGroceryLens })));
 
 export function formatLocalDate(date: Date): string {
   const validDate = (date instanceof Date && !Number.isNaN(date.getTime())) ? date : new Date();
@@ -32,106 +33,136 @@ export function shiftDateString(dateStr: string, deltaDays: number): string {
   return formatLocalDate(d);
 }
 
+import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Activity,
+  AlertCircle,
   Apple,
-  Utensils,
-  Droplet,
-  Target,
-  CheckCircle2,
+  Archive,
+  BookOpen,
+  Brain,
   Calendar,
+  Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  X,
-  BookOpen,
-  Loader2,
-  Plus,
-  ArrowRight,
-  Flame,
-  Sparkles,
-  ShoppingCart,
-  ShieldCheck,
-  Printer,
-  Trash2,
   Copy,
-  Check,
-  Info,
-  Heart,
-  Zap,
-  RefreshCw,
-  Layers,
-  Activity,
-  Brain,
-  MessageCircle,
+  Droplet,
   Edit2,
+  FileText,
+  Flame,
+  Heart,
+  Info,
+  Layers,
+  Loader2,
+  MessageCircle,
   Pause,
   Play,
+  Plus,
+  Printer,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingCart,
+  Sparkles,
   StopCircle,
-  Archive,
-  AlertCircle,
-  FileText,
+  Target,
+  Trash2,
+  Utensils,
+  X,
+  Zap,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { validateDietPreferenceFit } from '../../../shared/diet-preference-fit';
 import {
-  analyzeFoodEntry,
-  generateMealPlan,
-  clearPendingDietPlanRequest,
-  generateNutritionalGuardrails,
-} from '../../services/geminiService';
-import { addEvent, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData, saveProfile } from '../../services/ProfileEngine';
-import { correctMeal, createMeal, listMealDiary, mealEntryFromAnalysis, migrateLegacyDietMeals, removeAllDietMeals, removeMeal } from '../../services/MealCommandService';
-import { loadObservationsFromCloud, retryFailedObservationQueues } from '../../services/HealthObservationService';
-import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
-import { OnboardingWizard } from './DieticianComponents';
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+  dietMealSlots,
+  dietPlanningPreferences,
+  locationMealIdeas,
+  normalizeDietPreferences,
+} from '../../../shared/diet-preferences';
+import {
+  formatFoodLocation,
+  normalizeFoodLocation,
+  resolveFoodLocation,
+} from '../../../shared/food-location';
+import { ClinicalEliminationModal } from '../../components/ui/ClinicalEliminationModal';
+import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
+import FocusTrap from '../../components/ui/FocusTrap';
+import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
+import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
+import { openEliminationSuiteModal } from '../../components/ui/TherapeuticOutcomeCard';
+import { useToast } from '../../components/ui/ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
-import FocusTrap from '../../components/ui/FocusTrap';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
-import { recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
-import { useToast } from '../../components/ui/ToastProvider';
-import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
-import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
-import { openEliminationSuiteModal } from '../../components/ui/TherapeuticOutcomeCard';
-import { ClinicalEliminationModal } from '../../components/ui/ClinicalEliminationModal';
-import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
-import { FeatureId } from '../../services/FeatureArchitectureContract';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
+import { DietarySwap } from '../../services/clinicalDietarySwaps';
+import { effectiveFoodLocation, getDietEveryday } from '../../services/dietEveryday';
+import { projectDietGroceries } from '../../services/dietGroceryProjection';
+import { preserveAcceptedMeals } from '../../services/dietPlanChoices';
 import {
+  CLINICAL_SAFETY_GUARDRAIL,
   FullMealPlan,
   MealPlanItem,
-  PlanLifecycleStatus,
-  PlanStopReason,
   PLAN_STOP_REASON_LABELS,
   PORTION_ESTIMATE_DISCLAIMER,
-  NON_CAUSAL_TIMING_DISCLAIMER,
-  CLINICAL_SAFETY_GUARDRAIL,
-  normalizeFullMealPlan,
-  updateMealServing,
-  editMealContent,
+  PlanStopReason,
   applyMealClinicalSwap,
-  transitionPlanStatus,
   archiveCurrentPlan,
-  generateDietObservationsSummary,
+  editMealContent,
   exportDietObservationsToCase,
+  generateDietObservationsSummary,
+  normalizeFullMealPlan,
+  transitionPlanStatus,
+  updateMealServing,
 } from '../../services/dietPlanLifecycle';
 import {
-  DietarySwap,
-} from '../../services/clinicalDietarySwaps';
-import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
+  hasUnverifiableDietConstraints,
+  validateGeneratedMealPlan,
+} from '../../services/dietPlanValidation';
 import { targetFields } from '../../services/dietTargets';
-import { hasUnverifiableDietConstraints, validateGeneratedMealPlan } from '../../services/dietPlanValidation';
-import { projectDietGroceries } from '../../services/dietGroceryProjection';
-import { DietEverydayTools, datedPlanDay } from './DietEverydayTools';
-import { emptyMealDetails, MealDetailsFields, mealDetailsEntry } from './MealDetailsFields';
-import { dietPlanningPreferences, normalizeDietPreferences, locationMealIdeas, dietMealSlots } from '../../../shared/diet-preferences';
-import { getDietEveryday, effectiveFoodLocation } from '../../services/dietEveryday';
-import { GroceryControls } from './GroceryControls';
+import { FeatureId } from '../../services/FeatureArchitectureContract';
+import {
+  analyzeFoodEntry,
+  clearPendingDietPlanRequest,
+  generateMealPlan,
+  generateNutritionalGuardrails,
+} from '../../services/geminiService';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import {
+  getLatestHealthMemory,
+  recordHealthMemory,
+  syncHealthMemoryFromSupabase,
+} from '../../services/HealthMemory';
+import {
+  loadObservationsFromCloud,
+  retryFailedObservationQueues,
+} from '../../services/HealthObservationService';
+import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
+import {
+  correctMeal,
+  createMeal,
+  listMealDiary,
+  mealEntryFromAnalysis,
+  migrateLegacyDietMeals,
+  removeAllDietMeals,
+  removeMeal,
+} from '../../services/MealCommandService';
+import {
+  addEvent,
+  getProfile as getCoreProfile,
+  getProfileKey,
+  saveProfile,
+  updateProfileFeatureData,
+} from '../../services/ProfileEngine';
+import { openTrialModal, recordTrialUsage } from '../../services/TrialEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { ConfirmPlannedMeal } from './ConfirmPlannedMeal';
-import { preserveAcceptedMeals } from '../../services/dietPlanChoices';
-import { validateDietPreferenceFit } from '../../../shared/diet-preference-fit';
-import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
+import { DietEverydayTools, datedPlanDay } from './DietEverydayTools';
+import { OnboardingWizard } from './DieticianComponents';
+import { GroceryControls } from './GroceryControls';
+import { MealDetailsFields, emptyMealDetails, mealDetailsEntry } from './MealDetailsFields';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -3988,7 +4019,7 @@ export default function Dietician() {
 
         
 
-        {showARLens && <ARGroceryLens 
+        {showARLens && <Suspense fallback={<FeatureLoading label="Loading tool…" />}><ARGroceryLens
           onClose={() => setShowARLens(false)} 
           onLogFood={async (food) => {
             try {
@@ -4005,7 +4036,7 @@ export default function Dietician() {
               return false;
             }
           }} 
-        />}
+        /></Suspense>}
 
         {confirmPlanned && <ConfirmPlannedMeal meal={confirmPlanned.meal} date={datedPlanDay(mealPlan?.startDate,confirmPlanned.day)||currentDate} onClose={()=>setConfirmPlanned(null)} onConfirm={(date,ratio,details)=>saveConfirmedPlanMeal(confirmPlanned.day,confirmPlanned.meal,date,ratio,details)} />}
         {editingDiaryMeal && (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { GroceryCategory } from '../../services/dietGroceryProjection';
 import './DietEveryday.css';
 export function GroceryControls({

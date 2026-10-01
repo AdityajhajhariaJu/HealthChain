@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import { Clipboard, FileText } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { formatGutVisitNote, getGutSnapshot } from '../../services/GutHealthSummary';
 
 /** Source-based visit preparation retained under the legacy Doctor Export route. */

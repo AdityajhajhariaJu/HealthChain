@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Pill, Activity, ShieldCheck, ChevronRight, X, Wind } from 'lucide-react';
-import { triggerHapticLight, triggerHapticHeavy } from '../../services/haptics';
-import { useActionIslandStore } from '../../store/actionIslandStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, ChevronRight, Pill, ShieldCheck, Wind, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { triggerHapticHeavy, triggerHapticLight } from '../../services/haptics';
+import { useActionIslandStore } from '../../stores/actionIslandStore';
 
 export const MedicalActionIsland = () => {
   const [expanded, setExpanded] = useState(false);

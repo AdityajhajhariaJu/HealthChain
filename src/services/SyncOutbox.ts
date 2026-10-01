@@ -1,20 +1,20 @@
-import { setOwned as set } from './OwnedIdb';
 import { del, get } from 'idb-keyval';
-import { getItemSync } from './storage';
-import { supabase } from './supabaseClient';
+import { sameObservationMutation } from '../../shared/observation-sync-content.js';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { validateArchiveQueue, validateCloudRecovery } from './ArchiveRecoveryValidation';
 import type { CaseItem } from './CaseEngine';
 import { mergeCaseItems } from './CaseMergeEngine';
-import { recordTombstone, isTombstoned } from './TombstoneManager';
-import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
-import { getProfileKey, getProfileEngineState } from './ProfileEngine';
-import { sendProfileSnapshot } from './ProfileCloudSync';
-import { readProfileBaseline, rebaseDeviceProfile } from './ProfileSyncBaseline';
-import { applyProfileChoice } from './ProfileFieldMerge';
 import { mergeConnectedProfiles } from './ConnectedProfileMerge';
-import { validateArchiveQueue, validateCloudRecovery } from './ArchiveRecoveryValidation';
-import { sameObservationMutation } from '../../shared/observation-sync-content.js';
 import { isOwnerErased } from './DurableHealthStorage';
-import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { setOwned as set } from './OwnedIdb';
+import { sendProfileSnapshot } from './ProfileCloudSync';
+import { getProfileEngineState, getProfileKey } from './ProfileEngine';
+import { applyProfileChoice } from './ProfileFieldMerge';
+import { readProfileBaseline, rebaseDeviceProfile } from './ProfileSyncBaseline';
+import { getItemSync } from './storage';
+import { supabase } from './supabaseClient';
+import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
+import { isTombstoned, recordTombstone } from './TombstoneManager';
 
 type OutboxKind = 
   | 'ava_message_upsert'

@@ -1,15 +1,20 @@
-import { captureNotificationScope, coordinateNotifications, notificationFailure, reconcileLegacyNotificationIds } from './NotificationCoordinator';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { mealReminderEvents, quietMealMinute } from '../../shared/diet-reminders';
 import { getDietEveryday } from './dietEveryday';
-import { getActiveProfileScope } from './profileScope';
-import { getNotificationPreferences, dispatchNotification } from './NotificationEngine';
+import {
+  captureNotificationScope,
+  coordinateNotifications,
+  notificationFailure,
+  reconcileLegacyNotificationIds,
+} from './NotificationCoordinator';
 import {
   ensureNotificationChannel,
   hasNativeNotificationPermission,
   NOTIFICATION_CHANNEL_ID,
 } from './NotificationDeviceService';
-import { mealReminderEvents, quietMealMinute } from '../../shared/diet-reminders';
+import { dispatchNotification, getNotificationPreferences } from './NotificationEngine';
+import { getActiveProfileScope } from './profileScope';
 const ids = Array.from({ length: 24 }, (_, i) => ({ id: 4000 + i }));
 let signature = '';
 export const supportsNativeMealReminders = () => Capacitor.isNativePlatform();

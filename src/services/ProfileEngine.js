@@ -1,12 +1,17 @@
-import { normalizeMedications, mergeLegacyMedicationSchedule } from './MedicationScheduleModel';
-import { supabase } from './supabaseClient';
-import { setItemSync, getItemSync } from './storage';
-import { recordHealthMemory } from './HealthMemory';
-import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
-import { readProfileBaseline, rememberProfileBaseline } from './ProfileSyncBaseline';
-import { cleanProfile, legacyProfileData, sameProfileValue, applyProfileChoice } from './ProfileFieldMerge';
-import { mergeConnectedProfiles } from './ConnectedProfileMerge';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { mergeConnectedProfiles } from './ConnectedProfileMerge';
+import { recordHealthMemory } from './HealthMemory';
+import { mergeLegacyMedicationSchedule, normalizeMedications } from './MedicationScheduleModel';
+import {
+  applyProfileChoice,
+  cleanProfile,
+  legacyProfileData,
+  sameProfileValue,
+} from './ProfileFieldMerge';
+import { readProfileBaseline, rememberProfileBaseline } from './ProfileSyncBaseline';
+import { getItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
+import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
 
 export function getProfileKey() {
   try {

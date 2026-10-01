@@ -1,21 +1,33 @@
-import { getProfileKey } from '../../services/ProfileEngine';
-import { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  Bookmark,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Filter,
+  FlaskConical,
+  MessageCircle,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FlaskConical, ExternalLink, Activity, Filter, ShieldCheck, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
-import { getProfile } from '../../services/ProfileEngine';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { getProfile, getProfileKey } from '../../services/ProfileEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
-import { fetchRecentLiterature, cleanMedicalText } from '../../services/pubMedService';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { cleanMedicalText, fetchRecentLiterature } from '../../services/pubMedService';
 
+import { useToast } from '../../components/ui/ToastProvider';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { getItemSync, setItemSync } from '../../services/storage';
 import { getScopedStorageKey } from '../../services/profileScope';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 
 

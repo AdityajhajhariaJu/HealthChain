@@ -1,6 +1,6 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Edit3, ArrowRight, CheckCircle2, Waves, Activity } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Edit3, Waves } from 'lucide-react';
+import React from 'react';
 import { triggerHapticLight } from '../../services/haptics';
 
 export interface DiaryEntry {

@@ -1,7 +1,7 @@
-import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
-import { SplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { flushSyncOutbox } from './SyncOutbox';
 
 let isNativeLifecycleInitialized = false;

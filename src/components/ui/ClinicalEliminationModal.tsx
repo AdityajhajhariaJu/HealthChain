@@ -1,11 +1,20 @@
+import { Activity, ArrowRight, Clipboard, Pause, Play, ShieldAlert, Square, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, Clipboard, Pause, Play, ShieldAlert, Square, X } from 'lucide-react';
-import { EliminationOnboardingWizard } from './EliminationOnboardingWizard';
-import { getActiveTrial, type ActiveTrialState } from '../../services/TriggerEngine';
-import { getActiveTrialV2, getFoodChallenges, getHealthEvents, pauseTrialV2, recordChallengeObservation, recordDailyObservation, resumeTrialV2, stopTrialV2 } from '../../services/TrialWorkflowService';
 import type { TrialV2 } from '../../domain/trials/types';
+import {
+  getActiveTrialV2,
+  getFoodChallenges,
+  getHealthEvents,
+  pauseTrialV2,
+  recordChallengeObservation,
+  recordDailyObservation,
+  resumeTrialV2,
+  stopTrialV2,
+} from '../../services/TrialWorkflowService';
+import { getActiveTrial, type ActiveTrialState } from '../../services/TriggerEngine';
+import { EliminationOnboardingWizard } from './EliminationOnboardingWizard';
 import FocusTrap from './FocusTrap';
 
 export interface ClinicalEliminationModalProps {

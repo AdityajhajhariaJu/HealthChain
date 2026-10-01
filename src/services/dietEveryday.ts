@@ -1,5 +1,5 @@
-import { getProfile, saveProfile, getProfileKey } from './ProfileEngine';
 import { normalizeDietPreferences } from '../../shared/diet-preferences';
+import { getProfile, getProfileKey, saveProfile } from './ProfileEngine';
 
 export type PantryItem = {
   id: string;

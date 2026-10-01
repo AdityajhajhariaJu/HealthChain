@@ -1,5 +1,5 @@
-import type { GutQuestionThread } from './GutResolutionService';
 import type { GutSnapshot } from './GutHealthSummary';
+import type { GutQuestionThread } from './GutResolutionService';
 
 /** The question date is a record-browsing anchor, never a claimed symptom onset. */
 export function getGutConcernDate(thread: GutQuestionThread): string {

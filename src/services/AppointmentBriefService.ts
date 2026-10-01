@@ -1,13 +1,13 @@
 import {
-  CaseItem,
   AppointmentBrief,
-  BriefTimelineItem,
+  BriefChangeItem,
   BriefFact,
   BriefGap,
-  BriefQuestion,
   BriefPerspective,
-  BriefChangeItem,
   BriefPreviousOutcome,
+  BriefQuestion,
+  BriefTimelineItem,
+  CaseItem,
   generateStableQuestionId,
 } from './CaseEngine';
 

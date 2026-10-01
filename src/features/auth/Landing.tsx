@@ -1,46 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   ArrowRight,
-  Shield,
-  Zap,
-  GitBranch,
-  Search,
-  MessageSquare,
-  ChevronRight,
-  ChevronLeft,
+  Brain,
   ChevronDown,
   ChevronUp,
-  Star,
-  CheckCircle2,
-  Sparkles,
-  Heart,
-  Brain,
-  Microscope,
-  ArrowUpRight,
-  FileText,
   Eye,
-  ShieldCheck,
-  Play,
+  FileText,
   Layers,
-  ShieldAlert
+  Microscope,
+  Play,
+  Search,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
-import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { HCLogo } from '../../components/ui/HCLogo';
+import { LandingWorkflowReasoningModal } from '../../components/ui/LandingWorkflowReasoningModal';
+import { trackButtonClick, trackPageView } from '../../services/analytics';
+import { getActiveSession } from '../../services/authSession';
 import { setActiveCase } from '../../services/CaseEngine';
+import { triggerHapticLight } from '../../services/haptics';
+import {
+  getLandingWorkflowScenarios,
+  instantiateWorkflowCase,
+  LandingWorkflowScenario,
+} from '../../services/LandingCaseWorkflowEngine';
+import { supabase } from '../../services/supabaseClient';
 import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
-import { HCLogo } from '../../components/ui/HCLogo';
-import { getActiveSession } from '../../services/authSession';
-import { supabase } from '../../services/supabaseClient';
-import { trackPageView, trackButtonClick } from '../../services/analytics';
-import { triggerHapticLight } from '../../services/haptics';
-import { 
-  getLandingWorkflowScenarios, 
-  instantiateWorkflowCase, 
-  LandingWorkflowScenario 
-} from '../../services/LandingCaseWorkflowEngine';
-import { LandingWorkflowReasoningModal } from '../../components/ui/LandingWorkflowReasoningModal';
 
 const SYMPTOM_PRESETS = [
   { label: '⚡ Chronic Fatigue', symptom: 'Unexplained chronic fatigue, unrefreshing sleep, and low afternoon energy', specialist: 'endo' },
@@ -298,7 +289,7 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
             src={poster} 
             alt={alt} 
             className={styles.videoPosterImg} 
-            loading="eager" 
+            loading="lazy" decoding="async"
             onError={(e) => { e.currentTarget.src = '/videos/healthchain-overview-poster.jpg'; }}
           />
         </div>

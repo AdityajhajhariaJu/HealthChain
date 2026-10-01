@@ -90,7 +90,11 @@ for (const timezoneId of ['UTC', 'Asia/Kolkata']) {
       await expect(page.getByRole('button', { name: 'Quick log 250ml water' })).toBeVisible({
         timeout: 30000,
       });
-      // Let lazy route initialization run before pausing five seconds before midnight.
+      // Finish the scheduler's first lazy load before freezing React's retry timers.
+      await page.getByRole('button', { name: /Daily Meds & Vitamins -/ }).click();
+      await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
       await page.clock.pauseAt(start + 55000);
       await seedProfile(page);
       await page.getByRole('button', { name: 'Quick log 250ml water' }).click();

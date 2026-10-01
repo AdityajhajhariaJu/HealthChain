@@ -1,9 +1,8 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { safeNavigateBack } from '../../services/navigation';
 import { triggerHapticLight } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 
 export default function TermsOfService() {
   const navigate = useNavigate();

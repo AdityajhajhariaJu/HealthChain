@@ -1,10 +1,10 @@
-import { PushNotifications } from '@capacitor/push-notifications';
-import { supabase } from './supabaseClient';
 import { Capacitor } from '@capacitor/core';
-import { apiEndpoint } from './ApiEndpoint';
+import { PushNotifications } from '@capacitor/push-notifications';
 import { captureAccountScope, isAccountScopeCurrent, type AccountScope } from './AccountScope';
-import { getItemSync, setItemSync, removeItemSync } from './storage';
+import { apiEndpoint } from './ApiEndpoint';
 import { ensureNotificationChannel } from './NotificationDeviceService';
+import { getItemSync, removeItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
 
 let registrationScope: AccountScope | null = null;
 let pushListenersSetUp = false;

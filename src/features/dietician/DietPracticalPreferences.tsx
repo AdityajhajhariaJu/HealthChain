@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   DIET_EQUIPMENT,
   DIET_PURPOSES,

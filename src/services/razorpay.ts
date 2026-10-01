@@ -2,9 +2,9 @@
  * Resilient Razorpay payment orchestration service with automatic pending charge recovery,
  * interrupted task resumption, and idempotent verification.
  */
-import { verifyProStatus } from './ProfileEngine';
-import { apiEndpoint } from './ApiEndpoint';
 import { PRODUCT_CATALOG } from '../../shared/productCatalog.js';
+import { apiEndpoint } from './ApiEndpoint';
+import { verifyProStatus } from './ProfileEngine';
 
 export type PaymentPlanId =
   | 'pro_30_days'

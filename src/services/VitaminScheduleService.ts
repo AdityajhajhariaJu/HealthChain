@@ -1,12 +1,21 @@
-import { captureNotificationScope, coordinateNotifications, notificationFailure, type NotificationScope } from './NotificationCoordinator';
-import { getProfile, saveProfile } from './ProfileEngine';
-import { isMedicationTime, normalizeMedications } from './MedicationScheduleModel';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
-import { getItemSync, setItemSync } from './storage';
-import { ensureNotificationChannel, hasNativeNotificationPermission, NOTIFICATION_CHANNEL_ID } from './NotificationDeviceService';
-import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { syncMedicationDose } from './DailyTrackerLedger';
+import { isMedicationTime, normalizeMedications } from './MedicationScheduleModel';
+import {
+  captureNotificationScope,
+  coordinateNotifications,
+  notificationFailure,
+  type NotificationScope,
+} from './NotificationCoordinator';
+import {
+  ensureNotificationChannel,
+  hasNativeNotificationPermission,
+  NOTIFICATION_CHANNEL_ID,
+} from './NotificationDeviceService';
+import { getProfile, saveProfile } from './ProfileEngine';
+import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { getItemSync, setItemSync } from './storage';
 
 export interface VitaminItem {
   id: string;

@@ -1,16 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, ArrowRight } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
-import { supabase } from '../../services/supabaseClient';
-import { setItemSync } from '../../services/storage';
+import { Activity, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { HCLogo } from '../../components/ui/HCLogo';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { authRedirectUrl, openAuthProvider } from '../../services/NativeAuth';
 import { awardSignupBonus } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
-import { HCLogo } from '../../components/ui/HCLogo';
-import { authRedirectUrl, openAuthProvider } from '../../services/NativeAuth';
-import { Capacitor } from '@capacitor/core';
+import { supabase } from '../../services/supabaseClient';
 
 export default function Auth() {
   const isMobile = useIsMobile();

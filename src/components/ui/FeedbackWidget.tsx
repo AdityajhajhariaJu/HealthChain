@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { MessageSquare, Send, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageSquare, X, Send } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useToast } from './ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { useToast } from './ToastProvider';
 
 const FEEDBACK_TOPICS = [
   '⚡ App Speed',

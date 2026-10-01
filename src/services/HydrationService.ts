@@ -1,12 +1,22 @@
-import { captureNotificationScope, coordinateNotifications, notificationFailure, reconcileLegacyNotificationIds } from './NotificationCoordinator';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
-import { getItemSync, setItemSync } from './storage';
-import { triggerHapticLight, triggerHapticSuccess } from './haptics';
-import { awardPoints } from './VitalityPointsEngine';
-import { ensureNotificationChannel, hasNativeNotificationPermission, NOTIFICATION_CHANNEL_ID, requestNotificationPermission } from './NotificationDeviceService';
-import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { syncHydrationDay } from './DailyTrackerLedger';
+import { triggerHapticLight, triggerHapticSuccess } from './haptics';
+import {
+  captureNotificationScope,
+  coordinateNotifications,
+  notificationFailure,
+  reconcileLegacyNotificationIds,
+} from './NotificationCoordinator';
+import {
+  ensureNotificationChannel,
+  hasNativeNotificationPermission,
+  NOTIFICATION_CHANNEL_ID,
+  requestNotificationPermission,
+} from './NotificationDeviceService';
+import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { getItemSync, setItemSync } from './storage';
+import { awardPoints } from './VitalityPointsEngine';
 
 export interface HydrationLogItem {
   id: string;

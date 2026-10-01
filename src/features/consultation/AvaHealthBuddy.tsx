@@ -1,43 +1,75 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import {AvaDisclosure} from '../../components/ui/AvaDisclosure';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle, ChevronDown, Check, CheckCircle2, ExternalLink, ArrowRight } from 'lucide-react';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
-import { addEvent, getProfile, updateVitals, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
-import { recordHealthMemory, getHealthMemory } from '../../services/HealthMemory';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { getActiveSession } from '../../services/authSession';
-import { useToast } from '../../components/ui/ToastProvider';
-import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { compilePatientContext } from '../../services/MemoryService';
-import { AvaMemoryPanel } from '../../components/ui/AvaMemoryPanel';
-import { AvaDayCheckin } from '../../components/ui/AvaDayCheckin';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  ChevronDown,
+  File as FileIcon,
+  Heart,
+  Plus,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { sourceFreshness } from '../../../shared/health-source-freshness';
 import { AvaActivityBrowser } from '../../components/ui/AvaActivityBrowser';
+import { AvaDayCheckin } from '../../components/ui/AvaDayCheckin';
+import { AvaDisclosure } from '../../components/ui/AvaDisclosure';
+import { AvaMemoryPanel } from '../../components/ui/AvaMemoryPanel';
+import '../../components/ui/caseWorkspace.css';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
+import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { GuidedBreathingSession } from '../../components/ui/GuidedBreathingSession';
-import { loadAvaMessages, hydrateAvaMessages, persistAvaMessages, mergeAvaMessages, newAvaMessage, normalizeAvaMessages, normalizeAvaSourceStudy } from '../../services/AvaConversationRepository';
-import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
-import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
-import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
-import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
-import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
-import { getCase, getCases, addCaseEvent, addCaseQuestion, saveAvaCaseAction, type CaseItem } from '../../services/CaseEngine';
-import { buildCaseContext, getUnifiedCaseScope, getCaseDocumentedAnswers } from '../../services/caseWorkspace';
-import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
-import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
-import { listObservations } from '../../services/HealthObservationService';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { useToast } from '../../components/ui/ToastProvider';
+import {
+  TriggerSensitivityModal,
+  WholeHealthTab,
+} from '../../components/ui/TriggerSensitivityModal';
+import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import type { Observation } from '../../domain/observations/types';
-import { dailyEvidenceSummary, reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
-import { sourceFreshness } from '../../../shared/health-source-freshness';
+import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { getActiveSession } from '../../services/authSession';
+import {
+  hydrateAvaMessages,
+  loadAvaMessages,
+  mergeAvaMessages,
+  newAvaMessage,
+  normalizeAvaMessages,
+  normalizeAvaSourceStudy,
+  persistAvaMessages,
+} from '../../services/AvaConversationRepository';
+import { addCaseEvent, getCase, saveAvaCaseAction, type CaseItem } from '../../services/CaseEngine';
+import {
+  buildCaseContext,
+  getCaseDocumentedAnswers,
+  getUnifiedCaseScope,
+} from '../../services/caseWorkspace';
+import {
+  dailyEvidenceSummary,
+  reviewedCaseWithCurrentSources,
+} from '../../services/ClinicalDailyEvidence';
+import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { loadDeviceMetricContext } from '../../services/DeviceMetricRepository';
-import '../../components/ui/caseWorkspace.css';
+import { analyzeLabReport, chatWithTherapyGemini } from '../../services/geminiService';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getHealthMemory } from '../../services/HealthMemory';
+import { listObservations } from '../../services/HealthObservationService';
+import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { compilePatientContext } from '../../services/MemoryService';
+import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
+import { canUseTrial, openTrialModal, recordTrialUsage } from '../../services/TrialEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -115,7 +147,7 @@ const CASE_RECHECK_SUGGESTIONS = [
 ];
 
 
-import { getItemSync, setItemSync } from '../../services/storage';
+import { getItemSync } from '../../services/storage';
 
 
 const getAvaVaultKey = () => {
@@ -3015,6 +3047,9 @@ export default function AvaHealthBuddy() {
         {showContextModal && (
           <FocusTrap onEscape={()=>setShowContextModal(false)}>
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Conversation context"
             style={{
               position: 'fixed',
               inset: 0,

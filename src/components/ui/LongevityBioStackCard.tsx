@@ -1,26 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Apple,
-  Droplets,
-  Zap,
   Check,
-  Play,
+  Droplets,
+  Info,
   Pause,
-  RotateCcw,
+  Play,
   Plus,
+  RotateCcw,
   ShieldCheck,
-  Info
+  Zap,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import {
-  awardPhytoPoints,
-  awardMicroMovementPoints
-} from '../../services/VitalityPointsEngine';
-import { getItemSync, setItemSync } from '../../services/storage';
+  triggerHapticLight,
+  triggerHapticMedium,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
 import { getScopedStorageKey } from '../../services/profileScope';
+import { getItemSync, setItemSync } from '../../services/storage';
+import { awardMicroMovementPoints, awardPhytoPoints } from '../../services/VitalityPointsEngine';
 
 interface PhytoColor {
   id: string;

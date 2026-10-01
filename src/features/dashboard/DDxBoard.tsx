@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Brain, Loader2, MessageCircle, RotateCcw, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Activity, Brain, Loader2, MessageCircle, RotateCcw } from 'lucide-react';
-import { CaseItem, updateCaseDifferentials, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
-import { generateCaseConnectionMap } from '../../services/geminiService';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { getRunScope } from '../../services/RunContext';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { CaseItem, updateCaseConnectionMap } from '../../services/CaseEngine';
+import { generateCaseConnectionMap } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getRunScope } from '../../services/RunContext';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 
 export default function DDxBoard({ item, profile }: { item: CaseItem; profile: any }) {

@@ -1,18 +1,18 @@
-import { setOwned } from './OwnedIdb';
+import * as idb from 'idb-keyval';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
   type AccountScope as HealthMemoryScope,
 } from './AccountScope';
+import { setOwned } from './OwnedIdb';
+import { getItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
+import { enqueueSync } from './SyncOutbox';
 export {
-  captureAccountScope as captureHealthMemoryScope,
-  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+captureAccountScope as captureHealthMemoryScope,
+isAccountScopeCurrent as isHealthMemoryScopeCurrent
 } from './AccountScope';
 export type { AccountScope as HealthMemoryScope } from './AccountScope';
-import { supabase } from './supabaseClient';
-import { getItemSync, setItemSync } from './storage';
-import { enqueueSync } from './SyncOutbox';
-import * as idb from 'idb-keyval';
 
 export type HealthMemoryKind =
   | 'case_prep'

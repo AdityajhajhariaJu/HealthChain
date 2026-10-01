@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/check-build-budget.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "e2e": "playwright test",
     "lint": "eslint .",
+    "verify:repository": "node scripts/check-repository.mjs",
     "verify:migrations": "node scripts/verify-supabase-migrations.mjs",
     "build:migrations": "node scripts/build-migration-bundle.mjs",
     "smoke:supabase": "node scripts/smoke-supabase.mjs",
@@ -45,7 +46,6 @@
     "framer-motion": "^12.42.2",
     "html2pdf.js": "^0.14.0",
     "idb-keyval": "^6.3.0",
-    "jspdf": "^4.2.1",
     "lucide-react": "^0.513.0",
     "razorpay": "^2.9.8",
     "react": "^19.1.0",
@@ -81,12 +81,9 @@
     "postcss": "^8.5.26",
     "prettier": "^3.9.6",
     "rollup-plugin-visualizer": "^7.0.1",
-    "sharp": "^0.35.3",
-    "svgo": "^4.0.2",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.6.3",
     "vite": "^6.3.5",
-    "vite-plugin-image-optimizer": "^2.0.3",
     "vitest": "^4.1.10"
   }
 }

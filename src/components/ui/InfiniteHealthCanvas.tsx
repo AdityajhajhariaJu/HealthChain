@@ -1,16 +1,9 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, BrainCircuit, Briefcase, CheckCircle2, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-  FileText,
-  BrainCircuit,
-  Activity,
-  Briefcase,
-  CheckCircle2,
-  X,
-} from 'lucide-react';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { CaseItem } from '../../services/CaseEngine';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
 interface InfiniteHealthCanvasProps {
   cases: CaseItem[];

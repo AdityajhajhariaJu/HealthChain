@@ -1,9 +1,13 @@
+import { Activity, ArrowRight, BookOpen } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, BookOpen } from 'lucide-react';
-import { getActiveTrial, logTrialDay, type ActiveTrialState } from '../../services/TriggerEngine';
-import { getActiveTrialV2, getHealthEvents, recordDailyObservation } from '../../services/TrialWorkflowService';
 import type { TrialV2 } from '../../domain/trials/types';
+import {
+  getActiveTrialV2,
+  getHealthEvents,
+  recordDailyObservation,
+} from '../../services/TrialWorkflowService';
+import { getActiveTrial, logTrialDay, type ActiveTrialState } from '../../services/TriggerEngine';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
 
 export const openEliminationSuiteModal = () => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, GitBranch } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';

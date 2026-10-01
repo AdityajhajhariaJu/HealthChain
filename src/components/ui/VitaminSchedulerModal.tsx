@@ -1,46 +1,45 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { isMedicationTime } from '../../services/MedicationScheduleModel';
-import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Clock, 
-  Plus, 
-  Trash2, 
-  Check, 
-  Bell, 
-  BellOff, 
-  Sparkles, 
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bell,
+  BellOff,
+  Check,
+  Clock,
   Droplet,
-  Wind,
-  Syringe,
   Leaf,
+  Moon,
+  Search,
+  Sparkles,
   Sun,
   Sunset,
-  Moon,
-  Info,
-  AlertTriangle,
-  ShieldAlert,
-  Search
+  Syringe,
+  Trash2,
+  Wind,
+  X,
 } from 'lucide-react';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { requestNotificationPermission } from '../../services/DailyCheckinNotificationService';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import { isMedicationTime } from '../../services/MedicationScheduleModel';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { 
-  getVitaminSchedule, 
-  saveVitaminSchedule,
-  rescheduleVitaminNotifications,
-  toggleVitaminTaken, 
+import {
+  detectDrugNutrientInteractions,
+  DrugInteractionAlert,
+  getTodayDateString,
+  getVitaminSchedule,
   markAllVitaminsTaken,
+  rescheduleVitaminNotifications,
+  saveVitaminSchedule,
+  toggleVitaminTaken,
   triggerPillNotification,
   VitaminItem,
-  getTodayDateString,
-  detectDrugNutrientInteractions,
-  DrugInteractionAlert
 } from '../../services/VitaminScheduleService';
-import { requestNotificationPermission } from '../../services/DailyCheckinNotificationService';
-import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 
 interface VitaminSchedulerModalProps {
   isOpen: boolean;

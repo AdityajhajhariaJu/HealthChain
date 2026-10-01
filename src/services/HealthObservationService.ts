@@ -1,12 +1,25 @@
+import { del, get } from 'idb-keyval';
 import { sameObservationMutation } from '../../shared/observation-sync-content';
-import { setOwned as set } from './OwnedIdb';
-import { get, del } from 'idb-keyval';
-import { supabase } from './supabaseClient';
-import { enqueueSync, getPendingObservationIds, getObservationConflicts, settleObservationConflict } from './SyncOutbox';
+import {
+  validateObservationDraft,
+  type Observation,
+  type ObservationDraft,
+  type ObservationScope,
+} from '../domain/observations/types';
+import {
+  captureAccountScope as captureHealthMemoryScope,
+  isAccountScopeCurrent as isHealthMemoryScopeCurrent,
+} from './AccountScope';
 import { isOwnerErased } from './DurableHealthStorage';
+import { setOwned as set } from './OwnedIdb';
 import { getProfileEngineState } from './ProfileEngine';
-import { captureAccountScope as captureHealthMemoryScope, isAccountScopeCurrent as isHealthMemoryScopeCurrent } from './AccountScope';
-import { validateObservationDraft, type Observation, type ObservationDraft, type ObservationScope } from '../domain/observations/types';
+import { supabase } from './supabaseClient';
+import {
+  enqueueSync,
+  getObservationConflicts,
+  getPendingObservationIds,
+  settleObservationConflict,
+} from './SyncOutbox';
 
 export type ObservationCommandResult =
   | { ok: true; observation: Observation; sync: 'local_only' | 'pending' | 'queue_failed' }

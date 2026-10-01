@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Droplet, Info, Wind } from 'lucide-react';
-import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
+import React, { useEffect, useState } from 'react';
 import { triggerHapticLight } from '../../services/haptics';
+import { GardenState, getGardenState, recordGardenAction } from '../../services/TriggerEngine';
 import { getDailyStreak } from '../../services/VitalityPointsEngine';
 
 interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }

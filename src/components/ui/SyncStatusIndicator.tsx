@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle2, UploadCloud, CloudOff, Smartphone, AlertOctagon, RefreshCw } from 'lucide-react';
-import { flushSyncOutbox, getSyncStatus } from '../../services/SyncOutbox';
-import { supabase } from '../../services/supabaseClient';
+import {
+  AlertOctagon,
+  CheckCircle2,
+  CloudOff,
+  RefreshCw,
+  Smartphone,
+  UploadCloud,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { flushSyncOutbox, getSyncStatus } from '../../services/SyncOutbox';
 import { SyncStatusState } from '../../services/SyncTypes';
+import { supabase } from '../../services/supabaseClient';
 
 interface SyncStatusIndicatorProps {
   className?: string;

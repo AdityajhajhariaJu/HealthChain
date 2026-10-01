@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'com.healthchain.app',
@@ -8,7 +9,7 @@ const config: CapacitorConfig = {
   plugins: {
     StatusBar: { style: 'dark', backgroundColor: '#0F172A' },
     SplashScreen: { launchShowDuration: 2000, backgroundColor: '#0F172A', showSpinner: false },
-    Keyboard: { resize: 'body', resizeOnFullScreen: true },
+    Keyboard: { resize: KeyboardResize.Body, resizeOnFullScreen: true },
     PushNotifications: { presentationOptions: ['badge', 'sound', 'alert', 'banner', 'list'] },
     LocalNotifications: { presentationOptions: ['badge', 'sound', 'banner', 'list'] },
   },

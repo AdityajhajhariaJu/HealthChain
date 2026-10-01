@@ -1,45 +1,54 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import {
+  Apple,
+  Archive,
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  BrainCircuit,
+  BriefcaseBusiness,
+  ChevronRight,
+  ClipboardList,
+  FlaskConical,
+  FolderHeart,
+  Grid,
+  Heart,
+  Home,
+  LayoutDashboard,
+  Settings,
+  Trophy,
+  X,
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
-import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Home, User } from 'lucide-react';
-import { NetworkHubIcon } from '../ui/NetworkHubIcon';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { getProfile } from '../../services/ProfileEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { triggerHapticLight } from '../../services/haptics';
+import { getProfile } from '../../services/ProfileEngine';
 
-import { AuthModal } from '../ui/AuthModal';
-import { GuestStickyBanner } from '../ui/GuestStickyBanner';
-import { AmbientGyroBackground } from '../ui/AmbientGyroBackground';
-import { MedicalActionIsland } from '../ui/MedicalActionIsland';
-import VitalityPointsModal from '../ui/VitalityPointsModal';
-import PointsAwardedToast from '../ui/PointsAwardedToast';
-import PillNotificationBanner from '../ui/PillNotificationBanner';
-import UpgradeToProCard from '../ui/UpgradeToProCard';
-import { TrialFeaturesModal } from '../ui/TrialFeaturesModal';
-import { openTrialModal } from '../../services/TrialEngine';
-import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
-import { trackPageView, trackButtonClick } from '../../services/analytics';
-import { useToast } from '../ui/ToastProvider';
-import FeedbackWidget from '../ui/FeedbackWidget';
-import NotificationPanel from '../ui/NotificationPanel';
+import { trackButtonClick, trackPageView } from '../../services/analytics';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 import { initDietMealReminderService } from '../../services/DietMealReminderService';
-import { rescheduleVitaminNotifications } from '../../services/VitaminScheduleService';
 import { restoreHydrationNotifications } from '../../services/HydrationService';
-import { getUnreadNotificationCount } from '../../services/NotificationEngine';
-import { HCLogo } from '../ui/HCLogo';
-import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
-import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
 import { safeNavigateBack } from '../../services/navigation';
-
-function AnimatedOutlet() {
-  const o = useOutlet();
-  const [outlet] = useState(o);
-  return outlet;
-}
+import { getUnreadNotificationCount } from '../../services/NotificationEngine';
+import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
+import { rescheduleVitaminNotifications } from '../../services/VitaminScheduleService';
+import { AuthModal } from '../ui/AuthModal';
+import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
+import FeedbackWidget from '../ui/FeedbackWidget';
+import { HCLogo } from '../ui/HCLogo';
+import { MedicalActionIsland } from '../ui/MedicalActionIsland';
+import NotificationPanel from '../ui/NotificationPanel';
+import PillNotificationBanner from '../ui/PillNotificationBanner';
+import PointsAwardedToast from '../ui/PointsAwardedToast';
+import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
+import { useToast } from '../ui/ToastProvider';
+import { TrialFeaturesModal } from '../ui/TrialFeaturesModal';
+import UpgradeToProCard from '../ui/UpgradeToProCard';
+import VitalityPointsModal from '../ui/VitalityPointsModal';
 
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },

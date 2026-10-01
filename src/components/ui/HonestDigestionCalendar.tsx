@@ -1,9 +1,17 @@
+import {
+  Activity,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clipboard,
+  Plus,
+  X,
+} from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, CalendarDays, ChevronLeft, ChevronRight, Clipboard, Plus, X } from 'lucide-react';
-import { getDigestionLogs, getProfile, saveDigestionLog } from '../../services/ProfileEngine';
+import { useDietReviewData } from '../../hooks/useDietReviewData';
 import { hasRecordedDigestionEntry } from '../../services/GutHealthSummary';
+import { getDigestionLogs, getProfile, saveDigestionLog } from '../../services/ProfileEngine';
 import { useToast } from './ToastProvider';
-import {useDietReviewData} from '../../hooks/useDietReviewData';
 
 export type BristolStoolType = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StomachComfortLevel = 'calm' | 'mild_acid' | 'moderate_reflux' | 'severe_burning' | 'nausea';

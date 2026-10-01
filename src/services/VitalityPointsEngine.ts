@@ -1,7 +1,7 @@
-import { getProfile, saveProfile } from './ProfileEngine';
 import { triggerHapticSuccess } from './haptics';
-import { getItemSync } from './storage';
+import { getProfile, saveProfile } from './ProfileEngine';
 import { getHabitStorageKey } from './profileScope';
+import { getItemSync } from './storage';
 import { getGardenState } from './TriggerEngine';
 
 function getLocalDateString(date = new Date()): string {

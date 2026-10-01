@@ -1,5 +1,6 @@
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { PublicCatalogCache } from './PublicCatalogCache';
 import { supabase } from './supabaseClient';
-import {captureAccountScope,isAccountScopeCurrent} from './AccountScope';
 
 export interface FitnessProgram {
   id: string;
@@ -45,32 +46,52 @@ export interface FitnessContent {
   is_featured: boolean;
 }
 
+const contentCache = new PublicCatalogCache();
 
-interface FitnessCache {
-  categories?: FitnessCategory[];
-  programs?: FitnessProgram[];
-  activeContent?: FitnessContent[];
-  specialtyContent?: FitnessContent[];
-  timestamp?: number;
+async function readCatalog<T>(read: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    return await read(controller.signal);
+  } finally {
+    clearTimeout(timer);
+  }
 }
-const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
-let memoryCache: FitnessCache = {};
 
 export const FitnessService = {
+  invalidateContentCache() {
+    contentCache.clear();
+  },
   async startSession(contentId: string, sessionId: string = crypto.randomUUID()) {
-    const owner=captureAccountScope();
-    const {data:{session}}=await supabase.auth.getSession();
-    if(owner.accountId==='guest' || !isAccountScopeCurrent(owner) || session?.user?.id!==owner.accountId)throw new Error('Sign in to start this activity in your account.');
-    const {data,error}=await supabase.rpc('start_fitness_session',{p_content_id:contentId,p_session_id:sessionId,p_expected_owner:owner.accountId});
-    if(!isAccountScopeCurrent(owner))throw new Error('Account changed. Activity was not started in this conversation.');
-    if(error)throw error;
-    if(!data?.session_id)throw new Error('Activity session could not be started.');
+    const owner = captureAccountScope();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (
+      owner.accountId === 'guest' ||
+      !isAccountScopeCurrent(owner) ||
+      session?.user?.id !== owner.accountId
+    )
+      throw new Error('Sign in to start this activity in your account.');
+    const { data, error } = await supabase.rpc('start_fitness_session', {
+      p_content_id: contentId,
+      p_session_id: sessionId,
+      p_expected_owner: owner.accountId,
+    });
+    if (!isAccountScopeCurrent(owner))
+      throw new Error('Account changed. Activity was not started in this conversation.');
+    if (error) throw error;
+    if (!data?.session_id) throw new Error('Activity session could not be started.');
     return data;
   },
   async completeSession(sessionId: string, durationSeconds: number) {
-    const {data,error}=await supabase.rpc('complete_fitness_session',{p_session_id:sessionId,p_duration_seconds:durationSeconds,p_calories:null});
-    if(error)throw error;
-    if(!data?.completed)throw new Error('Participation was not saved.');
+    const { data, error } = await supabase.rpc('complete_fitness_session', {
+      p_session_id: sessionId,
+      p_duration_seconds: durationSeconds,
+      p_calories: null,
+    });
+    if (error) throw error;
+    if (!data?.completed) throw new Error('Participation was not saved.');
     return data;
   },
   async getUserFitnessHistory(userId: string) {
@@ -80,36 +101,41 @@ export const FitnessService = {
       .eq('user_id', userId)
       .eq('was_completed', true)
       .order('completed_at', { ascending: true });
-    
+
     if (error) throw error;
-    
+
     // We'll also fetch categories manually if nested join fails, but let's try to get them
-    const { data: categories } = await supabase.from('fitness_categories').select('id, label, slug');
+    const { data: categories } = await supabase
+      .from('fitness_categories')
+      .select('id, label, slug');
     const catMap = (categories || []).reduce((acc: any, curr: any) => {
       acc[curr.id] = curr;
       return acc;
     }, {});
-    
-    return (data || []).map(item => ({
+
+    return (data || []).map((item) => ({
       ...item,
-      category: item.fitness_content?.category_id ? catMap[item.fitness_content.category_id] : null
+      category: item.fitness_content?.category_id ? catMap[item.fitness_content.category_id] : null,
     }));
   },
 
   async startProgram(userId: string, programId: string) {
     const { data, error } = await supabase
       .from('user_program_progress')
-      .upsert({
-        user_id: userId,
-        program_id: programId,
-        started_at: new Date().toISOString(),
-        is_active: true,
-        current_episode: 1,
-        completed_episodes: []
-      }, { onConflict: 'user_id,program_id' })
+      .upsert(
+        {
+          user_id: userId,
+          program_id: programId,
+          started_at: new Date().toISOString(),
+          is_active: true,
+          current_episode: 1,
+          completed_episodes: [],
+        },
+        { onConflict: 'user_id,program_id' }
+      )
       .select()
       .single();
-      
+
     if (error) throw error;
     return data;
   },
@@ -120,44 +146,47 @@ export const FitnessService = {
       .select('*, fitness_content(*)')
       .eq('program_id', programId)
       .order('episode_number', { ascending: true });
-      
+
     if (error) throw error;
     return (data || []).map((d: any) => d.fitness_content).filter(Boolean) as FitnessContent[];
   },
 
-  async getAllActiveContent(signal?:AbortSignal) {
+  async getAllActiveContent(signal?: AbortSignal) {
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
       throw new Error('Activity service is not configured.');
     }
-    if (memoryCache.activeContent && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
-      return memoryCache.activeContent;
-    }
-    const { data, error } = await supabase
-      .from('fitness_content')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true }).abortSignal(signal || AbortSignal.timeout(15000));
-      
-    if (error) throw error;
-    memoryCache.activeContent = data as FitnessContent[];
-    memoryCache.timestamp = Date.now();
-    return memoryCache.activeContent;
+    return contentCache.get(
+      'active-content',
+      () =>
+        readCatalog(async (requestSignal) => {
+          const { data, error } = await supabase
+            .from('fitness_content')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .abortSignal(requestSignal);
+
+          if (error) throw error;
+          return (data || []) as FitnessContent[];
+        }),
+      signal
+    );
   },
 
   async getPrograms() {
-    if (memoryCache.programs && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
-      return memoryCache.programs;
-    }
-    const { data, error } = await supabase
-      .from('fitness_programs')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
-    
-    if (error) throw error;
-    memoryCache.programs = data as FitnessProgram[];
-    memoryCache.timestamp = Date.now();
-    return memoryCache.programs;
+    return contentCache.get('programs', () =>
+      readCatalog(async (requestSignal) => {
+        const { data, error } = await supabase
+          .from('fitness_programs')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true })
+          .abortSignal(requestSignal);
+
+        if (error) throw error;
+        return (data || []) as FitnessProgram[];
+      })
+    );
   },
 
   async getContentByDifficulty(difficulty: string) {
@@ -167,7 +196,7 @@ export const FitnessService = {
       .eq('difficulty', difficulty)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-      
+
     if (error) throw error;
     return data as FitnessContent[];
   },
@@ -180,20 +209,25 @@ export const FitnessService = {
       .in('fitness_categories.slug', ['activity-games', 'hand-eye'])
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-      
+
     if (error) throw error;
     return data as FitnessContent[];
   },
 
   async getCategories() {
-    const { data, error } = await supabase
-      .from('fitness_categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
-    
-    if (error) throw error;
-    return data as FitnessCategory[];
+    return contentCache.get('categories', () =>
+      readCatalog(async (requestSignal) => {
+        const { data, error } = await supabase
+          .from('fitness_categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true })
+          .abortSignal(requestSignal);
+
+        if (error) throw error;
+        return (data || []) as FitnessCategory[];
+      })
+    );
   },
 
   async getContentByCategory(categoryId: string) {
@@ -203,7 +237,7 @@ export const FitnessService = {
       .eq('category_id', categoryId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-      
+
     if (error) throw error;
     return data as FitnessContent[];
   },
@@ -215,28 +249,38 @@ export const FitnessService = {
       .eq('is_featured', true)
       .eq('is_active', true)
       .limit(10);
-      
+
     if (error) throw error;
     return data as FitnessContent[];
   },
 
-  async completeWellnessSession(userId: string, contentId: string, durationSeconds: number, calories: number = 0) {
+  async completeWellnessSession(
+    userId: string,
+    contentId: string,
+    durationSeconds: number,
+    calories: number = 0
+  ) {
     return this.completeWorkoutSession(userId, contentId, durationSeconds, calories);
   },
 
-  async completeWorkoutSession(userId: string, contentId: string, durationSeconds: number, calories: number) {
+  async completeWorkoutSession(
+    userId: string,
+    contentId: string,
+    durationSeconds: number,
+    calories: number
+  ) {
     const { data, error } = await supabase.rpc('complete_workout_session', {
       p_user_id: userId,
       p_content_id: contentId,
       p_duration_seconds: durationSeconds,
-      p_calories: calories
+      p_calories: calories,
     });
 
     if (error) throw error;
     return data;
   },
 
-    async getUserStreaks(userId: string) {
+  async getUserStreaks(userId: string) {
     const { data, error } = await supabase
       .from('user_streaks')
       .select('*')
@@ -271,11 +315,5 @@ export const FitnessService = {
       .order('taken_at', { ascending: false });
     if (error) throw error;
     return data || [];
-  }
+  },
 };
-
-
-
-
-
-

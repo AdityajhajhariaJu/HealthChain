@@ -1,5 +1,5 @@
-import { cleanMedicalText } from './pubMedService';
 import type { GutSymptom } from './GutResolutionService';
+import { cleanMedicalText } from './pubMedService';
 
 export type GutResearchTopic = 'food' | 'caffeine' | 'dairy' | 'meal_timing';
 

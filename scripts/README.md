@@ -2,6 +2,18 @@
 
 This directory contains deployment verification scripts and live-model evaluation harnesses.
 
+## Maintained commands
+
+- `npm run verify:repository`: reject tracked generated output and root scratch files.
+- `npm run build`: TypeScript, Vite and emitted-manifest startup JavaScript budget.
+- `npm run verify:migrations`: migration/bundle/schema-contract alignment.
+- `npm run build:migrations`: regenerate the initial-install SQL bundle; do not reapply it to an existing production database.
+- `npm run smoke:supabase`: read-only anonymous API exposure/configuration check.
+- `npm run eval:diet-plan` and `npm run eval:model`: controlled provider evaluations.
+- `scripts/lib/legacy-gut-observations.ts`: pure legacy import preview with provenance checks; it does not write production data.
+
+Historical one-off patch scripts were removed. Recover them from Git history when researching an old change; do not re-run them against current source.
+
 ## Live-Model Clinical Grounding Evaluation Harness
 
 File: `scripts/eval-live-model.ts`

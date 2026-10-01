@@ -1,6 +1,6 @@
 import type { CaseItem } from './CaseEngine';
-import { getCase, getActiveCase, getActiveCaseId, getCases, setActiveCase } from './CaseEngine';
-import { getProfileKey, getProfileEngineState } from './ProfileEngine';
+import { getActiveCase, getCases } from './CaseEngine';
+import { getProfileEngineState, getProfileKey } from './ProfileEngine';
 
 const text = (value: unknown, limit = 3000): string =>
   typeof value === 'string' ? value.trim().slice(0, limit) : '';

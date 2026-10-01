@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FileText, Link2, ArrowDown, ArrowRight, Sparkles, 
-  HelpCircle, ShieldCheck, ShieldAlert, Scissors, 
-  RotateCcw, Check, Copy, ExternalLink, Calendar,
-  Clock, Activity, BookOpen
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowDown,
+  ArrowRight,
+  Check,
+  Clock,
+  Copy,
+  FileText,
+  RotateCcw,
+  Scissors,
 } from 'lucide-react';
-import { 
-  SemanticEvidenceGraph, 
-  SemanticDetectiveNode, 
-  SemanticDetectiveEdge,
-  toggleDecoupleEdge 
-} from '../../services/ConnectionDetectiveEngine';
-import { InformationCategoryBadge } from './InformationCategoryBadge';
-import { triggerHapticLight, triggerHapticSelection, triggerHapticSuccess } from '../../services/haptics';
+import React, { useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import {
+  SemanticDetectiveEdge,
+  SemanticDetectiveNode,
+  SemanticEvidenceGraph,
+  toggleDecoupleEdge,
+} from '../../services/ConnectionDetectiveEngine';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 
 interface SemanticEvidenceGraphViewProps {
   graph: SemanticEvidenceGraph;

@@ -1,39 +1,33 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   ArrowLeft,
   ArrowRight,
   Check,
   ClipboardList,
-  HeartPulse,
+  Dna,
+  Moon,
+  Pill,
+  Ruler,
+  Scale,
+  Shield,
   ShieldCheck,
   Sparkles,
-  User,
-  Plus,
-  X,
-  AlertCircle,
-  Pill,
+  Stethoscope,
   Sun,
   Sunrise,
   Sunset,
-  Moon,
-  Clock,
-  Dna,
-  Scale,
-  Ruler,
-  Stethoscope,
-  Shield
 } from 'lucide-react';
-import { completeProfileOnboarding, getProfileKey, getProfile } from '../../services/ProfileEngine';
-import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { normalizeFoodLocation } from '../../../shared/food-location';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { getItemSync, setItemSync } from '../../services/storage';
-import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
+import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
 import { HCLogo } from '../../components/ui/HCLogo';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { completeProfileOnboarding, getProfile } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
 

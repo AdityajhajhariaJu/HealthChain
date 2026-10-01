@@ -1,7 +1,7 @@
-import { getItemSync, setItemSync } from './storage';
-import { cleanProfile, applyProfileChoice } from './ProfileFieldMerge';
-import { mergeConnectedProfiles } from './ConnectedProfileMerge';
 import { captureAccountScope } from './AccountScope';
+import { mergeConnectedProfiles } from './ConnectedProfileMerge';
+import { applyProfileChoice, cleanProfile } from './ProfileFieldMerge';
+import { getItemSync, setItemSync } from './storage';
 export const profileBaselineKey = (owner: string, profile: string) => `hc_profile_sync_base:${owner}:${profile}`;
 export function readProfileBaseline(owner: string, profile: string): any | undefined {
   try { const raw = getItemSync(profileBaselineKey(owner, profile)); return raw ? JSON.parse(raw) : undefined; } catch { return undefined; }

@@ -1,10 +1,10 @@
-import * as idb from 'idb-keyval';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { blockErasedOwner, isOwnerStorageKey, pendingErasedOwners } from './DurableHealthStorage';
+import * as idb from 'idb-keyval';
 import { invalidateAccountScope } from './AccountScope';
-import { flushNativeStorage } from './storage';
+import { blockErasedOwner, isOwnerStorageKey, pendingErasedOwners } from './DurableHealthStorage';
 import { flushOwnedWrites } from './OwnedIdb';
+import { flushNativeStorage } from './storage';
 const receiptKey = 'hc_erasure_pending_owners';
 /** Contains only owner IDs; permits device cleanup after the remote identity is gone. */
 export async function recordConfirmedAccountErasure(ownerId: string) {

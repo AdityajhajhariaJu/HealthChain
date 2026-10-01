@@ -1,5 +1,5 @@
-import type { GutSymptom } from './GutResolutionService';
 import type { GutResearchTopic } from './GutResearchService';
+import type { GutSymptom } from './GutResolutionService';
 
 /** A user-facing general finding is publishable only with a traceable, independent review. */
 export interface GutReviewedEvidenceClaim {

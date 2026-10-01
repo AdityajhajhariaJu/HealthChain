@@ -1,19 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Apple, ArrowRight, Brain, Heart, Lock, Sparkles, Stethoscope, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  X,
-  Stethoscope,
-  Heart,
-  Apple,
-  Brain,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Lock,
-  Zap,
-} from 'lucide-react';
 import { getTrialStatus, TrialStatus } from '../../services/TrialEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { saveInterruptedTask } from '../../services/razorpay';

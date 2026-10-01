@@ -17,8 +17,8 @@
  * 12. Clinical guardrails prohibiting medication washout or starvation regimens without physician review.
  */
 
-import { DietarySwap } from './clinicalDietarySwaps';
 import { addCaseEvent, addCaseQuestion, getCase, type CaseItem } from './CaseEngine';
+import { DietarySwap } from './clinicalDietarySwaps';
 
 export type PlanLifecycleStatus = 'draft' | 'selected' | 'active' | 'paused' | 'completed' | 'stopped';
 

@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, Clock, GitMerge, Info, MessageCircle, Sparkles, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GitMerge, Sparkles, Clock, AlertTriangle, CheckCircle, Activity, Info, X, MessageCircle } from 'lucide-react';
-import { simulatePathway } from '../../services/geminiService';
-import { getProfile } from '../../services/ProfileEngine';
-import { recordHealthMemory } from '../../services/HealthMemory';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
-import { awardPoints } from '../../services/VitalityPointsEngine';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { simulatePathway } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { recordHealthMemory } from '../../services/HealthMemory';
+import { getProfile } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 export default function PathwaySimulator({ actionItem, onClose }: { actionItem: any, onClose: () => void }) {
   const navigate = useNavigate();

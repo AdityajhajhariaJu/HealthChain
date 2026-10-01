@@ -1,21 +1,24 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  X,
-  FileText,
+  AlertTriangle,
   Check,
   Copy,
-  ExternalLink,
-  ShieldCheck,
-  Search,
-  AlertTriangle,
-  UploadCloud,
   Edit3,
-  RotateCcw,
+  ExternalLink,
+  FileText,
+  Search,
+  ShieldCheck,
+  UploadCloud,
+  X,
 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getCase, updateExtractedFindingCorrection } from '../../services/CaseEngine';
-import { loadOriginalCaseFile, reattachOriginalCaseFile, FileStorageError } from '../../services/caseRecordFiles';
+import {
+  FileStorageError,
+  loadOriginalCaseFile,
+  reattachOriginalCaseFile,
+} from '../../services/caseRecordFiles';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import FocusTrap from './FocusTrap';
 

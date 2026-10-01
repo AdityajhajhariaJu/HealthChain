@@ -1,6 +1,6 @@
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
-import { supabase } from './supabaseClient';
 import { getItemSync, setItemSync } from './storage';
+import { supabase } from './supabaseClient';
 
 export interface DeviceMetric { id?: string; user_id: string; metric_type: string; value: number; unit: string; start_time: string; end_time: string; source_device: string }
 export function validDeviceMetric(item: DeviceMetric, ownerId: string) {

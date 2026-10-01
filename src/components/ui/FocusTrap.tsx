@@ -109,7 +109,11 @@ export default function FocusTrap({
     return () => {
       window.clearTimeout(timer);
       document.removeEventListener('keydown', handleKeyDown);
-      if (restoreFocus && previouslyFocusedElementRef.current) {
+      // Exit animations can finish after a person has already selected another
+      // field. Restore the opener only while focus still belongs to this dialog.
+      const focused = document.activeElement;
+      const focusStillOurs = !focused || focused === document.body || root.contains(focused);
+      if (restoreFocus && focusStillOurs && previouslyFocusedElementRef.current) {
         try {
           previouslyFocusedElementRef.current.focus();
         } catch {

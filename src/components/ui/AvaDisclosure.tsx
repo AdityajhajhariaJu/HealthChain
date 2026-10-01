@@ -1,4 +1,4 @@
-import { useState, type ReactNode, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { captureAccountScope } from '../../services/AccountScope';
 
 /** A card's expansion belongs to its original message and account. */

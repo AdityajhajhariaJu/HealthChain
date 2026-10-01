@@ -1,4 +1,11 @@
-import { addCaseQuestion, getCase, getCaseQuestions, getCases, type OutcomeProvenance, type QuestionLifecycleStatus } from './CaseEngine';
+import {
+  addCaseQuestion,
+  getCase,
+  getCaseQuestions,
+  getCases,
+  type OutcomeProvenance,
+  type QuestionLifecycleStatus,
+} from './CaseEngine';
 import { listGutThreads, type GutQuestionThread } from './GutResolutionService';
 
 export type GutCaseHandoffResult =

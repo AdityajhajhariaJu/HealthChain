@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { RefreshCw, ShieldAlert } from 'lucide-react';
+import { useEffect } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function FallbackError({ error, resetErrorBoundary }) {

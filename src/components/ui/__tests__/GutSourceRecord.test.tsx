@@ -2,8 +2,8 @@
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { GutSourceRecord } from '../GutSourceRecord';
-import { GutBacktraceTimeline } from '../GutBacktraceTimeline';
+import { GutSourceRecord } from '../../../features/gut-health/components/GutSourceRecord';
+import { GutBacktraceTimeline } from '../../../features/gut-health/components/GutBacktraceTimeline';
 import type { GutMeal } from '../../../services/GutHealthSummary';
 import type { GutBacktraceProjection } from '../../../services/GutResolutionService';
 

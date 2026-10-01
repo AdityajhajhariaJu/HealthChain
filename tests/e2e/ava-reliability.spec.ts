@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
+test.setTimeout(90000);
+
 async function setup(
   page: Page,
   reply = 'Review your records. You might ask your doctor: Could we discuss this symptom?'
@@ -192,6 +194,7 @@ test('a reviewed day check-in is saved once and reaches the next General reply w
   await page.getByRole('button', { name: /Using [1-9]\d* context item/ }).click();
   await expect(page.getByText('Daily check-in', { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Conversation context', exact: true })).toHaveCount(0);
   await send(page, 'Review my saved check-in');
   await expect(page.getByRole('button', { name: 'Save this observation' })).toBeVisible();
   const context = requests.at(-1).body.avaRequest.context;

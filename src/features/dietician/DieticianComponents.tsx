@@ -1,20 +1,44 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Apple, Utensils, Target, CheckCircle2, ChevronRight, ChevronLeft, 
-  ArrowRight, Flame, Scale, Ruler, Heart, Sparkles, Zap, Activity, 
-  Clock, ShieldCheck, Droplets, User, Info, Check, X 
+import { motion } from 'framer-motion';
+import {
+  Activity,
+  Apple,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  Clock,
+  Flame,
+  Heart,
+  Ruler,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  User,
+  Utensils,
+  X,
+  Zap,
 } from 'lucide-react';
-import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { calculateDietTargets } from '../../services/dietTargets';
-import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
-import { normalizeFoodLocation, resolveFoodLocation, formatFoodLocation } from '../../../shared/food-location';
-import { DietPracticalPreferences } from './DietPracticalPreferences';
+import React, { useState } from 'react';
 import { normalizeDietPreferences } from '../../../shared/diet-preferences';
+import {
+  formatFoodLocation,
+  normalizeFoodLocation,
+  resolveFoodLocation,
+} from '../../../shared/food-location';
+import { FoodLocationFields } from '../../components/ui/FoodLocationFields';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { calculateDietTargets } from '../../services/dietTargets';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
+import {
+  ACTIVITY_LEVELS,
+  CUISINES,
+  MEAL_SCHEDULES,
+  MEDICAL_CONDITIONS,
+  RESTRICTIONS,
+} from './Dietician';
+import { DietPracticalPreferences } from './DietPracticalPreferences';
 
 export function OnboardingWizard({ 
   onComplete, 

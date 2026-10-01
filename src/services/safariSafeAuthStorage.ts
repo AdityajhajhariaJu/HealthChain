@@ -1,4 +1,4 @@
-import { get, set, del } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 
 /**
  * Resilient multi-tier storage adapter for Supabase Auth.

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
+import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 import { announceToScreenReader } from '../../services/a11y';
 
 type ToastType = 'success' | 'error' | 'info';

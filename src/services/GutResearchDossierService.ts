@@ -1,4 +1,9 @@
-import type { GutBacktraceProjection, GutEvidence, GutQuestionThread, GutSymptom } from './GutResolutionService';
+import type {
+  GutBacktraceProjection,
+  GutEvidence,
+  GutQuestionThread,
+  GutSymptom,
+} from './GutResolutionService';
 
 export type GutDossierLane = 'observed' | 'challenges' | 'context' | 'research';
 export interface GutDossierLink {

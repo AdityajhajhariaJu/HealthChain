@@ -1,3 +1,3 @@
-export { VitalityNav, FitnessNav, default } from './VitalityNav';
+export { FitnessNav,VitalityNav,default } from './VitalityNav';
 
 

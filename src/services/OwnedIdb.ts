@@ -1,4 +1,4 @@
-import { set, del } from 'idb-keyval';
+import { del, set } from 'idb-keyval';
 import { isErasedStorageKey } from './DurableHealthStorage';
 const pending = new Set<Promise<void>>();
 /** Erasure is a barrier: pending writes finish before cleanup, and later writes are rejected. */

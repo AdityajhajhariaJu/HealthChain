@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { HeartPulse } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { AmbientSyncEngine } from '../../services/AmbientSyncEngine';
 
 export function LivingHeartIcon({ size = 24, color = '#F43F5E' }: { size?: number, color?: string }) {

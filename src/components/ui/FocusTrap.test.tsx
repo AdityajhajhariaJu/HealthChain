@@ -4,6 +4,25 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import FocusTrap from './FocusTrap';
 
+it('does not steal focus from a composer chosen while a closing modal unmounts', async () => {
+  const opener = document.createElement('button');
+  const composer = document.createElement('textarea');
+  document.body.append(opener, composer);
+  opener.focus();
+  const view = render(
+    <FocusTrap>
+      <button>Modal action</button>
+    </FocusTrap>
+  );
+  composer.focus();
+  composer.value = 'My new draft';
+  view.unmount();
+  expect(document.activeElement).toBe(composer);
+  expect(composer.value).toBe('My new draft');
+  opener.remove();
+  composer.remove();
+});
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();

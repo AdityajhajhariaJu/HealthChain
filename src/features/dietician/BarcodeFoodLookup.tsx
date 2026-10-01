@@ -1,10 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { validProductBarcode, productPortion } from '../../../shared/food-product';
+import { useRef, useState } from 'react';
+import { productPortion, validProductBarcode } from '../../../shared/food-product';
+import { apiEndpoint } from '../../services/ApiEndpoint';
 import { createMeal } from '../../services/MealCommandService';
 import { getActiveProfileScope } from '../../services/profileScope';
-import { emptyMealDetails, MealDetailsFields, mealDetailsEntry } from './MealDetailsFields';
 import './DietEveryday.css';
-import { apiEndpoint } from '../../services/ApiEndpoint';
+import { emptyMealDetails, mealDetailsEntry, MealDetailsFields } from './MealDetailsFields';
 export function BarcodeFoodLookup({
   date,
   onLogged,

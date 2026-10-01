@@ -1,13 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Search, ChevronDown, ChevronUp, Mail, MessageCircle, Phone, Sparkles, Star, Send, CheckCircle2, Copy, Lightbulb, Bug, Stethoscope, MessageSquare } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bug,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Lightbulb,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  Search,
+  Send,
+  Sparkles,
+  Star,
+  Stethoscope,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { supabase } from '../../services/supabaseClient';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { trackButtonClick } from '../../services/analytics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
-import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { supabase } from '../../services/supabaseClient';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const faqs = [
   {

@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { getDietEveryday, saveDietEveryday, type MealReminder } from '../../services/dietEveryday';
+import { useState } from 'react';
 import { dietMealSlots } from '../../../shared/diet-preferences';
 import { validMealReminderTime } from '../../../shared/diet-reminders';
+import { getDietEveryday, saveDietEveryday, type MealReminder } from '../../services/dietEveryday';
 import {
-  supportsNativeMealReminders,
   reconcileDietMealReminders,
+  supportsNativeMealReminders,
 } from '../../services/DietMealReminderService';
 import { requestNotificationPermission } from '../../services/NotificationDeviceService';
-import { getActiveProfileScope } from '../../services/profileScope';
 import {
   getNotificationPreferences,
   saveNotificationPreferences,
 } from '../../services/NotificationEngine';
+import { getActiveProfileScope } from '../../services/profileScope';
 export function DietMealReminders({ schedule }: { schedule: string }) {
   const stored = getDietEveryday();
   const [categoryEnabled, setCategoryEnabled] = useState(

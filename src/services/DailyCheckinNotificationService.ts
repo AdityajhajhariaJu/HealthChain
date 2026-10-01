@@ -1,12 +1,20 @@
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
-import { getItemSync, setItemSync } from './storage';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import {
+  captureNotificationScope,
+  coordinateNotifications,
+  notificationFailure,
+} from './NotificationCoordinator';
+import {
+  ensureNotificationChannel,
+  NOTIFICATION_CHANNEL_ID,
+  requestNotificationPermission,
+} from './NotificationDeviceService';
 import { checkAndUpdateTimezone } from './NotificationEngine';
 import { getVitaminSchedule, triggerPillNotification } from './VitaminScheduleService';
 import { getActiveProfileScope, getScopedStorageKey } from './profileScope';
-import { captureNotificationScope, coordinateNotifications, notificationFailure } from './NotificationCoordinator';
-import { ensureNotificationChannel, NOTIFICATION_CHANNEL_ID, requestNotificationPermission } from './NotificationDeviceService';
-export { NOTIFICATION_CHANNEL_ID, requestNotificationPermission, ensureNotificationChannel } from './NotificationDeviceService';
+import { getItemSync, setItemSync } from './storage';
+export { ensureNotificationChannel,NOTIFICATION_CHANNEL_ID,requestNotificationPermission } from './NotificationDeviceService';
 
 export interface DailyReminderConfig { enabled: boolean; time: string; lastScheduled?: string }
 const ENABLED = 'hc_daily_checkin_reminder_enabled';

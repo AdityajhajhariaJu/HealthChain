@@ -1,5 +1,5 @@
-import { getDigestionLogs, getProfile } from './ProfileEngine';
 import type { Observation } from '../domain/observations/types';
+import { getDigestionLogs, getProfile } from './ProfileEngine';
 
 export interface GutDay {
   date: string;

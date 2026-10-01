@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient';
-import { safariSafeAuthStorage } from './safariSafeAuthStorage';
 
 /**
  * The Supabase session is the source of truth for account access.

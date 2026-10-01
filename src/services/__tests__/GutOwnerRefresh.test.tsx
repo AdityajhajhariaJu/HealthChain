@@ -5,13 +5,13 @@ import { afterEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ observations: vi.fn() }));
 vi.mock('../HealthObservationService', () => ({ listObservationHistory: state.observations }));
 vi.mock('../GutHealthSummary', () => ({ getGutSnapshot: () => ({ days: [], meals: [], undatedMealObservations: [], digestionDateCount: 0 }), mergeGutSnapshotWithObservations: (base: any) => base, formatGutVisitNote: () => '', summarizeRecordedBloating: () => ({}) }));
-vi.mock('../../components/ui/GutDailyHome', () => ({ GutDailyHome: ({ observations }: any) => <div data-testid="observations">{observations.map((item: any) => item.id).join(',')}</div> }));
-vi.mock('../../components/ui/GutResolutionWorkspace', () => ({ GutResolutionWorkspace: () => null }));
+vi.mock('../../features/gut-health/components/GutDailyHome', () => ({ GutDailyHome: ({ observations }: any) => <div data-testid="observations">{observations.map((item: any) => item.id).join(',')}</div> }));
+vi.mock('../../features/gut-health/components/GutResolutionWorkspace', () => ({ GutResolutionWorkspace: () => null }));
 vi.mock('../../components/ui/QuickMealIntakeSheet', () => ({ QuickMealIntakeSheet: () => null }));
 vi.mock('../../components/ui/DigestionCalendarHeatmap', () => ({ DigestionCalendarHeatmap: () => null }));
-vi.mock('../../components/ui/GutSourceRecord', () => ({ GutSourceRecord: () => null }));
-vi.mock('../../components/ui/GutLinkStrip', () => ({ GutLinkStrip: () => null }));
-import { GutHealthModal } from '../../components/ui/GutHealthModal';
+vi.mock('../../features/gut-health/components/GutSourceRecord', () => ({ GutSourceRecord: () => null }));
+vi.mock('../../features/gut-health/components/GutLinkStrip', () => ({ GutLinkStrip: () => null }));
+import { GutHealthModal } from '../../features/gut-health/components/GutHealthModal';
 afterEach(cleanup);
 it('rejects the previous owner observation read after an account change', async () => {
   localStorage.clear(); localStorage.setItem('hc_account',JSON.stringify({id:'gut-owner-a'}));

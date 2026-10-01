@@ -258,6 +258,28 @@ begin
   end if;
 end $$;
 -- Profile CAS and archive recovery run with the caller's RLS privileges.
+-- Application query efficiency: complete the owner initPlans and indexed joins.
+do $$
+declare item record;
+begin
+  for item in select unnest(array[
+    'idx_case_events_case_id','idx_fitness_content_tags_tag_id',
+    'idx_fitness_program_episodes_content_id','idx_fitness_programs_category_id',
+    'idx_fitness_sport_days_content_id','idx_user_favorites_content_id',
+    'idx_user_program_progress_program_id','idx_user_progress_photos_measurement_id',
+    'idx_user_progress_photos_owner_taken_at'
+  ]) as index_name loop
+    if to_regclass('public.' || item.index_name) is null then raise exception 'Missing application index: %',item.index_name; end if;
+  end loop;
+  if exists(select 1 from pg_policies where schemaname='public'
+    and tablename in ('case_events','case_tombstones','healthchain_profiles','user_badges',
+      'user_body_measurements','user_favorites','user_fitness_history','user_program_progress',
+      'user_progress_photos','user_quotas','user_streaks','analytics_events')
+    and (coalesce(qual,'') || coalesce(with_check,'')) like '%auth.uid()%'
+    and (coalesce(qual,'') || coalesce(with_check,'')) not like '%SELECT auth.uid()%') then
+      raise exception 'Application owner policies still evaluate identity per row';
+  end if;
+end $$;
 -- Legacy function search paths must be fixed even when the optional vector helpers exist.
 do $$ begin
   if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace

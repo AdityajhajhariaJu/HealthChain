@@ -1,41 +1,66 @@
-import React, { Suspense, useEffect } from 'react';
-import { trackButtonClick, trackEvent } from './services/analytics';
-import { registerPushNotifications, setupPushListeners, unregisterPushDevice } from './services/PushService';
-import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
-import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
-import { initGlobalHaptics } from './services/haptics';
-import { initNativeLifecycle } from './services/NativeLifecycle';
-import { installNativeAuthCallbacks } from './services/NativeAuth';
-import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory, getActiveCaseId } from './services/CaseEngine';
-import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { supabase } from './services/supabaseClient';
-import { setItemSync, getItemSync, removeItemSync } from './services/storage';
-import { clearPersistedMDTSession } from './stores/useMDTStore';
-import { flushSyncOutbox } from './services/SyncOutbox';
-import { captureAccountScope, isAccountScopeCurrent, invalidateAccountScope } from './services/AccountScope';
-import { loadObservationsFromCloud, retryFailedObservationQueues } from './services/HealthObservationService';
-import { isDurableHealthStorageKey, retainHealthStorage } from './services/DurableHealthStorage';
-import { flushDailyTrackerLedger, migrateDailyTrackerHistory, hydrateDailyTrackerProjections } from './services/DailyTrackerLedger';
-
-import Landing from './features/auth/Landing';
-import Auth from './features/auth/Auth';
-import AuthCallback from './features/auth/AuthCallback';
-import AppShell from './components/layout/AppShell';
-import { AdminContentDashboard } from './features/admin/AdminContentDashboard';
-import ProtectedRoute from './components/layout/ProtectedRoute';
-import ProfileOnboarding from './features/profile/ProfileOnboarding';
+import React, { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import ConsentManager from './components/ui/ConsentManager';
+import DeviceErasureRecovery from './components/ui/DeviceErasureRecovery';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
-import { useToast } from './components/ui/ToastProvider';
-import OfflineBanner from './components/ui/OfflineBanner';
-import ConsentManager from './components/ui/ConsentManager';
 import ObservationConflictReview from './components/ui/ObservationConflictReview';
+import OfflineBanner from './components/ui/OfflineBanner';
 import ProfileConflictReview from './components/ui/ProfileConflictReview';
-import DeviceErasureRecovery from './components/ui/DeviceErasureRecovery';
+import { useToast } from './components/ui/ToastProvider';
+import {
+  captureAccountScope,
+  invalidateAccountScope,
+  isAccountScopeCurrent,
+} from './services/AccountScope';
+import { trackButtonClick, trackEvent } from './services/analytics';
+import {
+  backfillCaseHealthMemory,
+  clearCaseEngineCache,
+  getActiveCaseId,
+  initCaseEngine,
+} from './services/CaseEngine';
+import {
+  flushDailyTrackerLedger,
+  hydrateDailyTrackerProjections,
+  migrateDailyTrackerHistory,
+} from './services/DailyTrackerLedger';
+import { isDurableHealthStorageKey, retainHealthStorage } from './services/DurableHealthStorage';
+import { initGlobalHaptics } from './services/haptics';
+import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
+import {
+  loadObservationsFromCloud,
+  retryFailedObservationQueues,
+} from './services/HealthObservationService';
+import { installNativeAuthCallbacks } from './services/NativeAuth';
+import { initNativeLifecycle } from './services/NativeLifecycle';
+import {
+  backfillHealthMemoryFromProfile,
+  getProfile,
+  getProfileEngineState,
+  syncProfileFromSupabase,
+} from './services/ProfileEngine';
+import {
+  registerPushNotifications,
+  setupPushListeners,
+  unregisterPushDevice,
+} from './services/PushService';
+import { getItemSync, removeItemSync, setItemSync } from './services/storage';
+import { supabase } from './services/supabaseClient';
+import { flushSyncOutbox } from './services/SyncOutbox';
+import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
+import { clearPersistedMDTSession } from './stores/useMDTStore';
+
+const Landing = React.lazy(() => import('./features/auth/Landing'));
+const Auth = React.lazy(() => import('./features/auth/Auth'));
+const AuthCallback = React.lazy(() => import('./features/auth/AuthCallback'));
+const AppShell = React.lazy(() => import('./components/layout/AppShell'));
+const AdminContentDashboard = React.lazy(() => import('./features/admin/AdminContentDashboard').then(m => ({ default: m.AdminContentDashboard })));
+const ProfileOnboarding = React.lazy(() => import('./features/profile/ProfileOnboarding'));
 
 import ProductTour from './components/ui/ProductTour';
 import TopUpModal from './features/brand/TopUpModal';
@@ -99,15 +124,6 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 );
 
 import { openTrialModal } from './services/TrialEngine';
-
-const ProRoute = ({ children, featureName = 'Premium Features' }: { children: React.ReactNode; featureName?: string }) => {
-  const profile = getProfile();
-  if (!profile?.isPro) {
-    setTimeout(() => openTrialModal(featureName), 80);
-    return <Navigate to="/app/today" replace />;
-  }
-  return <SafeRoute>{children}</SafeRoute>;
-};
 
 /**
  * Route redirector that preserves URL query parameters and hashes across legacy route aliases.
@@ -518,7 +534,7 @@ export default function App() {
             </SafeRoute>
           }
         />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/callback" element={<SafeRoute><AuthCallback /></SafeRoute>} />
         <Route
           path="/login"
           element={
@@ -742,4 +758,3 @@ export default function App() {
     </SafeRoute>
   );
 }
-

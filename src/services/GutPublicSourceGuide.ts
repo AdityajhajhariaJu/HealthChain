@@ -1,5 +1,5 @@
-import type { GutSymptom } from './GutResolutionService';
 import type { GutResearchTopic } from './GutResearchService';
+import type { GutSymptom } from './GutResolutionService';
 
 /** Short source-navigation notes. These are not independently approved HealthChain clinical findings. */
 export interface GutPublicSourceGuide {

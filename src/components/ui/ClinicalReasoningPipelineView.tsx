@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, Clock, AlertTriangle, Stethoscope, GitBranch, 
-  ShieldAlert, HelpCircle, FileText, ArrowRight, RotateCw, 
-  Sparkles, Check, ChevronRight, Scale, Info, ArrowDown, Send
+import { motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Clock,
+  FileText,
+  GitBranch,
+  HelpCircle,
+  RotateCw,
+  Scale,
+  Send,
+  Sparkles,
+  Stethoscope,
 } from 'lucide-react';
-import { 
-  ClinicalReasoningPayload, 
-  SourceLinkedEvidence, 
-  CorrectionQueueItem, 
-  JustifiedPerspective, 
-  AlternativeInterpretation, 
-  BalancedAssessment,
-  FocusedUserQuestion,
-  ClinicalSynthesis,
-  SelectiveUpdateDiff
-} from '../../services/ClinicalReasoningEngine';
+import React, { useState } from 'react';
+import { ClinicalReasoningPayload } from '../../services/ClinicalReasoningEngine';
 import { InformationCategoryBadge } from './InformationCategoryBadge';
 
 interface ClinicalReasoningPipelineViewProps {

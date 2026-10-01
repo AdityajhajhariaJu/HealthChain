@@ -1,40 +1,39 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Check, 
-  FolderHeart, 
-  Pill, 
-  Sparkles, 
-  ArrowRight, 
-  ArrowLeft,
-  Plus,
-  Trash2,
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   AlertTriangle,
-  Scale,
-  Activity,
-  Sunrise,
-  Sun,
-  Sunset,
-  Moon,
-  Clock,
-  ShieldCheck,
-  Zap,
-  Info,
-  User,
+  ArrowLeft,
+  ArrowRight,
   Calendar,
-  Ruler,
+  Check,
+  FolderHeart,
+  Moon,
   Phone,
-  Heart
+  Pill,
+  Plus,
+  Ruler,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Sunrise,
+  Sunset,
+  Trash2,
+  User,
+  X,
 } from 'lucide-react';
-import { getProfile, completeProfileOnboarding } from '../../services/ProfileEngine';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { normalizeFoodLocation } from '../../../shared/food-location';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { completeProfileOnboarding, getProfile } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 import { CalmApothecaryCapsule, CalmCategoryKey } from './CalmApothecaryCapsule';
 import { FoodLocationFields } from './FoodLocationFields';
-import { normalizeFoodLocation } from '../../../shared/food-location';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';

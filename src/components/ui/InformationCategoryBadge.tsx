@@ -1,20 +1,10 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Info, ShieldAlert, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShieldAlert,
-  Info,
-  CheckCircle2,
-  X,
-  FileText,
-  Clock,
-  User,
-  Activity,
-  Sparkles,
-} from 'lucide-react';
-import {
-  ClinicalInformationCategory,
   CategorizedInformationItem,
+  ClinicalInformationCategory,
   INFORMATION_CATEGORY_REGISTRY,
   validateCategorizedItem,
 } from '../../services/ClinicalInformationClassifier';

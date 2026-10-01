@@ -1,15 +1,27 @@
-import { useEffect, useState, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  Archive,
+  BrainCircuit,
+  CalendarClock,
+  CheckCircle2,
+  ChevronRight,
+  GitMerge,
+  Search,
+  Sparkles,
+  Trash2,
+  Users,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
-import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { useToast } from '../../components/ui/ToastProvider';
-import Skeleton from '../../components/ui/Skeleton';
-import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
-import { caseMatchesSearch } from '../../services/caseWorkspace';
 import '../../components/ui/caseWorkspace.css';
+import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
 import { NewCaseForm } from '../../components/ui/NewCaseForm';
+import Skeleton from '../../components/ui/Skeleton';
+import { useToast } from '../../components/ui/ToastProvider';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { CaseItem, deleteCase, getCases } from '../../services/CaseEngine';
+import { caseMatchesSearch } from '../../services/caseWorkspace';
 
 const formatDate = (value: string) => {
   try {

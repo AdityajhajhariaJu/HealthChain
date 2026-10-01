@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
-import { getObservationConflicts, flushSyncOutbox } from '../../services/SyncOutbox';
-import { resolveObservationConflict } from '../../services/HealthObservationService';
 import { hydrateDailyTrackerProjections } from '../../services/DailyTrackerLedger';
+import { resolveObservationConflict } from '../../services/HealthObservationService';
+import { flushSyncOutbox, getObservationConflicts } from '../../services/SyncOutbox';
 import FocusTrap from './FocusTrap';
 
 function Summary({ row }: { row: any }) {

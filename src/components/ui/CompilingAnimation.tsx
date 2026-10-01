@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Network, Activity, FileText, CheckCircle2, Sparkles, Database, GitMerge, Fingerprint } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Brain,
+  CheckCircle2,
+  Database,
+  FileText,
+  Fingerprint,
+  GitMerge,
+  Network,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const STEPS = [
   { id: 'sync', icon: Network, label: 'Synchronizing clinical perspectives', desc: 'Aggregating AI specialist inputs' },

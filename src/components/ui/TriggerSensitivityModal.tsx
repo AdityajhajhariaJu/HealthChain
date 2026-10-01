@@ -1,32 +1,25 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  X,
-  Sparkles,
   Activity,
-  Moon,
-  Heart,
-  Footprints,
-  Thermometer,
-  Wind,
   ChevronRight,
-  ShieldCheck,
-  Search,
-  AlertTriangle,
-  TrendingUp,
-  FileText,
   Flower2,
+  Footprints,
+  Heart,
+  Moon,
+  Thermometer,
+  X,
 } from 'lucide-react';
+import React, { useState } from 'react';
 import { triggerHapticLight } from '../../services/haptics';
-import { getWeeklySymptomSeverity } from '../../services/TriggerEngine';
 import { listMealDiary } from '../../services/MealCommandService';
 import { getProfile } from '../../services/ProfileEngine';
-import FocusTrap from './FocusTrap';
-import { SuspectFoodsView } from './SuspectFoodsView';
-import { EliminationTrialsView } from './EliminationTrialsView';
-import { WellnessZenGardenView } from './WellnessZenGardenView';
+import { getWeeklySymptomSeverity } from '../../services/TriggerEngine';
 import { DoctorSummaryView } from './DoctorSummaryView';
+import { EliminationTrialsView } from './EliminationTrialsView';
+import FocusTrap from './FocusTrap';
 import { MonthlyHealthHeatmap } from './MonthlyHealthHeatmap';
+import { SuspectFoodsView } from './SuspectFoodsView';
+import { WellnessZenGardenView } from './WellnessZenGardenView';
 
 
 export type WholeHealthTab = 'picture' | 'detective' | 'suspects' | 'trials' | 'garden' | 'doctor';

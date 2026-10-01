@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../services/supabaseClient';
-import { useToast } from '../../components/ui/ToastProvider';
+import { ArrowRight, CheckCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HCLogo } from '../../components/ui/HCLogo';
+import { useToast } from '../../components/ui/ToastProvider';
+import { supabase } from '../../services/supabaseClient';
 
 export default function UpdatePassword() {
   const navigate = useNavigate();

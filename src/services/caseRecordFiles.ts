@@ -1,7 +1,7 @@
-import { setOwned as set } from './OwnedIdb';
-import { get, del, keys } from 'idb-keyval';
-import { getProfileKey, getProfileEngineState } from './ProfileEngine';
+import { del, get, keys } from 'idb-keyval';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { setOwned as set } from './OwnedIdb';
+import { getProfileEngineState, getProfileKey } from './ProfileEngine';
 
 export type FileStorageErrorCode =
   | 'quota_exceeded'

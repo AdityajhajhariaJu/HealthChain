@@ -1,25 +1,29 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Flame, 
-  HeartPulse, 
-  CheckCircle2, 
-  BellRing, 
-  AlertCircle,
-  Brain,
+import {
+  Activity,
   BatteryLow,
-  Zap,
+  BellRing,
   Bone,
+  Brain,
+  CheckCircle2,
+  Flame,
+  HeartPulse,
   Wind,
-  Activity
+  Zap,
 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CalmApothecaryCapsule, CalmCategoryKey } from '../../components/ui/CalmApothecaryCapsule';
-import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
-import { triggerHapticLight } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackFeatureUsed } from '../../services/analytics';
+import { triggerHapticLight } from '../../services/haptics';
+import {
+  getProfile,
+  getRecentCheckins,
+  getTodayCheckin,
+  recordDailyCheckin,
+} from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const getSymptomMeta = (symptom: string): { category: CalmCategoryKey; icon: any } => {
   const lower = symptom.toLowerCase();

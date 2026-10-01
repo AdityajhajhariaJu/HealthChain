@@ -1,10 +1,14 @@
 import { getGutPublicSourceGuide, getGutTopicSourceGuide } from './GutPublicSourceGuide';
-import { parseModelJson } from './modelJson';
-import type { GutIntent, GutSymptom, GutSynthesis } from './GutResolutionService';
 import type { GutResearchPaper, GutResearchTopic } from './GutResearchService';
-import type { GutEvidence } from './GutResolutionService';
-import type { GutQuestionThread } from './GutResolutionService';
+import type {
+  GutEvidence,
+  GutIntent,
+  GutQuestionThread,
+  GutSymptom,
+  GutSynthesis,
+} from './GutResolutionService';
 import { fetchGutReasoning } from './geminiService';
+import { parseModelJson } from './modelJson';
 
 export interface GutReasoningInput {
   thread: Pick<GutQuestionThread, 'question' | 'intent' | 'symptom' | 'focus' | 'symptomOnset' | 'researchConcept' | 'clarifications' | 'decision'> & { reflection?: string | null };

@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getProfile } from '../../services/ProfileEngine';
+import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
 import { triggerHapticSelection } from '../../services/haptics';
 import { listMealDiary, type MealDiary } from '../../services/MealCommandService';
+import { getProfile } from '../../services/ProfileEngine';
 
 interface DayStatus {
   dateStr: string;

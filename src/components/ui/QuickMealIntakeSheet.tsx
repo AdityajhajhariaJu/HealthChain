@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff, ArrowRight, Clock3 } from 'lucide-react';
-import { getProfile, addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
-import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, CheckCircle2, Clock3, CloudOff, Mic, MicOff, Utensils, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { locationMealIdeas, normalizeDietPreferences } from '../../../shared/diet-preferences';
+import { addNutritionLog, getProfile, removeNutritionLog } from '../../services/ProfileEngine';
+import { effectiveFoodLocation } from '../../services/dietEveryday';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
 import FocusTrap from './FocusTrap';
 import './QuickMealIntakeSheet.css';
-import { normalizeDietPreferences, locationMealIdeas } from '../../../shared/diet-preferences';
-import { effectiveFoodLocation } from '../../services/dietEveryday';
 
 export type CircadianSlot = 'Morning' | 'Noon' | 'Evening' | 'Night';
 

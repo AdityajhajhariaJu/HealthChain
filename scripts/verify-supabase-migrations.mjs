@@ -37,6 +37,7 @@ const requiredFiles = [
   '20261001142000_whole_app_feedback_and_payment_policies.sql',
   '20261001143200_atomic_subscription_recovery.sql',
   '20261001151500_legacy_function_search_paths.sql',
+  '20261001173602_app_query_efficiency.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -55,6 +56,7 @@ const requiredVerifierTokens = [
   'activate_payment_entitlement',
   'recover_subscription_entitlement',
   'Legacy function search paths',
+  'Application query efficiency',
 ];
 
 const files = (await readdir(migrationsDir, { withFileTypes: true }))

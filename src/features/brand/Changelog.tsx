@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { ArrowLeft, PlusCircle, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { safeNavigateBack } from '../../services/navigation';
 import { triggerHapticLight } from '../../services/haptics';
+import { safeNavigateBack } from '../../services/navigation';
 
 const log = [
   {

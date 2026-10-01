@@ -1,8 +1,8 @@
-import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
-import { listObservationHistory } from './HealthObservationService';
-import { appendCaseRecords, getCase, type MedicalRecord } from './CaseEngine';
-import type { Observation } from '../domain/observations/types';
 import { sourceFreshness } from '../../shared/health-source-freshness';
+import type { Observation } from '../domain/observations/types';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { appendCaseRecords, getCase, type MedicalRecord } from './CaseEngine';
+import { listObservationHistory } from './HealthObservationService';
 
 export interface DailyEvidenceManifest {
   version: 1; ownerId: string; profileId: string; reviewedAt: string;

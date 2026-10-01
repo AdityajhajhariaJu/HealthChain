@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  normalizeDietPreferences,
-  locationMealIdeas,
   dietMealSlots,
+  locationMealIdeas,
+  normalizeDietPreferences,
 } from '../../../shared/diet-preferences';
+import { dietDiaryCsv } from '../../services/dietDiaryExport';
 import {
-  getDietEveryday,
-  saveDietEveryday,
-  favoriteFromMeal,
-  reusedMealEntry,
   effectiveFoodLocation,
+  favoriteFromMeal,
+  getDietEveryday,
   planMealKey,
+  reusedMealEntry,
+  saveDietEveryday,
   type DietEveryday,
 } from '../../services/dietEveryday';
 import { normalizeFullMealPlan, type FullMealPlan } from '../../services/dietPlanLifecycle';
 import { createMeal } from '../../services/MealCommandService';
 import { getProfile, getProfileKey } from '../../services/ProfileEngine';
-import { DietPracticalPreferences } from './DietPracticalPreferences';
-import { emptyMealDetails, MealDetailsFields, mealDetailsEntry } from './MealDetailsFields';
-import './DietEveryday.css';
 import { BarcodeFoodLookup } from './BarcodeFoodLookup';
+import './DietEveryday.css';
 import { DietMealReminders } from './DietMealReminders';
-import { dietDiaryCsv } from '../../services/dietDiaryExport';
+import { DietPracticalPreferences } from './DietPracticalPreferences';
+import { emptyMealDetails, mealDetailsEntry, MealDetailsFields } from './MealDetailsFields';
 
 export function datedPlanDay(start: string | undefined, day: number) {
   if (!start) return '';

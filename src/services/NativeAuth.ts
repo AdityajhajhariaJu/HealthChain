@@ -1,6 +1,6 @@
-import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from './supabaseClient';
 
 export const NATIVE_AUTH_SCHEME = 'com.healthchain.app';

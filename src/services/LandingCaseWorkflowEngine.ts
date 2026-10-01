@@ -1,6 +1,10 @@
-import { createCaseDraft, saveReviewSnapshot, CaseItem, MedicalRecord } from './CaseEngine';
+import { CaseItem, createCaseDraft, MedicalRecord, saveReviewSnapshot } from './CaseEngine';
 import { runClinicalReasoningPipeline, SourceLinkedEvidence } from './ClinicalReasoningEngine';
-import { buildVersionedEvidenceSet, generateMeaningfulPerspectives, executeBoundedComparison } from './MultiPerspectiveReviewEngine';
+import {
+  buildVersionedEvidenceSet,
+  executeBoundedComparison,
+  generateMeaningfulPerspectives,
+} from './MultiPerspectiveReviewEngine';
 
 export type LandingWorkflowScenarioId = 
   | 'workflow_fatigue_iron'

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { MeaningfulPerspective, BoundedComparisonSummary, VersionedEvidenceSet } from '../../services/MultiPerspectiveReviewEngine';
+import {
+  BoundedComparisonSummary,
+  MeaningfulPerspective,
+  VersionedEvidenceSet,
+} from '../../services/MultiPerspectiveReviewEngine';
 import { triggerHapticLight } from '../../services/haptics';
 
 interface MeaningfulMultiPerspectiveViewProps {

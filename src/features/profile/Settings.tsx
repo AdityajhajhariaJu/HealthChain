@@ -1,34 +1,63 @@
-import { createPortal } from 'react-dom';
-import { addDurableArchiveData, restoreHealthArchive, validateHealthArchive, exportCloudArchive } from '../../services/HealthArchive';
-import { MAX_HEALTH_ARCHIVE_BYTES } from '../../services/ArchiveRecoveryValidation';
-import { testRemotePush } from '../../services/PushService';
 import { Capacitor } from '@capacitor/core';
-import { useState, useEffect } from 'react';
+import {
+  AlertTriangle,
+  Award,
+  Bell,
+  Check,
+  ChevronRight,
+  Clock,
+  LogOut,
+  Send,
+  Settings as SettingsIcon,
+  ShieldCheck,
+  Trash2,
+  Trophy,
+  User,
+  X,
+  Zap,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
-import { getAllProfiles, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock, Trophy, Zap, ChevronRight, Award, Bell, Clock, Send, Check } from 'lucide-react';
+import FocusTrap from '../../components/ui/FocusTrap';
+import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
 import { useToast } from '../../components/ui/ToastProvider';
-import { supabase } from '../../services/supabaseClient';
+import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { eraseOwnerHealthData, recordConfirmedAccountErasure } from '../../services/AccountErasure';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
-import { cancelAccountNotifications } from '../../services/NotificationCoordinator';
-import { unregisterPushDevice } from '../../services/PushService';
-import FocusTrap from '../../components/ui/FocusTrap';
-import { getActiveSession } from '../../services/authSession';
-import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
-import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
-import { getVitalityPoints, getVitalityState, awardPoints, TIERS } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight } from '../../services/haptics';
-import { getItemSync, setItemSync, removeItemSync } from '../../services/storage';
+import { MAX_HEALTH_ARCHIVE_BYTES } from '../../services/ArchiveRecoveryValidation';
 import {
-  isDailyReminderEnabled,
   getDailyReminderTime,
+  isDailyReminderEnabled,
+  sendTestNotification,
   setDailyReminderEnabled,
   setDailyReminderTime,
-  sendTestNotification
 } from '../../services/DailyCheckinNotificationService';
+import {
+  addDurableArchiveData,
+  exportCloudArchive,
+  restoreHealthArchive,
+  validateHealthArchive,
+} from '../../services/HealthArchive';
+import { cancelAccountNotifications } from '../../services/NotificationCoordinator';
+import {
+  getAllProfiles,
+  getProfileEngineState,
+  isProUser,
+  verifyProStatus,
+} from '../../services/ProfileEngine';
+import { testRemotePush, unregisterPushDevice } from '../../services/PushService';
+import {
+  awardPoints,
+  getVitalityPoints,
+  getVitalityState,
+  TIERS,
+} from '../../services/VitalityPointsEngine';
+import { getActiveSession } from '../../services/authSession';
+import { triggerHapticLight } from '../../services/haptics';
+import { getItemSync, removeItemSync, setItemSync } from '../../services/storage';
+import { supabase } from '../../services/supabaseClient';
 
 import { apiEndpoint } from '../../services/ApiEndpoint';
 

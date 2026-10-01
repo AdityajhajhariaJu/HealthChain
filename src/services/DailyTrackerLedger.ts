@@ -1,11 +1,21 @@
+import type {
+  Observation,
+  ObservationDraft,
+  ObservationPayload,
+} from '../domain/observations/types';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
-import { captureObservationScope, createObservation, reviseObservation, deleteObservation, listObservationHistory } from './HealthObservationService';
-import type { Observation, ObservationDraft, ObservationPayload } from '../domain/observations/types';
-import { getItemSync, setItemSync } from './storage';
+import {
+  captureObservationScope,
+  createObservation,
+  deleteObservation,
+  listObservationHistory,
+  reviseObservation,
+} from './HealthObservationService';
 import type { HydrationDayData } from './HydrationService';
-import type { VitaminItem } from './VitaminScheduleService';
-import { getProfile } from './ProfileEngine';
 import { normalizeMedications } from './MedicationScheduleModel';
+import { getProfile } from './ProfileEngine';
+import { getItemSync, setItemSync } from './storage';
+import type { VitaminItem } from './VitaminScheduleService';
 
 let queue: Promise<unknown> = Promise.resolve();
 function serialize(work: () => Promise<void>) {

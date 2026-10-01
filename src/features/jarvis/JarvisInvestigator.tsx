@@ -1,45 +1,95 @@
-import { reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
-import React, { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { 
-  FileUp, Sparkles, Search, ArrowRight,
-  X, HelpCircle, BrainCircuit, Copy, Check,
-  AlertTriangle, ShieldCheck, Stethoscope, CalendarClock,
-  FileText, Zap, ChevronRight, AlertCircle, Plus,
-  Activity, Sliders, MessageCircle, Folder, ChevronDown, Lock,
-  UploadCloud, Trash2, Heart, Wind, Droplets, Flower2, Focus, Pill, Moon, Volume2, Globe,
-  Thermometer, Flame, Eye, HeartPulse, ShieldAlert,
-  BatteryLow, Brain, Bone, Waves,
-  Sun, Clock, Calendar, Hourglass, CalendarDays, TrendingUp, TrendingDown, Minus,
-  ClipboardList, Camera, FlaskConical, ClipboardCheck, CheckCircle2
+import { motion } from 'framer-motion';
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  BatteryLow,
+  Bone,
+  Brain,
+  BrainCircuit,
+  Calendar,
+  CalendarClock,
+  CalendarDays,
+  Camera,
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  ClipboardList,
+  Clock,
+  Droplets,
+  Eye,
+  FileText,
+  Flame,
+  FlaskConical,
+  Flower2,
+  Focus,
+  Folder,
+  Heart,
+  HeartPulse,
+  HelpCircle,
+  Hourglass,
+  Minus,
+  Moon,
+  Plus,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Sliders,
+  Sparkles,
+  Stethoscope,
+  Sun,
+  Thermometer,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  UploadCloud,
+  Volume2,
+  Waves,
+  Wind,
+  X,
+  Zap,
 } from 'lucide-react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { runJarvisInvestigation } from '../../services/geminiService';
-import { createCaseDraft, saveReviewSnapshot, appendCaseRecords, MedicalRecord, addCaseEvent, getActiveCase, getCase, addCaseQuestion } from '../../services/CaseEngine';
-import { getActiveSession } from '../../services/authSession';
-import { getProfile, getProfileKey, getProfileEngineState } from '../../services/ProfileEngine';
-import { openTrialModal } from '../../services/TrialEngine';
-import { useToast } from '../../components/ui/ToastProvider';
-import { recordHealthMemory } from '../../services/HealthMemory';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
-import { triggerHapticSelection, triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { buildCaseContext, getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
-import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
-import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
-import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
-import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
-import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
-import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
-import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
-import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
-import { Sparkles as SparklesIcon, ExternalLink } from 'lucide-react';
-import { normalizeClinicalReview } from '../../services/clinicalReview';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import '../../components/ui/caseWorkspace.css';
+import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
+import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
+import {
+  SourcePassageModal,
+  SourcePassageModalProps,
+} from '../../components/ui/SourcePassageModal';
+import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
+import { useToast } from '../../components/ui/ToastProvider';
+import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { getActiveSession } from '../../services/authSession';
+import {
+  addCaseEvent,
+  addCaseQuestion,
+  appendCaseRecords,
+  createCaseDraft,
+  getCase,
+  MedicalRecord,
+  saveReviewSnapshot,
+} from '../../services/CaseEngine';
 import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
+import { buildCaseContext, getUnifiedCaseScope } from '../../services/caseWorkspace';
+import { reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
+import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
+import { normalizeClinicalReview } from '../../services/clinicalReview';
+import { runJarvisInvestigation } from '../../services/geminiService';
+import {
+  triggerHapticLight,
+  triggerHapticSelection,
+  triggerHapticSuccess,
+} from '../../services/haptics';
+import { recordHealthMemory } from '../../services/HealthMemory';
+import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
+import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
+import { openTrialModal } from '../../services/TrialEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
 const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;

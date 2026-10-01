@@ -1,58 +1,28 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  GitMerge,
-  Sparkles,
-  Stethoscope,
   Activity,
-  AlertTriangle,
-  FileText,
-  Copy,
-  Check,
-  Printer,
-  ChevronRight,
-  ExternalLink,
-  ShieldCheck,
-  HelpCircle,
-  Clock,
-  Calendar,
-  ArrowRight,
   ArrowLeft,
-  X,
-  Zap,
-  CheckCircle2,
-  Share2,
-  Sliders,
-  Scale,
-  Pill,
-  LayoutGrid,
+  ArrowRight,
+  Calendar,
+  Clock,
   Maximize2,
   Minimize2,
-  Compass,
-  Layers,
-  ChevronDown,
-  BookmarkCheck,
+  Sparkles,
 } from 'lucide-react';
-import {
-  getConnectionDetectiveReport,
-  ConnectionDetectiveReport,
-  SpecialistDialogue,
-  ClinicalMissItem,
-  NodeDetail,
-  SymptomClusterItem,
-  SystemAxis,
-  deriveSemanticEvidenceGraphFromEngineReview,
-} from '../../services/ConnectionDetectiveEngine';
-import { getActiveCase } from '../../services/CaseEngine';
-import { getUnifiedCaseScope } from '../../services/caseWorkspace';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
-import { PostMealReactionTimeline } from './PostMealReactionTimeline';
-import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
-import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
-import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
+import {
+  ConnectionDetectiveReport,
+  deriveSemanticEvidenceGraphFromEngineReview,
+  getConnectionDetectiveReport,
+} from '../../services/ConnectionDetectiveEngine';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
+import { PostMealReactionTimeline } from './PostMealReactionTimeline';
+import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
+import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
 import { TherapeuticOutcomeCard, openEliminationSuiteModal } from './TherapeuticOutcomeCard';
 

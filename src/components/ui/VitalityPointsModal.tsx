@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, X, Zap, Sparkles, CheckCircle2, ArrowRight, Flame, Droplets, HeartPulse, Award, ShieldCheck, ChevronRight, Brain, Heart } from 'lucide-react';
-import { getVitalityState, TIERS, VitalityState } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight } from '../../services/haptics';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Brain,
+  CheckCircle2,
+  ChevronRight,
+  Droplets,
+  Heart,
+  HeartPulse,
+  Sparkles,
+  X,
+  Zap,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getVitalityState, TIERS, VitalityState } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight } from '../../services/haptics';
 
 export default function VitalityPointsModal() {
   const [isOpen, setIsOpen] = useState(false);

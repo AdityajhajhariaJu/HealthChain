@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Utensils, Clock, Sparkles, Plus } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Clock, Plus, Sparkles, Utensils } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import '../../features/dietician/DietEveryday.css';
+import { useDietReviewData } from '../../hooks/useDietReviewData';
+import { recordDietMealReaction } from '../../services/DietMealReactionService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
-import '../../features/dietician/DietEveryday.css';
-import {useDietReviewData} from '../../hooks/useDietReviewData';
-import {recordDietMealReaction} from '../../services/DietMealReactionService';
 
 export interface PostMealReaction {
   reactionType: 'none' | 'bloat' | 'heartburn' | 'palpitations' | 'brain_fog' | 'stomach_upset';
