@@ -1,10 +1,12 @@
+import { captureNotificationScope, coordinateNotifications, notificationFailure, type NotificationScope } from './NotificationCoordinator';
 import { getProfile, saveProfile } from './ProfileEngine';
 import { isMedicationTime, normalizeMedications } from './MedicationScheduleModel';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
 import { ensureNotificationChannel, hasNativeNotificationPermission, NOTIFICATION_CHANNEL_ID } from './NotificationDeviceService';
-import { getActiveProfileScope, getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { getHabitStorageKey, getScopedStorageKey } from './profileScope';
+import { syncMedicationDose } from './DailyTrackerLedger';
 
 export interface VitaminItem {
   id: string;
@@ -113,6 +115,8 @@ export function toggleVitaminTaken(id: string): boolean {
 
   // Check if all active vitamins are taken
   const all = getVitaminSchedule();
+  const medicine = all.find(item => item.id === id);
+  if (medicine) void syncMedicationDose(medicine, today, nextState ? 'taken' : 'unknown', nextState ? new Date().toISOString() : null);
   const enabledItems = all.filter(v => v.enabled !== false);
   const allTaken = enabledItems.length > 0 && enabledItems.every(v => !!takenMap[v.id]);
 
@@ -139,7 +143,7 @@ export function markAllVitaminsTaken(): void {
   let takenMap: Record<string, boolean> = {};
   try { const parsed = JSON.parse(getItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`)) || '{}'); if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') takenMap = parsed; } catch {}
   all.forEach(v => {
-    if (v.enabled !== false) takenMap[v.id] = true;
+    if (v.enabled !== false) { takenMap[v.id] = true; void syncMedicationDose(v, today, 'taken', new Date().toISOString()); }
   });
   setItemSync(scopedKey(`${STORAGE_KEY_LOGS}_${today}`), JSON.stringify(takenMap));
 
@@ -162,19 +166,13 @@ export function markAllVitaminsTaken(): void {
 /**
  * Reschedules native notifications for enabled medicines with valid reminder times.
  */
-let notificationQueue: Promise<void> = Promise.resolve();
 export function rescheduleVitaminNotifications(items?: VitaminItem[]): Promise<void> {
-  const scope = scopedKey(STORAGE_KEY_VITAMINS);
-  const list = items || getVitaminSchedule();
-  const run = async () => {
-    if (scope !== scopedKey(STORAGE_KEY_VITAMINS)) return;
-    await scheduleNativeVitamins(list, scope);
-  };
-  notificationQueue = notificationQueue.then(run, run);
-  return notificationQueue;
+  const scope = captureNotificationScope();
+  const list = JSON.parse(JSON.stringify(items || getVitaminSchedule()));
+  return coordinateNotifications(scope, () => scheduleNativeVitamins(list, scope), undefined);
 }
 
-async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promise<void> {
+async function scheduleNativeVitamins(list: VitaminItem[], scope: NotificationScope): Promise<void> {
 
   try {
     if (Capacitor.isNativePlatform()) {
@@ -185,10 +183,12 @@ async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promi
         await LocalNotifications.cancel({ notifications: cancelIds });
       } catch {}
 
+      if (!scope.current()) return;
       if (!list.some(item => item.enabled && isMedicationTime(item.time))) return;
       const hasPermission = await hasNativeNotificationPermission();
-      if (!hasPermission || scope !== scopedKey(STORAGE_KEY_VITAMINS)) return;
+      if (!hasPermission || !scope.current()) return;
       await ensureNotificationChannel();
+      if (!scope.current()) return;
 
       // Schedule active vitamins
       const notificationsToSchedule: any[] = [];
@@ -212,18 +212,20 @@ async function scheduleNativeVitamins(list: VitaminItem[], scope: string): Promi
             route: '/app/today',
             type: 'pill_reminder',
             vitaminId: item.id,
-            scope: getActiveProfileScope(),
+            scope: scope.profile,
           }
         });
       });
 
       if (notificationsToSchedule.length > 0) {
         await LocalNotifications.schedule({ notifications: notificationsToSchedule });
+        if (!scope.current()) { await cancelVitaminNotifications(); return; }
         console.info(`[VitaminSchedule] Scheduled ${notificationsToSchedule.length} native tablet alarms.`);
       }
     }
   } catch (err) {
     console.warn('[VitaminSchedule] Failed to schedule tablet alarms:', err);
+    if (scope.current()) notificationFailure('medications');
   }
 }
 
@@ -236,7 +238,6 @@ export async function cancelVitaminNotifications(): Promise<void> {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('hc_logout', () => { notificationQueue = notificationQueue.then(cancelVitaminNotifications); });
   let lastSignature = '';
   const refreshNotifications = () => {
     const schedule = getVitaminSchedule();

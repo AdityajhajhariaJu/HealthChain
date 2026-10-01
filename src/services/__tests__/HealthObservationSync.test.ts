@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
   queue: new Map<string, unknown>(), owner: 'account-a', profile: 'profile_1',
-  remoteRevision: 0, writes: [] as number[], idbWriteFail: false,
+  remoteRevision: 0, remoteRow: null as any, writes: [] as number[], idbWriteFail: false,
 }));
 vi.mock('idb-keyval', () => ({
   get: vi.fn(async (key: string) => state.queue.get(key)),
@@ -41,14 +41,14 @@ vi.mock('../supabaseClient', () => ({ supabase: {
       },
       select: () => {
         const builder: any = { eq: () => builder,
-          maybeSingle: async () => ({ data: state.remoteRevision ? { id: 'obs-1', revision: state.remoteRevision, idempotency_key: 'meal-1' } : null, error: null }) };
+          maybeSingle: async () => ({ data: state.remoteRevision ? (state.remoteRow || { id: 'obs-1', revision: state.remoteRevision, idempotency_key: 'meal-1' }) : null, error: null }) };
         return builder;
       },
     };
   },
 } }));
 
-import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from '../SyncOutbox';
+import { enqueueSync, flushSyncOutbox, getPendingSyncCount, getObservationConflicts, getSyncStatus } from '../SyncOutbox';
 
 const row = (revision: number) => ({ id: 'obs-1', user_id: 'account-a', profile_id: 'profile_1',
   revision, expected_revision: revision - 1, idempotency_key: 'meal-1',
@@ -56,8 +56,8 @@ const row = (revision: number) => ({ id: 'obs-1', user_id: 'account-a', profile_
 
 describe('observation revision sync', () => {
   beforeEach(() => {
-    state.queue.clear(); state.owner = 'account-a'; state.profile = 'profile_1'; state.remoteRevision = 0; state.writes = []; state.idbWriteFail = false;
-    localStorage.clear();
+    state.queue.clear(); state.owner = 'account-a'; state.profile = 'profile_1'; state.remoteRevision = 0; state.remoteRow = null; state.writes = []; state.idbWriteFail = false;
+    localStorage.clear(); localStorage.setItem('hc_account',JSON.stringify({id:state.owner}));
   });
 
   it('keeps two offline revisions and replays them in order', async () => {
@@ -87,5 +87,23 @@ describe('observation revision sync', () => {
     await flushSyncOutbox('account-a');
     expect(state.writes).toEqual([1, 2]);
     expect(await getPendingSyncCount('account-a')).toBe(0);
+  });
+});
+
+describe('equal revision observation acknowledgement', () => {
+  beforeEach(() => { state.queue.clear(); state.owner='account-a'; state.profile='profile_1'; state.remoteRevision=2; state.idbWriteFail=false; state.writes=[]; localStorage.clear(); localStorage.setItem('hc_account',JSON.stringify({id:state.owner})); });
+  it('does not acknowledge a different same-revision meal', async () => {
+    state.remoteRow={...row(2),payload:{kind:'meal',description:'The other device meal'}};
+    await enqueueSync('health_observation_upsert','account-a',row(2)); await flushSyncOutbox('account-a');
+    expect(await getPendingSyncCount('account-a')).toBe(1); expect((await getSyncStatus('account-a')).state).toBe('conflict_needs_review');
+    const [conflict]=await getObservationConflicts('account-a');expect(conflict.local.payload.description).toBe('Meal 2');expect(conflict.remote.payload.description).toBe('The other device meal');
+  });
+  it('preserves a same-revision case-link conflict for review', async () => {
+    state.remoteRow={...row(2),record_references:[{kind:'case',id:'cloud-case'}]};
+    await enqueueSync('health_observation_upsert','account-a',{...row(2),record_references:[{kind:'case',id:'local-case'}]}); await flushSyncOutbox('account-a');
+    const [conflict]=await getObservationConflicts('account-a'); expect(conflict.local.record_references[0].id).toBe('local-case');expect(conflict.remote.record_references[0].id).toBe('cloud-case');
+  });
+  it('acknowledges an identical retry after a lost successful response',async()=>{
+    state.remoteRow={...row(2)};await enqueueSync('health_observation_upsert','account-a',row(2));await flushSyncOutbox('account-a');expect(await getPendingSyncCount('account-a')).toBe(0);
   });
 });

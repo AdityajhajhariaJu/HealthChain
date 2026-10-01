@@ -1,5 +1,13 @@
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
+import { isErasedStorageKey } from './DurableHealthStorage';
+
+let nativeStorageQueue: Promise<unknown> = Promise.resolve();
+function queueNativeStorage(work: () => Promise<unknown>) {
+  nativeStorageQueue = nativeStorageQueue.catch(() => {}).then(work);
+  void nativeStorageQueue.catch(error => console.warn('Native storage error:', error));
+}
+export async function flushNativeStorage() { await nativeStorageQueue; }
 
 /**
  * A hybrid storage solution for React + Capacitor.
@@ -23,7 +31,7 @@ export async function syncStorageFromPreferences() {
     
     for (const key of keys.keys) {
       const { value } = await Preferences.get({ key });
-      if (value) {
+      if (value && !isErasedStorageKey(key)) {
         try {
           localStorage.setItem(key, value);
         } catch {}
@@ -36,6 +44,7 @@ export async function syncStorageFromPreferences() {
 }
 
 export function setItemSync(key: string, value: string) {
+  if (isErasedStorageKey(key)) return;
   try {
     localStorage.setItem(key, value);
   } catch (e) {
@@ -43,7 +52,7 @@ export function setItemSync(key: string, value: string) {
   }
   
   if (Capacitor.getPlatform() !== 'web') {
-    Preferences.set({ key, value }).catch(e => console.warn('Native storage error:', e));
+    queueNativeStorage(async () => { if (!isErasedStorageKey(key)) await Preferences.set({ key, value }); });
   }
 }
 
@@ -68,7 +77,7 @@ export function removeItemSync(key: string) {
     console.warn(`localStorage removeItem failed for ${key}`, e);
   }
   if (Capacitor.getPlatform() !== 'web') {
-    Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
+    queueNativeStorage(() => Preferences.remove({ key }));
   }
 }
 

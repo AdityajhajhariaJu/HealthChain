@@ -15,6 +15,7 @@ import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import ClinicalDailyEvidencePicker from '../../components/ui/ClinicalDailyEvidencePicker';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
@@ -451,6 +452,7 @@ export default function CaseDetail() {
               </div>
             </div>
 
+            <ClinicalDailyEvidencePicker caseId={caseItem.id} onSaved={() => setCaseItem(getCase(caseItem.id))} />
             {recordsCount === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px 16px', background: '#F8FAFC', borderRadius: 16, border: '1px dashed #CBD5E1' }}>
                 <FolderOpen size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
@@ -483,14 +485,14 @@ export default function CaseDetail() {
                       <div>
                         <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 15 }}>{record.filename}</div>
                         <div style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>
-                          {record.findings || 'Report findings processed by HealthChain.'}
+                          {record.findings || 'No extracted findings recorded.'}
                         </div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, alignSelf: isMobile ? 'flex-end' : 'center', flexWrap: 'wrap' }}>
                       <InformationCategoryBadge
-                        category="extracted_finding"
-                        item={{ extractionStatus: 'checked', originalFile: record.filename, page: 1 }}
+                        category={record.evidenceManifest ? 'user_report' : 'extracted_finding'}
+                        item={{ extractionStatus: record.extractionStatus || 'provisional', originalFile: record.filename, page: record.passages?.[0]?.page }}
                         size="sm"
                       />
                       <span className="badge" style={{ background: '#E2E8F0', color: '#334155', textTransform: 'capitalize' }}>

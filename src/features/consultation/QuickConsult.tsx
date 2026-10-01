@@ -23,7 +23,7 @@ import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { generateCaseConnectionMap, parseModelJson, analyzeLabReport } from '../../services/geminiService';
-import { getProfile, getProfileKey, updateVitals } from '../../services/ProfileEngine';
+import { getProfile, getProfileKey } from '../../services/ProfileEngine';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -299,10 +299,7 @@ export default function QuickConsult() {
             const result = await analyzeLabReport(base64Data, file.type, profile);
             if (!isAccountScopeCurrent(uploadScope) || abortProcessingRef.current) return;
             if (result) {
-              if (result.biomarkers && Object.keys(result.biomarkers).length > 0) {
-                updateVitals(result.biomarkers, 'quick_consult_upload');
-              }
-              extractedContext += `\n\n--- Document: ${file.name} ---\n`;
+              extractedContext += `\n\n--- Document: ${file.name}; AI extraction is provisional and has not been verified against the original report ---\n`;
               extractedContext += `Test/Report Type: ${result.testName || 'Lab Report'}\n`;
               extractedContext += `Key Findings: ${result.keyFindings || 'Findings extracted'}\n`;
               if (result.interpretation) extractedContext += `Interpretation: ${result.interpretation}\n`;

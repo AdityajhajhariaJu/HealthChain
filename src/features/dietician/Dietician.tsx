@@ -1,3 +1,4 @@
+import { planningConstraintSnapshot } from '../../../shared/health-source-freshness';
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -310,6 +311,7 @@ export default function Dietician() {
   const [profile, setProfile] = useState<any>(() => getInitialDietProfile());
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
+  const [, setConstraintVersion] = useState(0);
   const [mealPlan, setMealPlan] = useState<FullMealPlan | null>(null);
   const [archivedPlans, setArchivedPlans] = useState<FullMealPlan[]>([]);
   const [editingMeal, setEditingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
@@ -531,11 +533,11 @@ export default function Dietician() {
 
   // Record Health Memory snapshots
   useEffect(() => {
-    const refreshLocation = () => setProfile((previous: any) => {
+    const refreshLocation = () => { setConstraintVersion(value => value + 1); setProfile((previous: any) => {
       if (!previous) return previous;
       const next = withFoodLocation(getCoreProfile()?.dietProfile || previous);
       return JSON.stringify(previous)===JSON.stringify(next) ? previous : next;
-    });
+    }); };
     window.addEventListener('hc_profile_updated', refreshLocation);
     return () => window.removeEventListener('hc_profile_updated', refreshLocation);
   }, []);
@@ -661,7 +663,7 @@ export default function Dietician() {
   useEffect(() => {
     const refreshHydration = () => {
       const shared = getHydrationData(currentDate);
-      setHydration((previous: any) => ({ ...previous, [currentDate]: Math.round(shared.currentMl / 250) }));
+      setHydration((previous: any) => ({ ...previous, [currentDate]: shared.currentMl / 250 }));
     };
     refreshHydration();
     window.addEventListener('hc_hydration_updated', refreshHydration);
@@ -827,7 +829,7 @@ export default function Dietician() {
   const handleUpdateHydration = (delta: number) => {
     triggerHapticLight();
     const shared = adjustWaterAmount(delta * 250, 'water', currentDate);
-    const next = Math.round(shared.currentMl / 250);
+    const next = shared.currentMl / 250;
     const updated = { ...hydration, [currentDate]: next };
     setHydration(updated);
     if (delta > 0) {
@@ -918,6 +920,7 @@ export default function Dietician() {
       return;
     }
 
+    const constraintSnapshot = planningConstraintSnapshot(getCoreProfile(), profile);
     const planProfileKey = getProfileKey();
     const planProfileId = getCoreProfile()?.id;
     // The authenticated gateway owns paid access, refunds and free-plan quota.
@@ -936,13 +939,13 @@ export default function Dietician() {
     setPlanGenerationError('');
     try {
       const rawPlan = await generateMealPlan(requestProfile, 7, planProfileKey);
-      if (getProfileKey() !== planProfileKey || getCoreProfile()?.id !== planProfileId)
+      if (getProfileKey() !== planProfileKey || getCoreProfile()?.id !== planProfileId || constraintSnapshot !== planningConstraintSnapshot(getCoreProfile(), getCoreProfile()?.dietProfile || profile))
         throw new Error('diet_plan_context_changed');
       const validation = validateGeneratedMealPlan(rawPlan, 7);
       if (validation.valid) {
         if (isMounted.current) {
           if(getCoreProfile()?.dietMealPlan?.updatedAt!==mealPlan?.updatedAt)throw new Error('diet_plan_context_changed');
-          const normalized = preserveAcceptedMeals(normalizeFullMealPlan({...rawPlan,startDate:currentDate}, {
+          const normalized = preserveAcceptedMeals(normalizeFullMealPlan({...rawPlan,startDate:currentDate,constraintSnapshot}, {
             caseId: activeCaseScope.caseId || undefined,
             profileKey: getProfileKey(),
           }),mealPlan);
@@ -1011,9 +1014,15 @@ export default function Dietician() {
     if(getProfileKey()!==scope||getCoreProfile()?.id!==current.id||JSON.stringify(getCoreProfile()?.dietMealPlan)!==JSON.stringify(next)){toast.error('Plan not saved','Your plan update was not confirmed. Please retry.');return false;}
     setMealPlan(next);if(nextArchives)setArchivedPlans(nextArchives);return true;
   };
+  const planNeedsReview = !!mealPlan && (!mealPlan.constraintSnapshot || mealPlan.constraintSnapshot !== planningConstraintSnapshot(getCoreProfile(), profile));
+  const requireCurrentPlan = () => {
+    if (!planNeedsReview) return true;
+    toast.error('Review changed profile', 'This plan predates your current health or food preferences. Regenerate it with the current inputs before following it.');
+    return false;
+  };
   // --- Package 7 Plan Lifecycle Handlers ---
   const handleSelectPlan = async () => {
-    if (!mealPlan) return;
+    if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'selected');
     if(!await persistPlanUpdate(updated))return;
@@ -1021,7 +1030,7 @@ export default function Dietician() {
   };
 
   const handleActivatePlan = async () => {
-    if (!mealPlan) return;
+    if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
     if(!await persistPlanUpdate(updated))return;
@@ -1037,7 +1046,7 @@ export default function Dietician() {
   };
 
   const handleResumePlan = async () => {
-    if (!mealPlan) return;
+    if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
     if(!await persistPlanUpdate(updated))return;
@@ -1882,6 +1891,7 @@ export default function Dietician() {
                 Creating all seven days and saving your plan. This can take up to a minute.
               </p>
             )}
+            {planNeedsReview && <div role="status" style={{ margin: '16px 0', padding: 16, borderRadius: 12, border: '1px solid #fbbf24', background: '#fffbeb', color: '#92400e' }}><strong>Review this saved plan</strong><p>Your current profile or food preferences differ from the inputs used for this plan, or its original inputs were not recorded. Regenerate before selecting or following it. Your saved meals and food logs remain available.</p></div>}
             {!mealPlan ? (
               <div
                 style={{

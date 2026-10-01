@@ -1,4 +1,5 @@
-import { addDurableArchiveData, restoreHealthArchive, validateHealthArchive } from '../../services/HealthArchive';
+import { createPortal } from 'react-dom';
+import { addDurableArchiveData, restoreHealthArchive, validateHealthArchive, exportCloudArchive } from '../../services/HealthArchive';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
@@ -7,14 +8,17 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock, Trophy, Zap, ChevronRight, Award, Bell, Clock, Send, Check } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
-import { clearSyncOutbox } from '../../services/SyncOutbox';
+import { eraseOwnerHealthData, recordConfirmedAccountErasure } from '../../services/AccountErasure';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { cancelAccountNotifications } from '../../services/NotificationCoordinator';
+import { unregisterPushDevice } from '../../services/PushService';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { getActiveSession } from '../../services/authSession';
 import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
 import { getVitalityPoints, getVitalityState, awardPoints, TIERS } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
-import { getItemSync, setItemSync, removeItemSync, clearSync } from '../../services/storage';
+import { getItemSync, setItemSync, removeItemSync } from '../../services/storage';
 import {
   isDailyReminderEnabled,
   getDailyReminderTime,
@@ -79,12 +83,14 @@ export default function Settings() {
     triggerHapticLight();
     setReminderEnabled(enabled);
     await setDailyReminderEnabled(enabled);
+    setReminderEnabled(isDailyReminderEnabled());
   };
 
   const handleSelectReminderTime = async (time: string) => {
     triggerHapticLight();
     setReminderTime(time);
     await setDailyReminderTime(time);
+    setReminderTime(getDailyReminderTime());
   };
 
   const handleTestAlert = async () => {
@@ -184,9 +190,13 @@ export default function Settings() {
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') return;
     setIsDeleting(true);
-    
+    const scope = captureAccountScope();
+    let remoteDeleted = false;
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      if (scope.accountId === 'guest' || !session?.access_token || session.user.id !== scope.accountId)
+        throw new Error('Sign in again before deleting your account. No deletion has been performed.');
+      if (!isAccountScopeCurrent(scope)) throw new Error('Account changed. Open deletion from the intended account.');
       if (session?.user?.id) {
         const deleteController = new AbortController();
         const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
@@ -201,18 +211,35 @@ export default function Settings() {
         if (!response.ok || !body.success) {
           throw new Error(body.error || 'The secure deletion service could not complete the request. Your data was not cleared locally.');
         }
-        await clearSyncOutbox(session.user.id);
+        remoteDeleted = true;
+        // Device alarms must be cancelled before invalidating the erased scope.
+        if (isAccountScopeCurrent(scope)) {
+          await cancelAccountNotifications().catch(() => {});
+          await unregisterPushDevice(scope).catch(() => {});
+        }
+        await recordConfirmedAccountErasure(session.user.id);
+        await eraseOwnerHealthData(session.user.id);
       }
-      
+      if (captureAccountScope().accountId !== scope.accountId) {
+        success('Account deleted', 'The requested account was deleted. Your current account was left open.');
+        setIsDeleting(false);
+        return;
+      }
       try { sessionStorage.clear(); } catch {}
-      window.dispatchEvent(new Event('hc_logout'));
-
-      clearSync();
+      window.dispatchEvent(new CustomEvent('hc_logout', { detail: { accountDeleted: true, ownerId: scope.accountId } }));
       await supabase.auth.signOut();
+      if (captureAccountScope().accountId !== scope.accountId) return;
+      for (const key of ['hc_account', 'hc_guest_mode', 'hc_user_email']) removeItemSync(key);
       success('Health data removed', 'Your HealthChain account and user-owned data have been permanently deleted.');
       navigate('/');
     } catch (err: any) {
       toastError('Error deleting account', err.message);
+      if (remoteDeleted && captureAccountScope().accountId === scope.accountId) {
+        window.dispatchEvent(new CustomEvent('hc_logout', { detail: { accountDeleted: true, ownerId: scope.accountId } }));
+        for (const key of ['hc_account', 'hc_guest_mode', 'hc_user_email']) removeItemSync(key);
+        await supabase.auth.signOut().catch(() => {});
+        navigate('/');
+      }
       setIsDeleting(false);
     }
   };
@@ -891,7 +918,7 @@ export default function Settings() {
               Export Data
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Download a copy of your profiles, cases, and settings as JSON.
+              Download profiles, cases, daily logs, settings and original documents as JSON.
             </div>
           </div>
           <button
@@ -915,32 +942,13 @@ export default function Settings() {
                     toastError('Export Incomplete', 'Your sign-in session expired. Sign in again before exporting cloud data.');
                     return;
                   }
-                  const [profileResult, casesResult, memoryResult, caregiverResult] = await Promise.all([
-                    supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
-                    supabase.from('cases').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
-                    supabase.from('health_memory').select('*').eq('user_id', session.user.id).order('occurred_at', { ascending: false }),
-                    supabase.from('healthchain_profiles').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
-                  ]);
-                  const snapshotUnavailable = caregiverResult.error?.code === 'PGRST205' || caregiverResult.error?.code === '42P01';
-                  const remoteError = profileResult.error || casesResult.error || memoryResult.error ||
-                    (snapshotUnavailable ? null : caregiverResult.error);
-                  if (remoteError) {
-                    toastError('Export Incomplete', 'Cloud records could not be read. Nothing was downloaded so you do not receive a partial backup.');
-                    return;
-                  }
-                  cloudData = {
-                    userId: session.user.id,
-                    profile: profileResult.data,
-                    cases: casesResult.data || [],
-                    healthMemory: memoryResult.data || [],
-                    caregiverProfiles: snapshotUnavailable ? [] : (caregiverResult.data || []),
-                  };
+                  cloudData = await exportCloudArchive(session.user.id);
                 }
 
                 const dataStr = JSON.stringify({
                   ...durable,
                   exportedAt: new Date().toISOString(),
-                  format: 'healthchain-user-data-v2',
+                  format: 'healthchain-user-data-v3',
                   scope: cloudData ? 'local-cache-and-supabase-records' : 'local-cache-only',
                   localStorage: exportedData,
                   supabase: cloudData,
@@ -1004,7 +1012,7 @@ export default function Settings() {
                   try {
                     const parsed = JSON.parse(ev.target?.result as string);
                     const checked=validateHealthArchive(parsed,scopedExportPrefixes);
-                    setArchivePreview({raw:parsed,count:Object.keys(checked.entries).length+Object.keys(checked.indexed).length,skipped:checked.skipped});
+                    setArchivePreview({raw:parsed,count:Object.keys(checked.entries).length+Object.keys(checked.indexed).length+Object.keys(checked.originals).length,skipped:checked.skipped});
                   } catch (err:any) {
                     toastError('Import Failed', err?.message || 'Invalid or unverified JSON file.');
                   }
@@ -1102,7 +1110,7 @@ export default function Settings() {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {showDeleteModal && createPortal(
         <div
           style={{
             position: 'fixed',
@@ -1118,7 +1126,7 @@ export default function Settings() {
             padding: '20px',
           }}
         >
-          <FocusTrap isActive={showDeleteModal}>
+          <FocusTrap isActive={showDeleteModal} onEscape={() => { if (!isDeleting) { setShowDeleteModal(false); setDeleteConfirmation(''); } }}>
             <div
               className="card"
               role="dialog"
@@ -1214,7 +1222,7 @@ export default function Settings() {
           </div>
           </FocusTrap>
         </div>
-      )}
+      , document.body)}
 
       {/* Offline Unsynced Changes Logout Confirmation Modal */}
       {archivePreview && <div style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(15,23,42,.55)',display:'grid',placeItems:'center',padding:16}}>
@@ -1222,6 +1230,7 @@ export default function Settings() {
           <div role="dialog" aria-modal="true" aria-label="Review backup restore" style={{background:'white',color:'#0f172a',borderRadius:24,padding:24,maxWidth:480}}>
             <h3>Review backup restore</h3>
             <p>{archivePreview.count} local data stores can be restored. {archivePreview.skipped} unsupported or other-account entries will be skipped.</p>
+            {(archivePreview.raw?.supabase || Object.keys(archivePreview.raw?.pendingSync || {}).length > 0) && <p>Cloud snapshots and unsent sync entries in this download are reference copies. This restore applies local records and original files only.</p>}
             <p>This replaces matching data on this device. Your account's cloud records remain available for synchronization.</p>
             <button className="btn btn-outline" disabled={restoring} onClick={()=>setArchivePreview(null)}>Cancel</button>
             <button className="btn btn-primary" disabled={restoring} onClick={async()=>{

@@ -2622,3 +2622,272 @@ alter table public.health_observations add constraint health_observations_refere
 comment on column public.health_observations.record_references is
   'Explicit same-owner/profile links. Consumers resolve targets within owned records; links are not causal findings.';
 
+-- ===== 20261001082335_pillar_entitlement_write_guards.sql =====
+-- Entitlements are server-owned even when the profile row is client-editable.
+-- Client profile deletion is not account deletion; use the authenticated API.
+revoke delete, truncate, references, trigger on public.profiles from public, anon, authenticated;
+revoke insert, update on public.profiles from anon;
+
+create or replace function public.healthchain_guard_profile_entitlements()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if current_user in ('authenticated', 'anon') then
+    if tg_op = 'INSERT' then
+      if coalesce(new.is_pro, false) or new.pro_expires_at is not null then
+        raise exception 'Paid access is managed by the server' using errcode = '42501';
+      end if;
+      new.is_pro := false;
+      new.pro_expires_at := null;
+      new.ai_token_usage := 0;
+      new.ai_usage_reset_date := now() + interval '30 days';
+    else
+      new.is_pro := old.is_pro;
+      new.pro_expires_at := old.pro_expires_at;
+      new.ai_token_usage := greatest(coalesce(old.ai_token_usage, 0), coalesce(new.ai_token_usage, 0));
+      new.ai_usage_reset_date := old.ai_usage_reset_date;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.healthchain_guard_profile_entitlements() from public, anon, authenticated;
+drop trigger if exists healthchain_profile_entitlements on public.profiles;
+create trigger healthchain_profile_entitlements before insert or update on public.profiles
+for each row execute function public.healthchain_guard_profile_entitlements();
+
+-- ===== 20261001084938_pillar_daily_events_and_erasure.sql =====
+-- Add measured drinks and actual adherence events to the shared owner ledger.
+alter table public.health_observations drop constraint if exists health_observations_kind_check;
+alter table public.health_observations add constraint health_observations_kind_check
+  check (kind in ('meal','symptom','bowel','daily_checkin','context','hydration','medication_dose'));
+alter table public.health_observations add constraint health_observations_daily_payload_check check (
+  (kind <> 'hydration' or coalesce((jsonb_typeof(payload->'amountMl') = 'number'
+    and (payload->>'amountMl')::numeric > 0 and (payload->>'amountMl')::numeric <= 20000
+    and payload->>'drinkType' in ('water','electrolyte','tea','lemon','coconut','sparkling')),false))
+  and (kind <> 'medication_dose' or coalesce((length(payload->>'medicationId') between 1 and 200
+    and length(payload->>'name') between 1 and 500
+    and payload->>'status' in ('taken','skipped','unknown')),false))
+);
+-- A minimal operational tombstone prevents still-valid JWTs and in-flight
+-- writes from recreating data while Auth deletion is completing.
+create table if not exists public.account_erasure_tombstones (
+  user_id uuid primary key,
+  requested_at timestamptz not null default now()
+);
+alter table public.account_erasure_tombstones enable row level security;
+revoke all on public.account_erasure_tombstones from public, anon, authenticated;
+grant select, insert, update on public.account_erasure_tombstones to service_role;
+create or replace function public.healthchain_reject_erased_owner_write()
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare owner_id uuid;
+begin
+  owner_id := (to_jsonb(new)->>tg_argv[0])::uuid;
+  if exists(select 1 from public.account_erasure_tombstones where user_id = owner_id) then
+    raise exception 'This account has been deleted' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.healthchain_reject_erased_owner_write() from public, anon, authenticated;
+do $$
+declare item record;
+begin
+  for item in select c.table_name, c.column_name from information_schema.columns c
+    join information_schema.tables t on t.table_schema=c.table_schema and t.table_name=c.table_name
+    where c.table_schema='public' and t.table_type='BASE TABLE'
+      and ((c.column_name='user_id' and c.data_type='uuid' and c.table_name <> 'account_erasure_tombstones')
+        or (c.table_name='profiles' and c.column_name='id'))
+  loop
+    execute format('drop trigger if exists healthchain_erased_owner_guard on public.%I', item.table_name);
+    execute format('create trigger healthchain_erased_owner_guard before insert or update on public.%I for each row execute function public.healthchain_reject_erased_owner_write(%L)', item.table_name, item.column_name);
+  end loop;
+end;
+$$;
+create or replace function public.delete_healthchain_user_data(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.account_erasure_tombstones(user_id) values(p_user_id) on conflict do nothing;
+  if to_regclass('public.health_observations') is not null then
+    execute 'delete from public.health_observations where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.cases') is not null then
+    execute 'delete from public.cases where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.profiles') is not null then
+    execute 'delete from public.profiles where id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.health_memory') is not null then
+    execute 'delete from public.health_memory where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.healthchain_profiles') is not null then
+    execute 'delete from public.healthchain_profiles where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_devices') is not null then
+    execute 'delete from public.user_devices where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.analytics_events') is not null then
+    execute 'delete from public.analytics_events where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_quotas') is not null then
+    execute 'delete from public.user_quotas where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.case_tombstones') is not null then
+    execute 'delete from public.case_tombstones where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.payment_refunds') is not null and to_regclass('public.payments') is not null then
+    execute 'delete from public.payment_refunds r using public.payments p where r.razorpay_payment_id = p.razorpay_payment_id and p.user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.payments') is not null then
+    execute 'delete from public.payments where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.ai_requests') is not null then
+    execute 'delete from public.ai_requests where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.ai_usage_daily') is not null then
+    execute 'delete from public.ai_usage_daily where user_id = $1' using p_user_id;
+  end if;
+
+  if to_regclass('public.ava_messages') is not null then
+    execute 'delete from public.ava_messages where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_health_metrics') is not null then
+    execute 'delete from public.user_health_metrics where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.diet_plan_generations') is not null then
+    execute 'delete from public.diet_plan_generations where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_feedback') is not null then
+    execute 'delete from public.user_feedback where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_fitness_history') is not null then
+    execute 'delete from public.user_fitness_history where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_program_progress') is not null then
+    execute 'delete from public.user_program_progress where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_streaks') is not null then
+    execute 'delete from public.user_streaks where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_badges') is not null then
+    execute 'delete from public.user_badges where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_body_measurements') is not null then
+    execute 'delete from public.user_body_measurements where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_progress_photos') is not null then
+    execute 'delete from public.user_progress_photos where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_favorites') is not null then
+    execute 'delete from public.user_favorites where user_id = $1' using p_user_id;
+  end if;
+end;
+$$;
+
+revoke all on function public.delete_healthchain_user_data(uuid)
+  from public, anon, authenticated;
+grant execute on function public.delete_healthchain_user_data(uuid)
+  to service_role;
+
+-- Storage files must be removed through the Storage API (metadata deletion
+-- alone does not erase bytes). This listing is callable only by the server.
+create or replace function public.list_healthchain_user_storage(p_user_id uuid)
+returns table(bucket_id text, name text) language sql security definer set search_path='' as $$
+  select o.bucket_id, o.name from storage.objects o
+    where o.owner_id = p_user_id::text order by o.bucket_id, o.name limit 100;
+$$;
+revoke all on function public.list_healthchain_user_storage(uuid) from public, anon, authenticated;
+grant execute on function public.list_healthchain_user_storage(uuid) to service_role;
+
+create or replace function public.healthchain_current_account_active()
+returns boolean language sql stable security definer set search_path='' as $$
+  select exists(select 1 from auth.users where id = auth.uid())
+    and not exists(select 1 from public.account_erasure_tombstones where user_id = auth.uid());
+$$;
+revoke all on function public.healthchain_current_account_active() from public, anon;
+grant execute on function public.healthchain_current_account_active() to authenticated;
+drop policy if exists healthchain_erased_owner_storage_guard on storage.objects;
+create policy healthchain_erased_owner_storage_guard on storage.objects
+  as restrictive for all to authenticated
+  using (public.healthchain_current_account_active())
+  with check (public.healthchain_current_account_active());
+
+-- ===== 20261001102326_pillar_policy_efficiency.sql =====
+-- Keep the authenticated owner policy as the one source of truth. The older
+-- public policies have exactly the same owner predicate and only add repeated
+-- per-row checks to case/profile reads and writes.
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies where schemaname = 'public' and tablename = 'cases'
+      and policyname = 'Users manage own cases' and cmd = 'ALL'
+      and roles = array['authenticated']::name[]
+      and qual = '(auth.uid() = user_id)' and with_check = '(auth.uid() = user_id)'
+  ) or not exists (
+    select 1 from pg_policies where schemaname = 'public' and tablename = 'profiles'
+      and policyname = 'Users manage own profile' and cmd = 'ALL'
+      and roles = array['authenticated']::name[]
+      and qual = '(auth.uid() = id)' and with_check = '(auth.uid() = id)'
+  ) then
+    raise exception 'Owner policy differs from audited definition; stop policy cleanup';
+  end if;
+end;
+$$;
+
+drop policy if exists "Users can create their own cases" on public.cases;
+drop policy if exists "Users can delete own cases" on public.cases;
+drop policy if exists "Users can delete their own cases" on public.cases;
+drop policy if exists "Users can insert own cases" on public.cases;
+drop policy if exists "Users can manage their own cases" on public.cases;
+drop policy if exists "Users can update own cases" on public.cases;
+drop policy if exists "Users can update their own cases" on public.cases;
+drop policy if exists "Users can view own cases" on public.cases;
+drop policy if exists "Users can view their own cases" on public.cases;
+
+drop policy if exists "Users can insert own profile" on public.profiles;
+drop policy if exists "Users can manage their own profiles" on public.profiles;
+drop policy if exists "Users can update their own profile" on public.profiles;
+drop policy if exists "Users can view own profile" on public.profiles;
+drop policy if exists "Users can view their own profile" on public.profiles;
+
+-- Wrapping the request identity in a scalar subquery lets Postgres evaluate it
+-- once for a statement, rather than once for every candidate row.
+do $$
+declare p record;
+declare statement text;
+begin
+  for p in
+    select tablename, policyname, qual, with_check from pg_policies
+    where schemaname = 'public'
+      and tablename in ('cases', 'profiles', 'health_memory',
+        'health_observations', 'user_devices', 'user_health_metrics')
+      and (coalesce(qual, '') like '%auth.uid()%' or
+        coalesce(with_check, '') like '%auth.uid()%')
+  loop
+    statement := format('alter policy %I on public.%I', p.policyname, p.tablename);
+    if p.qual is not null then
+      statement := statement || format(' using (%s)',
+        replace(p.qual, 'auth.uid()', '(select auth.uid())'));
+    end if;
+    if p.with_check is not null then
+      statement := statement || format(' with check (%s)',
+        replace(p.with_check, 'auth.uid()', '(select auth.uid())'));
+    end if;
+    execute statement;
+  end loop;
+end;
+$$;
+
+-- The Ava context query reads the newest imported samples across all device
+-- types; the existing (user_id, metric_type, start_time) index cannot provide
+-- that global order without sorting.
+create index if not exists idx_user_health_metrics_owner_start_time
+  on public.user_health_metrics (user_id, start_time desc);
+

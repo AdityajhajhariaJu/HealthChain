@@ -1,3 +1,4 @@
+import { setOwned } from './OwnedIdb';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
@@ -145,7 +146,7 @@ export async function hydrateHealthMemory(scope = captureHealthMemoryScope()) {
 export function getHealthMemory(): HealthMemoryItem[] {
   const scope = captureHealthMemoryScope();
   void hydrateHealthMemory(scope);
-  return local(scope).filter((item) => !item.deletedAt);
+  return JSON.parse(JSON.stringify(local(scope).filter((item) => !item.deletedAt)));
 }
 export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string) {
   return getHealthMemory().find(
@@ -154,7 +155,7 @@ export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string) {
 }
 function writeLocal(items: HealthMemoryItem[], scope: HealthMemoryScope) {
   if (!isHealthMemoryScopeCurrent(scope)) return;
-  cache.set(scope.key, items.slice(0, 3000));
+  cache.set(scope.key, JSON.parse(JSON.stringify(items.slice(0, 3000))));
   // Keep a synchronous mirror; never remove the only reload-readable copy.
   try {
     setItemSync(scope.key, JSON.stringify(local(scope)));
@@ -171,7 +172,7 @@ function writeLocal(items: HealthMemoryItem[], scope: HealthMemoryScope) {
         mirrored = getItemSync(scope.key) === json;
       } catch {}
       try {
-        await idb.set(scope.key, json);
+        await setOwned(scope.key, json);
       } catch (error) {
         if (!mirrored) throw error;
       }
@@ -196,11 +197,11 @@ export async function flushHealthMemory(scope = captureHealthMemoryScope()) {
 export async function exportHealthMemory() {
   const scope = captureHealthMemoryScope();
   await flushHealthMemory(scope);
-  return local(scope);
+  return JSON.parse(JSON.stringify(local(scope)));
 }
 function safePayload(payload: any) {
   const json = JSON.stringify(payload ?? {});
-  if (json.length <= 30000) return payload ?? {};
+  if (json.length <= 30000) return JSON.parse(json);
   return { summary: json.slice(0, 28000), truncated: true };
 }
 function remotePayload(item: HealthMemoryItem, scope: HealthMemoryScope, id = item.id) {
@@ -306,7 +307,7 @@ export function recordHealthMemory(
     ? existing.find((item) => item.dedupeKey === input.dedupeKey)
     : undefined;
   // A forgotten proposal must not silently reappear during background extraction.
-  if (match?.deletedAt) return match;
+  if (match?.deletedAt) return JSON.parse(JSON.stringify(match));
   const item: HealthMemoryItem = {
     id: isUuid(input.id) ? input.id! : match?.id || uuid(),
     profileId: scope.profileId,
@@ -324,7 +325,7 @@ export function recordHealthMemory(
   void syncItem(item, scope).catch(() => {
     /* Local copy remains available for retry. */
   });
-  return item;
+  return JSON.parse(JSON.stringify(item));
 }
 export async function reviseHealthMemory(
   id: string,
@@ -349,7 +350,7 @@ export async function reviseHealthMemory(
   );
   await flushHealthMemory(scope);
   await syncItem(revised, scope);
-  return revised;
+  return JSON.parse(JSON.stringify(revised));
 }
 export async function syncHealthMemoryFromSupabase() {
   const scope = captureHealthMemoryScope();

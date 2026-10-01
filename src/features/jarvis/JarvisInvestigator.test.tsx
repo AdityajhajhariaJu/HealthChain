@@ -29,7 +29,7 @@ describe('Clinical Review case continuity', () => {
     await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ caseId: 'existing', type: 'jarvis' })));
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.run.mock.calls[0][0]).toBe('My actual symptom history');
-    expect(mocks.run.mock.calls[0][3]).toBe(mocks.cases[0]);
+    expect(mocks.run.mock.calls[0][3]).toStrictEqual(mocks.cases[0]);
     expect(screen.getByRole('heading', { name: 'Your record review is ready' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Review summary' })).toBeTruthy();
     expect(screen.queryByText('Clinical dossier')).toBeNull();

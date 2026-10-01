@@ -1,6 +1,7 @@
+import { setOwned as set } from '../services/OwnedIdb';
 import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
-import { get, set, del } from 'idb-keyval';
+import { get, del } from 'idb-keyval';
 import { getItemSync, setItemSync, removeItemSync } from '../services/storage';
 import { getAccountScope } from '../services/RunContext';
 import { getActiveProfileScope } from '../services/profileScope';

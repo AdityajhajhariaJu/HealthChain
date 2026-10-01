@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, UploadCloud, CloudOff, Smartphone, AlertOctagon, RefreshCw } from 'lucide-react';
-import { flushSyncOutbox, getPendingSyncCount } from '../../services/SyncOutbox';
+import { flushSyncOutbox, getSyncStatus } from '../../services/SyncOutbox';
 import { supabase } from '../../services/supabaseClient';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { SyncStatusState } from '../../services/SyncTypes';
 
 interface SyncStatusIndicatorProps {
@@ -21,16 +22,17 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
 
     async function checkInitialStatus() {
       const revision = syncRevision;
+      const scope = captureAccountScope();
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
+        if (!session?.user || session.user.id !== scope.accountId) {
           if (mounted) setStatus('saved_locally');
           return;
         }
-        const count = await getPendingSyncCount(session.user.id);
-        if (mounted && revision === syncRevision) {
-          setPendingCount(count);
-          setStatus(count > 0 ? 'sync_pending' : 'synced');
+        const detail = await getSyncStatus(session.user.id);
+        if (mounted && revision === syncRevision && isAccountScopeCurrent(scope)) {
+          setPendingCount(detail.pendingCount);
+          setStatus(previous => detail.state === 'sync_pending' && (previous === 'sync_failed' || previous === 'conflict_needs_review') ? previous : detail.state);
         }
       } catch {
         if (mounted) setStatus('saved_locally');
@@ -47,28 +49,10 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
       setErrorMessage(null);
     };
 
-    const onComplete = (event: Event) => {
-      const revision = ++syncRevision;
-      const complete = () => {
-        if (!mounted || revision !== syncRevision) return;
-        setPendingCount(0);
-        setStatus('synced');
-        setErrorMessage(null);
-        setIsSyncing(false);
-      };
-      if ((event as CustomEvent)?.detail?.area) {
-        // One ledger write completing does not confirm all queued profile saves.
-        void (async () => {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.user) return;
-          const count = await getPendingSyncCount(session.user.id);
-          if (!mounted || revision !== syncRevision) return;
-          if (count > 0) {
-            setPendingCount(count);
-            setStatus(previous => previous === 'sync_failed' || previous === 'conflict_needs_review' ? previous : 'sync_pending');
-          } else complete();
-        })().catch(() => {});
-      } else complete();
+    const onComplete = () => {
+      ++syncRevision;
+      setIsSyncing(false);
+      void checkInitialStatus();
     };
 
     const onError = (e: Event) => {
@@ -116,7 +100,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     return (
       <div
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-500/10 text-teal-400 border border-teal-500/20 transition-all ${className}`}
-        title="All records are safely synced to your private cloud"
+        title="Cloud-enabled changes are synced. Original documents stay on this device."
         aria-label="Status: Synced"
       >
         <CheckCircle2 size={14} className="text-teal-400" />

@@ -1,6 +1,9 @@
-import { get, set } from 'idb-keyval';
+import { sameObservationMutation } from '../../shared/observation-sync-content';
+import { setOwned as set } from './OwnedIdb';
+import { get, del } from 'idb-keyval';
 import { supabase } from './supabaseClient';
-import { enqueueSync, getPendingObservationIds } from './SyncOutbox';
+import { enqueueSync, getPendingObservationIds, getObservationConflicts, settleObservationConflict } from './SyncOutbox';
+import { isOwnerErased } from './DurableHealthStorage';
 import { getProfileEngineState } from './ProfileEngine';
 import { captureAccountScope as captureHealthMemoryScope, isAccountScopeCurrent as isHealthMemoryScopeCurrent } from './AccountScope';
 import { validateObservationDraft, type Observation, type ObservationDraft, type ObservationScope } from '../domain/observations/types';
@@ -44,6 +47,7 @@ async function sameScope(scope: ObservationScope): Promise<boolean> {
 }
 
 async function readLocal(scope: ObservationScope): Promise<Observation[]> {
+  if (isOwnerErased(scope.ownerId)) return [];
   const storageKey = key(scope);
   let indexed: unknown;
   let fallback: unknown;
@@ -67,6 +71,7 @@ async function readLocal(scope: ObservationScope): Promise<Observation[]> {
   if (fallback !== null && fallback !== undefined) {
     try {
       await set(storageKey, records);
+      if (isOwnerErased(scope.ownerId)) { await del(storageKey); return []; }
       localStorage.removeItem(storageKey);
     } catch {
       // Keep the fallback copy until IndexedDB accepts the reconciled state.
@@ -76,9 +81,11 @@ async function readLocal(scope: ObservationScope): Promise<Observation[]> {
 }
 
 async function writeLocal(scope: ObservationScope, records: Observation[]): Promise<boolean> {
+  if (isOwnerErased(scope.ownerId)) return false;
   const storageKey = key(scope);
   try {
     await set(storageKey, records);
+    if (isOwnerErased(scope.ownerId)) { await del(storageKey); return false; }
     try { localStorage.removeItem(storageKey); } catch {}
     return true;
   } catch {}
@@ -173,7 +180,7 @@ export async function getObservationSyncInfo(): Promise<ObservationSyncInfo> {
   } catch { return { state: 'unavailable', pendingCount: 0 }; }
 }
 
-function observationFromRemote(row: any, scope: ObservationScope): Observation | null {
+export function observationFromRemote(row: any, scope: ObservationScope): Observation | null {
   if (!row || row.user_id !== scope.ownerId || row.profile_id !== scope.profileId || typeof row.id !== 'string' ||
       !Number.isInteger(row.revision) || row.revision < 1 || !Number.isFinite(Date.parse(row.recorded_at)) ||
       !Number.isFinite(Date.parse(row.created_at)) || !Number.isFinite(Date.parse(row.updated_at))) return null;
@@ -191,6 +198,41 @@ function observationFromRemote(row: any, scope: ObservationScope): Observation |
     deletedAt: row.deleted_at || null };
 }
 
+export async function resolveObservationConflict(entryId: string, choice: 'local' | 'remote') {
+  const account = captureHealthMemoryScope();
+  const scope = await captureObservationScope();
+  if (!scope || !isHealthMemoryScopeCurrent(account)) throw new Error('Account changed.');
+  const conflict = (await getObservationConflicts(scope.ownerId)).find(item => item.entryId === entryId);
+  if (!conflict) throw new Error('Conflict is no longer available.');
+  const lookup = await supabase.from('health_observations').select('*').eq('user_id', scope.ownerId).eq('profile_id', scope.profileId).eq('id', conflict.remote.id).maybeSingle();
+  if (lookup.error) throw lookup.error;
+  if (!isHealthMemoryScopeCurrent(account)) throw new Error('Account changed.');
+  const remote = observationFromRemote(lookup.data, scope);
+  const local = observationFromRemote(conflict.local, scope);
+  if (!remote || !local || !sameObservationMutation(lookup.data, conflict.remote)) throw new Error('The cloud record changed. Retry sync and review the newer version.');
+  // A deletion wins unless the person explicitly creates a new observation.
+  if (choice === 'local' && remote.deletedAt && !local.deletedAt) throw new Error('The cloud record was deleted. Keep its deletion, or create a new observation explicitly.');
+  return serialize(async () => {
+    if (!isHealthMemoryScopeCurrent(account)) throw new Error('Account changed.');
+    const records = await readLocal(scope);
+    const current = records.find(item => item.id === local.id);
+    if (!current || !sameObservationMutation(remoteRow(current, 0), conflict.local)) throw new Error('Your device record changed. Reopen the conflict.');
+    const resolved = choice === 'remote' ? remote : { ...local, revision: remote.revision + 1, updatedAt: new Date().toISOString() };
+    if (!await writeLocal(scope, records.map(item => item.id === resolved.id ? resolved : item))) throw new Error('Device storage is unavailable.');
+    try { await settleObservationConflict(scope.ownerId, entryId, conflict.local); }
+    catch (error) {
+      if (isHealthMemoryScopeCurrent(account)) await writeLocal(scope, records);
+      throw error;
+    }
+    if (choice === 'local' && await queueRemote(resolved, remote.revision) === 'queue_failed') throw new Error('Your decision was saved locally and needs a sync retry.');
+    const auditKey = `hc_observation_conflict_history:${scope.ownerId}:${scope.profileId}`;
+    let history: any[] = []; try { history = JSON.parse(localStorage.getItem(auditKey) || '[]'); } catch {}
+    try { localStorage.setItem(auditKey, JSON.stringify([...history, { id: resolved.id, choice, at: new Date().toISOString(), localRevision: local.revision, remoteRevision: remote.revision, resolvedRevision: resolved.revision, local: conflict.local, remote: lookup.data }])); } catch { /* The resolved record and queue remain durable. */ }
+    window.dispatchEvent(new CustomEvent('hc_observations_updated', { detail: { id: resolved.id } }));
+    return resolved;
+  });
+}
+
 /** Import account-owned server history without overwriting unsent or divergent local edits. */
 export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad> {
   const empty = (status: ObservationCloudLoad['status']): ObservationCloudLoad => ({ status, imported: 0, conflicts: 0 });
@@ -198,16 +240,19 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
   if (!scope) return empty('scope_changed');
   if (scope.ownerId === 'guest') return empty('local_only');
   const remote: Observation[] = [];
-  for (let offset = 0; offset < 5000; offset += 200) {
+  const pageSize = 500;
+  for (let offset = 0; offset < 50000; offset += pageSize) {
+    if (!await sameScope(scope)) return empty('scope_changed');
     const { data, error } = await supabase.from('health_observations').select('*')
       .eq('user_id', scope.ownerId).eq('profile_id', scope.profileId)
-      .order('updated_at', { ascending: true }).order('id', { ascending: true }).range(offset, offset + 199);
+      // Matches health_observations_owner_updated_idx (updated_at DESC, id ASC).
+      .order('updated_at', { ascending: false }).order('id', { ascending: true }).range(offset, offset + pageSize - 1);
     if (error || !Array.isArray(data)) return empty('unavailable');
     const parsed = data.map((row) => observationFromRemote(row, scope));
     if (parsed.some((item) => !item)) return empty('unavailable');
     remote.push(...parsed as Observation[]);
-    if (data.length < 200) break;
-    if (offset === 4800) return empty('unavailable');
+    if (data.length < pageSize) break;
+    if (offset + pageSize >= 50000) return empty('unavailable');
   }
   if (!await sameScope(scope)) return empty('scope_changed');
   let pending: Set<string>;
@@ -229,8 +274,11 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
         continue;
       }
       if (item.revision > previous.revision) { merged.set(item.id, item); imported++; continue; }
-      if (item.revision < previous.revision || JSON.stringify(item.payload) !== JSON.stringify(previous.payload) ||
-          item.deletedAt !== previous.deletedAt || JSON.stringify(item.references || []) !== JSON.stringify(previous.references || [])) conflicts++;
+      if (item.revision < previous.revision || !sameObservationMutation(remoteRow(item, 0), remoteRow(previous, 0))) {
+        conflicts++;
+        // Recover a missing outbox entry without overwriting either source.
+        await queueRemote(previous, previous.revision - 1);
+      }
     }
     if (!await sameScope(scope)) return empty('scope_changed');
     if (imported && !await writeLocal(scope, [...merged.values()])) return empty('storage_failure');
@@ -240,13 +288,15 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
 }
 
 export async function createObservation(draft: ObservationDraft, deterministicLegacyId?: string): Promise<ObservationCommandResult> {
+  const account = captureHealthMemoryScope();
+  draft = JSON.parse(JSON.stringify(draft));
   const validated = validateObservationDraft(draft);
   if (!validated.ok) return { ok: false, error: 'validation', details: validated.errors };
   if (draft.evidenceType !== 'user_report') return { ok: false, error: 'validation', details: ['Imported or clinician evidence requires a verified server import.'] };
   if (deterministicLegacyId && (draft.source !== 'legacy' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deterministicLegacyId)))
     return { ok: false, error: 'validation', details: ['A deterministic record ID is allowed only for a legacy import.'] };
   return serialize(async () => {
-    if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
+    if (!isHealthMemoryScopeCurrent(account) || !await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     const records = await readLocal(draft);
     const existing = records.find((record) => record.idempotencyKey === draft.idempotencyKey);
     if (existing) {
@@ -262,7 +312,7 @@ export async function createObservation(draft: ObservationDraft, deterministicLe
       return { ok: false, error: 'revision_conflict' } as const;
     const now = new Date().toISOString();
     const observation: Observation = { ...draft, id: deterministicLegacyId || newId(), schemaVersion: 1, recordedAt: now, revision: 1, createdAt: now, updatedAt: now, deletedAt: null };
-    if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
+    if (!isHealthMemoryScopeCurrent(account) || !await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     if (!await writeLocal(draft, [...records, observation])) return { ok: false, error: 'storage_failure' } as const;
     const sync = await queueRemote(observation, 0);
     if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_observations_updated', { detail: { id: observation.id } }));
@@ -271,11 +321,13 @@ export async function createObservation(draft: ObservationDraft, deterministicLe
 }
 
 export async function reviseObservation(id: string, expectedRevision: number, draft: ObservationDraft): Promise<ObservationCommandResult> {
+  const account = captureHealthMemoryScope();
+  draft = JSON.parse(JSON.stringify(draft));
   const validated = validateObservationDraft(draft);
   if (!validated.ok) return { ok: false, error: 'validation', details: validated.errors };
   if (draft.evidenceType !== 'user_report') return { ok: false, error: 'validation', details: ['Imported or clinician evidence requires a verified server import.'] };
   return serialize(async () => {
-    if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
+    if (!isHealthMemoryScopeCurrent(account) || !await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     const records = await readLocal(draft);
     const index = records.findIndex((record) => record.id === id && !record.deletedAt);
     if (index < 0) return { ok: false, error: 'not_found' } as const;
@@ -283,7 +335,7 @@ export async function reviseObservation(id: string, expectedRevision: number, dr
     if (original.revision !== expectedRevision || original.idempotencyKey !== draft.idempotencyKey) return { ok: false, error: 'revision_conflict' } as const;
     const updated: Observation = { ...draft, id, schemaVersion: 1, recordedAt: original.recordedAt,
       revision: expectedRevision + 1, createdAt: original.createdAt, updatedAt: new Date().toISOString(), deletedAt: null };
-    if (!await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
+    if (!isHealthMemoryScopeCurrent(account) || !await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     records[index] = updated;
     if (!await writeLocal(draft, records)) return { ok: false, error: 'storage_failure' } as const;
     const sync = await queueRemote(updated, expectedRevision);
@@ -293,9 +345,10 @@ export async function reviseObservation(id: string, expectedRevision: number, dr
 }
 
 export async function deleteObservation(id: string, expectedRevision: number): Promise<ObservationCommandResult> {
+  const account = captureHealthMemoryScope();
   return serialize(async () => {
     const scope = await captureObservationScope();
-    if (!scope) return { ok: false, error: 'scope_changed' } as const;
+    if (!scope || !isHealthMemoryScopeCurrent(account)) return { ok: false, error: 'scope_changed' } as const;
     const records = await readLocal(scope);
     const index = records.findIndex((record) => record.id === id && !record.deletedAt);
     if (index < 0) return { ok: false, error: 'not_found' } as const;
@@ -303,7 +356,7 @@ export async function deleteObservation(id: string, expectedRevision: number): P
     if (original.revision !== expectedRevision) return { ok: false, error: 'revision_conflict' } as const;
     const now = new Date().toISOString();
     const deleted: Observation = { ...original, revision: expectedRevision + 1, updatedAt: now, deletedAt: now };
-    if (!await sameScope(scope)) return { ok: false, error: 'scope_changed' } as const;
+    if (!isHealthMemoryScopeCurrent(account) || !await sameScope(scope)) return { ok: false, error: 'scope_changed' } as const;
     records[index] = deleted;
     if (!await writeLocal(scope, records)) return { ok: false, error: 'storage_failure' } as const;
     const sync = await queueRemote(deleted, expectedRevision);

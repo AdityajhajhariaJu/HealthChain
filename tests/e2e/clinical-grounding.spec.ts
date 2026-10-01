@@ -12,6 +12,7 @@ test.beforeEach(async ({page})=>{
 
 async function seed(page:any) {
   await page.goto('/app/my-cases',{waitUntil:'domcontentloaded'});
+  await expect(page.getByRole('heading', { name: 'My Cases' })).toBeVisible();
   return page.evaluate(async()=>{
     const engine=await import('/src/services/CaseEngine.ts');
     const fixture=await import('/src/services/testFixtures/groundedFixtures.ts');
@@ -63,9 +64,11 @@ test('invalid engine case cannot silently use another case',async({page})=>{
   await page.goto('/app/consult?caseId=missing&review=new');
   await advanceToStep(page, 4);
   await page.getByRole('textbox',{name:'Clinical timeline and symptom notes'}).fill('A new concern');
-  await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
-  await page.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }).click();
-  await page.getByRole('button',{name:'Review and save to My Cases'}).click();
+  await page.getByRole('textbox',{name:'Clinical timeline and symptom notes'}).blur();
+  for (const name of ['Next: Add Evidence (Step 5)', 'Next: Scope & Run (Step 6)', 'Review and save to My Cases']) {
+    await page.getByRole('button', { name }).focus();
+    await page.keyboard.press('Enter');
+  }
   await expect(page.getByText('Case unavailable',{exact:true})).toBeVisible();
 });
 

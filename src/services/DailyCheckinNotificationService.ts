@@ -3,248 +3,120 @@ import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
 import { checkAndUpdateTimezone } from './NotificationEngine';
 import { getVitaminSchedule, triggerPillNotification } from './VitaminScheduleService';
-import { getActiveProfileScope } from './profileScope';
+import { getActiveProfileScope, getScopedStorageKey } from './profileScope';
+import { captureNotificationScope, coordinateNotifications, notificationFailure } from './NotificationCoordinator';
 import { ensureNotificationChannel, NOTIFICATION_CHANNEL_ID, requestNotificationPermission } from './NotificationDeviceService';
 export { NOTIFICATION_CHANNEL_ID, requestNotificationPermission, ensureNotificationChannel } from './NotificationDeviceService';
 
-export interface DailyReminderConfig {
-  enabled: boolean;
-  time: string; // "HH:MM" 24h format, e.g. "09:00"
-  lastScheduled?: string;
-}
-
-const STORAGE_KEY_ENABLED = 'hc_daily_checkin_reminder_enabled';
-const STORAGE_KEY_TIME = 'hc_daily_checkin_reminder_time';
+export interface DailyReminderConfig { enabled: boolean; time: string; lastScheduled?: string }
+const ENABLED = 'hc_daily_checkin_reminder_enabled';
+const TIME = 'hc_daily_checkin_reminder_time';
 export const NOTIFICATION_ID = 1001;
 export const DAILY_CHECKIN_REMINDER_ID = NOTIFICATION_ID;
 export const CHANNEL_ID = NOTIFICATION_CHANNEL_ID;
-
-/**
- * Checks whether the daily check-in reminder notification is enabled.
- * Requires explicit opt-in.
- */
-export function isDailyReminderEnabled(): boolean {
-  const stored = getItemSync(STORAGE_KEY_ENABLED);
-  return stored === 'true';
+export const isDailyReminderEnabled = () => getItemSync(getScopedStorageKey(ENABLED)) === 'true';
+const validTime = (time: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+export function getDailyReminderTime() {
+  const time = getItemSync(getScopedStorageKey(TIME));
+  return time && validTime(time) ? time : '09:00';
 }
-
-/**
- * Gets the preferred time for the daily reminder (24h format "HH:MM").
- * Defaults to 09:00 AM.
- */
-export function getDailyReminderTime(): string {
-  const time = getItemSync(STORAGE_KEY_TIME);
-  return time && isValidReminderTime(time) ? time : '09:00';
-}
-
-function isValidReminderTime(time: string): boolean {
-  return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-}
-
-export function supportsDailyReminders(): boolean {
-  return Capacitor.isNativePlatform();
-}
-
-/**
- * Schedules or re-schedules the everyday recurring check-in notification.
- */
-export async function scheduleDailyReminder(time?: string, requestPermission = true): Promise<boolean> {
-  const targetTime = time || getDailyReminderTime();
-  if (!isValidReminderTime(targetTime) || !supportsDailyReminders()) return false;
-  const [hourStr, minuteStr] = targetTime.split(':');
-  const hour = parseInt(hourStr || '9', 10);
-  const minute = parseInt(minuteStr || '0', 10);
-
-  try {
-    if (Capacitor.isNativePlatform()) {
-      const hasPermission = requestPermission
-        ? await requestNotificationPermission()
+export const supportsDailyReminders = () => Capacitor.isNativePlatform();
+export function scheduleDailyReminder(time = getDailyReminderTime(), requestPermission = true): Promise<boolean> {
+  const scope = captureNotificationScope();
+  return coordinateNotifications(scope, async () => {
+    if (!validTime(time) || !supportsDailyReminders()) return false;
+    try {
+      const permission = requestPermission ? await requestNotificationPermission()
         : (await LocalNotifications.checkPermissions()).display === 'granted';
-      if (!hasPermission) {
-        console.warn('[DailyReminder] Cannot schedule: permission not granted.');
-        return false;
-      }
-
+      if (!scope.current() || !permission) return false;
       await ensureNotificationChannel();
-
-      // Cancel previous scheduled reminder
-      try {
-        await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
-      } catch {}
-
-      // Schedule recurring daily reminder at specified hour and minute
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: NOTIFICATION_ID,
-            title: 'Daily Health Check-in 🌿',
-            body: 'Your requested HealthChain reminder is ready. Open the app to continue.',
-            channelId: NOTIFICATION_CHANNEL_ID,
-            schedule: {
-              on: {
-                hour,
-                minute,
-              },
-              repeats: true,
-              allowWhileIdle: true,
-            },
-            extra: {
-              route: '/app/today',
-              type: 'daily_checkin',
-            },
-          },
-        ],
-      });
-
-      console.info(`[DailyReminder] Native reminder successfully scheduled for ${targetTime} daily.`);
-      return true;
-    } else {
-      return false;
-    }
-  } catch (err) {
-    console.warn('[DailyReminder] Error scheduling daily notification:', err);
-    return false;
-  }
-}
-
-/**
- * Cancels the daily check-in reminder notification.
- */
-export async function cancelDailyReminder(): Promise<boolean> {
-  try {
-    if (Capacitor.isNativePlatform()) {
+      if (!scope.current()) return false;
       await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
-    }
-    console.info('[DailyReminder] Daily reminder cancelled.');
-    return true;
-  } catch (e) {
-    console.warn('[DailyReminder] Error cancelling reminder:', e);
-    return false;
-  }
+      if (!scope.current()) return false;
+      const [hour, minute] = time.split(':').map(Number);
+      await LocalNotifications.schedule({ notifications: [{
+        id: NOTIFICATION_ID, title: 'Daily Health Check-in',
+        body: 'Your requested HealthChain reminder is ready. Open the app to continue.',
+        channelId: NOTIFICATION_CHANNEL_ID,
+        schedule: { on: { hour, minute }, repeats: true, allowWhileIdle: true },
+        extra: { route: '/app/today', type: 'daily_checkin', scope: scope.profile },
+      }] });
+      if (!scope.current()) {
+        await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] }); return false;
+      }
+      return true;
+    } catch { if (scope.current()) notificationFailure('daily check-in'); return false; }
+  }, false);
 }
-
-/**
- * Updates the enabled state of the daily reminder and schedules/cancels accordingly.
- */
+export function cancelDailyReminder(): Promise<boolean> {
+  const scope = captureNotificationScope();
+  return coordinateNotifications(scope, async () => {
+    try {
+      if (supportsDailyReminders()) await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
+      return scope.current();
+    } catch { notificationFailure('daily check-in'); return false; }
+  }, false);
+}
 export async function setDailyReminderEnabled(enabled: boolean): Promise<boolean> {
-  if (enabled) {
-    const success = await scheduleDailyReminder();
-    setItemSync(STORAGE_KEY_ENABLED, success ? 'true' : 'false');
-    window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: success, time: getDailyReminderTime() } }));
-    return success;
-  } else {
-    if (!await cancelDailyReminder()) return false;
-    setItemSync(STORAGE_KEY_ENABLED, 'false');
-    window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: false, time: getDailyReminderTime() } }));
-    return true;
-  }
+  const scope = captureNotificationScope();
+  const ok = enabled ? await scheduleDailyReminder() : await cancelDailyReminder();
+  if (!scope.current()) return false;
+  if (!enabled && !ok) return false;
+  setItemSync(getScopedStorageKey(ENABLED), String(enabled && ok));
+  window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: enabled && ok, time: getDailyReminderTime() } }));
+  return ok;
 }
-
-/**
- * Updates the preferred reminder time and re-schedules if currently enabled.
- */
 export async function setDailyReminderTime(time: string): Promise<boolean> {
-  if (!isValidReminderTime(time)) return false;
-  if (isDailyReminderEnabled()) {
-    const success = await scheduleDailyReminder(time);
-    if (!success) {
-      await setDailyReminderEnabled(false);
-      return false;
-    }
-    setItemSync(STORAGE_KEY_TIME, time);
-    window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: true, time } }));
-    return success;
-  }
-  setItemSync(STORAGE_KEY_TIME, time);
-  window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: false, time } }));
+  if (!validTime(time)) return false;
+  const scope = captureNotificationScope();
+  if (isDailyReminderEnabled() && !await scheduleDailyReminder(time)) return false;
+  if (!scope.current()) return false;
+  setItemSync(getScopedStorageKey(TIME), time);
+  window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: isDailyReminderEnabled(), time } }));
   return true;
 }
-
-/**
- * Fires an immediate test notification so the user can verify delivery on device or desktop.
- */
 export async function sendTestNotification(): Promise<boolean> {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      await ensureNotificationChannel();
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: 9999,
-            title: 'HealthChain Alert: Daily Check-in 🌿',
-            body: 'How are your symptoms today? Tap to record your daily log and claim +2 Vitality Points.',
-            channelId: NOTIFICATION_CHANNEL_ID,
-            schedule: {
-              at: new Date(Date.now() + 800), // Fire in 800ms
-            },
-            extra: {
-              route: '/app/today',
-              type: 'daily_checkin',
-            },
-          },
-        ],
-      });
-      return true;
-    } else if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        new Notification('HealthChain Alert: Daily Check-in 🌿', {
-          body: 'How are your symptoms today? Tap to record your daily log and claim +2 Vitality Points.',
-          icon: '/logo.png',
-        });
-        return true;
-      } else {
-        const perm = await Notification.requestPermission();
-        if (perm === 'granted') {
-          new Notification('HealthChain Alert: Daily Check-in 🌿', {
-            body: 'How are your symptoms today? Tap to record your daily log and claim +2 Vitality Points.',
-            icon: '/logo.png',
-          });
-          return true;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('[DailyReminder] Error sending test notification:', err);
-  }
-  return false;
-}
-
-/**
- * Sets up global listeners for local notification action clicks and initializes the reminder on startup.
- */
-let listenersSetUp = false;
-
-export async function initDailyReminderService(onNotificationClick?: (route: string) => void): Promise<void> {
-  if (listenersSetUp) return;
-  listenersSetUp = true;
-
-  if (Capacitor.isNativePlatform()) {
+  const scope = captureNotificationScope();
+  if (supportsDailyReminders()) return coordinateNotifications(scope, async () => {
     try {
-      await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+      if (!await requestNotificationPermission() || !scope.current()) return false;
+      await ensureNotificationChannel();
+      if (!scope.current()) return false;
+      await LocalNotifications.schedule({ notifications: [{
+        id: 9999, title: 'HealthChain test reminder', body: 'Open HealthChain to continue your daily log.',
+        channelId: CHANNEL_ID, schedule: { at: new Date(Date.now() + 800) },
+        extra: { route: '/app/today', type: 'daily_checkin', scope: scope.profile },
+      }] });
+      if (!scope.current()) { await LocalNotifications.cancel({ notifications: [{ id: 9999 }] }); return false; }
+      return true;
+    } catch { notificationFailure('test'); return false; }
+  }, false);
+  if (!await requestNotificationPermission() || !scope.current()) return false;
+  try { new Notification('HealthChain test reminder', { body: 'Open HealthChain to continue your daily log.', icon: '/logo.png' }); return true; }
+  catch { return false; }
+}
+let listenersSetUp = false;
+export async function initDailyReminderService(onNotificationClick?: (route: string) => void): Promise<void> {
+  if (!listenersSetUp) {
+    listenersSetUp = true;
+    if (supportsDailyReminders()) {
+      await LocalNotifications.addListener('localNotificationActionPerformed', notification => {
         const extra = notification.notification?.extra;
-        if (extra?.type === 'meal_reminder' && extra.scope !== getActiveProfileScope()) return;
-        const route = extra?.route || '/app/today';
-        if (onNotificationClick) {
-          onNotificationClick(route);
-        } else {
-          window.location.href = route;
-        }
-        if (extra?.type === 'pill_reminder' && extra.scope === getActiveProfileScope()) {
+        const routes: Record<string, string> = { daily_checkin: '/app/today', pill_reminder: '/app/today', hydration: '/app/today', meal_reminder: '/app/dietician' };
+        // Every action is checked before navigation, including old unscoped alarms.
+        if (!extra || extra.scope !== getActiveProfileScope() || !routes[extra.type]) return;
+        const route = routes[extra.type];
+        const scope = captureNotificationScope();
+        if (!scope.current()) return;
+        if (onNotificationClick) onNotificationClick(route); else window.location.href = route;
+        if (extra.type === 'pill_reminder') {
           const medicine = getVitaminSchedule().find(item => item.id === extra.vitaminId && item.enabled && !item.takenToday);
-          if (medicine) window.setTimeout(() => triggerPillNotification(medicine), 0);
+          if (medicine) window.setTimeout(() => { if (scope.current()) triggerPillNotification(medicine); }, 0);
         }
       });
-    } catch (e) {
-      console.warn('[DailyReminder] Listener setup warning:', e);
     }
   }
-
-  // Check if device timezone changed and re-sync schedule if needed
-  const tzChanged = checkAndUpdateTimezone();
-
-  // If enabled, ensure the schedule is active
-  if (isDailyReminderEnabled()) {
-    const scheduled = await scheduleDailyReminder(undefined, false);
-    if (!scheduled && !tzChanged) await setDailyReminderEnabled(false);
-  }
+  checkAndUpdateTimezone();
+  if (isDailyReminderEnabled()) await scheduleDailyReminder(undefined, false);
+  else await cancelDailyReminder();
 }

@@ -1,3 +1,4 @@
+import { reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -819,7 +820,7 @@ AI-generated preparation material. Verify against original records; this is not 
     const requestScope = engineScope();
     const effectiveCaseId = selectedCaseId || missingCaseId;
     const requestCaseId = effectiveCaseId;
-    const linkedCase = effectiveCaseId ? getCase(effectiveCaseId) : undefined;
+    let linkedCase = effectiveCaseId ? getCase(effectiveCaseId) : undefined;
     if (effectiveCaseId && (!linkedCase || linkedCase.intakeData?.scenarioId)) {
       toast.error('Case unavailable', 'Select an available case or start a new case.');
       return;
@@ -861,6 +862,10 @@ AI-generated preparation material. Verify against original records; this is not 
 
     try {
       const contextProfile = isIsolated ? null : profile;
+      if (effectiveCaseId && linkedCase) {
+        linkedCase = await reviewedCaseWithCurrentSources(effectiveCaseId);
+        if (!isMounted.current || requestScope !== engineScope() || selectedCaseRef.current !== requestCaseId) return;
+      }
       const caseHistory = linkedCase ? `${history}\n\nSelected case evidence (prior AI interpretations are unverified):\n${buildCaseContext(linkedCase)}` : history;
       const result = await runJarvisInvestigation(history, mappedFiles, contextProfile, linkedCase);
       

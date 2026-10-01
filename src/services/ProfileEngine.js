@@ -275,16 +275,7 @@ export function getProfile() {
       const cleanConditions = Array.isArray(rawConditions)
         ? rawConditions
             .map((c) => (typeof c === 'string' ? c.trim() : c?.name || ''))
-            .filter((c) => {
-              const l = c.toLowerCase();
-              return (
-                l &&
-                !l.includes('diagnostic ambig') &&
-                !l.includes('undifferentiated') &&
-                !l.includes('unknown') &&
-                !l.includes('review this')
-              );
-            })
+            .filter(Boolean)
         : [];
 
       profile = {
@@ -592,14 +583,7 @@ export function completeProfileOnboarding({
 export function addCondition(condition, source = 'manual') {
   if (!condition || typeof condition !== 'string') return;
   const clean = condition.trim();
-  const l = clean.toLowerCase();
-  if (
-    !clean ||
-    l.includes('diagnostic ambig') ||
-    l.includes('undifferentiated') ||
-    l.includes('unknown') ||
-    l.includes('review this')
-  ) {
+  if (!clean) {
     return;
   }
   const profile = getProfile();

@@ -45,6 +45,7 @@ describe('P1 Finding 2: Concurrent Case Sync Interleaved Writes & Overwrite Prev
     window.localStorage.clear();
     profileScopeState.account = userId;
     profileScopeState.profile = 'profile_1';
+    window.localStorage.setItem('hc_account', JSON.stringify({ id: userId }));
     await clearTombstones(userId);
     getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
     from.mockReset();

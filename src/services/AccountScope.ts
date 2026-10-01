@@ -1,3 +1,4 @@
+import { isOwnerErased } from './DurableHealthStorage';
 export interface AccountScope {
   accountId: string;
   profileId: string;
@@ -25,7 +26,7 @@ export function captureAccountScope(): AccountScope {
 export function invalidateAccountScope() { epoch++; }
 export function isAccountScopeCurrent(scope: AccountScope) {
   const current = captureAccountScope();
-  return current.key === scope.key && current.epoch === scope.epoch;
+  return !isOwnerErased(scope.accountId) && current.key === scope.key && current.epoch === scope.epoch;
 }
 if (typeof window !== 'undefined')
   window.addEventListener('hc_logout', () => {

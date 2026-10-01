@@ -22,6 +22,19 @@ begin
   end if;
 end $$;
 
+-- Core owner policies should be singular and the cross-type device feed indexed.
+do $$
+begin
+  if (select count(*) from pg_policies where schemaname='public' and tablename='cases') <> 1
+    or (select count(*) from pg_policies where schemaname='public' and tablename='profiles') <> 1 then
+    raise exception 'Duplicate case/profile owner policies remain';
+  end if;
+  if not exists(select 1 from pg_indexes where schemaname='public'
+    and indexname='idx_user_health_metrics_owner_start_time') then
+    raise exception 'Cross-type device context index missing';
+  end if;
+end $$;
+
 -- Ava conversation ownership and exact wellness completion contract.
 -- Observation links must survive cloud sync while retaining owner/profile scope.
 do $$
@@ -222,5 +235,25 @@ begin
        or has_table_privilege('authenticated', 'public.document_embeddings', 'SELECT')
      ) then
     raise exception 'Document embeddings are readable by browser roles';
+  end if;
+end $$;
+
+-- Pillar lifecycle: no client entitlement reset, valid daily events, server-only erasure.
+do $$
+begin
+  if has_table_privilege('authenticated','public.profiles','DELETE')
+    or has_table_privilege('authenticated','public.profiles','TRUNCATE')
+    or has_function_privilege('authenticated','public.list_healthchain_user_storage(uuid)','EXECUTE')
+    or has_table_privilege('authenticated','public.account_erasure_tombstones','SELECT') then
+    raise exception 'Pillar entitlement or erasure permissions are unsafe';
+  end if;
+  if not exists(select 1 from pg_trigger where tgrelid='public.profiles'::regclass and tgname='healthchain_profile_entitlements') then
+    raise exception 'healthchain_guard_profile_entitlements trigger missing';
+  end if;
+  if not exists(select 1 from pg_constraint where conrelid='public.health_observations'::regclass and conname='health_observations_daily_payload_check') then
+    raise exception 'Daily observation validation missing';
+  end if;
+  if not exists(select 1 from pg_trigger where tgrelid='public.health_observations'::regclass and tgname='healthchain_erased_owner_guard') then
+    raise exception 'Deleted-owner write barrier missing';
   end if;
 end $$;

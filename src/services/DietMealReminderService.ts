@@ -1,3 +1,4 @@
+import { captureNotificationScope, coordinateNotifications, notificationFailure, reconcileLegacyNotificationIds } from './NotificationCoordinator';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getDietEveryday } from './dietEveryday';
@@ -9,12 +10,12 @@ import {
   NOTIFICATION_CHANNEL_ID,
 } from './NotificationDeviceService';
 import { mealReminderEvents, quietMealMinute } from '../../shared/diet-reminders';
-const ids = Array.from({ length: 24 }, (_, i) => ({ id: 3000 + i }));
-let queue = Promise.resolve();
+const ids = Array.from({ length: 24 }, (_, i) => ({ id: 4000 + i }));
 let signature = '';
 export const supportsNativeMealReminders = () => Capacitor.isNativePlatform();
 export function reconcileDietMealReminders(force = false): Promise<boolean> {
-  const scope = getActiveProfileScope();
+  const owner = captureNotificationScope();
+  const scope = owner.profile;
   const config = getDietEveryday(),
     preferences = getNotificationPreferences();
   const next = JSON.stringify([
@@ -30,16 +31,16 @@ export function reconcileDietMealReminders(force = false): Promise<boolean> {
   ]);
   if (!force && signature === next) return Promise.resolve(true);
   let success = true;
-  queue = queue
-    .catch(() => {})
-    .then(async () => {
+  const result = coordinateNotifications(owner, async () => {
       if (!supportsNativeMealReminders()) {
         signature = next;
         return;
       }
       try {
+        await reconcileLegacyNotificationIds();
+        if (!owner.current()) { success = false; return; }
         await LocalNotifications.cancel({ notifications: ids });
-        if (scope !== getActiveProfileScope()) {
+        if (!owner.current()) {
           success = false;
           return;
         }
@@ -61,7 +62,7 @@ export function reconcileDietMealReminders(force = false): Promise<boolean> {
         }
         if (events.length) {
           await ensureNotificationChannel();
-          if (scope !== getActiveProfileScope()) {
+          if (!owner.current()) {
             success = false;
             return;
           }
@@ -80,12 +81,14 @@ export function reconcileDietMealReminders(force = false): Promise<boolean> {
             })),
           });
         }
+        if (!owner.current()) { await LocalNotifications.cancel({ notifications: ids }); success = false; return; }
         signature = next;
       } catch {
+        if (owner.current()) notificationFailure('meals');
         success = false;
       }
-    });
-  return queue.then(() => success);
+    }, undefined);
+  return result.then(() => success);
 }
 export function checkInAppMealReminders(now = new Date()): number {
   if (supportsNativeMealReminders()) return 0;
@@ -131,11 +134,7 @@ export function initDietMealReminderService() {
   const logout = () => {
     loggedOut = true;
     signature = '';
-    queue = queue
-      .catch(() => {})
-      .then(async () => {
-        if (supportsNativeMealReminders()) await LocalNotifications.cancel({ notifications: ids });
-      });
+
   };
   const visible = () => {
     if (!loggedOut && document.visibilityState === 'visible') {

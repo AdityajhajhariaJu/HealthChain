@@ -115,6 +115,7 @@ export default function AppShell() {
     };
     const handleSyncConflict = (e: Event) => {
       const detail = (e as CustomEvent)?.detail;
+      if (detail?.entityType === 'observation') return;
       const current = getActiveCase();
       if (current && (!detail?.caseId || detail.caseId === current.id)) {
         setActiveConflictCase(current);
@@ -138,6 +139,7 @@ export default function AppShell() {
     window.addEventListener('hc_vitamins_updated', refreshNotifications);
     window.addEventListener('hc_open_notifications_panel', handleOpenNotifications);
     window.addEventListener('hc_sync_error', handleSyncError);
+    window.addEventListener('hc_notification_error', handleSyncError);
     window.addEventListener('hc_sync_pending', handleSyncPending);
     window.addEventListener('hc_sync_complete', handleSyncComplete);
     window.addEventListener('hc_sync_conflict', handleSyncConflict);
@@ -165,6 +167,7 @@ export default function AppShell() {
       window.removeEventListener('hc_vitamins_updated', refreshNotifications);
       window.removeEventListener('hc_open_notifications_panel', handleOpenNotifications);
       window.removeEventListener('hc_sync_error', handleSyncError);
+      window.removeEventListener('hc_notification_error', handleSyncError);
       window.removeEventListener('hc_sync_pending', handleSyncPending);
       window.removeEventListener('hc_sync_complete', handleSyncComplete);
       window.removeEventListener('hc_sync_conflict', handleSyncConflict);

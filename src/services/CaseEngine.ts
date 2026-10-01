@@ -1,9 +1,10 @@
+import { setOwned as idbSet } from './OwnedIdb';
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import {captureAccountScope as captureHealthMemoryScope,isAccountScopeCurrent as isHealthMemoryScopeCurrent} from './AccountScope';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
-import { get as idbGet, set as idbSet } from 'idb-keyval';
+import { get as idbGet } from 'idb-keyval';
 import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
 import { cleanupCaseOriginalFiles, deleteOriginalCaseFile } from './caseRecordFiles';
 import { ConflictRecord } from './SyncTypes';
@@ -44,6 +45,7 @@ export interface RecordPassage {
 }
 
 export interface MedicalRecord {
+  evidenceManifest?: import('./ClinicalDailyEvidence').DailyEvidenceManifest;
   id: string;
   filename: string;
   findings: string;
@@ -384,6 +386,7 @@ export function setActiveCase(caseId: string | null) {
 }
 
 export function deleteCase(caseId: string) {
+  const accountScope = captureHealthMemoryScope();
   const cases = getCases();
   const deletedCase = cases.find((item) => item.id === caseId);
   const updatedCases = cases.filter((c) => c.id !== caseId);
@@ -394,7 +397,9 @@ export function deleteCase(caseId: string) {
   const profileId = getActiveProfileId();
 
   supabase.auth.getSession().then(async ({ data: { session } }) => {
-    const userId = session?.user?.id || 'guest';
+    if (!isHealthMemoryScopeCurrent(accountScope)) return;
+    const userId = accountScope.accountId;
+    if (userId !== 'guest' && session?.user?.id !== userId) return;
     await recordTombstone({
       id: caseId,
       entityType: 'case',
@@ -403,7 +408,7 @@ export function deleteCase(caseId: string) {
       profileId,
     });
 
-    if (!session?.user) return;
+    if (!session?.user || userId === 'guest' || !isHealthMemoryScopeCurrent(accountScope)) return;
     await enqueueSync('case_delete', session.user.id, {
       id: caseId,
       profile_id: profileId,

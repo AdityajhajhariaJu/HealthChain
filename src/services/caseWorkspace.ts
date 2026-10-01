@@ -182,6 +182,10 @@ export function buildCaseContext(item: CaseItem): string {
       name: record.filename,
       source: record.source,
       recordedAt: record.addedAt,
+      extractionStatus: record.extractionStatus || 'provisional',
+      role: record.evidenceManifest ? 'user_report' : 'extracted_finding',
+      sourceManifest: record.evidenceManifest || undefined,
+      passages: (record.passages || []).map(passage => ({ id: passage.id, page: passage.page, section: passage.section, extractionStatus: passage.extractionStatus || record.extractionStatus || 'provisional' })),
       findings: text(record.findings, 1500),
     })),
     recentUpdates: (item.events || []).slice(0, 8).map(event => ({

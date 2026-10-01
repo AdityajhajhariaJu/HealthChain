@@ -1,4 +1,5 @@
-import { get, set, del } from 'idb-keyval';
+import { setOwned as set } from './OwnedIdb';
+import { get, del } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { Tombstone } from './SyncTypes';
 import { supabase } from './supabaseClient';

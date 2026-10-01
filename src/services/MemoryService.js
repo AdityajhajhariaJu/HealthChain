@@ -8,7 +8,6 @@ export function compilePatientContext(options = {}) {
     includeDailyCheckins = false,
     includeProfile = true,
     includeLabs = true,
-    includeImportedCase = true,
   } = options;
   let contextParts = [];
   const profile = getProfile();
@@ -28,10 +27,7 @@ export function compilePatientContext(options = {}) {
     profileStr += `- ${profile.demographics.age || '?'} yr ${profile.demographics.gender || ''}\n`;
   }
   
-  const cleanConditions = (Array.isArray(profile?.conditions) ? profile.conditions : []).filter((c) => {
-    const l = textFact(c || '').toLowerCase();
-    return !l.includes('diagnostic ambig') && !l.includes('undifferentiated') && !l.includes('unknown') && !l.includes('review');
-  });
+  const cleanConditions = (Array.isArray(profile?.conditions) ? profile.conditions : []).filter(Boolean);
 
   if (cleanConditions.length > 0) {
     profileStr += `- User-reported Conditions: ${cleanConditions.map(textFact).join(', ')}\n`;
@@ -60,11 +56,11 @@ export function compilePatientContext(options = {}) {
   // 2. Vitals / Labs (compact - top 10 with functional status)
   const labEntries = Object.entries(profile?.vitals?.latestLabValues || {});
   if (includeLabs && labEntries.length > 0) {
-    let vitalsStr = `LABS:\n`;
+    let vitalsStr = `LABS — preserve printed units/ranges; unreviewed or legacy extracts are not independently verified:\n`;
     labEntries.slice(0, 10).forEach(([key, data]) => {
       if (data && typeof data === 'object') {
-        const funcAlert = data.functionalStatus ? `[${data.functionalStatus}]` : '';
-        vitalsStr += `- ${key}: ${data.value ?? ''} ${data.unit || ''} ${funcAlert || (data.status ? `(${data.status})` : '')}\n`.replace(/\s+/g, ' ');
+        if (data.extractionStatus === 'rejected' || data.reviewStatus === 'rejected') return;
+        vitalsStr += `- ${key}: ${data.value ?? 'value not recorded'} ${data.unit || 'unit not recorded'}; printed range: ${data.referenceRange || data.reference_range || 'not recorded'}; review: ${data.extractionStatus || data.reviewStatus || 'unknown'}; source: ${data.sourceRecordId || data.source || 'not recorded'}\n`;
       } else if (data !== undefined && data !== null) {
         vitalsStr += `- ${key}: ${data}\n`;
       }
@@ -72,21 +68,8 @@ export function compilePatientContext(options = {}) {
     contextParts.push(vitalsStr);
   }
 
-  // 3. Imported Case Brief (when user clicks "Recheck / Correlate with Ava")
-  if (includeImportedCase && typeof window !== 'undefined') {
-    try {
-      const importedCaseJson = sessionStorage.getItem('hc_imported_case_brief');
-      if (importedCaseJson) {
-        const c = JSON.parse(importedCaseJson);
-        let impStr = `IMPORTED CASE BRIEF (${c.type || 'Consultation'}):\n`;
-        impStr += `- Title: ${c.title || 'Case'}\n`;
-        if (c.topConditions) impStr += `- Differentials: ${c.topConditions}\n`;
-        if (c.summary) impStr += `- Findings: ${c.summary.slice(0, 200)}\n`;
-        if (c.actions) impStr += `- Actions: ${c.actions.slice(0, 150)}\n`;
-        contextParts.push(impStr);
-      }
-    } catch (e) { console.error(e); }
-  }
+  // Legacy sessionStorage briefs have no owner/case provenance. Only the
+  // explicitly selected case below can supply case context.
 
   // 4. Active case context
   if (includeActiveCase && activeCase) {

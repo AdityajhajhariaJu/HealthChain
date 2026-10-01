@@ -1,4 +1,5 @@
-import { del, get, set } from 'idb-keyval';
+import { setOwned as set } from './OwnedIdb';
+import { del, get } from 'idb-keyval';
 import { getItemSync } from './storage';
 import { supabase } from './supabaseClient';
 import type { CaseItem } from './CaseEngine';
@@ -8,6 +9,9 @@ import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 import { mergeGutThreads } from './GutThreadMerge';
 import { preserveDietPlanState } from './DietProfileMerge';
+import { sameObservationMutation } from '../../shared/observation-sync-content.js';
+import { isOwnerErased } from './DurableHealthStorage';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 
 type OutboxKind = 
   | 'ava_message_upsert'
@@ -30,6 +34,7 @@ interface OutboxEntry {
   createdAt: string;
   lastError?: string;
   scopeKey?: string;
+  conflictRemote?: any;
 }
 
 let flushInFlight: Promise<void> | null = null;
@@ -49,6 +54,7 @@ function getCurrentScope(): string {
 }
 
 async function readQueue(userId: string): Promise<OutboxEntry[]> {
+  if (isOwnerErased(userId)) return [];
   const key = currentUserKey(userId);
   let indexedDbQueue: OutboxEntry[] = [];
   try {
@@ -72,9 +78,10 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
     }
   }
   const queue = [...merged.values()];
-  if (fallbackQueue.length > 0) {
+  if (fallbackQueue.length > 0 && !isOwnerErased(userId)) {
     try {
       await set(key, queue);
+      if (isOwnerErased(userId)) { await del(key); return []; }
       try { window.localStorage.removeItem(key); } catch {}
     } catch {
       // Leave fallback entries in place until reconciliation can persist.
@@ -84,9 +91,11 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
 }
 
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
+  if (isOwnerErased(userId)) return false;
   const key = currentUserKey(userId);
   try {
     await set(key, queue);
+    if (isOwnerErased(userId)) { await del(key); return false; }
     try { window.localStorage.removeItem(key); } catch {}
     return true;
   } catch {}
@@ -106,7 +115,7 @@ export function enqueueSync(kind:OutboxKind,userId:string,payload:any){
  return serializeQueue(()=>enqueueSyncUnserialized(kind,userId,payload));
 }
 async function enqueueSyncUnserialized(kind: OutboxKind, userId: string, payload: any) {
-  if (!userId) return false;
+  if (!userId || isOwnerErased(userId)) return false;
   const queue = await readQueue(userId);
   const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
   const existing = queue.findIndex((entry) => entry.kind === kind &&
@@ -117,7 +126,7 @@ async function enqueueSyncUnserialized(kind: OutboxKind, userId: string, payload
     id: existing >= 0 ? queue[existing].id : entryId(),
     kind,
     userId,
-    payload,
+    payload: JSON.parse(JSON.stringify(payload)),
     attempts: existing >= 0 ? queue[existing].attempts : 0,
     createdAt: existing >= 0 ? queue[existing].createdAt : new Date().toISOString(),
     scopeKey: currentScope,
@@ -156,7 +165,9 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
   const localUpdatedAt = entry.payload?.updated_at;
 
   // Protect non-case entities from stale offline snapshots overwriting newer remote updates
-  if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' && entry.kind !== 'health_observation_upsert' && recordId && localUpdatedAt) {
+  if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' &&
+      entry.kind !== 'health_observation_upsert' && entry.kind !== 'caregiver_profile_upsert' &&
+      recordId && localUpdatedAt) {
     const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
     const remoteResult = table === 'healthchain_profiles'
       ? await supabase.from(table).select('updated_at').eq(ownerColumn, entry.userId)
@@ -166,7 +177,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     const { data: remote, error: readError } = remoteResult;
     if (readError && readError.code !== 'PGRST116') return { error: readError };
     if (remote?.updated_at && new Date(remote.updated_at).getTime() > new Date(localUpdatedAt).getTime()) {
-      return { error: null };
+      return { error: new Error(`A newer cloud ${table} record needs review. Your local change remains saved on this device.`) };
     }
   }
 
@@ -418,7 +429,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     if (!row.id || row.user_id !== entry.userId || row.profile_id !== 'profile_1' || !Number.isInteger(row.revision)) {
       return { error: new Error('Invalid observation sync payload') };
     }
-    const lookup = () => supabase.from('health_observations').select('id, revision, idempotency_key')
+    const lookup = () => supabase.from('health_observations').select('*')
       .eq('id', row.id).eq('user_id', entry.userId).eq('profile_id', row.profile_id).maybeSingle();
     if (!expectedRevision) {
       const inserted = await supabase.from('health_observations').insert(row);
@@ -426,8 +437,8 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
       if (inserted.error.code !== '23505') return inserted;
       const existing = await lookup();
       if (existing.error) return { error: existing.error };
-      return { error: existing.data?.revision === row.revision && existing.data?.idempotency_key === row.idempotency_key
-        ? null : new Error('Observation revision conflict') };
+      return { error: sameObservationMutation(row, existing.data)
+        ? null : Object.assign(new Error('Observation revision conflict'), { conflictRemote: existing.data }) };
     }
     const updated = await supabase.from('health_observations').update(row)
       .eq('id', row.id).eq('user_id', entry.userId).eq('profile_id', row.profile_id)
@@ -436,8 +447,8 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     const existing = await lookup();
     if (existing.error) return { error: existing.error };
     if (!existing.data) return supabase.from('health_observations').insert(row);
-    return { error: existing.data.revision === row.revision && existing.data.idempotency_key === row.idempotency_key
-      ? null : new Error('Observation revision conflict') };
+    return { error: sameObservationMutation(row, existing.data)
+      ? null : Object.assign(new Error('Observation revision conflict'), { conflictRemote: existing.data }) };
   }
 
   if (entry.kind === 'health_memory_upsert') {
@@ -517,12 +528,12 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
 export async function flushSyncOutbox(userId?: string) {
   if (flushInFlight) return flushInFlight;
   flushInFlight = (async () => {
+    const accountScope = captureAccountScope();
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
     const { data: { session } } = await supabase.auth.getSession();
     const accountId = userId || session?.user?.id;
-    if (!accountId) return;
-    if (userId && session?.user?.id && userId !== session.user.id) return;
+    if (!accountId || isOwnerErased(accountId) || !isAccountScopeCurrent(accountScope) || session?.user?.id !== accountId || accountScope.accountId !== accountId) return;
 
     const startScope = getCurrentScope();
     const queue = await readQueue(accountId);
@@ -538,13 +549,14 @@ export async function flushSyncOutbox(userId?: string) {
     const remaining: OutboxEntry[] = [];
     for (const entry of queue) {
       // Step 15: Guard against profile switch mid-operation
-      if (getCurrentScope() !== startScope) {
+      if (getCurrentScope() !== startScope || !isAccountScopeCurrent(accountScope)) {
         remaining.push(entry);
         continue;
       }
 
       try {
         const { error } = await send(entry, startScope);
+        if (!isAccountScopeCurrent(accountScope)) return;
         if (error) throw error;
         lastSyncError = null;
         lastSyncedAt = new Date().toISOString();
@@ -580,7 +592,7 @@ export async function flushSyncOutbox(userId?: string) {
         } else {
           // Preserve unsynced clinical data until the underlying schema or
           // service problem is repaired. Never discard it after retries.
-          remaining.push({ ...entry, attempts: Math.min(entry.attempts + 1, 25), lastError: error?.message || 'Sync failed' });
+          remaining.push({ ...entry, attempts: Math.min(entry.attempts + 1, 25), lastError: error?.message || 'Sync failed', ...(error?.conflictRemote ? { conflictRemote: error.conflictRemote } : {}) });
         }
       }
     }
@@ -589,6 +601,7 @@ export async function flushSyncOutbox(userId?: string) {
     // merge new or updated entries instead of replacing them with the stale
     // snapshot captured at the beginning of this flush.
     const persistedRemaining = await serializeQueue(async()=>{
+    if (!isAccountScopeCurrent(accountScope)) return remaining;
     const latestQueue = await readQueue(accountId);
     const concurrentEntries = latestQueue.filter((entry) => {
       const initial = initialPayloadById.get(entry.id);
@@ -608,11 +621,13 @@ export async function flushSyncOutbox(userId?: string) {
     if (persistedRemaining.length) {
       const failedEntry = persistedRemaining.find(entry => entry.lastError);
       lastSyncError = failedEntry?.lastError || null;
+      if (persistedRemaining.some(entry => entry.conflictRemote) && typeof window !== 'undefined')
+        window.dispatchEvent(new CustomEvent('hc_sync_conflict', { detail: { entityType: 'observation' } }));
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: persistedRemaining.length } }));
         if (lastSyncError) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: { message: lastSyncError, count: persistedRemaining.length } }));
       }
-      if (typeof navigator === 'undefined' || navigator.onLine) {
+      if (persistedRemaining.some(entry => !entry.conflictRemote) && (typeof navigator === 'undefined' || navigator.onLine)) {
         const attempts = Math.min(...persistedRemaining.map((entry) => entry.attempts));
         const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
         if (!retryTimer) {
@@ -655,7 +670,8 @@ export async function getSyncStatus(userId?: string): Promise<SyncStatusDetail> 
   }
   const queue = await readQueue(userId);
   let state: SyncStatusState = 'synced';
-  if (lastSyncError && queue.length > 0) {
+  if (queue.some(entry => entry.conflictRemote)) state = 'conflict_needs_review';
+  else if (lastSyncError && queue.length > 0) {
     state = 'sync_failed';
   } else if (queue.length > 0) {
     state = 'sync_pending';
@@ -666,7 +682,7 @@ export async function getSyncStatus(userId?: string): Promise<SyncStatusDetail> 
     pendingCount: queue.length,
     lastSyncedAt: lastSyncedAt || undefined,
     lastError: lastSyncError || undefined,
-    conflictsCount: 0,
+    conflictsCount: queue.filter(entry => entry.lastError?.includes('conflict')).length,
   };
 }
 
@@ -675,4 +691,19 @@ export async function clearSyncOutbox(userId: string) {
   const key = currentUserKey(userId);
   try { await del(key); } catch {}
   try { window.localStorage.removeItem(key); } catch {}
+}
+
+export async function getObservationConflicts(userId: string) {
+  return (await readQueue(userId)).filter(entry => entry.kind === 'health_observation_upsert' && entry.conflictRemote)
+    .map(entry => JSON.parse(JSON.stringify({ entryId: entry.id, local: entry.payload, remote: entry.conflictRemote })));
+}
+/** Drop a reviewed snapshot only. Concurrent newer edits are never discarded. */
+export function settleObservationConflict(userId: string, entryId: string, expectedPayload: any) {
+  return serializeQueue(async () => {
+    const queue = await readQueue(userId);
+    const entry = queue.find(item => item.id === entryId);
+    if (!entry || JSON.stringify(entry.payload) !== JSON.stringify(expectedPayload)) throw new Error('This edit changed during review. Reopen the conflict.');
+    const remaining = queue.filter(item => item.kind !== 'health_observation_upsert' || item.payload.id !== entry.payload.id);
+    if (!await writeQueue(userId, remaining)) throw new Error('The conflict decision could not be saved.');
+  });
 }

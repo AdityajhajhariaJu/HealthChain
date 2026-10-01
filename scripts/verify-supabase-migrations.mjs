@@ -28,6 +28,9 @@ const requiredFiles = [
   '20260930_diet_plan_generation_recovery.sql',
   '20260930164327_ava_reliability_foundation.sql',
   '20261001060004_cross_feature_observation_links.sql',
+  '20261001082335_pillar_entitlement_write_guards.sql',
+  '20261001084938_pillar_daily_events_and_erasure.sql',
+  '20261001102326_pillar_policy_efficiency.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -36,6 +39,11 @@ const requiredVerifierTokens = [
   'healthchain_case_overview',
   'healthchain_memory_overview',
   'delete_healthchain_user_data',
+  'healthchain_guard_profile_entitlements',
+  'health_observations_daily_payload_check',
+  'healthchain_erased_owner_guard',
+  'list_healthchain_user_storage',
+  'idx_user_health_metrics_owner_start_time',
   'activate_payment_entitlement',
 ];
 

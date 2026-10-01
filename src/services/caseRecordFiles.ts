@@ -1,5 +1,7 @@
-import { get, set, del, keys } from 'idb-keyval';
+import { setOwned as set } from './OwnedIdb';
+import { get, del, keys } from 'idb-keyval';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 
 export type FileStorageErrorCode =
   | 'quota_exceeded'
@@ -17,6 +19,7 @@ export class FileStorageError extends Error {
     super(message);
     this.name = 'FileStorageError';
     this.code = code;
+    this.originalError = originalError;
     this.originalError = originalError;
   }
 }
@@ -58,6 +61,24 @@ function isQuotaError(err: any): boolean {
   );
 }
 
+/** Some WebKit device databases reject Blob cloning; retain the same bytes in a typed envelope. */
+export async function storeOriginalBlob(storageKey: string, blob: Blob): Promise<void> {
+  try { await set(storageKey, blob); }
+  catch (error) {
+    if (isQuotaError(error)) throw error;
+    const bytes = blob.arrayBuffer ? await blob.arrayBuffer() : await new Promise<ArrayBuffer>((resolve, reject) => {
+      const reader = new FileReader(); reader.onload = () => resolve(reader.result as ArrayBuffer); reader.onerror = reject; reader.readAsArrayBuffer(blob);
+    });
+    await set(storageKey, { format: 'hc-original-bytes-v1', bytes, type: blob.type, size: blob.size });
+  }
+}
+export function originalBlobFromStored(value: unknown): Blob | null {
+  if (value instanceof Blob) return value;
+  const stored = value as any;
+  if (stored?.format !== 'hc-original-bytes-v1' || !(stored.bytes instanceof ArrayBuffer) || stored.bytes.byteLength !== stored.size || stored.size < 1 || stored.size > MAX_FILE_SIZE_BYTES || typeof stored.type !== 'string') return null;
+  return new Blob([stored.bytes], { type: stored.type });
+}
+
 export function checkIndexedDBAvailable(): void {
   if (typeof window !== 'undefined' && 'indexedDB' in window && window.indexedDB === null) {
     throw new FileStorageError('storage_unavailable', 'Local device database (IndexedDB) is disabled or blocked in this browser.');
@@ -73,10 +94,11 @@ export async function saveOriginalCaseFile(caseId: string, recordId: string, fil
   checkIndexedDBAvailable();
 
   const startScope = scope();
+  const accountScope = captureAccountScope();
   const storageKey = key(caseId, recordId);
 
   try {
-    await set(storageKey, file);
+    await storeOriginalBlob(storageKey, file);
   } catch (err: any) {
     if (isQuotaError(err)) {
       throw new FileStorageError('quota_exceeded', 'Device storage limit exceeded. Free up space on this device to keep original records.', err);
@@ -85,7 +107,7 @@ export async function saveOriginalCaseFile(caseId: string, recordId: string, fil
   }
 
   // Profile switch mid-operation race protection
-  if (scope() !== startScope) {
+  if (scope() !== startScope || !isAccountScopeCurrent(accountScope)) {
     // Attempt rollback of the mismatched write
     try { await del(storageKey); } catch {}
     throw new FileStorageError('profile_mismatch', 'Active profile changed during file save operation.');
@@ -97,11 +119,12 @@ export async function loadOriginalCaseFile(caseId: string, recordId: string): Pr
   checkIndexedDBAvailable();
 
   const requestScope = scope();
+  const accountScope = captureAccountScope();
   const storageKey = key(caseId, recordId);
 
   try {
-    const result = await get<Blob>(storageKey);
-    return scope() === requestScope && result instanceof Blob ? result : null;
+    const result = await get(storageKey);
+    return isAccountScopeCurrent(accountScope) && scope() === requestScope ? originalBlobFromStored(result) : null;
   } catch (err) {
     return null;
   }
@@ -142,10 +165,14 @@ export async function cleanupCaseOriginalFiles(caseId: string): Promise<void> {
   if (!caseId) return;
   try {
     if (typeof keys !== 'function') return;
+    const ownerScope = scope();
+    const accountScope = captureAccountScope();
     const allKeys = await keys();
-    const casePrefix = `:${caseId}:`;
-    const targetKeys = allKeys.filter(k => typeof k === 'string' && k.startsWith('hc_original_record:') && k.includes(casePrefix));
+    if (scope() !== ownerScope || !isAccountScopeCurrent(accountScope)) return;
+    const casePrefix = 'hc_original_record:' + ownerScope + ':' + caseId + ':';
+    const targetKeys = allKeys.filter(k => typeof k === 'string' && k.startsWith(casePrefix));
     for (const k of targetKeys) {
+      if (scope() !== ownerScope || !isAccountScopeCurrent(accountScope)) return;
       await del(k);
     }
   } catch (err) {

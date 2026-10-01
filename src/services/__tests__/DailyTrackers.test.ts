@@ -135,7 +135,7 @@ describe('hydration consistency and reminders', () => {
     expect(channel.create).toHaveBeenCalled();
     expect(notifications.schedule.mock.calls[0][0].notifications).toHaveLength(5);
     expect(notifications.schedule.mock.calls[0][0].notifications[0]).toMatchObject({
-      channelId: 'healthchain_daily_reminders_v2', extra: { type: 'hydration', route: '/app/today', scope: getScopedStorageKey('healthchain_hydration_reminders_enabled') },
+      channelId: 'healthchain_daily_reminders_v2', extra: { type: 'hydration', route: '/app/today', scope: 'account:one' },
     });
   });
 });

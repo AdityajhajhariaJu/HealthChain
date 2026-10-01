@@ -35,6 +35,11 @@ import { recordTombstone, isTombstoned, clearTombstones } from '../TombstoneMana
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount, getSyncStatus } from '../SyncOutbox';
 import { CaseItem } from '../CaseEngine';
 
+function signIn(userId: string) {
+  window.localStorage.setItem('hc_account', JSON.stringify({ id: userId }));
+  getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+}
+
 describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
   beforeEach(async () => {
     idbStore.clear();
@@ -165,7 +170,7 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
       maybeSingle: vi.fn(async () => ({ data: null, error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+    signIn(userId);
 
     // Enqueue an upsert for the tombstoned case
     await enqueueSync('case_upsert', userId, {
@@ -200,7 +205,7 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
       upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+    signIn(userId);
 
     await enqueueSync('case_upsert', userId, {
       id: 'case_scope_test',
@@ -230,7 +235,7 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
       upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+    signIn(userId);
 
     let authExpiredEventFired = false;
     const onAuthExpired = () => { authExpiredEventFired = true; };
@@ -266,7 +271,7 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
       }),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+    signIn(userId);
 
     await enqueueSync('case_upsert', userId, {
       id: 'case_fail_1',

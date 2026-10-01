@@ -38,7 +38,29 @@ test('actual logout retains unqueued owned records and daily logs, while another
       indexed: await Promise.all(before.indexed.map(async ([key]) => [key, JSON.stringify(await idb.get(key))])),
     };
   }, retained);
-  expect(after).toEqual(retained);
+  // Canonical daily history can rebuild the display timestamp and key order.
+  // Assert the owned health facts survive logout, rather than their JSON bytes.
+  const normalized = (snapshot: typeof retained) => ({
+    ...snapshot,
+    indexed: snapshot.indexed.map(([key, value]) => [key, value ? JSON.parse(value) : value]),
+    local: Object.fromEntries(Object.entries(snapshot.local).map(([key, value]) => {
+      if (!key.startsWith('healthchain_hydration_data_') || !value) return [key, value];
+      const parsed = JSON.parse(value);
+      return [key, { date: parsed.date, currentMl: parsed.currentMl, targetMl: parsed.targetMl,
+        logs: parsed.logs.map((log: any) => ({ id: log.id, amountMl: log.amountMl,
+          occurredAt: log.occurredAt, type: log.type })) }];
+    })),
+  });
+  const beforeFacts = normalized(retained);
+  const afterFacts = normalized(after);
+  expect(afterFacts.local).toEqual(beforeFacts.local);
+  for (const [key, value] of beforeFacts.indexed) {
+    const current = afterFacts.indexed.find(([storedKey]) => storedKey === key)?.[1];
+    if (Array.isArray(value)) {
+      expect(Array.isArray(current)).toBe(true);
+      for (const row of value) expect(current).toContainEqual(row);
+    } else expect(current).toEqual(value);
+  }
   await page.goto('/app/today');
   const guest = await page.evaluate(async () => {
     localStorage.removeItem('hc_guest_mode');

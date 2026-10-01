@@ -25,6 +25,8 @@ export interface NutritionAssessmentV1 {
 }
 
 export type ObservationPayload =
+  | { kind: 'hydration'; amountMl: number; drinkType: 'water' | 'electrolyte' | 'tea' | 'lemon' | 'coconut' | 'sparkling'; legacyLogId?: string; targetMl?: number }
+  | { kind: 'medication_dose'; medicationId: string; name: string; dosage: string; scheduledTime: string | null; status: 'taken' | 'skipped' | 'unknown'; note?: string }
   | { kind: 'meal'; description: string; note?: string; hunger?: number; fullness?: number; amount?: { value: number; unit: string } | null; portionSize?: 'smaller' | 'usual' | 'larger'; ingredients?: Array<{ name: string; status: 'user_confirmed' | 'unverified'; amount?: number; unit?: 'g' | 'ml' | 'piece' }>; steps?: string[]; prepMinutes?: number; nutritionAssessment?: NutritionAssessmentV1; mealType?: string; captureMethod?: 'gut_quick_log' | 'diet_diary' | 'quick_nutrition' | 'clinical_lens' | 'plan_confirmation' | 'legacy_import' }
   | { kind: 'symptom'; symptom: string; symptomCode?: 'bloating' | 'discomfort' | 'reflux' | 'nausea' | 'bowel_changes'; severity?: { value: number; max: number } | null; severityLabel?: 'mild' | 'moderate' | 'severe'; note?: string; explicitMealIds?: string[] }
   | { kind: 'bowel'; bristolType?: number | null; urgency?: Answer; straining?: Answer; note?: string }
@@ -142,6 +144,13 @@ export function validateObservationDraft(draft: ObservationDraft): ObservationVa
     if(payload.mealReaction && (!['none','bloat','heartburn','palpitations','brain_fog','stomach_upset'].includes(payload.mealReaction.reactionType) || !isInstant(payload.mealReaction.loggedAt) || !text(payload.mealReaction.label) || payload.mealReaction.label.length>120 || payload.mealReaction.severity!==null && (!Number.isInteger(payload.mealReaction.severity) || payload.mealReaction.severity<0 || payload.mealReaction.severity>3))) errors.push('Check the explicit meal reaction and report time.');
   } else if (payload.kind === 'context') {
     if (!text(payload.description) || !['medication', 'illness', 'sleep', 'stress', 'other'].includes(payload.contextType)) errors.push('Describe the context and choose its type.');
+  } else if (payload.kind === 'hydration') {
+    if (!Number.isFinite(payload.amountMl) || payload.amountMl <= 0 || payload.amountMl > 20000 || !['water', 'electrolyte', 'tea', 'lemon', 'coconut', 'sparkling'].includes(payload.drinkType)) errors.push('Enter a measured drink between 1 and 20,000 ml and its type.');
+    if (payload.targetMl !== undefined && (!Number.isFinite(payload.targetMl) || payload.targetMl <= 0 || payload.targetMl > 20000)) errors.push('Check the recorded hydration goal.');
+  } else if (payload.kind === 'medication_dose') {
+    if (!text(payload.medicationId) || payload.medicationId.length > 200 || !text(payload.name) || payload.name.length > 500 || typeof payload.dosage !== 'string' || !['taken', 'skipped', 'unknown'].includes(payload.status)) errors.push('Choose a saved medicine and explicitly record its dose status.');
+    if (payload.scheduledTime !== null && !/^([01]\d|2[0-3]):[0-5]\d$/.test(payload.scheduledTime)) errors.push('Check the scheduled dose time.');
+    if (payload.note !== undefined && (typeof payload.note !== 'string' || payload.note.length > 500)) errors.push('Keep dose notes within 500 characters.');
   } else errors.push('Select a supported observation type.');
 
   return errors.length ? { ok: false, errors } : { ok: true, value: draft };

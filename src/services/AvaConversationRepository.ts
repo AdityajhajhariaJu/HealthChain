@@ -1,3 +1,4 @@
+import { setOwned } from './OwnedIdb';
 import * as idb from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
@@ -188,7 +189,7 @@ export async function persistAvaMessages(messages: AvaMessage[]) {
       durable = getItemSync(key) === json;
     } catch {}
     try {
-      await idb.set(key, json);
+      await setOwned(key, json);
       durable = true;
     } catch {}
     if (!durable)

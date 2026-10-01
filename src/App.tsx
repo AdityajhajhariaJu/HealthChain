@@ -17,6 +17,7 @@ import { flushSyncOutbox } from './services/SyncOutbox';
 import { captureAccountScope, isAccountScopeCurrent, invalidateAccountScope } from './services/AccountScope';
 import { loadObservationsFromCloud, retryFailedObservationQueues } from './services/HealthObservationService';
 import { isDurableHealthStorageKey, retainHealthStorage } from './services/DurableHealthStorage';
+import { flushDailyTrackerLedger, migrateDailyTrackerHistory, hydrateDailyTrackerProjections } from './services/DailyTrackerLedger';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
@@ -31,6 +32,8 @@ import NotFound from './components/ui/NotFound';
 import { useToast } from './components/ui/ToastProvider';
 import OfflineBanner from './components/ui/OfflineBanner';
 import ConsentManager from './components/ui/ConsentManager';
+import ObservationConflictReview from './components/ui/ObservationConflictReview';
+import DeviceErasureRecovery from './components/ui/DeviceErasureRecovery';
 
 import ProductTour from './components/ui/ProductTour';
 import TopUpModal from './features/brand/TopUpModal';
@@ -247,18 +250,27 @@ export default function App() {
     const flush = () => {
       const scope = captureAccountScope();
       void flushSyncOutbox().then(async () => {
+        if (!isAccountScopeCurrent(scope)) return;
+        await migrateDailyTrackerHistory();
+        await flushDailyTrackerLedger();
         if (!isAccountScopeCurrent(scope) || scope.accountId === 'guest') return;
         await retryFailedObservationQueues();
         if (!isAccountScopeCurrent(scope)) return;
         await flushSyncOutbox(scope.accountId);
-        if (isAccountScopeCurrent(scope)) await loadObservationsFromCloud();
+        if (isAccountScopeCurrent(scope)) {
+          const result = await loadObservationsFromCloud();
+          if (isAccountScopeCurrent(scope) && ['loaded', 'conflict'].includes(result.status)) await hydrateDailyTrackerProjections();
+          if (isAccountScopeCurrent(scope) && result.conflicts) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: { area: 'observations', message: `${result.conflicts} observation conflicts need review. Your local edits were preserved.` } }));
+        }
       }).catch(error => console.warn('Sync recovery failed', error));
     };
     flush();
     window.addEventListener('online', flush);
 
-    const handleLogout = async () => {
+    const handleLogout = async (event: Event) => {
+      if ((event as CustomEvent)?.detail?.accountDeleted) return;
       const logoutScope = captureAccountScope();
+      try { await unregisterPushDevice(logoutScope); } catch (error) { console.warn('Push logout cleanup failed', error); }
       try {
         const idb = await import('idb-keyval');
         await clearPersistedMDTSession();
@@ -278,7 +290,6 @@ export default function App() {
         // that could erase the durable records being retained.
         Object.keys(localStorage).forEach(key => { if (!(key in retained)) removeItemSync(key); });
         const clearedScope = captureAccountScope();
-        await unregisterPushDevice();
         if (!isAccountScopeCurrent(clearedScope)) return;
         await supabase.auth.signOut();
       } catch (e) {}
@@ -488,6 +499,8 @@ export default function App() {
     <SafeRoute>
       <OfflineBanner />
       <ConsentManager />
+      <ObservationConflictReview />
+      <DeviceErasureRecovery />
       <ProductTour />
       <Routes>
         <Route

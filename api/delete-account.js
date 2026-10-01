@@ -62,6 +62,10 @@ export default async function handler(req, res) {
     }
 
     const userId = user.id;
+    const { error: signOutError } = await supabaseClient.auth.admin.signOut(token, 'global');
+    // A retry may carry an unexpired JWT whose refresh session was already revoked.
+    // getUser above still verifies the identity; a missing session is already signed out.
+    if (signOutError && signOutError.status !== 404) return res.status(503).json({ error: 'Sessions could not be revoked. Account deletion was stopped; try again.' });
 
     // Delete application data in one database transaction. The function is
     // deliberately unavailable to client roles and must be installed by the
@@ -72,6 +76,20 @@ export default async function handler(req, res) {
     if (dataDeleteError) {
       console.error('HealthChain data deletion transaction failed:', dataDeleteError);
       return res.status(503).json({ error: 'Account deletion is temporarily unavailable. Please contact support.' });
+    }
+
+    // Use Storage's supported removal API so the file bytes are erased as well.
+    for (let page = 0; page < 1000; page++) {
+      const { data: objects, error: listError } = await supabaseClient.rpc('list_healthchain_user_storage', { p_user_id: userId });
+      if (listError) throw listError;
+      if (!objects?.length) break;
+      const buckets = new Map();
+      for (const object of objects) buckets.set(object.bucket_id, [...(buckets.get(object.bucket_id) || []), object.name]);
+      for (const [bucket, names] of buckets) {
+        const { error } = await supabaseClient.storage.from(bucket).remove(names);
+        if (error) throw error;
+      }
+      if (page === 999) throw new Error('Storage cleanup requires support assistance');
     }
 
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId);

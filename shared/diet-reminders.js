@@ -23,9 +23,9 @@ export function mealReminderEvents(reminders, quietStart, quietEnd) {
         ? item.prepMinutes
         : 0;
     for (const event of [
-      { minute, kind: 'meal', id: 3000 + index * 2 },
+      { minute, kind: 'meal', id: 4000 + index * 2 },
       ...(prep
-        ? [{ minute: (minute - prep + 1440) % 1440, kind: 'prep', id: 3001 + index * 2 }]
+        ? [{ minute: (minute - prep + 1440) % 1440, kind: 'prep', id: 4001 + index * 2 }]
         : []),
     ]) {
       if (!quietMealMinute(event.minute, quietStart, quietEnd))

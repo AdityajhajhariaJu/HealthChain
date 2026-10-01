@@ -2,6 +2,7 @@ import { Health } from '@capgo/capacitor-health';
 import { enqueueSync } from './SyncOutbox';
 import { supabase } from './supabaseClient';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { saveDeviceMetricLocally } from './DeviceMetricRepository';
 
 export type SupportedHealthMetric = 'steps' | 'sleep' | 'heartRate' | 'calories';
 export interface HealthSyncResult { queued: number; skipped: number; failures: number; status: 'queued' | 'partial' | 'no_data' }
@@ -39,10 +40,12 @@ export async function syncHealthData(daysBack = 7): Promise<HealthSyncResult> {
         expectedUnit && sample.unit !== expectedUnit || !sample.unit || metricType === 'heartRate_average' && sample.value === 0) {
       result.skipped++; return;
     }
-    const queued = await enqueueSync('health_metrics_upsert', scope.accountId, {
+    const row = {
       user_id: scope.accountId, metric_type: metricType, value: sample.value, unit: sample.unit,
       start_time: sample.startDate, end_time: sample.endDate, source_device: 'capacitor_health_sync',
-    });
+    };
+    saveDeviceMetricLocally(row);
+    const queued = await enqueueSync('health_metrics_upsert', scope.accountId, row);
     assertCurrent();
     if (queued) result.queued++; else result.failures++;
   };

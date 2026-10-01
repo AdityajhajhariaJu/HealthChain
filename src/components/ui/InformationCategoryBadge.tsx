@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldAlert,
@@ -81,9 +82,9 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
       </button>
 
       {/* Interactive Allowed Role & Provenance Inspector Modal */}
-      <AnimatePresence>
+      {typeof document !== 'undefined' && createPortal(<AnimatePresence>
         {isOpen && (
-          <FocusTrap isActive={isOpen}>
+          <FocusTrap isActive={isOpen} onEscape={() => setIsOpen(false)}>
             <div
               role="dialog"
               aria-modal="true"
@@ -216,7 +217,8 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
                     </strong>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       {spec.requiredFields.map((field) => {
-                        const isPresent = item && (item as any)[field] !== undefined;
+                        const value = item && (item as any)[field];
+                        const isPresent = value !== undefined && value !== null && value !== '';
                         return (
                           <span
                             key={field}
@@ -235,6 +237,7 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
                           >
                             <CheckCircle2 size={11} color={isPresent ? '#10B981' : '#94A3B8'} />
                             <code>{field}</code>
+                            <span>{isPresent ? String(typeof value === 'object' ? JSON.stringify(value) : value).slice(0, 160) : 'Not recorded'}</span>
                           </span>
                         );
                       })}
@@ -264,7 +267,7 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
             </div>
           </FocusTrap>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </>
   );
 };

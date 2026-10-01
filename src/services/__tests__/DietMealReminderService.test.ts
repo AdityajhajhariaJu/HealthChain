@@ -75,14 +75,14 @@ describe('optional meal reminder connections', () => {
     expect(await service.reconcileDietMealReminders()).toBe(true);
     const pending = mocks.schedule.mock.calls[0][0].notifications;
     expect(pending).toHaveLength(2);
-    expect(pending.map((item: any) => item.id)).toEqual([3000, 3001]);
+    expect(pending.map((item: any) => item.id)).toEqual([4000, 4001]);
     expect(pending[0].body).not.toContain('Private');
     expect(pending[0].extra.scope).toBe('account:profile_1');
     await service.reconcileDietMealReminders();
     expect(mocks.schedule).toHaveBeenCalledTimes(1);
     state.prefs.enabledCategories.meal_reminder = false;
     await service.reconcileDietMealReminders();
-    expect(mocks.cancel).toHaveBeenCalledTimes(2);
+    expect(mocks.cancel).toHaveBeenCalledTimes(3); // legacy range plus two meal reconciliations
     expect(mocks.schedule).toHaveBeenCalledTimes(1);
   });
   it('reports denied permission and never schedules the previous account after a change', async () => {

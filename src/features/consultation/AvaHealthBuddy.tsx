@@ -34,6 +34,9 @@ import { listMealDiary, type MealDiary } from '../../services/MealCommandService
 import { listObservations } from '../../services/HealthObservationService';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import type { Observation } from '../../domain/observations/types';
+import { dailyEvidenceSummary, reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
+import { sourceFreshness } from '../../../shared/health-source-freshness';
+import { loadDeviceMetricContext } from '../../services/DeviceMetricRepository';
 import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
@@ -1228,11 +1231,14 @@ export default function AvaHealthBuddy() {
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
   const [mealDiary, setMealDiary] = useState<MealDiary>({});
   const [dailyObservations, setDailyObservations] = useState<Observation[]>([]);
+  const [deviceContext, setDeviceContext] = useState<Awaited<ReturnType<typeof loadDeviceMetricContext>> | null>(null);
   useEffect(() => {
     let active = true;
     const owner = captureAccountScope();
     setMealDiary({});
     setDailyObservations([]);
+    setDeviceContext(null);
+    void loadDeviceMetricContext().then(value => { if (active && isAccountScopeCurrent(owner)) setDeviceContext(value); });
     const refresh = () => {
       void Promise.all([listMealDiary(), listObservations()]).then(([diary, observations]) => {
         if (active && isAccountScopeCurrent(owner)) {
@@ -1297,6 +1303,7 @@ export default function AvaHealthBuddy() {
       omittedCount: Math.max(0, totalRecords - includedItems.length),
       includedItems,
       observationSnapshots,
+      dailyEvidence: dailyEvidenceSummary(scopedObservations, new Date().toLocaleDateString('en-CA')),
     };
   }, [messages.length, selectedCaseId, recentDiaryMeals,dailyObservations,memoryVersion]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
@@ -1746,7 +1753,12 @@ export default function AvaHealthBuddy() {
 
     const newMessages = [...messages,newAvaMessage('user',finalContent,selectedCaseId,{attachments:attachments.map(a=>a.name)})];
     sendingRef.current = true;
-    const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
+    let contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
+    if (selectedCaseId && contextCase) {
+      try { contextCase = await reviewedCaseWithCurrentSources(selectedCaseId); }
+      catch { sendingRef.current = false; toast.error('Sources changed', 'Review the selected case before sending this question again. Your draft is retained.'); return; }
+      if (messageScope !== getAvaVaultKey() || messageCaseId !== selectedCaseIdRef.current || !isMounted.current) { sendingRef.current = false; return; }
+    }
     const baseCaseContext = contextCase ? buildCaseContext(contextCase) : '';
 
     // Keep user-reported context available without promoting it to verified fact.
@@ -1766,7 +1778,7 @@ export default function AvaHealthBuddy() {
         memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}${'recordId' in item ? ` [record ${item.recordId}]` : ''}`).join('\n') +
         '\n[USER-REPORTED OBSERVATIONS — occurrence dates and unanswered values are explicit; recordedAt is the save time, not a symptom onset]:\n' + JSON.stringify(memoryContext.observationSnapshots)
       : '';
-    const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();
+    const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}\n\n[DAILY INTAKE AND DOSE REPORTS — preserve unknowns, dates, units and source revisions]:\n${JSON.stringify(memoryContext.dailyEvidence)}\n\n[DEVICE SOURCE SAMPLES — original units/periods; no diagnostic inference]:\n${JSON.stringify(selectedCaseId ? { status: 'excluded_from_case_context' } : deviceContext || { status: 'unavailable' })}`.trim();
     if(finalContext.length>50000){
       sendingRef.current=false;
       toast.error('Choose a smaller set of records','This conversation contains too much material for one answer. Choose the specific record or question to discuss. Your draft is still here.');
@@ -1781,7 +1793,7 @@ export default function AvaHealthBuddy() {
       safetyContext,
       diarySnapshot:(selectedCaseId ? [] : recentDiaryMeals).map(meal=>({id:meal.id,name:meal.name,occurredAt:meal.occurredAt,timePrecision:meal.timePrecision,type:meal.type})),
       sourceStudy:activeSourceStudy || undefined,
-      contextManifest:{...memoryContext,safetyFactsIncluded:['Profile','Allergies (including unknown status)','Medications with recorded dose and status'],caseId:selectedCaseId,sourceStudyId:activeSourceStudy?.nctId,records:(baseCaseContext?JSON.parse(baseCaseContext).records || []:[]).map((rec:any)=>({id:rec.id,filename:rec.name,content:JSON.stringify(rec)}))},
+      contextManifest:{...memoryContext,deviceSources:selectedCaseId ? {status:'excluded_from_case_context'} : deviceContext || {status:'unavailable'},safetyFactsIncluded:['Profile','Allergies (including unknown status)','Medications with recorded dose and status'],caseId:selectedCaseId,sourceStudyId:activeSourceStudy?.nctId,records:(baseCaseContext?JSON.parse(baseCaseContext).records || []:[]).map((rec:any)=>({id:rec.id,filename:rec.name,content:JSON.stringify(rec)}))},
       requestId: crypto.randomUUID?.() || `ava_${Date.now()}`,
     };
     activeRequestIdRef.current = request.requestId;
@@ -2254,6 +2266,8 @@ export default function AvaHealthBuddy() {
                           {msg.contextManifest && <AvaDisclosure key={msg.id+'_context'} storageId={msg.id+'_context'} style={{marginTop:12}}>
                             <summary style={{minHeight:44,cursor:'pointer'}}>Context included in this reply</summary>
                             <p>Mode: {msg.caseId?'Selected case':'General health'}. Profile, recorded allergies and medication details were included. Missing safety facts remain unknown.</p>
+                            <p>Saved context from the time of this reply. Recheck current health facts before using earlier guidance.</p>
+                            {sourceFreshness([...(msg.contextManifest.observationSnapshots || []), ...(msg.contextManifest.dailyEvidence?.hydration?.sources || []), ...(msg.contextManifest.dailyEvidence?.doses || [])], dailyObservations).some((item:any) => item.status !== 'current') && <p role="status" style={{color:'#b45309'}}>Some source observations have changed or are no longer available. Ask Ava again with the current records.</p>}
                             <ul>{(msg.contextManifest.includedItems || []).map((item:any,index:number)=><li key={index}>{item.title} · {item.source} · {item.time}</li>)}</ul>
                             {msg.sourceStudy && <p>Research source: {msg.sourceStudy.nctId}. Trial registration does not establish published results.</p>}
                           </AvaDisclosure>}

@@ -26,6 +26,11 @@ vi.mock('../supabaseClient', () => ({
 
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount, getSyncStatus } from '../SyncOutbox';
 
+function signIn(userId: string) {
+  window.localStorage.setItem('hc_account', JSON.stringify({ id: userId }));
+  getSession.mockResolvedValue({ data: { session: { user: { id: userId } } } });
+}
+
 describe('SyncOutbox', () => {
   beforeEach(() => {
     idbStore.clear();
@@ -46,7 +51,7 @@ describe('SyncOutbox', () => {
   });
 
   it('clears a stale pending indicator when manual retry finds an empty queue', async () => {
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-empty' } } } });
+    signIn('user-empty');
     const completed = vi.fn();
     window.addEventListener('hc_sync_complete', completed);
     try {
@@ -62,7 +67,7 @@ describe('SyncOutbox', () => {
       maybeSingle: vi.fn(async () => ({ data: null, error: null })) };
     from.mockReturnValue(query);
     rpc.mockResolvedValue({ data: { success: true, new_revision: 2 }, error: null });
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-case' } } } });
+    signIn('user-case');
     await enqueueSync('case_upsert', 'user-case', { id: 'case-1', user_id: 'user-case',
       revision: 1, expected_revision: 1, data: { id: 'case-1', revision: 1 } });
     await flushSyncOutbox('user-case');
@@ -76,7 +81,7 @@ describe('SyncOutbox', () => {
       upsert: vi.fn(async (_payload: any) => ({ error: null })) };
     from.mockReturnValue(query);
     rpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'RPC does not exist' } });
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-case' } } } });
+    signIn('user-case');
     await enqueueSync('case_upsert', 'user-case', { id: 'case-1', user_id: 'user-case',
       revision: 1, expected_revision: 1, data: { id: 'case-1', revision: 1 } });
     await flushSyncOutbox('user-case');
@@ -111,7 +116,7 @@ describe('SyncOutbox', () => {
       upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } });
+    signIn('user-1');
 
     await enqueueSync('profile_upsert', 'user-1', {
       id: 'user-1',
@@ -124,6 +129,23 @@ describe('SyncOutbox', () => {
     expect(query.eq).not.toHaveBeenCalledWith('user_id', 'user-1');
     expect(query.upsert).toHaveBeenCalledOnce();
     expect(await getPendingSyncCount('user-1')).toBe(0);
+  });
+
+  it('retains an offline profile edit when the cloud row is newer', async () => {
+    const query = {
+      select: vi.fn(() => query), eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: { updated_at: '2026-10-01T10:00:00.000Z' }, error: null })),
+      upsert: vi.fn(async () => ({ error: null })),
+    };
+    from.mockReturnValue(query);
+    signIn('user-profile-conflict');
+    await enqueueSync('profile_upsert', 'user-profile-conflict', {
+      id: 'user-profile-conflict', full_name: 'Offline edit', updated_at: '2026-10-01T09:00:00.000Z',
+    });
+    await flushSyncOutbox('user-profile-conflict');
+    expect(query.upsert).not.toHaveBeenCalled();
+    expect(await getPendingSyncCount('user-profile-conflict')).toBe(1);
+    expect((await getSyncStatus('user-profile-conflict')).state).toBe('sync_failed');
   });
 
   it('merges Gut questions before an offline profile snapshot overwrites the cloud', async () => {
@@ -146,7 +168,7 @@ describe('SyncOutbox', () => {
       upsert: vi.fn(async (_payload: any) => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-gut' } } } });
+    signIn('user-gut');
     await enqueueSync('caregiver_profile_upsert', 'user-gut', {
       user_id: 'user-gut', profile_id: 'profile_1', profile_name: 'Local name',
       data: { profileName: 'Local name', gutResolutionThreads: [localOld, question('local-only', '2026-09-23T08:00:00.000Z')] },
@@ -171,7 +193,7 @@ describe('SyncOutbox', () => {
       upsert: vi.fn(async (_payload: any) => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-diet' } } } });
+    signIn('user-diet');
     await enqueueSync('caregiver_profile_upsert', 'user-diet', {
       user_id: 'user-diet', profile_id: 'profile_1',
       data: { updatedAt: '2026-09-30T09:10:00.000Z', dietMealPlan: newerPlan, dietArchivedPlans: [olderPlan] },
@@ -207,7 +229,7 @@ describe('SyncOutbox', () => {
       }),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-network' } } } });
+    signIn('user-network');
 
     await enqueueSync('profile_upsert', 'user-network', {
       id: 'user-network',
@@ -227,7 +249,7 @@ describe('SyncOutbox', () => {
       upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-offline' } } } });
+    signIn('user-offline');
 
     await enqueueSync('profile_upsert', 'user-offline', {
       id: 'user-offline',
@@ -252,7 +274,7 @@ describe('SyncOutbox', () => {
     window.addEventListener('hc_sync_error', errorEvent);
     const query = { upsert: vi.fn(async (payload: any) => ({ error: payload.id === 'failure' ? { message: 'Temporary sync failure' } : null })) };
     from.mockReturnValue(query);
-    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-errors' } } } });
+    signIn('user-errors');
     await enqueueSync('profile_upsert', 'user-errors', { id: 'failure' });
     await enqueueSync('profile_upsert', 'user-errors', { id: 'success' });
     await flushSyncOutbox('user-errors');

@@ -102,6 +102,7 @@ export interface DayPlanItem {
 }
 
 export interface FullMealPlan {
+  constraintSnapshot?: string;
   id: string;
   startDate?: string;
   title: string;
@@ -252,6 +253,7 @@ export function normalizeFullMealPlan(rawPlan: any, options?: { caseId?: string;
   };
 
   const planObj: FullMealPlan = {
+    constraintSnapshot: typeof rawPlan?.constraintSnapshot === 'string' ? rawPlan.constraintSnapshot : undefined,
     id,
     startDate: /^\d{4}-\d{2}-\d{2}$/.test(rawPlan?.startDate || '') && Number.isFinite(Date.parse(`${rawPlan.startDate}T12:00:00Z`)) && new Date(`${rawPlan.startDate}T12:00:00Z`).toISOString().slice(0,10)===rawPlan.startDate ? rawPlan.startDate : undefined,
     title: rawPlan?.title || 'Personalized Clinical Nutrition Plan',

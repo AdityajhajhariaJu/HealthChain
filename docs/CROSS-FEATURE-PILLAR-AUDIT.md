@@ -1,5 +1,7 @@
 # Cross-feature pillar audit
 
+> This document preserves the original audit baseline. The follow-on implementation and remaining limits are recorded in the **October 1 follow-on verification** section at the end.
+
 Audit date: 1 October 2026. Baseline: `e98083238ab932e9da96ae6d009c35c77dbf3b70`.
 Scope: Health Memory, Ava, Clinical Review, hydration, medications, Gut Health, Diet Plan, My Cases, their subfeatures, API boundaries, local persistence, cloud ownership and notifications.
 
@@ -148,3 +150,19 @@ P1 means required for trustworthy cross-feature behavior. P2 is supporting archi
 - Database: additive migration above, `supabase/verify_production.sql`, `supabase/tests/cross-feature-links-rollback.sql`.
 
 Service paths without a directory prefix above are under `src/services`. Database reference: [Supabase RLS documentation](https://supabase.com/docs/guides/database/postgres/row-level-security). Product change review: [Supabase changelog](https://supabase.com/changelog).
+
+## October 1 follow-on verification
+
+This section supersedes the baseline's descriptions of daily records, selected clinical evidence, device readers, archive scope, local reminders and database policies. The earlier inventory and tickets remain the record of how the work was identified.
+
+| Area | Implemented and verified | Remaining acceptance boundary |
+|---|---|---|
+| Daily water and doses | Canonical owner-scoped hydration and medication-dose observations, exact millilitres, explicit taken/skipped/unknown, local tracker projections, owner-guarded cloud sync and a one-time legacy migration marker. Database payload checks reject invalid amounts and invented adherence states. | A physical two-device migration and native clock/timezone journey is still required. A schedule is never proof of ingestion. |
+| Clinical, Ava and Diet handoff | Selected reviewed daily evidence can enter a case; changed/deleted source revisions are checked before a new case answer. Ava General can read source-labelled daily and device samples; case mode excludes unselected device data. Diet plans carry a constraint fingerprint and warn when allergies, medicines, demographics or food preferences change. | Existing historical answers remain snapshots, and neither a device sample nor a food estimate certifies a medical conclusion. |
+| Account lifecycle | Logout retains owned durable data. Confirmed deletion uses a server-side tombstone, revokes sessions, deletes application rows and Storage bytes, then removes the Auth identity. Device cleanup has a retry receipt. Archive v3 carries owned local daily data, observations and original file bytes with SHA-256 checks; a broken import rolls back local writes. | Cloud snapshots and pending outbox data in the JSON download are reference copies, not a complete cross-device restore. Signed-in two-device restore and native Preferences still need acceptance testing. |
+| Notifications | Local water, medicine, meal and check-in operations are serialized and scoped to the current account/profile. Failures are visible; stale actions are ignored. Push deregistration targets this installation's token. | This repository has no verified remote push sender. Actual Android/iOS background and terminated-app delivery requires provider credentials and device tests. |
+| Database and sync | Three live migrations enforce profile entitlement writes, daily-event validation, erased-owner write barriers and streamlined owner policies. The latest device feed has an index matching its newest-across-types query. A newer cloud row no longer silently acknowledges and removes an offline profile edit. | Whole-profile simultaneous edits still need field-level versioned reconciliation and a user-visible resolution flow. Repeated retries cannot make two competing whole-row edits semantically safe. Historical cloud references cannot be reconstructed by guesswork. |
+
+Verification for this follow-on: **721 unit tests passed, 1 live-model test skipped**; production build, lint, 35-migration contract and production SQL verifier passed. The 154-case Chromium/WebKit browser sweep yielded 143 passes under four concurrent workers. After fixing the archive contract and testing stored facts rather than JSON formatting, four targeted archive/logout journeys passed in both browsers. Seven remaining WebKit journeys passed on a serial rerun; the clinical missing-case journey passed after the test activated its fixed action dock through the keyboard. These reruns establish those paths but do not turn the earlier concurrent sweep into a clean run. Two synthetic database owner transactions and a daily-erasure transaction were rolled back after asserting isolation and write guards. No private patient rows were inspected.
+
+The release is **not** a claim that every health answer is accurate or every device notification arrives. The next engineering gates are field-level profile reconciliation, full archive/guest convergence and signed-in multi-device plus physical-device acceptance. Clinical and nutrition accuracy also requires source-labelled evaluation and qualified review.
