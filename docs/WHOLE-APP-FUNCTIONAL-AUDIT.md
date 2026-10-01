@@ -105,7 +105,7 @@ The live public Auth settings endpoint returned HTTP 200: Google and email signu
 
 Production follow-up: nine guest pages rendered with zero uncaught runtime errors; 17 read-only page/API/CORS checks passed. One real synthetic guest Ava request returned a complete HTTP 200 response. Real-provider meal-plan evaluations passed for India/Maharashtra (seven days, four meals/day) and Japan/Tokyo (seven days, five meals/day), using the shipped payload and validators. These samples establish operational generation and structure, not measured nutrient accuracy, universal clinical correctness or an authenticated user's complete generation/recovery path.
 
-Hosted CI on the first release commit passed unit/build gates and 189/190 browser cases. The failing case waited for `load` while analytics/font requests remained live in an otherwise mocked AI/research-failure fixture. The fixture now isolates external requests and waits for DOM readiness; its full interaction, research-outage and reload assertions remain in place. Final hosted results are recorded in the release evidence.
+Hosted CI on the first release commit passed unit/build gates and 189/190 browser cases. The failing case waited for `load` while analytics/font requests remained live in an otherwise mocked AI/research-failure fixture. That fixture now isolates external requests and waits for DOM readiness; its full interaction, research-outage and reload assertions remain in place. The follow-up hosted run passed with one similar Gut daily-home navigation retry; that mocked suite now also isolates external requests while retaining explicit provider stubs. Final hosted results are recorded in the release evidence.
 
 ## Remaining acceptance and implementation boundaries
 

@@ -2,6 +2,11 @@ import { expect, test } from '@playwright/test';
 
 test.setTimeout(60000);
 
+test.beforeEach(async ({ page }) => {
+  // Synthetic guest flows use explicit provider stubs, not live CDN/service calls.
+  await page.route(/https:\/\//, route => route.abort());
+});
+
 const guest = () => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
