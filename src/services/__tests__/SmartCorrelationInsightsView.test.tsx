@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import React from 'react';
-import { beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 import { getDigestionLogs, saveDigestionLog } from '../ProfileEngine';
 

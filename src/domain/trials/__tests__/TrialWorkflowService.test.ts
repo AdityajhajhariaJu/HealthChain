@@ -1,29 +1,32 @@
 // @vitest-environment jsdom
-import { describe, expect, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  migrateLegacyTrialToV2,
-  getActiveTrialV2,
-  saveActiveTrialV2,
   appendHealthEvent,
-  getHealthEvents,
   evaluateChallengeReadiness,
-  startFoodChallenge,
-  recordChallengeObservation,
-  completeFoodChallenge,
-  getChecklistCompletion,
-  toggleChecklistTask,
-  pauseTrialV2,
-  resumeTrialV2,
-  stopTrialV2,
   findTrialById,
+  getChecklistCompletion,
+  getHealthEvents,
+  migrateLegacyTrialToV2,
+  pauseTrialV2,
   recordDailyObservation,
-  startNewTrialV2
+  resumeTrialV2,
+  saveActiveTrialV2,
+  startFoodChallenge,
+  startNewTrialV2,
+  stopTrialV2,
+  toggleChecklistTask,
 } from '../../../services/TrialWorkflowService';
 
 describe('TrialWorkflowService & TrialV2 Engine', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('hc_unified_profile', JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: { id: 'profile_1', profileName: 'Test' } } }));
+    localStorage.setItem(
+      'hc_unified_profile',
+      JSON.stringify({
+        activeId: 'profile_1',
+        profiles: { profile_1: { id: 'profile_1', profileName: 'Test' } },
+      })
+    );
   });
 
   it('migrates a legacy trial without losing currentDay or scores', () => {
@@ -82,12 +85,15 @@ describe('TrialWorkflowService & TrialV2 Engine', () => {
   });
 
   it('evaluates readiness gates: requires minimum observations and does not advance prematurely', () => {
-    const trial = migrateLegacyTrialToV2({
-      trialId: 'hunt_bloat',
-      startDate: '2026-09-01T00:00:00Z',
-      currentDay: 15, // Calendar day 15!
-      totalDays: 28,
-    }, 'profile_1');
+    const trial = migrateLegacyTrialToV2(
+      {
+        trialId: 'hunt_bloat',
+        startDate: '2026-09-01T00:00:00Z',
+        currentDay: 15, // Calendar day 15!
+        totalDays: 28,
+      },
+      'profile_1'
+    );
     trial.id = 'trial_gate_test';
     trial.baseline.requiredObservations = 5;
     saveActiveTrialV2(trial);
@@ -117,13 +123,24 @@ describe('TrialWorkflowService & TrialV2 Engine', () => {
   });
 
   it('blocks new food challenges until the protocol receives verified clinical review', () => {
-    const trial = migrateLegacyTrialToV2({ trialId: 'hunt_bloat', startDate: '2026-09-01T00:00:00Z' }, 'profile_1');
+    const trial = migrateLegacyTrialToV2(
+      { trialId: 'hunt_bloat', startDate: '2026-09-01T00:00:00Z' },
+      'profile_1'
+    );
     trial.id = 'trial_chal_test';
     trial.consent = { acceptedAt: '2026-09-01T00:00:00Z', acknowledgedLimitations: true };
     saveActiveTrialV2(trial);
 
     for (let i = 1; i <= 5; i++) {
-      appendHealthEvent({ profileId: 'profile_1', trialId: trial.id, type: 'daily_checkin', occurredAt: `2026-09-0${i}T12:00:00Z`, timezone: 'UTC', source: 'trial', payload: { date: `2026-09-0${i}`, severityScore: 2 } });
+      appendHealthEvent({
+        profileId: 'profile_1',
+        trialId: trial.id,
+        type: 'daily_checkin',
+        occurredAt: `2026-09-0${i}T12:00:00Z`,
+        timezone: 'UTC',
+        source: 'trial',
+        payload: { date: `2026-09-0${i}`, severityScore: 2 },
+      });
     }
 
     const challenge = startFoodChallenge('trial_chal_test', {
@@ -154,7 +171,10 @@ describe('TrialWorkflowService & TrialV2 Engine', () => {
   });
 
   it('supports patient agency: pause, resume, and stop with reason', () => {
-    const trial = migrateLegacyTrialToV2({ trialId: 'hunt_bloat', startDate: '2026-09-01T00:00:00Z' }, 'profile_1');
+    const trial = migrateLegacyTrialToV2(
+      { trialId: 'hunt_bloat', startDate: '2026-09-01T00:00:00Z' },
+      'profile_1'
+    );
     trial.id = 'trial_agency_test';
     saveActiveTrialV2(trial);
 
@@ -170,15 +190,29 @@ describe('TrialWorkflowService & TrialV2 Engine', () => {
   });
 
   it('counts unique observation dates and never treats a start event as a check-in', () => {
-    const trial = startNewTrialV2({ protocolId: 'hunt_bloat', profileId: 'profile_1', baselineSeverity: 6 });
+    const trial = startNewTrialV2({
+      protocolId: 'hunt_bloat',
+      profileId: 'profile_1',
+      baselineSeverity: 6,
+    });
     expect(evaluateChallengeReadiness(trial).observedCount).toBe(0);
     for (let i = 0; i < 4; i++) {
-      recordDailyObservation(trial.id, { date: '2026-09-23', severityScore: 6 - i, adherenceLevel: 'followed' });
+      recordDailyObservation(trial.id, {
+        date: '2026-09-23',
+        severityScore: 6 - i,
+        adherenceLevel: 'followed',
+      });
     }
     const readiness = evaluateChallengeReadiness(trial);
     expect(readiness.observedCount).toBe(1);
     expect(readiness.ready).toBe(false);
-    expect(startFoodChallenge(trial.id, { itemId: 'oats', displayName: 'Oats', doseDescription: 'Two spoons' })).toBeNull();
+    expect(
+      startFoodChallenge(trial.id, {
+        itemId: 'oats',
+        displayName: 'Oats',
+        doseDescription: 'Two spoons',
+      })
+    ).toBeNull();
   });
 
   it('does not resolve an unknown instance, protocol ID, another profile, or another account', () => {

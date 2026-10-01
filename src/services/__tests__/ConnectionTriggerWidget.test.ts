@@ -31,7 +31,7 @@ describe('Ava Connection Trigger & Multi-System Widget Parser', () => {
   it('extracts multi-system DIARY_TIMELINE with posture, vascular, and symptom categories', () => {
     const raw = `I have logged your multi-system checkin:\n[WIDGET:DIARY_TIMELINE:{"title":"Logged in your diary","date":"Today","entries":[{"time":"08:00","category":"Breakfast","items":["🥣 Oats","🫐 Blueberries"]},{"time":"11:30","category":"Posture","items":["🪑 3.5h Seated Desk Slouch"]},{"time":"15:00","category":"Symptoms","items":["🦴 Lower Back Ache 4/10","⚡ Throbbing Headache 7/10"]}]}]\nMake sure to decompress your spine this afternoon.`;
 
-    const { payload, before, after, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
+    const { payload, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
 
     expect(found).toBe(true);
     expect(payload).toBeDefined();
@@ -39,6 +39,9 @@ describe('Ava Connection Trigger & Multi-System Widget Parser', () => {
     expect(payload.entries[1].category).toBe('Posture');
     expect(payload.entries[1].items[0]).toContain('Desk Slouch');
     expect(payload.entries[2].category).toBe('Symptoms');
-    expect(payload.entries[2].items).toEqual(['🦴 Lower Back Ache 4/10', '⚡ Throbbing Headache 7/10']);
+    expect(payload.entries[2].items).toEqual([
+      '🦴 Lower Back Ache 4/10',
+      '⚡ Throbbing Headache 7/10',
+    ]);
   });
 });

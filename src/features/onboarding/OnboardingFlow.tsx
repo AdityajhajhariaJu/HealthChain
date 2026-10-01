@@ -47,8 +47,8 @@ type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 type AllergySeverity = 'mild' | 'moderate' | 'severe';
 
 const GOAL_OPTIONS: GoalOption[] = [
-  { 
-    title: 'Chronic Management', 
+  {
+    title: 'Chronic Management',
     desc: 'Organize symptoms, records, and questions',
     icon: <HeartPulse size={26} color="#F43F5E" />,
     route: '/app/consult',
@@ -57,11 +57,11 @@ const GOAL_OPTIONS: GoalOption[] = [
       { label: 'Conditions', icon: '🩺' },
       { label: 'Medicines', icon: '💊' },
       { label: 'Allergies', icon: '💉' },
-      { label: 'Biometrics', icon: '🧬' }
-    ]
+      { label: 'Biometrics', icon: '🧬' },
+    ],
   },
-  { 
-    title: 'Track Calories', 
+  {
+    title: 'Track Calories',
     desc: 'Estimate energy needs and build editable food-planning examples',
     icon: <Flame size={26} color="#F59E0B" />,
     route: '/app/dietician',
@@ -70,11 +70,11 @@ const GOAL_OPTIONS: GoalOption[] = [
       { label: 'Weight & Height', icon: '⚖️' },
       { label: 'Estimated BMR', icon: '🔥' },
       { label: 'Food Allergies', icon: '🥛' },
-      { label: 'Metabolic', icon: '🩸' }
-    ]
+      { label: 'Metabolic', icon: '🩸' },
+    ],
   },
-  { 
-    title: 'Mental Clarity', 
+  {
+    title: 'Mental Clarity',
     desc: 'Record sleep, energy, and use contextual calming tools',
     icon: <Moon size={26} color="#8B5CF6" />,
     route: '/app/today',
@@ -83,9 +83,9 @@ const GOAL_OPTIONS: GoalOption[] = [
       { label: 'Circadian Timing', icon: '🌅' },
       { label: 'Sleep & Vitals', icon: '🌙' },
       { label: 'Daily Vitamins', icon: '💊' },
-      { label: 'Vitality XP', icon: '💎' }
-    ]
-  }
+      { label: 'Vitality XP', icon: '💎' },
+    ],
+  },
 ];
 
 const AGE_BRACKETS = [
@@ -135,7 +135,10 @@ const PRESET_MEDICATIONS: { name: string; defaultSlot: CircadianSlot; hint: stri
   { name: 'Ventolin Inhaler', defaultSlot: 'morning', hint: 'Respiratory' },
 ];
 
-const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+const CIRCADIAN_SLOT_META: Record<
+  CircadianSlot,
+  { label: string; icon: string; color: string; bg: string }
+> = {
   morning: { label: 'Morning', icon: '🌅', color: '#0F766E', bg: '#CCFBF1' },
   midday: { label: 'Midday', icon: '☀️', color: '#0D9488', bg: '#ECFDF5' },
   evening: { label: 'Evening', icon: '🌇', color: '#D97706', bg: '#FEF3C7' },
@@ -154,7 +157,7 @@ const COMMON_ALLERGIES = [
 ];
 
 export default function OnboardingFlow() {
-  // Steps: 
+  // Steps:
   // 0: Welcome
   // 1: Goal Select
   // 2: Profile Page 1 (Biometrics & Demographics)
@@ -168,13 +171,17 @@ export default function OnboardingFlow() {
 
   // Form State initialized from storage
   const existingProfile = getProfile();
-  const [name, setName] = useState<string>(existingProfile?.demographics?.name || '');
-  const [foodLocation, setFoodLocation] = useState(() => normalizeFoodLocation(existingProfile?.demographics));
-  const [age, setAge] = useState<number>(existingProfile?.demographics?.age ? Number(existingProfile.demographics.age) : 28);
+  const [name] = useState<string>(existingProfile?.demographics?.name || '');
+  const [foodLocation, setFoodLocation] = useState(() =>
+    normalizeFoodLocation(existingProfile?.demographics)
+  );
+  const [age, setAge] = useState<number>(
+    existingProfile?.demographics?.age ? Number(existingProfile.demographics.age) : 28
+  );
   const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(
     (existingProfile?.demographics?.gender as any) || 'Male'
   );
-  
+
   // Height State
   const [heightCm, setHeightCm] = useState<number>(
     existingProfile?.demographics?.height ? Number(existingProfile.demographics.height) : 172
@@ -211,10 +218,33 @@ export default function OnboardingFlow() {
   }, [heightCm, weightKg]);
 
   const bmiCategory = useMemo(() => {
-    if (bmi < 18.5) return { label: 'Below adult reference range', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' };
-    if (bmi < 25) return { label: 'Within adult reference range', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0' };
-    if (bmi < 30) return { label: 'Above adult reference range', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A' };
-    return { label: 'Higher adult reference category', color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA' };
+    if (bmi < 18.5)
+      return {
+        label: 'Below adult reference range',
+        color: '#2563EB',
+        bg: '#EFF6FF',
+        border: '#BFDBFE',
+      };
+    if (bmi < 25)
+      return {
+        label: 'Within adult reference range',
+        color: '#047857',
+        bg: '#ECFDF5',
+        border: '#A7F3D0',
+      };
+    if (bmi < 30)
+      return {
+        label: 'Above adult reference range',
+        color: '#B45309',
+        bg: '#FEF3C7',
+        border: '#FDE68A',
+      };
+    return {
+      label: 'Higher adult reference category',
+      color: '#B91C1C',
+      bg: '#FEF2F2',
+      border: '#FECACA',
+    };
   }, [bmi]);
 
   const bmr = useMemo(() => {
@@ -236,7 +266,7 @@ export default function OnboardingFlow() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && step > 0) {
         triggerHapticLight();
-        setStep(prev => Math.max(0, prev - 1));
+        setStep((prev) => Math.max(0, prev - 1));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -249,7 +279,7 @@ export default function OnboardingFlow() {
     setSelectedGoal(goal);
     try {
       localStorage.setItem('hc_primary_focus', goal.title);
-    } catch(e) {}
+    } catch (e) {}
     setStep(2); // Move to Profile Page 1
   };
 
@@ -260,7 +290,7 @@ export default function OnboardingFlow() {
       if (selectedGoal?.title) {
         localStorage.setItem('hc_primary_focus', selectedGoal.title);
       }
-    } catch(e) {}
+    } catch (e) {}
     awardPoints(20, 'Welcome to HealthChain360! 🌟', 'welcome');
     navigate(selectedGoal?.route || '/app/today', { replace: true });
   };
@@ -268,8 +298,8 @@ export default function OnboardingFlow() {
   const toggleCondition = (condName: string) => {
     triggerHapticSelection();
     setHasNoConditions(false);
-    setConditions(prev => 
-      prev.includes(condName) ? prev.filter(c => c !== condName) : [...prev, condName]
+    setConditions((prev) =>
+      prev.includes(condName) ? prev.filter((c) => c !== condName) : [...prev, condName]
     );
   };
 
@@ -277,7 +307,7 @@ export default function OnboardingFlow() {
     if (!customCondition.trim()) return;
     triggerHapticLight();
     if (!conditions.includes(customCondition.trim())) {
-      setConditions(prev => [...prev, customCondition.trim()]);
+      setConditions((prev) => [...prev, customCondition.trim()]);
     }
     setCustomCondition('');
   };
@@ -285,24 +315,24 @@ export default function OnboardingFlow() {
   const toggleMedication = (medName: string, defaultSlot: CircadianSlot) => {
     triggerHapticSelection();
     setHasNoMeds(false);
-    setMedications(prev => {
-      const exists = prev.find(m => m.name === medName);
-      if (exists) return prev.filter(m => m.name !== medName);
+    setMedications((prev) => {
+      const exists = prev.find((m) => m.name === medName);
+      if (exists) return prev.filter((m) => m.name !== medName);
       return [...prev, { name: medName, slot: defaultSlot }];
     });
   };
 
   const updateMedSlot = (medName: string, slot: CircadianSlot) => {
     triggerHapticLight();
-    setMedications(prev => prev.map(m => m.name === medName ? { ...m, slot } : m));
+    setMedications((prev) => prev.map((m) => (m.name === medName ? { ...m, slot } : m)));
   };
 
   const toggleAllergy = (allName: string, defaultSeverity: AllergySeverity) => {
     triggerHapticSelection();
     setHasNoAllergies(false);
-    setAllergies(prev => {
-      const exists = prev.find(a => a.name === allName);
-      if (exists) return prev.filter(a => a.name !== allName);
+    setAllergies((prev) => {
+      const exists = prev.find((a) => a.name === allName);
+      if (exists) return prev.filter((a) => a.name !== allName);
       return [...prev, { name: allName, severity: defaultSeverity }];
     });
   };
@@ -316,7 +346,7 @@ export default function OnboardingFlow() {
         demographics: {
           ...normalizeFoodLocation(foodLocation),
           name: name.trim() || existingProfile?.demographics?.name || 'Patient',
-          age: age ? String(age).trim() : (existingProfile?.demographics?.age || ''),
+          age: age ? String(age).trim() : existingProfile?.demographics?.age || '',
           gender: gender || existingProfile?.demographics?.gender || 'Not Specified',
           height: String(heightCm),
           weight: String(weightKg),
@@ -324,11 +354,13 @@ export default function OnboardingFlow() {
           emergencyContact: existingProfile?.demographics?.emergencyContact || '',
         },
         conditions: hasNoConditions ? [] : conditions,
-        medications: hasNoMeds ? [] : medications.map(m => ({
-          name: m.name,
-          dosage: 'As directed',
-          circadianSlot: m.slot,
-        })),
+        medications: hasNoMeds
+          ? []
+          : medications.map((m) => ({
+              name: m.name,
+              dosage: 'As directed',
+              circadianSlot: m.slot,
+            })),
         allergies: hasNoAllergies ? [] : allergies,
         healthFocus: selectedGoal?.title || '',
       });
@@ -356,12 +388,12 @@ export default function OnboardingFlow() {
   };
 
   return (
-    <div 
+    <div
       role="dialog"
       aria-modal="true"
       aria-label="HealthChain Onboarding Experience"
-      style={{ 
-        position: 'fixed', 
+      style={{
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
@@ -370,23 +402,31 @@ export default function OnboardingFlow() {
         height: '100%',
         minHeight: '100dvh',
         background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
-        zIndex: 9999, 
-        display: 'flex', 
+        zIndex: 9999,
+        display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.48)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }} />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(255,255,255,0.48)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+        }}
+      />
 
       {/* Safe Area Container */}
-      <div 
-        style={{ 
-          position: 'relative', 
-          zIndex: 1, 
-          flex: 1, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          overflowY: 'auto', 
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
           paddingTop: 'max(76px, calc(env(safe-area-inset-top, 0px) + 38px))',
           paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
           paddingLeft: isMobile ? '16px' : '32px',
@@ -394,7 +434,6 @@ export default function OnboardingFlow() {
         }}
       >
         <AnimatePresence mode="wait">
-          
           {/* ========================================================================= */}
           {/* STEP 0: WELCOME HERO                                                      */}
           {/* ========================================================================= */}
@@ -405,20 +444,62 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)' }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 'min-content', padding: '24px 0' }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: 'min-content',
+                padding: '24px 0',
+              }}
             >
-              <div style={{ background: 'rgba(255,255,255,0.85)', padding: '18px', borderRadius: '50%', marginBottom: '28px', border: '1px solid rgba(15,23,42,0.1)', boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)' }}>
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.85)',
+                  padding: '18px',
+                  borderRadius: '50%',
+                  marginBottom: '28px',
+                  border: '1px solid rgba(15,23,42,0.1)',
+                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)',
+                }}
+              >
                 <Sparkles size={38} color="#059669" />
               </div>
-              <h1 style={{ fontSize: isMobile ? '32px' : '40px', fontWeight: 800, letterSpacing: '-1px', textAlign: 'center', color: '#0F172A', margin: '0 0 14px 0', lineHeight: 1.15 }}>
-                Build your<br/>health profile.
+              <h1
+                style={{
+                  fontSize: isMobile ? '32px' : '40px',
+                  fontWeight: 800,
+                  letterSpacing: '-1px',
+                  textAlign: 'center',
+                  color: '#0F172A',
+                  margin: '0 0 14px 0',
+                  lineHeight: 1.15,
+                }}
+              >
+                Build your
+                <br />
+                health profile.
               </h1>
-              <p style={{ color: '#475569', fontSize: isMobile ? '16px' : '18px', textAlign: 'center', margin: '0 0 40px 0', fontWeight: 500, maxWidth: '380px', lineHeight: 1.4 }}>
+              <p
+                style={{
+                  color: '#475569',
+                  fontSize: isMobile ? '16px' : '18px',
+                  textAlign: 'center',
+                  margin: '0 0 40px 0',
+                  fontWeight: 500,
+                  maxWidth: '380px',
+                  lineHeight: 1.4,
+                }}
+              >
                 Add the details you want HealthChain to use.
               </p>
 
               <motion.button
-                onClick={() => { triggerHapticLight(); setStep(1); }}
+                onClick={() => {
+                  triggerHapticLight();
+                  setStep(1);
+                }}
                 style={{
                   background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
                   border: 'none',
@@ -431,7 +512,7 @@ export default function OnboardingFlow() {
                   alignItems: 'center',
                   gap: '8px',
                   boxShadow: '0 10px 25px rgba(5, 150, 105, 0.3)',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -451,17 +532,56 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '540px', margin: '0 auto', width: '100%', minHeight: 'min-content' }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                maxWidth: '540px',
+                margin: '0 auto',
+                width: '100%',
+                minHeight: 'min-content',
+              }}
             >
               <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 12px', borderRadius: '999px', marginBottom: '12px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    padding: '4px 12px',
+                    borderRadius: '999px',
+                    marginBottom: '12px',
+                  }}
+                >
                   <Sparkles size={12} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#047857',
+                      letterSpacing: '0.6px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     STEP 1 • CORE FOCUS
                   </span>
                 </div>
-                <h2 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 800, letterSpacing: '-0.5px', margin: '0 0 8px 0', color: '#0F172A', lineHeight: 1.2 }}>
-                  What brings you to<br/><span style={{ color: '#059669' }}>HealthChain</span>?
+                <h2
+                  style={{
+                    fontSize: isMobile ? '28px' : '32px',
+                    fontWeight: 800,
+                    letterSpacing: '-0.5px',
+                    margin: '0 0 8px 0',
+                    color: '#0F172A',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  What brings you to
+                  <br />
+                  <span style={{ color: '#059669' }}>HealthChain</span>?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, lineHeight: 1.4 }}>
                   Select a primary focus to tailor the workspace.
@@ -479,11 +599,13 @@ export default function OnboardingFlow() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleGoalSelect(goal)}
                     style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 100%)',
                       backdropFilter: 'blur(24px)',
                       WebkitBackdropFilter: 'blur(24px)',
                       border: '1.5px solid rgba(255, 255, 255, 0.9)',
-                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.8)',
+                      boxShadow:
+                        '0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.8)',
                       borderRadius: '20px',
                       padding: '18px 20px',
                       textAlign: 'left',
@@ -491,20 +613,59 @@ export default function OnboardingFlow() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '16px',
-                      transition: 'all 0.15s ease'
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    <div style={{ background: '#FFFFFF', padding: '12px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        padding: '12px',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        flexShrink: 0,
+                      }}
+                    >
                       {goal.icon}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>{goal.title}</h3>
-                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#F1F5F9', color: '#475569' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '2px',
+                        }}
+                      >
+                        <h3
+                          style={{
+                            margin: 0,
+                            fontSize: '17px',
+                            fontWeight: 800,
+                            color: '#0F172A',
+                            letterSpacing: '-0.3px',
+                          }}
+                        >
+                          {goal.title}
+                        </h3>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+                            background: '#F1F5F9',
+                            color: '#475569',
+                          }}
+                        >
                           {goal.badge}
                         </span>
                       </div>
-                      <p style={{ margin: 0, color: '#64748B', fontSize: '13px', lineHeight: 1.35 }}>{goal.desc}</p>
+                      <p
+                        style={{ margin: 0, color: '#64748B', fontSize: '13px', lineHeight: 1.35 }}
+                      >
+                        {goal.desc}
+                      </p>
                     </div>
                     <ChevronRight size={20} color="#0D9488" style={{ flexShrink: 0 }} />
                   </motion.button>
@@ -513,7 +674,7 @@ export default function OnboardingFlow() {
             </motion.div>
           )}
 
-                    {/* ========================================================================= */}
+          {/* ========================================================================= */}
           {/* STEP 2: PROFILE PAGE 1 OF 3 — BIOMETRICS & METABOLIC CALIBRATION         */}
           {/* ========================================================================= */}
           {step === 2 && selectedGoal && (
@@ -523,15 +684,33 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
+              style={{
+                maxWidth: '580px',
+                margin: '0 auto',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                minHeight: 'min-content',
+              }}
             >
               {/* Top Navigation & Gamified Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '2px',
+                }}
+              >
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { triggerHapticLight(); setStep(1); }}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setStep(1);
+                  }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -545,28 +724,86 @@ export default function OnboardingFlow() {
                     fontSize: '12.5px',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   }}
                 >
                   <ArrowLeft size={14} /> Back
                 </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                    border: '1.5px solid #6EE7B7',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)',
+                  }}
+                >
                   <Sparkles size={13} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      color: '#047857',
+                      letterSpacing: '0.4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
 
               {/* Engaging 3-Step Progress Track */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                  marginBottom: '4px',
+                }}
+              >
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)', transition: 'all 0.3s ease' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: '#E2E8F0',
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: '#E2E8F0',
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#0D9488',
+                  }}
+                >
                   <span>1 of 3 · Basics</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>33% complete</span>
                 </div>
@@ -574,12 +811,21 @@ export default function OnboardingFlow() {
 
               {/* Contextual Title */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '23px' : '27px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                    letterSpacing: '-0.4px',
+                    lineHeight: 1.25,
+                  }}
+                >
                   {selectedGoal.title === 'Track Calories'
                     ? 'Add Food-Planning Context'
                     : selectedGoal.title === 'Chronic Management'
-                    ? 'Add Case Context'
-                    : 'Add Daily Context'}
+                      ? 'Add Case Context'
+                      : 'Add Daily Context'}
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   {selectedGoal.title === 'Track Calories'
@@ -600,30 +846,96 @@ export default function OnboardingFlow() {
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '14px'
+                  gap: '14px',
                 }}
               >
                 {/* Age Brackets & Fine Tuning */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
                       <span>🎂</span> Age Bracket &amp; Exact Age
                     </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', padding: '3px 6px', borderRadius: '999px', border: '1px solid #E2E8F0' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: '#F8FAFC',
+                        padding: '3px 6px',
+                        borderRadius: '999px',
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setAge(prev => Math.max(18, prev - 1)); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 900, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setAge((prev) => Math.max(18, prev - 1));
+                        }}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#0F172A',
+                        }}
                       >
                         −
                       </button>
-                      <span style={{ fontSize: '13.5px', fontWeight: 900, color: '#0F766E', minWidth: '44px', textAlign: 'center' }}>
+                      <span
+                        style={{
+                          fontSize: '13.5px',
+                          fontWeight: 900,
+                          color: '#0F766E',
+                          minWidth: '44px',
+                          textAlign: 'center',
+                        }}
+                      >
                         {age} yrs
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setAge(prev => Math.min(100, prev + 1)); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 900, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setAge((prev) => Math.min(100, prev + 1));
+                        }}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#0F172A',
+                        }}
                       >
                         +
                       </button>
@@ -631,20 +943,26 @@ export default function OnboardingFlow() {
                   </div>
 
                   {/* 5-Column Responsive Age Bracket Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
-                    {AGE_BRACKETS.map(b => {
-                      const isSelected = (b.range === '18–25' && age >= 18 && age <= 25) ||
-                                         (b.range === '26–35' && age >= 26 && age <= 35) ||
-                                         (b.range === '36–49' && age >= 36 && age <= 49) ||
-                                         (b.range === '50–64' && age >= 50 && age <= 64) ||
-                                         (b.range === '65+' && age >= 65);
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}
+                  >
+                    {AGE_BRACKETS.map((b) => {
+                      const isSelected =
+                        (b.range === '18–25' && age >= 18 && age <= 25) ||
+                        (b.range === '26–35' && age >= 26 && age <= 35) ||
+                        (b.range === '36–49' && age >= 36 && age <= 49) ||
+                        (b.range === '50–64' && age >= 50 && age <= 64) ||
+                        (b.range === '65+' && age >= 65);
                       return (
                         <motion.button
                           key={b.range}
                           type="button"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.94 }}
-                          onClick={() => { triggerHapticSelection(); setAge(b.defaultAge); }}
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setAge(b.defaultAge);
+                          }}
                           style={{
                             padding: '8px 2px',
                             borderRadius: '12px',
@@ -656,14 +974,29 @@ export default function OnboardingFlow() {
                             justifyContent: 'center',
                             gap: '2px',
                             border: isSelected ? '1.5px solid #059669' : '1px solid #CBD5E1',
-                            background: isSelected ? 'linear-gradient(135deg, #059669 0%, #0D9488 100%)' : '#FFFFFF',
+                            background: isSelected
+                              ? 'linear-gradient(135deg, #059669 0%, #0D9488 100%)'
+                              : '#FFFFFF',
                             color: isSelected ? '#FFFFFF' : '#334155',
-                            boxShadow: isSelected ? '0 4px 14px rgba(5, 150, 105, 0.28)' : '0 1px 2px rgba(0,0,0,0.02)',
-                            transition: 'all 0.15s ease'
+                            boxShadow: isSelected
+                              ? '0 4px 14px rgba(5, 150, 105, 0.28)'
+                              : '0 1px 2px rgba(0,0,0,0.02)',
+                            transition: 'all 0.15s ease',
                           }}
                         >
-                          <span style={{ fontSize: '12px', fontWeight: 800, lineHeight: 1.1 }}>{b.range}</span>
-                          <span style={{ fontSize: '9.5px', fontWeight: 700, opacity: isSelected ? 0.95 : 0.65, letterSpacing: '0.2px' }}>{b.stage}</span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, lineHeight: 1.1 }}>
+                            {b.range}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '9.5px',
+                              fontWeight: 700,
+                              opacity: isSelected ? 0.95 : 0.65,
+                              letterSpacing: '0.2px',
+                            }}
+                          >
+                            {b.stage}
+                          </span>
                         </motion.button>
                       );
                     })}
@@ -672,22 +1005,37 @@ export default function OnboardingFlow() {
 
                 {/* Biological Sex */}
                 <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      marginBottom: '8px',
+                    }}
+                  >
                     <span>🧬</span> Biological Sex
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}
+                  >
                     {[
                       { label: 'Male', emoji: '👨' },
                       { label: 'Female', emoji: '👩' },
-                      { label: 'Other', emoji: '✨' }
-                    ].map(g => {
+                      { label: 'Other', emoji: '✨' },
+                    ].map((g) => {
                       const isSel = gender === g.label;
                       return (
                         <motion.button
                           key={g.label}
                           type="button"
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => { triggerHapticSelection(); setGender(g.label as any); }}
+                          onClick={() => {
+                            triggerHapticSelection();
+                            setGender(g.label as any);
+                          }}
                           style={{
                             padding: '10px 8px',
                             borderRadius: '12px',
@@ -699,10 +1047,12 @@ export default function OnboardingFlow() {
                             justifyContent: 'center',
                             gap: '6px',
                             border: isSel ? '2px solid #059669' : '1px solid #CBD5E1',
-                            background: isSel ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)' : '#FFFFFF',
+                            background: isSel
+                              ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)'
+                              : '#FFFFFF',
                             color: isSel ? '#065F46' : '#475569',
                             boxShadow: isSel ? '0 4px 12px rgba(5, 150, 105, 0.15)' : 'none',
-                            transition: 'all 0.15s ease'
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           <span style={{ fontSize: '15px' }}>{g.emoji}</span>
@@ -716,42 +1066,138 @@ export default function OnboardingFlow() {
 
                 {/* Height & Weight Stepper Grid */}
                 <FoodLocationFields {...foodLocation} onChange={setFoodLocation} />
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                    gap: '10px',
+                  }}
+                >
                   {/* Height */}
-                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
+                      border: '1.5px solid #E2E8F0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          color: '#334155',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                      >
                         <Ruler size={14} color="#0D9488" /> Height
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setHeightUnit(prev => prev === 'cm' ? 'ft' : 'cm'); }}
-                        style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setHeightUnit((prev) => (prev === 'cm' ? 'ft' : 'cm'));
+                        }}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          background: '#F0FDFA',
+                          border: '1px solid #99F6E4',
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          cursor: 'pointer',
+                        }}
                       >
                         {heightUnit.toUpperCase()} ⇄
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.max(100, prev - 1)); }}
-                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setHeightCm((prev) => Math.max(100, prev - 1));
+                        }}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          background: '#F8FAFC',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
                         −
                       </button>
                       <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
-                          {heightUnit === 'cm' ? `${heightCm}` : `${Math.floor((heightCm / 2.54) / 12)}'${Math.round((heightCm / 2.54) % 12)}"`}
+                        <span
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            letterSpacing: '-0.5px',
+                          }}
+                        >
+                          {heightUnit === 'cm'
+                            ? `${heightCm}`
+                            : `${Math.floor(heightCm / 2.54 / 12)}'${Math.round((heightCm / 2.54) % 12)}"`}
                         </span>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '3px' }}>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#64748B',
+                            marginLeft: '3px',
+                          }}
+                        >
                           {heightUnit === 'cm' ? 'cm' : ''}
                         </span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.min(230, prev + 1)); }}
-                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setHeightCm((prev) => Math.min(230, prev + 1));
+                        }}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          background: '#F8FAFC',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
                         +
                       </button>
@@ -759,40 +1205,130 @@ export default function OnboardingFlow() {
                   </div>
 
                   {/* Weight */}
-                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
+                      border: '1.5px solid #E2E8F0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          color: '#334155',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                      >
                         <Scale size={14} color="#0D9488" /> Weight
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setWeightUnit(prev => prev === 'kg' ? 'lbs' : 'kg'); }}
-                        style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setWeightUnit((prev) => (prev === 'kg' ? 'lbs' : 'kg'));
+                        }}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          background: '#F0FDFA',
+                          border: '1px solid #99F6E4',
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          cursor: 'pointer',
+                        }}
                       >
                         {weightUnit.toUpperCase()} ⇄
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.max(30, prev - 1)); }}
-                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setWeightKg((prev) => Math.max(30, prev - 1));
+                        }}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          background: '#F8FAFC',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
                         −
                       </button>
                       <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
-                          {weightUnit === 'kg' ? `${weightKg}` : `${Math.round(weightKg * 2.20462)}`}
+                        <span
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            letterSpacing: '-0.5px',
+                          }}
+                        >
+                          {weightUnit === 'kg'
+                            ? `${weightKg}`
+                            : `${Math.round(weightKg * 2.20462)}`}
                         </span>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '3px' }}>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#64748B',
+                            marginLeft: '3px',
+                          }}
+                        >
                           {weightUnit === 'kg' ? 'kg' : 'lbs'}
                         </span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.min(220, prev + 1)); }}
-                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setWeightKg((prev) => Math.min(220, prev + 1));
+                        }}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          background: '#F8FAFC',
+                          cursor: 'pointer',
+                          fontWeight: 900,
+                          fontSize: '18px',
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
                         +
                       </button>
@@ -807,40 +1343,105 @@ export default function OnboardingFlow() {
                     borderRadius: 18,
                     padding: '14px 16px',
                     border: '1.5px solid #99F6E4',
-                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)'
+                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 8,
+                    }}
+                  >
                     <div>
-                      <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 900,
+                          color: '#0F766E',
+                          letterSpacing: '0.6px',
+                          textTransform: 'uppercase',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
                         <Activity size={12} /> GENERAL ESTIMATES
                       </div>
-                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: 2, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <div
+                        style={{
+                          fontSize: '15px',
+                          fontWeight: 900,
+                          color: '#0F172A',
+                          marginTop: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         <span>BMI: {bmi}</span>
-                        <span style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 800, 
-                          padding: '2px 8px', 
-                          borderRadius: '999px', 
-                          background: bmiCategory.bg, 
-                          color: bmiCategory.color,
-                          border: `1px solid ${bmiCategory.border}`
-                        }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '999px',
+                            background: bmiCategory.bg,
+                            color: bmiCategory.color,
+                            border: `1px solid ${bmiCategory.border}`,
+                          }}
+                        >
                           {bmiCategory.label}
                         </span>
                       </div>
                     </div>
 
-                    <div style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.85)', padding: '5px 10px', borderRadius: '10px', border: '1px solid #99F6E4' }}>
-                      <div style={{ fontSize: '10px', color: '#047857', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}>
+                    <div
+                      style={{
+                        textAlign: 'right',
+                        background: 'rgba(255, 255, 255, 0.85)',
+                        padding: '5px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid #99F6E4',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '10px',
+                          color: '#047857',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          justifyContent: 'flex-end',
+                        }}
+                      >
                         <Flame size={12} color="#EA580C" /> EST. BMR
                       </div>
-                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F766E' }}>{bmr} <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B' }}>kcal</span></div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F766E' }}>
+                        {bmr}{' '}
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B' }}>
+                          kcal
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Spectrum Track */}
-                  <div style={{ width: '100%', height: '8px', background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)', borderRadius: 999, position: 'relative', marginTop: 8, marginBottom: 8 }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      background:
+                        'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)',
+                      borderRadius: 999,
+                      position: 'relative',
+                      marginTop: 8,
+                      marginBottom: 8,
+                    }}
+                  >
                     <motion.div
                       layout
                       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
@@ -859,9 +1460,21 @@ export default function OnboardingFlow() {
                     />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#047857', fontWeight: 700 }}>
-                    <span>BMI reference-weight range: <strong>{idealWeightRange}</strong></span>
-                    <span style={{ fontStyle: 'italic', opacity: 0.85 }}>Screening context only</span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                      color: '#047857',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span>
+                      BMI reference-weight range: <strong>{idealWeightRange}</strong>
+                    </span>
+                    <span style={{ fontStyle: 'italic', opacity: 0.85 }}>
+                      Screening context only
+                    </span>
                   </div>
                 </div>
               </div>
@@ -874,12 +1487,15 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button
                   type="button"
-                  onClick={() => { triggerHapticMedium(); setStep(3); }}
+                  onClick={() => {
+                    triggerHapticMedium();
+                    setStep(3);
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   style={{
@@ -897,7 +1513,7 @@ export default function OnboardingFlow() {
                     justifyContent: 'center',
                     gap: '8px',
                     boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   Continue to Conditions <ChevronRight size={18} />
@@ -915,7 +1531,7 @@ export default function OnboardingFlow() {
                     cursor: 'pointer',
                     padding: '4px 10px',
                     textDecoration: 'underline',
-                    textUnderlineOffset: '3px'
+                    textUnderlineOffset: '3px',
                   }}
                 >
                   Skip for now • Go straight to {selectedGoal.title} ›
@@ -934,15 +1550,33 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
+              style={{
+                maxWidth: '620px',
+                margin: '0 auto',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                minHeight: 'min-content',
+              }}
             >
               {/* Top Navigation & Gamified Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '2px',
+                }}
+              >
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { triggerHapticLight(); setStep(2); }}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setStep(2);
+                  }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -956,28 +1590,78 @@ export default function OnboardingFlow() {
                     fontSize: '12.5px',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   }}
                 >
                   <ArrowLeft size={14} /> Back
                 </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                    border: '1.5px solid #6EE7B7',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)',
+                  }}
+                >
                   <Sparkles size={13} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      color: '#047857',
+                      letterSpacing: '0.4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
 
               {/* Engaging 3-Step Progress Track */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                  marginBottom: '4px',
+                }}
+              >
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0' }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                    }}
+                  />
+                  <div
+                    style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0' }}
+                  />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#0D9488',
+                  }}
+                >
                   <span>2 of 3 · Conditions ({conditions.length})</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>66% complete</span>
                 </div>
@@ -985,11 +1669,21 @@ export default function OnboardingFlow() {
 
               {/* Headline */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '23px' : '27px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                    letterSpacing: '-0.4px',
+                    lineHeight: 1.25,
+                  }}
+                >
                   Diagnosed or Suspected Conditions
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
-                  Select any diagnosed or recurring conditions. Tap to toggle or choose "None / Healthy Baseline".
+                  Select any diagnosed or recurring conditions. Tap to toggle or choose "None /
+                  Healthy Baseline".
                 </p>
               </div>
 
@@ -1005,12 +1699,23 @@ export default function OnboardingFlow() {
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '14px'
+                  gap: '14px',
                 }}
               >
                 {/* None Shortcut */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     <ShieldCheck size={16} color="#0D9488" /> Health history
                   </span>
                   <button
@@ -1028,7 +1733,7 @@ export default function OnboardingFlow() {
                       border: hasNoConditions ? '1.5px solid #059669' : '1px solid #E2E8F0',
                       background: hasNoConditions ? '#ECFDF5' : '#FFFFFF',
                       color: hasNoConditions ? '#047857' : '#64748B',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     ✓ None / Healthy Baseline
@@ -1061,7 +1766,12 @@ export default function OnboardingFlow() {
                     placeholder="Add custom condition (e.g. Hashimoto's, Histamine)..."
                     value={customCondition}
                     onChange={(e) => setCustomCondition(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomCondition(); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomCondition();
+                      }
+                    }}
                     style={{
                       flex: 1,
                       padding: '10px 14px',
@@ -1086,7 +1796,7 @@ export default function OnboardingFlow() {
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
                     }}
                   >
                     <Plus size={16} /> Add
@@ -1102,12 +1812,15 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button
                   type="button"
-                  onClick={() => { triggerHapticMedium(); setStep(4); }}
+                  onClick={() => {
+                    triggerHapticMedium();
+                    setStep(4);
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   style={{
@@ -1125,7 +1838,7 @@ export default function OnboardingFlow() {
                     justifyContent: 'center',
                     gap: '8px',
                     boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   Continue to Medications &amp; Allergies <ChevronRight size={18} />
@@ -1143,7 +1856,7 @@ export default function OnboardingFlow() {
                     cursor: 'pointer',
                     padding: '4px 10px',
                     textDecoration: 'underline',
-                    textUnderlineOffset: '3px'
+                    textUnderlineOffset: '3px',
                   }}
                 >
                   Skip for now • Go straight to {selectedGoal.title} ›
@@ -1162,15 +1875,33 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
+              style={{
+                maxWidth: '620px',
+                margin: '0 auto',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                minHeight: 'min-content',
+              }}
             >
               {/* Top Navigation & Gamified Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '2px',
+                }}
+              >
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { triggerHapticLight(); setStep(3); }}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setStep(3);
+                  }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -1184,28 +1915,83 @@ export default function OnboardingFlow() {
                     fontSize: '12.5px',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   }}
                 >
                   <ArrowLeft size={14} /> Back
                 </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                    border: '1.5px solid #6EE7B7',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)',
+                  }}
+                >
                   <Sparkles size={13} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      color: '#047857',
+                      letterSpacing: '0.4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
 
               {/* Engaging 3-Step Progress Track */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                  marginBottom: '4px',
+                }}
+              >
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
-                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(90deg, #059669, #10B981)',
+                    }}
+                  />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#0D9488',
+                  }}
+                >
                   <span>3 of 3 · Medicines &amp; allergies</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>100% complete</span>
                 </div>
@@ -1213,11 +1999,21 @@ export default function OnboardingFlow() {
 
               {/* Headline */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '23px' : '27px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                    letterSpacing: '-0.4px',
+                    lineHeight: 1.25,
+                  }}
+                >
                   Medicines &amp; allergies
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
-                  Ensure clinical safety by syncing your daily medication timing and substance sensitivities.
+                  Ensure clinical safety by syncing your daily medication timing and substance
+                  sensitivities.
                 </p>
               </div>
 
@@ -1233,11 +2029,22 @@ export default function OnboardingFlow() {
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '14px'
+                  gap: '14px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     <Pill size={16} color="#0D9488" /> Regular Medications &amp; Supplements
                   </span>
                   <button
@@ -1255,7 +2062,7 @@ export default function OnboardingFlow() {
                       border: hasNoMeds ? '1.5px solid #059669' : '1px solid #E2E8F0',
                       background: hasNoMeds ? '#ECFDF5' : '#FFFFFF',
                       color: hasNoMeds ? '#047857' : '#64748B',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     ✓ None / No Prescriptions
@@ -1325,7 +2132,7 @@ export default function OnboardingFlow() {
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
                     }}
                   >
                     <Plus size={16} /> Add
@@ -1334,8 +2141,24 @@ export default function OnboardingFlow() {
 
                 {/* Selected Medications Circadian Timing Slots */}
                 {medications.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
-                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      borderTop: '1px solid #E2E8F0',
+                      paddingTop: '12px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        color: '#0F766E',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.4px',
+                      }}
+                    >
                       Circadian Intake Schedules
                     </span>
                     {medications.map((m) => (
@@ -1348,43 +2171,56 @@ export default function OnboardingFlow() {
                           background: '#F8FAFC',
                           padding: '8px 12px',
                           borderRadius: '12px',
-                          border: '1px solid #E2E8F0'
+                          border: '1px solid #E2E8F0',
                         }}
                       >
-                        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>{m.name}</span>
+                        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>
+                          {m.name}
+                        </span>
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
-                            const isSlot = m.slot === slot;
-                            const slotMeta = CIRCADIAN_SLOT_META[slot];
-                            const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
-                            return (
-                              <button
-                                key={slot}
-                                type="button"
-                                onClick={() => updateMedSlot(m.name, slot)}
-                                title={slotMeta.label}
-                                aria-label={slotMeta.label}
-                                style={{
-                                  fontSize: '11px',
-                                  fontWeight: 700,
-                                  padding: '5px 8px',
-                                  borderRadius: '8px',
-                                  border: isSlot ? `1.5px solid ${slotMeta.color}` : '1px solid #E2E8F0',
-                                  background: isSlot ? slotMeta.bg : '#F8FAFC',
-                                  color: isSlot ? slotMeta.color : '#64748B',
-                                  boxShadow: isSlot ? `0 2px 8px ${slotMeta.color}35` : 'none',
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  transition: 'all 0.15s ease'
-                                }}
-                              >
-                                <SlotIcon size={13} strokeWidth={2.2} />
-                                <span style={{ textTransform: 'capitalize' }}>{slot}</span>
-                              </button>
-                            );
-                          })}
+                          {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(
+                            (slot) => {
+                              const isSlot = m.slot === slot;
+                              const slotMeta = CIRCADIAN_SLOT_META[slot];
+                              const SlotIcon =
+                                slot === 'morning'
+                                  ? Sunrise
+                                  : slot === 'midday'
+                                    ? Sun
+                                    : slot === 'evening'
+                                      ? Sunset
+                                      : Moon;
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => updateMedSlot(m.name, slot)}
+                                  title={slotMeta.label}
+                                  aria-label={slotMeta.label}
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    padding: '5px 8px',
+                                    borderRadius: '8px',
+                                    border: isSlot
+                                      ? `1.5px solid ${slotMeta.color}`
+                                      : '1px solid #E2E8F0',
+                                    background: isSlot ? slotMeta.bg : '#F8FAFC',
+                                    color: isSlot ? slotMeta.color : '#64748B',
+                                    boxShadow: isSlot ? `0 2px 8px ${slotMeta.color}35` : 'none',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  <SlotIcon size={13} strokeWidth={2.2} />
+                                  <span style={{ textTransform: 'capitalize' }}>{slot}</span>
+                                </button>
+                              );
+                            }
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1404,11 +2240,22 @@ export default function OnboardingFlow() {
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '14px'
+                  gap: '14px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     <ShieldCheck size={16} color="#E11D48" /> Known Substance &amp; Drug Allergies
                   </span>
                   <button
@@ -1426,7 +2273,7 @@ export default function OnboardingFlow() {
                       border: hasNoAllergies ? '1.5px solid #059669' : '1px solid #E2E8F0',
                       background: hasNoAllergies ? '#ECFDF5' : '#FFFFFF',
                       color: hasNoAllergies ? '#047857' : '#64748B',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     ✓ No Known Allergies
@@ -1459,7 +2306,7 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button
@@ -1483,7 +2330,7 @@ export default function OnboardingFlow() {
                     justifyContent: 'center',
                     gap: '8px',
                     boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   {isSaving ? (
@@ -1492,7 +2339,8 @@ export default function OnboardingFlow() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={18} /> Save &amp; Launch {selectedGoal.title} (+50 PTS) <ChevronRight size={18} />
+                      <Sparkles size={18} /> Save &amp; Launch {selectedGoal.title} (+50 PTS){' '}
+                      <ChevronRight size={18} />
                     </>
                   )}
                 </motion.button>
@@ -1509,7 +2357,7 @@ export default function OnboardingFlow() {
                     cursor: 'pointer',
                     padding: '4px 10px',
                     textDecoration: 'underline',
-                    textUnderlineOffset: '3px'
+                    textUnderlineOffset: '3px',
                   }}
                 >
                   Skip for now • Go straight to {selectedGoal.title} ›
@@ -1536,7 +2384,7 @@ export default function OnboardingFlow() {
                 alignItems: 'center',
                 textAlign: 'center',
                 padding: '24px',
-                position: 'relative'
+                position: 'relative',
               }}
             >
               <Confetti
@@ -1560,7 +2408,7 @@ export default function OnboardingFlow() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   boxShadow: '0 16px 40px rgba(5, 150, 105, 0.45)',
-                  marginBottom: '20px'
+                  marginBottom: '20px',
                 }}
               >
                 <Sparkles size={44} color="#FFFFFF" />
@@ -1579,25 +2427,55 @@ export default function OnboardingFlow() {
                   fontSize: '12.5px',
                   fontWeight: 900,
                   marginBottom: '14px',
-                  boxShadow: '0 2px 10px rgba(5, 150, 105, 0.15)'
+                  boxShadow: '0 2px 10px rgba(5, 150, 105, 0.15)',
                 }}
               >
                 PROFILE SETUP COMPLETE • ACTIVITY RECORDED
               </div>
 
-              <h2 style={{ fontSize: isMobile ? '28px' : '34px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
+              <h2
+                style={{
+                  fontSize: isMobile ? '28px' : '34px',
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.5px',
+                }}
+              >
                 Your starting profile is ready
               </h2>
-              <p style={{ color: '#475569', fontSize: '15px', margin: '0 0 24px 0', maxWidth: '360px', lineHeight: 1.4 }}>
-                Connecting your saved information to your {selectedGoal.title} experience. You can review or change it at any time.
+              <p
+                style={{
+                  color: '#475569',
+                  fontSize: '15px',
+                  margin: '0 0 24px 0',
+                  maxWidth: '360px',
+                  lineHeight: 1.4,
+                }}
+              >
+                Connecting your saved information to your {selectedGoal.title} experience. You can
+                review or change it at any time.
               </p>
 
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0D9488', fontSize: '14px', fontWeight: 800, background: '#F0FDFA', padding: '10px 20px', borderRadius: '999px', border: '1.5px solid #99F6E4', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.1)' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#0D9488',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  background: '#F0FDFA',
+                  padding: '10px 20px',
+                  borderRadius: '999px',
+                  border: '1.5px solid #99F6E4',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.1)',
+                }}
+              >
                 <Loader2 size={18} className="animate-spin" /> Launching {selectedGoal.title}...
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </div>

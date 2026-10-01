@@ -14,6 +14,8 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 | CLEAN-03 | Validate public assets against source and live public-content URLs, deduplicate unused variants, optimize source images once and stop repeated build-time recompression. | Asset reference checks, size/build comparisons and real production headers/rendering. |
 | PERF-04 | Review live query/index and RLS cost; add changes only where actual tables/queries support them. Keep owner authorization and records intact. | Database metadata, migration contract, rolled-back checks and advisers. |
 | CLEAN-04 | Add repository/build guards, update developer docs and release evidence, then commit/push/deploy. | Full quality gates on the exact release SHA and production smoke. |
+| CLEAN-05 | Remove unused local declarations, redundant calculations, obsolete handlers and unused subscriptions; format touched source consistently. | Enforce `noUnusedLocals` in the production TypeScript build; full unit/browser gates. |
+| PERF-05 | Keep initial landing text visible, remove unused recurring updates, improve mobile readability/zoom and defer optional tracking until consent. | Mobile Chromium/WebKit checks, consent regressions and compressed-build Lighthouse measurement. |
 
 ## Safety and measurement
 
@@ -38,18 +40,24 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 - Refreshed generated Capacitor configuration from the current source and fixed Windows-only Swift package path separators. CI builds and generates both platform copies before the native configuration regression checks, which also cover portable package paths. Generated assets/configuration remain ignored. Signed builds are still a separate gate.
 - Added repository hygiene and emitted-manifest startup-size gates to CI/build. Rewrote the inaccurate placeholder README/architecture guide and ignored CLI/build caches.
 - Updated vulnerable build/test dependencies within their supported release ranges. The native Xcode helper uses a scoped `uuid` 11.1.1 override: it preserves CommonJS support and the helper's `v4` API while including the [upstream security fix](https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq). A regression check parses the real iOS project, generates an identifier and serializes it without modifying the file. CI now audits development dependencies as well as application dependencies.
+- Removed unused locals, stale Ava prompt builders, redundant meal reductions, unused hashes and a background case-history subscription whose results were never rendered. Required model requests, payment handling, storage writes and API idempotency keys remain covered by their existing tests. The TypeScript build now rejects unused local declarations, and touched source is formatted consistently.
+- Landing text renders without an entrance delay. Removed an unused recurring update and limited an offscreen SVG animation to its visible period. Improved text contrast, heading order, minimum label size, mobile tag wrapping and browser zoom. Reduced-motion preferences stop decorative looping animations. A trial rendering shortcut was removed after it interfered with scrolling.
+- Analytics and Ads share one SDK loaded after optional consent; purchase conversion dispatch also requires consent. Accepted conversions retain their existing destination and values. Browser tests check both acceptance and decline paths. See [Google tag configuration](https://developers.google.com/tag-platform/gtagjs/configure).
+- Lighthouse now serves the built application with text compression using a small local audit server. Measurements from this harness must not be presented as a direct speed comparison with the old uncompressed static-server results. Accessibility, best-practices and SEO now require scores of at least 90; mobile performance's 90 target remains a warning.
 
 ## Measured results
 
 | Measurement | Before | After |
 |---|---:|---:|
-| Initial static JavaScript | 2,173,698 bytes | 854,106 bytes |
-| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,694 bytes |
-| Dashboard screen JavaScript chunk | 500,023 bytes | 92,973 bytes |
-| Built deployment files | 273,725,683 bytes | 252,923,348 bytes |
-| Repository working files | 1,565 | 765 |
+| Initial static JavaScript | 2,173,698 bytes | 854,100 bytes |
+| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,707 bytes |
+| Dashboard screen JavaScript chunk | 500,023 bytes | 92,939 bytes |
+| Built deployment files | 273,725,683 bytes | 252,905,288 bytes |
+| Repository working files | 1,565 | 767 |
 
 The initial JavaScript graph is **60.7% smaller** (59.6% for the gzip comparison). The dashboard chunk is **81.4% smaller**. These measure emitted bytes; route-specific requests, network/device conditions and provider response time also affect what users experience. The used audio library remains the largest part of the deployed/native asset footprint and was retained.
+
+The final local compressed-build Lighthouse run scored **65 performance, 100 accessibility, 100 best-practices and 100 SEO**. Simulated mobile LCP was 5.8 seconds and total blocking time 430 ms. These identify remaining loading work, particularly render delay and style/layout cost; smaller bundles do not establish instant loading on a slow phone. The hosted exact-release report remains the CI measurement.
 
 ### Database efficiency
 
@@ -63,6 +71,6 @@ Migration `20261001173602_app_query_efficiency.sql` was applied to project `ciki
 
 ## Verification and acceptance limits
 
-Final local unit suite: **798 passed, 1 skipped**. The skip is the opt-in live-model suite. The browser sweeps exposed frozen-clock initialization and short journey deadlines, then a closing-dialog focus race; the corrected Ava and daily-tracker suites passed all 38 Chromium/WebKit checks. The case/Ava/clinical journey waits for the saved screen before its next navigation and passed six repeated Chromium/WebKit runs without retries. Exact-release full browser, build, migration/repository, lint, dependency and production results are recorded in the task's external release evidence and [GitHub Actions](https://github.com/AdityajhajhariaJu/HealthChain/actions). The complete application/development dependency audit reports zero vulnerabilities after a clean install.
+Final local unit suite: **801 passed, 1 skipped**. The skip is the opt-in live-model suite. The browser sweeps exposed frozen-clock initialization and short journey deadlines, then a closing-dialog focus race; the corrected Ava and daily-tracker suites passed all 38 Chromium/WebKit checks. The case/Ava/clinical journey waits for the saved screen before its next navigation and passed six repeated Chromium/WebKit runs without retries. Four new mobile Chromium/WebKit checks verify visible initial text, zoom, rendered cards/fallback images, deep scrolling, no horizontal overflow and optional tracking consent. Exact-release full browser, build, migration/repository, lint, dependency and production results are recorded in the task's external release evidence and [GitHub Actions](https://github.com/AdityajhajhariaJu/HealthChain/actions). The complete application/development dependency audit reports zero vulnerabilities after a clean install.
 
 Device restore fallback retains native data for later recovery if the bridge misses the deadline; signed phone recovery still needs acceptance. Native sign-in/provider setup, physical notification delivery, two-device convergence, remaining legacy AI semantic contracts and clinical/nutrition review remain as described in the [functional audit](WHOLE-APP-FUNCTIONAL-AUDIT.md). Cleanup does not turn those into completed acceptance claims.

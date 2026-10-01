@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
-import React from 'react';
 import { render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { AnimatedTrackThumbnail } from '../AnimatedTrackThumbnail';
 
 describe('AnimatedTrackThumbnail', () => {
@@ -13,7 +12,7 @@ describe('AnimatedTrackThumbnail', () => {
     'soundscape-0',
     'soundscape-1',
     'soundscape-2',
-    'soundscape-3'
+    'soundscape-3',
   ];
 
   tracks.forEach((trackId) => {

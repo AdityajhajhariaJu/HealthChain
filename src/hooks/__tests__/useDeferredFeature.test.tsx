@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import React, { useEffect, useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useEffect, useState } from 'react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { useDeferredFeature } from '../useDeferredFeature';
 

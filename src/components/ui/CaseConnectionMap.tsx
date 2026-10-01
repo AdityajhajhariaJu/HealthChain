@@ -83,10 +83,19 @@ export function CaseConnectionMap({
             Awaiting Clinical Intake
           </h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-            No case topics or recorded symptoms are available yet. Add your observations or a record to map possible relationships without treating them as confirmed causes.
+            No case topics or recorded symptoms are available yet. Add your observations or a record
+            to map possible relationships without treating them as confirmed causes.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            marginTop: '6px',
+          }}
+        >
           <button
             type="button"
             onClick={() => {
@@ -152,7 +161,7 @@ export function CaseConnectionMap({
     let result: any[] = [];
     const symps = data.centralSymptoms || [];
     const sympRadius = isMobile ? 58 : 76;
-    
+
     symps.forEach((symp: any, i: number) => {
       const angle = (i / symps.length) * Math.PI * 2 - Math.PI / 2;
       result.push({
@@ -242,9 +251,7 @@ export function CaseConnectionMap({
     }
     if (filterSystem === 'immune') {
       return (
-        node.category === 'inflammatory' ||
-        node.system === 'immune' ||
-        node.id?.includes('mcas')
+        node.category === 'inflammatory' || node.system === 'immune' || node.id?.includes('mcas')
       );
     }
     return true;
@@ -294,7 +301,7 @@ export function CaseConnectionMap({
           boxShadow: '0 8px 24px rgba(13, 148, 136, 0.05)',
         }}
       >
-          {/* Capsule interaction prompt */}
+        {/* Capsule interaction prompt */}
         <div
           style={{
             position: 'absolute',
@@ -388,10 +395,16 @@ export function CaseConnectionMap({
                     isSelected
                       ? '#EA580C'
                       : isActive && (hoveredNode || selectedNodeId || hoveredEdge)
-                      ? 'url(#edge-flow-gradient)'
-                      : '#E2E8F0'
+                        ? 'url(#edge-flow-gradient)'
+                        : '#E2E8F0'
                   }
-                  strokeWidth={isSelected ? 3.5 : isActive && (hoveredNode || selectedNodeId || hoveredEdge) ? 2.5 : 1.5}
+                  strokeWidth={
+                    isSelected
+                      ? 3.5
+                      : isActive && (hoveredNode || selectedNodeId || hoveredEdge)
+                        ? 2.5
+                        : 1.5
+                  }
                   strokeDasharray={edge.type === 'differential_overlap' ? '4 4' : 'none'}
                   markerEnd={
                     edge.type === 'causal_progression'
@@ -523,9 +536,7 @@ export function CaseConnectionMap({
 
             // Condition Node - Capsule Pill
             const categoryConfig = CATEGORY_COLORS[node.category] || CATEGORY_COLORS.metabolic;
-            const hasPrecaution = (data.precautions || []).some((p: any) =>
-              p?.relatedConditions?.includes(node.id)
-            );
+
             const nodeLabel = node.label || node.name || 'Condition';
 
             return (
@@ -577,7 +588,9 @@ export function CaseConnectionMap({
                   stroke={isSelected ? categoryConfig.dot : categoryConfig.border}
                   strokeWidth={isSelected ? 2 : 1.5}
                   initial={{ scale: 0 }}
-                  animate={{ scale: (isActive && hoveredNode === node.id) || isSelected ? 1.05 : 1 }}
+                  animate={{
+                    scale: (isActive && hoveredNode === node.id) || isSelected ? 1.05 : 1,
+                  }}
                   transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                   style={{
                     filter: isSelected
@@ -602,7 +615,11 @@ export function CaseConnectionMap({
                   fontWeight="800"
                   fill="#1C1917"
                 >
-                  {nodeLabel ? (nodeLabel.length > (isMobile ? 20 : 24) ? nodeLabel.substring(0, isMobile ? 18 : 22) + '…' : nodeLabel) : 'Condition'}
+                  {nodeLabel
+                    ? nodeLabel.length > (isMobile ? 20 : 24)
+                      ? nodeLabel.substring(0, isMobile ? 18 : 22) + '…'
+                      : nodeLabel
+                    : 'Condition'}
                 </text>
 
                 {/* Confidence & Specialty Pill Tag */}
@@ -677,7 +694,14 @@ export function CaseConnectionMap({
               gap: '12px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span
                   style={{
@@ -695,7 +719,8 @@ export function CaseConnectionMap({
                   CROSS-SYSTEM CONNECTION
                 </span>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>
-                  {selectedEdge.type?.replace(/_/g, ' ').toUpperCase()} • {selectedEdge.strength?.toUpperCase()} CONFIDENCE
+                  {selectedEdge.type?.replace(/_/g, ' ').toUpperCase()} •{' '}
+                  {selectedEdge.strength?.toUpperCase()} CONFIDENCE
                 </span>
               </div>
               <button
@@ -734,7 +759,16 @@ export function CaseConnectionMap({
                   border: '1px solid #E2E8F0',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginBottom: '4px',
+                  }}
+                >
                   Biochemical & Physiological Rationale
                 </div>
                 <p style={{ margin: 0, fontSize: '13px', color: '#1E293B', lineHeight: 1.55 }}>
@@ -743,43 +777,77 @@ export function CaseConnectionMap({
               </div>
             )}
 
-            {selectedEdge.supportingEvidenceIds && selectedEdge.supportingEvidenceIds.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                  Supporting Evidence & Corroborating Signals
+            {selectedEdge.supportingEvidenceIds &&
+              selectedEdge.supportingEvidenceIds.length > 0 && (
+                <div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#047857',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Supporting Evidence & Corroborating Signals
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {selectedEdge.supportingEvidenceIds.map((evId: string, idx: number) => (
+                      <span
+                        key={idx}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: '#ECFDF5',
+                          border: '1px solid #A7F3D0',
+                          color: '#065F46',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                        }}
+                      >
+                        <span>✓</span>
+                        <span>{evId}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {selectedEdge.supportingEvidenceIds.map((evId: string, idx: number) => (
-                    <span
-                      key={idx}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        background: '#ECFDF5',
-                        border: '1px solid #A7F3D0',
-                        color: '#065F46',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                      }}
-                    >
-                      <span>✓</span>
-                      <span>{evId}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
 
             {selectedEdge.weakeningFactors && selectedEdge.weakeningFactors.length > 0 && (
-              <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+              <div
+                style={{
+                  background: '#FFFBEB',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  border: '1px solid #FDE68A',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#B45309',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginBottom: '4px',
+                  }}
+                >
                   Confounders & Counter-Evidence (Differential Challenges)
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', color: '#92400E', fontSize: '12.5px', lineHeight: 1.5 }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: '18px',
+                    color: '#92400E',
+                    fontSize: '12.5px',
+                    lineHeight: 1.5,
+                  }}
+                >
                   {selectedEdge.weakeningFactors.map((wf: string, idx: number) => (
                     <li key={idx}>{wf}</li>
                   ))}
@@ -875,7 +943,14 @@ export function CaseConnectionMap({
                   <li key={i}>
                     <strong>{typeof e === 'string' ? e : e?.test}</strong>{' '}
                     {e?.urgency && (
-                      <span style={{ color: '#15803D', opacity: 0.8, fontSize: '11px', marginLeft: '4px' }}>
+                      <span
+                        style={{
+                          color: '#15803D',
+                          opacity: 0.8,
+                          fontSize: '11px',
+                          marginLeft: '4px',
+                        }}
+                      >
                         ({e.urgency})
                       </span>
                     )}
@@ -889,4 +964,3 @@ export function CaseConnectionMap({
     </div>
   );
 }
-

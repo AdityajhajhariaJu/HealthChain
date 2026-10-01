@@ -1,20 +1,18 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  createCaseDraft,
-  getCases,
-  getCase,
-  addCaseQuestion,
-  getCaseQuestions,
-  transitionCaseQuestionLifecycle,
-  recordCaseQuestionOutcome,
-  setQuestionsForAppointment,
-  saveAppointmentBrief,
-  generateStableQuestionId,
-  clearCaseEngineCache,
-  appendCaseRecords,
-} from '../CaseEngine';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateDeterministicBrief } from '../AppointmentBriefService';
+import {
+  addCaseQuestion,
+  appendCaseRecords,
+  clearCaseEngineCache,
+  createCaseDraft,
+  getCase,
+  getCaseQuestions,
+  getCases,
+  recordCaseQuestionOutcome,
+  saveAppointmentBrief,
+  setQuestionsForAppointment,
+} from '../CaseEngine';
 
 // Mock localStorage for isolated testing
 const localStorageMock = (function () {
@@ -56,7 +54,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     const initialCase = createCaseDraft({
       title: 'Persistent Orthostatic Tachycardia & Fatigue',
       intakeData: {
-        chiefComplaint: 'Postural lightheadedness, heart rate jumps by 40 bpm upon standing, brain fog.',
+        chiefComplaint:
+          'Postural lightheadedness, heart rate jumps by 40 bpm upon standing, brain fog.',
       },
       medicalRecords: [
         {
@@ -64,7 +63,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
           filename: '12-Lead-ECG.pdf',
           source: 'Cardiology Clinic',
           type: 'ecg',
-          findings: 'Sinus tachycardia at 112 bpm upon standing. Normal QT interval, no ST elevation.',
+          findings:
+            'Sinus tachycardia at 112 bpm upon standing. Normal QT interval, no ST elevation.',
           addedAt: '2026-03-01T10:00:00.000Z',
         },
       ],
@@ -77,14 +77,16 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     // STEP 2: Harvest & seed clinical questions with deterministic deduplication
     // =========================================================================
     const q1 = addCaseQuestion(initialCase.id, {
-      questionText: 'Is the orthostatic standing heart rate surge secondary to hypovolemia or hyperadrenergic POTS?',
+      questionText:
+        'Is the orthostatic standing heart rate surge secondary to hypovolemia or hyperadrenergic POTS?',
       raisedBySpecialty: 'Cardiology',
       supportingEvidenceIds: ['rec_ecg_01'],
       status: 'open',
     });
 
     const q2 = addCaseQuestion(initialCase.id, {
-      questionText: 'Could hidden iron depletion (ferritin < 30) explain the persistent exercise intolerance?',
+      questionText:
+        'Could hidden iron depletion (ferritin < 30) explain the persistent exercise intolerance?',
       raisedBySpecialty: 'Hematology',
       supportingEvidenceIds: ['rec_ecg_01'],
       status: 'open',
@@ -104,7 +106,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
 
     // Deduplication test: re-adding identical question should reuse existing question
     const q1Duplicate = addCaseQuestion(initialCase.id, {
-      questionText: 'Is the orthostatic standing heart rate surge secondary to hypovolemia or hyperadrenergic POTS?',
+      questionText:
+        'Is the orthostatic standing heart rate surge secondary to hypovolemia or hyperadrenergic POTS?',
       raisedBySpecialty: 'Cardiology',
       supportingEvidenceIds: [],
       status: 'open',
@@ -120,7 +123,7 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     expect(selectionSuccess).toBe(true);
 
     const afterSelectionQuestions = getCaseQuestions(initialCase.id);
-    expect(afterSelectionQuestions.every(q => q.status === 'prepared')).toBe(true);
+    expect(afterSelectionQuestions.every((q) => q.status === 'prepared')).toBe(true);
 
     // =========================================================================
     // STEP 4: User prepares Brief v1
@@ -195,9 +198,9 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
 
     // Verify Question Lifecycle Invariants on the Case Object
     const caseAfterOutcomes = getCase(initialCase.id)!;
-    const recordedQ1 = caseAfterOutcomes.questions?.find(q => q.id === q1.id)!;
-    const recordedQ2 = caseAfterOutcomes.questions?.find(q => q.id === q2.id)!;
-    const recordedQ3 = caseAfterOutcomes.questions?.find(q => q.id === q3.id)!;
+    const recordedQ1 = caseAfterOutcomes.questions?.find((q) => q.id === q1.id)!;
+    const recordedQ2 = caseAfterOutcomes.questions?.find((q) => q.id === q2.id)!;
+    const recordedQ3 = caseAfterOutcomes.questions?.find((q) => q.id === q3.id)!;
 
     // Strict invariant: "Discussed" has discussedAt set, but resolvedAt is strictly undefined!
     expect(recordedQ1.status).toBe('discussed');
@@ -216,7 +219,9 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     expect(recordedQ3.resolvedAt).toBeDefined();
 
     // Verify case timeline events recorded with patient-reported provenance note
-    const discussedEvent = caseAfterOutcomes.events?.find(e => e.label === 'Physician Question Discussed');
+    const discussedEvent = caseAfterOutcomes.events?.find(
+      (e) => e.label === 'Physician Question Discussed'
+    );
     expect(discussedEvent).toBeDefined();
     expect(discussedEvent?.note).toContain('Patient-reported clinician statement');
 
@@ -251,28 +256,32 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     // 2. Immutability of history: v1 is in history as an untouched snapshot
     expect(caseAfterV2.appointmentBriefs?.history?.length).toBe(1);
     expect(caseAfterV2.appointmentBriefs?.history?.[0]?.version).toBe(1);
-    expect(caseAfterV2.appointmentBriefs?.history?.[0]?.generatedAt).toBe('2026-03-02T10:00:00.000Z');
+    expect(caseAfterV2.appointmentBriefs?.history?.[0]?.generatedAt).toBe(
+      '2026-03-02T10:00:00.000Z'
+    );
 
     // 3. What Changed Since Last Visit: Previous outcomes reviewed is populated
     const v2Brief = caseAfterV2.appointmentBriefs?.current!;
     expect(v2Brief.previousOutcomesReviewed).toBeDefined();
     expect(v2Brief.previousOutcomesReviewed?.length).toBeGreaterThanOrEqual(3);
 
-    const reviewedQ1 = v2Brief.previousOutcomesReviewed?.find(po => po.questionId === q1.id);
+    const reviewedQ1 = v2Brief.previousOutcomesReviewed?.find((po) => po.questionId === q1.id);
     expect(reviewedQ1).toBeDefined();
     expect(reviewedQ1?.status).toBe('discussed');
     expect(reviewedQ1?.note).toContain('fits POTS criteria');
     expect(reviewedQ1?.provenance).toBe('user_reported_clinician_statement');
 
-    const reviewedQ2 = v2Brief.previousOutcomesReviewed?.find(po => po.questionId === q2.id);
+    const reviewedQ2 = v2Brief.previousOutcomesReviewed?.find((po) => po.questionId === q2.id);
     expect(reviewedQ2?.status).toBe('deferred');
 
-    const reviewedQ3 = v2Brief.previousOutcomesReviewed?.find(po => po.questionId === q3.id);
+    const reviewedQ3 = v2Brief.previousOutcomesReviewed?.find((po) => po.questionId === q3.id);
     expect(reviewedQ3?.status).toBe('resolved');
 
     // 4. What Changed Since Last Visit: Changes since last visit includes newly attached record
     expect(v2Brief.changesSinceLastVisit).toBeDefined();
-    const recordAdditionChange = v2Brief.changesSinceLastVisit?.find(c => c.type === 'record_added');
+    const recordAdditionChange = v2Brief.changesSinceLastVisit?.find(
+      (c) => c.type === 'record_added'
+    );
     expect(recordAdditionChange).toBeDefined();
     expect(recordAdditionChange?.description).toContain('Iron-and-Ferritin-Panel.pdf');
 
@@ -295,17 +304,17 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
 
     // Verify all 3 questions survived reload with precise lifecycle states
     expect(rehydratedCase.questions?.length).toBe(3);
-    const rehydratedQ1 = rehydratedCase.questions?.find(q => q.id === q1.id)!;
+    const rehydratedQ1 = rehydratedCase.questions?.find((q) => q.id === q1.id)!;
     expect(rehydratedQ1.status).toBe('discussed');
     expect(rehydratedQ1.outcomeProvenance).toBe('user_reported_clinician_statement');
     expect(rehydratedQ1.discussedAt).toBeDefined();
     expect(rehydratedQ1.resolvedAt).toBeUndefined();
 
-    const rehydratedQ2 = rehydratedCase.questions?.find(q => q.id === q2.id)!;
+    const rehydratedQ2 = rehydratedCase.questions?.find((q) => q.id === q2.id)!;
     expect(rehydratedQ2.status).toBe('deferred');
     expect(rehydratedQ2.deferredAt).toBeDefined();
 
-    const rehydratedQ3 = rehydratedCase.questions?.find(q => q.id === q3.id)!;
+    const rehydratedQ3 = rehydratedCase.questions?.find((q) => q.id === q3.id)!;
     expect(rehydratedQ3.status).toBe('resolved');
     expect(rehydratedQ3.resolvedAt).toBeDefined();
 
@@ -313,6 +322,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     expect(rehydratedCase.appointmentBriefs?.current?.version).toBe(2);
     expect(rehydratedCase.appointmentBriefs?.history?.length).toBe(1);
     expect(rehydratedCase.appointmentBriefs?.history?.[0]?.version).toBe(1);
-    expect(rehydratedCase.appointmentBriefs?.current?.previousOutcomesReviewed?.length).toBeGreaterThanOrEqual(3);
+    expect(
+      rehydratedCase.appointmentBriefs?.current?.previousOutcomesReviewed?.length
+    ).toBeGreaterThanOrEqual(3);
   });
 });

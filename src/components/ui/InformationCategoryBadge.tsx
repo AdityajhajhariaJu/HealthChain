@@ -6,7 +6,6 @@ import {
   CategorizedInformationItem,
   ClinicalInformationCategory,
   INFORMATION_CATEGORY_REGISTRY,
-  validateCategorizedItem,
 } from '../../services/ClinicalInformationClassifier';
 import { triggerHapticLight } from '../../services/haptics';
 import FocusTrap from './FocusTrap';
@@ -28,7 +27,6 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const spec = INFORMATION_CATEGORY_REGISTRY[category] || INFORMATION_CATEGORY_REGISTRY.user_report;
-  const validation = item ? validateCategorizedItem(item as any) : { isValid: true, missingFields: [] };
 
   const isSmall = size === 'sm';
 
@@ -72,192 +70,272 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
       </button>
 
       {/* Interactive Allowed Role & Provenance Inspector Modal */}
-      {typeof document !== 'undefined' && createPortal(<AnimatePresence>
-        {isOpen && (
-          <FocusTrap isActive={isOpen} onEscape={() => setIsOpen(false)}>
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Clinical Information Category: ${spec.name}`}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 11000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(15, 23, 42, 0.55)',
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
-                padding: '16px',
-              }}
-              onClick={() => setIsOpen(false)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                transition={{ duration: 0.18 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '20px',
-                  width: '100%',
-                  maxWidth: '480px',
-                  boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
-                  border: '1.5px solid #E2E8F0',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Header with Category Accent */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && (
+              <FocusTrap isActive={isOpen} onEscape={() => setIsOpen(false)}>
                 <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`Clinical Information Category: ${spec.name}`}
                   style={{
-                    background: spec.badgeColors.bg,
-                    borderBottom: `1px solid ${spec.badgeColors.border}`,
-                    padding: '16px 20px',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 11000,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
+                    background: 'rgba(15, 23, 42, 0.55)',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
+                    padding: '16px',
                   }}
+                  onClick={() => setIsOpen(false)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ duration: 0.18 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: '#FFFFFF',
+                      borderRadius: '20px',
+                      width: '100%',
+                      maxWidth: '480px',
+                      boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
+                      border: '1.5px solid #E2E8F0',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Header with Category Accent */}
                     <div
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
-                        background: '#FFFFFF',
-                        border: `1px solid ${spec.badgeColors.border}`,
-                        display: 'grid',
-                        placeItems: 'center',
-                        fontSize: '18px',
+                        background: spec.badgeColors.bg,
+                        borderBottom: `1px solid ${spec.badgeColors.border}`,
+                        padding: '16px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                       }}
                     >
-                      {spec.icon}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', color: spec.badgeColors.text }}>
-                        EVIDENCE CATEGORY
-                      </div>
-                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                        {spec.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.8)',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      width: '30px',
-                      height: '30px',
-                      display: 'grid',
-                      placeItems: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <X size={16} color="#64748B" />
-                  </button>
-                </div>
-
-                {/* Body Details */}
-                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
-                  {/* Primary Invariant: Allowed Role */}
-                  <div
-                    style={{
-                      background: '#F8FAFC',
-                      border: '1.5px solid #E2E8F0',
-                      borderRadius: '12px',
-                      padding: '14px 16px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <ShieldAlert size={15} color={spec.badgeColors.accent} />
-                      <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', color: '#0F172A' }}>
-                        System Invariant: Allowed Role
-                      </span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: spec.badgeColors.text, lineHeight: 1.4 }}>
-                      “{spec.allowedRole}”
-                    </p>
-                    <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
-                      This information cannot be conflated with diagnostic ground truth or converted into an unverified diagnosis.
-                    </p>
-                  </div>
-
-                  {/* Real-World Clinical Example */}
-                  <div style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.5 }}>
-                    <strong style={{ color: '#0F172A', display: 'block', marginBottom: '4px' }}>Representative Example:</strong>
-                    <div style={{ background: '#F1F5F9', padding: '8px 12px', borderRadius: '8px', fontStyle: 'italic', color: '#334155' }}>
-                      {spec.example}
-                    </div>
-                  </div>
-
-                  {/* Required Information Checklist */}
-                  <div>
-                    <strong style={{ color: '#0F172A', fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-                      Required Provenance Metadata:
-                    </strong>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {spec.requiredFields.map((field) => {
-                        const value = item && (item as any)[field];
-                        const isPresent = value !== undefined && value !== null && value !== '';
-                        return (
-                          <span
-                            key={field}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '10px',
+                            background: '#FFFFFF',
+                            border: `1px solid ${spec.badgeColors.border}`,
+                            display: 'grid',
+                            placeItems: 'center',
+                            fontSize: '18px',
+                          }}
+                        >
+                          {spec.icon}
+                        </div>
+                        <div>
+                          <div
                             style={{
-                              fontSize: '11px',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: isPresent ? '#ECFDF5' : '#F1F5F9',
-                              color: isPresent ? '#047857' : '#64748B',
-                              border: isPresent ? '1px solid #A7F3D0' : '1px solid #E2E8F0',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              fontWeight: 600,
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.6px',
+                              color: spec.badgeColors.text,
                             }}
                           >
-                            <CheckCircle2 size={11} color={isPresent ? '#10B981' : '#94A3B8'} />
-                            <code>{field}</code>
-                            <span>{isPresent ? String(typeof value === 'object' ? JSON.stringify(value) : value).slice(0, 160) : 'Not recorded'}</span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
+                            EVIDENCE CATEGORY
+                          </div>
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: '16px',
+                              fontWeight: 800,
+                              color: '#0F172A',
+                            }}
+                          >
+                            {spec.name}
+                          </h3>
+                        </div>
+                      </div>
 
-                  {/* Foundational Rule Citation */}
-                  <div
-                    style={{
-                      borderTop: '1px dashed #CBD5E1',
-                      paddingTop: '12px',
-                      fontSize: '11px',
-                      color: '#64748B',
-                      lineHeight: 1.4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}
-                  >
-                    <span>🛡️</span>
-                    <span>
-                      <strong>HealthChain Clinical Rule:</strong> A source, an interpretation and a conclusion are different objects—even when they use similar words.
-                    </span>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsOpen(false)}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          width: '30px',
+                          height: '30px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <X size={16} color="#64748B" />
+                      </button>
+                    </div>
+
+                    {/* Body Details */}
+                    <div
+                      style={{
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                      }}
+                    >
+                      {/* Primary Invariant: Allowed Role */}
+                      <div
+                        style={{
+                          background: '#F8FAFC',
+                          border: '1.5px solid #E2E8F0',
+                          borderRadius: '12px',
+                          padding: '14px 16px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          <ShieldAlert size={15} color={spec.badgeColors.accent} />
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.6px',
+                              color: '#0F172A',
+                            }}
+                          >
+                            System Invariant: Allowed Role
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: spec.badgeColors.text,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          “{spec.allowedRole}”
+                        </p>
+                        <p
+                          style={{
+                            margin: '6px 0 0 0',
+                            fontSize: '12px',
+                            color: '#64748B',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          This information cannot be conflated with diagnostic ground truth or
+                          converted into an unverified diagnosis.
+                        </p>
+                      </div>
+
+                      {/* Real-World Clinical Example */}
+                      <div style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.5 }}>
+                        <strong style={{ color: '#0F172A', display: 'block', marginBottom: '4px' }}>
+                          Representative Example:
+                        </strong>
+                        <div
+                          style={{
+                            background: '#F1F5F9',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            fontStyle: 'italic',
+                            color: '#334155',
+                          }}
+                        >
+                          {spec.example}
+                        </div>
+                      </div>
+
+                      {/* Required Information Checklist */}
+                      <div>
+                        <strong
+                          style={{
+                            color: '#0F172A',
+                            fontSize: '12px',
+                            display: 'block',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          Required Provenance Metadata:
+                        </strong>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {spec.requiredFields.map((field) => {
+                            const value = item && (item as any)[field];
+                            const isPresent = value !== undefined && value !== null && value !== '';
+                            return (
+                              <span
+                                key={field}
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  background: isPresent ? '#ECFDF5' : '#F1F5F9',
+                                  color: isPresent ? '#047857' : '#64748B',
+                                  border: isPresent ? '1px solid #A7F3D0' : '1px solid #E2E8F0',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                <CheckCircle2 size={11} color={isPresent ? '#10B981' : '#94A3B8'} />
+                                <code>{field}</code>
+                                <span>
+                                  {isPresent
+                                    ? String(
+                                        typeof value === 'object' ? JSON.stringify(value) : value
+                                      ).slice(0, 160)
+                                    : 'Not recorded'}
+                                </span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Foundational Rule Citation */}
+                      <div
+                        style={{
+                          borderTop: '1px dashed #CBD5E1',
+                          paddingTop: '12px',
+                          fontSize: '11px',
+                          color: '#64748B',
+                          lineHeight: 1.4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <span>🛡️</span>
+                        <span>
+                          <strong>HealthChain Clinical Rule:</strong> A source, an interpretation
+                          and a conclusion are different objects—even when they use similar words.
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
-              </motion.div>
-            </div>
-          </FocusTrap>
+              </FocusTrap>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>, document.body)}
     </>
   );
 };

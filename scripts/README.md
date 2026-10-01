@@ -11,6 +11,7 @@ This directory contains deployment verification scripts and live-model evaluatio
 - `npm run smoke:supabase`: read-only anonymous API exposure/configuration check.
 - `npm run eval:diet-plan` and `npm run eval:model`: controlled provider evaluations.
 - `scripts/lib/legacy-gut-observations.ts`: pure legacy import preview with provenance checks; it does not write production data.
+- `node scripts/serve-lighthouse.mjs`: local CI audit server for `dist`, with compressed text responses matching production hosting. Build first; restart it after rebuilding.
 
 Historical one-off patch scripts were removed. Recover them from Git history when researching an old change; do not re-run them against current source.
 

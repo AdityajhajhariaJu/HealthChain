@@ -1,14 +1,13 @@
 // @vitest-environment jsdom
-import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CaseItem } from '../../../services/CaseEngine';
 import {
-  extractActionSuggestions,
   AvaActionToolbar,
   CaseSelectorModal,
+  extractActionSuggestions,
   SaveTaskModal,
 } from '../AvaHealthBuddy';
-import type { CaseItem } from '../../../services/CaseEngine';
 
 const mockCases: CaseItem[] = [
   {
@@ -22,7 +21,14 @@ const mockCases: CaseItem[] = [
     intakeData: { chiefComplaint: 'Post-prandial bloating and brain fog' },
     medicalRecords: [{ id: 'rec-1', name: 'Comprehensive Stool Panel.pdf' } as any],
     reviews: [{ id: 'rev-1', executiveSummary: 'Suspected dysbiosis' } as any],
-    events: [{ id: 'evt-1', date: '2026-09-01', label: 'Clinical Review Completed', note: 'Initial review' }],
+    events: [
+      {
+        id: 'evt-1',
+        date: '2026-09-01',
+        label: 'Clinical Review Completed',
+        note: 'Initial review',
+      },
+    ],
     questions: [],
     currentSummary: { primaryHypothesis: 'Gut dysbiosis' },
   },
@@ -53,8 +59,10 @@ afterEach(cleanup);
 
 describe('Package 6 — Ava Task Completion: Action Suggestions', () => {
   it('extracts observation draft when patient describes symptoms or meals', () => {
-    const userMessage = 'I noticed severe abdominal bloating and nausea 30 minutes after eating sourdough bread.';
-    const modelMessage = 'Bloating after fermented or wheat-based foods can occur if there is fermentation in the small intestine.';
+    const userMessage =
+      'I noticed severe abdominal bloating and nausea 30 minutes after eating sourdough bread.';
+    const modelMessage =
+      'Bloating after fermented or wheat-based foods can occur if there is fermentation in the small intestine.';
 
     const suggestions = extractActionSuggestions(modelMessage, userMessage, {
       hasCase: true,
@@ -79,7 +87,9 @@ describe('Package 6 — Ava Task Completion: Action Suggestions', () => {
     });
 
     expect(suggestions.canAddQuestion).toBe(true);
-    expect(suggestions.questionDraft).toBe('Would a lactulose breath test be appropriate to evaluate for small intestinal bacterial overgrowth?');
+    expect(suggestions.questionDraft).toBe(
+      'Would a lactulose breath test be appropriate to evaluate for small intestinal bacterial overgrowth?'
+    );
   });
 
   it('requires explicit clinician-question framing instead of guessing from question bullets', () => {
@@ -110,12 +120,16 @@ describe('Package 6 — Ava Task Completion: Action Suggestions', () => {
   });
 
   it('offers source explanation when medical records are connected to the case', () => {
-    const suggestions = extractActionSuggestions('Your stool report shows elevated calprotectin.', '', {
-      hasCase: true,
-      hasRecords: true,
-      hasStudy: false,
-      hasReview: false,
-    });
+    const suggestions = extractActionSuggestions(
+      'Your stool report shows elevated calprotectin.',
+      '',
+      {
+        hasCase: true,
+        hasRecords: true,
+        hasStudy: false,
+        hasReview: false,
+      }
+    );
 
     expect(suggestions.canExplainSource).toBe(true);
     expect(suggestions.sourceLabel).toBe('Explain this source');
@@ -271,7 +285,9 @@ describe('Package 6 — SaveTaskModal', () => {
     const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
     expect(textarea.value).toBe('Severe bloating after sourdough');
 
-    fireEvent.change(textarea, { target: { value: 'Severe bloating and distension 45 min after sourdough' } });
+    fireEvent.change(textarea, {
+      target: { value: 'Severe bloating and distension 45 min after sourdough' },
+    });
 
     const confirmBtn = screen.getByRole('button', { name: /Confirm & Save/i });
     fireEvent.click(confirmBtn);
@@ -384,4 +400,3 @@ describe('Package 6 — Provenance & Draft Isolation Invariants', () => {
     expect(conversationUpdated).toBe(false);
   });
 });
-

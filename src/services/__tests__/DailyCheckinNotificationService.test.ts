@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Capacitor } from '@capacitor/core';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   mockSchedule,
@@ -37,14 +37,13 @@ vi.mock('@capacitor/core', () => ({
 }));
 
 import {
-  isDailyReminderEnabled,
-  setDailyReminderEnabled,
-  getDailyReminderTime,
-  setDailyReminderTime,
-  scheduleDailyReminder,
-  cancelDailyReminder,
-  DAILY_CHECKIN_REMINDER_ID,
   CHANNEL_ID,
+  DAILY_CHECKIN_REMINDER_ID,
+  getDailyReminderTime,
+  isDailyReminderEnabled,
+  scheduleDailyReminder,
+  setDailyReminderEnabled,
+  setDailyReminderTime,
 } from '../DailyCheckinNotificationService';
 
 describe('DailyCheckinNotificationService', () => {
@@ -65,7 +64,9 @@ describe('DailyCheckinNotificationService', () => {
 
   it('updates reminder time and broadcasts hc_reminder_updated event', async () => {
     let capturedEvent: any = null;
-    const listener = (e: any) => { capturedEvent = e.detail; };
+    const listener = (e: any) => {
+      capturedEvent = e.detail;
+    };
     window.addEventListener('hc_reminder_updated', listener);
 
     await setDailyReminderTime('13:30');

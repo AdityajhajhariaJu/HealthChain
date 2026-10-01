@@ -113,7 +113,7 @@
 .navLoginButton:hover {
   background: #F8FAFC;
   border-color: #CBD5E1;
-  color: #059669;
+  color: #047857;
 }
 
 .navButton {
@@ -197,7 +197,6 @@
   background: 
     radial-gradient(circle at 50% 15%, rgba(16, 185, 129, 0.12) 0%, transparent 60%),
     radial-gradient(circle at 80% 30%, rgba(209, 250, 229, 0.4) 0%, transparent 50%);
-  filter: blur(60px);
   z-index: 1;
   pointer-events: none;
 }
@@ -208,6 +207,15 @@
   max-width: 920px;
   width: 100%;
   text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stockTickerTrack,
+  .bentoColumnTrackLeft,
+  .bentoColumnTrackRight {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 /* High-Tech Black Look Window Card for Specialist Ticker */
@@ -257,7 +265,7 @@
 
 .darkTickerPrefixLabel {
   color: #34D399;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -321,7 +329,7 @@
 }
 
 .darkTickerTag {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #34D399;
   background: rgba(16, 185, 129, 0.18);
@@ -344,7 +352,7 @@
     margin-bottom: 20px;
   }
   .darkTickerPrefixLabel {
-    font-size: 10px;
+    font-size: 12px;
   }
   .darkTickerPrefix {
     padding: 3px 8px;
@@ -417,7 +425,7 @@
 }
 
 .heroInputIcon {
-  color: #059669;
+  color: #047857;
   flex-shrink: 0;
 }
 
@@ -444,7 +452,7 @@
 }
 
 .heroInputField::placeholder {
-  color: #94A3B8;
+  color: #64748B;
   font-size: 14px;
 }
 
@@ -501,9 +509,9 @@
 }
 
 .symptomChipsHeader {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #059669;
+  color: #047857;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -569,9 +577,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #059669;
+  color: #047857;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
@@ -623,7 +631,7 @@
 }
 
 .demoSpecialistName {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #0F172A;
   margin-bottom: 2px;
@@ -633,7 +641,7 @@
 }
 
 .demoSpecialistField {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
@@ -659,7 +667,7 @@
 .demoConfidenceText {
   font-size: 12px;
   font-weight: 700;
-  color: #059669;
+  color: #047857;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -866,7 +874,7 @@
 
 .convergenceTabActive {
   background: #FFFFFF;
-  color: #059669;
+  color: #047857;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
@@ -939,16 +947,16 @@
 }
 
 .kpiLabel {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #64748B;
   letter-spacing: 0.5px;
 }
 
 .kpiBadge {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: #059669;
+  color: #047857;
   background: #ECFDF5;
   padding: 1px 6px;
   border-radius: 4px;
@@ -962,9 +970,9 @@
 }
 
 .kpiTrend {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  color: #059669;
+  color: #047857;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1016,16 +1024,16 @@
 }
 
 .assistantStatus {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: #059669;
+  color: #047857;
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
 .assistantLivePulse {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .patientQueryBubble {
@@ -1091,7 +1099,7 @@
 }
 
 .resBadgeSub {
-  font-size: 10.5px;
+  font-size: 12px;
   color: #64748B;
 }
 
@@ -1149,7 +1157,7 @@
   }
   .convergenceTopBrand {
     padding: 4px 10px;
-    font-size: 11px;
+    font-size: 12px;
     margin-bottom: 8px;
     gap: 6px;
   }
@@ -1175,7 +1183,7 @@
   }
   .sourceChip {
     padding: 4px 8px;
-    font-size: 11px;
+    font-size: 12px;
     gap: 4px;
     border-radius: 100px;
     flex-shrink: 0;
@@ -1208,7 +1216,7 @@
     gap: 6px;
   }
   .convergenceBrandName {
-    font-size: 11.5px;
+    font-size: 12px;
   }
   .convergenceNavTabs {
     padding: 2px;
@@ -1216,10 +1224,10 @@
   }
   .convergenceTab {
     padding: 2px 7px;
-    font-size: 9.5px;
+    font-size: 12px;
   }
   .convergenceHistoryDropdown {
-    font-size: 9.5px;
+    font-size: 12px;
     padding: 2px 5px;
   }
   .convergenceLiveDot {
@@ -1236,7 +1244,7 @@
     font-size: 12px;
   }
   .convergenceNoticeText {
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.25;
   }
   .convergenceKpiGrid {
@@ -1253,7 +1261,7 @@
     margin-bottom: 2px;
   }
   .kpiLabel {
-    font-size: 7.5px;
+    font-size: 12px;
     font-weight: 800;
     letter-spacing: 0;
     white-space: nowrap;
@@ -1269,7 +1277,7 @@
     margin-bottom: 0px;
   }
   .kpiTrend {
-    font-size: 8.5px;
+    font-size: 12px;
     gap: 2px;
     margin-bottom: 2px;
   }
@@ -1295,14 +1303,14 @@
     border-radius: 6px;
   }
   .assistantName {
-    font-size: 11.5px;
+    font-size: 12px;
   }
   .assistantStatus {
-    font-size: 9px;
+    font-size: 12px;
     gap: 3px;
   }
   .patientQueryBubble {
-    font-size: 10px;
+    font-size: 12px;
     padding: 4px 8px;
     border-radius: 8px;
     align-self: flex-end;
@@ -1318,7 +1326,7 @@
     letter-spacing: -0.3px;
   }
   .responseSubtext {
-    font-size: 10px;
+    font-size: 12px;
     margin: 0 0 8px 0;
     line-height: 1.25;
   }
@@ -1334,10 +1342,10 @@
     gap: 3px;
   }
   .resBadgeIcon {
-    font-size: 11px;
+    font-size: 12px;
   }
   .resBadgeLabel {
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 800;
     line-height: 1.15;
     white-space: nowrap;
@@ -1349,7 +1357,7 @@
   }
   .assistantRecommendationPill {
     padding: 5px 8px;
-    font-size: 9.5px;
+    font-size: 12px;
     line-height: 1.25;
     border-radius: 100px;
     gap: 4px;
@@ -1363,7 +1371,7 @@
     font-size: 12.5px;
   }
   .convergenceMicrocopy {
-    font-size: 10.5px;
+    font-size: 12px;
   }
 }
 
@@ -1451,7 +1459,7 @@
 
 .statTrend {
   font-size: 20px;
-  color: #059669;
+  color: #047857;
   font-weight: 800;
   transform: translateY(-4px);
 }
@@ -1474,7 +1482,7 @@
 .statCtaLink {
   background: transparent;
   border: none;
-  color: #059669;
+  color: #047857;
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
@@ -1511,7 +1519,7 @@
     line-height: 1.2;
   }
   .statsMainSubtitle {
-    font-size: 11.5px;
+    font-size: 12px;
     line-height: 1.4;
     max-width: 320px;
   }
@@ -1562,7 +1570,7 @@
     line-height: 1.25;
   }
   .statDesc {
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.35;
     margin: 0 0 8px 0;
     display: -webkit-box;
@@ -1571,7 +1579,7 @@
     overflow: hidden;
   }
   .statCtaLink {
-    font-size: 11px;
+    font-size: 12px;
     padding: 2px 4px;
   }
 }
@@ -1600,8 +1608,8 @@
 }
 
 .bentoTopBadge {
-  color: #059669;
-  font-size: 11px;
+  color: #047857;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -1754,14 +1762,15 @@
 
 .bentoCardTags {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
 }
 
 .bentoCategoryTag {
-  color: #0284C7;
-  font-size: 11px;
+  color: #0369A1;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.2px;
 }
@@ -1769,11 +1778,13 @@
 .bentoStatusTag {
   background: #E0F2FE;
   color: #0369A1;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 6px;
   letter-spacing: 0.4px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .bentoCardTitle {
@@ -1874,20 +1885,20 @@
     gap: 3px;
   }
   .bentoCategoryTag {
-    font-size: 8px;
+    font-size: 12px;
   }
   .bentoStatusTag {
-    font-size: 7px;
+    font-size: 12px;
     padding: 1px 3px;
     border-radius: 3px;
   }
   .bentoCardTitle {
-    font-size: 10.5px;
+    font-size: 12px;
     line-height: 1.2;
     margin: 0 0 3px 0;
   }
   .bentoCardDesc {
-    font-size: 9px;
+    font-size: 12px;
     line-height: 1.3;
   }
   .bentoCardPrivacy {
@@ -2065,7 +2076,7 @@
 .caseMatchScore {
   font-size: 13px;
   font-weight: 800;
-  color: #059669;
+  color: #047857;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
   padding: 3px 10px;
@@ -2102,12 +2113,12 @@
 }
 
 .caseSpecialistLabel {
-  color: #059669;
+  color: #047857;
   font-weight: 700;
 }
 
 .caseActionLink {
-  color: #059669;
+  color: #047857;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -2142,7 +2153,7 @@
   border-radius: 100px;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #059669;
+  color: #047857;
   font-size: 12px;
   font-weight: 800;
   margin-bottom: 12px;
@@ -2165,7 +2176,7 @@
 }
 
 .workflowConnectTitle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: #475569;
   text-transform: uppercase;
@@ -2203,7 +2214,7 @@
 }
 
 .workflowBoundaryTitle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   color: #B45309;
   text-transform: uppercase;
@@ -2229,7 +2240,7 @@
 }
 
 .workflowOutputTitle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: #166534;
   text-transform: uppercase;
@@ -2311,9 +2322,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #059669;
+  color: #047857;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   margin-bottom: 10px;
@@ -2354,8 +2365,8 @@
 }
 
 .consensusPillTime {
-  color: #94A3B8;
-  font-size: 11px;
+  color: #64748B;
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {
@@ -2368,7 +2379,7 @@
   }
   .caseFilterTab {
     padding: 5px 12px;
-    font-size: 11.5px;
+    font-size: 12px;
     gap: 5px;
   }
   .casesFeed {
@@ -2384,7 +2395,7 @@
     width: 26px;
     height: 26px;
     border-radius: 7px;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 1px;
   }
   .caseCardHeader {
@@ -2408,31 +2419,31 @@
     line-height: 1.25;
   }
   .caseMatchScore {
-    font-size: 10px;
+    font-size: 12px;
     padding: 2px 7px;
     border-radius: 6px;
     font-weight: 800;
     align-self: flex-start;
   }
   .caseDesc {
-    font-size: 11.5px;
+    font-size: 12px;
     line-height: 1.4;
     color: #475569;
     margin: 4px 0 8px;
   }
   .caseCardFooter {
-    font-size: 10px;
+    font-size: 12px;
     gap: 6px;
     flex-direction: column;
     align-items: flex-start;
   }
   .caseSpecialistMeta {
     gap: 5px;
-    font-size: 9.5px;
+    font-size: 12px;
     flex-wrap: wrap;
   }
   .caseActionLink {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     margin-top: 2px;
   }
@@ -2442,12 +2453,12 @@
     margin: 4px 0;
   }
   .consensusBarTitle {
-    font-size: 10px;
+    font-size: 12px;
     margin-bottom: 6px;
   }
   .consensusPill {
     padding: 4px 10px;
-    font-size: 10.5px;
+    font-size: 12px;
     border-radius: 8px;
   }
 }
@@ -2544,10 +2555,10 @@
   gap: 5px;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #059669;
+  color: #047857;
   padding: 3px 8px;
   border-radius: 5px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -2575,7 +2586,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #059669;
+  color: #047857;
   font-size: 12.5px;
   font-weight: 800;
   background: transparent;
@@ -2613,7 +2624,7 @@
     padding: 0 2px;
   }
   .videoBadge {
-    font-size: 8px;
+    font-size: 12px;
     padding: 2px 5px;
     border-radius: 4px;
     margin-bottom: 4px;
@@ -2625,13 +2636,13 @@
     line-height: 1.2;
   }
   .videoDesc {
-    font-size: 10.5px;
+    font-size: 12px;
     line-height: 1.35;
     margin-bottom: 6px;
     color: #475569;
   }
   .videoCta {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
   }
 }
@@ -2684,7 +2695,7 @@
     line-height: 1.25;
   }
   .problemText {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
   }
 }
@@ -2707,10 +2718,10 @@
   gap: 6px;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #059669;
+  color: #047857;
   padding: 4px 12px;
   border-radius: 100px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -2733,7 +2744,7 @@
     margin-bottom: 14px;
   }
   .categoryBadge {
-    font-size: 9px;
+    font-size: 12px;
     padding: 3px 9px;
     margin-bottom: 5px;
   }
@@ -2744,7 +2755,7 @@
     line-height: 1.25;
   }
   .sectionSubtitle {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.35;
     max-width: 320px;
   }
@@ -2821,7 +2832,7 @@
     line-height: 1.25;
   }
   .bentoDesc {
-    font-size: 10.5px;
+    font-size: 12px;
     line-height: 1.35;
     margin: 0;
   }
@@ -2912,7 +2923,7 @@
 }
 
 .faqIcon {
-  color: #059669;
+  color: #047857;
   flex-shrink: 0;
 }
 
@@ -2958,9 +2969,9 @@
     font-size: 12px;
     line-height: 1.45;
   }
-  .footerLinks h4 {
+  .footerLinks h3 {
     margin-bottom: 8px;
-    font-size: 11.5px;
+    font-size: 12px;
   }
   .footerLinks a {
     margin-bottom: 8px;
@@ -2990,7 +3001,7 @@
   color: #64748B;
 }
 
-.footerLinks h4 {
+.footerLinks h3 {
   color: #0F172A;
   font-size: 14px;
   font-weight: 700;
@@ -3009,7 +3020,7 @@
 }
 
 .footerLinks a:hover {
-  color: #059669;
+  color: #047857;
 }
 
 .footerBottom {
@@ -3019,5 +3030,5 @@
   border-top: 1px solid #F1F5F9;
   text-align: center;
   font-size: 12.5px;
-  color: #94A3B8;
+  color: #64748B;
 }

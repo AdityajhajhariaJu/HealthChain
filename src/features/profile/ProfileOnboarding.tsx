@@ -104,16 +104,44 @@ const FAMILY_CONDITIONS = [
 ];
 
 const HEALTH_FOCUS_OPTIONS = [
-  { id: 'root_cause', title: 'Explore Possible Connections', desc: 'Organize timing across symptoms, measurements, and daily observations', icon: '🔍' },
-  { id: 'metabolic', title: 'Metabolic Balance & Energy', desc: 'Optimize glucose, postprandial fatigue & daily vitality', icon: '⚡' },
-  { id: 'kinetic', title: 'Postural & Kinetic Relief', desc: 'Craniosacral dural spine alignment and tension headaches', icon: '🦴' },
-  { id: 'gut_brain', title: 'Gut-Brain Equilibrium', desc: 'Food sensitivities, DAO histamines & microbiome health', icon: '🌱' },
-  { id: 'pharmacy', title: 'Medication Information', desc: 'Keep medicines together and prepare interaction questions for a pharmacist', icon: '💊' },
+  {
+    id: 'root_cause',
+    title: 'Explore Possible Connections',
+    desc: 'Organize timing across symptoms, measurements, and daily observations',
+    icon: '🔍',
+  },
+  {
+    id: 'metabolic',
+    title: 'Metabolic Balance & Energy',
+    desc: 'Optimize glucose, postprandial fatigue & daily vitality',
+    icon: '⚡',
+  },
+  {
+    id: 'kinetic',
+    title: 'Postural & Kinetic Relief',
+    desc: 'Craniosacral dural spine alignment and tension headaches',
+    icon: '🦴',
+  },
+  {
+    id: 'gut_brain',
+    title: 'Gut-Brain Equilibrium',
+    desc: 'Food sensitivities, DAO histamines & microbiome health',
+    icon: '🌱',
+  },
+  {
+    id: 'pharmacy',
+    title: 'Medication Information',
+    desc: 'Keep medicines together and prepare interaction questions for a pharmacist',
+    icon: '💊',
+  },
 ];
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 
-const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+const CIRCADIAN_SLOT_META: Record<
+  CircadianSlot,
+  { label: string; icon: string; color: string; bg: string }
+> = {
   morning: { label: 'Morning', icon: '🌅', color: '#0F766E', bg: '#CCFBF1' },
   midday: { label: 'Midday', icon: '☀️', color: '#0D9488', bg: '#ECFDF5' },
   evening: { label: 'Evening', icon: '🌇', color: '#D97706', bg: '#FEF3C7' },
@@ -135,14 +163,15 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
   // Step 0: Demographics & Biometrics
   const [name, setName] = useState(account.name || '');
-  const [foodLocation, setFoodLocation] = useState(() => normalizeFoodLocation(getProfile()?.demographics));
+  const [foodLocation, setFoodLocation] = useState(() =>
+    normalizeFoodLocation(getProfile()?.demographics)
+  );
   const [age, setAge] = useState<number>(28);
   const [gender, setGender] = useState<'Female' | 'Male' | 'Non-binary' | 'Other'>('Female');
   const [bloodGroup, setBloodGroup] = useState('O+');
-  const [unitMode, setUnitMode] = useState<'metric' | 'imperial'>('metric');
+
   const [heightCm, setHeightCm] = useState<number>(172);
   const [weightKg, setWeightKg] = useState<number>(68);
-  const [emergencyContact, setEmergencyContact] = useState('');
 
   // Step 1: Medical Snapshot
   const [conditions, setConditions] = useState<string[]>([]);
@@ -153,7 +182,6 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   const [customAllergy, setCustomAllergy] = useState('');
   const [nkda, setNkda] = useState(false);
   const [familyHistory, setFamilyHistory] = useState<string[]>([]);
-  const [customFamily, setCustomFamily] = useState('');
 
   // Step 2: Health Focus
   const [healthFocus, setHealthFocus] = useState('Explore Possible Connections');
@@ -191,7 +219,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
   const toggleCondition = (cond: string) => {
     triggerHapticLight();
-    setConditions((prev) => (prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond]));
+    setConditions((prev) =>
+      prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond]
+    );
   };
 
   const addCustomCondition = () => {
@@ -253,16 +283,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
   const toggleFamily = (item: string) => {
     triggerHapticLight();
-    setFamilyHistory((prev) => (prev.includes(item) ? prev.filter((f) => f !== item) : [...prev, item]));
-  };
-
-  const addCustomFamily = () => {
-    if (!customFamily.trim()) return;
-    triggerHapticLight();
-    if (!familyHistory.includes(customFamily.trim())) {
-      setFamilyHistory((prev) => [...prev, customFamily.trim()]);
-    }
-    setCustomFamily('');
+    setFamilyHistory((prev) =>
+      prev.includes(item) ? prev.filter((f) => f !== item) : [...prev, item]
+    );
   };
 
   const finish = async () => {
@@ -318,9 +341,20 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             marginBottom: 24,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#0F172A', fontWeight: 850, fontSize: '17px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              color: '#0F172A',
+              fontWeight: 850,
+              fontSize: '17px',
+            }}
+          >
             <HCLogo size={28} />
-            <span>HealthChain360<span style={{ color: '#0D9488' }}>.ai</span></span>
+            <span>
+              HealthChain360<span style={{ color: '#0D9488' }}>.ai</span>
+            </span>
           </div>
 
           <div
@@ -383,14 +417,14 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                     background: isActive
                       ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
                       : isPast
-                      ? '#ECFDF5'
-                      : '#F8FAFC',
+                        ? '#ECFDF5'
+                        : '#F8FAFC',
                     color: isActive ? '#FFFFFF' : isPast ? '#047857' : '#94A3B8',
                     border: isActive
                       ? '1.5px solid #0F766E'
                       : isPast
-                      ? '1px solid #A7F3D0'
-                      : '1px solid #E2E8F0',
+                        ? '1px solid #A7F3D0'
+                        : '1px solid #E2E8F0',
                     fontSize: 12,
                     fontWeight: 800,
                     textAlign: 'center',
@@ -403,7 +437,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   }}
                 >
                   {isPast ? <Check size={14} /> : <Icon size={14} />}
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span
+                    style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  >
                     {s.label}
                   </span>
                 </div>
@@ -425,7 +461,15 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                 >
                   {/* Name Input */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        marginBottom: 8,
+                      }}
+                    >
                       Full Name *
                     </label>
                     <input
@@ -440,10 +484,20 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Age: Bracket Pills + Micro-Stepper */}
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Age *</label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>
+                        Age *
+                      </label>
                       <span style={{ fontSize: 12, color: '#0D9488', fontWeight: 700 }}>
-                        {AGE_BRACKETS.find((b) => age >= b.min && age <= b.max)?.hint || 'Biological Vitality'}
+                        {AGE_BRACKETS.find((b) => age >= b.min && age <= b.max)?.hint ||
+                          'Biological Vitality'}
                       </span>
                     </div>
 
@@ -462,7 +516,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                               padding: '6px 12px',
                               borderRadius: 999,
                               border: isMatch ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isMatch ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
+                              background: isMatch
+                                ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
+                                : '#FFFFFF',
                               color: isMatch ? '#FFFFFF' : '#475569',
                               fontSize: 12,
                               fontWeight: 700,
@@ -492,7 +548,12 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         type="number"
                         value={age}
                         onChange={(e) => setAge(parseInt(e.target.value, 10) || 18)}
-                        style={{ ...inputStyle, width: '90px', textAlign: 'center', fontWeight: 800 }}
+                        style={{
+                          ...inputStyle,
+                          width: '90px',
+                          textAlign: 'center',
+                          fontWeight: 800,
+                        }}
                       />
                       <button
                         type="button"
@@ -504,20 +565,48 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       >
                         +
                       </button>
-                      <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600 }}>years young</span>
+                      <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600 }}>
+                        years young
+                      </span>
                     </div>
                   </div>
 
                   {/* Biological Sex: 3 Endocrine Cards */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        marginBottom: 8,
+                      }}
+                    >
                       Biological Sex (Endocrine Baseline)
                     </label>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10 }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                        gap: 10,
+                      }}
+                    >
                       {[
-                        { id: 'Female', title: 'Female (XX)', desc: 'Estrogen/progesterone circadian clearance & iron index' },
-                        { id: 'Male', title: 'Male (XY)', desc: 'Androgen baseline, lipid synthesis & metabolic rate' },
-                        { id: 'Other', title: 'Non-binary / Other', desc: 'Customized physiological parameters' },
+                        {
+                          id: 'Female',
+                          title: 'Female (XX)',
+                          desc: 'Estrogen/progesterone circadian clearance & iron index',
+                        },
+                        {
+                          id: 'Male',
+                          title: 'Male (XY)',
+                          desc: 'Androgen baseline, lipid synthesis & metabolic rate',
+                        },
+                        {
+                          id: 'Other',
+                          title: 'Non-binary / Other',
+                          desc: 'Customized physiological parameters',
+                        },
                       ].map((s) => {
                         const isSelected = gender === s.id;
                         return (
@@ -533,14 +622,29 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                               border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                               background: isSelected ? '#F0FDFA' : '#FFFFFF',
                               cursor: 'pointer',
-                              boxShadow: isSelected ? '0 4px 14px rgba(13, 148, 136, 0.12)' : 'none',
+                              boxShadow: isSelected
+                                ? '0 4px 14px rgba(13, 148, 136, 0.12)'
+                                : 'none',
                               transition: 'all 0.15s ease',
                             }}
                           >
-                            <div style={{ fontSize: 14, fontWeight: 800, color: isSelected ? '#0F766E' : '#1E293B' }}>
+                            <div
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 800,
+                                color: isSelected ? '#0F766E' : '#1E293B',
+                              }}
+                            >
                               {s.title}
                             </div>
-                            <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 4, lineHeight: 1.4 }}>
+                            <div
+                              style={{
+                                fontSize: 11.5,
+                                color: '#64748B',
+                                marginTop: 4,
+                                lineHeight: 1.4,
+                              }}
+                            >
                               {s.desc}
                             </div>
                           </div>
@@ -551,7 +655,15 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Blood Group: 4x2 Grid */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        marginBottom: 8,
+                      }}
+                    >
                       Blood Group
                     </label>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -585,11 +697,40 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Height & Weight Steppers */}
                   <FoodLocationFields {...foodLocation} onChange={setFoodLocation} />
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                      gap: 16,
+                    }}
+                  >
                     {/* Height */}
-                    <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 18, border: '1px solid #E2E8F0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div
+                      style={{
+                        background: '#F8FAFC',
+                        padding: 14,
+                        borderRadius: 18,
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 800,
+                            color: '#0F172A',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                        >
                           <Ruler size={15} color="#0D9488" /> Height
                         </span>
                         <span style={{ fontSize: 14, fontWeight: 800, color: '#0D9488' }}>
@@ -629,9 +770,32 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                     </div>
 
                     {/* Weight */}
-                    <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 18, border: '1px solid #E2E8F0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div
+                      style={{
+                        background: '#F8FAFC',
+                        padding: 14,
+                        borderRadius: 18,
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 800,
+                            color: '#0F172A',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                        >
                           <Scale size={15} color="#0D9488" /> Weight
                         </span>
                         <span style={{ fontSize: 14, fontWeight: 800, color: '#0D9488' }}>
@@ -680,24 +844,56 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       border: '1.5px solid #99F6E4',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 800,
+                            color: '#0F766E',
+                            letterSpacing: '0.6px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
                           LIVE METABOLIC EQUILIBRIUM GAUGE
                         </div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: '#1C1917', marginTop: 2 }}>
-                          BMI: <strong>{bmi}</strong> • <span style={{ color: bmiCategory.color }}>{bmiCategory.label}</span>
+                        <div
+                          style={{ fontSize: 16, fontWeight: 800, color: '#1C1917', marginTop: 2 }}
+                        >
+                          BMI: <strong>{bmi}</strong> •{' '}
+                          <span style={{ color: bmiCategory.color }}>{bmiCategory.label}</span>
                         </div>
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 11, color: '#047857', fontWeight: 600 }}>Estimated BMR</div>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: '#0F766E' }}>{bmr} kcal/day</div>
+                        <div style={{ fontSize: 11, color: '#047857', fontWeight: 600 }}>
+                          Estimated BMR
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: '#0F766E' }}>
+                          {bmr} kcal/day
+                        </div>
                       </div>
                     </div>
 
                     {/* Spectrum Track */}
-                    <div style={{ width: '100%', height: '8px', background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)', borderRadius: 999, position: 'relative', marginTop: 10 }}>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '8px',
+                        background:
+                          'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)',
+                        borderRadius: 999,
+                        position: 'relative',
+                        marginTop: 10,
+                      }}
+                    >
                       <div
                         style={{
                           position: 'absolute',
@@ -714,8 +910,19 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#047857', marginTop: 8, fontWeight: 600 }}>
-                      <span>Healthy Weight Interval: <strong>{idealWeightRange}</strong></span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: 11,
+                        color: '#047857',
+                        marginTop: 8,
+                        fontWeight: 600,
+                      }}
+                    >
+                      <span>
+                        Healthy Weight Interval: <strong>{idealWeightRange}</strong>
+                      </span>
                       <span>WHO Clinical Standards</span>
                     </div>
                   </div>
@@ -734,8 +941,24 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                 >
                   {/* Chronic Conditions */}
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
                         <Stethoscope size={14} color="#0D9488" />
                         <span>Chronic Health Conditions</span>
                       </label>
@@ -764,7 +987,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         type="text"
                         value={customCondition}
                         onChange={(e) => setCustomCondition(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCondition())}
+                        onKeyDown={(e) =>
+                          e.key === 'Enter' && (e.preventDefault(), addCustomCondition())
+                        }
                         placeholder="Add other diagnosed condition..."
                         aria-label="Add custom diagnosed condition"
                         style={{ ...inputStyle, padding: '8px 12px', fontSize: 13 }}
@@ -790,8 +1015,24 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Regular Medications & Circadian Timing */}
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
                         <Pill size={14} color="#0D9488" />
                         <span>Regular Prescriptions & Circadian Clock</span>
                       </label>
@@ -818,7 +1059,14 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                     {/* Active Meds List with Circadian Slot Selector */}
                     {medications.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 8,
+                          marginBottom: 12,
+                        }}
+                      >
                         {medications.map((m) => (
                           <div
                             key={m.name}
@@ -832,37 +1080,50 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                               border: '1px solid #E2E8F0',
                             }}
                           >
-                            <span style={{ fontWeight: 700, fontSize: 13, color: '#0F172A' }}>{m.name}</span>
+                            <span style={{ fontWeight: 700, fontSize: 13, color: '#0F172A' }}>
+                              {m.name}
+                            </span>
                             <div style={{ display: 'flex', gap: 4 }}>
-                              {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
-                                const meta = CIRCADIAN_SLOT_META[slot];
-                                const isCur = m.slot === slot;
-                                const SlotIcon = slot === 'morning' ? Sunrise : slot === 'midday' ? Sun : slot === 'evening' ? Sunset : Moon;
-                                return (
-                                  <button
-                                    key={slot}
-                                    type="button"
-                                    onClick={() => updateMedSlot(m.name, slot)}
-                                    title={meta.label}
-                                    style={{
-                                      padding: '4px 8px',
-                                      borderRadius: 8,
-                                      border: isCur ? `1.5px solid ${meta.color}` : '1px solid #E2E8F0',
-                                      background: isCur ? meta.bg : '#FFFFFF',
-                                      color: isCur ? meta.color : '#64748B',
-                                      fontSize: 11,
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      transition: 'all 0.15s ease',
-                                    }}
-                                  >
-                                    <SlotIcon size={12} strokeWidth={2.2} /> {meta.label}
-                                  </button>
-                                );
-                              })}
+                              {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(
+                                (slot) => {
+                                  const meta = CIRCADIAN_SLOT_META[slot];
+                                  const isCur = m.slot === slot;
+                                  const SlotIcon =
+                                    slot === 'morning'
+                                      ? Sunrise
+                                      : slot === 'midday'
+                                        ? Sun
+                                        : slot === 'evening'
+                                          ? Sunset
+                                          : Moon;
+                                  return (
+                                    <button
+                                      key={slot}
+                                      type="button"
+                                      onClick={() => updateMedSlot(m.name, slot)}
+                                      title={meta.label}
+                                      style={{
+                                        padding: '4px 8px',
+                                        borderRadius: 8,
+                                        border: isCur
+                                          ? `1.5px solid ${meta.color}`
+                                          : '1px solid #E2E8F0',
+                                        background: isCur ? meta.bg : '#FFFFFF',
+                                        color: isCur ? meta.color : '#64748B',
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        transition: 'all 0.15s ease',
+                                      }}
+                                    >
+                                      <SlotIcon size={12} strokeWidth={2.2} /> {meta.label}
+                                    </button>
+                                  );
+                                }
+                              )}
                               <button
                                 type="button"
                                 onClick={() => toggleMedication(m.name, m.slot)}
@@ -913,8 +1174,24 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Clinical Allergy Guard */}
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
                         <Shield size={14} color="#0D9488" />
                         <span>Allergy and medication context</span>
                       </label>
@@ -942,9 +1219,13 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                     {!nkda && (
                       <>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                        <div
+                          style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}
+                        >
                           {COMMON_ALLERGIES.map((a) => {
-                            const isSelected = Boolean(allergies.find((item) => item.name === a.name));
+                            const isSelected = Boolean(
+                              allergies.find((item) => item.name === a.name)
+                            );
                             return (
                               <CalmApothecaryCapsule
                                 key={a.name}
@@ -961,7 +1242,14 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                         {/* Active Allergies with Severity Selector */}
                         {allergies.length > 0 && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 8,
+                              marginBottom: 12,
+                            }}
+                          >
                             {allergies.map((a) => (
                               <div
                                 key={a.name}
@@ -975,30 +1263,36 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                                   border: '1px solid #FECDD3',
                                 }}
                               >
-                                <span style={{ fontWeight: 700, fontSize: 13, color: '#991B1B' }}>{a.name}</span>
+                                <span style={{ fontWeight: 700, fontSize: 13, color: '#991B1B' }}>
+                                  {a.name}
+                                </span>
                                 <div style={{ display: 'flex', gap: 4 }}>
-                                  {(['mild', 'moderate', 'severe'] as AllergySeverity[]).map((sev) => {
-                                    const isCur = a.severity === sev;
-                                    return (
-                                      <button
-                                        key={sev}
-                                        type="button"
-                                        onClick={() => updateAllergySeverity(a.name, sev)}
-                                        style={{
-                                          padding: '3px 8px',
-                                          borderRadius: 6,
-                                          border: isCur ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                                          background: isCur ? '#DC2626' : '#FFFFFF',
-                                          color: isCur ? '#FFFFFF' : '#64748B',
-                                          fontSize: 11,
-                                          fontWeight: 700,
-                                          cursor: 'pointer',
-                                        }}
-                                      >
-                                        {sev.toUpperCase()}
-                                      </button>
-                                    );
-                                  })}
+                                  {(['mild', 'moderate', 'severe'] as AllergySeverity[]).map(
+                                    (sev) => {
+                                      const isCur = a.severity === sev;
+                                      return (
+                                        <button
+                                          key={sev}
+                                          type="button"
+                                          onClick={() => updateAllergySeverity(a.name, sev)}
+                                          style={{
+                                            padding: '3px 8px',
+                                            borderRadius: 6,
+                                            border: isCur
+                                              ? '1px solid #DC2626'
+                                              : '1px solid #E2E8F0',
+                                            background: isCur ? '#DC2626' : '#FFFFFF',
+                                            color: isCur ? '#FFFFFF' : '#64748B',
+                                            fontSize: 11,
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                          }}
+                                        >
+                                          {sev.toUpperCase()}
+                                        </button>
+                                      );
+                                    }
+                                  )}
                                   <button
                                     type="button"
                                     onClick={() => toggleAllergy(a.name, a.severity)}
@@ -1023,7 +1317,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                             type="text"
                             value={customAllergy}
                             onChange={(e) => setCustomAllergy(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomAllergy())}
+                            onKeyDown={(e) =>
+                              e.key === 'Enter' && (e.preventDefault(), addCustomAllergy())
+                            }
                             placeholder="Add other allergen..."
                             aria-label="Add custom allergen"
                             style={{ ...inputStyle, padding: '8px 12px', fontSize: 13 }}
@@ -1051,7 +1347,17 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
 
                   {/* Family History */}
                   <div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        marginBottom: 8,
+                      }}
+                    >
                       <Dna size={14} color="#0D9488" />
                       <span>Relevant Family History</span>
                     </label>
@@ -1085,7 +1391,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
                 >
                   <div>
-                    <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A', fontWeight: 800 }}>
+                    <h2
+                      style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A', fontWeight: 800 }}
+                    >
                       What is the primary health focus?
                     </h2>
                     <p style={{ margin: 0, fontSize: 13.5, color: '#64748B', lineHeight: 1.5 }}>
@@ -1118,10 +1426,18 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         >
                           <span style={{ fontSize: 24 }}>{opt.icon}</span>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 14.5, fontWeight: 800, color: isSelected ? '#0F766E' : '#1E293B' }}>
+                            <div
+                              style={{
+                                fontSize: 14.5,
+                                fontWeight: 800,
+                                color: isSelected ? '#0F766E' : '#1E293B',
+                              }}
+                            >
                               {opt.title}
                             </div>
-                            <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{opt.desc}</div>
+                            <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+                              {opt.desc}
+                            </div>
                           </div>
                           {isSelected && <Check size={18} color="#0D9488" />}
                         </div>
@@ -1140,7 +1456,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       lineHeight: 1.5,
                     }}
                   >
-                    <strong>What happens next:</strong> The Medical Profile will be saved for cross-referencing symptoms, meals, and check-ins.
+                    <strong>What happens next:</strong> The Medical Profile will be saved for
+                    cross-referencing symptoms, meals, and check-ins.
                   </div>
                 </motion.div>
               )}

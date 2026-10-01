@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { evaluateTrialCriteria, scoreClinicalTrial } from '../../features/tools/ClinicalTrialsMatcher';
-import { fetchLiveTrials } from '../clinicalTrialsService';
-import { fetchRecentLiterature, cleanMedicalText } from '../pubMedService';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { evaluateTrialCriteria } from '../../features/tools/ClinicalTrialsMatcher';
+import { cleanMedicalText } from '../pubMedService';
 
 describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
   beforeEach(() => {
@@ -21,16 +20,23 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         eligibility: {
           minimumAge: '18 Years',
           maximumAge: '65 Years',
-          sex: 'ALL'
-        }
+          sex: 'ALL',
+        },
       };
 
-      const result = evaluateTrialCriteria(trial, ['Migraine'], ['Migraine'], { age: 35, gender: 'female' });
+      const result = evaluateTrialCriteria(trial, ['Migraine'], ['Migraine'], {
+        age: 35,
+        gender: 'female',
+      });
 
       expect(result.criteriaBreakdown.ageCriteria.status).toBe('eligible');
       expect(result.criteriaBreakdown.ageCriteria.patientAge).toBe(35);
-      expect(result.criteriaBreakdown.ageCriteria.note).toContain('within the stated age bounds only');
-      expect(result.criteriaBreakdown.ageCriteria.note).toContain('Other eligibility criteria remain unevaluated');
+      expect(result.criteriaBreakdown.ageCriteria.note).toContain(
+        'within the stated age bounds only'
+      );
+      expect(result.criteriaBreakdown.ageCriteria.note).toContain(
+        'Other eligibility criteria remain unevaluated'
+      );
     });
 
     it('identifies patient age outside stated registry boundaries as potential mismatch', () => {
@@ -40,14 +46,16 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         eligibility: {
           minimumAge: '2 Years',
           maximumAge: '12 Years',
-          sex: 'ALL'
-        }
+          sex: 'ALL',
+        },
       };
 
       const result = evaluateTrialCriteria(trial, ['Epilepsy'], [], { age: 34 });
 
       expect(result.criteriaBreakdown.ageCriteria.status).toBe('potential_mismatch');
-      expect(result.criteriaBreakdown.ageCriteria.note).toContain('outside at least one stated registry bound');
+      expect(result.criteriaBreakdown.ageCriteria.note).toContain(
+        'outside at least one stated registry bound'
+      );
     });
 
     it('treats missing eligibility fields as unspecified rather than assuming eligibility', () => {
@@ -55,7 +63,7 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         id: 'NCT09999999',
         title: 'Observational Registry',
         summary: 'Adult and pediatric cohort tracking.',
-        conditions: ['Hypertension']
+        conditions: ['Hypertension'],
       };
 
       const result = evaluateTrialCriteria(trialWithoutAge, ['Hypertension'], [], { age: 45 });
@@ -69,10 +77,13 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         id: 'NCT08888888',
         title: 'Elderly Hypertension Study for patients aged 65 to 80',
         summary: 'Female participants only will be enrolled in this cohort.',
-        conditions: ['Hypertension']
+        conditions: ['Hypertension'],
       };
 
-      const result = evaluateTrialCriteria(trialWithNarrativeOnly, ['Hypertension'], [], { age: 70, gender: 'female' });
+      const result = evaluateTrialCriteria(trialWithNarrativeOnly, ['Hypertension'], [], {
+        age: 70,
+        gender: 'female',
+      });
 
       expect(result.criteriaBreakdown.ageCriteria.status).toBe('unspecified');
       expect(result.criteriaBreakdown.genderCriteria.status).toBe('unspecified');
@@ -86,15 +97,19 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         eligibility: {
           sex: 'FEMALE',
           minimumAge: '18 Years',
-          maximumAge: '50 Years'
-        }
+          maximumAge: '50 Years',
+        },
       };
 
-      const result = evaluateTrialCriteria(trialFemaleOnly, ['Endometriosis'], [], { gender: 'female' });
+      const result = evaluateTrialCriteria(trialFemaleOnly, ['Endometriosis'], [], {
+        gender: 'female',
+      });
 
       expect(result.criteriaBreakdown.genderCriteria.status).toBe('unspecified');
       expect(result.criteriaBreakdown.genderCriteria.note).toContain('FEMALE');
-      expect(result.criteriaBreakdown.genderCriteria.note).toContain('Not automatically evaluated against profile gender');
+      expect(result.criteriaBreakdown.genderCriteria.note).toContain(
+        'Not automatically evaluated against profile gender'
+      );
     });
 
     it('marks all-sexes registry protocols transparently without asserting medical admission', () => {
@@ -103,8 +118,8 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         title: 'Cardiovascular Risk Study',
         conditions: ['Hypertension'],
         eligibility: {
-          sex: 'ALL'
-        }
+          sex: 'ALL',
+        },
       };
 
       const result = evaluateTrialCriteria(trialAllSex, ['Hypertension'], [], { gender: 'male' });
@@ -121,10 +136,13 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         title: 'Management of Postural Orthostatic Tachycardia Syndrome',
         conditions: ['POTS', 'Dysautonomia'],
         summary: 'Randomized controlled trial of fludrocortisone vs standard of care in POTS.',
-        interventions: ['Fludrocortisone']
+        interventions: ['Fludrocortisone'],
       };
 
-      const result = evaluateTrialCriteria(trial, ['POTS'], ['POTS'], { age: 28, gender: 'female' });
+      const result = evaluateTrialCriteria(trial, ['POTS'], ['POTS'], {
+        age: 28,
+        gender: 'female',
+      });
 
       expect(result.matchScore).toBeGreaterThanOrEqual(50);
       expect(result.criteriaBreakdown.matchStatus).toBe('differential_match');
@@ -137,16 +155,51 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
 
   describe('Context-Sensitive Cache Invalidation', () => {
     it('generates distinct cache keys when case context or demographics change', () => {
-      const getCacheKey = (caseId: string, terms: string[], diffs: string[], age: string | number, gender: string, chief: string) => {
+      const getCacheKey = (
+        caseId: string,
+        terms: string[],
+        diffs: string[],
+        age: string | number,
+        gender: string,
+        chief: string
+      ) => {
         const termsKey = terms.slice().sort().join('|');
         const diffsKey = diffs.slice().sort().join('|');
         return `researchHub_v8_${caseId}_${termsKey}_${diffsKey}_${age}_${gender}_${chief}`;
       };
 
-      const keyA = getCacheKey('case_1', ['Migraine'], ['Migraine'], 30, 'female', 'Severe throbbing headache');
-      const keyB = getCacheKey('case_1', ['Migraine'], ['Migraine'], 65, 'female', 'Severe throbbing headache');
-      const keyC = getCacheKey('case_1', ['Migraine'], ['Tension Headache'], 30, 'female', 'Severe throbbing headache');
-      const keyD = getCacheKey('case_2', ['Migraine'], ['Migraine'], 30, 'female', 'Severe throbbing headache');
+      const keyA = getCacheKey(
+        'case_1',
+        ['Migraine'],
+        ['Migraine'],
+        30,
+        'female',
+        'Severe throbbing headache'
+      );
+      const keyB = getCacheKey(
+        'case_1',
+        ['Migraine'],
+        ['Migraine'],
+        65,
+        'female',
+        'Severe throbbing headache'
+      );
+      const keyC = getCacheKey(
+        'case_1',
+        ['Migraine'],
+        ['Tension Headache'],
+        30,
+        'female',
+        'Severe throbbing headache'
+      );
+      const keyD = getCacheKey(
+        'case_2',
+        ['Migraine'],
+        ['Migraine'],
+        30,
+        'female',
+        'Severe throbbing headache'
+      );
 
       expect(keyA).not.toBe(keyB);
       expect(keyA).not.toBe(keyC);
@@ -164,10 +217,10 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         url: 'https://clinicaltrials.gov/study/NCT09876543',
         matchStatus: 'differential_match',
         criteriaBreakdown: {
-          ageCriteria: { status: 'eligible', patientAge: 40, note: 'Within bounds' }
+          ageCriteria: { status: 'eligible', patientAge: 40, note: 'Within bounds' },
         },
         sourceName: 'ClinicalTrials.gov',
-        retrievedAt: new Date().toISOString()
+        retrievedAt: new Date().toISOString(),
       };
 
       sessionStorage.setItem('hc_active_source_study', JSON.stringify(sourceStudy));
@@ -185,7 +238,8 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
 
   describe('Text Sanitization & Journal Quality', () => {
     it('cleans XML entities and replaces missing journals cleanly', () => {
-      const rawTitle = '&lt;b&gt;Clinical trial of IL-6 inhibition&lt;/b&gt; in &quot;severe&quot; disease';
+      const rawTitle =
+        '&lt;b&gt;Clinical trial of IL-6 inhibition&lt;/b&gt; in &quot;severe&quot; disease';
       const clean = cleanMedicalText(rawTitle);
 
       expect(clean).toBe('Clinical trial of IL-6 inhibition in "severe" disease');
@@ -200,7 +254,7 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
         id: 'NCT01122334',
         title: 'Cephalea Treatment with Calcitonin Gene-Related Peptide Inhibitor',
         summary: 'A randomized assessment of neurovascular pain control.',
-        conditions: ['Cephalea']
+        conditions: ['Cephalea'],
       };
 
       // Search term is 'Migraine'
@@ -211,7 +265,7 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
 
     it('retains successful trials when literature search fails during partial retrieval', async () => {
       const mockTrials = [
-        { id: 'NCT100', title: 'Cardiology Protocol', conditions: ['Heart Failure'] }
+        { id: 'NCT100', title: 'Cardiology Protocol', conditions: ['Heart Failure'] },
       ];
       const trialsPromise = Promise.resolve(mockTrials);
       const literaturePromise = Promise.reject(new Error('Europe PMC unavailable'));
@@ -223,14 +277,17 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
       expect(trialsRes.status).toBe('fulfilled');
       expect(papersRes.status).toBe('rejected');
 
-      const recoveredTrials = trialsRes.status === 'fulfilled' ? (trialsRes as PromiseFulfilledResult<typeof mockTrials>).value : [];
+      const recoveredTrials =
+        trialsRes.status === 'fulfilled'
+          ? (trialsRes as PromiseFulfilledResult<typeof mockTrials>).value
+          : [];
       expect(recoveredTrials).toHaveLength(1);
       expect(recoveredTrials[0].id).toBe('NCT100');
     });
 
     it('suggests case differentials as recovery search terms when primary search produces zero results', () => {
       const caseDifferentials = ['Irritable Bowel Syndrome', 'SIBO', 'Celiac Disease'];
-      const searchTerms = ['RareDysmotilitySyndromeXYZ'];
+
       const zeroResults: any[] = [];
 
       // When zero results found, the recovery logic surfaces case differentials as alternatives

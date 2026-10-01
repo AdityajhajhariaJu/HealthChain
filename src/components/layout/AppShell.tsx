@@ -1,5 +1,5 @@
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Apple,
   Archive,
@@ -21,14 +21,14 @@ import {
   X,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { triggerHapticLight } from '../../services/haptics';
 import { getProfile } from '../../services/ProfileEngine';
 
-import { trackButtonClick, trackPageView } from '../../services/analytics';
+import { trackPageView } from '../../services/analytics';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 import { initDietMealReminderService } from '../../services/DietMealReminderService';
 import { restoreHydrationNotifications } from '../../services/HydrationService';
@@ -69,15 +69,17 @@ const mobileTabs = [
 ];
 
 export default function AppShell() {
-  const shouldReduceMotion = useReducedMotion();
-  const [history, setHistory] = useState<any[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  useEffect(() => { 
+  useEffect(() => {
     try {
       if (localStorage.getItem('hc_onboarded') !== 'true') {
         const prof = getProfile();
-        if (prof?.demographics?.onboardingCompletedAt || (prof?.demographics?.name && prof?.demographics?.age) || prof?.profileName) {
+        if (
+          prof?.demographics?.onboardingCompletedAt ||
+          (prof?.demographics?.name && prof?.demographics?.age) ||
+          prof?.profileName
+        ) {
           localStorage.setItem('hc_onboarded', 'true');
           return;
         }
@@ -85,18 +87,20 @@ export default function AppShell() {
           navigate('/app/onboarding', { replace: true });
         }
       }
-    } catch(e) {}
+    } catch (e) {}
   }, [location.pathname, navigate]);
   const toast = useToast();
   const isMobile = useIsMobile();
-    const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(() => getUnreadNotificationCount());
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(() =>
+    getUnreadNotificationCount()
+  );
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
-  const scrollTimeout = useRef<any>(null);
+
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [activeConflictCase, setActiveConflictCase] = useState<any>(null);
 
@@ -133,7 +137,7 @@ export default function AppShell() {
     };
     const handleOpenConflictModal = (e: Event) => {
       const caseId = (e as CustomEvent)?.detail?.caseId;
-      const current = caseId ? getCases().find(c => c.id === caseId) : getActiveCase();
+      const current = caseId ? getCases().find((c) => c.id === caseId) : getActiveCase();
       if (current) {
         setActiveConflictCase(current);
         setShowConflictModal(true);
@@ -163,7 +167,7 @@ export default function AppShell() {
     window.addEventListener('keydown', handleKeyDown);
 
     initDailyReminderService((route) => navigate(route));
-    const stopDietReminders=initDietMealReminderService();
+    const stopDietReminders = initDietMealReminderService();
     void rescheduleVitaminNotifications();
     void restoreHydrationNotifications();
     return () => {
@@ -187,7 +191,7 @@ export default function AppShell() {
 
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    
+
     // Always show if at the very top
     if (currentScrollY < 50) {
       setIsScrolling(false);
@@ -239,25 +243,21 @@ export default function AppShell() {
 
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
-  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
-
-  const handleNavClick = (path: string, label?: string) => {
-    triggerHapticLight();
-    trackButtonClick(label || path, 'navigation');
-    navigate(path);
-    setShowMoreMenu(false);
-    setShowProfileMenu(false);
-  };
-
+  const currentTierBadge = TIERS.find((t) => t.name === vitalityState.tier)?.badge || '🥉';
 
   // Scroll to top on route change & track page view
   useEffect(() => {
     // Dynamic Theme Color for Android/PWA Status Bar
-    const metaThemeColor = document.getElementById('theme-color-meta') || document.querySelector('meta[name="theme-color"]');
+    const metaThemeColor =
+      document.getElementById('theme-color-meta') ||
+      document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       if (location.pathname.startsWith('/app/ava')) {
         metaThemeColor.setAttribute('content', '#FDE4D3'); // Soft sunset peach
-      } else if (location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) {
+      } else if (
+        location.pathname.startsWith('/app/jarvis') ||
+        location.pathname.startsWith('/app/consult')
+      ) {
         metaThemeColor.setAttribute('content', '#FFF7ED'); // Warm amber clinical
       } else {
         metaThemeColor.setAttribute('content', '#F0FDFA'); // Light teal default
@@ -274,12 +274,6 @@ export default function AppShell() {
   }, [location.pathname]);
 
   useEffect(() => {
-    const loadHistory = () => {
-      // Load recent cases, sorted by updated date
-      const cases = [...getCases()].sort((a, b) => (new Date(b?.updatedAt || 0).getTime() || 0) - (new Date(a?.updatedAt || 0).getTime() || 0));
-      setHistory(cases);
-    };
-    loadHistory();
     const handleProfileUpdate = () => {
       setProfile(getProfile());
       setPoints(getVitalityPoints());
@@ -289,11 +283,9 @@ export default function AppShell() {
       setPoints(getVitalityPoints());
       setVitalityState(getVitalityState());
     };
-    window.addEventListener('hc_cases_updated', loadHistory);
     window.addEventListener('hc_profile_updated', handleProfileUpdate);
     window.addEventListener('hc_points_updated', handlePointsUpdate);
     return () => {
-      window.removeEventListener('hc_cases_updated', loadHistory);
       window.removeEventListener('hc_profile_updated', handleProfileUpdate);
       window.removeEventListener('hc_points_updated', handlePointsUpdate);
     };
@@ -301,23 +293,25 @@ export default function AppShell() {
 
   // Enforce a minimum safe area for Capacitor/WKWebView bugs
   useEffect(() => {
-const enforceSafeArea = () => {
+    const enforceSafeArea = () => {
       const div = document.createElement('div');
       div.style.paddingTop = 'env(safe-area-inset-top)';
       document.body.appendChild(div);
       const computedTop = parseInt(getComputedStyle(div).paddingTop, 10) || 0;
       document.body.removeChild(div);
-      
+
       let finalTop = computedTop;
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
       // If on a real mobile device and env() returns 0 (e.g. Android WebView / PWA),
       // we must fallback to 44px to prevent the OS status bar from overlapping the UI.
       // This will not trigger on Desktop browsers resized to mobile width.
       if (isMobileDevice && computedTop === 0) {
         finalTop = 44;
       }
-      
+
       document.documentElement.style.setProperty('--safe-area-top', `${finalTop}px`);
     };
     enforceSafeArea();
@@ -332,14 +326,27 @@ const enforceSafeArea = () => {
     '/app/profile',
     '/app/settings',
     '/app/my-cases',
-  ].some(p => location.pathname.startsWith(p));
+  ].some((p) => location.pathname.startsWith(p));
 
   return (
-    <div className="app-shell" style={{ backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC', transition: 'background-color 0.3s ease' }}>
-      
+    <div
+      className="app-shell"
+      style={{
+        backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC',
+        transition: 'background-color 0.3s ease',
+      }}
+    >
       <MedicalActionIsland />
-      <a href="#main-content" className="skip-link">Skip to main content</a>
-      <div id="a11y-live-region" role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <div
+        id="a11y-live-region"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
@@ -373,10 +380,22 @@ const enforceSafeArea = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Trophy size={15} color="#059669" />
-                <span className="tabular-nums" style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
+                <span
+                  className="tabular-nums"
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    color: '#065F46',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {points} PTS
+                </span>
                 <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Activity →</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>
+                Activity →
+              </span>
             </button>
             <button
               onClick={() => {
@@ -405,17 +424,17 @@ const enforceSafeArea = () => {
             >
               <Bell size={17} />
               {unreadNotificationCount > 0 && (
-                <span 
-                  style={{ 
-                    position: 'absolute', 
-                    top: '8px', 
-                    right: '8px', 
-                    width: '7px', 
-                    height: '7px', 
-                    borderRadius: '50%', 
-                    backgroundColor: '#F59E0B', 
-                    border: '1.5px solid #FFFFFF' 
-                  }} 
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F59E0B',
+                    border: '1.5px solid #FFFFFF',
+                  }}
                 />
               )}
             </button>
@@ -423,19 +442,18 @@ const enforceSafeArea = () => {
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
-
               return (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.to === '/app'}
-                className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
-              >
-                <l.icon size={18} aria-hidden="true" />
-                {l.label}
-
-              </NavLink>
-            )})}
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  end={l.to === '/app'}
+                  className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
+                >
+                  <l.icon size={18} aria-hidden="true" />
+                  {l.label}
+                </NavLink>
+              );
+            })}
             <NavLink
               to="/app/settings"
               className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
@@ -445,292 +463,463 @@ const enforceSafeArea = () => {
             </NavLink>
           </nav>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto', paddingTop: '12px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              marginTop: 'auto',
+              paddingTop: '12px',
+            }}
+          >
             <div style={{ padding: '0 20px' }}>
-              <SyncStatusIndicator className="w-full justify-center" onConflictClick={() => setShowConflictModal(true)} />
+              <SyncStatusIndicator
+                className="w-full justify-center"
+                onConflictClick={() => setShowConflictModal(true)}
+              />
             </div>
-            <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-              <NavLink to="/changelog" style={{ color: 'inherit', textDecoration: 'none' }}>What's New</NavLink>
-              <NavLink to="/help" style={{ color: 'inherit', textDecoration: 'none' }}>Help</NavLink>
-              <NavLink to="/pricing" style={{ color: 'inherit', textDecoration: 'none' }}>Pricing</NavLink>
-              <NavLink to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</NavLink>
-              <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</NavLink>
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                padding: '0 20px',
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <NavLink to="/changelog" style={{ color: 'inherit', textDecoration: 'none' }}>
+                What's New
+              </NavLink>
+              <NavLink to="/help" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Help
+              </NavLink>
+              <NavLink to="/pricing" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Pricing
+              </NavLink>
+              <NavLink to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Privacy
+              </NavLink>
+              <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Terms
+              </NavLink>
             </div>
-            <div className="sidebar__footer" style={{ padding: '12px 20px', fontSize: '10px', lineHeight: '1.4', color: 'var(--text-muted)' }}>
-              <strong>Disclaimer:</strong> HealthChain360.ai is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
+            <div
+              className="sidebar__footer"
+              style={{
+                padding: '12px 20px',
+                fontSize: '10px',
+                lineHeight: '1.4',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <strong>Disclaimer:</strong> HealthChain360.ai is an AI Navigational and Researcher
+              tool, not a doctor. It is not a substitute for professional medical advice.
             </div>
           </div>
         </aside>
       )}
 
-        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC', background: isWarmPorcelainRoute ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)' : undefined, overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
-          {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px', margin: '0 auto' }}>
-            {!['/app/today', '/app/consult', '/app/dietician', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
-              <ActiveCaseBar navigate={navigate} />
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
-              <Outlet />
-            </div>
+      <motion.main
+        className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`}
+        id="main-content"
+        style={{
+          backgroundColor: isWarmPorcelainRoute ? '#FFFAFA' : '#F8FAFC',
+          background: isWarmPorcelainRoute
+            ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)'
+            : undefined,
+          overflowY:
+            isMobile &&
+            (location.pathname.startsWith('/app/ava') ||
+              location.pathname.startsWith('/app/onboarding'))
+              ? 'hidden'
+              : 'auto',
+          paddingTop:
+            location.pathname.startsWith('/app/onboarding') ||
+            location.pathname.startsWith('/app/war-room')
+              ? '0px'
+              : undefined,
+          paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined,
+          paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined,
+          paddingBottom: location.pathname.startsWith('/app/onboarding')
+            ? '0px'
+            : isMobile && location.pathname.startsWith('/app/ava')
+              ? '0px'
+              : location.pathname.startsWith('/app/war-room')
+                ? '0px'
+                : isMobile
+                  ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)'
+                  : undefined,
+          transformOrigin: 'top center',
+          borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px',
+        }}
+        onScroll={handleMainScroll}
+        animate={{
+          scale: showMoreMenu || showProfileMenu ? 0.93 : 1,
+          opacity: showMoreMenu || showProfileMenu ? 0.5 : 1,
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            position: 'relative',
+            width: '100%',
+            maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px',
+            margin: '0 auto',
+          }}
+        >
+          {![
+            '/app/today',
+            '/app/consult',
+            '/app/dietician',
+            '/app/collab',
+            '/app/case-prep',
+            '/app/settings',
+            '/app/ava',
+            '/app/trials',
+            '/app/profile',
+            '/app/my-cases',
+            '/app/cases',
+            '/app/jarvis',
+            '/app/progress',
+            '/app/trophies',
+            '/app/war-room',
+          ].some((p) => location.pathname.startsWith(p)) && <ActiveCaseBar navigate={navigate} />}
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
+            <Outlet />
           </div>
-        </motion.main>
+        </div>
+      </motion.main>
 
-      {isMobile && !location.pathname.startsWith("/app/onboarding") && !location.pathname.startsWith("/app/war-room") && (
+      {isMobile &&
+        !location.pathname.startsWith('/app/onboarding') &&
+        !location.pathname.startsWith('/app/war-room') && (
           <>
             <div className="mobile-top-bar">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {!['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) && !location.pathname.startsWith('/app/war-room') ? (
-                <button
-                  onClick={() => {
-                    triggerHapticLight();
-                    safeNavigateBack(navigate, '/app/today');
-                  }}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: location.pathname.startsWith('/app/ava') ? '1px solid rgba(244, 63, 94, 0.2)' : '1px solid #CBD5E1',
-                    borderRadius: '50%',
-                    width: '40px',
-                    height: '40px',
-                    minWidth: '40px',
-                    minHeight: '40px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: location.pathname.startsWith('/app/ava') ? '0 4px 12px rgba(244, 63, 94, 0.15)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
-                    color: location.pathname.startsWith('/app/ava') ? '#F43F5E' : '#0F172A',
-                  }}
-                  aria-label="Go back"
-                >
-                  <ArrowLeft size={19} strokeWidth={2.5} />
-                </button>
-              ) : null}
-            {['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) && (
-              <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  setShowProfileMenu(!showProfileMenu);
-                }}
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block', borderRadius: '50%' }}
-                aria-haspopup="menu"
-                aria-expanded={showProfileMenu}
-                aria-label="Open profile menu"
-              >
-                <img 
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
-                  alt={`${profile?.demographics?.name || 'User'} profile avatar`} 
-                  className="mobile-top-bar__profile" 
-                  style={{ display: 'block' }}
-                  onError={(e) => {
-                    e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="%230F8B7E"><circle cx="20" cy="20" r="20"/><path d="M20 21a6 6 0 100-12 6 6 0 000 12zm0 3c-5.33 0-16 2.67-16 8v2h32v-2c0-5.33-10.67-8-16-8z" fill="%23fff"/></svg>';
-                  }}
-                />
-              </button>
-
-              <AnimatePresence>
-                {showProfileMenu && (
-                    <motion.div key="profile-backdrop"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      style={{ position: 'fixed', inset: 0, zIndex: 998, background: 'transparent' }}
-                      onClick={() => setShowProfileMenu(false)}
-                    />
-                )}
-                {showProfileMenu && (
-                    <motion.div key="profile-menu"
-                      role="menu"
-                      aria-label="User Profile Menu"
-                      initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                      transition={{ duration: 0.15, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 8px)',
-                        left: '0',
-                        zIndex: 999,
-                        background: '#FFFFFF',
-                        borderRadius: '16px',
-                        border: '1px solid #E2E8F0',
-                        boxShadow: '0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.04)',
-                        padding: '6px',
-                        minWidth: '190px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {!['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) &&
+                !location.pathname.startsWith('/app/war-room') ? (
+                  <button
+                    onClick={() => {
+                      triggerHapticLight();
+                      safeNavigateBack(navigate, '/app/today');
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: location.pathname.startsWith('/app/ava')
+                        ? '1px solid rgba(244, 63, 94, 0.2)'
+                        : '1px solid #CBD5E1',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      minWidth: '40px',
+                      minHeight: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: location.pathname.startsWith('/app/ava')
+                        ? '0 4px 12px rgba(244, 63, 94, 0.15)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                      color: location.pathname.startsWith('/app/ava') ? '#F43F5E' : '#0F172A',
+                    }}
+                    aria-label="Go back"
+                  >
+                    <ArrowLeft size={19} strokeWidth={2.5} />
+                  </button>
+                ) : null}
+                {['/app/today', '/app/consult', '/app/dietician'].includes(location.pathname) && (
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setShowProfileMenu(!showProfileMenu);
                       }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        display: 'block',
+                        borderRadius: '50%',
+                      }}
+                      aria-haspopup="menu"
+                      aria-expanded={showProfileMenu}
+                      aria-label="Open profile menu"
                     >
-                      <div style={{ padding: '8px 12px 6px', borderBottom: '1px solid #F1F5F9', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {profile?.demographics?.name || 'My Health'}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#64748B' }}>
-                          {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
-                        </div>
-                      </div>
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
+                        alt={`${profile?.demographics?.name || 'User'} profile avatar`}
+                        className="mobile-top-bar__profile"
+                        style={{ display: 'block' }}
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="%230F8B7E"><circle cx="20" cy="20" r="20"/><path d="M20 21a6 6 0 100-12 6 6 0 000 12zm0 3c-5.33 0-16 2.67-16 8v2h32v-2c0-5.33-10.67-8-16-8z" fill="%23fff"/></svg>';
+                        }}
+                      />
+                    </button>
 
-                      <button
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          navigate('/app/today');
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#0F172A',
-                          fontSize: '13.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          width: '100%',
-                        }}
-                      >
-                        <Home size={16} color="#059669" />
-                        <span>Health Today</span>
-                      </button>
+                    <AnimatePresence>
+                      {showProfileMenu && (
+                        <motion.div
+                          key="profile-backdrop"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 998,
+                            background: 'transparent',
+                          }}
+                          onClick={() => setShowProfileMenu(false)}
+                        />
+                      )}
+                      {showProfileMenu && (
+                        <motion.div
+                          key="profile-menu"
+                          role="menu"
+                          aria-label="User Profile Menu"
+                          initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                          transition={{ duration: 0.15, ease: 'easeOut' }}
+                          style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 8px)',
+                            left: '0',
+                            zIndex: 999,
+                            background: '#FFFFFF',
+                            borderRadius: '16px',
+                            border: '1px solid #E2E8F0',
+                            boxShadow:
+                              '0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.04)',
+                            padding: '6px',
+                            minWidth: '190px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: '8px 12px 6px',
+                              borderBottom: '1px solid #F1F5F9',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                color: '#0F172A',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {profile?.demographics?.name || 'My Health'}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748B' }}>
+                              {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
+                            </div>
+                          </div>
 
-                      <button
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          navigate('/app/profile');
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#0F172A',
-                          fontSize: '13.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          width: '100%',
-                        }}
-                      >
-                        <FolderHeart size={16} color="#0D9488" />
-                        <span>Medical Profile</span>
-                      </button>
+                          <button
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              navigate('/app/today');
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#0F172A',
+                              fontSize: '13.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              width: '100%',
+                            }}
+                          >
+                            <Home size={16} color="#059669" />
+                            <span>Health Today</span>
+                          </button>
 
-                      <button
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          navigate('/app/settings');
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '10px 12px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#0F172A',
-                          fontSize: '13.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          width: '100%',
-                        }}
-                      >
-                        <Settings size={16} color="#64748B" />
-                        <span>Settings</span>
-                      </button>
-                    </motion.div>
-            )}
-          </AnimatePresence>
-            </div>
-            )}
-            </div>
+                          <button
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              navigate('/app/profile');
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#0F172A',
+                              fontSize: '13.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              width: '100%',
+                            }}
+                          >
+                            <FolderHeart size={16} color="#0D9488" />
+                            <span>Medical Profile</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              navigate('/app/settings');
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#0F172A',
+                              fontSize: '13.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              width: '100%',
+                            }}
+                          >
+                            <Settings size={16} color="#64748B" />
+                            <span>Settings</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
               {!location.pathname.startsWith('/app/ava') ? (
-                <motion.button 
-                  className="mobile-top-bar__search" 
+                <motion.button
+                  className="mobile-top-bar__search"
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                   onClick={() => {
                     triggerHapticLight();
                     navigate('/app/ava');
-                  }} 
-                  aria-label="Search or Ask Ava Health Buddy" 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px', 
+                  }}
+                  aria-label="Search or Ask Ava Health Buddy"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                     padding: '0 12px',
                     minWidth: 0,
                     flex: 1,
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F43F5E', flexShrink: 0 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: '#F43F5E',
+                      flexShrink: 0,
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <Heart size={13} fill="#F43F5E" color="#F43F5E" />
                     </div>
-                    <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '-0.2px' }}>Ava</span>
+                    <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '-0.2px' }}>
+                      Ava
+                    </span>
                   </div>
-                  <span style={{ 
-                    fontSize: '13px', 
-                    color: '#94A3B8', 
-                    whiteSpace: 'nowrap', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis',
-                    fontWeight: 500
-                  }}>
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      color: '#94A3B8',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontWeight: 500,
+                    }}
+                  >
                     Ask anything...
                   </span>
                 </motion.button>
               ) : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: '#0F172A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     Ava
                   </span>
                 </div>
               )}
               <div className="mobile-top-bar__actions">
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      className="mobile-top-bar__points sparkly-gold-pill tabular-nums"
-                      onClick={() => {
-                        triggerHapticLight();
-                        window.dispatchEvent(new Event('hc_open_points_modal'));
-                      }}
-                      style={{
-                        cursor: 'pointer',
-                        padding: '6px 12px',
-                        minHeight: '44px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        borderRadius: '20px',
-                        border: 'none'
-                      }}
-                      aria-label="View activity"
-                    >
-                      <Trophy size={14} color="#059669" />
-                      <span className="tabular-nums" style={{ fontWeight: 900, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
-                      <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
-                    </motion.button>
-                <motion.button 
+                <motion.button
                   whileTap={{ scale: 0.97 }}
-                  className="mobile-top-bar__bell" 
+                  className="mobile-top-bar__points sparkly-gold-pill tabular-nums"
+                  onClick={() => {
+                    triggerHapticLight();
+                    window.dispatchEvent(new Event('hc_open_points_modal'));
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    borderRadius: '20px',
+                    border: 'none',
+                  }}
+                  aria-label="View activity"
+                >
+                  <Trophy size={14} color="#059669" />
+                  <span
+                    className="tabular-nums"
+                    style={{
+                      fontWeight: 900,
+                      color: '#065F46',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {points} PTS
+                  </span>
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  className="mobile-top-bar__bell"
                   aria-label="View notifications"
                   onClick={() => {
                     triggerHapticLight();
                     setShowNotifications(true);
                   }}
-                  style={{ 
-                    position: 'relative', 
+                  style={{
+                    position: 'relative',
                     cursor: 'pointer',
                     minWidth: '44px',
                     minHeight: '44px',
@@ -741,59 +930,62 @@ const enforceSafeArea = () => {
                     justifyContent: 'center',
                     borderRadius: '50%',
                     border: 'none',
-                    background: 'transparent'
+                    background: 'transparent',
                   }}
                 >
                   <Bell size={20} aria-hidden="true" />
                   {unreadNotificationCount > 0 && (
-                    <span 
-                      style={{ 
-                        position: 'absolute', 
-                        top: '8px', 
-                        right: '8px', 
-                        width: '8px', 
-                        height: '8px', 
-                        borderRadius: '50%', 
-                        background: '#EF4444' 
-                      }} 
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: '#EF4444',
+                      }}
                     />
                   )}
                 </motion.button>
               </div>
-          </div>
-          {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
-          <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
-            {mobileTabs.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className={({ isActive }) => `mobile-tab ${isActive ? 'active' : ''}`}
-                onClick={() => {
-                  Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
-                  setShowMoreMenu(false);
-                }}
-              >
-                <tab.icon size={22} />
-                <span>{tab.label}</span>
-              </NavLink>
-            ))}
-            <button
-              className={`mobile-tab ${showMoreMenu ? 'active' : ''}`}
-              aria-label="More Menu"
-              aria-expanded={showMoreMenu}
-              onClick={() => {
-                Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
-                setShowMoreMenu(!showMoreMenu);
-              }}
-            >
-              <Grid size={22} />
-              <span>More</span>
-            </button>
-            </nav>
-          )}
+            </div>
+            {!(
+              location.pathname.startsWith('/app/ava') ||
+              location.pathname.startsWith('/app/war-room')
+            ) && (
+              <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
+                {mobileTabs.map((tab) => (
+                  <NavLink
+                    key={tab.to}
+                    to={tab.to}
+                    className={({ isActive }) => `mobile-tab ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+                      setShowMoreMenu(false);
+                    }}
+                  >
+                    <tab.icon size={22} />
+                    <span>{tab.label}</span>
+                  </NavLink>
+                ))}
+                <button
+                  className={`mobile-tab ${showMoreMenu ? 'active' : ''}`}
+                  aria-label="More Menu"
+                  aria-expanded={showMoreMenu}
+                  onClick={() => {
+                    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+                    setShowMoreMenu(!showMoreMenu);
+                  }}
+                >
+                  <Grid size={22} />
+                  <span>More</span>
+                </button>
+              </nav>
+            )}
 
-          <AnimatePresence>
-            {showMoreMenu && (
+            <AnimatePresence>
+              {showMoreMenu && (
                 <motion.div
                   key="more-backdrop"
                   className="mobile-more-menu-backdrop"
@@ -803,18 +995,25 @@ const enforceSafeArea = () => {
                   transition={{ duration: 0.3 }}
                   onClick={() => setShowMoreMenu(false)}
                 />
-            )}
-            {showMoreMenu && (
+              )}
+              {showMoreMenu && (
                 <motion.div
                   key="more-menu"
                   role="dialog"
                   aria-modal="true"
                   aria-label="More Health Tools"
-                  className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
+                  className="mobile-more-menu"
+                  style={{
+                    background:
+                      'linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat',
+                  }}
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: '100%' }}
-                  transition={{ y: { type: 'spring', damping: 30, stiffness: 300 }, opacity: { duration: 0.2 } }}
+                  transition={{
+                    y: { type: 'spring', damping: 30, stiffness: 300 },
+                    opacity: { duration: 0.2 },
+                  }}
                   drag="y"
                   dragConstraints={{ top: 0, bottom: 0 }}
                   dragElastic={{ top: 0, bottom: 0.8 }}
@@ -824,80 +1023,124 @@ const enforceSafeArea = () => {
                     }
                   }}
                 >
-                <div className="mobile-more-menu__header">
-                  <h3>More Tools</h3>
-                  <button onClick={() => setShowMoreMenu(false)} className="close-btn" aria-label="Close More Menu">
-                    <X size={24} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="mobile-more-menu__grid">
-                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies' && l.to !== '/app/my-cases').map((l) => {
-      
-                    return (
+                  <div className="mobile-more-menu__header">
+                    <h3>More Tools</h3>
                     <button
-                      key={l.to}
+                      onClick={() => setShowMoreMenu(false)}
+                      className="close-btn"
+                      aria-label="Close More Menu"
+                    >
+                      <X size={24} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className="mobile-more-menu__grid">
+                    {links
+                      .filter(
+                        (l) =>
+                          !mobileTabs.find((mt) => mt.to === l.to) &&
+                          l.to !== '/app/progress' &&
+                          l.to !== '/app/trophies' &&
+                          l.to !== '/app/my-cases'
+                      )
+                      .map((l) => {
+                        return (
+                          <button
+                            key={l.to}
+                            onClick={() => {
+                              navigate(l.to);
+                              setShowMoreMenu(false);
+                            }}
+                            className="more-menu-item"
+                          >
+                            <div className="more-menu-icon">
+                              <l.icon size={22} />
+                            </div>
+                            <span>{l.label}</span>
+                          </button>
+                        );
+                      })}
+                    <button
                       onClick={() => {
-                        navigate(l.to);
+                        triggerHapticLight();
                         setShowMoreMenu(false);
+                        navigate('/app/settings');
                       }}
                       className="more-menu-item"
+                      aria-label="Settings"
                     >
                       <div className="more-menu-icon">
-                        <l.icon size={22} />
+                        <Settings size={22} />
                       </div>
-                      <span>{l.label}</span>
-
+                      <span>Settings</span>
                     </button>
-                  )})}
-                  <button 
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowMoreMenu(false);
-                      navigate('/app/settings');
-                    }} 
-                    className="more-menu-item"
-                    aria-label="Settings"
-                  >
-                    <div className="more-menu-icon">
-                      <Settings size={22} />
-                    </div>
-                    <span>Settings</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowMoreMenu(false);
-                      navigate('/app/my-cases');
-                    }} 
-                    className="more-menu-settings-card"
-                    aria-label="Open My Cases"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <div className="more-menu-icon" style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488' }}>
-                        <Archive size={20} />
+                    <button
+                      onClick={() => {
+                        triggerHapticLight();
+                        setShowMoreMenu(false);
+                        navigate('/app/my-cases');
+                      }}
+                      className="more-menu-settings-card"
+                      aria-label="Open My Cases"
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div
+                          className="more-menu-icon"
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'rgba(13, 148, 136, 0.12)',
+                            color: '#0D9488',
+                          }}
+                        >
+                          <Archive size={20} />
+                        </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            textAlign: 'left',
+                            gap: '2px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: '13.5px',
+                              fontWeight: 700,
+                              color: 'var(--text-main, #0F172A)',
+                              letterSpacing: '-0.01em',
+                            }}
+                          >
+                            My Cases
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--text-muted, #64748B)',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Multi-specialist case briefs & records
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '2px' }}>
-                        <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main, #0F172A)', letterSpacing: '-0.01em' }}>My Cases</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)', fontWeight: 500 }}>Multi-specialist case briefs & records</span>
-                      </div>
-                    </div>
-                    <ChevronRight size={18} style={{ color: '#94A3B8', flexShrink: 0 }} />
-                  </button>
-                </div>
+                      <ChevronRight size={18} style={{ color: '#94A3B8', flexShrink: 0 }} />
+                    </button>
+                  </div>
 
-                <div style={{ padding: '0 20px 20px 20px', marginTop: 'auto' }}>
-                  <UpgradeToProCard
-                    compact
-                    isPro={!!profile?.isPro}
-                    onNavigate={() => setShowMoreMenu(false)}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
-      )}
-
+                  <div style={{ padding: '0 20px 20px 20px', marginTop: 'auto' }}>
+                    <UpgradeToProCard
+                      compact
+                      isPro={!!profile?.isPro}
+                      onNavigate={() => setShowMoreMenu(false)}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
 
       <AuthModal />
       <VitalityPointsModal />
@@ -924,7 +1167,6 @@ export function ActiveCaseBar({ navigate }: any) {
   const [activeCase, setActiveCase] = useState(() => getUnifiedCaseScope().caseItem);
   const [profile, setProfile] = useState(getProfile());
 
-
   useEffect(() => {
     const refresh = () => {
       setActiveCase(getUnifiedCaseScope().caseItem);
@@ -950,7 +1192,10 @@ export function ActiveCaseBar({ navigate }: any) {
               : 'Start a case so HealthChain can keep your story connected.'}
           </strong>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/consult?new=true')}>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={() => navigate('/app/consult?new=true')}
+        >
           Start a Quick Consult <ArrowRight size={15} />
         </button>
       </div>
@@ -972,9 +1217,13 @@ export function ActiveCaseBar({ navigate }: any) {
         </small>
       </div>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <SyncStatusIndicator onConflictClick={() => {
-          window.dispatchEvent(new CustomEvent('hc_open_conflict_modal', { detail: { caseId: activeCase.id } }));
-        }} />
+        <SyncStatusIndicator
+          onConflictClick={() => {
+            window.dispatchEvent(
+              new CustomEvent('hc_open_conflict_modal', { detail: { caseId: activeCase.id } })
+            );
+          }}
+        />
         <button
           className="btn btn-outline btn-sm"
           onClick={() => navigate(`/app/cases/${activeCase.id}`)}
@@ -985,14 +1234,3 @@ export function ActiveCaseBar({ navigate }: any) {
     </div>
   );
 }
-
-function BrandPulseBanner() {
-  return null;
-}
-
-
-
-
-
-
-

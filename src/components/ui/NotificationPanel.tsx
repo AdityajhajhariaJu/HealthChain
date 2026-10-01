@@ -68,8 +68,22 @@ const REMINDER_PRESETS = [
 const QUICK_SEVERITIES = [
   { label: 'None', desc: 'Zero', score: 0, color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0' },
   { label: 'Mild', desc: 'Slight', score: 1, color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
-  { label: 'Moderate', desc: 'Noticeable', score: 2, color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A' },
-  { label: 'Severe', desc: 'Intense', score: 3, color: '#EF4444', bg: '#FEF2F2', border: '#FECACA' },
+  {
+    label: 'Moderate',
+    desc: 'Noticeable',
+    score: 2,
+    color: '#F59E0B',
+    bg: '#FFFBEB',
+    border: '#FDE68A',
+  },
+  {
+    label: 'Severe',
+    desc: 'Intense',
+    score: 3,
+    color: '#EF4444',
+    bg: '#FEF2F2',
+    border: '#FECACA',
+  },
 ];
 
 function formatReminderTime(t: string): string {
@@ -112,7 +126,13 @@ function getCategoryConfig(category: NotificationCategory) {
         border: '#FDE68A',
       };
     case 'meal_reminder':
-      return {label: 'Food reminder', icon: Clock, color: '#059669', bg: '#ECFDF5', border: '#A7F3D0'};
+      return {
+        label: 'Food reminder',
+        icon: Clock,
+        color: '#059669',
+        bg: '#ECFDF5',
+        border: '#A7F3D0',
+      };
     case 'daily_checkin':
       return {
         label: 'Care Rhythm',
@@ -152,11 +172,13 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const { toast } = useToast();
 
   const [todayCheckin, setTodayCheckin] = useState<any>(null);
-  const [activeCase, setActiveCase] = useState<any>(null);
-  const [waterGlasses, setWaterGlasses] = useState<number>(0);
+  const [, setActiveCase] = useState<any>(null);
+  const [, setWaterGlasses] = useState<number>(0);
   const [reminderEnabled, setReminderEnabled] = useState<boolean>(isDailyReminderEnabled());
   const [reminderTime, setReminderTime] = useState<string>(getDailyReminderTime());
-  const [testAlertStatus, setTestAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [testAlertStatus, setTestAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>(
+    'idle'
+  );
   const [isSavingReminder, setIsSavingReminder] = useState<boolean>(false);
   const [reminderError, setReminderError] = useState('');
   const [showDetailedWidget, setShowDetailedWidget] = useState<boolean>(false);
@@ -177,7 +199,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       const pId = getActiveProfileId();
       setTodayCheckin(getTodayCheckin());
       setActiveCase(getUnifiedCaseScope().caseItem);
-      
+
       // Verified profile-isolated hydration read
       setWaterGlasses(getWaterGlassesForDate(todayStr, pId));
 
@@ -248,23 +270,6 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     return () => window.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
-  const handleAddWater = () => {
-    triggerHapticLight();
-    const next = waterGlasses + 1;
-    setWaterGlasses(next);
-    // Verified profile-isolated hydration write
-    setWaterGlassesForDate(todayStr, next);
-    if (next === 4 || next === 8) {
-      awardPoints(5, 'Hydration Target Milestone 💧', 'lifestyle');
-    }
-  };
-
-  const handleNavigate = (route: string) => {
-    triggerHapticMedium();
-    onClose();
-    navigate(route);
-  };
-
   const handleNotificationClick = (item: AppNotification) => {
     triggerHapticMedium();
     markNotificationAsRead(item.id);
@@ -281,7 +286,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     if (item.profileId !== getActiveProfileId()) return;
     if (item.category === 'medication_reminder') {
       const id = item.metadata?.vitaminId;
-      const medicine = getVitaminSchedule().find(entry => entry.id === id && entry.enabled && !entry.takenToday);
+      const medicine = getVitaminSchedule().find(
+        (entry) => entry.id === id && entry.enabled && !entry.takenToday
+      );
       if (medicine && toggleVitaminTaken(id)) {
         markNotificationAsRead(item.id);
         awardPoints(2, `Taken: ${medicine.name}`, 'lifestyle', `pill_${id}_${todayStr}`);
@@ -326,7 +333,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     saveNotificationPreferences({ quietHoursStart: start, quietHoursEnd: end });
   };
 
-  const handleQuickLog = (sevItem: typeof QUICK_SEVERITIES[0]) => {
+  const handleQuickLog = (sevItem: (typeof QUICK_SEVERITIES)[0]) => {
     triggerHapticSuccess();
     try {
       const entry = recordDailyCheckin({
@@ -354,11 +361,14 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     try {
       const ok = await setDailyReminderEnabled(enabled);
       setReminderEnabled(isDailyReminderEnabled());
-      if (!ok) setReminderError(!enabled
-        ? 'The reminder could not be cancelled. Please try again or manage HealthChain notifications in device settings.'
-        : supportsDailyReminders()
-        ? 'The reminder could not be enabled. Check notification permissions and try again.'
-        : 'Scheduled reminders are available in the mobile app. This browser cannot deliver a daily reminder when HealthChain is closed.');
+      if (!ok)
+        setReminderError(
+          !enabled
+            ? 'The reminder could not be cancelled. Please try again or manage HealthChain notifications in device settings.'
+            : supportsDailyReminders()
+              ? 'The reminder could not be enabled. Check notification permissions and try again.'
+              : 'Scheduled reminders are available in the mobile app. This browser cannot deliver a daily reminder when HealthChain is closed.'
+        );
     } catch (e) {
       console.error(e);
     } finally {
@@ -374,7 +384,10 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       const ok = await setDailyReminderTime(time);
       setReminderTime(getDailyReminderTime());
       setReminderEnabled(isDailyReminderEnabled());
-      if (!ok) setReminderError('The new time could not be scheduled. Check the time and notification permissions, then enable the reminder again.');
+      if (!ok)
+        setReminderError(
+          'The new time could not be scheduled. Check the time and notification permissions, then enable the reminder again.'
+        );
     } catch (e) {
       console.error(e);
     } finally {
@@ -398,7 +411,6 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
 
   if (!isOpen) return null;
 
-  const pendingActionsCount = (activeCase?.actions || []).filter((a: any) => a.status !== 'completed').length;
   const isCheckinPending = !todayCheckin;
 
   // Filter notifications based on active tab
@@ -447,819 +459,1057 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <FocusTrap isActive={isOpen} onEscape={onClose} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-            {/* Header */}
-          <div
-            style={{
-              padding: '18px 22px 14px',
-              borderBottom: '1px solid #F1F5F9',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#FFFFFF',
-            }}
+          <FocusTrap
+            isActive={isOpen}
+            onEscape={onClose}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #ECFDF5, #D1FAE5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#059669',
-                }}
-              >
-                <Bell size={20} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                    Health Alerts & Pulse
-                  </h3>
-                  {unreadCount > 0 && (
-                    <span
+            {/* Header */}
+            <div
+              style={{
+                padding: '18px 22px 14px',
+                borderBottom: '1px solid #F1F5F9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#FFFFFF',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #ECFDF5, #D1FAE5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#059669',
+                  }}
+                >
+                  <Bell size={20} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <h3
                       style={{
-                        background: '#EF4444',
-                        color: '#FFFFFF',
-                        fontSize: '11px',
+                        margin: 0,
+                        fontSize: '17px',
                         fontWeight: 800,
-                        padding: '1px 6px',
-                        borderRadius: '999px',
-                        lineHeight: 1.3,
+                        color: '#0F172A',
+                        letterSpacing: '-0.3px',
                       }}
                     >
-                      {unreadCount}
-                    </span>
-                  )}
+                      Health Alerts & Pulse
+                    </h3>
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          background: '#EF4444',
+                          color: '#FFFFFF',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: '999px',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+                    Active context & daily actions
+                  </span>
                 </div>
-                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                  Active context & daily actions
-                </span>
               </div>
-            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {unreadCount > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    title="Mark all as read"
+                    style={{
+                      background: '#F1F5F9',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#0F766E',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    aria-label="Mark all notifications as read"
+                  >
+                    <CheckCheck size={14} />
+                    <span>Mark all read</span>
+                  </button>
+                )}
                 <button
-                  onClick={handleMarkAllRead}
-                  title="Mark all as read"
+                  onClick={() => {
+                    triggerHapticLight();
+                    onClose();
+                  }}
                   style={{
                     background: '#F1F5F9',
                     border: 'none',
-                    borderRadius: '8px',
-                    padding: '6px 10px',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    color: '#0F766E',
-                    cursor: 'pointer',
+                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px',
-                  }}
-                  aria-label="Mark all notifications as read"
-                >
-                  <CheckCheck size={14} />
-                  <span>Mark all read</span>
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  triggerHapticLight();
-                  onClose();
-                }}
-                style={{
-                  background: '#F1F5F9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '38px',
-                  height: '38px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#64748B',
-                  cursor: 'pointer',
-                }}
-                aria-label="Close notifications"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Segmented Filter Bar */}
-          <div
-            style={{
-              padding: '8px 20px',
-              background: '#F8FAFC',
-              borderBottom: '1px solid #F1F5F9',
-              display: 'flex',
-              gap: '6px',
-            }}
-          >
-            {[
-              { key: 'all', label: `All (${undismissedNotifications.length})` },
-              { key: 'unread', label: `Unread (${unreadCount})` },
-              { key: 'rhythm', label: 'Check-in' },
-            ].map((tab) => {
-              const active = activeFilter === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    triggerHapticLight();
-                    setActiveFilter(tab.key as any);
-                  }}
-                  style={{
-                    padding: '5px 11px',
-                    borderRadius: '8px',
-                    fontSize: '11.5px',
-                    fontWeight: active ? 700 : 500,
-                    background: active ? '#FFFFFF' : 'transparent',
-                    color: active ? '#0F172A' : '#64748B',
-                    border: active ? '1px solid #CBD5E1' : '1px solid transparent',
-                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                    justifyContent: 'center',
+                    color: '#64748B',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                   }}
+                  aria-label="Close notifications"
                 >
-                  {tab.label}
+                  <X size={18} />
                 </button>
-              );
-            })}
-          </div>
+              </div>
+            </div>
 
-          {/* Scrollable Body */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '16px 20px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
-          >
-            {/* SECTION A: Classified Notifications Feed (Shown for 'all' and 'unread' tabs) */}
-            {activeFilter !== 'rhythm' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                    Notifications
-                  </span>
-                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                    {displayedNotifications.length} items
-                  </span>
-                </div>
-
-                {displayedNotifications.length === 0 ? (
-                  <div
+            {/* Segmented Filter Bar */}
+            <div
+              style={{
+                padding: '8px 20px',
+                background: '#F8FAFC',
+                borderBottom: '1px solid #F1F5F9',
+                display: 'flex',
+                gap: '6px',
+              }}
+            >
+              {[
+                { key: 'all', label: `All (${undismissedNotifications.length})` },
+                { key: 'unread', label: `Unread (${unreadCount})` },
+                { key: 'rhythm', label: 'Check-in' },
+              ].map((tab) => {
+                const active = activeFilter === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      triggerHapticLight();
+                      setActiveFilter(tab.key as any);
+                    }}
                     style={{
-                      background: '#F8FAFC',
-                      border: '1px dashed #CBD5E1',
-                      borderRadius: '14px',
-                      padding: '24px 16px',
-                      textAlign: 'center',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px',
+                      padding: '5px 11px',
+                      borderRadius: '8px',
+                      fontSize: '11.5px',
+                      fontWeight: active ? 700 : 500,
+                      background: active ? '#FFFFFF' : 'transparent',
+                      color: active ? '#0F172A' : '#64748B',
+                      border: active ? '1px solid #CBD5E1' : '1px solid transparent',
+                      boxShadow: active ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    <div
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Scrollable Body */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px 20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+              }}
+            >
+              {/* SECTION A: Classified Notifications Feed (Shown for 'all' and 'unread' tabs) */}
+              {activeFilter !== 'rhythm' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0 2px',
+                    }}
+                  >
+                    <span
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: '#ECFDF5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#059669',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        color: '#64748B',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.4px',
                       }}
                     >
-                      <CheckCircle2 size={20} />
-                    </div>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                      You’re all caught up
+                      Notifications
                     </span>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#64748B', maxWidth: '280px', lineHeight: 1.4 }}>
-                      No unread notifications.
-                    </p>
+                    <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                      {displayedNotifications.length} items
+                    </span>
                   </div>
-                ) : (
-                  displayedNotifications.map((notif) => {
-                    const cfg = getCategoryConfig(notif.category);
-                    const IconComp = cfg.icon;
 
-                    return (
-                      <motion.div
-                        key={notif.id}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        onClick={() => handleNotificationClick(notif)}
+                  {displayedNotifications.length === 0 ? (
+                    <div
+                      style={{
+                        background: '#F8FAFC',
+                        border: '1px dashed #CBD5E1',
+                        borderRadius: '14px',
+                        padding: '24px 16px',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <div
                         style={{
-                          background: notif.isRead ? '#FFFFFF' : '#F8FAFC',
-                          border: notif.isRead ? '1px solid #E2E8F0' : `1.5px solid ${cfg.border}`,
-                          borderRadius: '14px',
-                          padding: '12px 14px',
-                          cursor: 'pointer',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: '#ECFDF5',
                           display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px',
-                          position: 'relative',
-                          boxShadow: notif.isRead ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
-                          transition: 'background 0.15s ease, border-color 0.15s ease',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#059669',
                         }}
                       >
-                        {/* Top row: Category Badge, Timestamp, Unread Indicator, Dismiss Button */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span
+                        <CheckCircle2 size={20} />
+                      </div>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                        You’re all caught up
+                      </span>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: '12px',
+                          color: '#64748B',
+                          maxWidth: '280px',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        No unread notifications.
+                      </p>
+                    </div>
+                  ) : (
+                    displayedNotifications.map((notif) => {
+                      const cfg = getCategoryConfig(notif.category);
+                      const IconComp = cfg.icon;
+
+                      return (
+                        <motion.div
+                          key={notif.id}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.15 }}
+                          onClick={() => handleNotificationClick(notif)}
+                          style={{
+                            background: notif.isRead ? '#FFFFFF' : '#F8FAFC',
+                            border: notif.isRead
+                              ? '1px solid #E2E8F0'
+                              : `1.5px solid ${cfg.border}`,
+                            borderRadius: '14px',
+                            padding: '12px 14px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            position: 'relative',
+                            boxShadow: notif.isRead ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                            transition: 'background 0.15s ease, border-color 0.15s ease',
+                          }}
+                        >
+                          {/* Top row: Category Badge, Timestamp, Unread Indicator, Dismiss Button */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span
+                                style={{
+                                  fontSize: '10.5px',
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.4px',
+                                  padding: '2px 7px',
+                                  borderRadius: '6px',
+                                  background: cfg.bg,
+                                  color: cfg.color,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <IconComp size={11} />
+                                {cfg.label}
+                              </span>
+                              {!notif.isRead && (
+                                <span
+                                  style={{
+                                    width: '7px',
+                                    height: '7px',
+                                    borderRadius: '50%',
+                                    background: '#F59E0B',
+                                    display: 'inline-block',
+                                  }}
+                                  title="Unread"
+                                />
+                              )}
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                onClick={(e) => handleDismissNotification(e, notif.id)}
+                                title="Dismiss"
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: '#94A3B8',
+                                  cursor: 'pointer',
+                                  padding: '2px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                                aria-label={`Dismiss notification: ${notif.title}`}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Middle: Title & Body */}
+                          <div>
+                            <h4
                               style={{
-                                fontSize: '10.5px',
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.4px',
-                                padding: '2px 7px',
-                                borderRadius: '6px',
-                                background: cfg.bg,
+                                margin: '0 0 3px',
+                                fontSize: '13.5px',
+                                fontWeight: 700,
+                                color: '#0F172A',
+                              }}
+                            >
+                              {notif.title}
+                            </h4>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '12px',
+                                color: '#475569',
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {notif.body}
+                            </p>
+                          </div>
+
+                          {/* Bottom: Action Button */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              paddingTop: '2px',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={(event) => handleNotificationAction(event, notif)}
+                              aria-label={`${notif.actionLabel || 'View'}: ${notif.title}`}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
                                 color: cfg.color,
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
                               }}
                             >
-                              <IconComp size={11} />
-                              {cfg.label}
-                            </span>
-                            {!notif.isRead && (
-                              <span
-                                style={{
-                                  width: '7px',
-                                  height: '7px',
-                                  borderRadius: '50%',
-                                  background: '#F59E0B',
-                                  display: 'inline-block',
-                                }}
-                                title="Unread"
-                              />
-                            )}
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <button
-                              onClick={(e) => handleDismissNotification(e, notif.id)}
-                              title="Dismiss"
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#94A3B8',
-                                cursor: 'pointer',
-                                padding: '2px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                              aria-label={`Dismiss notification: ${notif.title}`}
-                            >
-                              <X size={14} />
+                              {notif.actionLabel || 'View'} <ArrowRight size={12} />
                             </button>
                           </div>
-                        </div>
-
-                        {/* Middle: Title & Body */}
-                        <div>
-                          <h4 style={{ margin: '0 0 3px', fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
-                            {notif.title}
-                          </h4>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
-                            {notif.body}
-                          </p>
-                        </div>
-
-                        {/* Bottom: Action Button */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '2px' }}>
-                          <button
-                            type="button"
-                            onClick={(event) => handleNotificationAction(event, notif)}
-                            aria-label={`${notif.actionLabel || 'View'}: ${notif.title}`}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '11.5px',
-                              fontWeight: 700,
-                              color: cfg.color,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            {notif.actionLabel || 'View'} <ArrowRight size={12} />
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-
-            {/* SECTION B: Daily Care Rhythm Cards - Only on rhythm tab */}
-            {activeFilter === 'rhythm' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
-                <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                  Daily check-in
-                </span>
-                <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>
-                  Today
-                </span>
-              </div>
-
-              {/* 1. Daily Symptom Check-in Card */}
-              <div
-                style={{
-                  border: isCheckinPending ? '1.5px solid #FCD34D' : '1.5px solid #A7F3D0',
-                  background: isCheckinPending ? '#FFFBEB' : '#F0FDF4',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-                  position: 'relative',
-                }}
-              >
-                {/* Header Status & Everyday Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', gap: '8px', flexWrap: 'wrap' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: isCheckinPending ? '#FEF3C7' : '#DCFCE7',
-                      color: isCheckinPending ? '#B45309' : '#15803D',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    {isCheckinPending ? 'Check-in available' : 'Completed today'}
-                  </span>
-
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '999px',
-                      background: reminderEnabled ? '#ECFDF5' : '#F1F5F9',
-                      border: `1px solid ${reminderEnabled ? '#A7F3D0' : '#CBD5E1'}`,
-                      color: reminderEnabled ? '#059669' : '#64748B',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <BellRing size={11} />
-                    <span>{reminderEnabled ? `Everyday: ${formatReminderTime(reminderTime)}` : 'Alerts Paused'}</span>
-                  </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
                 </div>
+              )}
 
-                {/* Title and description */}
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+              {/* SECTION B: Daily Care Rhythm Cards - Only on rhythm tab */}
+              {activeFilter === 'rhythm' && (
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '0' }}
+                >
                   <div
                     style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: isCheckinPending ? '#FDE68A' : '#BBF7D0',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      color: isCheckinPending ? '#B45309' : '#15803D',
+                      justifyContent: 'space-between',
+                      padding: '0 2px',
                     }}
                   >
-                    {isCheckinPending ? <HeartPulse size={19} /> : <CheckCircle2 size={19} />}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-                      {isCheckinPending ? 'Daily Symptom & Energy Check-in' : "Today's Check-in Logged"}
-                    </h4>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.45 }}>
-                      {isCheckinPending
-                        ? "Log symptoms and energy when convenient to keep your health rhythm up to date. Missing a day never removes your history."
-                        : `Recorded: ${todayCheckin?.symptom || 'General wellbeing'} (${todayCheckin?.severity || 'Normal'}). Your case context is up to date.`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Quick 1-Tap Log if Pending */}
-                {isCheckinPending && (
-                  <div
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #FDE68A',
-                      borderRadius: '12px',
-                      padding: '10px 12px',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#78350F', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                        1-Tap Quick Fill:
-                      </span>
-                      <button
-                        onClick={() => {
-                          triggerHapticLight();
-                          setShowDetailedWidget(!showDetailedWidget);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#D97706',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '2px',
-                          padding: 0,
-                        }}
-                      >
-                        {showDetailedWidget ? 'Simple View ▲' : 'Detailed Log ▾'}
-                      </button>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                      {QUICK_SEVERITIES.map((sev) => (
-                        <button
-                          key={sev.label}
-                          onClick={() => handleQuickLog(sev)}
-                          title={`Quick check-in as ${sev.label}`}
-                          style={{
-                            background: sev.bg,
-                            border: `1px solid ${sev.border}`,
-                            borderRadius: '8px',
-                            padding: '6px 4px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '2px',
-                            cursor: 'pointer',
-                            transition: 'transform 0.1s ease',
-                          }}
-                        >
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: sev.color }}>
-                            {sev.label}
-                          </span>
-                          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>
-                            +{sev.score === 0 ? '2 pts' : `${sev.score}`}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {showDetailedWidget && (
-                      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #FDE68A' }}>
-                        <DailySymptomCheckinWidget
-                          hideAlertsShortcut={true}
-                          onCheckinComplete={(entry) => {
-                            setTodayCheckin(entry);
-                            setShowDetailedWidget(false);
-                            loadData();
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!isCheckinPending && (
-                  <div style={{ marginBottom: '12px' }}>
-                    <button
-                      onClick={() => {
-                        triggerHapticLight();
-                        setShowDetailedWidget(!showDetailedWidget);
-                      }}
+                    <span
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '7px 12px',
-                        borderRadius: '8px',
-                        background: '#16A34A',
-                        color: '#FFFFFF',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        border: 'none',
-                        cursor: 'pointer',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        color: '#64748B',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.4px',
                       }}
                     >
-                      {showDetailedWidget ? 'Hide history' : 'View history'}
-                    </button>
-                    {showDetailedWidget && (
-                      <div style={{ marginTop: '12px' }}>
-                        <DailySymptomCheckinWidget
-                          hideAlertsShortcut={true}
-                          onCheckinComplete={(entry) => {
-                            setTodayCheckin(entry);
-                            loadData();
-                          }}
-                        />
-                      </div>
-                    )}
+                      Daily check-in
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>
+                      Today
+                    </span>
                   </div>
-                )}
 
-                {/* Everyday Recurring Notification Settings Box */}
-                <div
-                  style={{
-                    borderTop: isCheckinPending ? '1px dashed #FCD34D' : '1px dashed #86EFAC',
-                    paddingTop: '12px',
-                    marginTop: '6px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Bell size={13} color="#0F172A" />
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
-                        Everyday Reminder
+                  {/* 1. Daily Symptom Check-in Card */}
+                  <div
+                    style={{
+                      border: isCheckinPending ? '1.5px solid #FCD34D' : '1.5px solid #A7F3D0',
+                      background: isCheckinPending ? '#FFFBEB' : '#F0FDF4',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Header Status & Everyday Badge */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '10px',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: isCheckinPending ? '#FEF3C7' : '#DCFCE7',
+                          color: isCheckinPending ? '#B45309' : '#15803D',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {isCheckinPending ? 'Check-in available' : 'Completed today'}
                       </span>
-                    </div>
 
-                    {/* Toggle Switch */}
-                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: reminderEnabled ? '#059669' : '#64748B' }}>
-                        {reminderEnabled ? 'Enabled' : 'Off'}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={reminderEnabled}
-                        onChange={(e) => handleToggleReminder(e.target.checked)}
-                        disabled={isSavingReminder}
-                        aria-label="Toggle everyday daily check-in reminder"
-                        style={{ display: 'none' }}
-                      />
                       <div
                         style={{
-                          width: '38px',
-                          height: '20px',
-                          background: reminderEnabled ? '#10B981' : '#CBD5E1',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '3px 8px',
                           borderRadius: '999px',
-                          position: 'relative',
-                          transition: 'background 0.2s ease',
+                          background: reminderEnabled ? '#ECFDF5' : '#F1F5F9',
+                          border: `1px solid ${reminderEnabled ? '#A7F3D0' : '#CBD5E1'}`,
+                          color: reminderEnabled ? '#059669' : '#64748B',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <BellRing size={11} />
+                        <span>
+                          {reminderEnabled
+                            ? `Everyday: ${formatReminderTime(reminderTime)}`
+                            : 'Alerts Paused'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Title and description */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'flex-start',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: isCheckinPending ? '#FDE68A' : '#BBF7D0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          color: isCheckinPending ? '#B45309' : '#15803D',
+                        }}
+                      >
+                        {isCheckinPending ? <HeartPulse size={19} /> : <CheckCircle2 size={19} />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h4
+                          style={{
+                            margin: '0 0 4px',
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
+                          {isCheckinPending
+                            ? 'Daily Symptom & Energy Check-in'
+                            : "Today's Check-in Logged"}
+                        </h4>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '12px',
+                            color: '#475569',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {isCheckinPending
+                            ? 'Log symptoms and energy when convenient to keep your health rhythm up to date. Missing a day never removes your history.'
+                            : `Recorded: ${todayCheckin?.symptom || 'General wellbeing'} (${todayCheckin?.severity || 'Normal'}). Your case context is up to date.`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick 1-Tap Log if Pending */}
+                    {isCheckinPending && (
+                      <div
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid #FDE68A',
+                          borderRadius: '12px',
+                          padding: '10px 12px',
+                          marginBottom: '12px',
                         }}
                       >
                         <div
                           style={{
-                            width: '16px',
-                            height: '16px',
-                            background: '#FFFFFF',
-                            borderRadius: '50%',
-                            position: 'absolute',
-                            top: '2px',
-                            left: reminderEnabled ? '20px' : '2px',
-                            transition: 'left 0.2s ease',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '8px',
                           }}
-                        />
-                      </div>
-                    </label>
-                  </div>
-
-                  <p style={{ margin: '0 0 10px', fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
-                    HealthChain sends a daily reminder to this device. Lock-screen previews are privacy-safe.
-                  </p>
-
-                  {reminderError && <p role="alert" style={{ fontSize: '12px', color: '#9F1239', lineHeight: 1.5 }}>{reminderError}</p>}
-                  {reminderEnabled && (
-                    <div>
-                      {/* Presets and Custom Time Selector */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
-                        {REMINDER_PRESETS.map((preset) => {
-                          const isSelected = reminderTime === preset.value;
-                          return (
+                        >
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: '#78350F',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.4px',
+                            }}
+                          >
+                            1-Tap Quick Fill:
+                          </span>
+                          <button
+                            onClick={() => {
+                              triggerHapticLight();
+                              setShowDetailedWidget(!showDetailedWidget);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#D97706',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              padding: 0,
+                            }}
+                          >
+                            {showDetailedWidget ? 'Simple View ▲' : 'Detailed Log ▾'}
+                          </button>
+                        </div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gap: '6px',
+                          }}
+                        >
+                          {QUICK_SEVERITIES.map((sev) => (
                             <button
-                              key={preset.value}
-                              onClick={() => handleSelectReminderTime(preset.value)}
-                              disabled={isSavingReminder}
+                              key={sev.label}
+                              onClick={() => handleQuickLog(sev)}
+                              title={`Quick check-in as ${sev.label}`}
                               style={{
-                                padding: '5px 9px',
-                                borderRadius: '7px',
-                                fontSize: '11px',
-                                fontWeight: isSelected ? 700 : 500,
-                                background: isSelected ? '#0F172A' : '#FFFFFF',
-                                color: isSelected ? '#FFFFFF' : '#334155',
-                                border: isSelected ? '1px solid #0F172A' : '1px solid #CBD5E1',
+                                background: sev.bg,
+                                border: `1px solid ${sev.border}`,
+                                borderRadius: '8px',
+                                padding: '6px 4px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '2px',
                                 cursor: 'pointer',
-                                transition: 'all 0.15s ease',
+                                transition: 'transform 0.1s ease',
                               }}
                             >
-                              {preset.label}
+                              <span style={{ fontSize: '12px', fontWeight: 800, color: sev.color }}>
+                                {sev.label}
+                              </span>
+                              <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>
+                                +{sev.score === 0 ? '2 pts' : `${sev.score}`}
+                              </span>
                             </button>
-                          );
-                        })}
-
-                        {/* Custom Time Picker */}
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            background: '#FFFFFF',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '7px',
-                            padding: '3px 8px',
-                          }}
-                        >
-                          <Clock size={11} color="#64748B" />
-                          <input
-                            type="time"
-                            value={reminderTime}
-                            onChange={(e) => handleSelectReminderTime(e.target.value)}
-                            aria-label="Custom everyday reminder time"
-                            style={{
-                              border: 'none',
-                              outline: 'none',
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              color: '#0F172A',
-                              background: 'transparent',
-                              cursor: 'pointer',
-                            }}
-                          />
+                          ))}
                         </div>
-                      </div>
 
-                      {/* Test alert trigger button */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                        <button
-                          onClick={handleTestNotification}
-                          disabled={testAlertStatus === 'sending'}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '5px 10px',
-                            borderRadius: '6px',
-                            background: '#FFFFFF',
-                            border: '1px solid #CBD5E1',
-                            color: '#334155',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: testAlertStatus === 'sending' ? 'not-allowed' : 'pointer',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                          }}
-                        >
-                          {testAlertStatus === 'sent' ? (
-                            <>
-                              <Check size={12} color="#059669" />
-                              <span style={{ color: '#059669', fontWeight: 700 }}>Test scheduled</span>
-                            </>
-                          ) : (
-                            <>
-                              <Send size={11} />
-                              <span>{testAlertStatus === 'sending' ? 'Sending...' : 'Send Test Alert'}</span>
-                            </>
-                          )}
-                        </button>
-
-                        <span style={{ fontSize: '10.5px', color: '#64748B' }}>
-                          {testAlertStatus === 'sent' ? 'Check your notifications bar' : 'Repeats everyday'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quiet Hours Settings Subsection */}
-                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Moon size={13} color="#64748B" />
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
-                          Quiet Hours
-                        </span>
-                      </div>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                        <span style={{ fontSize: '11px', color: quietHoursEnabled ? '#059669' : '#64748B', fontWeight: 600 }}>
-                          {quietHoursEnabled ? 'Active' : 'Off'}
-                        </span>
-                        <input
-                          type="checkbox"
-                          checked={quietHoursEnabled}
-                          onChange={(e) => handleToggleQuietHours(e.target.checked)}
-                          style={{ display: 'none' }}
-                          aria-label="Toggle quiet hours"
-                        />
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '18px',
-                            background: quietHoursEnabled ? '#10B981' : '#CBD5E1',
-                            borderRadius: '999px',
-                            position: 'relative',
-                            transition: 'background 0.2s ease',
-                          }}
-                        >
+                        {showDetailedWidget && (
                           <div
                             style={{
-                              width: '14px',
-                              height: '14px',
-                              background: '#FFFFFF',
-                              borderRadius: '50%',
-                              position: 'absolute',
-                              top: '2px',
-                              left: quietHoursEnabled ? '16px' : '2px',
-                              transition: 'left 0.2s ease',
+                              marginTop: '12px',
+                              paddingTop: '10px',
+                              borderTop: '1px solid #FDE68A',
                             }}
-                          />
-                        </div>
-                      </label>
-                    </div>
-                    {quietHoursEnabled && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                        <span style={{ fontSize: '11px', color: '#64748B' }}>Suppress non-urgent alerts from:</span>
-                        <input
-                          type="time"
-                          value={quietHoursStart}
-                          onChange={(e) => handleUpdateQuietHours(e.target.value, quietHoursEnd)}
-                          style={{
-                            fontSize: '11px',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '6px',
-                            padding: '2px 4px',
-                            color: '#0F172A',
-                          }}
-                          aria-label="Quiet hours start time"
-                        />
-                        <span style={{ fontSize: '11px', color: '#64748B' }}>to</span>
-                        <input
-                          type="time"
-                          value={quietHoursEnd}
-                          onChange={(e) => handleUpdateQuietHours(quietHoursStart, e.target.value)}
-                          style={{
-                            fontSize: '11px',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '6px',
-                            padding: '2px 4px',
-                            color: '#0F172A',
-                          }}
-                          aria-label="Quiet hours end time"
-                        />
+                          >
+                            <DailySymptomCheckinWidget
+                              hideAlertsShortcut={true}
+                              onCheckinComplete={(entry) => {
+                                setTodayCheckin(entry);
+                                setShowDetailedWidget(false);
+                                loadData();
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
+
+                    {!isCheckinPending && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <button
+                          onClick={() => {
+                            triggerHapticLight();
+                            setShowDetailedWidget(!showDetailedWidget);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            background: '#16A34A',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {showDetailedWidget ? 'Hide history' : 'View history'}
+                        </button>
+                        {showDetailedWidget && (
+                          <div style={{ marginTop: '12px' }}>
+                            <DailySymptomCheckinWidget
+                              hideAlertsShortcut={true}
+                              onCheckinComplete={(entry) => {
+                                setTodayCheckin(entry);
+                                loadData();
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Everyday Recurring Notification Settings Box */}
+                    <div
+                      style={{
+                        borderTop: isCheckinPending ? '1px dashed #FCD34D' : '1px dashed #86EFAC',
+                        paddingTop: '12px',
+                        marginTop: '6px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Bell size={13} color="#0F172A" />
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                            Everyday Reminder
+                          </span>
+                        </div>
+
+                        {/* Toggle Switch */}
+                        <label
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: reminderEnabled ? '#059669' : '#64748B',
+                            }}
+                          >
+                            {reminderEnabled ? 'Enabled' : 'Off'}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={reminderEnabled}
+                            onChange={(e) => handleToggleReminder(e.target.checked)}
+                            disabled={isSavingReminder}
+                            aria-label="Toggle everyday daily check-in reminder"
+                            style={{ display: 'none' }}
+                          />
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '20px',
+                              background: reminderEnabled ? '#10B981' : '#CBD5E1',
+                              borderRadius: '999px',
+                              position: 'relative',
+                              transition: 'background 0.2s ease',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                background: '#FFFFFF',
+                                borderRadius: '50%',
+                                position: 'absolute',
+                                top: '2px',
+                                left: reminderEnabled ? '20px' : '2px',
+                                transition: 'left 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                              }}
+                            />
+                          </div>
+                        </label>
+                      </div>
+
+                      <p
+                        style={{
+                          margin: '0 0 10px',
+                          fontSize: '11.5px',
+                          color: '#64748B',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        HealthChain sends a daily reminder to this device. Lock-screen previews are
+                        privacy-safe.
+                      </p>
+
+                      {reminderError && (
+                        <p
+                          role="alert"
+                          style={{ fontSize: '12px', color: '#9F1239', lineHeight: 1.5 }}
+                        >
+                          {reminderError}
+                        </p>
+                      )}
+                      {reminderEnabled && (
+                        <div>
+                          {/* Presets and Custom Time Selector */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: '6px',
+                              marginBottom: '10px',
+                            }}
+                          >
+                            {REMINDER_PRESETS.map((preset) => {
+                              const isSelected = reminderTime === preset.value;
+                              return (
+                                <button
+                                  key={preset.value}
+                                  onClick={() => handleSelectReminderTime(preset.value)}
+                                  disabled={isSavingReminder}
+                                  style={{
+                                    padding: '5px 9px',
+                                    borderRadius: '7px',
+                                    fontSize: '11px',
+                                    fontWeight: isSelected ? 700 : 500,
+                                    background: isSelected ? '#0F172A' : '#FFFFFF',
+                                    color: isSelected ? '#FFFFFF' : '#334155',
+                                    border: isSelected ? '1px solid #0F172A' : '1px solid #CBD5E1',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  {preset.label}
+                                </button>
+                              );
+                            })}
+
+                            {/* Custom Time Picker */}
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                background: '#FFFFFF',
+                                border: '1px solid #CBD5E1',
+                                borderRadius: '7px',
+                                padding: '3px 8px',
+                              }}
+                            >
+                              <Clock size={11} color="#64748B" />
+                              <input
+                                type="time"
+                                value={reminderTime}
+                                onChange={(e) => handleSelectReminderTime(e.target.value)}
+                                aria-label="Custom everyday reminder time"
+                                style={{
+                                  border: 'none',
+                                  outline: 'none',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: '#0F172A',
+                                  background: 'transparent',
+                                  cursor: 'pointer',
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Test alert trigger button */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '8px',
+                            }}
+                          >
+                            <button
+                              onClick={handleTestNotification}
+                              disabled={testAlertStatus === 'sending'}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '5px 10px',
+                                borderRadius: '6px',
+                                background: '#FFFFFF',
+                                border: '1px solid #CBD5E1',
+                                color: '#334155',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: testAlertStatus === 'sending' ? 'not-allowed' : 'pointer',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                              }}
+                            >
+                              {testAlertStatus === 'sent' ? (
+                                <>
+                                  <Check size={12} color="#059669" />
+                                  <span style={{ color: '#059669', fontWeight: 700 }}>
+                                    Test scheduled
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <Send size={11} />
+                                  <span>
+                                    {testAlertStatus === 'sending'
+                                      ? 'Sending...'
+                                      : 'Send Test Alert'}
+                                  </span>
+                                </>
+                              )}
+                            </button>
+
+                            <span style={{ fontSize: '10.5px', color: '#64748B' }}>
+                              {testAlertStatus === 'sent'
+                                ? 'Check your notifications bar'
+                                : 'Repeats everyday'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quiet Hours Settings Subsection */}
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid #E2E8F0',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Moon size={13} color="#64748B" />
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                              Quiet Hours
+                            </span>
+                          </div>
+                          <label
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                color: quietHoursEnabled ? '#059669' : '#64748B',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {quietHoursEnabled ? 'Active' : 'Off'}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={quietHoursEnabled}
+                              onChange={(e) => handleToggleQuietHours(e.target.checked)}
+                              style={{ display: 'none' }}
+                              aria-label="Toggle quiet hours"
+                            />
+                            <div
+                              style={{
+                                width: '32px',
+                                height: '18px',
+                                background: quietHoursEnabled ? '#10B981' : '#CBD5E1',
+                                borderRadius: '999px',
+                                position: 'relative',
+                                transition: 'background 0.2s ease',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '14px',
+                                  height: '14px',
+                                  background: '#FFFFFF',
+                                  borderRadius: '50%',
+                                  position: 'absolute',
+                                  top: '2px',
+                                  left: quietHoursEnabled ? '16px' : '2px',
+                                  transition: 'left 0.2s ease',
+                                }}
+                              />
+                            </div>
+                          </label>
+                        </div>
+                        {quietHoursEnabled && (
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginTop: '8px',
+                            }}
+                          >
+                            <span style={{ fontSize: '11px', color: '#64748B' }}>
+                              Suppress non-urgent alerts from:
+                            </span>
+                            <input
+                              type="time"
+                              value={quietHoursStart}
+                              onChange={(e) =>
+                                handleUpdateQuietHours(e.target.value, quietHoursEnd)
+                              }
+                              style={{
+                                fontSize: '11px',
+                                border: '1px solid #CBD5E1',
+                                borderRadius: '6px',
+                                padding: '2px 4px',
+                                color: '#0F172A',
+                              }}
+                              aria-label="Quiet hours start time"
+                            />
+                            <span style={{ fontSize: '11px', color: '#64748B' }}>to</span>
+                            <input
+                              type="time"
+                              value={quietHoursEnd}
+                              onChange={(e) =>
+                                handleUpdateQuietHours(quietHoursStart, e.target.value)
+                              }
+                              style={{
+                                fontSize: '11px',
+                                border: '1px solid #CBD5E1',
+                                borderRadius: '6px',
+                                padding: '2px 4px',
+                                color: '#0F172A',
+                              }}
+                              aria-label="Quiet hours end time"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-            </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              padding: '14px 20px',
-              borderTop: '1px solid #F1F5F9',
-              background: '#F8FAFC',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <ShieldCheck size={14} color="#059669" />
-              <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
-                Privacy-guarded lock screen
-              </span>
+              )}
             </div>
 
-            <button
-              onClick={() => {
-                triggerHapticLight();
-                onClose();
-              }}
+            {/* Footer */}
+            <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                padding: '7px 16px',
-                borderRadius: '8px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                color: '#475569',
-                cursor: 'pointer',
+                padding: '14px 20px',
+                borderTop: '1px solid #F1F5F9',
+                background: '#F8FAFC',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
-              Close
-            </button>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <ShieldCheck size={14} color="#059669" />
+                <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
+                  Privacy-guarded lock screen
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  triggerHapticLight();
+                  onClose();
+                }}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  padding: '7px 16px',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
           </FocusTrap>
         </motion.div>
       </div>

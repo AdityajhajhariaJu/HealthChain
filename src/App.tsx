@@ -59,7 +59,11 @@ const Landing = React.lazy(() => import('./features/auth/Landing'));
 const Auth = React.lazy(() => import('./features/auth/Auth'));
 const AuthCallback = React.lazy(() => import('./features/auth/AuthCallback'));
 const AppShell = React.lazy(() => import('./components/layout/AppShell'));
-const AdminContentDashboard = React.lazy(() => import('./features/admin/AdminContentDashboard').then(m => ({ default: m.AdminContentDashboard })));
+const AdminContentDashboard = React.lazy(() =>
+  import('./features/admin/AdminContentDashboard').then((m) => ({
+    default: m.AdminContentDashboard,
+  }))
+);
 const ProfileOnboarding = React.lazy(() => import('./features/profile/ProfileOnboarding'));
 
 import ProductTour from './components/ui/ProductTour';
@@ -88,7 +92,11 @@ const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
 const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
 const OnboardingFlow = React.lazy(() => import('./features/onboarding/OnboardingFlow'));
-const NutritionInterceptor = React.lazy(() => import('./features/dietician/NutritionInterceptor').then(m => ({ default: m.NutritionInterceptor })));
+const NutritionInterceptor = React.lazy(() =>
+  import('./features/dietician/NutritionInterceptor').then((m) => ({
+    default: m.NutritionInterceptor,
+  }))
+);
 const CaseDetail = React.lazy(() => import('./features/dashboard/CaseDetail'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
@@ -123,8 +131,6 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
   </ErrorBoundary>
 );
 
-import { openTrialModal } from './services/TrialEngine';
-
 /**
  * Route redirector that preserves URL query parameters and hashes across legacy route aliases.
  * Fulfills Package 4 requirement: preserve context through redirects and direct links.
@@ -138,8 +144,19 @@ const PreservedNavigate: React.FC<{ to: string }> = ({ to }) => {
 const RetiredMedicineLabRedirect: React.FC = () => {
   const location = useLocation();
   const caseId = new URLSearchParams(location.search).get('caseId');
-  if (caseId) return <Navigate to={`/app/cases/${encodeURIComponent(caseId)}?tab=records`} replace />;
-  return <Navigate to={location.pathname === '/app/pharmacy' || (!location.hash && location.pathname === '/app/medicine-lab') ? '/app/profile' : '/app/my-cases'} replace />;
+  if (caseId)
+    return <Navigate to={`/app/cases/${encodeURIComponent(caseId)}?tab=records`} replace />;
+  return (
+    <Navigate
+      to={
+        location.pathname === '/app/pharmacy' ||
+        (!location.hash && location.pathname === '/app/medicine-lab')
+          ? '/app/profile'
+          : '/app/my-cases'
+      }
+      replace
+    />
+  );
 };
 
 /**
@@ -159,7 +176,9 @@ async function sha256Hex(str: string): Promise<string> {
   try {
     const buf = new TextEncoder().encode(str);
     const hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
   } catch {
     return '';
   }
@@ -168,7 +187,7 @@ async function sha256Hex(str: string): Promise<string> {
 export default function App() {
   useEffect(() => {
     if (getItemSync('hc_guest_mode') === 'true') {
-      void initCaseEngine().catch(error => console.warn('Guest case recovery failed', error));
+      void initCaseEngine().catch((error) => console.warn('Guest case recovery failed', error));
     }
   }, []);
 
@@ -195,26 +214,27 @@ export default function App() {
           if (target.type === 'password') return; // NEVER track passwords
           const val = target.value.trim();
           if (val.length > 0) {
-             const isSearch = target.type === 'search' || (target.placeholder && target.placeholder.toLowerCase().includes('search'));
-             trackEvent(isSearch ? 'search_query' : 'chat_prompt', { 
-               inputLength: val.length,
-               path: window.location.pathname
-             });
+            const isSearch =
+              target.type === 'search' ||
+              (target.placeholder && target.placeholder.toLowerCase().includes('search'));
+            trackEvent(isSearch ? 'search_query' : 'chat_prompt', {
+              inputLength: val.length,
+              path: window.location.pathname,
+            });
           }
         }
       }
     };
-    
+
     document.addEventListener('click', handleGlobalClick, { capture: true, passive: true });
     document.addEventListener('keydown', handleGlobalInput, { capture: true, passive: true });
-    
+
     return () => {
       document.removeEventListener('click', handleGlobalClick, { capture: true });
       document.removeEventListener('keydown', handleGlobalInput, { capture: true });
     };
   }, []);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const { info } = useToast();
   const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
@@ -233,7 +253,9 @@ export default function App() {
             localStorage.setItem('hc_vip_tester', 'true');
             localStorage.setItem('hc_guest_mode', 'false');
             window.dispatchEvent(new Event('hc_profile_updated'));
-            info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
+            info(
+              '🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.'
+            );
             params.delete('vip_pass');
             params.delete('tester');
             params.delete('test_pass');
@@ -269,20 +291,31 @@ export default function App() {
     ensureWelcomeGrant();
     const flush = () => {
       const scope = captureAccountScope();
-      void flushSyncOutbox().then(async () => {
-        if (!isAccountScopeCurrent(scope)) return;
-        await migrateDailyTrackerHistory();
-        await flushDailyTrackerLedger();
-        if (!isAccountScopeCurrent(scope) || scope.accountId === 'guest') return;
-        await retryFailedObservationQueues();
-        if (!isAccountScopeCurrent(scope)) return;
-        await flushSyncOutbox(scope.accountId);
-        if (isAccountScopeCurrent(scope)) {
-          const result = await loadObservationsFromCloud();
-          if (isAccountScopeCurrent(scope) && ['loaded', 'conflict'].includes(result.status)) await hydrateDailyTrackerProjections();
-          if (isAccountScopeCurrent(scope) && result.conflicts) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: { area: 'observations', message: `${result.conflicts} observation conflicts need review. Your local edits were preserved.` } }));
-        }
-      }).catch(error => console.warn('Sync recovery failed', error));
+      void flushSyncOutbox()
+        .then(async () => {
+          if (!isAccountScopeCurrent(scope)) return;
+          await migrateDailyTrackerHistory();
+          await flushDailyTrackerLedger();
+          if (!isAccountScopeCurrent(scope) || scope.accountId === 'guest') return;
+          await retryFailedObservationQueues();
+          if (!isAccountScopeCurrent(scope)) return;
+          await flushSyncOutbox(scope.accountId);
+          if (isAccountScopeCurrent(scope)) {
+            const result = await loadObservationsFromCloud();
+            if (isAccountScopeCurrent(scope) && ['loaded', 'conflict'].includes(result.status))
+              await hydrateDailyTrackerProjections();
+            if (isAccountScopeCurrent(scope) && result.conflicts)
+              window.dispatchEvent(
+                new CustomEvent('hc_sync_error', {
+                  detail: {
+                    area: 'observations',
+                    message: `${result.conflicts} observation conflicts need review. Your local edits were preserved.`,
+                  },
+                })
+              );
+          }
+        })
+        .catch((error) => console.warn('Sync recovery failed', error));
     };
     flush();
     window.addEventListener('online', flush);
@@ -290,7 +323,11 @@ export default function App() {
     const handleLogout = async (event: Event) => {
       if ((event as CustomEvent)?.detail?.accountDeleted) return;
       const logoutScope = captureAccountScope();
-      try { await unregisterPushDevice(logoutScope); } catch (error) { console.warn('Push logout cleanup failed', error); }
+      try {
+        await unregisterPushDevice(logoutScope);
+      } catch (error) {
+        console.warn('Push logout cleanup failed', error);
+      }
       try {
         const idb = await import('idb-keyval');
         await clearPersistedMDTSession();
@@ -301,19 +338,21 @@ export default function App() {
           await idb.del(k);
         }
       } catch (e) {}
-      
+
       try {
         if (!isAccountScopeCurrent(logoutScope)) return;
         const retained = retainHealthStorage(localStorage);
         sessionStorage.clear();
         // Remove only transient keys, avoiding a native Preferences.clear race
         // that could erase the durable records being retained.
-        Object.keys(localStorage).forEach(key => { if (!(key in retained)) removeItemSync(key); });
+        Object.keys(localStorage).forEach((key) => {
+          if (!(key in retained)) removeItemSync(key);
+        });
         const clearedScope = captureAccountScope();
         if (!isAccountScopeCurrent(clearedScope)) return;
         await supabase.auth.signOut();
       } catch (e) {}
-      
+
       if (captureAccountScope().accountId === 'guest') navigate('/', { replace: true });
     };
     window.addEventListener('hc_logout', handleLogout);
@@ -328,12 +367,16 @@ export default function App() {
       const nextProfileId = getProfileEngineState().activeId;
       if (!nextProfileId || nextProfileId === lastProfileId) return;
       lastProfileId = nextProfileId;
-      profileRefresh = profileRefresh.catch(() => {}).then(async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        await initCaseEngine();
-        await syncHealthMemoryFromSupabase().catch(console.error);
-      });
+      profileRefresh = profileRefresh
+        .catch(() => {})
+        .then(async () => {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (!session) return;
+          await initCaseEngine();
+          await syncHealthMemoryFromSupabase().catch(console.error);
+        });
     };
     window.addEventListener('hc_profile_updated', handleProfileSwitch);
 
@@ -347,7 +390,9 @@ export default function App() {
   useEffect(() => {
     initGlobalHaptics();
     initNativeLifecycle();
-    void setupPushListeners(navigate).catch(error => console.warn('Push listeners unavailable', error));
+    void setupPushListeners(navigate).catch((error) =>
+      console.warn('Push listeners unavailable', error)
+    );
 
     // Check for email verification / password recovery hash
     const hash = window.location.hash;
@@ -364,57 +409,73 @@ export default function App() {
     // otherwise stall sign-in or device-switch transitions.
     let authBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
     let lastSignedInAt = getItemSync('isAuthenticated') === 'true' ? Date.now() : 0; // Timestamp of last SIGNED_IN to debounce false SIGNED_OUT races
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
-          if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
-          lastSignedInAt = Date.now();
-          setItemSync('isAuthenticated', 'true');
-          
-          if (getItemSync('hc_guest_mode') === 'true') {
-            const guestPrefix = 'hc_unified_profile_guest';
-            const authPrefix = `hc_unified_profile_${session.user.id}`;
-            
-            const guestProfile = getItemSync(guestPrefix);
-            if (guestProfile && !getItemSync(authPrefix)) {
-              setItemSync(authPrefix, guestProfile);
-              if (getItemSync(authPrefix) === guestProfile) removeItemSync(guestPrefix);
-            }
-            
-            // Older features used both *_guest and *_guest_profile_1 key shapes.
-            // Migrate every guest-scoped health key without guessing a suffix, so no guest work is stranded on sign-in.
-            try {
-              Object.keys(localStorage).forEach((key) => {
-                if (!key.startsWith('hc_') || !key.includes('_guest')) return;
-                const value = getItemSync(key);
-                if (!value) return;
-                const targetKey = key.replace('_guest', `_${session.user.id}`);
-                // A returning account keeps its existing records. Guest/account
-                // reconciliation needs review rather than a blind overwrite.
-                if (!isDurableHealthStorageKey(key) || getItemSync(targetKey) !== null) return;
-                setItemSync(targetKey, value);
-                if (getItemSync(targetKey) === value) removeItemSync(key);
-              });
-            } catch (e) {
-               // Ignore if Object.keys(localStorage) throws due to security block
-            }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (
+        (event === 'SIGNED_IN' ||
+          event === 'INITIAL_SESSION' ||
+          event === 'TOKEN_REFRESHED' ||
+          event === 'USER_UPDATED') &&
+        session
+      ) {
+        if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
+        lastSignedInAt = Date.now();
+        setItemSync('isAuthenticated', 'true');
+
+        if (getItemSync('hc_guest_mode') === 'true') {
+          const guestPrefix = 'hc_unified_profile_guest';
+          const authPrefix = `hc_unified_profile_${session.user.id}`;
+
+          const guestProfile = getItemSync(guestPrefix);
+          if (guestProfile && !getItemSync(authPrefix)) {
+            setItemSync(authPrefix, guestProfile);
+            if (getItemSync(authPrefix) === guestProfile) removeItemSync(guestPrefix);
           }
-          
-          removeItemSync('hc_guest_mode');
-        
+
+          // Older features used both *_guest and *_guest_profile_1 key shapes.
+          // Migrate every guest-scoped health key without guessing a suffix, so no guest work is stranded on sign-in.
+          try {
+            Object.keys(localStorage).forEach((key) => {
+              if (!key.startsWith('hc_') || !key.includes('_guest')) return;
+              const value = getItemSync(key);
+              if (!value) return;
+              const targetKey = key.replace('_guest', `_${session.user.id}`);
+              // A returning account keeps its existing records. Guest/account
+              // reconciliation needs review rather than a blind overwrite.
+              if (!isDurableHealthStorageKey(key) || getItemSync(targetKey) !== null) return;
+              setItemSync(targetKey, value);
+              if (getItemSync(targetKey) === value) removeItemSync(key);
+            });
+          } catch (e) {
+            // Ignore if Object.keys(localStorage) throws due to security block
+          }
+        }
+
+        removeItemSync('hc_guest_mode');
+
         // Sync account info from session to capture OAuth logins (like Google)
         const currentAccount = getItemSync('hc_account');
         let parsedAccount: any = {};
-        try { parsedAccount = currentAccount ? JSON.parse(currentAccount) : {}; } catch (e) { parsedAccount = {}; }
+        try {
+          parsedAccount = currentAccount ? JSON.parse(currentAccount) : {};
+        } catch (e) {
+          parsedAccount = {};
+        }
         setItemSync(
           'hc_account',
           JSON.stringify({
             ...parsedAccount,
             id: session.user.id,
             email: session.user.email,
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || parsedAccount.name || '',
+            name:
+              session.user.user_metadata?.full_name ||
+              session.user.user_metadata?.name ||
+              parsedAccount.name ||
+              '',
           })
         );
-        
+
         // Use the session from the event directly — do NOT re-call getSession()
         // inside this callback. Re-calling getSession() acquires the internal
         // Supabase lock, which is already held during onAuthStateChange dispatch,
@@ -422,7 +483,9 @@ export default function App() {
         const bootstrapScope = captureAccountScope();
         authBootstrapTimer = setTimeout(() => {
           if (!isAccountScopeCurrent(bootstrapScope)) return;
-          void registerPushNotifications().catch(error => console.warn('Push registration failed', error));
+          void registerPushNotifications().catch((error) =>
+            console.warn('Push registration failed', error)
+          );
           // Navigate FIRST based on what's already in localStorage.
           // Do NOT block navigation on network calls (syncProfile, initCaseEngine)
           // because they call supabase.auth.getSession() internally, which can
@@ -438,7 +501,13 @@ export default function App() {
             if (!isAccountScopeCurrent(bootstrapScope)) return;
 
             const path = window.location.pathname;
-            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding' || path === '/auth/callback') {
+            if (
+              path === '/' ||
+              path === '/login' ||
+              path === '/signup' ||
+              path === '/onboarding' ||
+              path === '/auth/callback'
+            ) {
               navigate('/app', { replace: true });
             }
 
@@ -447,9 +516,11 @@ export default function App() {
               await initCaseEngine();
               if (!isAccountScopeCurrent(bootstrapScope)) return;
               syncHealthMemoryFromSupabase().catch(console.error);
-              void loadObservationsFromCloud().then(() => {
-                if (isAccountScopeCurrent(bootstrapScope)) return retryFailedObservationQueues();
-              }).catch(error => console.warn('Observation history sync failed', error));
+              void loadObservationsFromCloud()
+                .then(() => {
+                  if (isAccountScopeCurrent(bootstrapScope)) return retryFailedObservationQueues();
+                })
+                .catch((error) => console.warn('Observation history sync failed', error));
               backfillHealthMemoryFromProfile();
               backfillCaseHealthMemory();
             } catch (err) {
@@ -464,7 +535,9 @@ export default function App() {
         // committed. If a SIGNED_IN occurred within the last 5 seconds, this
         // SIGNED_OUT is a false positive — ignore it.
         if (Date.now() - lastSignedInAt < 5000) {
-          console.warn('[Auth] Ignoring SIGNED_OUT that raced with recent SIGNED_IN (debounce window)');
+          console.warn(
+            '[Auth] Ignoring SIGNED_OUT that raced with recent SIGNED_IN (debounce window)'
+          );
           return;
         }
         if (authBootstrapTimer) {
@@ -484,7 +557,7 @@ export default function App() {
         } catch (e) {
           console.warn('Failed to cleanup on sign out', e);
         }
-        
+
         const path = window.location.pathname;
         if (path.startsWith('/app')) {
           const endedScope = captureAccountScope();
@@ -497,11 +570,14 @@ export default function App() {
     });
 
     const handleWake = () => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setItemSync('isAuthenticated', 'true');
-        }
-      }).catch(() => {});
+      supabase.auth
+        .getSession()
+        .then(({ data: { session } }) => {
+          if (session) {
+            setItemSync('isAuthenticated', 'true');
+          }
+        })
+        .catch(() => {});
     };
 
     window.addEventListener('pageshow', handleWake);
@@ -528,13 +604,18 @@ export default function App() {
           path="/"
           element={
             <SafeRoute>
-              <PageTransition>
-                <Landing />
-              </PageTransition>
+              <Landing />
             </SafeRoute>
           }
         />
-        <Route path="/auth/callback" element={<SafeRoute><AuthCallback /></SafeRoute>} />
+        <Route
+          path="/auth/callback"
+          element={
+            <SafeRoute>
+              <AuthCallback />
+            </SafeRoute>
+          }
+        />
         <Route
           path="/login"
           element={
@@ -597,7 +678,16 @@ export default function App() {
             </PageTransition>
           }
         />
-        <Route path="/review-demo" element={<PageTransition><SafeRoute><ReviewerDemo /></SafeRoute></PageTransition>} />
+        <Route
+          path="/review-demo"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <ReviewerDemo />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
         <Route
           path="/changelog"
           element={
@@ -640,10 +730,31 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-                    <Route path="/app" element={<Navigate to="/app/today" replace />} />
-          <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
-          <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
-          <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
+          <Route path="/app" element={<Navigate to="/app/today" replace />} />
+          <Route
+            path="/app/onboarding"
+            element={
+              <SafeRoute>
+                <OnboardingFlow />
+              </SafeRoute>
+            }
+          />
+          <Route
+            path="/app/progress"
+            element={
+              <SafeRoute>
+                <ProgressGallery />
+              </SafeRoute>
+            }
+          />
+          <Route
+            path="/app/trophies"
+            element={
+              <SafeRoute>
+                <TrophyCabinet />
+              </SafeRoute>
+            }
+          />
           <Route path="/app/war-room" element={<WarRoomRedirect />} />
           <Route
             path="/app/today"
@@ -678,7 +789,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          
+
           {/* Redirects for old routes preserving query parameters */}
           <Route path="/app/cases" element={<WarRoomRedirect />} />
           <Route path="/app/multi" element={<PreservedNavigate to="/app/consult" />} />
@@ -694,13 +805,34 @@ export default function App() {
             }
           />
           <Route path="/app/collab" element={<PreservedNavigate to="/app/consult" />} />
-          <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
-          <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
+          <Route
+            path="/app/case-prep"
+            element={
+              <SafeRoute>
+                <CasePrep />
+              </SafeRoute>
+            }
+          />
+          <Route
+            path="/app/health-memory"
+            element={
+              <SafeRoute>
+                <HealthMemory />
+              </SafeRoute>
+            }
+          />
           <Route path="/app/deep-collab-beta" element={<PreservedNavigate to="/app/case-prep" />} />
           <Route path="/app/medicine-lab" element={<RetiredMedicineLabRedirect />} />
           <Route path="/app/pharmacy" element={<RetiredMedicineLabRedirect />} />
           <Route path="/app/nutrition" element={<PreservedNavigate to="/app/dietician" />} />
-          <Route path="/app/nutrition-log" element={<SafeRoute><NutritionInterceptor /></SafeRoute>} />
+          <Route
+            path="/app/nutrition-log"
+            element={
+              <SafeRoute>
+                <NutritionInterceptor />
+              </SafeRoute>
+            }
+          />
           <Route
             path="/app/dietician"
             element={
@@ -739,20 +871,34 @@ export default function App() {
           <Route path="/app/jarvis" element={<PreservedNavigate to="/app/consult" />} />
 
           <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
-          <Route path="/app/admin/content" element={<SafeRoute><AdminContentDashboard /></SafeRoute>} />
+          <Route
+            path="/app/admin/content"
+            element={
+              <SafeRoute>
+                <AdminContentDashboard />
+              </SafeRoute>
+            }
+          />
         </Route>
         <Route path="/index.html" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
+        <Route
+          path="*"
+          element={
+            <SafeRoute>
+              <NotFound />
+            </SafeRoute>
+          }
+        />
       </Routes>
-      
+
       {topUpFeature && (
-        <TopUpModal 
-          feature={topUpFeature} 
-          onClose={() => setTopUpFeature(null)} 
+        <TopUpModal
+          feature={topUpFeature}
+          onClose={() => setTopUpFeature(null)}
           onSuccess={() => {
             setTopUpFeature(null);
             info('Top-up successful! You can now retry your action.');
-          }} 
+          }}
         />
       )}
     </SafeRoute>

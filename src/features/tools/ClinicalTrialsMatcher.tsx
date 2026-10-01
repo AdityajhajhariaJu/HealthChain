@@ -29,8 +29,6 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { getScopedStorageKey } from '../../services/profileScope';
 import { getItemSync, setItemSync } from '../../services/storage';
 
-
-
 export interface TrialCriteriaBreakdown {
   matchStatus: 'differential_match' | 'probable_match' | 'topic_overlap' | 'broad_relevance';
   conditionMatch: {
@@ -58,7 +56,12 @@ export function evaluateTrialCriteria(
   searchTerms: string[],
   differentials: string[] = [],
   patientProfile?: { age?: string | number; gender?: string }
-): { matchScore: number; aiContext: string; matchedTerms: string[]; criteriaBreakdown: TrialCriteriaBreakdown } {
+): {
+  matchScore: number;
+  aiContext: string;
+  matchedTerms: string[];
+  criteriaBreakdown: TrialCriteriaBreakdown;
+} {
   const condText = (trial.conditions || []).join(' ').toLowerCase();
   const titleText = (trial.title || '').toLowerCase();
   const summaryText = (trial.summary || '').toLowerCase();
@@ -66,15 +69,20 @@ export function evaluateTrialCriteria(
   const combinedText = `${condText} ${titleText} ${summaryText} ${interText}`;
 
   // 1. Differential matching
-  const matchedDifferentials = differentials.filter(diff => {
+  const matchedDifferentials = differentials.filter((diff) => {
     const dLower = (diff || '').toLowerCase().trim();
     if (!dLower || dLower.length < 3) return false;
-    return combinedText.includes(dLower) || dLower.split(/\s+/).some(w => w.length > 3 && combinedText.includes(w));
+    return (
+      combinedText.includes(dLower) ||
+      dLower.split(/\s+/).some((w) => w.length > 3 && combinedText.includes(w))
+    );
   });
 
   // 2. Keyword matching across searchTerms
-  const searchWords = searchTerms.flatMap(c => (c || '').toLowerCase().split(/\s+/)).filter(w => w.length > 2);
-  const matchedTerms = searchWords.filter(word => combinedText.includes(word));
+  const searchWords = searchTerms
+    .flatMap((c) => (c || '').toLowerCase().split(/\s+/))
+    .filter((w) => w.length > 2);
+  const matchedTerms = searchWords.filter((word) => combinedText.includes(word));
 
   let score = 0;
   for (const word of matchedTerms) {
@@ -87,7 +95,6 @@ export function evaluateTrialCriteria(
     score += 30 * matchedDifferentials.length;
   }
 
-
   // Use registry eligibility fields only. Narrative keywords are not criteria.
   const eligibility = trial.eligibility || trial.protocolSection?.eligibilityModule || {};
   let ageStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
@@ -95,29 +102,46 @@ export function evaluateTrialCriteria(
   const rawAge = patientProfile?.age;
   const parsedAge = rawAge !== undefined && rawAge !== '' ? Number(rawAge) : undefined;
   const years = (value: unknown): number | undefined => {
-    if(typeof value !== 'string') return undefined;
+    if (typeof value !== 'string') return undefined;
     const match = value.match(/^(\d+(?:\.\d+)?)\s+(Years|Months|Weeks|Days)$/i);
-    if(!match) return undefined;
-    const divisor = ({years:1,months:12,weeks:52.1775,days:365.25} as any)[match[2].toLowerCase()];
-    return Number(match[1])/divisor;
+    if (!match) return undefined;
+    const divisor = ({ years: 1, months: 12, weeks: 52.1775, days: 365.25 } as any)[
+      match[2].toLowerCase()
+    ];
+    return Number(match[1]) / divisor;
   };
-  const minAge = years(eligibility.minimumAge), maxAge = years(eligibility.maximumAge);
+  const minAge = years(eligibility.minimumAge),
+    maxAge = years(eligibility.maximumAge);
   const openMax = eligibility.maximumAge === 'N/A';
-  const extractedLimit = [eligibility.minimumAge, eligibility.maximumAge].filter(Boolean).join(' – ');
-  if(parsedAge !== undefined && Number.isFinite(parsedAge) && parsedAge >= 0) {
-    if((minAge !== undefined && parsedAge < minAge) || (maxAge !== undefined && parsedAge > maxAge)) {
-      ageStatus='potential_mismatch';ageNote='The recorded age is outside at least one stated registry bound: '+extractedLimit;
-    } else if(minAge !== undefined && (maxAge !== undefined || openMax)) {
-      ageStatus='eligible';ageNote='Recorded age is within the stated age bounds only. Other eligibility criteria remain unevaluated.';
+  const extractedLimit = [eligibility.minimumAge, eligibility.maximumAge]
+    .filter(Boolean)
+    .join(' – ');
+  if (parsedAge !== undefined && Number.isFinite(parsedAge) && parsedAge >= 0) {
+    if (
+      (minAge !== undefined && parsedAge < minAge) ||
+      (maxAge !== undefined && parsedAge > maxAge)
+    ) {
+      ageStatus = 'potential_mismatch';
+      ageNote = 'The recorded age is outside at least one stated registry bound: ' + extractedLimit;
+    } else if (minAge !== undefined && (maxAge !== undefined || openMax)) {
+      ageStatus = 'eligible';
+      ageNote =
+        'Recorded age is within the stated age bounds only. Other eligibility criteria remain unevaluated.';
     }
   }
   let genderStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
   const pGender = (patientProfile?.gender || '').toLowerCase().trim();
   // A profile gender is not assumed to be the sex field requested by a study.
-  let genderNote = 'Confirm the registry sex criterion with the study team; profile gender is not used as a substitute.';
-  if(eligibility.sex === 'ALL') {
-    genderStatus='eligible';genderNote='Registry lists all sexes. Other cohort and eligibility criteria still apply.';
-  } else if(eligibility.sex) genderNote='Registry sex criterion: '+eligibility.sex+'. Not automatically evaluated against profile gender.';
+  let genderNote =
+    'Confirm the registry sex criterion with the study team; profile gender is not used as a substitute.';
+  if (eligibility.sex === 'ALL') {
+    genderStatus = 'eligible';
+    genderNote = 'Registry lists all sexes. Other cohort and eligibility criteria still apply.';
+  } else if (eligibility.sex)
+    genderNote =
+      'Registry sex criterion: ' +
+      eligibility.sex +
+      '. Not automatically evaluated against profile gender.';
 
   // Determine matchStatus
   let matchStatus: TrialCriteriaBreakdown['matchStatus'] = 'broad_relevance';
@@ -129,14 +153,15 @@ export function evaluateTrialCriteria(
     matchStatus = 'topic_overlap';
   }
 
-  const baselineScore = (trial.id || trial.title) ? 20 : 0;
+  const baselineScore = trial.id || trial.title ? 20 : 0;
   const finalScore = Math.min(100, Math.max(baselineScore, score));
   const uniqueTerms = [...new Set([...matchedDifferentials, ...matchedTerms])].slice(0, 6);
-  const aiContext = matchedDifferentials.length > 0
-    ? `Matches active case differential: ${matchedDifferentials.join(', ')}. Registered protocol investigates related pathology.`
-    : uniqueTerms.length > 0
-    ? `Topic registry overlap: ${uniqueTerms.join(', ')}. Review detailed criteria on source registry.`
-    : 'Retrieved from clinical trials search. Detailed screening criteria required.';
+  const aiContext =
+    matchedDifferentials.length > 0
+      ? `Matches active case differential: ${matchedDifferentials.join(', ')}. Registered protocol investigates related pathology.`
+      : uniqueTerms.length > 0
+        ? `Topic registry overlap: ${uniqueTerms.join(', ')}. Review detailed criteria on source registry.`
+        : 'Retrieved from clinical trials search. Detailed screening criteria required.';
 
   return {
     matchScore: finalScore,
@@ -148,27 +173,38 @@ export function evaluateTrialCriteria(
         matched: matchedDifferentials.length > 0 || matchedTerms.length > 0,
         differentialOverlap: matchedDifferentials,
         terms: uniqueTerms,
-        note: matchedDifferentials.length > 0
-          ? `Direct overlap with case differential (${matchedDifferentials.join(', ')}).`
-          : `Keyword overlap with search topics (${uniqueTerms.join(', ')}).`
+        note:
+          matchedDifferentials.length > 0
+            ? `Direct overlap with case differential (${matchedDifferentials.join(', ')}).`
+            : `Keyword overlap with search topics (${uniqueTerms.join(', ')}).`,
       },
       ageCriteria: {
         status: ageStatus,
         patientAge: parsedAge,
         extractedLimit,
-        note: ageNote
+        note: ageNote,
       },
       genderCriteria: {
         status: genderStatus,
         patientGender: pGender,
-        note: genderNote
+        note: genderNote,
       },
-      overallNote: `Matched against case data: ${matchedDifferentials.length} active differentials evaluated.`
-    }
+      overallNote: `Matched against case data: ${matchedDifferentials.length} active differentials evaluated.`,
+    },
   };
 }
 
-export function scoreClinicalTrial(trial: any, conditions: string[], differentials: string[] = [], patientProfile?: { age?: string | number; gender?: string }): { matchScore: number; aiContext: string; matchedTerms: string[]; criteriaBreakdown?: TrialCriteriaBreakdown } {
+export function scoreClinicalTrial(
+  trial: any,
+  conditions: string[],
+  differentials: string[] = [],
+  patientProfile?: { age?: string | number; gender?: string }
+): {
+  matchScore: number;
+  aiContext: string;
+  matchedTerms: string[];
+  criteriaBreakdown?: TrialCriteriaBreakdown;
+} {
   return evaluateTrialCriteria(trial, conditions, differentials, patientProfile);
 }
 
@@ -177,127 +213,277 @@ const MatchRing = ({ score }: { score: number }) => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
   const color = score >= 90 ? '#10B981' : score >= 80 ? '#F59E0B' : '#64748B';
-  
+
   return (
-    <div role="img" aria-label={`Topic relevance ${score} out of 100`} style={{ position: 'relative', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      role="img"
+      aria-label={`Topic relevance ${score} out of 100`}
+      style={{
+        position: 'relative',
+        width: 44,
+        height: 44,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <svg width="44" height="44" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="22" cy="22" r={radius} fill="none" stroke="#E2E8F0" strokeWidth="3" />
-        <motion.circle 
-          cx="22" cy="22" r={radius} fill="none" stroke={color} strokeWidth="3"
+        <motion.circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
           strokeLinecap="round"
         />
       </svg>
-      <span style={{ position: 'absolute', fontSize: '11px', fontWeight: 800, color }}>{score}</span>
+      <span style={{ position: 'absolute', fontSize: '11px', fontWeight: 800, color }}>
+        {score}
+      </span>
     </div>
   );
 };
 
-function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: number; aiContext: string; matchedTerms: string[] } {
+function scoreLiteraturePaper(
+  paper: any,
+  conditions: string[]
+): { matchScore: number; aiContext: string; matchedTerms: string[] } {
   let score = 0;
   const titleText = (paper.title || '').toLowerCase();
   const abstractText = (paper.abstract || '').toLowerCase();
-  const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
+  const searchWords = conditions
+    .flatMap((c) => c.toLowerCase().split(/\s+/))
+    .filter((w) => w.length > 2);
 
-  const matchedTerms = searchWords.filter(word => titleText.includes(word) || abstractText.includes(word));
+  const matchedTerms = searchWords.filter(
+    (word) => titleText.includes(word) || abstractText.includes(word)
+  );
   for (const word of matchedTerms) {
     if (titleText.includes(word)) score += 22;
     if (abstractText.includes(word)) score += 7;
   }
 
-  const baselineScore = (paper.id || paper.title) ? 20 : 0;
+  const baselineScore = paper.id || paper.title ? 20 : 0;
   const finalScore = Math.min(100, Math.max(baselineScore, score));
   return {
     matchScore: finalScore,
     matchedTerms: [...new Set(matchedTerms)].slice(0, 6),
     aiContext: matchedTerms.length
       ? `Shown because its title or abstract overlaps with: ${[...new Set(matchedTerms)].slice(0, 6).join(', ')}. Read the source to assess quality and applicability.`
-      : `Retrieved from the literature search for ${conditions[0] || 'the selected topic'}.`
+      : `Retrieved from the literature search for ${conditions[0] || 'the selected topic'}.`,
   };
 }
 
-function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
+function ResearchCard({ item, onClick }: { item: any; onClick: () => void }) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
   const isPaper = !!item.journal;
-  const displayTitle = cleanMedicalText(item.title) || (isPaper ? 'Clinical Literature Paper' : 'Clinical Trial');
-  const rawJournal = isPaper ? (item.journal || 'Peer-Reviewed Clinical Journal') : (item.location || 'Multiple Locations / Unknown');
+  const displayTitle =
+    cleanMedicalText(item.title) || (isPaper ? 'Clinical Literature Paper' : 'Clinical Trial');
+  const rawJournal = isPaper
+    ? item.journal || 'Peer-Reviewed Clinical Journal'
+    : item.location || 'Multiple Locations / Unknown';
   const displayJournal = isPaper
-    ? (rawJournal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(rawJournal))
+    ? rawJournal.toLowerCase() === 'unknown journal'
+      ? 'Peer-Reviewed Clinical Journal'
+      : cleanMedicalText(rawJournal)
     : rawJournal;
-  const displayAbstract = cleanMedicalText(isPaper ? item.abstract : item.summary) || 'No abstract or clinical summary available.';
-  
+  const displayAbstract =
+    cleanMedicalText(isPaper ? item.abstract : item.summary) ||
+    'No abstract or clinical summary available.';
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="card" 
-      style={{ padding: '20px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '12px', background: '#FFFFFF', border: '1px solid #F1E5E7' }}
+      className="card"
+      style={{
+        padding: '20px',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        background: '#FFFFFF',
+        border: '1px solid #F1E5E7',
+      }}
     >
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '12px',
+        }}
+      >
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '8px',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+            }}
+          >
             {isPaper ? (
-               <>
-                 <span className="badge badge-purple" style={{ padding: '2px 6px', fontSize: '11px' }}>Research Paper</span>
-                 <span className="badge badge-gray" style={{ padding: '2px 6px', fontSize: '11px' }}>{item.pubYear}</span>
-               </>
+              <>
+                <span
+                  className="badge badge-purple"
+                  style={{ padding: '2px 6px', fontSize: '11px' }}
+                >
+                  Research Paper
+                </span>
+                <span className="badge badge-gray" style={{ padding: '2px 6px', fontSize: '11px' }}>
+                  {item.pubYear}
+                </span>
+              </>
             ) : (
-               <>
-                 <span className="badge badge-teal" style={{ padding: '2px 6px', fontSize: '11px' }}>{item.phase}</span>
-                 <span className="badge badge-gray" style={{ padding: '2px 6px', fontSize: '11px' }}>{item.status}</span>
-               </>
+              <>
+                <span className="badge badge-teal" style={{ padding: '2px 6px', fontSize: '11px' }}>
+                  {item.phase}
+                </span>
+                <span className="badge badge-gray" style={{ padding: '2px 6px', fontSize: '11px' }}>
+                  {item.status}
+                </span>
+              </>
             )}
             <a
-              href={item.url || (isPaper ? `https://europepmc.org/article/MED/${item.id}` : `https://clinicaltrials.gov/study/${item.id}`)}
+              href={
+                item.url ||
+                (isPaper
+                  ? `https://europepmc.org/article/MED/${item.id}`
+                  : `https://clinicaltrials.gov/study/${item.id}`)
+              }
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 7px', borderRadius: '4px', fontSize: '11px', background: '#F1F5F9', color: '#475569', textDecoration: 'none', fontWeight: 600 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                background: '#F1F5F9',
+                color: '#475569',
+                textDecoration: 'none',
+                fontWeight: 600,
+              }}
               title="View direct registry record"
             >
-              <span>{item.sourceName || (isPaper ? 'Europe PMC / PubMed' : 'ClinicalTrials.gov')}</span>
+              <span>
+                {item.sourceName || (isPaper ? 'Europe PMC / PubMed' : 'ClinicalTrials.gov')}
+              </span>
               <ExternalLink size={10} />
             </a>
             {item.retrievedAt && (
               <span style={{ fontSize: '11px', color: '#64748B' }}>
-                • Retrieved {new Date(item.retrievedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                • Retrieved{' '}
+                {new Date(item.retrievedAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
               </span>
             )}
             {!isPaper && item.criteriaBreakdown?.matchStatus === 'differential_match' && (
-              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', fontWeight: 700 }}>
+              <span
+                className="badge"
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  background: '#DCFCE7',
+                  color: '#15803D',
+                  border: '1px solid #86EFAC',
+                  fontWeight: 700,
+                }}
+              >
                 🎯 Matches Case Differential
               </span>
             )}
             {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'eligible' && (
-              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontWeight: 600 }}>
+              <span
+                className="badge"
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  background: '#EFF6FF',
+                  color: '#1D4ED8',
+                  border: '1px solid #BFDBFE',
+                  fontWeight: 600,
+                }}
+              >
                 Within registry age bounds ({item.criteriaBreakdown.ageCriteria.patientAge}y)
               </span>
             )}
             {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'potential_mismatch' && (
-              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 600 }}>
+              <span
+                className="badge"
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  background: '#FEF3C7',
+                  color: '#92400E',
+                  border: '1px solid #FCD34D',
+                  fontWeight: 600,
+                }}
+              >
                 Age outside registry bounds
               </span>
             )}
             {!isPaper && item.criteriaBreakdown?.genderCriteria?.status === 'eligible' && (
-              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontWeight: 600 }}>
+              <span
+                className="badge"
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  background: '#EFF6FF',
+                  color: '#1D4ED8',
+                  border: '1px solid #BFDBFE',
+                  fontWeight: 600,
+                }}
+              >
                 Registry: All sexes accepted
               </span>
             )}
-            {!isPaper && item.criteriaBreakdown?.genderCriteria?.status === 'potential_mismatch' && (
-              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 600 }}>
-                Sex-restricted cohort
-              </span>
-            )}
+            {!isPaper &&
+              item.criteriaBreakdown?.genderCriteria?.status === 'potential_mismatch' && (
+                <span
+                  className="badge"
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    background: '#FEF3C7',
+                    color: '#92400E',
+                    border: '1px solid #FCD34D',
+                    fontWeight: 600,
+                  }}
+                >
+                  Sex-restricted cohort
+                </span>
+              )}
           </div>
           <h2 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
             {displayTitle}
           </h2>
-          <div style={{ fontSize: '12px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div
+            style={{
+              fontSize: '12px',
+              color: '#64748B',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
             <Activity size={12} /> {displayJournal}
           </div>
         </div>
@@ -312,11 +498,29 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             exit={{ height: 0, opacity: 0 }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '16px 0', borderTop: '1px solid #F1F5F9', borderBottom: '1px solid #F1F5F9', margin: '4px 0 12px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              
+            <div
+              style={{
+                padding: '16px 0',
+                borderTop: '1px solid #F1F5F9',
+                borderBottom: '1px solid #F1F5F9',
+                margin: '4px 0 12px 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+              }}
+            >
               {/* Summary / Abstract */}
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    marginBottom: '4px',
+                  }}
+                >
                   {isPaper ? 'Study Abstract' : 'Clinical Protocol Summary'}
                 </div>
                 <p style={{ fontSize: '13px', color: '#334155', margin: 0, lineHeight: 1.55 }}>
@@ -325,21 +529,60 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
               </div>
 
               {/* 1. WHY SHOWN & TOPIC RELEVANCE PROOF (Promise 7) */}
-              <div style={{ background: '#F0FDF4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #BBF7D0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+              <div
+                style={{
+                  background: '#F0FDF4',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #BBF7D0',
+                }}
+              >
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}
+                >
                   <span style={{ fontSize: '12px' }}>🎯</span>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#166534',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                    }}
+                  >
                     Why This Was Retrieved • Topic Relevance Proof
                   </span>
                 </div>
-                <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: '#14532D', lineHeight: 1.45 }}>
+                <p
+                  style={{
+                    margin: '0 0 8px 0',
+                    fontSize: '12.5px',
+                    color: '#14532D',
+                    lineHeight: 1.45,
+                  }}
+                >
                   {item.aiContext}
                 </p>
                 {item.matchedTerms && item.matchedTerms.length > 0 && (
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>Correlated Terms:</span>
+                  <div
+                    style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}
+                  >
+                    <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>
+                      Correlated Terms:
+                    </span>
                     {item.matchedTerms.map((term: string, i: number) => (
-                      <span key={i} style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC' }}>
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: '#DCFCE7',
+                          color: '#15803D',
+                          border: '1px solid #86EFAC',
+                        }}
+                      >
                         {term}
                       </span>
                     ))}
@@ -348,63 +591,237 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
               </div>
 
               {/* 2. STUDY CHARACTERISTICS (Promise 7) */}
-              <div style={{ background: '#FFFAFA', padding: '12px 14px', borderRadius: '12px', border: '1px solid #F1E5E7' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
+              <div
+                style={{
+                  background: '#FFFAFA',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '1px solid #F1E5E7',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    marginBottom: '6px',
+                  }}
+                >
                   Study Characteristics & Parameters
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                    gap: '8px',
+                    fontSize: '12px',
+                  }}
+                >
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>CATEGORY</span>
-                    <strong style={{ color: '#0F172A' }}>{isPaper ? 'Peer-Reviewed Journal' : (item.phase || 'Clinical Trial')}</strong>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>
+                      CATEGORY
+                    </span>
+                    <strong style={{ color: '#0F172A' }}>
+                      {isPaper ? 'Peer-Reviewed Journal' : item.phase || 'Clinical Trial'}
+                    </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>STATUS / YEAR</span>
-                    <strong style={{ color: '#0F172A' }}>{isPaper ? (item.pubYear || 'Recent') : (item.status || 'Active')}</strong>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>
+                      STATUS / YEAR
+                    </span>
+                    <strong style={{ color: '#0F172A' }}>
+                      {isPaper ? item.pubYear || 'Recent' : item.status || 'Active'}
+                    </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>LOCATION / SOURCE</span>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>
+                      LOCATION / SOURCE
+                    </span>
                     <strong style={{ color: '#0F172A' }}>{displayJournal}</strong>
                   </div>
                 </div>
                 {!isPaper && item.interventions && item.interventions.length > 0 && (
-                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #CBD5E1', fontSize: '12px' }}>
-                    <span style={{ color: '#64748B', fontSize: '10.5px', display: 'block' }}>INVESTIGATED INTERVENTIONS</span>
-                    <span style={{ color: '#0F172A', fontWeight: 600 }}>{item.interventions.join(' • ')}</span>
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      paddingTop: '8px',
+                      borderTop: '1px dashed #CBD5E1',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <span style={{ color: '#64748B', fontSize: '10.5px', display: 'block' }}>
+                      INVESTIGATED INTERVENTIONS
+                    </span>
+                    <span style={{ color: '#0F172A', fontWeight: 600 }}>
+                      {item.interventions.join(' • ')}
+                    </span>
                   </div>
                 )}
               </div>
 
               {/* 3. REAL CRITERIA SCREENING EVALUATION (Promise 7 & Point 9/10) */}
               {!isPaper && item.criteriaBreakdown && (
-                <div style={{ background: '#FFFAFA', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #F1E5E7' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                  style={{
+                    background: '#FFFAFA',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #F1E5E7',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#334155',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.6px',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     <span>🔬</span> Case Criteria Screening Analysis
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px', fontSize: '12px' }}>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
-                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>DIFFERENTIAL OVERLAP</span>
-                      <strong style={{ color: item.criteriaBreakdown.conditionMatch.matched ? '#15803D' : '#334155' }}>
-                        {item.criteriaBreakdown.conditionMatch.matched ? 'Correlated' : 'None Detected'}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                      gap: '10px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #F1E5E7',
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: '#64748B',
+                          display: 'block',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        DIFFERENTIAL OVERLAP
+                      </span>
+                      <strong
+                        style={{
+                          color: item.criteriaBreakdown.conditionMatch.matched
+                            ? '#15803D'
+                            : '#334155',
+                        }}
+                      >
+                        {item.criteriaBreakdown.conditionMatch.matched
+                          ? 'Correlated'
+                          : 'None Detected'}
                       </strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                      <p
+                        style={{
+                          margin: '4px 0 0 0',
+                          fontSize: '11px',
+                          color: '#64748B',
+                          lineHeight: 1.3,
+                        }}
+                      >
                         {item.criteriaBreakdown.conditionMatch.note}
                       </p>
                     </div>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
-                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>AGE SCREENING</span>
-                      <strong style={{ color: item.criteriaBreakdown.ageCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
-                        {item.criteriaBreakdown.ageCriteria.status === 'eligible' ? 'Within Bounds' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? 'Outside Bounds' : 'Unspecified'}
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #F1E5E7',
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: '#64748B',
+                          display: 'block',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        AGE SCREENING
+                      </span>
+                      <strong
+                        style={{
+                          color:
+                            item.criteriaBreakdown.ageCriteria.status === 'eligible'
+                              ? '#15803D'
+                              : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch'
+                                ? '#B45309'
+                                : '#64748B',
+                        }}
+                      >
+                        {item.criteriaBreakdown.ageCriteria.status === 'eligible'
+                          ? 'Within Bounds'
+                          : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch'
+                            ? 'Outside Bounds'
+                            : 'Unspecified'}
                       </strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                      <p
+                        style={{
+                          margin: '4px 0 0 0',
+                          fontSize: '11px',
+                          color: '#64748B',
+                          lineHeight: 1.3,
+                        }}
+                      >
                         {item.criteriaBreakdown.ageCriteria.note}
                       </p>
                     </div>
-                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #F1E5E7' }}>
-                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>SEX / COHORT</span>
-                      <strong style={{ color: item.criteriaBreakdown.genderCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
-                        {item.criteriaBreakdown.genderCriteria.status === 'eligible' ? 'All Sexes Accepted' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? 'Restricted Cohort' : 'Unspecified'}
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #F1E5E7',
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: '#64748B',
+                          display: 'block',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        SEX / COHORT
+                      </span>
+                      <strong
+                        style={{
+                          color:
+                            item.criteriaBreakdown.genderCriteria.status === 'eligible'
+                              ? '#15803D'
+                              : item.criteriaBreakdown.genderCriteria.status ===
+                                  'potential_mismatch'
+                                ? '#B45309'
+                                : '#64748B',
+                        }}
+                      >
+                        {item.criteriaBreakdown.genderCriteria.status === 'eligible'
+                          ? 'All Sexes Accepted'
+                          : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch'
+                            ? 'Restricted Cohort'
+                            : 'Unspecified'}
                       </strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                      <p
+                        style={{
+                          margin: '4px 0 0 0',
+                          fontSize: '11px',
+                          color: '#64748B',
+                          lineHeight: 1.3,
+                        }}
+                      >
                         {item.criteriaBreakdown.genderCriteria.note}
                       </p>
                     </div>
@@ -414,40 +831,77 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
 
               {/* 4. ELIGIBILITY SCREENING NOTE */}
               {!isPaper && (
-                <div style={{ background: '#FFFBEB', padding: '8px 12px', borderRadius: '10px', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    background: '#FFFBEB',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid #FDE68A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <span style={{ fontSize: '12px' }}>⚠️</span>
                   <span style={{ fontSize: '11.5px', color: '#92400E' }}>
-                    Topic match only. Clinical eligibility requires investigator evaluation and full protocol screening.
+                    Topic match only. Clinical eligibility requires investigator evaluation and full
+                    protocol screening.
                   </span>
                 </div>
               )}
 
               <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8', lineHeight: 1.4 }}>
-                Always discuss potential clinical trials or published protocols with your licensed physician before taking any action.
+                Always discuss potential clinical trials or published protocols with your licensed
+                physician before taking any action.
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button 
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <button
           type="button"
-          onClick={() => setExpanded(!expanded)} 
+          onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          aria-label={expanded ? `Collapse match details for ${displayTitle}` : `Expand match details for ${displayTitle}`}
-          style={{ background: 'transparent', border: 'none', color: '#4F46E5', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+          aria-label={
+            expanded
+              ? `Collapse match details for ${displayTitle}`
+              : `Expand match details for ${displayTitle}`
+          }
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#4F46E5',
+            fontSize: '13px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            cursor: 'pointer',
+            padding: 0,
+          }}
         >
-          {expanded ? 'Show Less' : 'Match Details'} {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {expanded ? 'Show Less' : 'Match Details'}{' '}
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button 
+          <button
             type="button"
-            className="btn btn-outline btn-sm" 
+            className="btn btn-outline btn-sm"
             onClick={(e) => {
               e.stopPropagation();
               triggerHapticLight();
-              const sourceStudy = { ownerScope:getProfileKey(),
+              const sourceStudy = {
+                ownerScope: getProfileKey(),
                 caseId: getUnifiedCaseScope().caseId,
                 nctId: item.id,
                 title: displayTitle,
@@ -455,36 +909,54 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                 url: item.url || (item.id ? 'https://clinicaltrials.gov/study/' + item.id : ''),
                 matchStatus: item.criteriaBreakdown?.matchStatus || 'broad_relevance',
                 criteriaBreakdown: item.criteriaBreakdown,
-                sourceName: item.sourceName || (isPaper ? 'Europe PMC / PubMed' : 'ClinicalTrials.gov'),
+                sourceName:
+                  item.sourceName || (isPaper ? 'Europe PMC / PubMed' : 'ClinicalTrials.gov'),
                 retrievedAt: item.retrievedAt,
               };
               try {
                 // The handoff is stored only in the owning profile scope.
                 if (item.id) {
-                  sessionStorage.setItem(`hc_study_${getProfileKey()}_${item.id}`, JSON.stringify(sourceStudy));
+                  sessionStorage.setItem(
+                    `hc_study_${getProfileKey()}_${item.id}`,
+                    JSON.stringify(sourceStudy)
+                  );
                 }
               } catch {}
-              navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (item.id ? '&studyId=' + encodeURIComponent(item.id) : ''), {
-                state: {
-                  initialPrompt: `I am reviewing this clinical research source: "${displayTitle}" (ID: ${item.id || 'N/A'}). Status: ${item.criteriaBreakdown?.matchStatus || 'General Relevance'}. Help me summarize what it actually says, evaluate whether its eligibility criteria align with my case, and outline specific questions I should ask my clinician or the study team.`,
-                  sourceStudy
+              navigate(
+                '/app/ava?caseId=' +
+                  encodeURIComponent(getUnifiedCaseScope().caseId || '') +
+                  (item.id ? '&studyId=' + encodeURIComponent(item.id) : ''),
+                {
+                  state: {
+                    initialPrompt: `I am reviewing this clinical research source: "${displayTitle}" (ID: ${item.id || 'N/A'}). Status: ${item.criteriaBreakdown?.matchStatus || 'General Relevance'}. Help me summarize what it actually says, evaluate whether its eligibility criteria align with my case, and outline specific questions I should ask my clinician or the study team.`,
+                    sourceStudy,
+                  },
                 }
-              });
-            }} 
+              );
+            }}
             aria-label={`Discuss "${displayTitle}" with Ava`}
-            style={{ padding: '4px 10px', fontSize: '12px', height: '28px', display: 'flex', alignItems: 'center', gap: '4px', color: '#4F46E5', borderColor: '#C7D2FE' }}
+            style={{
+              padding: '4px 10px',
+              fontSize: '12px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#4F46E5',
+              borderColor: '#C7D2FE',
+            }}
             title="Discuss with Ava"
           >
             <MessageCircle size={13} /> Discuss with Ava
           </button>
-          <button 
+          <button
             type="button"
-            className="btn btn-primary btn-sm" 
-            onClick={onClick} 
+            className="btn btn-primary btn-sm"
+            onClick={onClick}
             aria-label={`View clinical trial details for ${displayTitle}`}
             style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
           >
-             Details <ExternalLink size={12} />
+            Details <ExternalLink size={12} />
           </button>
         </div>
       </div>
@@ -493,7 +965,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
 }
 
 export default function ClinicalTrialsMatcher() {
-  const [retrievalError, setRetrievalError] = useState('');
+  const [, setRetrievalError] = useState('');
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -505,10 +977,18 @@ export default function ClinicalTrialsMatcher() {
   const currentContext = useRef('');
   const displayedContext = useRef('');
   useEffect(() => {
-    const refresh = () => refreshScope(value => value + 1);
-    const events = ['hc_profile_updated', 'hc_cases_updated', 'hc_active_case_updated', 'hc_logout'];
-    events.forEach(name => window.addEventListener(name, refresh));
-    return () => { requestSequence.current++; events.forEach(name => window.removeEventListener(name, refresh)); };
+    const refresh = () => refreshScope((value) => value + 1);
+    const events = [
+      'hc_profile_updated',
+      'hc_cases_updated',
+      'hc_active_case_updated',
+      'hc_logout',
+    ];
+    events.forEach((name) => window.addEventListener(name, refresh));
+    return () => {
+      requestSequence.current++;
+      events.forEach((name) => window.removeEventListener(name, refresh));
+    };
   }, []);
   const [loading, setLoading] = useState(true);
   const [researchItems, setResearchItems] = useState<any[]>([]);
@@ -533,13 +1013,12 @@ export default function ClinicalTrialsMatcher() {
   useEffect(() => {
     const studyParam = searchParams.get('study') || searchParams.get('studyId');
     if (studyParam && researchItems.length > 0) {
-      const matched = researchItems.find(item => item.id === studyParam);
+      const matched = researchItems.find((item) => item.id === studyParam);
       if (matched && (!selectedItem || selectedItem.id !== studyParam)) {
         setSelectedItem(matched);
       }
     }
   }, [researchItems, searchParams]);
-
 
   const [customQuery, setCustomQuery] = useState('');
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
@@ -561,7 +1040,10 @@ export default function ClinicalTrialsMatcher() {
       return;
     }
     if (!activeCase?.id) {
-      toast.error('Select a case first', 'Research is saved as evidence in a specific case dossier.');
+      toast.error(
+        'Select a case first',
+        'Research is saved as evidence in a specific case dossier.'
+      );
       return;
     }
     triggerHapticSuccess();
@@ -576,40 +1058,54 @@ export default function ClinicalTrialsMatcher() {
       occurredAt: new Date().toISOString(),
       caseId: activeCase?.id,
       payload: item,
-      dedupeKey: `saved_trial:${activeCase.id}:${item.id}`
+      dedupeKey: `saved_trial:${activeCase.id}:${item.id}`,
     });
 
-    awardPoints(10, `Saved Research to Dossier: ${item.title.slice(0, 24)}...`, 'research', `trial_save_${item.id}`);
-    toast.success('Saved to this case (+10 pts)', `Added to “${activeCase.title || 'Active case'}” as research evidence.`);
+    awardPoints(
+      10,
+      `Saved Research to Dossier: ${item.title.slice(0, 24)}...`,
+      'research',
+      `trial_save_${item.id}`
+    );
+    toast.success(
+      'Saved to this case (+10 pts)',
+      `Added to “${activeCase.title || 'Active case'}” as research evidence.`
+    );
   };
 
-
-
   const caseDifferentials: string[] = [
-    ...(activeCase?.differentials?.map(d => typeof d === 'string' ? d : d.condition) || []),
-    ...(Array.isArray(activeCase?.reviews) ? activeCase.reviews.flatMap((r: any) => r?.report?.topDiagnoses || r?.report?.differentials || []) : [])
-  ].map(s => typeof s === 'string' ? s.trim() : (s?.condition || s?.name || '')).filter(Boolean);
+    ...(activeCase?.differentials?.map((d) => (typeof d === 'string' ? d : d.condition)) || []),
+    ...(Array.isArray(activeCase?.reviews)
+      ? activeCase.reviews.flatMap(
+          (r: any) => r?.report?.topDiagnoses || r?.report?.differentials || []
+        )
+      : []),
+  ]
+    .map((s) => (typeof s === 'string' ? s.trim() : s?.condition || s?.name || ''))
+    .filter(Boolean);
 
   const profileConditions: string[] = Array.isArray(profile?.conditions)
-    ? profile.conditions.map((c: any) => typeof c === 'string' ? c.trim() : c?.name || '').filter(Boolean)
+    ? profile.conditions
+        .map((c: any) => (typeof c === 'string' ? c.trim() : c?.name || ''))
+        .filter(Boolean)
     : [];
 
   const caseTopics = [
     ...caseDifferentials,
     ...profileConditions,
     activeCase?.title,
-    activeCase?.intakeData?.chiefComplaint
+    activeCase?.intakeData?.chiefComplaint,
   ]
-    .map(value => typeof value === 'string' ? value.trim().slice(0, 120) : '')
+    .map((value) => (typeof value === 'string' ? value.trim().slice(0, 120) : ''))
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index)
     .slice(0, 4);
 
-  const effectiveTerms = customSearchTerms && customSearchTerms.length > 0
-    ? customSearchTerms
-    : caseTopics;
+  const effectiveTerms =
+    customSearchTerms && customSearchTerms.length > 0 ? customSearchTerms : caseTopics;
 
-  const patientAge = profile?.demographics?.age !== undefined ? String(profile.demographics.age) : '';
+  const patientAge =
+    profile?.demographics?.age !== undefined ? String(profile.demographics.age) : '';
   const patientGender = profile?.demographics?.gender || '';
   const chiefComplaint = activeCase?.intakeData?.chiefComplaint || '';
   const differentialsKey = caseDifferentials.slice().sort().join('|');
@@ -620,7 +1116,10 @@ export default function ClinicalTrialsMatcher() {
   const loadResearch = async (sourceToReload: 'trials' | 'literature' | 'all' = 'all') => {
     const sequence = ++requestSequence.current;
     const owner = captureAccountScope();
-    const current = () => sequence === requestSequence.current && currentContext.current === cacheKey && isAccountScopeCurrent(owner);
+    const current = () =>
+      sequence === requestSequence.current &&
+      currentContext.current === cacheKey &&
+      isAccountScopeCurrent(owner);
     setLoading(true);
     const searchTerms = effectiveTerms;
 
@@ -636,17 +1135,17 @@ export default function ClinicalTrialsMatcher() {
                 ...item,
                 title: cleanMedicalText(item.title),
                 journal: item.journal
-                  ? (item.journal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(item.journal))
+                  ? item.journal.toLowerCase() === 'unknown journal'
+                    ? 'Peer-Reviewed Clinical Journal'
+                    : cleanMedicalText(item.journal)
                   : item.location,
-                abstract: cleanMedicalText(item.abstract || item.summary || '')
+                abstract: cleanMedicalText(item.abstract || item.summary || ''),
               };
               if (!base.journal && !base.criteriaBreakdown) {
-                const evaluated = evaluateTrialCriteria(
-                  base,
-                  searchTerms,
-                  caseDifferentials,
-                  { age: profile?.demographics?.age, gender: profile?.demographics?.gender }
-                );
+                const evaluated = evaluateTrialCriteria(base, searchTerms, caseDifferentials, {
+                  age: profile?.demographics?.age,
+                  gender: profile?.demographics?.gender,
+                });
                 return { ...base, ...evaluated };
               }
               return base;
@@ -659,7 +1158,7 @@ export default function ClinicalTrialsMatcher() {
             return;
           }
         } catch (e) {
-          console.error("Cache parsing error", e);
+          console.error('Cache parsing error', e);
         }
       }
     }
@@ -673,16 +1172,16 @@ export default function ClinicalTrialsMatcher() {
       let sourceError = '';
 
       if (sourceToReload === 'trials' || sourceToReload === 'all') {
-        setSourceHealth(prev => ({ ...prev, trials: 'loading' }));
+        setSourceHealth((prev) => ({ ...prev, trials: 'loading' }));
       }
       if (sourceToReload === 'literature' || sourceToReload === 'all') {
-        setSourceHealth(prev => ({ ...prev, literature: 'loading' }));
+        setSourceHealth((prev) => ({ ...prev, literature: 'loading' }));
       }
 
       if (sourceToReload === 'all') {
         const results = await Promise.allSettled([
           fetchLiveTrials(searchTerms),
-          fetchRecentLiterature(searchTerms)
+          fetchRecentLiterature(searchTerms),
         ]);
         if (!current()) return;
         const trialsRes = results[0];
@@ -695,48 +1194,47 @@ export default function ClinicalTrialsMatcher() {
         };
         setSourceHealth(sources);
         if (trialsRes.status !== 'fulfilled' || papersRes.status !== 'fulfilled') {
-          sourceError = 'One or more research sources could not be reached. These results may be incomplete.';
+          sourceError =
+            'One or more research sources could not be reached. These results may be incomplete.';
           setRetrievalError(sourceError);
         }
       } else if (sourceToReload === 'trials') {
-        newPapers = researchItems.filter(i => !!i.journal);
+        newPapers = researchItems.filter((i) => !!i.journal);
         try {
           newTrials = await fetchLiveTrials(searchTerms);
           if (!current()) return;
           sources.trials = 'success';
-          setSourceHealth(prev => ({ ...prev, trials: 'success' }));
+          setSourceHealth((prev) => ({ ...prev, trials: 'success' }));
         } catch {
           if (!current()) return;
           sources.trials = 'failed';
-          newTrials = researchItems.filter(i => !i.journal);
-          setSourceHealth(prev => ({ ...prev, trials: 'failed' }));
+          newTrials = researchItems.filter((i) => !i.journal);
+          setSourceHealth((prev) => ({ ...prev, trials: 'failed' }));
           sourceError = 'ClinicalTrials.gov could not be reached.';
           setRetrievalError(sourceError);
         }
       } else if (sourceToReload === 'literature') {
-        newTrials = researchItems.filter(i => !i.journal);
+        newTrials = researchItems.filter((i) => !i.journal);
         try {
           newPapers = await fetchRecentLiterature(searchTerms);
           if (!current()) return;
           sources.literature = 'success';
-          setSourceHealth(prev => ({ ...prev, literature: 'success' }));
+          setSourceHealth((prev) => ({ ...prev, literature: 'success' }));
         } catch {
           if (!current()) return;
           sources.literature = 'failed';
-          newPapers = researchItems.filter(i => !!i.journal);
-          setSourceHealth(prev => ({ ...prev, literature: 'failed' }));
+          newPapers = researchItems.filter((i) => !!i.journal);
+          setSourceHealth((prev) => ({ ...prev, literature: 'failed' }));
           sourceError = 'Europe PMC / PubMed literature could not be reached.';
           setRetrievalError(sourceError);
         }
       }
 
       const trialsWithScore = newTrials.map((t: any) => {
-        const evaluated = evaluateTrialCriteria(
-          t,
-          searchTerms,
-          caseDifferentials,
-          { age: profile?.demographics?.age, gender: profile?.demographics?.gender }
-        );
+        const evaluated = evaluateTrialCriteria(t, searchTerms, caseDifferentials, {
+          age: profile?.demographics?.age,
+          gender: profile?.demographics?.gender,
+        });
         return { ...t, ...evaluated };
       });
 
@@ -747,7 +1245,9 @@ export default function ClinicalTrialsMatcher() {
 
       const allItems = [...trialsWithScore, ...papersWithScore];
       const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 0);
-      const sortedItems = filteredItems.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
+      const sortedItems = filteredItems.sort(
+        (a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0)
+      );
 
       if (!current()) return;
       displayedContext.current = cacheKey;
@@ -759,15 +1259,23 @@ export default function ClinicalTrialsMatcher() {
         occurredAt: new Date().toISOString(),
         caseId: targetCase.id,
         payload: { searchTerms, results: sortedItems },
-        dedupeKey: `research:${targetCase.id}:${searchTerms.join(',')}`
+        dedupeKey: `research:${targetCase.id}:${searchTerms.join(',')}`,
       });
 
       if (sortedItems.length > 0) {
         const todayStr = new Date().toISOString().split('T')[0];
-        awardPoints(2, `Clinical Research: ${searchTerms[0] || 'Topics'}`, 'research', `research_${todayStr}`);
+        awardPoints(
+          2,
+          `Clinical Research: ${searchTerms[0] || 'Topics'}`,
+          'research',
+          `research_${todayStr}`
+        );
       }
       try {
-        sessionStorage.setItem(cacheKey, JSON.stringify({ items: sortedItems, sources, error: sourceError }));
+        sessionStorage.setItem(
+          cacheKey,
+          JSON.stringify({ items: sortedItems, sources, error: sourceError })
+        );
       } catch {}
     } catch (err) {
       if (current()) setRetrievalError('Research could not be loaded. Please retry.');
@@ -780,458 +1288,947 @@ export default function ClinicalTrialsMatcher() {
     displayedContext.current = '';
     setResearchItems([]);
     setSelectedItem(null);
-    try { const stored = getItemSync(savedTrialsKey); setSavedItems(stored ? JSON.parse(stored) : {}); } catch { setSavedItems({}); }
+    try {
+      const stored = getItemSync(savedTrialsKey);
+      setSavedItems(stored ? JSON.parse(stored) : {});
+    } catch {
+      setSavedItems({});
+    }
     loadResearch('all');
-    return () => { requestSequence.current++; };
+    return () => {
+      requestSequence.current++;
+    };
   }, [cacheKey]);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
-      paddingBottom: '40px',
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+        paddingBottom: '40px',
+      }}
+    >
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0 12px' : '0 16px' }}>
-      
-
-      {/* Partial / Full Source Failure Recovery Banners */}
-      {sourceHealth.trials === 'failed' && sourceHealth.literature === 'success' && (
-        <div role="alert" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '12px', padding: '12px 16px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '13px', color: '#92400E' }}>
-            ⚠️ <strong>Partial Source Failure:</strong> ClinicalTrials.gov registry could not be reached or timed out, but Europe PMC literature was successfully retrieved.
-          </div>
-          <button 
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => loadResearch('trials')}
-            disabled={loading}
-            style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
+        {/* Partial / Full Source Failure Recovery Banners */}
+        {sourceHealth.trials === 'failed' && sourceHealth.literature === 'success' && (
+          <div
+            role="alert"
+            style={{
+              background: '#FFFBEB',
+              border: '1px solid #FCD34D',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              margin: '16px 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
           >
-            {loading ? 'Retrying...' : 'Retry ClinicalTrials.gov'}
-          </button>
-        </div>
-      )}
-
-      {sourceHealth.literature === 'failed' && sourceHealth.trials === 'success' && (
-        <div role="alert" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '12px', padding: '12px 16px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '13px', color: '#92400E' }}>
-            ⚠️ <strong>Partial Source Failure:</strong> Europe PMC literature could not be reached, but ClinicalTrials.gov registry studies were successfully retrieved.
+            <div style={{ fontSize: '13px', color: '#92400E' }}>
+              ⚠️ <strong>Partial Source Failure:</strong> ClinicalTrials.gov registry could not be
+              reached or timed out, but Europe PMC literature was successfully retrieved.
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => loadResearch('trials')}
+              disabled={loading}
+              style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
+            >
+              {loading ? 'Retrying...' : 'Retry ClinicalTrials.gov'}
+            </button>
           </div>
-          <button 
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => loadResearch('literature')}
-            disabled={loading}
-            style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
-          >
-            {loading ? 'Retrying...' : 'Retry Europe PMC'}
-          </button>
-        </div>
-      )}
+        )}
 
-      {sourceHealth.trials === 'failed' && sourceHealth.literature === 'failed' && (
-        <div role="alert" style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '12px', padding: '12px 16px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '13px', color: '#991B1B' }}>
-            ⚠️ <strong>Research Registries Unavailable:</strong> Neither ClinicalTrials.gov nor Europe PMC could be reached. Please check your network connection and retry.
+        {sourceHealth.literature === 'failed' && sourceHealth.trials === 'success' && (
+          <div
+            role="alert"
+            style={{
+              background: '#FFFBEB',
+              border: '1px solid #FCD34D',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              margin: '16px 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ fontSize: '13px', color: '#92400E' }}>
+              ⚠️ <strong>Partial Source Failure:</strong> Europe PMC literature could not be
+              reached, but ClinicalTrials.gov registry studies were successfully retrieved.
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => loadResearch('literature')}
+              disabled={loading}
+              style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
+            >
+              {loading ? 'Retrying...' : 'Retry Europe PMC'}
+            </button>
           </div>
-          <button 
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={() => loadResearch('all')}
-            disabled={loading}
-            style={{ borderColor: '#EF4444', color: '#B91C1C', whiteSpace: 'nowrap' }}
+        )}
+
+        {sourceHealth.trials === 'failed' && sourceHealth.literature === 'failed' && (
+          <div
+            role="alert"
+            style={{
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              margin: '16px 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
           >
-            {loading ? 'Retrying...' : 'Retry Both Sources'}
-          </button>
-        </div>
-      )}
+            <div style={{ fontSize: '13px', color: '#991B1B' }}>
+              ⚠️ <strong>Research Registries Unavailable:</strong> Neither ClinicalTrials.gov nor
+              Europe PMC could be reached. Please check your network connection and retry.
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => loadResearch('all')}
+              disabled={loading}
+              style={{ borderColor: '#EF4444', color: '#B91C1C', whiteSpace: 'nowrap' }}
+            >
+              {loading ? 'Retrying...' : 'Retry Both Sources'}
+            </button>
+          </div>
+        )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{
-          background: 'linear-gradient(135deg, #1E1B4B, #312E81)',
-          borderRadius: '24px',
-          padding: isMobile ? '20px' : '40px',
-          color: 'white',
-          marginBottom: '20px',
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: '16px',
-          alignItems: isMobile ? 'flex-start' : 'center'
-        }}
-      >
-        <div style={{
-          width: '72px', height: '72px', borderRadius: '20px',
-          background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <FlaskConical size={36} color="#A5B4FC" />
-        </div>
-        <div>
-          <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research</h1>
-          <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
-            Find registry studies and recent literature by topic.
-          </p>
-        </div>
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            background: 'linear-gradient(135deg, #1E1B4B, #312E81)',
+            borderRadius: '24px',
+            padding: isMobile ? '20px' : '40px',
+            color: 'white',
+            marginBottom: '20px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '16px',
+            alignItems: isMobile ? 'flex-start' : 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '20px',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <FlaskConical size={36} color="#A5B4FC" />
+          </div>
+          <div>
+            <h1
+              style={{
+                fontSize: isMobile ? '24px' : '28px',
+                fontWeight: 800,
+                margin: '0 0 8px 0',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Clinical Research
+            </h1>
+            <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
+              Find registry studies and recent literature by topic.
+            </p>
+          </div>
+        </motion.div>
 
-      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', gap: '20px' }}>
-        <div>
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px', background: '#FFFFFF', border: '1px solid #F1E5E7' }}>
-            <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Filter size={16} /> Search
-            </h3>
+        <div
+          style={{
+            display: isMobile ? 'flex' : 'grid',
+            flexDirection: isMobile ? 'column' : 'unset',
+            gridTemplateColumns: isMobile ? 'unset' : '250px 1fr',
+            gap: '20px',
+          }}
+        >
+          <div>
+            <div
+              className="card"
+              style={{
+                padding: isMobile ? '16px' : '24px',
+                background: '#FFFFFF',
+                border: '1px solid #F1E5E7',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '16px',
+                }}
+              >
+                <Filter size={16} /> Search
+              </h3>
 
-            {/* Custom Query Search Box */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Topic or condition
-              </label>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="e.g. Migraine, GLP-1..."
-                  value={customQuery}
-                  onChange={(e) => setCustomQuery(e.target.value)}
-                  aria-label="Search topic or condition for clinical trials"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && customQuery.trim()) {
-                      setCustomSearchTerms([customQuery.trim()]);
-                    }
-                  }}
+              {/* Custom Query Search Box */}
+              <div style={{ marginBottom: '20px' }}>
+                <label
                   style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '13px',
-                    outline: 'none',
-                    minWidth: 0
+                    fontSize: '12px',
+                    color: '#64748B',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    marginBottom: '8px',
+                    display: 'block',
                   }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (customQuery.trim()) {
-                      setCustomSearchTerms([customQuery.trim()]);
-                    }
-                  }}
-                  disabled={!customQuery.trim()}
-                  className="btn btn-primary"
-                  style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
-                  <Search size={14} />
-                </button>
-              </div>
-
-              {customSearchTerms && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#EEF2FF', padding: '6px 10px', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '12px', color: '#4F46E5', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    Active: {customSearchTerms.join(', ')}
-                  </span>
+                  Topic or condition
+                </label>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. Migraine, GLP-1..."
+                    value={customQuery}
+                    onChange={(e) => setCustomQuery(e.target.value)}
+                    aria-label="Search topic or condition for clinical trials"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && customQuery.trim()) {
+                        setCustomSearchTerms([customQuery.trim()]);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #CBD5E1',
+                      fontSize: '13px',
+                      outline: 'none',
+                      minWidth: 0,
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={() => {
-                      setCustomSearchTerms(null);
-                      setCustomQuery('');
+                      if (customQuery.trim()) {
+                        setCustomSearchTerms([customQuery.trim()]);
+                      }
                     }}
-                    style={{ background: 'none', border: 'none', color: '#6366F1', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
-                    title="Reset to Case Targets"
+                    disabled={!customQuery.trim()}
+                    className="btn btn-primary"
+                    style={{
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
                   >
-                    <RotateCcw size={13} />
+                    <Search size={14} />
                   </button>
                 </div>
-              )}
-            </div>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Case topics used for search
-              </label>
-              {caseTopics.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {caseTopics.map((d: any, i) => (
-                    <span key={i} style={{ padding: '4px 8px', background: '#EEF2FF', color: '#4F46E5', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
-                      {d}
+
+                {customSearchTerms && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: '#EEF2FF',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: '#4F46E5',
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Active: {customSearchTerms.join(', ')}
                     </span>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ fontSize: '13px', color: '#64748B' }}>No case topic selected. Enter a topic above to search.</div>
-              )}
-            </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomSearchTerms(null);
+                        setCustomQuery('');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#6366F1',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Reset to Case Targets"
+                    >
+                      <RotateCcw size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            <div>
-              <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Eligibility
-              </label>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>Relevance does not confirm eligibility. Check the official study page.</p>
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '24px', padding: '16px', background: '#FFFAFA', borderRadius: 'var(--radius-lg)', border: '1px dashed #F1E5E7' }}>
-             <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
-               Discuss participation with the study team and your clinician.
-             </p>
-          </div>
-        </div>
-
-        <div>
-          {loading ? (
-            <div style={{ padding: isMobile ? '30px 16px' : '60px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-              <div style={{ position: 'relative', width: '48px', height: '48px' }}>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-                  style={{ position: 'absolute', inset: 0, border: '3px solid #E2E8F0', borderTopColor: '#4F46E5', borderRadius: '50%' }}
-                />
-                <FlaskConical size={20} color="#4F46E5" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
-              </div>
-              <div>
-                <div style={{ color: '#0F172A', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>
-                  Searching sources...
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
-                {researchItems.length} source{researchItems.length === 1 ? '' : 's'} ranked by topic relevance
-              </div>
-              
-              {researchItems.length > 0 ? (
-                researchItems.map((item: any, idx: number) => (
-                  <ResearchCard 
-                    key={item.id} 
-                    item={item} 
-                    onClick={() => {
-                      triggerHapticLight();
-                      awardPoints(5, `Reviewed Evidence: ${(item.title || 'Trial').slice(0, 24)}...`, 'research', `trial_view_${item.id}`);
-                      handleSelectItem(item);
-                    }} 
-                  />
-                ))
-              ) : (
-                <div style={{ padding: '28px 20px', background: '#FFFAFA', borderRadius: '16px', border: '1px solid #F1E5E7', textAlign: 'center' }}>
-                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
-                  <h3 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', fontWeight: 700 }}>
-                    {effectiveTerms.length > 0 ? `No direct registry records found for “${effectiveTerms.join(', ')}”` : 'Choose a case topic or enter a search term'}
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '480px', margin: '0 auto 16px auto', lineHeight: 1.5 }}>
-                    {effectiveTerms.length > 0 ? 'Try a broader condition or symptom.' : 'Research results will appear here after you choose what to search.'}
-                  </p>
-                  {caseDifferentials.length > 0 && (
-                    <div style={{ marginBottom: '16px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
-                        Try related topics from your case:
+              <div style={{ marginBottom: '20px' }}>
+                <label
+                  style={{
+                    fontSize: '12px',
+                    color: '#64748B',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    marginBottom: '8px',
+                    display: 'block',
+                  }}
+                >
+                  Case topics used for search
+                </label>
+                {caseTopics.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {caseTopics.map((d: any, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          padding: '4px 8px',
+                          background: '#EEF2FF',
+                          color: '#4F46E5',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {d}
                       </span>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {caseDifferentials.map((diff, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            className="badge badge-purple"
-                            onClick={() => {
-                              setCustomSearchTerms([diff]);
-                              setCustomQuery(diff);
-                            }}
-                            style={{ cursor: 'pointer', border: '1px solid #C4B5FD', padding: '4px 10px', fontSize: '12px', background: '#F5F3FF', color: '#6D28D9' }}
-                          >
-                            + {diff}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <a
-                      href={`https://clinicaltrials.gov/search?term=${encodeURIComponent(effectiveTerms[0] || '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
-                    >
-                      Search ClinicalTrials.gov directly <ExternalLink size={12} />
-                    </a>
-                    <a
-                      href={`https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(effectiveTerms[0] || '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
-                    >
-                      Search PubMed directly <ExternalLink size={12} />
-                    </a>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '13px', color: '#64748B' }}>
+                    No case topic selected. Enter a topic above to search.
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: '12px',
+                    color: '#64748B',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    marginBottom: '8px',
+                    display: 'block',
+                  }}
+                >
+                  Eligibility
+                </label>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>
+                  Relevance does not confirm eligibility. Check the official study page.
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: '24px',
+                padding: '16px',
+                background: '#FFFAFA',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px dashed #F1E5E7',
+              }}
+            >
+              <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+                Discuss participation with the study team and your clinician.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            {loading ? (
+              <div
+                style={{
+                  padding: isMobile ? '30px 16px' : '60px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '20px',
+                }}
+              >
+                <div style={{ position: 'relative', width: '48px', height: '48px' }}>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      border: '3px solid #E2E8F0',
+                      borderTopColor: '#4F46E5',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  <FlaskConical
+                    size={20}
+                    color="#4F46E5"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      color: '#0F172A',
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Searching sources...
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {researchItems.length} source{researchItems.length === 1 ? '' : 's'} ranked by
+                  topic relevance
+                </div>
 
-      <AnimatePresence>
-        {selectedItem && (
-          <div 
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '12px' : '20px' }} 
-            onClick={() => handleSelectItem(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Research Detail Modal"
-            tabIndex={-1}
-            onKeyDown={(e) => { if (e.key === 'Escape') handleSelectItem(null); }}
-          >
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.95 }} 
-              style={{ 
-                background: 'white', 
-                borderRadius: '24px', 
-                width: '100%', 
-                maxWidth: '640px', 
-                maxHeight: 'calc(100vh - 48px)',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
-              }} 
-              onClick={e => e.stopPropagation()}
-            >
-            {(() => {
-              const modalTitle = cleanMedicalText(selectedItem.title) || (selectedItem.journal ? 'Clinical Literature Paper' : 'Clinical Trial');
-              const rawModalJournal = selectedItem.journal ? (selectedItem.journal || 'Peer-Reviewed Clinical Journal') : (selectedItem.location || 'Multiple Locations / Unknown');
-              const modalJournal = selectedItem.journal
-                ? (rawModalJournal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(rawModalJournal))
-                : rawModalJournal;
-              const modalAbstract = cleanMedicalText(selectedItem.journal ? selectedItem.abstract : selectedItem.summary) || 'No abstract or clinical summary available.';
-              const modalAuthors = selectedItem.authors ? cleanMedicalText(selectedItem.authors) : (selectedItem.location || 'Multiple Locations / Unknown');
-
-              return (
-                <>
-                  <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #F1E5E7', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                    <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
-                    </h2>
-                    <span className="badge badge-teal">Topic relevance: {selectedItem.matchScore}/100</span>
-                  </div>
-                  <div style={{ padding: isMobile ? '16px' : '24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-                    <h3 style={{ fontSize: isMobile ? '18px' : '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{modalTitle}</h3>
-                    <p style={{ color: '#475569', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
-                      {modalAbstract}
+                {researchItems.length > 0 ? (
+                  researchItems.map((item: any, idx: number) => (
+                    <ResearchCard
+                      key={item.id}
+                      item={item}
+                      onClick={() => {
+                        triggerHapticLight();
+                        awardPoints(
+                          5,
+                          `Reviewed Evidence: ${(item.title || 'Trial').slice(0, 24)}...`,
+                          'research',
+                          `trial_view_${item.id}`
+                        );
+                        handleSelectItem(item);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      padding: '28px 20px',
+                      background: '#FFFAFA',
+                      borderRadius: '16px',
+                      border: '1px solid #F1E5E7',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
+                    <h3
+                      style={{
+                        fontSize: '16px',
+                        color: '#0F172A',
+                        margin: '0 0 6px 0',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {effectiveTerms.length > 0
+                        ? `No direct registry records found for “${effectiveTerms.join(', ')}”`
+                        : 'Choose a case topic or enter a search term'}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: '#64748B',
+                        maxWidth: '480px',
+                        margin: '0 auto 16px auto',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {effectiveTerms.length > 0
+                        ? 'Try a broader condition or symptom.'
+                        : 'Research results will appear here after you choose what to search.'}
                     </p>
-                    <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 'var(--radius-lg)' }}>
-                        <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Journal' : 'Phase'}</span>
-                        <strong style={{ fontSize: '13px' }}>{selectedItem.journal ? modalJournal : (selectedItem.phase || 'Phase Unknown')}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: 'var(--radius-lg)' }}>
-                        <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Authors' : 'Location'}</span>
-                        <strong style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}>{modalAuthors}</strong>
-                      </div>
-                    </div>
-
-                    {!selectedItem.journal && (
-                      <div style={{ background: '#FFFAFA', borderRadius: '12px', border: '1px solid #F1E5E7', padding: '14px', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                            Official Registry Eligibility Criteria
-                          </span>
-                          <span style={{ fontSize: '11px', color: '#64748B' }}>
-                            {selectedItem.eligibility?.eligibilityCriteria ? 'Protocol Module' : 'Summary Module'}
-                          </span>
-                        </div>
-                        {selectedItem.eligibility?.eligibilityCriteria ? (
-                          <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: '12px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #F1E5E7', whiteSpace: 'pre-line' }}>
-                            {selectedItem.eligibility.eligibilityCriteria}
-                          </div>
-                        ) : (
-                          <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                            Exclusion and inclusion criteria are established by the protocol sponsor. Age bounds: {selectedItem.criteriaBreakdown?.ageCriteria?.extractedLimit || 'Age unspecified'}; Sex: {selectedItem.eligibility?.sex || 'All sexes'}.
-                          </p>
-                        )}
-                        <div style={{ marginTop: '8px', fontSize: '11px', color: '#92400E', background: '#FEF3C7', padding: '6px 10px', borderRadius: '6px' }}>
-                          ⚠️ Meeting age or sex criteria does not determine clinical eligibility. In-person clinical screening and investigator evaluation are required.
+                    {caseDifferentials.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: '#475569',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            display: 'block',
+                            marginBottom: '8px',
+                          }}
+                        >
+                          Try related topics from your case:
+                        </span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '8px',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {caseDifferentials.map((diff, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className="badge badge-purple"
+                              onClick={() => {
+                                setCustomSearchTerms([diff]);
+                                setCustomQuery(diff);
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                border: '1px solid #C4B5FD',
+                                padding: '4px 10px',
+                                fontSize: '12px',
+                                background: '#F5F3FF',
+                                color: '#6D28D9',
+                              }}
+                            >
+                              + {diff}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
-                  </div>
-                  <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#FFFAFA', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #F1E5E7' }}>
-                    <button className="btn btn-outline" onClick={() => handleSelectItem(null)}>Close</button>
-                    <button
-                      type="button"
-                      className="btn btn-outline"
-                      onClick={() => handleSaveToDossier(selectedItem)}
+                    <div
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        color: savedItems[savedItemKey(selectedItem.id)] ? '#059669' : '#0F172A',
-                        borderColor: savedItems[savedItemKey(selectedItem.id)] ? '#A7F3D0' : '#CBD5E1',
-                        background: savedItems[savedItemKey(selectedItem.id)] ? '#ECFDF5' : 'transparent',
+                        display: 'flex',
+                        gap: '12px',
+                        justifyContent: 'center',
+                        flexWrap: 'wrap',
                       }}
                     >
-                      {savedItems[savedItemKey(selectedItem.id)] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
-                      {savedItems[savedItemKey(selectedItem.id)] ? 'Saved to this case' : 'Save to case (+10 pts)'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline"
-                      onClick={() => {
-                        triggerHapticLight();
-                        const sourceStudy = { ownerScope:getProfileKey(),
-                          caseId: getUnifiedCaseScope().caseId,
-                          nctId: selectedItem.id,
-                          title: modalTitle,
-                          abstract: modalAbstract,
-                          url: selectedItem.url || '',
-                          matchStatus: selectedItem.criteriaBreakdown?.matchStatus || 'broad_relevance',
-                          criteriaBreakdown: selectedItem.criteriaBreakdown,
-                          sourceName: selectedItem.sourceName || (selectedItem.journal ? 'Europe PMC / PubMed' : 'ClinicalTrials.gov'),
-                          retrievedAt: selectedItem.retrievedAt,
-                        };
-                        try {
-                          // The handoff is stored only in the owning profile scope.
-                          if (selectedItem.id) {
-                            sessionStorage.setItem(`hc_study_${getProfileKey()}_${selectedItem.id}`, JSON.stringify(sourceStudy));
-                          }
-                        } catch {}
-                        navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (selectedItem.id ? '&studyId=' + encodeURIComponent(selectedItem.id) : ''), {
-                          state: {
-                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}" (ID: ${selectedItem.id || 'N/A'}). Status: ${selectedItem.criteriaBreakdown?.matchStatus || 'General Relevance'}. Summarize the source cautiously, evaluate whether its eligibility criteria align with my case, and help me prepare questions for my clinician or the study team.`,
-                            sourceStudy
-                          }
-                        });
-                      }}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4F46E5', borderColor: '#C7D2FE' }}
-                    >
-                      <MessageCircle size={15} /> Discuss with Ava
-                    </button>
-                    <button 
-                      className="btn btn-primary" 
-                      aria-label="View full external source in new tab"
-                      onClick={() => {
-                        const targetUrl = selectedItem.journal
-                          ? (selectedItem.url || `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(modalTitle)}`)
-                          : `https://clinicaltrials.gov/study/${selectedItem.id}`;
-                        try {
-                          window.open(targetUrl, '_blank', 'noopener,noreferrer');
-                        } catch {
-                          window.location.href = targetUrl;
-                        }
-                      }}
-                    >
-                      View Full Source <ExternalLink size={16} />
-                    </button>
+                      <a
+                        href={`https://clinicaltrials.gov/search?term=${encodeURIComponent(effectiveTerms[0] || '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Search ClinicalTrials.gov directly <ExternalLink size={12} />
+                      </a>
+                      <a
+                        href={`https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(effectiveTerms[0] || '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Search PubMed directly <ExternalLink size={12} />
+                      </a>
+                    </div>
                   </div>
-                </>
-              );
-            })()}
-            </motion.div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {selectedItem && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(15, 23, 42, 0.55)',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                padding: isMobile ? '12px' : '20px',
+              }}
+              onClick={() => handleSelectItem(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Research Detail Modal"
+              tabIndex={-1}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleSelectItem(null);
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                style={{
+                  background: 'white',
+                  borderRadius: '24px',
+                  width: '100%',
+                  maxWidth: '640px',
+                  maxHeight: 'calc(100vh - 48px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {(() => {
+                  const modalTitle =
+                    cleanMedicalText(selectedItem.title) ||
+                    (selectedItem.journal ? 'Clinical Literature Paper' : 'Clinical Trial');
+                  const rawModalJournal = selectedItem.journal
+                    ? selectedItem.journal || 'Peer-Reviewed Clinical Journal'
+                    : selectedItem.location || 'Multiple Locations / Unknown';
+                  const modalJournal = selectedItem.journal
+                    ? rawModalJournal.toLowerCase() === 'unknown journal'
+                      ? 'Peer-Reviewed Clinical Journal'
+                      : cleanMedicalText(rawModalJournal)
+                    : rawModalJournal;
+                  const modalAbstract =
+                    cleanMedicalText(
+                      selectedItem.journal ? selectedItem.abstract : selectedItem.summary
+                    ) || 'No abstract or clinical summary available.';
+                  const modalAuthors = selectedItem.authors
+                    ? cleanMedicalText(selectedItem.authors)
+                    : selectedItem.location || 'Multiple Locations / Unknown';
+
+                  return (
+                    <>
+                      <div
+                        style={{
+                          padding: isMobile ? '16px' : '20px 24px',
+                          borderBottom: '1px solid #F1E5E7',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '12px',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <h2
+                          style={{
+                            margin: 0,
+                            fontSize: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <ShieldCheck color="#10B981" />{' '}
+                          {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
+                        </h2>
+                        <span className="badge badge-teal">
+                          Topic relevance: {selectedItem.matchScore}/100
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          padding: isMobile ? '16px' : '24px',
+                          overflowY: 'auto',
+                          flex: 1,
+                          minHeight: 0,
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: isMobile ? '18px' : '20px',
+                            margin: '0 0 12px 0',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {modalTitle}
+                        </h3>
+                        <p
+                          style={{
+                            color: '#475569',
+                            fontSize: '14px',
+                            lineHeight: 1.6,
+                            marginBottom: '24px',
+                          }}
+                        >
+                          {modalAbstract}
+                        </p>
+                        <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              padding: '12px',
+                              background: '#FFFAFA',
+                              border: '1px solid #F1E5E7',
+                              borderRadius: 'var(--radius-lg)',
+                            }}
+                          >
+                            <span style={{ color: '#64748B', fontSize: '13px' }}>
+                              {selectedItem.journal ? 'Journal' : 'Phase'}
+                            </span>
+                            <strong style={{ fontSize: '13px' }}>
+                              {selectedItem.journal
+                                ? modalJournal
+                                : selectedItem.phase || 'Phase Unknown'}
+                            </strong>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              padding: '12px',
+                              background: '#FFFAFA',
+                              border: '1px solid #F1E5E7',
+                              borderRadius: 'var(--radius-lg)',
+                            }}
+                          >
+                            <span style={{ color: '#64748B', fontSize: '13px' }}>
+                              {selectedItem.journal ? 'Authors' : 'Location'}
+                            </span>
+                            <strong
+                              style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}
+                            >
+                              {modalAuthors}
+                            </strong>
+                          </div>
+                        </div>
+
+                        {!selectedItem.journal && (
+                          <div
+                            style={{
+                              background: '#FFFAFA',
+                              borderRadius: '12px',
+                              border: '1px solid #F1E5E7',
+                              padding: '14px',
+                              marginBottom: '16px',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  color: '#334155',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.6px',
+                                }}
+                              >
+                                Official Registry Eligibility Criteria
+                              </span>
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>
+                                {selectedItem.eligibility?.eligibilityCriteria
+                                  ? 'Protocol Module'
+                                  : 'Summary Module'}
+                              </span>
+                            </div>
+                            {selectedItem.eligibility?.eligibilityCriteria ? (
+                              <div
+                                style={{
+                                  maxHeight: '160px',
+                                  overflowY: 'auto',
+                                  fontSize: '12px',
+                                  color: '#334155',
+                                  lineHeight: 1.5,
+                                  background: '#FFFFFF',
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #F1E5E7',
+                                  whiteSpace: 'pre-line',
+                                }}
+                              >
+                                {selectedItem.eligibility.eligibilityCriteria}
+                              </div>
+                            ) : (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: '12px',
+                                  color: '#64748B',
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                Exclusion and inclusion criteria are established by the protocol
+                                sponsor. Age bounds:{' '}
+                                {selectedItem.criteriaBreakdown?.ageCriteria?.extractedLimit ||
+                                  'Age unspecified'}
+                                ; Sex: {selectedItem.eligibility?.sex || 'All sexes'}.
+                              </p>
+                            )}
+                            <div
+                              style={{
+                                marginTop: '8px',
+                                fontSize: '11px',
+                                color: '#92400E',
+                                background: '#FEF3C7',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                              }}
+                            >
+                              ⚠️ Meeting age or sex criteria does not determine clinical
+                              eligibility. In-person clinical screening and investigator evaluation
+                              are required.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          padding: isMobile ? '12px 16px' : '16px 24px',
+                          background: '#FFFAFA',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          justifyContent: 'flex-end',
+                          gap: '10px',
+                          flexShrink: 0,
+                          borderTop: '1px solid #F1E5E7',
+                        }}
+                      >
+                        <button className="btn btn-outline" onClick={() => handleSelectItem(null)}>
+                          Close
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={() => handleSaveToDossier(selectedItem)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: savedItems[savedItemKey(selectedItem.id)]
+                              ? '#059669'
+                              : '#0F172A',
+                            borderColor: savedItems[savedItemKey(selectedItem.id)]
+                              ? '#A7F3D0'
+                              : '#CBD5E1',
+                            background: savedItems[savedItemKey(selectedItem.id)]
+                              ? '#ECFDF5'
+                              : 'transparent',
+                          }}
+                        >
+                          {savedItems[savedItemKey(selectedItem.id)] ? (
+                            <Check size={15} color="#059669" />
+                          ) : (
+                            <Bookmark size={15} />
+                          )}
+                          {savedItems[savedItemKey(selectedItem.id)]
+                            ? 'Saved to this case'
+                            : 'Save to case (+10 pts)'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={() => {
+                            triggerHapticLight();
+                            const sourceStudy = {
+                              ownerScope: getProfileKey(),
+                              caseId: getUnifiedCaseScope().caseId,
+                              nctId: selectedItem.id,
+                              title: modalTitle,
+                              abstract: modalAbstract,
+                              url: selectedItem.url || '',
+                              matchStatus:
+                                selectedItem.criteriaBreakdown?.matchStatus || 'broad_relevance',
+                              criteriaBreakdown: selectedItem.criteriaBreakdown,
+                              sourceName:
+                                selectedItem.sourceName ||
+                                (selectedItem.journal
+                                  ? 'Europe PMC / PubMed'
+                                  : 'ClinicalTrials.gov'),
+                              retrievedAt: selectedItem.retrievedAt,
+                            };
+                            try {
+                              // The handoff is stored only in the owning profile scope.
+                              if (selectedItem.id) {
+                                sessionStorage.setItem(
+                                  `hc_study_${getProfileKey()}_${selectedItem.id}`,
+                                  JSON.stringify(sourceStudy)
+                                );
+                              }
+                            } catch {}
+                            navigate(
+                              '/app/ava?caseId=' +
+                                encodeURIComponent(getUnifiedCaseScope().caseId || '') +
+                                (selectedItem.id
+                                  ? '&studyId=' + encodeURIComponent(selectedItem.id)
+                                  : ''),
+                              {
+                                state: {
+                                  initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}" (ID: ${selectedItem.id || 'N/A'}). Status: ${selectedItem.criteriaBreakdown?.matchStatus || 'General Relevance'}. Summarize the source cautiously, evaluate whether its eligibility criteria align with my case, and help me prepare questions for my clinician or the study team.`,
+                                  sourceStudy,
+                                },
+                              }
+                            );
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#4F46E5',
+                            borderColor: '#C7D2FE',
+                          }}
+                        >
+                          <MessageCircle size={15} /> Discuss with Ava
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          aria-label="View full external source in new tab"
+                          onClick={() => {
+                            const targetUrl = selectedItem.journal
+                              ? selectedItem.url ||
+                                `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(modalTitle)}`
+                              : `https://clinicaltrials.gov/study/${selectedItem.id}`;
+                            try {
+                              window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                            } catch {
+                              window.location.href = targetUrl;
+                            }
+                          }}
+                        >
+                          View Full Source <ExternalLink size={16} />
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

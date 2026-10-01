@@ -13,6 +13,7 @@ function enableAnalytics() {
   (window as any).gtag = (...args: any[]) => (window as any).dataLayer.push(args);
   (window as any).gtag('js', new Date());
   (window as any).gtag('config', GA_ID, { anonymize_ip: true });
+  (window as any).gtag('config', 'AW-18407555330');
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
@@ -94,15 +95,33 @@ export default function ConsentManager() {
                 <h4 style={{ color: 'var(--text-main)', margin: '0 0 8px 0', fontSize: '16px' }}>
                   Privacy & Terms
                 </h4>
-                <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
-                  HealthChain uses necessary storage for sign-in and app operation. Optional analytics helps us understand product usage and is loaded only if you accept it. See our Terms of Service and Privacy Policy.
+                <p
+                  style={{
+                    color: 'var(--text-muted)',
+                    margin: 0,
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                  }}
+                >
+                  HealthChain uses necessary storage for sign-in and app operation. Optional
+                  analytics helps us understand product usage and is loaded only if you accept it.
+                  See our Terms of Service and Privacy Policy.
                 </p>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={declineOptionalCookies}
-                style={{ background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 18px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
                 Necessary only
               </button>
@@ -116,7 +135,7 @@ export default function ConsentManager() {
                   padding: '10px 24px',
                   fontSize: '14px',
                   fontWeight: 600,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 I Accept

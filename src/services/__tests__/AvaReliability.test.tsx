@@ -1,6 +1,29 @@
 // @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import {
+  MessageRenderer,
+  cleanChatMessageText,
+  extractActionSuggestions,
+} from '../../features/consultation/AvaHealthBuddy';
+import {
+  loadAvaMessages,
+  mergeAvaMessages,
+  newAvaMessage,
+  normalizeAvaMessages,
+  persistAvaMessages,
+} from '../AvaConversationRepository';
+import { evaluateEmergencyTriage } from '../clinicalTriageEngine';
+import { restoreHealthArchive, validateHealthArchive } from '../HealthArchive';
+import {
+  captureHealthMemoryScope,
+  flushHealthMemory,
+  getHealthMemory,
+  hydrateHealthMemory,
+  recordHealthMemory,
+  reviseHealthMemory,
+  syncHealthMemoryFromSupabase,
+} from '../HealthMemory';
 
 const mocks = vi.hoisted(() => ({
   disk: new Map<string, unknown>(),
@@ -21,33 +44,6 @@ vi.mock('../supabaseClient', () => ({
   supabase: { auth: { getSession: mocks.getSession }, from: mocks.from },
 }));
 vi.mock('../SyncOutbox', () => ({ enqueueSync: mocks.enqueue }));
-import {
-  captureHealthMemoryScope,
-  hydrateHealthMemory,
-  recordHealthMemory,
-  getHealthMemory,
-  flushHealthMemory,
-  reviseHealthMemory,
-  syncHealthMemoryFromSupabase,
-} from '../HealthMemory';
-import {
-  normalizeAvaMessages,
-  mergeAvaMessages,
-  loadAvaMessages,
-  newAvaMessage,
-  persistAvaMessages,
-} from '../AvaConversationRepository';
-import {
-  validateHealthArchive,
-  restoreHealthArchive,
-  addDurableArchiveData,
-} from '../HealthArchive';
-import {
-  MessageRenderer,
-  cleanChatMessageText,
-  extractActionSuggestions,
-} from '../../features/consultation/AvaHealthBuddy';
-import { evaluateEmergencyTriage } from '../clinicalTriageEngine';
 
 const switchAccount = (id: string) => {
   localStorage.setItem('hc_account', JSON.stringify({ id }));

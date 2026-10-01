@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  FEATURE_CONTRACTS,
+  clearCaseEngineCache,
+  createCaseDraft,
+  getActiveCaseId,
+  setActiveCase,
+} from '../CaseEngine';
+import {
   FeatureId,
   getAllFeatureContracts,
-  getFeatureContract,
   getDownstreamHandoffs,
-  getUpstreamFeeds,
 } from '../FeatureArchitectureContract';
 import { getUnifiedCaseScope, validateCaseIdentifier } from '../caseWorkspace';
-import { createCaseDraft, setActiveCase, getActiveCaseId, clearCaseEngineCache } from '../CaseEngine';
 
 describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
   beforeEach(() => {

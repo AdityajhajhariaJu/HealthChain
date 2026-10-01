@@ -40,12 +40,14 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
 }) => {
   const isMobile = useIsMobile();
   const [selectedEdge, setSelectedEdge] = useState<SemanticDetectiveEdge | null>(null);
-  const [selectedNode, setSelectedNode] = useState<SemanticDetectiveNode | null>(null);
+  const [, setSelectedNode] = useState<SemanticDetectiveNode | null>(null);
   const [copiedBrief, setCopiedBrief] = useState(false);
 
   // Group nodes by role in the canonical flow
-  const sourceNodes = graph.nodes.filter(n => n.category === 'source_document');
-  const inputNodes = graph.nodes.filter(n => ['user_report', 'recorded_measurement', 'extracted_finding'].includes(n.category));
+
+  const inputNodes = graph.nodes.filter((n) =>
+    ['user_report', 'recorded_measurement', 'extracted_finding'].includes(n.category)
+  );
   const considerationNode = graph.downstreamPipeline.consideration;
   const questionNode = graph.downstreamPipeline.questionStillOpen;
   const briefNode = graph.downstreamPipeline.appointmentBrief;
@@ -65,7 +67,7 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
   };
 
   return (
-    <div 
+    <div
       className={className}
       style={{
         background: '#FFFFFF',
@@ -80,76 +82,162 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
       }}
     >
       {/* 1. HEADER & CANONICAL LEGEND (STEP 8 CONTRACT) */}
-      <div style={{
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: isMobile ? 'flex-start' : 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        borderBottom: '1px solid #F1F5F9',
-        paddingBottom: '16px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          borderBottom: '1px solid #F1F5F9',
+          paddingBottom: '16px',
+        }}
+      >
         <div>
-
-          <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#0F172A' }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: isMobile ? '16px' : '18px',
+              fontWeight: 800,
+              color: '#0F172A',
+            }}
+          >
             Evidence Connection Graph
           </h3>
           <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-            Connections grounded in verified clinical observations, timeline sequences, and hypotheses.
+            Connections grounded in verified clinical observations, timeline sequences, and
+            hypotheses.
           </p>
         </div>
 
         {/* 6 Canonical Edge Legend Pills */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '6px',
-          maxWidth: isMobile ? '100%' : '520px',
-        }}>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '3px 8px', borderRadius: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            maxWidth: isMobile ? '100%' : '520px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#F0F9FF',
+              border: '1px solid #BAE6FD',
+              color: '#0369A1',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ━━ Solid: Recorded In
           </span>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#F8FAFC', border: '1px solid #CBD5E1', color: '#334155', padding: '3px 8px', borderRadius: '6px' }}>
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              color: '#334155',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ➔ Timeline Sequence
           </span>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '3px 8px', borderRadius: '6px' }}>
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#ECFDF5',
+              border: '1px solid #A7F3D0',
+              color: '#065F46',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ● Repeated Together
           </span>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#FFF7ED', border: '1px dashed #FDBA74', color: '#C2410C', padding: '3px 8px', borderRadius: '6px' }}>
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#FFF7ED',
+              border: '1px dashed #FDBA74',
+              color: '#C2410C',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ┄┄ Dashed: Possible Link
           </span>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', padding: '3px 8px', borderRadius: '6px' }}>
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#991B1B',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ⚡ Weakens / Conflicts
           </span>
-          <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#EEF2FF', border: '1px solid #C7D2FE', color: '#3730A3', padding: '3px 8px', borderRadius: '6px' }}>
+          <span
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: '#EEF2FF',
+              border: '1px solid #C7D2FE',
+              color: '#3730A3',
+              padding: '3px 8px',
+              borderRadius: '6px',
+            }}
+          >
             ★ Clinician Documented
           </span>
         </div>
       </div>
 
       {/* 2. THE THREE-TIER PIPELINE VISUALIZATION (media_1789069049736.png) */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        background: '#FAFAFA',
-        borderRadius: '16px',
-        padding: isMobile ? '14px' : '20px',
-        border: '1px solid #E2E8F0',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          background: '#FAFAFA',
+          borderRadius: '16px',
+          padding: isMobile ? '14px' : '20px',
+          border: '1px solid #E2E8F0',
+        }}
+      >
         {/* TIER 1: PRIMARY INPUTS & SOURCES */}
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.8px', color: '#64748B', marginBottom: '12px' }}>
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.8px',
+              color: '#64748B',
+              marginBottom: '12px',
+            }}
+          >
             Tier 1: Observations & Documented Sources
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '12px',
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '12px',
+            }}
+          >
             {inputNodes.map((node) => {
-              const recEdge = graph.edges.find(e => e.from === node.id && e.relation === 'recorded_in');
+              const recEdge = graph.edges.find(
+                (e) => e.from === node.id && e.relation === 'recorded_in'
+              );
               const isDecoupled = recEdge?.isUserDecoupled;
 
               return (
@@ -157,10 +245,16 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                   key={node.id}
                   onClick={() => setSelectedNode(node)}
                   style={{
-                    background: node.category === 'extracted_finding' && node.status === 'contradicted' ? '#FEF2F2' : '#FFFFFF',
+                    background:
+                      node.category === 'extracted_finding' && node.status === 'contradicted'
+                        ? '#FEF2F2'
+                        : '#FFFFFF',
                     borderRadius: '14px',
                     padding: '14px',
-                    border: node.status === 'contradicted' ? '1.5px solid #FECACA' : '1.5px solid #E2E8F0',
+                    border:
+                      node.status === 'contradicted'
+                        ? '1.5px solid #FECACA'
+                        : '1.5px solid #E2E8F0',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -168,45 +262,82 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      background: node.status === 'contradicted' ? '#FEE2E2' : (node.category === 'user_report' ? '#FEF3C7' : '#E0F2FE'),
-                      color: node.status === 'contradicted' ? '#991B1B' : (node.category === 'user_report' ? '#92400E' : '#0369A1'),
-                    }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        background:
+                          node.status === 'contradicted'
+                            ? '#FEE2E2'
+                            : node.category === 'user_report'
+                              ? '#FEF3C7'
+                              : '#E0F2FE',
+                        color:
+                          node.status === 'contradicted'
+                            ? '#991B1B'
+                            : node.category === 'user_report'
+                              ? '#92400E'
+                              : '#0369A1',
+                      }}
+                    >
                       {node.sublabel || node.category.replace(/_/g, ' ')}
                     </span>
 
                     {node.date && (
-                      <span style={{ fontSize: '11px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: '#94A3B8',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                        }}
+                      >
                         <Clock size={11} /> {node.date}
                       </span>
                     )}
                   </div>
 
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
+                  <div
+                    style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}
+                  >
                     {node.label}
                   </div>
 
                   {/* SOLID SOURCE LINK */}
                   {node.sourceDocName && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginTop: '4px',
-                      padding: '6px 10px',
-                      background: isDecoupled ? '#F1F5F9' : '#F0F9FF',
-                      borderRadius: '8px',
-                      border: isDecoupled ? '1px dashed #CBD5E1' : '1px solid #BAE6FD',
-                    }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: '4px',
+                        padding: '6px 10px',
+                        background: isDecoupled ? '#F1F5F9' : '#F0F9FF',
+                        borderRadius: '8px',
+                        border: isDecoupled ? '1px dashed #CBD5E1' : '1px solid #BAE6FD',
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <FileText size={12} color={isDecoupled ? '#94A3B8' : '#0284C7'} />
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: isDecoupled ? '#94A3B8' : '#0369A1' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: isDecoupled ? '#94A3B8' : '#0369A1',
+                          }}
+                        >
                           recorded in: {node.sourceDocName}
                         </span>
                       </div>
@@ -217,7 +348,7 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                             e.stopPropagation();
                             handleToggleDecouple(recEdge.id);
                           }}
-                          title={isDecoupled ? "Restore link" : "Keep these separate"}
+                          title={isDecoupled ? 'Restore link' : 'Keep these separate'}
                           style={{
                             background: 'transparent',
                             border: 'none',
@@ -246,24 +377,26 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
         {considerationNode && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 10px' }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#FFF',
-                border: '1px solid #E2E8F0',
-                padding: '4px 12px',
-                borderRadius: '999px',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748B',
-              }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#FFF',
+                  border: '1px solid #E2E8F0',
+                  padding: '4px 12px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#64748B',
+                }}
+              >
                 <ArrowDown size={13} color="#0284C7" />
                 Evidence links converge onto Clinical Consideration
               </div>
             </div>
 
-            <div 
+            <div
               onClick={() => setSelectedNode(considerationNode)}
               style={{
                 background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 100%)',
@@ -274,17 +407,26 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                 cursor: 'pointer',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  background: '#EA580C',
-                  color: '#FFF',
-                  padding: '3px 10px',
-                  borderRadius: '6px',
-                  letterSpacing: '0.6px',
-                }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    background: '#EA580C',
+                    color: '#FFF',
+                    padding: '3px 10px',
+                    borderRadius: '6px',
+                    letterSpacing: '0.6px',
+                  }}
+                >
                   [Consideration] • Leading Discussion Hypothesis
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#C2410C' }}>
@@ -292,49 +434,80 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                 </span>
               </div>
 
-              <div style={{ fontSize: isMobile ? '14px' : '15.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.4 }}>
+              <div
+                style={{
+                  fontSize: isMobile ? '14px' : '15.5px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  lineHeight: 1.4,
+                }}
+              >
                 {considerationNode.label}
               </div>
 
               {/* Active Convergence Links List */}
-              <div style={{
-                marginTop: '12px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}>
-                {graph.edges.filter(e => e.to === considerationNode.id).map(edge => {
-                  const isDecoupled = edge.isUserDecoupled;
-                  const isWeaken = edge.relation === 'conflicts_with';
-                  const isDashed = edge.relation === 'may_help_explain';
+              <div
+                style={{
+                  marginTop: '12px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                {graph.edges
+                  .filter((e) => e.to === considerationNode.id)
+                  .map((edge) => {
+                    const isDecoupled = edge.isUserDecoupled;
+                    const isWeaken = edge.relation === 'conflicts_with';
+                    const isDashed = edge.relation === 'may_help_explain';
 
-                  return (
-                    <div
-                      key={edge.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedEdge(edge);
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        background: isDecoupled ? '#F1F5F9' : (isWeaken ? '#FEF2F2' : (isDashed ? '#FFF7ED' : '#F0FDF4')),
-                        border: isDecoupled ? '1px dashed #CBD5E1' : (isWeaken ? '1px solid #FECACA' : (isDashed ? '1px dashed #FDBA74' : '1px solid #BBF7D0')),
-                        color: isDecoupled ? '#94A3B8' : (isWeaken ? '#991B1B' : (isDashed ? '#C2410C' : '#166534')),
-                      }}
-                    >
-                      <span>{isWeaken ? '⚡' : (isDashed ? '┄┄' : '━━')}</span>
-                      <span>{edge.label}</span>
-                      {isDecoupled && <span style={{ fontSize: '9.5px', color: '#DC2626' }}>(Uncoupled)</span>}
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={edge.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEdge(edge);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: isDecoupled
+                            ? '#F1F5F9'
+                            : isWeaken
+                              ? '#FEF2F2'
+                              : isDashed
+                                ? '#FFF7ED'
+                                : '#F0FDF4',
+                          border: isDecoupled
+                            ? '1px dashed #CBD5E1'
+                            : isWeaken
+                              ? '1px solid #FECACA'
+                              : isDashed
+                                ? '1px dashed #FDBA74'
+                                : '1px solid #BBF7D0',
+                          color: isDecoupled
+                            ? '#94A3B8'
+                            : isWeaken
+                              ? '#991B1B'
+                              : isDashed
+                                ? '#C2410C'
+                                : '#166534',
+                        }}
+                      >
+                        <span>{isWeaken ? '⚡' : isDashed ? '┄┄' : '━━'}</span>
+                        <span>{edge.label}</span>
+                        {isDecoupled && (
+                          <span style={{ fontSize: '9.5px', color: '#DC2626' }}>(Uncoupled)</span>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -342,12 +515,14 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
 
         {/* TIER 3: DOWNSTREAM ACTION PIPELINE */}
         {/* Consideration -> Question Still Open -> Appointment Brief */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr',
-          gap: '12px',
-          alignItems: 'center',
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr',
+            gap: '12px',
+            alignItems: 'center',
+          }}
+        >
           {/* Node 1: Question Still Open */}
           {questionNode && (
             <div
@@ -361,7 +536,19 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                 cursor: 'pointer',
               }}
             >
-              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', marginBottom: '8px' }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  color: '#B45309',
+                  background: '#FEF3C7',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  display: 'inline-block',
+                  marginBottom: '8px',
+                }}
+              >
                 [Question Still Open]
               </div>
               <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
@@ -390,8 +577,25 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                 boxShadow: '0 4px 14px rgba(99, 102, 241, 0.08)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#4338CA', background: '#E0E7FF', padding: '2px 8px', borderRadius: '6px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    color: '#4338CA',
+                    background: '#E0E7FF',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                  }}
+                >
                   [Appointment Brief]
                 </span>
                 <button
@@ -469,14 +673,23 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
             }}
           >
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '2px' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#38BDF8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.6px',
+                  marginBottom: '2px',
+                }}
+              >
                 Inspecting Relationship • {selectedEdge.relation.replace(/_/g, ' ').toUpperCase()}
               </div>
               <div style={{ fontSize: '13px', fontWeight: 600 }}>
                 "{selectedEdge.label}" {selectedEdge.sublabel ? `(${selectedEdge.sublabel})` : ''}
               </div>
               <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
-                {selectedEdge.isUserDecoupled 
+                {selectedEdge.isUserDecoupled
                   ? 'Currently uncoupled by user: The clinical engine will not force an association between these nodes.'
                   : 'Active relationship: Connects finding to clinical consideration or source document.'}
               </div>
@@ -502,7 +715,9 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                 }}
               >
                 {selectedEdge.isUserDecoupled ? <RotateCcw size={13} /> : <Scissors size={13} />}
-                <span>{selectedEdge.isUserDecoupled ? 'Restore Connection' : 'Keep These Separate'}</span>
+                <span>
+                  {selectedEdge.isUserDecoupled ? 'Restore Connection' : 'Keep These Separate'}
+                </span>
               </button>
               <button
                 type="button"

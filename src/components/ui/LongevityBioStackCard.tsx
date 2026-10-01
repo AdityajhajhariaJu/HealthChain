@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Zap,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   triggerHapticLight,
@@ -129,7 +129,6 @@ export default function LongevityBioStackCard() {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'rainbow' | 'hydration' | 'movement'>('rainbow');
   const todayStr = getLocalDateKey();
-  const isoStr = new Date().toISOString().split('T')[0];
 
   // Storage Keys
   const phytoKey = getScopedStorageKey(`hc_phyto_${todayStr}`);
@@ -169,8 +168,6 @@ export default function LongevityBioStackCard() {
     }
   });
 
-  const movementTimerRef = useRef<any>(null);
-
   // Rainbow toggle handler
   const handleToggleColor = (id: string) => {
     triggerHapticLight();
@@ -196,7 +193,6 @@ export default function LongevityBioStackCard() {
     const newTotal = next.currentMl;
     setWaterMl(newTotal);
     setTargetMl(next.targetMl);
-
   };
 
   const handleResetWater = () => {
@@ -295,7 +291,8 @@ export default function LongevityBioStackCard() {
           width: '180px',
           height: '180px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 70%)',
+          background:
+            'radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -330,13 +327,32 @@ export default function LongevityBioStackCard() {
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#38BDF8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.8px',
+                }}
+              >
                 Daily Wellness
               </span>
-              <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#38BDF8' }} />
-              <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>Daily Habits</span>
+              <span
+                style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#38BDF8' }}
+              />
+              <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                Daily Habits
+              </span>
             </div>
-            <h3 style={{ margin: '2px 0 0', fontSize: isMobile ? '16px' : '18px', fontWeight: 700, letterSpacing: '-0.2px' }}>
+            <h3
+              style={{
+                margin: '2px 0 0',
+                fontSize: isMobile ? '16px' : '18px',
+                fontWeight: 700,
+                letterSpacing: '-0.2px',
+              }}
+            >
               Daily Nutrition & Hydration
             </h3>
           </div>
@@ -402,7 +418,8 @@ export default function LongevityBioStackCard() {
               cursor: 'pointer',
               flex: isMobile ? 1 : 'none',
               transition: 'all 0.15s ease',
-              borderBottom: activeTab === 'hydration' ? '2px solid #38BDF8' : '2px solid transparent',
+              borderBottom:
+                activeTab === 'hydration' ? '2px solid #38BDF8' : '2px solid transparent',
             }}
           >
             <Droplets size={14} />
@@ -429,7 +446,8 @@ export default function LongevityBioStackCard() {
               cursor: 'pointer',
               flex: isMobile ? 1 : 'none',
               transition: 'all 0.15s ease',
-              borderBottom: activeTab === 'movement' ? '2px solid #38BDF8' : '2px solid transparent',
+              borderBottom:
+                activeTab === 'movement' ? '2px solid #38BDF8' : '2px solid transparent',
             }}
           >
             <Zap size={14} />
@@ -473,7 +491,8 @@ export default function LongevityBioStackCard() {
                     Rainbow Diet
                   </h4>
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94A3B8' }}>
-                    Tap each food color eaten today. Log 3+ for <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                    Tap each food color eaten today. Log 3+ for{' '}
+                    <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
                   </p>
                 </div>
 
@@ -484,11 +503,20 @@ export default function LongevityBioStackCard() {
                     gap: '6px',
                     padding: '4px 12px',
                     borderRadius: '20px',
-                    background: selectedColors.length >= 3 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                    border: selectedColors.length >= 3 ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background:
+                      selectedColors.length >= 3
+                        ? 'rgba(16, 185, 129, 0.15)'
+                        : 'rgba(255, 255, 255, 0.06)',
+                    border:
+                      selectedColors.length >= 3
+                        ? '1px solid #10B981'
+                        : '1px solid rgba(255, 255, 255, 0.1)',
                   }}
                 >
-                  <ShieldCheck size={14} color={selectedColors.length >= 3 ? '#10B981' : '#94A3B8'} />
+                  <ShieldCheck
+                    size={14}
+                    color={selectedColors.length >= 3 ? '#10B981' : '#94A3B8'}
+                  />
                   <span
                     style={{
                       fontSize: '12px',
@@ -517,7 +545,9 @@ export default function LongevityBioStackCard() {
                       onClick={() => handleToggleColor(c.id)}
                       style={{
                         background: isSelected ? c.bgHex : 'rgba(255, 255, 255, 0.02)',
-                        border: isSelected ? `1.5px solid ${c.hex}` : '1px solid rgba(255, 255, 255, 0.08)',
+                        border: isSelected
+                          ? `1.5px solid ${c.hex}`
+                          : '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '12px',
                         padding: '10px 12px',
                         textAlign: 'left',
@@ -530,7 +560,13 @@ export default function LongevityBioStackCard() {
                         gap: '6px',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
                         <span style={{ fontSize: '18px' }}>{c.icon}</span>
                         <div
                           style={{
@@ -549,10 +585,23 @@ export default function LongevityBioStackCard() {
                       </div>
 
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#FFFFFF' : '#E2E8F0' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: isSelected ? '#FFFFFF' : '#E2E8F0',
+                          }}
+                        >
                           {c.name}
                         </div>
-                        <div style={{ fontSize: '10px', color: isSelected ? c.hex : '#94A3B8', fontWeight: 600, marginTop: '2px' }}>
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            color: isSelected ? c.hex : '#94A3B8',
+                            fontWeight: 600,
+                            marginTop: '2px',
+                          }}
+                        >
                           {c.compound}
                         </div>
                       </div>
@@ -583,7 +632,9 @@ export default function LongevityBioStackCard() {
                 <Info size={15} color="#38BDF8" />
                 <span style={{ color: '#E2E8F0' }}>
                   {selectedColors.length >= 3 ? (
-                    <strong style={{ color: '#34D399' }}>✓ Rainbow diet logged! +2 Vitality PTS Claimed Today.</strong>
+                    <strong style={{ color: '#34D399' }}>
+                      ✓ Rainbow diet logged! +2 Vitality PTS Claimed Today.
+                    </strong>
                   ) : (
                     <span>Record the plant-food colors you ate today to track variety.</span>
                   )}
@@ -608,7 +659,6 @@ export default function LongevityBioStackCard() {
                 borderRadius: '16px',
                 padding: isMobile ? '16px' : '20px',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
-                
               }}
             >
               <div
@@ -618,7 +668,6 @@ export default function LongevityBioStackCard() {
                   justifyContent: 'space-between',
                   alignItems: isMobile ? 'flex-start' : 'center',
                   gap: '16px',
-                  
                 }}
               >
                 <div>
@@ -631,7 +680,8 @@ export default function LongevityBioStackCard() {
                         fontSize: '11px',
                         padding: '2px 8px',
                         borderRadius: '999px',
-                        background: waterMl >= 2000 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.2)',
+                        background:
+                          waterMl >= 2000 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.2)',
                         color: waterMl >= 2000 ? '#34D399' : '#38BDF8',
                         fontWeight: 700,
                       }}
@@ -640,13 +690,24 @@ export default function LongevityBioStackCard() {
                     </span>
                   </div>
                   <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94A3B8' }}>
-                    Optimal intracellular hydration supports renal filtration, CSF brain fluid, and metabolic efficiency.
+                    Optimal intracellular hydration supports renal filtration, CSF brain fluid, and
+                    metabolic efficiency.
                   </p>
                 </div>
 
                 <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#38BDF8', letterSpacing: '-0.5px' }}>
-                    {waterMl} <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 600 }}>/ {targetMl} ml</span>
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 900,
+                      color: '#38BDF8',
+                      letterSpacing: '-0.5px',
+                    }}
+                  >
+                    {waterMl}{' '}
+                    <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 600 }}>
+                      / {targetMl} ml
+                    </span>
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748B' }}>
                     {Math.round(waterMl / 250)} Glasses Logged ({hydrationPercent}%)
@@ -662,7 +723,7 @@ export default function LongevityBioStackCard() {
                   borderRadius: '999px',
                   background: 'rgba(255, 255, 255, 0.08)',
                   overflow: 'hidden',
-                  
+
                   position: 'relative',
                 }}
               >
@@ -763,9 +824,13 @@ export default function LongevityBioStackCard() {
               }}
             >
               <span>
-                💡 <strong style={{ color: '#E2E8F0' }}>Hydration Tip:</strong> A pinch of salt or squeeze of lemon can support electrolyte balance. Reaching 2000 ml awards <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                💡 <strong style={{ color: '#E2E8F0' }}>Hydration Tip:</strong> A pinch of salt or
+                squeeze of lemon can support electrolyte balance. Reaching 2000 ml awards{' '}
+                <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
               </span>
-              {waterMl >= 2000 && <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Rewarded</span>}
+              {waterMl >= 2000 && (
+                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Rewarded</span>
+              )}
             </div>
           </motion.div>
         )}
@@ -785,7 +850,6 @@ export default function LongevityBioStackCard() {
                 borderRadius: '16px',
                 padding: isMobile ? '16px' : '20px',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
-                
               }}
             >
               <div
@@ -795,7 +859,6 @@ export default function LongevityBioStackCard() {
                   justifyContent: 'space-between',
                   alignItems: isMobile ? 'flex-start' : 'center',
                   gap: '16px',
-                  
                 }}
               >
                 <div>
@@ -812,9 +875,18 @@ export default function LongevityBioStackCard() {
                     >
                       Step {movementStepIndex + 1} of 3 · {MOVEMENT_STEPS[movementStepIndex].badge}
                     </span>
-                    <span style={{ fontSize: '11px', color: '#94A3B8' }}>90s Circadian Micro-Break</span>
+                    <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                      90s Circadian Micro-Break
+                    </span>
                   </div>
-                  <h4 style={{ margin: '6px 0 2px', fontSize: '16px', fontWeight: 700, color: '#F1F5F9' }}>
+                  <h4
+                    style={{
+                      margin: '6px 0 2px',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: '#F1F5F9',
+                    }}
+                  >
                     {MOVEMENT_STEPS[movementStepIndex].title}
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8', maxWidth: '520px' }}>
@@ -837,7 +909,9 @@ export default function LongevityBioStackCard() {
                       fontSize: '20px',
                       fontWeight: 900,
                       color: '#FFFFFF',
-                      boxShadow: isMovementActive ? `0 0 18px ${MOVEMENT_STEPS[movementStepIndex].color}40` : 'none',
+                      boxShadow: isMovementActive
+                        ? `0 0 18px ${MOVEMENT_STEPS[movementStepIndex].color}40`
+                        : 'none',
                     }}
                   >
                     {movementDone ? <Check size={26} color="#10B981" /> : `${movementTimeLeft}s`}
@@ -853,8 +927,8 @@ export default function LongevityBioStackCard() {
                         background: movementDone
                           ? 'rgba(16, 185, 129, 0.2)'
                           : isMovementActive
-                          ? 'rgba(239, 68, 68, 0.2)'
-                          : 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                            ? 'rgba(239, 68, 68, 0.2)'
+                            : 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
                         border: movementDone ? '1px solid #10B981' : 'none',
                         color: '#FFFFFF',
                         padding: '8px 16px',
@@ -911,8 +985,8 @@ export default function LongevityBioStackCard() {
                         idx < movementStepIndex || movementDone
                           ? '#10B981'
                           : idx === movementStepIndex
-                          ? step.color
-                          : 'rgba(255, 255, 255, 0.1)',
+                            ? step.color
+                            : 'rgba(255, 255, 255, 0.1)',
                       transition: 'all 0.3s ease',
                     }}
                   />
@@ -935,9 +1009,12 @@ export default function LongevityBioStackCard() {
               }}
             >
               <span>
-                ⚡ Complete all 3 micro-drills (90 seconds total) to earn <strong style={{ color: '#38BDF8' }}>+2 PTS</strong> daily.
+                ⚡ Complete all 3 micro-drills (90 seconds total) to earn{' '}
+                <strong style={{ color: '#38BDF8' }}>+2 PTS</strong> daily.
               </span>
-              {movementDone && <span style={{ color: '#34D399', fontWeight: 800 }}>✓ +2 PTS Claimed</span>}
+              {movementDone && (
+                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ +2 PTS Claimed</span>
+              )}
             </div>
           </motion.div>
         )}

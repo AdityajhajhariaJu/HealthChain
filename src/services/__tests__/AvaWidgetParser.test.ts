@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { extractBalancedWidget, cleanChatMessageText } from '../../features/consultation/AvaHealthBuddy';
+import {
+  cleanChatMessageText,
+  extractBalancedWidget,
+} from '../../features/consultation/AvaHealthBuddy';
 
 describe('Ava extractBalancedWidget Parser', () => {
   it('isolates a truncated card and keeps the next independent card', () => {
-    const result=extractBalancedWidget('Before [WIDGET:DIARY_TIMELINE:{"entries":[\n[WIDGET:WORKOUT] After','DIARY_TIMELINE');
+    const result = extractBalancedWidget(
+      'Before [WIDGET:DIARY_TIMELINE:{"entries":[\n[WIDGET:WORKOUT] After',
+      'DIARY_TIMELINE'
+    );
     expect(result.payload).toBeNull();
     expect(result.after).toBe('[WIDGET:WORKOUT] After');
   });
@@ -55,7 +61,7 @@ describe('Ava extractBalancedWidget Parser', () => {
   it('strips broken or truncated widget syntax so no raw JSON leaks to user', () => {
     const raw = `Here is your checkin:\n[WIDGET:DIARY_TIMELINE:{"title":"Incomplete JSON", "entries":[\nPlease let me know how you feel!`;
 
-    const { payload, before, after, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
+    const { payload, before, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
 
     expect(found).toBe(true);
     expect(payload).toBeNull();
@@ -79,7 +85,8 @@ describe('Ava extractBalancedWidget Parser', () => {
   });
 
   it('cleanChatMessageText preserves literal source JSON', () => {
-    const dirty = '},\n{"time":"12:00","category":"Lunch","items":["salad"]}\nYour digestive report is ready.';
+    const dirty =
+      '},\n{"time":"12:00","category":"Lunch","items":["salad"]}\nYour digestive report is ready.';
     const clean = cleanChatMessageText(dirty);
     expect(clean).toBe(dirty);
   });

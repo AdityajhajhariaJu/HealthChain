@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { evaluateEmergencyTriage } from '../clinicalTriageEngine';
-import { recordHealthMemory, getHealthMemory } from '../HealthMemory';
-import { getProfile } from '../ProfileEngine';
 import { getFunctionalBiomarkers } from '../ConnectionDetectiveEngine';
+import { getHealthMemory, recordHealthMemory } from '../HealthMemory';
 import { getActiveTrial, startTrial } from '../TriggerEngine';
 
 describe('Collaborative Canvas & War Room Clinical Engine', () => {
@@ -13,7 +12,8 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
 
   describe('Emergency Triage Guardrail on Canvas Input', () => {
     it('catches acute cardiovascular emergencies with zero token latency', () => {
-      const input = 'Patient experiencing crushing chest pain radiating to left arm with cold sweat';
+      const input =
+        'Patient experiencing crushing chest pain radiating to left arm with cold sweat';
       const triage = evaluateEmergencyTriage(input);
       expect(triage.isEmergency).toBe(true);
       expect(triage.category).toBe('CARDIOVASCULAR');
@@ -28,7 +28,8 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
     });
 
     it('allows non-emergent postprandial and autonomic symptoms to pass cleanly', () => {
-      const input = 'Experienced palpitations and rapid heart rate 40 minutes after lunch with dizziness on standing.';
+      const input =
+        'Experienced palpitations and rapid heart rate 40 minutes after lunch with dizziness on standing.';
       const triage = evaluateEmergencyTriage(input);
       expect(triage.isEmergency).toBe(false);
       expect(triage.category).toBeUndefined();
@@ -38,11 +39,23 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
   describe('Deterministic Specialty Classification for Rounds', () => {
     const classifySymptom = (text: string) => {
       const lower = text.toLowerCase();
-      if (/\b(tachycardia|heart|palpitat|rate|pot|orthostatic|dizzy|lighthead|standing|blood pressure|hrv|syncope)\b/i.test(lower)) {
+      if (
+        /\b(tachycardia|heart|palpitat|rate|pot|orthostatic|dizzy|lighthead|standing|blood pressure|hrv|syncope)\b/i.test(
+          lower
+        )
+      ) {
         return 'cardio';
-      } else if (/\b(bloat|distension|gut|stomach|gas|reflux|gerd|bowel|abdominal|cramp|constipat|diarrhea|fodmap|nausea)\b/i.test(lower)) {
+      } else if (
+        /\b(bloat|distension|gut|stomach|gas|reflux|gerd|bowel|abdominal|cramp|constipat|diarrhea|fodmap|nausea)\b/i.test(
+          lower
+        )
+      ) {
         return 'gastro';
-      } else if (/\b(histamine|rash|itch|flush|hive|allergy|sinus|headache|mast cell|mcas|sneez)\b/i.test(lower)) {
+      } else if (
+        /\b(histamine|rash|itch|flush|hive|allergy|sinus|headache|mast cell|mcas|sneez)\b/i.test(
+          lower
+        )
+      ) {
         return 'immuno';
       }
       return 'metabolic';
@@ -79,13 +92,13 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
         payload: {
           observation: 'HR 115 bpm 45m post-lunch',
           specialty: 'cardio',
-          specialistFeedback: 'Splanchnic blood pooling evaluated.'
-        }
+          specialistFeedback: 'Splanchnic blood pooling evaluated.',
+        },
       });
 
       const memories = getHealthMemory();
       expect(memories.length).toBeGreaterThan(0);
-      const latest = memories.find(m => m.source === 'WarRoom' && m.kind === 'deep_collab');
+      const latest = memories.find((m) => m.source === 'WarRoom' && m.kind === 'deep_collab');
       expect(latest).toBeDefined();
       expect(latest?.payload.specialty).toBe('cardio');
     });
@@ -99,12 +112,12 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
         payload: {
           fileName: 'Comprehensive_Metabolic_Panel.pdf',
           fileSize: '1.8 MB',
-          fileType: 'application/pdf'
-        }
+          fileType: 'application/pdf',
+        },
       });
 
       const memories = getHealthMemory();
-      const labMemory = memories.find(m => m.source === 'WarRoom' && m.kind === 'lab_report');
+      const labMemory = memories.find((m) => m.source === 'WarRoom' && m.kind === 'lab_report');
       expect(labMemory).toBeDefined();
       expect(labMemory?.payload.fileName).toBe('Comprehensive_Metabolic_Panel.pdf');
     });

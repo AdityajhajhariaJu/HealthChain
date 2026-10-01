@@ -16,19 +16,21 @@ export function HealthDeviceIntegrations() {
   const [isSupported, setIsSupported] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(() => getItemSync('hc_last_health_sync'));
-  const { toast, success, error } = useToast();
+  const { success, error } = useToast();
 
   useEffect(() => {
-    isHealthSupported().then(supported => {
-      setIsSupported(supported);
-      if (supported) {
-        checkHealthPermissions()
-          .then(granted => setIsConnected(granted))
-          .catch(() => setIsConnected(false));
-      }
-    }).catch(() => {
-      setIsSupported(false);
-    });
+    isHealthSupported()
+      .then((supported) => {
+        setIsSupported(supported);
+        if (supported) {
+          checkHealthPermissions()
+            .then((granted) => setIsConnected(granted))
+            .catch(() => setIsConnected(false));
+        }
+      })
+      .catch(() => {
+        setIsSupported(false);
+      });
 
     const handleSyncComplete = (e: any) => {
       const time = new Date(e.detail.at).toLocaleTimeString();
@@ -59,9 +61,21 @@ export function HealthDeviceIntegrations() {
     setIsSyncing(true);
     try {
       const result = await syncHealthData(7);
-      if (result.status === 'partial') error('Import needs attention', `${result.queued} samples queued; ${result.failures} imports failed. Reconnect and retry.`);
-      else if (result.status === 'no_data') error('No readable samples', 'No usable device samples were imported. Check the individual health permissions.');
-      else success('Health samples queued', `${result.queued} device samples are queued for account sync.`);
+      if (result.status === 'partial')
+        error(
+          'Import needs attention',
+          `${result.queued} samples queued; ${result.failures} imports failed. Reconnect and retry.`
+        );
+      else if (result.status === 'no_data')
+        error(
+          'No readable samples',
+          'No usable device samples were imported. Check the individual health permissions.'
+        );
+      else
+        success(
+          'Health samples queued',
+          `${result.queued} device samples are queued for account sync.`
+        );
     } catch (err) {
       error('Sync Error', 'An error occurred while syncing your health data.');
     } finally {
@@ -70,15 +84,34 @@ export function HealthDeviceIntegrations() {
   };
 
   return (
-    <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '20px',
-      padding: '20px',
-      marginBottom: '32px',}}>
+    <div
+      style={{
+        background:
+          'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
+        backdropFilter: 'blur(32px)',
+        WebkitBackdropFilter: 'blur(32px)',
+        border: '1px solid rgba(255, 255, 255, 0.8)',
+        boxShadow:
+          '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+        borderRadius: '20px',
+        padding: '20px',
+        marginBottom: '32px',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <div style={{ background: '#10B981', padding: '8px', borderRadius: '12px' }}>
           <Activity size={20} color="white" />
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0F172A', letterSpacing: '-0.3px' }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#0F172A',
+              letterSpacing: '-0.3px',
+            }}
+          >
             Health Devices
           </h3>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
@@ -87,29 +120,42 @@ export function HealthDeviceIntegrations() {
         </div>
       </div>
 
-      <div style={{ 
-        background: 'white', 
-        borderRadius: '16px', 
-        padding: '16px',
-        border: '1px solid rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px'
-      }}>
-        
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '16px',
+          padding: '16px',
+          border: '1px solid rgba(0,0,0,0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', background: '#F8FAFC', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                background: '#F8FAFC',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Smartphone size={20} color="#0F172A" />
             </div>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>Activity Sync</div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
+                Activity Sync
+              </div>
               <div style={{ fontSize: '13px', color: '#64748B' }}>Steps, Heart Rate, Sleep</div>
             </div>
           </div>
-          
+
           {!isConnected ? (
-            <button 
+            <button
               onClick={handleConnect}
               style={{
                 background: '#0F172A',
@@ -120,13 +166,25 @@ export function HealthDeviceIntegrations() {
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
               }}
             >
               Connect
             </button>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10B981', fontSize: '14px', fontWeight: 600, padding: '4px 12px', background: '#ECFDF5', borderRadius: '99px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#10B981',
+                fontSize: '14px',
+                fontWeight: 600,
+                padding: '4px 12px',
+                background: '#ECFDF5',
+                borderRadius: '99px',
+              }}
+            >
               <LivingHeartIcon size={16} color="#10B981" /> Connected
             </div>
           )}
@@ -154,7 +212,7 @@ export function HealthDeviceIntegrations() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  opacity: isSyncing ? 0.7 : 1
+                  opacity: isSyncing ? 0.7 : 1,
                 }}
               >
                 <RefreshCw size={14} className={isSyncing ? 'spin-anim' : ''} />

@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { FeatureLoading } from '../../components/ui/FeatureLoading';
 
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { useDeferredFeature } from '../../hooks/useDeferredFeature';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessContent } from '../../services/FitnessService';
 import {
   triggerHapticLight,
@@ -25,16 +25,32 @@ import {
   markAllVitaminsTaken,
   VitaminItem,
 } from '../../services/VitaminScheduleService';
-const MeditationPlayer = React.lazy(() => import('../../components/ui/MeditationPlayer').then(m => ({ default: m.MeditationPlayer })));
-const ARGroceryLens = React.lazy(() => import('../../components/ui/ARGroceryLens').then(m => ({ default: m.ARGroceryLens })));
-const CompleteProfileModal = React.lazy(() => import('../../components/ui/CompleteProfileModal').then(m => ({ default: m.CompleteProfileModal })));
-const VitaminSchedulerModal = React.lazy(() => import('../../components/ui/VitaminSchedulerModal').then(m => ({ default: m.VitaminSchedulerModal })));
-const HydrationTrackerModal = React.lazy(() => import('../../components/ui/HydrationTrackerModal').then(m => ({ default: m.HydrationTrackerModal })));
+const MeditationPlayer = React.lazy(() =>
+  import('../../components/ui/MeditationPlayer').then((m) => ({ default: m.MeditationPlayer }))
+);
+const ARGroceryLens = React.lazy(() =>
+  import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))
+);
+const CompleteProfileModal = React.lazy(() =>
+  import('../../components/ui/CompleteProfileModal').then((m) => ({
+    default: m.CompleteProfileModal,
+  }))
+);
+const VitaminSchedulerModal = React.lazy(() =>
+  import('../../components/ui/VitaminSchedulerModal').then((m) => ({
+    default: m.VitaminSchedulerModal,
+  }))
+);
+const HydrationTrackerModal = React.lazy(() =>
+  import('../../components/ui/HydrationTrackerModal').then((m) => ({
+    default: m.HydrationTrackerModal,
+  }))
+);
 
 import { AnimatedTrackThumbnail } from '../../components/ui/AnimatedTrackThumbnail';
 import { VitalityNav } from '../../components/ui/FitnessNav';
 import { getHabitStorageKey } from '../../services/profileScope';
-import { getItemSync, setItemSync } from '../../services/storage';
+import { getItemSync } from '../../services/storage';
 
 import { useToast } from '../../components/ui/ToastProvider';
 import { createMeal } from '../../services/MealCommandService';
@@ -43,8 +59,14 @@ import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-const GutHealthModal = React.lazy(() => import('../gut-health/components/GutHealthModal').then(m => ({ default: m.GutHealthModal })));
-const TriggerSensitivityModal = React.lazy(() => import('../../components/ui/TriggerSensitivityModal').then(m => ({ default: m.TriggerSensitivityModal })));
+const GutHealthModal = React.lazy(() =>
+  import('../gut-health/components/GutHealthModal').then((m) => ({ default: m.GutHealthModal }))
+);
+const TriggerSensitivityModal = React.lazy(() =>
+  import('../../components/ui/TriggerSensitivityModal').then((m) => ({
+    default: m.TriggerSensitivityModal,
+  }))
+);
 
 interface CalmAudioItem {
   id: string;
@@ -103,11 +125,20 @@ const AudioTrackCard: React.FC<{
         minWidth: 0,
         userSelect: 'none',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       {/* Thumbnail + Title */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '14px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: isMobile ? '12px' : '14px',
+          minWidth: 0,
+          flex: 1,
+          overflow: 'hidden',
+        }}
+      >
         {/* Animated Headspace-Inspired Visual Art Thumbnail */}
         <div
           style={{
@@ -118,7 +149,7 @@ const AudioTrackCard: React.FC<{
             borderRadius: isMobile ? '12px' : '14px',
             overflow: 'hidden',
             flexShrink: 0,
-            background: 'transparent'
+            background: 'transparent',
           }}
         >
           <AnimatedTrackThumbnail
@@ -139,7 +170,7 @@ const AudioTrackCard: React.FC<{
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            letterSpacing: '-0.3px'
+            letterSpacing: '-0.3px',
           }}
         >
           {item.title}
@@ -163,7 +194,7 @@ const CALM_SPACE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_zen_stones_1788260013795.jpg',
     categoryId: 'meditation',
     type: 'meditation',
-    description: 'Our most complete meditation experience.'
+    description: 'Our most complete meditation experience.',
   },
   {
     id: 'mood-0',
@@ -178,7 +209,7 @@ const CALM_SPACE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_night_clouds_1788262545783.jpg',
     categoryId: 'mood',
     type: 'meditation',
-    description: 'A guided progression into delta-wave sleep.'
+    description: 'A guided progression into delta-wave sleep.',
   },
   {
     id: 'mood-1',
@@ -193,7 +224,7 @@ const CALM_SPACE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_focus_sphere_1788262954419.jpg',
     categoryId: 'mood',
     type: 'meditation',
-    description: 'Designed for deep work.'
+    description: 'Designed for deep work.',
   },
   {
     id: 'mood-2',
@@ -208,8 +239,8 @@ const CALM_SPACE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_energy_sun_1788263731169.jpg',
     categoryId: 'mood',
     type: 'meditation',
-    description: 'An energizing morning protocol.'
-  }
+    description: 'An energizing morning protocol.',
+  },
 ];
 
 const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
@@ -226,7 +257,7 @@ const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_rain_window_1788262571496.jpg',
     categoryId: 'soundscape',
     type: 'soundscape',
-    description: 'A continuous, looping recording of gentle rain falling on leaves.'
+    description: 'A continuous, looping recording of gentle rain falling on leaves.',
   },
   {
     id: 'soundscape-1',
@@ -241,7 +272,7 @@ const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_freq_cymatics_1788264629537.jpg',
     categoryId: 'soundscape',
     type: 'soundscape',
-    description: 'A continuous 432Hz frequency hum mixed with subtle brown noise.'
+    description: 'A continuous 432Hz frequency hum mixed with subtle brown noise.',
   },
   {
     id: 'soundscape-2',
@@ -256,7 +287,8 @@ const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_water_drop_1788260024692.jpg',
     categoryId: 'soundscape',
     type: 'soundscape',
-    description: 'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.'
+    description:
+      'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.',
   },
   {
     id: 'soundscape-3',
@@ -271,20 +303,23 @@ const SOUNDSCAPE_TRACKS: CalmAudioItem[] = [
     fallbackImg: '/images/thumb_dark_ocean_1788262557769.jpg',
     categoryId: 'soundscape',
     type: 'soundscape',
-    description: 'Continuous soothing ambient pad and ocean tide surf for deep relaxation.'
-  }
+    description: 'Continuous soothing ambient pad and ocean tide surf for deep relaxation.',
+  },
 ];
 
 export default function CaseDashboard() {
-  
   const toast = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [showFrictionModal, setShowFrictionModal] = useState(false);
+
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
-  const [showDetectiveModal, setShowDetectiveModal] = useState(() => new URLSearchParams(window.location.search).get('gut') === '1');
-  const [initialGutThreadId] = useState(() => new URLSearchParams(window.location.search).get('gutThread'));
+  const [showDetectiveModal, setShowDetectiveModal] = useState(
+    () => new URLSearchParams(window.location.search).get('gut') === '1'
+  );
+  const [initialGutThreadId] = useState(() =>
+    new URLSearchParams(window.location.search).get('gutThread')
+  );
   const [profile, setProfile] = useState(() => getProfile());
 
   useEffect(() => {
@@ -292,12 +327,16 @@ export default function CaseDashboard() {
     const url = new URL(window.location.href);
     url.searchParams.delete('gut');
     url.searchParams.delete('gutThread');
-    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${url.pathname}${url.search}${url.hash}`
+    );
   }, []);
 
   const isProfileComplete = Boolean(
-    profile?.demographics?.age && 
-    profile?.demographics?.gender && 
+    profile?.demographics?.age &&
+    profile?.demographics?.gender &&
     (profile?.onboardingCompletedAt || profile?.demographics?.updatedAt)
   );
 
@@ -318,7 +357,7 @@ export default function CaseDashboard() {
   const [vitaminSchedule, setVitaminSchedule] = useState<VitaminItem[]>(() => getVitaminSchedule());
   const [showHydrationModal, setShowHydrationModal] = useState(false);
   const [hydrationData, setHydrationData] = useState<HydrationDayData>(() => getHydrationData());
-  const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
+  const [, setCompletedHabits] = useState<Record<string, boolean>>(() => {
     try {
       const stored = getItemSync(getHabitStorageKey(todayDateStr));
       return stored ? JSON.parse(stored) : {};
@@ -341,7 +380,10 @@ export default function CaseDashboard() {
     let lastDay = getTodayDateString();
     const clock = window.setInterval(() => {
       const day = getTodayDateString();
-      if (day !== lastDay) { lastDay = day; handleHabitsUpdated(); }
+      if (day !== lastDay) {
+        lastDay = day;
+        handleHabitsUpdated();
+      }
     }, 1000);
     window.addEventListener('focus', handleHabitsUpdated);
     window.addEventListener('hc_profile_updated', handleHabitsUpdated);
@@ -366,20 +408,6 @@ export default function CaseDashboard() {
       const stored = getItemSync(getHabitStorageKey(todayDateStr));
       if (stored) setCompletedHabits(JSON.parse(stored));
     } catch {}
-  };
-
-  const toggleHabit = (habitId: string, title: string) => {
-    const isNowDone = !completedHabits[habitId];
-    const next = { ...completedHabits, [habitId]: isNowDone };
-    setCompletedHabits(next);
-    setItemSync(getHabitStorageKey(todayDateStr), JSON.stringify(next));
-
-    if (isNowDone) {
-      triggerHapticSuccess();
-      awardPoints(2, `Daily Habit: ${title}`, 'lifestyle', `habit_${habitId}_${todayDateStr}`);
-    } else {
-      triggerHapticLight();
-    }
   };
 
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
@@ -408,495 +436,1025 @@ export default function CaseDashboard() {
     return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
   }, []);
 
-  const getFallbackImage = (type: string, id: string) => {
-    const num = id.charCodeAt(0) % 3;
-    if (type === 'meditation' || type === 'breathwork' || type === 'soundscape') {
-      return [
-        'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=800&q=80'
-      ][num];
-    }
-    return 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=80';
-  };
-
   return (
-    <div style={{
-      width: '100%',
-      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
-      backgroundColor: '#FFFAFA',
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
-      overflowX: 'clip'
-    }}>
-      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><VitalityNav /></div>
-        
-        <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
-            <h2 className="serif-heading" style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#2D3748', letterSpacing: '-0.5px' }}>Dashboard</h2>
-          </div>
+    <div
+      style={{
+        width: '100%',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+        backgroundColor: '#FFFAFA',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
+        overflowX: 'clip',
+      }}
+    >
+      <div style={{ paddingTop: isMobile ? '8px' : '16px' }}>
+        <VitalityNav />
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
-            
-            {/* Zen Garden arch tile */}
+      <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <h2
+            className="serif-heading"
+            style={{
+              fontSize: '28px',
+              fontWeight: 700,
+              margin: 0,
+              color: '#2D3748',
+              letterSpacing: '-0.5px',
+            }}
+          >
+            Dashboard
+          </h2>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: isMobile ? '10px' : '14px',
+          }}
+        >
+          {/* Zen Garden arch tile */}
+          <motion.div
+            role="button"
+            tabIndex={0}
+            aria-label="Open Zen Garden"
+            whileHover={{ y: -3, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+            onClick={() => {
+              triggerHapticSelection();
+              setShowZenGardenModal(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.target !== e.currentTarget) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerHapticSelection();
+                setShowZenGardenModal(true);
+              }
+            }}
+            style={{
+              backgroundImage:
+                'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(255, 250, 250, 0.55) 78%, rgba(255, 247, 248, 0.95) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 30%',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
+              border: '1px solid rgba(241, 229, 231, 0.9)',
+              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.8)',
+              gridRow: 'span 2',
+              borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px',
+              position: 'relative',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              padding: isMobile ? '16px 8px' : '20px 14px',
+              minHeight: isMobile ? '220px' : '260px',
+            }}
+          >
+            {/* Bottom Centerpiece: Clean Zen Sanctuary pill & subtitle */}
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                maxWidth: '100%',
+              }}
+            >
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid #F1E5E7',
+                  borderRadius: '999px',
+                  padding: isMobile ? '4px 10px' : '5px 13px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{ fontSize: isMobile ? '11px' : '12px', lineHeight: 1, flexShrink: 0 }}
+                >
+                  🌸
+                </span>
+                <span
+                  style={{
+                    fontSize: isMobile ? '9.5px' : '10.5px',
+                    fontWeight: 800,
+                    color: '#0F766E',
+                    letterSpacing: '0.4px',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1,
+                  }}
+                >
+                  Zen Sanctuary
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: isMobile ? '8.5px' : '9.5px',
+                  color: '#0D9488',
+                  margin: 0,
+                  fontWeight: 800,
+                  letterSpacing: isMobile ? '0.7px' : '1px',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                Grow your own garden
+              </p>
+            </div>
+          </motion.div>
+
+          {/* AR Lens Bento Tile */}
+          <motion.div
+            role="button"
+            tabIndex={0}
+            aria-label="Clinical AR Food Lens"
+            whileHover={{ y: -3, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+            onClick={() => {
+              triggerHapticSelection();
+              setShowARLens(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerHapticSelection();
+                setShowARLens(true);
+              }
+            }}
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #F1E5E7',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+              borderRadius: isMobile ? '28px' : '34px',
+              padding: isMobile ? '16px' : '22px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: isMobile ? '135px' : '150px',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px',
+              }}
+            >
+              <div
+                style={{
+                  width: isMobile ? '38px' : '44px',
+                  height: isMobile ? '38px' : '44px',
+                  minWidth: isMobile ? '38px' : '44px',
+                  minHeight: isMobile ? '38px' : '44px',
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  background: '#111827',
+                  boxShadow: '0 2px 6px rgba(17, 24, 39, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Scan size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
+              </div>
+              <div
+                className="micro-badge"
+                style={{
+                  background: '#EF4444',
+                  color: '#FFFFFF',
+                  padding: isMobile ? '2.5px 8px' : '3.5px 10px',
+                  borderRadius: '999px',
+                  fontSize: isMobile ? '9px' : '10px',
+                  fontWeight: 800,
+                  letterSpacing: '0.4px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                NEW
+              </div>
+            </div>
+            <div>
+              <h4
+                className="serif-heading"
+                style={{
+                  fontSize: isMobile ? '18px' : '20px',
+                  fontWeight: 700,
+                  margin: '0 0 3px',
+                  color: '#0F172A',
+                  lineHeight: 1.25,
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                Clinical Lens
+              </h4>
+              <p
+                style={{
+                  fontSize: isMobile ? '12px' : '13px',
+                  color: '#64748B',
+                  margin: 0,
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                }}
+              >
+                Estimate nutrition from a food photo
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Gut Health Bento Tile */}
+          <motion.div
+            role="button"
+            tabIndex={0}
+            aria-label="Gut Health - Ask a question and explore your records and research"
+            whileHover={{ y: -3, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+            onClick={() => {
+              triggerHapticSelection();
+              setShowDetectiveModal(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerHapticSelection();
+                setShowDetectiveModal(true);
+              }
+            }}
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #F1E5E7',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+              borderRadius: isMobile ? '28px' : '34px',
+              padding: isMobile ? '16px' : '22px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: isMobile ? '135px' : '150px',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: isMobile ? '38px' : '44px',
+                  height: isMobile ? '38px' : '44px',
+                  minWidth: isMobile ? '38px' : '44px',
+                  minHeight: isMobile ? '38px' : '44px',
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(145deg, #FFAA4D, #F47B38 58%, #DA5736)',
+                  boxShadow: '0 5px 12px rgba(218, 87, 54, 0.32)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.2} />
+              </div>
+            </div>
+            <div>
+              <h4
+                className="serif-heading"
+                style={{
+                  fontSize: isMobile ? '18px' : '20px',
+                  fontWeight: 700,
+                  margin: '0 0 3px',
+                  color: '#0F172A',
+                  lineHeight: 1.25,
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                Gut Health
+              </h4>
+              <p
+                style={{
+                  fontSize: isMobile ? '12px' : '13px',
+                  color: '#64748B',
+                  margin: 0,
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                }}
+              >
+                Ask a question. See what your records and research can say.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Point 3: Interactive Daily Habit Stack - Full Width Compact Radial Cards */}
+          {/* Habit 1: Daily Hydration Tracking */}
+          {(() => {
+            const waterMl = hydrationData.currentMl;
+            const targetWaterMl = hydrationData.targetMl || 2000;
+            const waterPct =
+              targetWaterMl > 0 ? Math.min(100, Math.round((waterMl / targetWaterMl) * 100)) : 0;
+            const isWaterGoal = targetWaterMl > 0 ? waterMl >= targetWaterMl : false;
+            const remainingWaterMl = Math.max(0, targetWaterMl - waterMl);
+            const remainingGlasses = Math.ceil(remainingWaterMl / 250);
+            const currentGlasses = Math.round(waterMl / 250);
+
+            const ringRadius = 29;
+            const ringCircumference = 2 * Math.PI * ringRadius;
+            const ringOffset = ringCircumference - (waterPct / 100) * ringCircumference;
+
+            return (
               <motion.div
                 role="button"
                 tabIndex={0}
-                aria-label="Open Zen Garden"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+                aria-label={`Daily Hydration - ${isWaterGoal ? 'Goal Met' : 'Open intake tracker'}`}
+                whileHover={{ y: -2, scale: 1.005 }}
+                whileTap={{ scale: 0.99 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                 onClick={() => {
-                  triggerHapticSelection();
-                  setShowZenGardenModal(true);
+                  triggerHapticLight();
+                  setShowHydrationModal(true);
                 }}
                 onKeyDown={(e) => {
                   if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    triggerHapticSelection();
-                    setShowZenGardenModal(true);
+                    setShowHydrationModal(true);
                   }
                 }}
                 style={{
-                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 52%, rgba(255, 250, 250, 0.55) 78%, rgba(255, 247, 248, 0.95) 100%), url(/images/zen_opt1_minimalist_lotus.jpg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center 30%',
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(241, 229, 231, 0.9)', 
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.8)',
-                  gridRow: 'span 2',
-                  borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px', 
-                  position: 'relative',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  padding: isMobile ? '16px 8px' : '20px 14px',
-                  minHeight: isMobile ? '220px' : '260px'
-                }}
-              >
-                {/* Bottom Centerpiece: Clean Zen Sanctuary pill & subtitle */}
-                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', maxWidth: '100%' }}>
-                  <div
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid #F1E5E7',
-                      borderRadius: '999px',
-                      padding: isMobile ? '4px 10px' : '5px 13px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: isMobile ? '11px' : '12px', lineHeight: 1, flexShrink: 0 }}>🌸</span>
-                    <span style={{ fontSize: isMobile ? '9.5px' : '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.4px', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                      Zen Sanctuary
-                    </span>
-                  </div>
-                  <p style={{ fontSize: isMobile ? '8.5px' : '9.5px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: isMobile ? '0.7px' : '1px', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    Grow your own garden
-                  </p>
-                </div>
-              </motion.div>
-
-              
-              {/* AR Lens Bento Tile */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label="Clinical AR Food Lens"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => { triggerHapticSelection(); setShowARLens(true); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticSelection();
-                    setShowARLens(true);
-                  }
-                }}
-                style={{
-                  background: '#FFFFFF', 
-                  border: '1px solid #F1E5E7', 
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)', 
-                  borderRadius: isMobile ? '28px' : '34px',
-                  padding: isMobile ? '16px' : '22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '135px' : '150px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: '#111827', 
-                    boxShadow: '0 2px 6px rgba(17, 24, 39, 0.25)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                    <Scan size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.4} />
-                  </div>
-                  <div className="micro-badge" style={{ background: '#EF4444', color: '#FFFFFF', padding: isMobile ? '2.5px 8px' : '3.5px 10px', borderRadius: '999px', fontSize: isMobile ? '9px' : '10px', fontWeight: 800, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    NEW
-                  </div>
-                </div>
-                <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Estimate nutrition from a food photo</p>
-                </div>
-              </motion.div>
-
-              {/* Gut Health Bento Tile */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label="Gut Health - Ask a question and explore your records and research"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => { triggerHapticSelection(); setShowDetectiveModal(true); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticSelection();
-                    setShowDetectiveModal(true);
-                  }
-                }}
-                style={{
+                  gridColumn: 'span 2',
                   background: '#FFFFFF',
                   border: '1px solid #F1E5E7',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                  borderRadius: isMobile ? '28px' : '34px',
-                  padding: isMobile ? '16px' : '22px',
+                  borderRadius: isMobile ? '24px' : '28px',
+                  padding: isMobile ? '14px 16px' : '16px 20px',
                   display: 'flex',
-                  flexDirection: 'column',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '135px' : '150px',
+                  gap: '12px',
                   cursor: 'pointer',
                   position: 'relative',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  userSelect: 'none',
+                  transition: 'all 0.25s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: 'linear-gradient(145deg, #FFAA4D, #F47B38 58%, #DA5736)',
-                    boxShadow: '0 5px 12px rgba(218, 87, 54, 0.32)',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                    <Utensils size={isMobile ? 18 : 20} color="#FFFFFF" strokeWidth={2.2} />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Gut Health</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Ask a question. See what your records and research can say.</p>
-                </div>
-              </motion.div>
-
-              {/* Point 3: Interactive Daily Habit Stack - Full Width Compact Radial Cards */}
-              {/* Habit 1: Daily Hydration Tracking */}
-              {(() => {
-                const waterMl = hydrationData.currentMl;
-                const targetWaterMl = hydrationData.targetMl || 2000;
-                const waterPct = targetWaterMl > 0 ? Math.min(100, Math.round((waterMl / targetWaterMl) * 100)) : 0;
-                const isWaterGoal = targetWaterMl > 0 ? waterMl >= targetWaterMl : false;
-                const remainingWaterMl = Math.max(0, targetWaterMl - waterMl);
-                const remainingGlasses = Math.ceil(remainingWaterMl / 250);
-                const currentGlasses = Math.round(waterMl / 250);
-                const totalGlasses = Math.round(targetWaterMl / 250);
-                const ringRadius = 29;
-                const ringCircumference = 2 * Math.PI * ringRadius;
-                const ringOffset = ringCircumference - (waterPct / 100) * ringCircumference;
-
-                return (
-                  <motion.div 
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Daily Hydration - ${isWaterGoal ? 'Goal Met' : 'Open intake tracker'}`}
-                    whileHover={{ y: -2, scale: 1.005 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowHydrationModal(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.target !== e.currentTarget) return;
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setShowHydrationModal(true);
-                      }
-                    }}
+                {/* Left: Content Information */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Top Pill Badge */}
+                  <div
                     style={{
-                      gridColumn: 'span 2',
-                      background: '#FFFFFF',
-                      border: '1px solid #F1E5E7',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                      borderRadius: isMobile ? '24px' : '28px',
-                      padding: isMobile ? '14px 16px' : '16px 20px',
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      userSelect: 'none',
-                      transition: 'all 0.25s ease'
+                      gap: '4px',
+                      background: '#E0F2FE',
+                      border: '1px solid #BAE6FD',
+                      borderRadius: '999px',
+                      padding: '2.5px 9px',
+                      fontSize: '10.5px',
+                      fontWeight: 800,
+                      color: '#0284C7',
+                      letterSpacing: '-0.1px',
+                      marginBottom: '3px',
                     }}
                   >
-                    {/* Left: Content Information */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Top Pill Badge */}
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          background: '#E0F2FE',
-                          border: '1px solid #BAE6FD',
-                          borderRadius: '999px',
-                          padding: '2.5px 9px',
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          color: '#0284C7',
-                          letterSpacing: '-0.1px',
-                          marginBottom: '3px'
-                        }}
-                      >
-                        <Droplet size={11} fill="#0284C7" color="#0284C7" />
-                        <span>Hydration</span>
-                      </div>
+                    <Droplet size={11} fill="#0284C7" color="#0284C7" />
+                    <span>Hydration</span>
+                  </div>
 
-                      {/* Hero KPI Number */}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                        <span
-                          className="tabular-nums"
-                          style={{
-                            fontSize: isMobile ? '19px' : '22px',
-                            fontWeight: 900,
-                            color: '#0F172A',
-                            letterSpacing: '-0.5px',
-                            lineHeight: 1
-                          }}
-                        >
-                          {waterMl.toLocaleString()}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: isMobile ? '12px' : '13px',
-                            fontWeight: 600,
-                            color: '#64748B'
-                          }}
-                        >
-                          / {targetWaterMl.toLocaleString()} ml
-                        </span>
-                      </div>
-
-                      {/* Contextual Subtext */}
-                      <p
-                        style={{
-                          fontSize: isMobile ? '11px' : '11.5px',
-                          fontWeight: 500,
-                          color: isWaterGoal ? '#0284C7' : '#64748B',
-                          margin: '2px 0 6px',
-                          lineHeight: 1.25,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {isWaterGoal ? (
-                          <span style={{ fontWeight: 700, color: '#0284C7' }}>
-                            {waterMl > targetWaterMl
-                              ? `✓ Goal surpassed (+${(waterMl - targetWaterMl).toLocaleString()} ml extra) • Daily water goal reached`
-                              : '✓ Daily hydration goal reached • Daily water goal reached'}
-                          </span>
-                        ) : (
-                          `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today (${remainingWaterMl.toLocaleString()} ml to goal)`
-                        )}
-                      </p>
-
-                      {/* Bottom Action Row (Zero-Wrap Single Row) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
-                        {isWaterGoal ? (
-                          <>
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '3px',
-                                background: '#E0F2FE',
-                                border: '1px solid #BAE6FD',
-                                borderRadius: '999px',
-                                height: isMobile ? '24px' : '26px',
-                                padding: isMobile ? '0 9px' : '0 11px',
-                                fontSize: isMobile ? '10px' : '10.5px',
-                                fontWeight: 700,
-                                color: '#0284C7',
-                                whiteSpace: 'nowrap',
-                                lineHeight: 1
-                              }}
-                            >
-                              <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Met
-                            </span>
-                            <motion.button
-                              type="button"
-                              data-micro="true"
-                              className="btn-micro"
-                              whileTap={{ scale: 0.92 }}
-                              onClick={(e) => handleQuickWater(250, e)}
-                              title="Log extra glass (+250ml)"
-                              aria-label="Log extra 250ml water"
-                              style={{
-                                background: '#0284C7',
-                                border: 'none',
-                                borderRadius: '999px',
-                                height: isMobile ? '24px' : '26px',
-                                minHeight: isMobile ? '24px' : '26px',
-                                maxHeight: isMobile ? '24px' : '26px',
-                                minWidth: 'unset',
-                                padding: isMobile ? '0 9px' : '0 11px',
-                                fontSize: isMobile ? '10px' : '10.5px',
-                                fontWeight: 800,
-                                color: '#FFFFFF',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '3px',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                lineHeight: 1,
-                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
-                              }}
-                            >
-                              <Plus size={10} strokeWidth={2.8} /> 250ml
-                            </motion.button>
-                          </>
-                        ) : (
-                          <motion.button
-                            type="button"
-                            data-micro="true"
-                            className="btn-micro"
-                            whileTap={{ scale: 0.92 }}
-                            onClick={(e) => handleQuickWater(250, e)}
-                            title="Quick log 1 glass (+250ml)"
-                            aria-label="Quick log 250ml water"
-                            style={{
-                              background: '#0284C7',
-                              border: 'none',
-                              borderRadius: '999px',
-                              height: isMobile ? '24px' : '26px',
-                              minHeight: isMobile ? '24px' : '26px',
-                              maxHeight: isMobile ? '24px' : '26px',
-                              minWidth: 'unset',
-                              padding: isMobile ? '0 11px' : '0 13px',
-                              fontSize: isMobile ? '10.5px' : '11px',
-                              fontWeight: 800,
-                              color: '#FFFFFF',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '3.5px',
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                              lineHeight: 1,
-                              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
-                            }}
-                          >
-                            <Plus size={11} strokeWidth={2.8} /> 250ml
-                          </motion.button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right: Circular Progress Ring */}
-                    <div
+                  {/* Hero KPI Number */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span
+                      className="tabular-nums"
                       style={{
-                        position: 'relative',
-                        width: isMobile ? '68px' : '76px',
-                        height: isMobile ? '68px' : '76px',
-                        minWidth: isMobile ? '68px' : '76px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
+                        fontSize: isMobile ? '19px' : '22px',
+                        fontWeight: 900,
+                        color: '#0F172A',
+                        letterSpacing: '-0.5px',
+                        lineHeight: 1,
                       }}
                     >
-                      <svg
+                      {waterMl.toLocaleString()}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: isMobile ? '12px' : '13px',
+                        fontWeight: 600,
+                        color: '#64748B',
+                      }}
+                    >
+                      / {targetWaterMl.toLocaleString()} ml
+                    </span>
+                  </div>
+
+                  {/* Contextual Subtext */}
+                  <p
+                    style={{
+                      fontSize: isMobile ? '11px' : '11.5px',
+                      fontWeight: 500,
+                      color: isWaterGoal ? '#0284C7' : '#64748B',
+                      margin: '2px 0 6px',
+                      lineHeight: 1.25,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {isWaterGoal ? (
+                      <span style={{ fontWeight: 700, color: '#0284C7' }}>
+                        {waterMl > targetWaterMl
+                          ? `✓ Goal surpassed (+${(waterMl - targetWaterMl).toLocaleString()} ml extra) • Daily water goal reached`
+                          : '✓ Daily hydration goal reached • Daily water goal reached'}
+                      </span>
+                    ) : (
+                      `${remainingGlasses} ${remainingGlasses === 1 ? 'glass' : 'glasses'} remaining today (${remainingWaterMl.toLocaleString()} ml to goal)`
+                    )}
+                  </p>
+
+                  {/* Bottom Action Row (Zero-Wrap Single Row) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexWrap: 'nowrap',
+                    }}
+                  >
+                    {isWaterGoal ? (
+                      <>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '3px',
+                            background: '#E0F2FE',
+                            border: '1px solid #BAE6FD',
+                            borderRadius: '999px',
+                            height: isMobile ? '24px' : '26px',
+                            padding: isMobile ? '0 9px' : '0 11px',
+                            fontSize: isMobile ? '10px' : '10.5px',
+                            fontWeight: 700,
+                            color: '#0284C7',
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1,
+                          }}
+                        >
+                          <Check size={10} strokeWidth={3} /> {currentGlasses} Glasses Met
+                        </span>
+                        <motion.button
+                          type="button"
+                          data-micro="true"
+                          className="btn-micro"
+                          whileTap={{ scale: 0.92 }}
+                          onClick={(e) => handleQuickWater(250, e)}
+                          title="Log extra glass (+250ml)"
+                          aria-label="Log extra 250ml water"
+                          style={{
+                            background: '#0284C7',
+                            border: 'none',
+                            borderRadius: '999px',
+                            height: isMobile ? '24px' : '26px',
+                            minHeight: isMobile ? '24px' : '26px',
+                            maxHeight: isMobile ? '24px' : '26px',
+                            minWidth: 'unset',
+                            padding: isMobile ? '0 9px' : '0 11px',
+                            fontSize: isMobile ? '10px' : '10.5px',
+                            fontWeight: 800,
+                            color: '#FFFFFF',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '3px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            lineHeight: 1,
+                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
+                          }}
+                        >
+                          <Plus size={10} strokeWidth={2.8} /> 250ml
+                        </motion.button>
+                      </>
+                    ) : (
+                      <motion.button
+                        type="button"
+                        data-micro="true"
+                        className="btn-micro"
+                        whileTap={{ scale: 0.92 }}
+                        onClick={(e) => handleQuickWater(250, e)}
+                        title="Quick log 1 glass (+250ml)"
+                        aria-label="Quick log 250ml water"
                         style={{
-                          width: '100%',
-                          height: '100%',
-                          transform: 'rotate(-90deg)',
-                          overflow: 'visible'
-                        }}
-                        viewBox="0 0 74 74"
-                      >
-                        <circle
-                          cx="37"
-                          cy="37"
-                          r={ringRadius}
-                          stroke="#E0F2FE"
-                          strokeWidth={6.5}
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="37"
-                          cy="37"
-                          r={ringRadius}
-                          stroke="#0284C7"
-                          strokeWidth={6.5}
-                          strokeDasharray={ringCircumference}
-                          strokeDashoffset={ringOffset}
-                          strokeLinecap="round"
-                          fill="transparent"
-                          style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
-                        />
-                      </svg>
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
+                          background: '#0284C7',
+                          border: 'none',
+                          borderRadius: '999px',
+                          height: isMobile ? '24px' : '26px',
+                          minHeight: isMobile ? '24px' : '26px',
+                          maxHeight: isMobile ? '24px' : '26px',
+                          minWidth: 'unset',
+                          padding: isMobile ? '0 11px' : '0 13px',
+                          fontSize: isMobile ? '10.5px' : '11px',
+                          fontWeight: 800,
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          textAlign: 'center',
-                          pointerEvents: 'none'
+                          gap: '3.5px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                          lineHeight: 1,
+                          boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
                         }}
                       >
+                        <Plus size={11} strokeWidth={2.8} /> 250ml
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Circular Progress Ring */}
+                <div
+                  style={{
+                    position: 'relative',
+                    width: isMobile ? '68px' : '76px',
+                    height: isMobile ? '68px' : '76px',
+                    minWidth: isMobile ? '68px' : '76px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      transform: 'rotate(-90deg)',
+                      overflow: 'visible',
+                    }}
+                    viewBox="0 0 74 74"
+                  >
+                    <circle
+                      cx="37"
+                      cy="37"
+                      r={ringRadius}
+                      stroke="#E0F2FE"
+                      strokeWidth={6.5}
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="37"
+                      cy="37"
+                      r={ringRadius}
+                      stroke="#0284C7"
+                      strokeWidth={6.5}
+                      strokeDasharray={ringCircumference}
+                      strokeDashoffset={ringOffset}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    />
+                  </svg>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <span
+                      className="tabular-nums"
+                      style={{
+                        fontSize: isMobile ? '15px' : '17px',
+                        fontWeight: 900,
+                        color: '#0F172A',
+                        lineHeight: 1,
+                        letterSpacing: '-0.3px',
+                      }}
+                    >
+                      {waterPct}%
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '8px',
+                        fontWeight: 900,
+                        color: '#0284C7',
+                        letterSpacing: '0.8px',
+                        textTransform: 'uppercase',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {isWaterGoal ? 'MET ✓' : 'GOAL'}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })()}
+
+          {/* Habit 2: Daily Meds & Vitamins */}
+          {(() => {
+            const activeVitamins = vitaminSchedule.filter((v) => v.enabled !== false);
+            const hasConfiguredMeds = activeVitamins.length > 0;
+            const totalRxDoses = activeVitamins.length;
+            const takenRxDoses = activeVitamins.filter((v) => Boolean(v.takenToday)).length;
+            const isRxDone = totalRxDoses > 0 && takenRxDoses === totalRxDoses;
+            const rxPct =
+              totalRxDoses > 0 ? Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100)) : 0;
+            const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
+            const ringRadius = 29;
+            const ringCircumference = 2 * Math.PI * ringRadius;
+            const ringOffset = ringCircumference - (rxPct / 100) * ringCircumference;
+            const nextDoseItem = activeVitamins.find((v) => !v.takenToday);
+
+            return (
+              <motion.div
+                role="button"
+                tabIndex={0}
+                aria-label={`Daily Meds & Vitamins - ${isRxDone ? 'All Taken' : 'Tap to manage schedule or mark done'}`}
+                whileHover={{ y: -2, scale: 1.005 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowVitaminModal(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowVitaminModal(true);
+                  }
+                }}
+                style={{
+                  gridColumn: 'span 2',
+                  background: '#FFFFFF',
+                  border: '1px solid #F1E5E7',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+                  borderRadius: isMobile ? '24px' : '28px',
+                  padding: isMobile ? '14px 16px' : '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  userSelect: 'none',
+                  transition: 'all 0.25s ease',
+                }}
+              >
+                {/* Left: Content Information */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Top Pill Badge with Unambiguous Crisp Capsule Icon */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4.5px',
+                      background: '#FEF2F3',
+                      border: '1px solid #F9D2D7',
+                      borderRadius: '999px',
+                      padding: '2.5px 9px',
+                      fontSize: '10.5px',
+                      fontWeight: 800,
+                      color: '#CD3153',
+                      letterSpacing: '-0.1px',
+                      marginBottom: '3px',
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <rect
+                        x="2.5"
+                        y="7.5"
+                        width="19"
+                        height="9"
+                        rx="4.5"
+                        stroke="#CD3153"
+                        strokeWidth="2.2"
+                      />
+                      <path
+                        d="M12 7.5v9"
+                        stroke="#CD3153"
+                        strokeWidth="2"
+                        strokeDasharray="1.5 1.5"
+                      />
+                      <rect
+                        x="3.5"
+                        y="8.5"
+                        width="8.5"
+                        height="7"
+                        rx="3.5"
+                        fill="#CD3153"
+                        opacity="0.35"
+                      />
+                    </svg>
+                    <span>Daily Meds & Vitamins</span>
+                  </div>
+
+                  {/* Hero KPI Number */}
+                  {hasConfiguredMeds ? (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                      <span
+                        className="tabular-nums"
+                        style={{
+                          fontSize: isMobile ? '19px' : '22px',
+                          fontWeight: 900,
+                          color: '#0F172A',
+                          letterSpacing: '-0.5px',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {takenRxDoses}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: isMobile ? '12px' : '13px',
+                          fontWeight: 600,
+                          color: '#64748B',
+                        }}
+                      >
+                        / {totalRxDoses} Taken
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                      <span
+                        className="tabular-nums"
+                        style={{
+                          fontSize: isMobile ? '17px' : '19px',
+                          fontWeight: 900,
+                          color: '#0F172A',
+                          letterSpacing: '-0.4px',
+                          lineHeight: 1,
+                        }}
+                      >
+                        0 Active
+                      </span>
+                      <span
+                        style={{
+                          fontSize: isMobile ? '11.5px' : '12.5px',
+                          fontWeight: 600,
+                          color: '#64748B',
+                        }}
+                      >
+                        Meds Scheduled
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Contextual Subtext */}
+                  <p
+                    style={{
+                      fontSize: isMobile ? '11px' : '11.5px',
+                      fontWeight: 500,
+                      color: hasConfiguredMeds && isRxDone ? '#CD3153' : '#64748B',
+                      margin: '2px 0 6px',
+                      lineHeight: 1.25,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {hasConfiguredMeds ? (
+                      isRxDone ? (
+                        <span style={{ fontWeight: 700, color: '#CD3153' }}>
+                          ✓ All daily meds & vitamins taken today
+                        </span>
+                      ) : (
+                        `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • ${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} remaining`
+                      )
+                    ) : (
+                      'Set up daily vitamins, supplements & prescriptions'
+                    )}
+                  </p>
+
+                  {/* Bottom Action Row (Zero-Wrap Single Row) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexWrap: 'nowrap',
+                    }}
+                  >
+                    {hasConfiguredMeds ? (
+                      isRxDone ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '3px',
+                            background: '#FEF2F3',
+                            border: '1px solid #F9D2D7',
+                            borderRadius: '999px',
+                            height: isMobile ? '24px' : '26px',
+                            padding: isMobile ? '0 9px' : '0 11px',
+                            fontSize: isMobile ? '10px' : '10.5px',
+                            fontWeight: 700,
+                            color: '#B32040',
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1,
+                          }}
+                        >
+                          <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
+                        </span>
+                      ) : (
+                        <motion.button
+                          type="button"
+                          data-micro="true"
+                          className="btn-micro"
+                          whileTap={{ scale: 0.92 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAllVitaminsTaken();
+                            triggerHapticSuccess();
+                            awardPoints(
+                              5,
+                              'Daily Micronutrient / Rx Protocol',
+                              'lifestyle',
+                              `habit_vitamins_${todayDateStr}`
+                            );
+                            setVitaminSchedule(getVitaminSchedule());
+                            try {
+                              const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                              if (stored) setCompletedHabits(JSON.parse(stored));
+                            } catch {}
+                          }}
+                          title="Mark all daily meds taken"
+                          aria-label="Mark daily meds taken"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, #DB4969 0%, #CD3153 50%, #B32040 100%)',
+                            border: 'none',
+                            borderRadius: '999px',
+                            height: isMobile ? '24px' : '26px',
+                            minHeight: isMobile ? '24px' : '26px',
+                            maxHeight: isMobile ? '24px' : '26px',
+                            minWidth: 'unset',
+                            padding: isMobile ? '0 12px' : '0 14px',
+                            fontSize: isMobile ? '10.5px' : '11px',
+                            fontWeight: 800,
+                            color: '#FFFFFF',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '3.5px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            lineHeight: 1,
+                            boxShadow: '0 2px 6px rgba(205, 49, 83, 0.22)',
+                          }}
+                        >
+                          <Check size={11} strokeWidth={3} /> Done
+                        </motion.button>
+                      )
+                    ) : (
+                      <motion.button
+                        type="button"
+                        data-micro="true"
+                        className="btn-micro"
+                        whileTap={{ scale: 0.92 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerHapticSelection();
+                          setShowVitaminModal(true);
+                        }}
+                        title="Set up daily meds schedule"
+                        aria-label="Set up daily meds schedule"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, #DB4969 0%, #CD3153 50%, #B32040 100%)',
+                          border: 'none',
+                          borderRadius: '999px',
+                          height: isMobile ? '24px' : '26px',
+                          minHeight: isMobile ? '24px' : '26px',
+                          maxHeight: isMobile ? '24px' : '26px',
+                          minWidth: 'unset',
+                          padding: isMobile ? '0 11px' : '0 13px',
+                          fontSize: isMobile ? '10.5px' : '11px',
+                          fontWeight: 800,
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3.5px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                          lineHeight: 1,
+                          boxShadow: '0 2px 6px rgba(205, 49, 83, 0.22)',
+                        }}
+                      >
+                        <Plus size={11} strokeWidth={2.8} /> Add Meds
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Circular Progress Ring */}
+                <div
+                  style={{
+                    position: 'relative',
+                    width: isMobile ? '68px' : '76px',
+                    height: isMobile ? '68px' : '76px',
+                    minWidth: isMobile ? '68px' : '76px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      transform: 'rotate(-90deg)',
+                      overflow: 'visible',
+                    }}
+                    viewBox="0 0 74 74"
+                  >
+                    <circle
+                      cx="37"
+                      cy="37"
+                      r={ringRadius}
+                      stroke="#FCE7E8"
+                      strokeWidth={6.5}
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="37"
+                      cy="37"
+                      r={ringRadius}
+                      stroke="#CD3153"
+                      strokeWidth={6.5}
+                      strokeDasharray={ringCircumference}
+                      strokeDashoffset={hasConfiguredMeds ? ringOffset : ringCircumference}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    />
+                  </svg>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {hasConfiguredMeds ? (
+                      <>
                         <span
                           className="tabular-nums"
                           style={{
@@ -904,437 +1462,85 @@ export default function CaseDashboard() {
                             fontWeight: 900,
                             color: '#0F172A',
                             lineHeight: 1,
-                            letterSpacing: '-0.3px'
+                            letterSpacing: '-0.3px',
                           }}
                         >
-                          {waterPct}%
+                          {rxPct}%
                         </span>
                         <span
                           style={{
                             fontSize: '8px',
                             fontWeight: 900,
-                            color: '#0284C7',
+                            color: '#CD3153',
                             letterSpacing: '0.8px',
                             textTransform: 'uppercase',
-                            marginTop: '2px'
+                            marginTop: '2px',
                           }}
                         >
-                          {isWaterGoal ? 'MET ✓' : 'GOAL'}
+                          {isRxDone ? 'MET ✓' : 'GOAL'}
                         </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-
-              {/* Habit 2: Daily Meds & Vitamins */}
-              {(() => {
-                const activeVitamins = vitaminSchedule.filter(v => v.enabled !== false);
-                const hasConfiguredMeds = activeVitamins.length > 0;
-                const totalRxDoses = activeVitamins.length;
-                const takenRxDoses = activeVitamins.filter(v => Boolean(v.takenToday)).length;
-                const isRxDone = totalRxDoses > 0 && takenRxDoses === totalRxDoses;
-                const rxPct = totalRxDoses > 0 ? Math.min(100, Math.round((takenRxDoses / totalRxDoses) * 100)) : 0;
-                const remainingRxDoses = Math.max(0, totalRxDoses - takenRxDoses);
-                const ringRadius = 29;
-                const ringCircumference = 2 * Math.PI * ringRadius;
-                const ringOffset = ringCircumference - (rxPct / 100) * ringCircumference;
-                const nextDoseItem = activeVitamins.find(v => !v.takenToday);
-
-                return (
-                  <motion.div 
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Daily Meds & Vitamins - ${isRxDone ? 'All Taken' : 'Tap to manage schedule or mark done'}`}
-                    whileHover={{ y: -2, scale: 1.005 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowVitaminModal(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.target !== e.currentTarget) return;
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setShowVitaminModal(true);
-                      }
-                    }}
-                    style={{
-                      gridColumn: 'span 2',
-                      background: '#FFFFFF',
-                      border: '1px solid #F1E5E7',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
-                      borderRadius: isMobile ? '24px' : '28px',
-                      padding: isMobile ? '14px 16px' : '16px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      userSelect: 'none',
-                      transition: 'all 0.25s ease'
-                    }}
-                  >
-                    {/* Left: Content Information */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Top Pill Badge with Unambiguous Crisp Capsule Icon */}
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4.5px',
-                          background: '#FEF2F3',
-                          border: '1px solid #F9D2D7',
-                          borderRadius: '999px',
-                          padding: '2.5px 9px',
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          color: '#CD3153',
-                          letterSpacing: '-0.1px',
-                          marginBottom: '3px'
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                          <rect x="2.5" y="7.5" width="19" height="9" rx="4.5" stroke="#CD3153" strokeWidth="2.2" />
-                          <path d="M12 7.5v9" stroke="#CD3153" strokeWidth="2" strokeDasharray="1.5 1.5" />
-                          <rect x="3.5" y="8.5" width="8.5" height="7" rx="3.5" fill="#CD3153" opacity="0.35" />
-                        </svg>
-                        <span>Daily Meds & Vitamins</span>
-                      </div>
-
-                      {/* Hero KPI Number */}
-                      {hasConfiguredMeds ? (
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                          <span
-                            className="tabular-nums"
-                            style={{
-                              fontSize: isMobile ? '19px' : '22px',
-                              fontWeight: 900,
-                              color: '#0F172A',
-                              letterSpacing: '-0.5px',
-                              lineHeight: 1
-                            }}
-                          >
-                            {takenRxDoses}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: isMobile ? '12px' : '13px',
-                              fontWeight: 600,
-                              color: '#64748B'
-                            }}
-                          >
-                            / {totalRxDoses} Taken
-                          </span>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                          <span
-                            className="tabular-nums"
-                            style={{
-                              fontSize: isMobile ? '17px' : '19px',
-                              fontWeight: 900,
-                              color: '#0F172A',
-                              letterSpacing: '-0.4px',
-                              lineHeight: 1
-                            }}
-                          >
-                            0 Active
-                          </span>
-                          <span
-                            style={{
-                              fontSize: isMobile ? '11.5px' : '12.5px',
-                              fontWeight: 600,
-                              color: '#64748B'
-                            }}
-                          >
-                            Meds Scheduled
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Contextual Subtext */}
-                      <p
-                        style={{
-                          fontSize: isMobile ? '11px' : '11.5px',
-                          fontWeight: 500,
-                          color: hasConfiguredMeds && isRxDone ? '#CD3153' : '#64748B',
-                          margin: '2px 0 6px',
-                          lineHeight: 1.25,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {hasConfiguredMeds ? (
-                          isRxDone ? (
-                            <span style={{ fontWeight: 700, color: '#CD3153' }}>
-                              ✓ All daily meds & vitamins taken today
-                            </span>
-                          ) : (
-                            `${nextDoseItem?.name ? nextDoseItem.name : 'Next dose'} • ${remainingRxDoses} ${remainingRxDoses === 1 ? 'dose' : 'doses'} remaining`
-                          )
-                        ) : (
-                          'Set up daily vitamins, supplements & prescriptions'
-                        )}
-                      </p>
-
-                      {/* Bottom Action Row (Zero-Wrap Single Row) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
-                        {hasConfiguredMeds ? (
-                          isRxDone ? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '3px',
-                                background: '#FEF2F3',
-                                border: '1px solid #F9D2D7',
-                                borderRadius: '999px',
-                                height: isMobile ? '24px' : '26px',
-                                padding: isMobile ? '0 9px' : '0 11px',
-                                fontSize: isMobile ? '10px' : '10.5px',
-                                fontWeight: 700,
-                                color: '#B32040',
-                                whiteSpace: 'nowrap',
-                                lineHeight: 1
-                              }}
-                            >
-                              <Check size={10} strokeWidth={3} /> All {totalRxDoses} Taken Today
-                            </span>
-                          ) : (
-                            <motion.button
-                              type="button"
-                              data-micro="true"
-                              className="btn-micro"
-                              whileTap={{ scale: 0.92 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markAllVitaminsTaken();
-                                triggerHapticSuccess();
-                                awardPoints(5, 'Daily Micronutrient / Rx Protocol', 'lifestyle', `habit_vitamins_${todayDateStr}`);
-                                setVitaminSchedule(getVitaminSchedule());
-                                try {
-                                  const stored = getItemSync(getHabitStorageKey(todayDateStr));
-                                  if (stored) setCompletedHabits(JSON.parse(stored));
-                                } catch {}
-                              }}
-                              title="Mark all daily meds taken"
-                              aria-label="Mark daily meds taken"
-                              style={{
-                                background: 'linear-gradient(135deg, #DB4969 0%, #CD3153 50%, #B32040 100%)',
-                                border: 'none',
-                                borderRadius: '999px',
-                                height: isMobile ? '24px' : '26px',
-                                minHeight: isMobile ? '24px' : '26px',
-                                maxHeight: isMobile ? '24px' : '26px',
-                                minWidth: 'unset',
-                                padding: isMobile ? '0 12px' : '0 14px',
-                                fontSize: isMobile ? '10.5px' : '11px',
-                                fontWeight: 800,
-                                color: '#FFFFFF',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '3.5px',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                lineHeight: 1,
-                                boxShadow: '0 2px 6px rgba(205, 49, 83, 0.22)'
-                              }}
-                            >
-                              <Check size={11} strokeWidth={3} /> Done
-                            </motion.button>
-                          )
-                        ) : (
-                          <motion.button
-                            type="button"
-                            data-micro="true"
-                            className="btn-micro"
-                            whileTap={{ scale: 0.92 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              triggerHapticSelection();
-                              setShowVitaminModal(true);
-                            }}
-                            title="Set up daily meds schedule"
-                            aria-label="Set up daily meds schedule"
-                            style={{
-                              background: 'linear-gradient(135deg, #DB4969 0%, #CD3153 50%, #B32040 100%)',
-                              border: 'none',
-                              borderRadius: '999px',
-                              height: isMobile ? '24px' : '26px',
-                              minHeight: isMobile ? '24px' : '26px',
-                              maxHeight: isMobile ? '24px' : '26px',
-                              minWidth: 'unset',
-                              padding: isMobile ? '0 11px' : '0 13px',
-                              fontSize: isMobile ? '10.5px' : '11px',
-                              fontWeight: 800,
-                              color: '#FFFFFF',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '3.5px',
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                              lineHeight: 1,
-                              boxShadow: '0 2px 6px rgba(205, 49, 83, 0.22)'
-                            }}
-                          >
-                            <Plus size={11} strokeWidth={2.8} /> Add Meds
-                          </motion.button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right: Circular Progress Ring */}
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: isMobile ? '68px' : '76px',
-                        height: isMobile ? '68px' : '76px',
-                        minWidth: isMobile ? '68px' : '76px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
-                    >
-                      <svg
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          transform: 'rotate(-90deg)',
-                          overflow: 'visible'
-                        }}
-                        viewBox="0 0 74 74"
-                      >
-                        <circle
-                          cx="37"
-                          cy="37"
-                          r={ringRadius}
-                          stroke="#FCE7E8"
-                          strokeWidth={6.5}
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="37"
-                          cy="37"
-                          r={ringRadius}
-                          stroke="#CD3153"
-                          strokeWidth={6.5}
-                          strokeDasharray={ringCircumference}
-                          strokeDashoffset={hasConfiguredMeds ? ringOffset : ringCircumference}
-                          strokeLinecap="round"
-                          fill="transparent"
-                          style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
-                        />
-                      </svg>
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          textAlign: 'center',
-                          pointerEvents: 'none'
-                        }}
-                      >
-                        {hasConfiguredMeds ? (
-                          <>
-                            <span
-                              className="tabular-nums"
-                              style={{
-                                fontSize: isMobile ? '15px' : '17px',
-                                fontWeight: 900,
-                                color: '#0F172A',
-                                lineHeight: 1,
-                                letterSpacing: '-0.3px'
-                              }}
-                            >
-                              {rxPct}%
-                            </span>
-                            <span
-                              style={{
-                                fontSize: '8px',
-                                fontWeight: 900,
-                                color: '#CD3153',
-                                letterSpacing: '0.8px',
-                                textTransform: 'uppercase',
-                                marginTop: '2px'
-                              }}
-                            >
-                              {isRxDone ? 'MET ✓' : 'GOAL'}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={isMobile ? 15 : 17} strokeWidth={2.8} color="#CD3153" />
-                            <span
-                              style={{
-                                fontSize: '7.5px',
-                                fontWeight: 900,
-                                color: '#CD3153',
-                                letterSpacing: '0.6px',
-                                textTransform: 'uppercase',
-                                marginTop: '1px'
-                              }}
-                            >
-                              SET UP
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-          </div>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={isMobile ? 15 : 17} strokeWidth={2.8} color="#CD3153" />
+                        <span
+                          style={{
+                            fontSize: '7.5px',
+                            fontWeight: 900,
+                            color: '#CD3153',
+                            letterSpacing: '0.6px',
+                            textTransform: 'uppercase',
+                            marginTop: '1px',
+                          }}
+                        >
+                          SET UP
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
+      </div>
 
-        {/* Complete Health Profile Action Banner */}
-        {!isProfileComplete && (
-          <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
-            <div
-              onClick={() => {
-                triggerHapticLight();
+      {/* Complete Health Profile Action Banner */}
+      {!isProfileComplete && (
+        <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
+          <div
+            onClick={() => {
+              triggerHapticLight();
+              setShowCompleteProfileModal(true);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%)',
+              border: '1.5px solid #10B981',
+              borderRadius: '20px',
+              boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
+              cursor: 'pointer',
+              gap: '14px',
+              transition: 'all 0.2s ease',
+              WebkitUserSelect: 'none',
+              userSelect: 'none',
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
                 setShowCompleteProfileModal(true);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%)',
-                border: '1.5px solid #10B981',
-                borderRadius: '20px',
-                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
-                cursor: 'pointer',
-                gap: '14px',
-                transition: 'all 0.2s ease',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setShowCompleteProfileModal(true);
-                }
-              }}
-              aria-label="Complete health profile"
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
-                <div style={{
+              }
+            }}
+            aria-label="Complete health profile"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+              <div
+                style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '14px',
@@ -1343,291 +1549,429 @@ export default function CaseDashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <FolderHeart size={22} />
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                      Complete health profile
-                    </h4>
-                  </div>
-                  <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748B', lineHeight: 1.3 }}>
-                    Add age, conditions, medicines, and allergies
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  triggerHapticLight();
-                  setShowCompleteProfileModal(true);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '8px 14px',
-                  borderRadius: '999px',
-                  background: '#0F766E',
-                  color: '#FFFFFF',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
                   flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)'
                 }}
               >
-                Add details <ArrowRight size={13} />
-              </button>
+                <FolderHeart size={22} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}
+                >
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                    Complete health profile
+                  </h4>
+                </div>
+                <p
+                  style={{
+                    margin: '3px 0 0',
+                    fontSize: '12.5px',
+                    color: '#64748B',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Add age, conditions, medicines, and allergies
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {isProfileComplete && (
-          <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
-            <FeatureProfileDataBanner
-              featureName="Daily Circadian Tracker"
-              contextMessage="Shared medication list, daily dose tracking, and saved health details."
-              accentColor="#0D9488"
-            />
-          </div>
-        )}
-
-        {/* Minimized Calm Space & Soundscapes Hub */}
-        <div
-          ref={calmSpaceRef}
-          id="calm-space"
-          style={{
-            position: 'relative',
-            padding: isMobile ? '0 12px 16px' : '0 24px 20px',
-            margin: '0 0 8px 0',
-            scrollMarginTop: '24px'
-          }}
-        >
-          {/* Subtle ambient lighting glows */}
-          <div style={{ position: 'absolute', top: '15%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.15)', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', top: '15%', right: '20%', width: '110px', height: '110px', background: 'rgba(196, 181, 253, 0.18)', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none' }} />
-
-          <div
-            style={{
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
-              border: '1px solid #F1E5E7',
-              boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03)',
-              position: 'relative',
-              zIndex: 1,
-              padding: isMobile ? '18px 14px 22px' : '24px 24px 28px',
-              borderRadius: isMobile ? '24px' : '28px',
-            }}
-          >
-            {/* 1. Calm Space Section */}
-            <section style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 800, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
-                    Calm Space
-                  </h2>
-                  <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
-                    Choose a sound and begin.
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
-                {CALM_SPACE_TRACKS.map((item) => (
-                  <AudioTrackCard
-                    key={item.id}
-                    item={item}
-                    isMobile={isMobile}
-                    onSelect={() => {
-                      triggerHapticLight();
-                      setActiveMeditation({
-                        id: item.id,
-                        category_id: item.categoryId,
-                        is_active: true,
-                        type: item.type,
-                        title: item.fullTitle,
-                        subtitle: item.subtitle,
-                        description: item.description,
-                        cover_image_url: item.img,
-                        audio_url: '',
-                        video_url: '',
-                        duration_minutes: item.durationMinutes,
-                        calories_estimate: 0,
-                        difficulty: 'Beginner',
-                        equipment: [],
-                        is_premium: false,
-                        is_featured: true
-                      });
-                    }}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* Subtle Ambient Divider */}
-            <div
-              style={{
-                height: '1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(241, 229, 231, 0.9) 20%, rgba(241, 229, 231, 0.9) 50%, rgba(241, 229, 231, 0.9) 80%, transparent 100%)',
-                margin: '8px 0 22px'
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                triggerHapticLight();
+                setShowCompleteProfileModal(true);
               }}
-            />
-
-            {/* 2. Soundscapes Section */}
-            <section>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <h2 style={{ fontSize: isMobile ? '19px' : '20px', fontWeight: 800, margin: '0 0 3px', color: '#0F172A', letterSpacing: '-0.5px' }}>
-                    Soundscapes
-                  </h2>
-                  <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
-                    Immersive audio environments
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
-                {SOUNDSCAPE_TRACKS.map((item) => (
-                  <AudioTrackCard
-                    key={item.id}
-                    item={item}
-                    isMobile={isMobile}
-                    onSelect={() => {
-                      triggerHapticLight();
-                      setActiveMeditation({
-                        id: item.id,
-                        category_id: item.categoryId,
-                        is_active: true,
-                        type: item.type,
-                        title: item.fullTitle,
-                        subtitle: item.subtitle,
-                        description: item.description,
-                        cover_image_url: item.img,
-                        audio_url: '',
-                        video_url: '',
-                        duration_minutes: item.durationMinutes,
-                        calories_estimate: 0,
-                        difficulty: 'Beginner',
-                        equipment: [],
-                        is_premium: false,
-                        is_featured: true
-                      });
-                    }}
-                  />
-                ))}
-              </div>
-            </section>
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '8px 14px',
+                borderRadius: '999px',
+                background: '#0F766E',
+                color: '#FFFFFF',
+                fontSize: '12px',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)',
+              }}
+            >
+              Add details <ArrowRight size={13} />
+            </button>
           </div>
         </div>
+      )}
+
+      {isProfileComplete && (
+        <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
+          <FeatureProfileDataBanner
+            featureName="Daily Circadian Tracker"
+            contextMessage="Shared medication list, daily dose tracking, and saved health details."
+            accentColor="#0D9488"
+          />
+        </div>
+      )}
+
+      {/* Minimized Calm Space & Soundscapes Hub */}
+      <div
+        ref={calmSpaceRef}
+        id="calm-space"
+        style={{
+          position: 'relative',
+          padding: isMobile ? '0 12px 16px' : '0 24px 20px',
+          margin: '0 0 8px 0',
+          scrollMarginTop: '24px',
+        }}
+      >
+        {/* Subtle ambient lighting glows */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '15%',
+            left: '20%',
+            width: '110px',
+            height: '110px',
+            background: 'rgba(45, 212, 191, 0.15)',
+            borderRadius: '50%',
+            filter: 'blur(40px)',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '15%',
+            right: '20%',
+            width: '110px',
+            height: '110px',
+            background: 'rgba(196, 181, 253, 0.18)',
+            borderRadius: '50%',
+            filter: 'blur(40px)',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+            border: '1px solid #F1E5E7',
+            boxShadow:
+              '0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03)',
+            position: 'relative',
+            zIndex: 1,
+            padding: isMobile ? '18px 14px 22px' : '24px 24px 28px',
+            borderRadius: isMobile ? '24px' : '28px',
+          }}
+        >
+          {/* 1. Calm Space Section */}
+          <section style={{ marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '14px',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '19px' : '20px',
+                    fontWeight: 800,
+                    margin: '0 0 3px',
+                    color: '#0F172A',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  Calm Space
+                </h2>
+                <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
+                  Choose a sound and begin.
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: isMobile ? '10px' : '14px',
+              }}
+            >
+              {CALM_SPACE_TRACKS.map((item) => (
+                <AudioTrackCard
+                  key={item.id}
+                  item={item}
+                  isMobile={isMobile}
+                  onSelect={() => {
+                    triggerHapticLight();
+                    setActiveMeditation({
+                      id: item.id,
+                      category_id: item.categoryId,
+                      is_active: true,
+                      type: item.type,
+                      title: item.fullTitle,
+                      subtitle: item.subtitle,
+                      description: item.description,
+                      cover_image_url: item.img,
+                      audio_url: '',
+                      video_url: '',
+                      duration_minutes: item.durationMinutes,
+                      calories_estimate: 0,
+                      difficulty: 'Beginner',
+                      equipment: [],
+                      is_premium: false,
+                      is_featured: true,
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Subtle Ambient Divider */}
+          <div
+            style={{
+              height: '1px',
+              background:
+                'linear-gradient(90deg, transparent 0%, rgba(241, 229, 231, 0.9) 20%, rgba(241, 229, 231, 0.9) 50%, rgba(241, 229, 231, 0.9) 80%, transparent 100%)',
+              margin: '8px 0 22px',
+            }}
+          />
+
+          {/* 2. Soundscapes Section */}
+          <section>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '14px',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '19px' : '20px',
+                    fontWeight: 800,
+                    margin: '0 0 3px',
+                    color: '#0F172A',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  Soundscapes
+                </h2>
+                <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0, fontWeight: 500 }}>
+                  Immersive audio environments
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: isMobile ? '10px' : '14px',
+              }}
+            >
+              {SOUNDSCAPE_TRACKS.map((item) => (
+                <AudioTrackCard
+                  key={item.id}
+                  item={item}
+                  isMobile={isMobile}
+                  onSelect={() => {
+                    triggerHapticLight();
+                    setActiveMeditation({
+                      id: item.id,
+                      category_id: item.categoryId,
+                      is_active: true,
+                      type: item.type,
+                      title: item.fullTitle,
+                      subtitle: item.subtitle,
+                      description: item.description,
+                      cover_image_url: item.img,
+                      audio_url: '',
+                      video_url: '',
+                      duration_minutes: item.durationMinutes,
+                      calories_estimate: 0,
+                      difficulty: 'Beginner',
+                      equipment: [],
+                      is_premium: false,
+                      is_featured: true,
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
 
       <ClinicalArticleSection />
 
-      {loadCompleteProfile && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><CompleteProfileModal
-        isOpen={showCompleteProfileModal}
-        onClose={() => setShowCompleteProfileModal(false)}
-        onCompleted={refreshProfileAndTasks}
-      /></Suspense>)}
+      {loadCompleteProfile && (
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <CompleteProfileModal
+            isOpen={showCompleteProfileModal}
+            onClose={() => setShowCompleteProfileModal(false)}
+            onCompleted={refreshProfileAndTasks}
+          />
+        </Suspense>
+      )}
 
-      {loadVitamins && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><VitaminSchedulerModal
-        isOpen={showVitaminModal}
-        onClose={() => {
-          setShowVitaminModal(false);
-          setVitaminSchedule(getVitaminSchedule());
-          try {
-            const stored = getItemSync(getHabitStorageKey(todayDateStr));
-            if (stored) setCompletedHabits(JSON.parse(stored));
-          } catch {}
-        }}
-        onUpdated={() => {
-          setVitaminSchedule(getVitaminSchedule());
-          try {
-            const stored = getItemSync(getHabitStorageKey(todayDateStr));
-            if (stored) setCompletedHabits(JSON.parse(stored));
-          } catch {
-            // ignore
-          }
-        }}
-      /></Suspense>)}
+      {loadVitamins && (
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <VitaminSchedulerModal
+            isOpen={showVitaminModal}
+            onClose={() => {
+              setShowVitaminModal(false);
+              setVitaminSchedule(getVitaminSchedule());
+              try {
+                const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                if (stored) setCompletedHabits(JSON.parse(stored));
+              } catch {}
+            }}
+            onUpdated={() => {
+              setVitaminSchedule(getVitaminSchedule());
+              try {
+                const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                if (stored) setCompletedHabits(JSON.parse(stored));
+              } catch {
+                // ignore
+              }
+            }}
+          />
+        </Suspense>
+      )}
 
-      {loadHydration && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><HydrationTrackerModal
-        isOpen={showHydrationModal}
-        onClose={() => {
-          setShowHydrationModal(false);
-          setHydrationData(getHydrationData());
-          try {
-            const stored = getItemSync(getHabitStorageKey(todayDateStr));
-            if (stored) setCompletedHabits(JSON.parse(stored));
-          } catch {}
-        }}
-        onUpdated={() => {
-          setHydrationData(getHydrationData());
-          try {
-            const stored = getItemSync(getHabitStorageKey(todayDateStr));
-            if (stored) setCompletedHabits(JSON.parse(stored));
-          } catch {
-            // ignore
-          }
-        }}
-      /></Suspense>)}
+      {loadHydration && (
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <HydrationTrackerModal
+            isOpen={showHydrationModal}
+            onClose={() => {
+              setShowHydrationModal(false);
+              setHydrationData(getHydrationData());
+              try {
+                const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                if (stored) setCompletedHabits(JSON.parse(stored));
+              } catch {}
+            }}
+            onUpdated={() => {
+              setHydrationData(getHydrationData());
+              try {
+                const stored = getItemSync(getHabitStorageKey(todayDateStr));
+                if (stored) setCompletedHabits(JSON.parse(stored));
+              } catch {
+                // ignore
+              }
+            }}
+          />
+        </Suspense>
+      )}
 
       {activeMeditation && (
-        <Suspense fallback={<FeatureLoading label="Loading tool…" />}><MeditationPlayer
-          content={activeMeditation} 
-          onClose={() => setActiveMeditation(null)} 
-        /></Suspense>
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <MeditationPlayer content={activeMeditation} onClose={() => setActiveMeditation(null)} />
+        </Suspense>
       )}
 
-      {loadGutHealth && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><GutHealthModal
-        isOpen={showDetectiveModal}
-        initialThreadId={initialGutThreadId}
-        onClose={() => setShowDetectiveModal(false)}
-        onOpenConsult={() => { setShowDetectiveModal(false); navigate('/app/consult'); }}
-        onOpenElimination={() => { setShowDetectiveModal(false); navigate('/app/dietician?tab=elimination'); }}
-        onOpenDiet={() => { setShowDetectiveModal(false); navigate('/app/dietician'); }}
-        onOpenCasePrep={(caseId) => { setShowDetectiveModal(false); navigate(`/app/case-prep?caseId=${encodeURIComponent(caseId)}`, { state: { returnTo: '/app/today?gut=1', returnLabel: 'Back to Gut Health' } }); }}
-        onOpenCases={() => { setShowDetectiveModal(false); navigate('/app/my-cases?new=true'); }}
-      /></Suspense>)}
+      {loadGutHealth && (
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <GutHealthModal
+            isOpen={showDetectiveModal}
+            initialThreadId={initialGutThreadId}
+            onClose={() => setShowDetectiveModal(false)}
+            onOpenConsult={() => {
+              setShowDetectiveModal(false);
+              navigate('/app/consult');
+            }}
+            onOpenElimination={() => {
+              setShowDetectiveModal(false);
+              navigate('/app/dietician?tab=elimination');
+            }}
+            onOpenDiet={() => {
+              setShowDetectiveModal(false);
+              navigate('/app/dietician');
+            }}
+            onOpenCasePrep={(caseId) => {
+              setShowDetectiveModal(false);
+              navigate(`/app/case-prep?caseId=${encodeURIComponent(caseId)}`, {
+                state: { returnTo: '/app/today?gut=1', returnLabel: 'Back to Gut Health' },
+              });
+            }}
+            onOpenCases={() => {
+              setShowDetectiveModal(false);
+              navigate('/app/my-cases?new=true');
+            }}
+          />
+        </Suspense>
+      )}
 
-      {loadZenGarden && (<Suspense fallback={<FeatureLoading label="Loading tool…" />}><TriggerSensitivityModal
-        isOpen={showZenGardenModal}
-        onClose={() => setShowZenGardenModal(false)}
-        initialTab="garden"
-        standaloneTab
-        onOpenMindfulness={() => {
-          setShowZenGardenModal(false);
-          window.setTimeout(() => {
-            calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
-        }}
-      /></Suspense>)}
+      {loadZenGarden && (
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <TriggerSensitivityModal
+            isOpen={showZenGardenModal}
+            onClose={() => setShowZenGardenModal(false)}
+            initialTab="garden"
+            standaloneTab
+            onOpenMindfulness={() => {
+              setShowZenGardenModal(false);
+              window.setTimeout(() => {
+                calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+          />
+        </Suspense>
+      )}
 
       {showARLens && (
-        <Suspense fallback={<FeatureLoading label="Loading tool…" />}><ARGroceryLens
-          onClose={() => setShowARLens(false)}
-          onLogFood={async (food) => {
-            try {
-              const todayStr = getTodayDateString();
-              const entryId = crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-              const saved = await createMeal({ localDate: todayStr,
-                entry: { ...food, id: entryId, name: String(food.name || '').trim(),
-                  nutritionSource: food.nutritionBasis || 'photo_estimate' }, captureMethod: 'clinical_lens' });
-              if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
-              triggerHapticSuccess();
-              if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Food saved on this device, but cloud sync could not be queued.');
-              else toast.success('Food saved locally', `Added "${food.name}" to the shared meal diary.`);
-              return true;
-            } catch (e) {
-              console.warn('Failed to log food from dashboard:', e);
-              return false;
-            }
-          }}
-        /></Suspense>
+        <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+          <ARGroceryLens
+            onClose={() => setShowARLens(false)}
+            onLogFood={async (food) => {
+              try {
+                const todayStr = getTodayDateString();
+                const entryId =
+                  crypto.randomUUID?.() ||
+                  `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                const saved = await createMeal({
+                  localDate: todayStr,
+                  entry: {
+                    ...food,
+                    id: entryId,
+                    name: String(food.name || '').trim(),
+                    nutritionSource: food.nutritionBasis || 'photo_estimate',
+                  },
+                  captureMethod: 'clinical_lens',
+                });
+                if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
+                triggerHapticSuccess();
+                if (saved.sync === 'queue_failed')
+                  toast.error(
+                    'Sync needs attention',
+                    'Food saved on this device, but cloud sync could not be queued.'
+                  );
+                else
+                  toast.success(
+                    'Food saved locally',
+                    `Added "${food.name}" to the shared meal diary.`
+                  );
+                return true;
+              } catch (e) {
+                console.warn('Failed to log food from dashboard:', e);
+                return false;
+              }
+            }}
+          />
+        </Suspense>
       )}
-
     </div>
   );
-};
+}

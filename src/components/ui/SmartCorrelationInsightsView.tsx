@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDietReviewData } from '../../hooks/useDietReviewData';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { dietPatternAnswers } from '../../services/dietPatternRecords';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { getDigestionLogs } from '../../services/ProfileEngine';
@@ -59,8 +58,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
   onOpenTimeline,
   onOpenHeatmap,
 }) => {
-  const isMobile = useIsMobile();
-  const {diary,observations,error}=useDietReviewData();
+  const { diary, observations, error } = useDietReviewData();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InsightCategory>('All');
@@ -98,9 +96,12 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
     });
 
     const symptomAnswers = dietPatternAnswers(digestionLogs, observations);
-    const symptomMatches = (item: Pick<SmartInsightItem, 'category'>, dateStr: string) => symptomAnswers[dateStr]?.[item.category] === true;
+    const symptomMatches = (item: Pick<SmartInsightItem, 'category'>, dateStr: string) =>
+      symptomAnswers[dateStr]?.[item.category] === true;
     const buildObserved = (item: SmartInsightItem): SmartInsightItem[] => {
-      const observedDates = Object.keys(symptomAnswers).filter(date => typeof symptomAnswers[date]?.[item.category] === 'boolean');
+      const observedDates = Object.keys(symptomAnswers).filter(
+        (date) => typeof symptomAnswers[date]?.[item.category] === 'boolean'
+      );
       const isExposure = (food: string) => food === normalizedName(item.foodName);
       let userExposures = 0;
       let userMatches = 0;
@@ -117,30 +118,53 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       });
 
       if (userExposures < 2) return [];
-      const nonExposureDates = observedDates.filter((dateStr) => (mealsByDate[dateStr] || []).length > 0 && !(mealsByDate[dateStr] || []).some(isExposure));
-      const nonExposureMatches = nonExposureDates.filter((dateStr) => symptomMatches(item, dateStr)).length;
+      const nonExposureDates = observedDates.filter(
+        (dateStr) =>
+          (mealsByDate[dateStr] || []).length > 0 && !(mealsByDate[dateStr] || []).some(isExposure)
+      );
+      const nonExposureMatches = nonExposureDates.filter((dateStr) =>
+        symptomMatches(item, dateStr)
+      ).length;
       const exposurePercent = Math.round((userMatches / userExposures) * 100);
-      const nonExposurePercent = nonExposureDates.length > 0 ? Math.round((nonExposureMatches / nonExposureDates.length) * 100) : undefined;
-      return [{
-        ...item,
-        matchingDays: userMatches,
-        totalDays: userExposures,
-        correlationPercent: exposurePercent,
-        nonExposureMatchingDays: nonExposureMatches,
-        nonExposureTotalDays: nonExposureDates.length,
-        nonExposurePercent,
-        hasComparativeIncrease: nonExposurePercent !== undefined ? exposurePercent > nonExposurePercent : undefined,
-        fromDiary: true,
-      }];
+      const nonExposurePercent =
+        nonExposureDates.length > 0
+          ? Math.round((nonExposureMatches / nonExposureDates.length) * 100)
+          : undefined;
+      return [
+        {
+          ...item,
+          matchingDays: userMatches,
+          totalDays: userExposures,
+          correlationPercent: exposurePercent,
+          nonExposureMatchingDays: nonExposureMatches,
+          nonExposureTotalDays: nonExposureDates.length,
+          nonExposurePercent,
+          hasComparativeIncrease:
+            nonExposurePercent !== undefined ? exposurePercent > nonExposurePercent : undefined,
+          fromDiary: true,
+        },
+      ];
     };
 
-    const loggedFoods = Array.from(new Set(Object.values(mealsByDate).flat().map((food) => food.trim()).filter(Boolean)));
+    const loggedFoods = Array.from(
+      new Set(
+        Object.values(mealsByDate)
+          .flat()
+          .map((food) => food.trim())
+          .filter(Boolean)
+      )
+    );
     const observedResults = loggedFoods.flatMap((foodName, foodIndex) => {
       return (['Bloating', 'Stomach', 'Bowel'] as const).flatMap((category, categoryIndex) => {
         const generic: SmartInsightItem = {
           id: `observed_${foodIndex}_${categoryIndex}_${foodName.replace(/[^a-z0-9]+/g, '_')}`,
           foodName,
-          symptomName: category === 'Stomach' ? 'Stomach discomfort or reflux' : category === 'Bowel' ? 'Stool form 1, 2, 6 or 7' : category,
+          symptomName:
+            category === 'Stomach'
+              ? 'Stomach discomfort or reflux'
+              : category === 'Bowel'
+                ? 'Stool form 1, 2, 6 or 7'
+                : category,
           category,
           iconType: category === 'Bloating' ? 'wind' : category === 'Bowel' ? 'bowel' : 'flame',
           matchingDays: 0,
@@ -230,7 +254,15 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
               <ChevronLeft size={20} />
             </button>
           )}
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.3px' }}>
+          <h2
+            style={{
+              fontSize: '20px',
+              fontWeight: 800,
+              color: '#0F172A',
+              margin: 0,
+              letterSpacing: '-0.3px',
+            }}
+          >
             Recorded patterns
           </h2>
         </div>
@@ -267,7 +299,9 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       >
         <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <strong style={{ color: '#0F172A' }}>Same-day observations:</strong> Food and symptom dates may match, but this view does not establish which happened first or what caused a symptom. Stress, sleep, hydration, and medications can also matter.
+          <strong style={{ color: '#0F172A' }}>Same-day observations:</strong> Food and symptom
+          dates may match, but this view does not establish which happened first or what caused a
+          symptom. Stress, sleep, hydration, and medications can also matter.
         </div>
       </div>
 
@@ -392,10 +426,14 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
           <div style={{ textAlign: 'center', padding: '36px 16px', color: '#94A3B8' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#475569' }}>
-              {dynamicInsights.length === 0 ? 'No repeated patterns yet' : 'No patterns match this filter'}
+              {dynamicInsights.length === 0
+                ? 'No repeated patterns yet'
+                : 'No patterns match this filter'}
             </div>
             <p style={{ fontSize: '12.5px', margin: '4px 0 0 0' }}>
-              {dynamicInsights.length === 0 ? 'Log a food on at least two dated days before HealthChain compares it with symptom entries.' : 'Try a different search or choose “All”.'}
+              {dynamicInsights.length === 0
+                ? 'Log a food on at least two dated days before HealthChain compares it with symptom entries.'
+                : 'Try a different search or choose “All”.'}
             </p>
           </div>
         ) : (
@@ -461,11 +499,21 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                     >
                       {`${item.symptomName} was recorded on ${item.matchingDays} of ${item.totalDays} reviewed days with `}
                       <strong style={{ color: '#0F172A', fontWeight: 800 }}>{item.foodName}</strong>
-                      . Timing and cause are unknown. {item.totalDays < 5 || (item.nonExposureTotalDays || 0) < 5 ? 'Too few reviewed days to compare consistently.' : 'Descriptive counts only; this does not establish an association or cause.'}
+                      . Timing and cause are unknown.{' '}
+                      {item.totalDays < 5 || (item.nonExposureTotalDays || 0) < 5
+                        ? 'Too few reviewed days to compare consistently.'
+                        : 'Descriptive counts only; this does not establish an association or cause.'}
                     </div>
 
                     {/* Day Match Ratio Badge */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       {item.fromDiary ? (
                         <>
                           <span
@@ -478,11 +526,13 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                               gap: '5px',
                             }}
                           >
-                            <span>📊</span> Symptom recorded on {item.matchingDays} of {item.totalDays} reviewed days with this food
+                            <span>📊</span> Symptom recorded on {item.matchingDays} of{' '}
+                            {item.totalDays} reviewed days with this food
                           </span>
                           {typeof item.nonExposurePercent === 'number' && (
                             <span style={{ fontSize: '11px', color: '#64748B' }}>
-                              and on {item.nonExposureMatchingDays} of {item.nonExposureTotalDays} reviewed days with food logs but no matching food name
+                              and on {item.nonExposureMatchingDays} of {item.nonExposureTotalDays}{' '}
+                              reviewed days with food logs but no matching food name
                             </span>
                           )}
                           <span
@@ -578,7 +628,11 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <ShieldAlert size={12} />
-                          <span>{item.hasReferenceExplanation ? `Food component: ${item.clinicalCompound}` : 'Pattern: recorded food and symptom dates'}</span>
+                          <span>
+                            {item.hasReferenceExplanation
+                              ? `Food component: ${item.clinicalCompound}`
+                              : 'Pattern: recorded food and symptom dates'}
+                          </span>
                         </div>
                         <div
                           style={{
@@ -595,51 +649,64 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <Clock size={12} />
-                          <span>{item.hasReferenceExplanation ? 'Reference window' : 'Timing'}: {item.incubationWindow}</span>
+                          <span>
+                            {item.hasReferenceExplanation ? 'Reference window' : 'Timing'}:{' '}
+                            {item.incubationWindow}
+                          </span>
                         </div>
                       </div>
 
                       {/* Educational explanation, never presented as a personal mechanism */}
-                      {item.hasReferenceExplanation && <div
-                        style={{
-                          fontSize: '12.5px',
-                          color: '#334155',
-                          lineHeight: 1.45,
-                          background: '#F8FAFC',
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: '1px solid #E2E8F0',
-                        }}
-                      >
-                        <strong style={{ color: '#0F172A', display: 'block', marginBottom: '2px' }}>
-                          Possible explanation to discuss:
-                        </strong>
-                        {item.biochemicalMechanism}
-                      </div>}
+                      {item.hasReferenceExplanation && (
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: '#334155',
+                            lineHeight: 1.45,
+                            background: '#F8FAFC',
+                            padding: '10px 12px',
+                            borderRadius: '12px',
+                            border: '1px solid #E2E8F0',
+                          }}
+                        >
+                          <strong
+                            style={{ color: '#0F172A', display: 'block', marginBottom: '2px' }}
+                          >
+                            Possible explanation to discuss:
+                          </strong>
+                          {item.biochemicalMechanism}
+                        </div>
+                      )}
 
                       {/* Optional food substitution */}
-                      {item.hasReferenceExplanation && <div
-                        style={{
-                          fontSize: '12px',
-                          color: '#065F46',
-                          background: '#ECFDF5',
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: '1px solid #A7F3D0',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        <strong style={{ color: '#047857', display: 'block', marginBottom: '2px' }}>
-                          🌱 Optional substitute idea:
-                        </strong>
-                        Replace with <strong>{item.safeSwap.swapTo}</strong>.
-                        <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
-                          {item.safeSwap.culinaryNote}
+                      {item.hasReferenceExplanation && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#065F46',
+                            background: '#ECFDF5',
+                            padding: '10px 12px',
+                            borderRadius: '12px',
+                            border: '1px solid #A7F3D0',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          <strong
+                            style={{ color: '#047857', display: 'block', marginBottom: '2px' }}
+                          >
+                            🌱 Optional substitute idea:
+                          </strong>
+                          Replace with <strong>{item.safeSwap.swapTo}</strong>.
+                          <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
+                            {item.safeSwap.culinaryNote}
+                          </div>
                         </div>
-                      </div>}
+                      )}
 
                       {/* Action Buttons Row */}
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                      <div
+                        style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}
+                      >
                         <button
                           type="button"
                           onClick={handleOpenRecord}

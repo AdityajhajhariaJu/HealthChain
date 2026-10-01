@@ -15,17 +15,6 @@ export interface MergeResult {
   hasChanges: boolean;
 }
 
-function stableId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 /**
  * Merges two versions of a case (e.g. local offline edits vs remote server state)
  * without data loss. Independent additions are unioned by stable ID.
@@ -49,10 +38,24 @@ export function mergeCaseItems(local: CaseItem, remote: CaseItem): MergeResult {
   }
 
   // 1. Events Merge (Observations, notes, updates)
-  const mergedEvents = mergeEvents(local.events || [], remote.events || [], local, remote, conflicts, now);
+  const mergedEvents = mergeEvents(
+    local.events || [],
+    remote.events || [],
+    local,
+    remote,
+    conflicts,
+    now
+  );
 
   // 2. Questions Merge
-  const mergedQuestions = mergeQuestions(local.questions || [], remote.questions || [], local, remote, conflicts, now);
+  const mergedQuestions = mergeQuestions(
+    local.questions || [],
+    remote.questions || [],
+    local,
+    remote,
+    conflicts,
+    now
+  );
 
   // 3. Medical Records & Passages Merge
   const localRecords = local.medicalRecords || (local as any).records || [];
@@ -111,9 +114,12 @@ export function mergeCaseItems(local: CaseItem, remote: CaseItem): MergeResult {
     title,
     mode: local.mode || remote.mode,
     status: local.status === 'archived' || remote.status === 'archived' ? 'archived' : 'active',
-    createdAt: local.createdAt && remote.createdAt
-      ? new Date(local.createdAt).getTime() < new Date(remote.createdAt).getTime() ? local.createdAt : remote.createdAt
-      : local.createdAt || remote.createdAt || now,
+    createdAt:
+      local.createdAt && remote.createdAt
+        ? new Date(local.createdAt).getTime() < new Date(remote.createdAt).getTime()
+          ? local.createdAt
+          : remote.createdAt
+        : local.createdAt || remote.createdAt || now,
     updatedAt: now,
     revision: nextRevision,
     deletedAt: local.deletedAt || remote.deletedAt,
@@ -124,7 +130,10 @@ export function mergeCaseItems(local: CaseItem, remote: CaseItem): MergeResult {
     reviews: mergedReviews,
     actions: mergedActions,
     differentials: local.differentials?.length ? local.differentials : remote.differentials,
-    currentSummary: local.currentSummary && Object.keys(local.currentSummary).length ? local.currentSummary : remote.currentSummary,
+    currentSummary:
+      local.currentSummary && Object.keys(local.currentSummary).length
+        ? local.currentSummary
+        : remote.currentSummary,
     conflicts: Array.from(conflictMap.values()),
   };
 
@@ -177,8 +186,9 @@ function mergeEvents(
   }
 
   // Sort descending by date
-  return Array.from(map.values())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 }
 
 function mergeQuestions(
@@ -211,7 +221,12 @@ function mergeQuestions(
           id: `conflict-question-${q.id}-${Date.now()}`,
           entityType: 'question',
           entityId: q.id,
-          field: statusDiverged && answerDiverged ? 'status_and_outcome' : statusDiverged ? 'status' : 'outcomeNote',
+          field:
+            statusDiverged && answerDiverged
+              ? 'status_and_outcome'
+              : statusDiverged
+                ? 'status'
+                : 'outcomeNote',
           localValue: { status: existing.status, outcomeNote: existing.outcomeNote },
           remoteValue: { status: q.status, outcomeNote: q.outcomeNote },
           localTimestamp: localCase.updatedAt,
@@ -282,7 +297,10 @@ function mergeMedicalRecords(local: MedicalRecord[], remote: MedicalRecord[]): M
         passages: Array.from(passageMap.values()),
         auditTrail: Array.from(auditMap.values()),
         extractionStatus,
-        findings: existing.extractionStatus === 'user_corrected' ? existing.findings : r.findings || existing.findings,
+        findings:
+          existing.extractionStatus === 'user_corrected'
+            ? existing.findings
+            : r.findings || existing.findings,
       });
     }
   }
@@ -328,8 +346,9 @@ function mergeReviews(local: ReviewSnapshot[], remote: ReviewSnapshot[]): Review
   for (const rev of local) if (rev?.id) map.set(rev.id, rev);
   for (const rev of remote) if (rev?.id && !map.has(rev.id)) map.set(rev.id, rev);
 
-  return Array.from(map.values())
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }
 
 function mergeActions(local: CaseAction[], remote: CaseAction[]): CaseAction[] {

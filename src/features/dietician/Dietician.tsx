@@ -5,10 +5,12 @@ import { planningConstraintSnapshot } from '../../../shared/health-source-freshn
 import { FeatureLoading } from '../../components/ui/FeatureLoading';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
-const ARGroceryLens = React.lazy(() => import('../../components/ui/ARGroceryLens').then(m => ({ default: m.ARGroceryLens })));
+const ARGroceryLens = React.lazy(() =>
+  import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))
+);
 
 export function formatLocalDate(date: Date): string {
-  const validDate = (date instanceof Date && !Number.isNaN(date.getTime())) ? date : new Date();
+  const validDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
   const year = validDate.getFullYear();
   const month = String(validDate.getMonth() + 1).padStart(2, '0');
   const day = String(validDate.getDate()).padStart(2, '0');
@@ -20,11 +22,16 @@ export function parseLocalDate(dateStr?: string): Date {
     return new Date();
   }
   const parts = dateStr.split('-').map(Number);
-  if (parts.length < 3 || Number.isNaN(parts[0]) || Number.isNaN(parts[1]) || Number.isNaN(parts[2])) {
+  if (
+    parts.length < 3 ||
+    Number.isNaN(parts[0]) ||
+    Number.isNaN(parts[1]) ||
+    Number.isNaN(parts[2])
+  ) {
     return new Date();
   }
   const [year, month, day] = parts;
-  return new Date(year, month - 1, day, 12, 0, 0); 
+  return new Date(year, month - 1, day, 12, 0, 0);
 }
 
 export function shiftDateString(dateStr: string, deltaDays: number): string {
@@ -118,7 +125,6 @@ import {
   validateGeneratedMealPlan,
 } from '../../services/dietPlanValidation';
 import { targetFields } from '../../services/dietTargets';
-import { FeatureId } from '../../services/FeatureArchitectureContract';
 import {
   analyzeFoodEntry,
   clearPendingDietPlanRequest,
@@ -174,7 +180,18 @@ export const ACTIVITY_LEVELS = [
 ];
 export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
 export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
-export const CUISINES = ['Local', 'North Indian', 'South Indian', 'Mediterranean', 'Middle Eastern', 'Mexican', 'East Asian', 'Western', 'Keto', 'Any'];
+export const CUISINES = [
+  'Local',
+  'North Indian',
+  'South Indian',
+  'Mediterranean',
+  'Middle Eastern',
+  'Mexican',
+  'East Asian',
+  'Western',
+  'Keto',
+  'Any',
+];
 export const MEAL_SCHEDULES = [
   '3 Meals',
   '3 Meals + 1 Snack',
@@ -183,10 +200,46 @@ export const MEAL_SCHEDULES = [
 ];
 
 export const QUICK_PRESETS = [
-  { name: 'Oats with almonds and berries', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥣', type: 'Breakfast' },
-  { name: 'Dal with roti and salad', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥗', type: 'Lunch' },
-  { name: 'Avocado toast with eggs', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🥑', type: 'Breakfast' },
-  { name: 'Moong dal khichdi with curd', portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🍲', type: 'Dinner' },
+  {
+    name: 'Oats with almonds and berries',
+    portion: 'Amount not recorded',
+    calories: null,
+    protein: null,
+    carbs: null,
+    fat: null,
+    emoji: '🥣',
+    type: 'Breakfast',
+  },
+  {
+    name: 'Dal with roti and salad',
+    portion: 'Amount not recorded',
+    calories: null,
+    protein: null,
+    carbs: null,
+    fat: null,
+    emoji: '🥗',
+    type: 'Lunch',
+  },
+  {
+    name: 'Avocado toast with eggs',
+    portion: 'Amount not recorded',
+    calories: null,
+    protein: null,
+    carbs: null,
+    fat: null,
+    emoji: '🥑',
+    type: 'Breakfast',
+  },
+  {
+    name: 'Moong dal khichdi with curd',
+    portion: 'Amount not recorded',
+    calories: null,
+    protein: null,
+    carbs: null,
+    fat: null,
+    emoji: '🍲',
+    type: 'Dinner',
+  },
 ];
 
 export const PANTRY_STAPLES = [
@@ -213,7 +266,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gp4', name: 'Fresh Lemons & Mint Leaves', checked: false },
       { id: 'gp5', name: 'Bell Peppers / Shimla Mirch (Tri-color)', checked: false },
       { id: 'gp6', name: 'Fresh Ginger Root & Garlic bulbs', checked: false },
-    ]
+    ],
   },
   {
     category: 'Whole Grains & Complex Legumes',
@@ -224,7 +277,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gg3', name: 'Organic White / Tricolor Quinoa (500g)', checked: false },
       { id: 'gg4', name: 'Whole Wheat / Multigrain Atta', checked: false },
       { id: 'gg5', name: 'Brown Basmati Rice / Millets', checked: false },
-    ]
+    ],
   },
   {
     category: 'Clean Proteins & Probiotics',
@@ -234,7 +287,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gpr2', name: 'Free-Range Eggs (Pack of 12)', checked: false },
       { id: 'gpr3', name: 'Probiotic Set Greek Dahi / Curd (800g)', checked: false },
       { id: 'gpr4', name: 'Whey Protein Isolate or Plant Blend', checked: false },
-    ]
+    ],
   },
   {
     category: 'Cold-Pressed Fats, Seeds & Spices',
@@ -246,8 +299,8 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gf4', name: 'Pure Desi Cow Ghee (A2)', checked: false },
       { id: 'gf5', name: 'Organic Haldi (Turmeric) & Cumin (Jeera)', checked: false },
       { id: 'gf6', name: 'Himalayan Pink Mineral Salt', checked: false },
-    ]
-  }
+    ],
+  },
 ];
 
 function calculateTargets(p: any) {
@@ -255,7 +308,11 @@ function calculateTargets(p: any) {
 }
 
 function withFoodLocation(p: any) {
-  return { ...p, ...resolveFoodLocation(p, getCoreProfile()?.demographics), ...calculateTargets(p) };
+  return {
+    ...p,
+    ...resolveFoodLocation(p, getCoreProfile()?.demographics),
+    ...calculateTargets(p),
+  };
 }
 
 export function getInitialDietProfile(): any {
@@ -272,8 +329,17 @@ export function getInitialDietProfile(): any {
   return null;
 }
 
-export const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
-export type DietTab = typeof validTabs[number];
+export const validTabs = [
+  'dashboard',
+  'mealplan',
+  'sensitivities',
+  'calendar',
+  'insights',
+  'grocery',
+  'guardrails',
+  'longevity',
+] as const;
+export type DietTab = (typeof validTabs)[number];
 
 export const resolveTabKey = (raw?: string | null): DietTab => {
   if (!raw) return 'dashboard';
@@ -297,12 +363,21 @@ export default function Dietician() {
 
   const searchTab = searchParams.get('tab');
   const stateTab = (location.state as { tab?: string } | null)?.tab;
-  const initialTab: DietTab = searchTab ? resolveTabKey(searchTab) : (stateTab ? resolveTabKey(stateTab) : 'dashboard');
+  const initialTab: DietTab = searchTab
+    ? resolveTabKey(searchTab)
+    : stateTab
+      ? resolveTabKey(stateTab)
+      : 'dashboard';
   const [activeTab, setActiveTabState] = useState<DietTab>(initialTab);
   const [isEliminationModalOpen, setIsEliminationModalOpen] = useState<boolean>(() => {
     const rawSearch = searchTab?.trim().toLowerCase();
     const rawState = stateTab?.trim().toLowerCase();
-    return rawSearch === 'elimination' || rawSearch === 'elimination-suite' || rawState === 'elimination' || rawState === 'elimination-suite';
+    return (
+      rawSearch === 'elimination' ||
+      rawSearch === 'elimination-suite' ||
+      rawState === 'elimination' ||
+      rawState === 'elimination-suite'
+    );
   });
 
   const setActiveTab = (nextTab: DietTab) => {
@@ -336,8 +411,6 @@ export default function Dietician() {
   }, [searchParams]);
   const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
   const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
-  const returnTo = (location.state as any)?.returnTo || searchParams.get('returnTo');
-  const returnLabel = (location.state as any)?.returnLabel || searchParams.get('returnLabel');
 
   const [profile, setProfile] = useState<any>(() => getInitialDietProfile());
   const [foodLogs, setFoodLogs] = useState<any>({});
@@ -365,13 +438,18 @@ export default function Dietician() {
     carbs: 0,
     fat: 0,
     description: '',
-    ingredientsText: '', stepsText: '', prepMinutes: 0,
+    ingredientsText: '',
+    stepsText: '',
+    prepMinutes: 0,
   });
-  const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
+  const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(
+    null
+  );
   const [customSwapName, setCustomSwapName] = useState<string>('');
   const [customSwapRationale, setCustomSwapRationale] = useState<string>('');
   const [showStopPlanModal, setShowStopPlanModal] = useState<boolean>(false);
-  const [selectedStopReason, setSelectedStopReason] = useState<PlanStopReason>('digestive_discomfort');
+  const [selectedStopReason, setSelectedStopReason] =
+    useState<PlanStopReason>('digestive_discomfort');
   const [stopReasonDetails, setStopReasonDetails] = useState<string>('');
   const [showArchivedPlansModal, setShowArchivedPlansModal] = useState<boolean>(false);
   const [guardrails, setGuardrails] = useState<any[]>([]);
@@ -379,9 +457,8 @@ export default function Dietician() {
 
   const [isGeneratingGrocery, setIsGeneratingGrocery] = useState(false);
 
-
   const [advice, setAdvice] = useState<any>(null);
-  const [isFetchingAdvice, setIsFetchingAdvice] = useState(false);
+
   const [groceryList, setGroceryList] = useState<any[]>([]);
   const [copiedGrocery, setCopiedGrocery] = useState(false);
   const [selectedPlanDay, setSelectedPlanDay] = useState<number>(1);
@@ -391,7 +468,9 @@ export default function Dietician() {
   const [showARLens, setShowARLens] = useState(false);
   const [foodInput, setFoodInput] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('Breakfast');
-  const [mealLatency, setMealLatency] = useState<'<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'>('<30m Acute');
+  const [mealLatency, setMealLatency] = useState<
+    '<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'
+  >('<30m Acute');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planGenerationError, setPlanGenerationError] = useState('');
@@ -399,35 +478,73 @@ export default function Dietician() {
   const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
   const [everydayPanel, setEverydayPanel] = useState('Meals');
   const [mealDetails, setMealDetails] = useState(emptyMealDetails);
-  const [editNutrientsConfirmed,setEditNutrientsConfirmed]=useState(false);
-  const [confirmPlanned,setConfirmPlanned]=useState<{day:number;meal:MealPlanItem}|null>(null);
-  const [correctionDate,setCorrectionDate]=useState(currentDate);
-  const [correctionDetails,setCorrectionDetails]=useState(emptyMealDetails);
-  const [undoMeal,setUndoMeal]=useState<any>(null);
+  const [editNutrientsConfirmed, setEditNutrientsConfirmed] = useState(false);
+  const [confirmPlanned, setConfirmPlanned] = useState<{ day: number; meal: MealPlanItem } | null>(
+    null
+  );
+  const [correctionDate, setCorrectionDate] = useState(currentDate);
+  const [correctionDetails, setCorrectionDetails] = useState(emptyMealDetails);
+  const [undoMeal, setUndoMeal] = useState<any>(null);
   const [everydayState, setEverydayState] = useState(getDietEveryday);
-  const [activeFoodScope,setActiveFoodScope]=useState(()=>`${getProfileKey()}:${getCoreProfile()?.id}`);
-  useEffect(() => { const refresh = () => {setEverydayState(getDietEveryday());setActiveFoodScope(`${getProfileKey()}:${getCoreProfile()?.id}`);}; window.addEventListener('hc_profile_updated', refresh); return () => window.removeEventListener('hc_profile_updated', refresh); }, []);
+  const [activeFoodScope, setActiveFoodScope] = useState(
+    () => `${getProfileKey()}:${getCoreProfile()?.id}`
+  );
+  useEffect(() => {
+    const refresh = () => {
+      setEverydayState(getDietEveryday());
+      setActiveFoodScope(`${getProfileKey()}:${getCoreProfile()?.id}`);
+    };
+    window.addEventListener('hc_profile_updated', refresh);
+    return () => window.removeEventListener('hc_profile_updated', refresh);
+  }, []);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [editingDiaryMeal, setEditingDiaryMeal] = useState<any>(null);
-  const [diaryCorrection, setDiaryCorrection] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', portionGrams: '' });
-  const groceryOptions = useMemo(() => ({ householdSize: normalizeDietPreferences(profile?.practical).householdSize,
-    pantry: profile?.practical?.usePantry ? everydayState.pantry : [],
-    selectedMeals: everydayState.selectedPlanId === mealPlan?.id ? everydayState.selectedMeals : undefined }), [profile, everydayState, mealPlan?.id]);
-  const displayedGroceryList = useMemo(() => projectDietGroceries(mealPlan, groceryList, groceryOptions), [mealPlan, groceryList, groceryOptions]);
+  const [diaryCorrection, setDiaryCorrection] = useState({
+    name: '',
+    calories: '',
+    protein: '',
+    carbs: '',
+    fat: '',
+    portionGrams: '',
+  });
+  const groceryOptions = useMemo(
+    () => ({
+      householdSize: normalizeDietPreferences(profile?.practical).householdSize,
+      pantry: profile?.practical?.usePantry ? everydayState.pantry : [],
+      selectedMeals:
+        everydayState.selectedPlanId === mealPlan?.id ? everydayState.selectedMeals : undefined,
+    }),
+    [profile, everydayState, mealPlan?.id]
+  );
+  const displayedGroceryList = useMemo(
+    () => projectDietGroceries(mealPlan, groceryList, groceryOptions),
+    [mealPlan, groceryList, groceryOptions]
+  );
 
   // Hydrate diet state
   useEffect(() => {
     let cancelled = false;
-    setProfile(getInitialDietProfile());setMealPlan(null);setArchivedPlans([]);setFoodLogs({});setGroceryList([]);setGuardrails([]);setAdvice(null);
-    setShowSavedMealsModal(false);setEditingDiaryMeal(null);setConfirmPlanned(null);setUndoMeal(null);setIsLoggingFood(false);
+    setProfile(getInitialDietProfile());
+    setMealPlan(null);
+    setArchivedPlans([]);
+    setFoodLogs({});
+    setGroceryList([]);
+    setGuardrails([]);
+    setAdvice(null);
+    setShowSavedMealsModal(false);
+    setEditingDiaryMeal(null);
+    setConfirmPlanned(null);
+    setUndoMeal(null);
+    setIsLoggingFood(false);
     const load = async () => {
       try {
         const coreProfile = getCoreProfile();
         if (coreProfile?.dietResetAt && !coreProfile?.dietProfile) return;
         if (coreProfile?.dietician) {
           const nested = coreProfile.dietician;
-          const flat = (key: string, fallback: any) => Object.prototype.hasOwnProperty.call(coreProfile, key) ? coreProfile[key] : fallback;
+          const flat = (key: string, fallback: any) =>
+            Object.prototype.hasOwnProperty.call(coreProfile, key) ? coreProfile[key] : fallback;
           const p = flat('dietProfile', nested.profile);
           const fl = flat('dietFoodLogs', nested.foodLogs);
           const h = flat('dietHydration', nested.hydration);
@@ -438,9 +555,12 @@ export default function Dietician() {
           if (p) setProfile(withFoodLocation(p));
           if (fl) setFoodLogs(fl);
           if (h) setHydration(h);
-          if (mp) setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
+          if (mp)
+            setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
           if (coreProfile?.dietArchivedPlans && Array.isArray(coreProfile.dietArchivedPlans)) {
-            setArchivedPlans(coreProfile.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
+            setArchivedPlans(
+              coreProfile.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p))
+            );
           }
           if (a) setAdvice(a);
           if (gl) setGroceryList(gl);
@@ -449,40 +569,54 @@ export default function Dietician() {
         }
         const unified = getCoreProfile() || {};
         const profileKey = getProfileKey();
-        
+
         try {
           if (localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'))) {
-             unified.dietProfile = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) || '{}');
-             unified.dietFoodLogs = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}');
-             unified.dietHydration = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration')) || '{}');
-             unified.dietMealPlan = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan')) || '{}');
-             unified.dietAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-             unified.dietGrocery = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list')) || '{}');
-             
-             updateProfileFeatureData('dietProfile', unified.dietProfile);
-             updateProfileFeatureData('dietFoodLogs', unified.dietFoodLogs);
-             updateProfileFeatureData('dietHydration', unified.dietHydration);
-             updateProfileFeatureData('dietMealPlan', unified.dietMealPlan);
-             updateProfileFeatureData('dietAdvice', unified.dietAdvice);
-             updateProfileFeatureData('dietGrocery', unified.dietGrocery);
-             
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
+            unified.dietProfile = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) ||
+                '{}'
+            );
+            unified.dietFoodLogs = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}'
+            );
+            unified.dietHydration = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration')) || '{}'
+            );
+            unified.dietMealPlan = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan')) || '{}'
+            );
+            unified.dietAdvice = localStorage.getItem(
+              profileKey.replace('hc_unified_profile', 'hc_diet_advice')
+            );
+            unified.dietGrocery = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list')) ||
+                '{}'
+            );
+
+            updateProfileFeatureData('dietProfile', unified.dietProfile);
+            updateProfileFeatureData('dietFoodLogs', unified.dietFoodLogs);
+            updateProfileFeatureData('dietHydration', unified.dietHydration);
+            updateProfileFeatureData('dietMealPlan', unified.dietMealPlan);
+            updateProfileFeatureData('dietAdvice', unified.dietAdvice);
+            updateProfileFeatureData('dietGrocery', unified.dietGrocery);
+
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
           }
         } catch (migErr) {
           console.error('Diet migration error, skipping corrupted legacy entries:', migErr);
         }
-  
-          const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
-          const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;
-          const savedHydration = unified.dietHydration ? JSON.stringify(unified.dietHydration) : null;
-          const savedPlan = unified.dietMealPlan ? JSON.stringify(unified.dietMealPlan) : null;
-          const savedAdvice = unified.dietAdvice || null;
-          const savedGrocery = unified.dietGrocery ? JSON.stringify(unified.dietGrocery) : null;
+
+        const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
+        const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;
+        const savedHydration = unified.dietHydration ? JSON.stringify(unified.dietHydration) : null;
+        const savedPlan = unified.dietMealPlan ? JSON.stringify(unified.dietMealPlan) : null;
+        const savedAdvice = unified.dietAdvice || null;
+        const savedGrocery = unified.dietGrocery ? JSON.stringify(unified.dietGrocery) : null;
 
         if (savedProfile) {
           try {
@@ -493,30 +627,56 @@ export default function Dietician() {
           }
         }
         if (savedLogs) {
-          try { setFoodLogs(JSON.parse(savedLogs)); } catch (e) {}
+          try {
+            setFoodLogs(JSON.parse(savedLogs));
+          } catch (e) {}
         }
         if (savedHydration) {
-          try { setHydration(JSON.parse(savedHydration)); } catch (e) {}
+          try {
+            setHydration(JSON.parse(savedHydration));
+          } catch (e) {}
         }
         if (savedPlan) {
-          try { setMealPlan(normalizeFullMealPlan(JSON.parse(savedPlan), { caseId: activeCaseScope.caseId || undefined })); } catch (e) {}
+          try {
+            setMealPlan(
+              normalizeFullMealPlan(JSON.parse(savedPlan), {
+                caseId: activeCaseScope.caseId || undefined,
+              })
+            );
+          } catch (e) {}
         }
         if (unified?.dietArchivedPlans && Array.isArray(unified.dietArchivedPlans)) {
           setArchivedPlans(unified.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
         }
         if (savedAdvice) setAdvice(savedAdvice);
         if (savedGrocery) {
-          try { setGroceryList(JSON.parse(savedGrocery)); } catch (e) {}
+          try {
+            setGroceryList(JSON.parse(savedGrocery));
+          } catch (e) {}
         }
 
         await syncHealthMemoryFromSupabase();
-        if (cancelled || unified.dietResetAt || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
+        if (
+          cancelled ||
+          unified.dietResetAt ||
+          savedProfile ||
+          savedLogs ||
+          savedHydration ||
+          savedPlan ||
+          savedAdvice
+        )
+          return;
         const snapshot = getLatestHealthMemory('diet', 'dietician')?.payload?.state;
         if (!snapshot) return;
         if (snapshot.profile) setProfile(withFoodLocation(snapshot.profile));
         if (snapshot.foodLogs) setFoodLogs(snapshot.foodLogs);
         if (snapshot.hydration) setHydration(snapshot.hydration);
-        if (snapshot.mealPlan) setMealPlan(normalizeFullMealPlan(snapshot.mealPlan, { caseId: activeCaseScope.caseId || undefined }));
+        if (snapshot.mealPlan)
+          setMealPlan(
+            normalizeFullMealPlan(snapshot.mealPlan, {
+              caseId: activeCaseScope.caseId || undefined,
+            })
+          );
         if (snapshot.archivedPlans && Array.isArray(snapshot.archivedPlans)) {
           setArchivedPlans(snapshot.archivedPlans.map((p: any) => normalizeFullMealPlan(p)));
         }
@@ -527,28 +687,43 @@ export default function Dietician() {
       }
     };
     load().finally(() => setIsHydrated(true));
-    return () => { 
-      cancelled = true; 
+    return () => {
+      cancelled = true;
     };
-  }, [activeCaseScope.caseId,activeFoodScope]);
+  }, [activeCaseScope.caseId, activeFoodScope]);
 
   useEffect(() => {
     if (!isHydrated) return;
     let active = true;
     const refreshFoodLogs = async () => {
       const latest = await listMealDiary();
-      if (active) setFoodLogs((previous: any) => JSON.stringify(previous) === JSON.stringify(latest) ? previous : latest);
+      if (active)
+        setFoodLogs((previous: any) =>
+          JSON.stringify(previous) === JSON.stringify(latest) ? previous : latest
+        );
     };
     void refreshFoodLogs();
     void (async () => {
       const cloud = await loadObservationsFromCloud();
       if (!active) return;
-      if (cloud.status === 'loaded' || cloud.status === 'conflict' || cloud.status === 'local_only') {
+      if (
+        cloud.status === 'loaded' ||
+        cloud.status === 'conflict' ||
+        cloud.status === 'local_only'
+      ) {
         const migration = await migrateLegacyDietMeals();
-        if (migration.failed && active) toast.error('Diary migration needs attention', `${migration.failed} older meal record(s) could not be copied into the shared diary. Your older records remain available.`);
+        if (migration.failed && active)
+          toast.error(
+            'Diary migration needs attention',
+            `${migration.failed} older meal record(s) could not be copied into the shared diary. Your older records remain available.`
+          );
       }
       const retry = await retryFailedObservationQueues();
-      if (retry.remaining && active) toast.error('Diary sync needs attention', `${retry.remaining} saved record(s) could not be queued for cloud sync. Free device storage or reconnect, then reopen Diet.`);
+      if (retry.remaining && active)
+        toast.error(
+          'Diary sync needs attention',
+          `${retry.remaining} saved record(s) could not be queued for cloud sync. Free device storage or reconnect, then reopen Diet.`
+        );
       if (active) await refreshFoodLogs();
     })();
     window.addEventListener('hc_profile_updated', refreshFoodLogs);
@@ -560,15 +735,18 @@ export default function Dietician() {
       window.removeEventListener('storage', refreshFoodLogs);
       window.removeEventListener('hc_observations_updated', refreshFoodLogs);
     };
-  }, [isHydrated,activeFoodScope]);
+  }, [isHydrated, activeFoodScope]);
 
   // Record Health Memory snapshots
   useEffect(() => {
-    const refreshLocation = () => { setConstraintVersion(value => value + 1); setProfile((previous: any) => {
-      if (!previous) return previous;
-      const next = withFoodLocation(getCoreProfile()?.dietProfile || previous);
-      return JSON.stringify(previous)===JSON.stringify(next) ? previous : next;
-    }); };
+    const refreshLocation = () => {
+      setConstraintVersion((value) => value + 1);
+      setProfile((previous: any) => {
+        if (!previous) return previous;
+        const next = withFoodLocation(getCoreProfile()?.dietProfile || previous);
+        return JSON.stringify(previous) === JSON.stringify(next) ? previous : next;
+      });
+    };
     window.addEventListener('hc_profile_updated', refreshLocation);
     return () => window.removeEventListener('hc_profile_updated', refreshLocation);
   }, []);
@@ -585,8 +763,20 @@ export default function Dietician() {
     })();
     const dailyFood = foodLogs[currentDate] || [];
     recordHealthMemory({
-      kind: 'diet', source: 'dietician', title: `Diet log: ${currentDate}`, occurredAt: safeOccurredAt,
-      payload: { profile: { goal: profile.goal, targetCalories: profile.targetCalories, targetProtein: profile.targetProtein }, food: dailyFood, hydration: hydration || {}, mealPlan: mealPlan || null },
+      kind: 'diet',
+      source: 'dietician',
+      title: `Diet log: ${currentDate}`,
+      occurredAt: safeOccurredAt,
+      payload: {
+        profile: {
+          goal: profile.goal,
+          targetCalories: profile.targetCalories,
+          targetProtein: profile.targetProtein,
+        },
+        food: dailyFood,
+        hydration: hydration || {},
+        mealPlan: mealPlan || null,
+      },
       dedupeKey: `diet-day:${currentDate}`,
     });
   }, [profile, foodLogs, hydration, mealPlan, currentDate]);
@@ -595,7 +785,9 @@ export default function Dietician() {
   const isMounted = useRef(true);
 
   useEffect(() => {
-    return () => { isMounted.current = false; };
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   // Keyboard dismissals for all interactive modals
@@ -617,9 +809,10 @@ export default function Dietician() {
   useEffect(() => {
     if (profile && !advice) {
       const cuisine = profile.cuisine || '';
-      const cuisineNote = cuisine && !cuisine.toLowerCase().includes('not specified')
-        ? ` Your ${cuisine} cuisine preference is saved.`
-        : '';
+      const cuisineNote =
+        cuisine && !cuisine.toLowerCase().includes('not specified')
+          ? ` Your ${cuisine} cuisine preference is saved.`
+          : '';
       const synthesizedAdvice = `These are editable food-planning estimates, not a condition-specific prescription.${cuisineNote} Check ingredients and labels against your own restrictions; discuss medical nutrition needs with a qualified clinician or dietitian.`;
       setAdvice(synthesizedAdvice);
       updateProfileFeatureData('dietAdvice', synthesizedAdvice);
@@ -627,25 +820,27 @@ export default function Dietician() {
   }, [profile, advice]);
 
   // Derived state for current day
-  const todayLogs = foodLogs[currentDate] || [];
-  const { consumedCalories, consumedProtein, consumedCarbs, consumedFat } = useMemo(() => {
-    return {
-      consumedCalories: todayLogs.reduce((sum: number, item: any) => sum + (item.calories || 0), 0),
-      consumedProtein: todayLogs.reduce((sum: number, item: any) => sum + (item.protein || 0), 0),
-      consumedCarbs: todayLogs.reduce((sum: number, item: any) => sum + (item.carbs || 0), 0),
-      consumedFat: todayLogs.reduce((sum: number, item: any) => sum + (item.fat || 0), 0)
-    };
-  }, [todayLogs]);
 
   // Dynamic Presets from Meal Plan
   const dynamicPresets = React.useMemo(() => {
-    const names = locationMealIdeas(effectiveFoodLocation(profile, currentDate).countryCode, profile?.cuisine).map(name => ({ name, portion: 'Amount not recorded', calories: null, protein: null, carbs: null, fat: null, emoji: '🍽️' }));
+    const names = locationMealIdeas(
+      effectiveFoodLocation(profile, currentDate).countryCode,
+      profile?.cuisine
+    ).map((name) => ({
+      name,
+      portion: 'Amount not recorded',
+      calories: null,
+      protein: null,
+      carbs: null,
+      fat: null,
+      emoji: '🍽️',
+    }));
     if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return names;
-    
+
     // Extract up to 6 unique meals from the generated plan
     const meals: any[] = [];
     const seen = new Set();
-    
+
     for (const day of mealPlan.plan) {
       if (!day.meals) continue;
       for (const meal of day.meals) {
@@ -659,31 +854,52 @@ export default function Dietician() {
             protein: meal.protein || 0,
             carbs: meal.carbs || 0,
             fat: meal.fat || 0,
-            emoji: (meal as any).emoji || (meal.type?.toLowerCase().includes('break') ? '🥣' : meal.type?.toLowerCase().includes('lunch') ? '🥗' : meal.type?.toLowerCase().includes('din') ? '🍲' : meal.type?.toLowerCase().includes('snack') ? '🥑' : '🍽️'),
-            type: meal.type || 'Meal'
+            emoji:
+              (meal as any).emoji ||
+              (meal.type?.toLowerCase().includes('break')
+                ? '🥣'
+                : meal.type?.toLowerCase().includes('lunch')
+                  ? '🥗'
+                  : meal.type?.toLowerCase().includes('din')
+                    ? '🍲'
+                    : meal.type?.toLowerCase().includes('snack')
+                      ? '🥑'
+                      : '🍽️'),
+            type: meal.type || 'Meal',
           });
         }
         if (meals.length >= 6) return meals;
       }
     }
-    
+
     return meals.length > 0 ? meals : names;
   }, [mealPlan, profile, currentDate]);
 
   const handleSaveProfile = async (p: any) => {
-    const fullProfile = { ...p, preferencesUpdatedAt:new Date().toISOString(), practical: normalizeDietPreferences(p.practical), ...normalizeFoodLocation(p), ...calculateTargets(p) };
+    const fullProfile = {
+      ...p,
+      preferencesUpdatedAt: new Date().toISOString(),
+      practical: normalizeDietPreferences(p.practical),
+      ...normalizeFoodLocation(p),
+      ...calculateTargets(p),
+    };
     const unified = getCoreProfile();
     if (!unified) {
       toast.error('Preferences not saved', 'Your profile could not be loaded. Please try again.');
       return;
     }
     await saveProfile({
-      ...unified, dietProfile: fullProfile, dietResetAt: null,
+      ...unified,
+      dietProfile: fullProfile,
+      dietResetAt: null,
       demographics: { ...unified.demographics, ...normalizeFoodLocation(fullProfile) },
       dietician: { ...(unified.dietician || {}), profile: fullProfile },
     });
     if (JSON.stringify(getCoreProfile()?.dietProfile) !== JSON.stringify(fullProfile)) {
-      toast.error('Preferences not saved', 'The profile update was not confirmed. Please try again.');
+      toast.error(
+        'Preferences not saved',
+        'The profile update was not confirmed. Please try again.'
+      );
       return false;
     }
     setProfile(fullProfile);
@@ -703,7 +919,15 @@ export default function Dietician() {
 
   if (!isHydrated && !profile) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', color: '#059669' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '300px',
+          color: '#059669',
+        }}
+      >
         <Loader2 className="spin" size={32} />
       </div>
     );
@@ -718,24 +942,54 @@ export default function Dietician() {
   const handleAddFood = async (estimate = false) => {
     if (isAnalyzingFood || !foodInput.trim()) return;
     setIsAnalyzingFood(true);
-    const scopeKey = getProfileKey(); const profileId = getCoreProfile()?.id;
+    const scopeKey = getProfileKey();
+    const profileId = getCoreProfile()?.id;
     try {
       const details = mealDetailsEntry(currentDate, mealDetails);
-      const analysis = estimate ? await analyzeFoodEntry(`${foodInput}${details.amountValue ? `; actual amount eaten: ${details.amountValue} ${details.amountUnit}` : ''}`) : null;
-      if (estimate && !analysis?.items?.length) throw new Error('Estimate unavailable. Save the meal name now, or try again.');
-      if (getProfileKey() !== scopeKey || getCoreProfile()?.id !== profileId) throw new Error('Profile changed. Reopen the food diary.');
-      const entry = mealEntryFromAnalysis(foodInput, analysis?.items || [], { type: selectedMealType, ...details });
-      const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'diet_diary' });
+      const analysis = estimate
+        ? await analyzeFoodEntry(
+            `${foodInput}${details.amountValue ? `; actual amount eaten: ${details.amountValue} ${details.amountUnit}` : ''}`
+          )
+        : null;
+      if (estimate && !analysis?.items?.length)
+        throw new Error('Estimate unavailable. Save the meal name now, or try again.');
+      if (getProfileKey() !== scopeKey || getCoreProfile()?.id !== profileId)
+        throw new Error('Profile changed. Reopen the food diary.');
+      const entry = mealEntryFromAnalysis(foodInput, analysis?.items || [], {
+        type: selectedMealType,
+        ...details,
+      });
+      const saved = await createMeal({
+        localDate: currentDate,
+        entry,
+        captureMethod: 'diet_diary',
+      });
       if (!saved.ok) throw new Error('Meal save was not confirmed. Check the date and try again.');
-      setFoodLogs(await listMealDiary()); setIsLoggingFood(false); setFoodInput(''); setMealDetails(emptyMealDetails());
+      setFoodLogs(await listMealDiary());
+      setIsLoggingFood(false);
+      setFoodInput('');
+      setMealDetails(emptyMealDetails());
       triggerHapticSuccess();
-      if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
-      else toast.success('Meal saved', estimate ? 'Nutrition is estimated; check the portion and ingredients.' : 'Meal recorded. Nutrition stays unknown until you add a source.');
-    } catch (error) { toast.error('Meal not saved', error instanceof Error ? error.message : 'Please try again.'); }
-    finally { if (isMounted.current) setIsAnalyzingFood(false); }
+      if (saved.sync === 'queue_failed')
+        toast.error(
+          'Sync needs attention',
+          'Meal saved on this device, but cloud sync could not be queued.'
+        );
+      else
+        toast.success(
+          'Meal saved',
+          estimate
+            ? 'Nutrition is estimated; check the portion and ingredients.'
+            : 'Meal recorded. Nutrition stays unknown until you add a source.'
+        );
+    } catch (error) {
+      toast.error('Meal not saved', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      if (isMounted.current) setIsAnalyzingFood(false);
+    }
   };
 
-  const handleAddPreset = async (preset: typeof QUICK_PRESETS[0]) => {
+  const handleAddPreset = async (preset: (typeof QUICK_PRESETS)[0]) => {
     triggerHapticLight();
     const entry = {
       name: preset.name,
@@ -758,8 +1012,15 @@ export default function Dietician() {
     setFoodLogs(await listMealDiary());
     setIsLoggingFood(false);
     awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${saved.observation.id}`);
-    if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
-    toast.success('Meal saved locally', `Added ${preset.name}. ${preset.calories == null ? 'Nutrition is unknown until the portion and ingredients are checked.' : 'Nutrients are estimates for the saved serving.'}`);
+    if (saved.sync === 'queue_failed')
+      toast.error(
+        'Sync needs attention',
+        'Meal saved on this device, but cloud sync could not be queued.'
+      );
+    toast.success(
+      'Meal saved locally',
+      `Added ${preset.name}. ${preset.calories == null ? 'Nutrition is unknown until the portion and ingredients are checked.' : 'Nutrients are estimates for the saved serving.'}`
+    );
     return true;
   };
 
@@ -772,88 +1033,197 @@ export default function Dietician() {
       return;
     }
     setFoodLogs(await listMealDiary());
-    setUndoMeal({ entry:removedItem,date:currentDate,scope:`${getProfileKey()}:${getCoreProfile()?.id}` });
-    if (deleted.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal removed on this device, but cloud sync could not be queued.');
-    toast.info('Meal removed locally', `"${removedItem?.name || 'Meal'}" removed from the diary and shared nutrition records.`);
+    setUndoMeal({
+      entry: removedItem,
+      date: currentDate,
+      scope: `${getProfileKey()}:${getCoreProfile()?.id}`,
+    });
+    if (deleted.sync === 'queue_failed')
+      toast.error(
+        'Sync needs attention',
+        'Meal removed on this device, but cloud sync could not be queued.'
+      );
+    toast.info(
+      'Meal removed locally',
+      `"${removedItem?.name || 'Meal'}" removed from the diary and shared nutrition records.`
+    );
   };
 
-  const handleConfirmPlannedMeal = async (day: number, meal: MealPlanItem) => { setConfirmPlanned({ day,meal }); };
-  const saveConfirmedPlanMeal = async (day:number,meal:MealPlanItem,eatingDate:string,ratio:number|null,details:any) => {
+  const handleConfirmPlannedMeal = async (day: number, meal: MealPlanItem) => {
+    setConfirmPlanned({ day, meal });
+  };
+  const saveConfirmedPlanMeal = async (
+    day: number,
+    meal: MealPlanItem,
+    eatingDate: string,
+    ratio: number | null,
+    details: any
+  ) => {
     if (!mealPlan) return false;
     const sourceRecordId = `plan:${mealPlan.id}:day:${day}:meal:${meal.id}:date:${eatingDate}`;
     if ((foodLogs[eatingDate] || []).some((item: any) => item.sourceRecordId === sourceRecordId)) {
-      toast.info('Already logged', 'This planned meal is already in the diary for the selected date.');
+      toast.info(
+        'Already logged',
+        'This planned meal is already in the diary for the selected date.'
+      );
       return false;
     }
     const known = !meal.macrosNeedReview && ratio !== null;
     const factor = ratio || 1;
-    const saved = await createMeal({ localDate: eatingDate, captureMethod: 'plan_confirmation', entry: {
-      id: sourceRecordId, name: meal.name, type: meal.type, ...details,
-      calories: known ? Math.round(meal.calories * factor) : null, protein: known ? Math.round(meal.protein * factor * 100)/100 : null,
-      carbs: known ? Math.round(meal.carbs * factor * 100)/100 : null, fat: known ? Math.round(meal.fat * factor * 100)/100 : null,
-      sourceId: `${mealPlan.id}:${day}:${meal.id}`, sourceVersion: mealPlan.updatedAt,
-      ingredients: ratio === null ? undefined : (meal.ingredients || []).map(item=>({...item,amount:item.amount*meal.servingMultiplier*factor})), steps:meal.steps,prepMinutes:meal.prepMinutes, portion: meal.portion || 'Amount not confirmed',
-    } });
+    const saved = await createMeal({
+      localDate: eatingDate,
+      captureMethod: 'plan_confirmation',
+      entry: {
+        id: sourceRecordId,
+        name: meal.name,
+        type: meal.type,
+        ...details,
+        calories: known ? Math.round(meal.calories * factor) : null,
+        protein: known ? Math.round(meal.protein * factor * 100) / 100 : null,
+        carbs: known ? Math.round(meal.carbs * factor * 100) / 100 : null,
+        fat: known ? Math.round(meal.fat * factor * 100) / 100 : null,
+        sourceId: `${mealPlan.id}:${day}:${meal.id}`,
+        sourceVersion: mealPlan.updatedAt,
+        ingredients:
+          ratio === null
+            ? undefined
+            : (meal.ingredients || []).map((item) => ({
+                ...item,
+                amount: item.amount * meal.servingMultiplier * factor,
+              })),
+        steps: meal.steps,
+        prepMinutes: meal.prepMinutes,
+        portion: meal.portion || 'Amount not confirmed',
+      },
+    });
     if (!saved.ok) {
       toast.error('Meal not saved', 'The planned meal could not be added to your diary.');
       return false;
     }
     setFoodLogs(await listMealDiary());
     setCurrentDate(eatingDate);
-    if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Meal saved on this device, but cloud sync could not be queued.');
-    else toast.success('Meal logged', `Recorded ${meal.name} as eaten. Nutrients remain estimates from the plan.`);
+    if (saved.sync === 'queue_failed')
+      toast.error(
+        'Sync needs attention',
+        'Meal saved on this device, but cloud sync could not be queued.'
+      );
+    else
+      toast.success(
+        'Meal logged',
+        `Recorded ${meal.name} as eaten. Nutrients remain estimates from the plan.`
+      );
     return true;
   };
 
   const handleStartDiaryCorrection = (meal: any) => {
     if (!meal.syncRecordId || !Number.isInteger(meal.revision)) {
-      toast.info('Older meal', 'This older record needs migration before it can be corrected here. You can still remove it.');
+      toast.info(
+        'Older meal',
+        'This older record needs migration before it can be corrected here. You can still remove it.'
+      );
       return;
     }
     setEditingDiaryMeal(meal);
     setCorrectionDate(meal.date || currentDate);
-    const when=meal.occurredAt?new Date(meal.occurredAt):null;
-    setCorrectionDetails({ ...emptyMealDetails(),time:when?`${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}`:'',approximate:meal.timePrecision==='approximate',amount:String(meal.amountValue||meal.portionGrams||''),unit:meal.amountUnit==='ml'?'ml':'g',note:meal.note||'',hunger:String(meal.hunger||''),fullness:String(meal.fullness||'') });
-    const value = (number: unknown) => typeof number === 'number' && Number.isFinite(number) ? String(number) : '';
-    setDiaryCorrection({ name: meal.name || '', calories: value(meal.calories), protein: value(meal.protein),
-      carbs: value(meal.carbs), fat: value(meal.fat), portionGrams: value(meal.portionGrams) });
+    const when = meal.occurredAt ? new Date(meal.occurredAt) : null;
+    setCorrectionDetails({
+      ...emptyMealDetails(),
+      time: when
+        ? `${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`
+        : '',
+      approximate: meal.timePrecision === 'approximate',
+      amount: String(meal.amountValue || meal.portionGrams || ''),
+      unit: meal.amountUnit === 'ml' ? 'ml' : 'g',
+      note: meal.note || '',
+      hunger: String(meal.hunger || ''),
+      fullness: String(meal.fullness || ''),
+    });
+    const value = (number: unknown) =>
+      typeof number === 'number' && Number.isFinite(number) ? String(number) : '';
+    setDiaryCorrection({
+      name: meal.name || '',
+      calories: value(meal.calories),
+      protein: value(meal.protein),
+      carbs: value(meal.carbs),
+      fat: value(meal.fat),
+      portionGrams: value(meal.portionGrams),
+    });
   };
 
   const handleSaveDiaryCorrection = async () => {
     if (!editingDiaryMeal) return;
-    const parse = (value: string) => value.trim() === '' ? null : Number(value);
+    const parse = (value: string) => (value.trim() === '' ? null : Number(value));
     const nutrients = {
-      calories: parse(diaryCorrection.calories), protein: parse(diaryCorrection.protein),
-      carbs: parse(diaryCorrection.carbs), fat: parse(diaryCorrection.fat),
+      calories: parse(diaryCorrection.calories),
+      protein: parse(diaryCorrection.protein),
+      carbs: parse(diaryCorrection.carbs),
+      fat: parse(diaryCorrection.fat),
     };
     const portion = parse(diaryCorrection.portionGrams);
-    if (!diaryCorrection.name.trim() || Object.values(nutrients).some((value) => value !== null && (!Number.isFinite(value) || value < 0)) ||
-        (portion !== null && (!Number.isFinite(portion) || portion <= 0 || portion > 5000))) {
-      toast.error('Check correction', 'Enter a meal name and nonnegative nutrients. Leave unknown values blank.');
+    if (
+      !diaryCorrection.name.trim() ||
+      Object.values(nutrients).some(
+        (value) => value !== null && (!Number.isFinite(value) || value < 0)
+      ) ||
+      (portion !== null && (!Number.isFinite(portion) || portion <= 0 || portion > 5000))
+    ) {
+      toast.error(
+        'Check correction',
+        'Enter a meal name and nonnegative nutrients. Leave unknown values blank.'
+      );
       return;
     }
     let timing;
-    try { timing=mealDetailsEntry(correctionDate,correctionDetails); } catch(error) { toast.error('Check correction',error instanceof Error?error.message:'Check the eating details.'); return; }
-    const changedNutrients=Object.entries(nutrients).some(([key,value])=>value!==(editingDiaryMeal[key]??null));
+    try {
+      timing = mealDetailsEntry(correctionDate, correctionDetails);
+    } catch (error) {
+      toast.error(
+        'Check correction',
+        error instanceof Error ? error.message : 'Check the eating details.'
+      );
+      return;
+    }
+    const changedNutrients = Object.entries(nutrients).some(
+      ([key, value]) => value !== (editingDiaryMeal[key] ?? null)
+    );
     const result = await correctMeal(editingDiaryMeal.syncRecordId, editingDiaryMeal.revision, {
-      name: diaryCorrection.name.trim(), ...(changedNutrients?{nutrients}:{}), ...timing, timePrecision:timing.timePrecision as any, localDate:correctionDate, amountValue:correctionDetails.amount?Number(correctionDetails.amount):null, amountUnit:correctionDetails.unit as any,
+      name: diaryCorrection.name.trim(),
+      ...(changedNutrients ? { nutrients } : {}),
+      ...timing,
+      timePrecision: timing.timePrecision as any,
+      localDate: correctionDate,
+      amountValue: correctionDetails.amount ? Number(correctionDetails.amount) : null,
+      amountUnit: correctionDetails.unit as any,
     });
     if (!result.ok) {
-      toast.error('Correction not saved', result.error === 'revision_conflict'
-        ? 'This meal changed elsewhere. Reopen it to review the newest version.' : 'The corrected meal could not be saved.');
+      toast.error(
+        'Correction not saved',
+        result.error === 'revision_conflict'
+          ? 'This meal changed elsewhere. Reopen it to review the newest version.'
+          : 'The corrected meal could not be saved.'
+      );
       setFoodLogs(await listMealDiary());
       return;
     }
     setEditingDiaryMeal(null);
     setFoodLogs(await listMealDiary());
-    if (result.sync === 'queue_failed') toast.error('Sync needs attention', 'Correction saved on this device, but cloud sync could not be queued.');
+    if (result.sync === 'queue_failed')
+      toast.error(
+        'Sync needs attention',
+        'Correction saved on this device, but cloud sync could not be queued.'
+      );
     else toast.success('Meal corrected', 'The diary now shows your corrected values.');
   };
 
   const saveDietAncillary = async (flatKey: string, nestedKey: string, value: any) => {
     const current = getCoreProfile();
     if (!current) return false;
-    await saveProfile({ ...current, [flatKey]: value,[`${flatKey}UpdatedAt`]:new Date().toISOString(), dietician: { ...(current.dietician || {}), [nestedKey]: value } });
+    await saveProfile({
+      ...current,
+      [flatKey]: value,
+      [`${flatKey}UpdatedAt`]: new Date().toISOString(),
+      dietician: { ...(current.dietician || {}), [nestedKey]: value },
+    });
     return JSON.stringify(getCoreProfile()?.[flatKey]) === JSON.stringify(value);
   };
 
@@ -864,12 +1234,13 @@ export default function Dietician() {
     const updated = { ...hydration, [currentDate]: next };
     setHydration(updated);
     if (delta > 0) {
-      toast.info('Hydration Logged', `${shared.currentMl}ml logged for today; your target is ${shared.targetMl}ml.`);
+      toast.info(
+        'Hydration Logged',
+        `${shared.currentMl}ml logged for today; your target is ${shared.targetMl}ml.`
+      );
     }
   };
 
-  
-  
   const handleGenerateGrocery = async () => {
     if (isGeneratingGrocery) return;
     if (!mealPlan) {
@@ -877,23 +1248,40 @@ export default function Dietician() {
       return;
     }
     const selected = groceryOptions.selectedMeals;
-    const shoppingMeals = mealPlan.days.flatMap(day => day.meals.filter(meal => !selected || selected.includes(`${day.day}:${meal.id}`)));
-    if (shoppingMeals.some(meal => !Array.isArray(meal.ingredients) || !meal.ingredients.length)) {
-      toast.error('Ingredients needed', 'This plan contains meals without measured ingredient drafts, so a shopping list cannot be calculated yet.');
+    const shoppingMeals = mealPlan.days.flatMap((day) =>
+      day.meals.filter((meal) => !selected || selected.includes(`${day.day}:${meal.id}`))
+    );
+    if (
+      shoppingMeals.some((meal) => !Array.isArray(meal.ingredients) || !meal.ingredients.length)
+    ) {
+      toast.error(
+        'Ingredients needed',
+        'This plan contains meals without measured ingredient drafts, so a shopping list cannot be calculated yet.'
+      );
       return;
     }
     setIsGeneratingGrocery(true);
     try {
       const next = projectDietGroceries(mealPlan, groceryList, groceryOptions);
       {
-        if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) {
-          toast.error('List not saved', 'The grocery list could not be confirmed in local storage.');
+        if (!(await saveDietAncillary('dietGrocery', 'groceryList', next))) {
+          toast.error(
+            'List not saved',
+            'The grocery list could not be confirmed in local storage.'
+          );
           return;
         }
         if (isMounted.current) setGroceryList(next);
         awardPoints(2, '🛒 Grocery List Created', 'lifestyle', `grocery_${Date.now()}`);
         triggerHapticSuccess();
-        toast.success('Shopping draft ready', next.length ? 'Quantities follow selected meals and saved pantry stock. Check ingredient names and amounts before buying.' : shoppingMeals.length ? 'Saved pantry quantities cover the selected measured ingredients.' : 'No plan meals are selected for shopping. Manual additions remain available.');
+        toast.success(
+          'Shopping draft ready',
+          next.length
+            ? 'Quantities follow selected meals and saved pantry stock. Check ingredient names and amounts before buying.'
+            : shoppingMeals.length
+              ? 'Saved pantry quantities cover the selected measured ingredients.'
+              : 'No plan meals are selected for shopping. Manual additions remain available.'
+        );
       }
     } catch (err) {
       console.error(err);
@@ -909,15 +1297,23 @@ export default function Dietician() {
     try {
       const data = await generateNutritionalGuardrails(profile);
       if (data && data.guardrails) {
-        if (!await saveDietAncillary('dietGuardrails', 'guardrails', data.guardrails)) {
+        if (!(await saveDietAncillary('dietGuardrails', 'guardrails', data.guardrails))) {
           toast.error('Planning notes not saved', 'Please try again.');
           return;
         }
         if (isMounted.current) setGuardrails(data.guardrails);
-        awardPoints(10, 'Created Food-Planning Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
+        awardPoints(
+          10,
+          'Created Food-Planning Guardrails',
+          'lifestyle',
+          `guardrails_${Date.now()}`
+        );
         triggerHapticSuccess();
       } else {
-        toast.error('Generation Failed', 'Could not synthesize medical guardrails. Please try again.');
+        toast.error(
+          'Generation Failed',
+          'Could not synthesize medical guardrails. Please try again.'
+        );
       }
     } catch (err) {
       console.error(err);
@@ -930,24 +1326,35 @@ export default function Dietician() {
   const handleGeneratePlan = async () => {
     if (isGeneratingPlan) return;
     if (!profile || !Number.isFinite(profile.targetCalories) || profile.targetCalories <= 0) {
-      toast.error('Target not available', 'Review the optional planning details. You can still log food without a calorie target.');
+      toast.error(
+        'Target not available',
+        'Review the optional planning details. You can still log food without a calorie target.'
+      );
       return;
     }
     if (hasUnverifiableDietConstraints(profile, getCoreProfile()?.allergies)) {
-      toast.error('Ingredient verification needed', 'Automatic plans cannot yet verify your saved allergies or dietary restrictions. You can still record and review meals.');
+      toast.error(
+        'Ingredient verification needed',
+        'Automatic plans cannot yet verify your saved allergies or dietary restrictions. You can still record and review meals.'
+      );
       return;
     }
     if (profile.cuisine === 'Keto' || profile.mealSchedule === 'Intermittent Fasting (16:8)') {
-      toast.error('Plan setup needs review', 'Automatic plans for ketogenic or fasting patterns need a separately reviewed pathway. You can still record meals and edit existing plans.');
+      toast.error(
+        'Plan setup needs review',
+        'Automatic plans for ketogenic or fasting patterns need a separately reviewed pathway. You can still record meals and edit existing plans.'
+      );
       return;
     }
     if (!(await getActiveSession())) {
-      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-        detail: { 
-          title: 'Authentication Required', 
-          message: 'You need to log in or sign up to generate a personalized meal plan.' 
-        } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('hc_require_auth', {
+          detail: {
+            title: 'Authentication Required',
+            message: 'You need to log in or sign up to generate a personalized meal plan.',
+          },
+        })
+      );
       return;
     }
 
@@ -957,98 +1364,220 @@ export default function Dietician() {
     // The authenticated gateway owns paid access, refunds and free-plan quota.
     // A stale browser trial counter must not block an available server quota.
 
-    const requestProfile = { ...withFoodLocation(profile), ...effectiveFoodLocation(withFoodLocation(profile), currentDate), planningPreferences: profile.practical || profile.restrictions?.some((value:string)=>['Vegan','Vegetarian'].includes(value)) ? dietPlanningPreferences(profile) : undefined };
-    if (profile?.practical?.usePantry && requestProfile.planningPreferences) requestProfile.planningPreferences.pantry = getDietEveryday().pantry.filter(item => !item.deletedAt).slice(0, 20).map(item => item.name);
+    const requestProfile = {
+      ...withFoodLocation(profile),
+      ...effectiveFoodLocation(withFoodLocation(profile), currentDate),
+      planningPreferences:
+        profile.practical ||
+        profile.restrictions?.some((value: string) => ['Vegan', 'Vegetarian'].includes(value))
+          ? dietPlanningPreferences(profile)
+          : undefined,
+    };
+    if (profile?.practical?.usePantry && requestProfile.planningPreferences)
+      requestProfile.planningPreferences.pantry = getDietEveryday()
+        .pantry.filter((item) => !item.deletedAt)
+        .slice(0, 20)
+        .map((item) => item.name);
     if (requestProfile.cuisine === 'Local' && !requestProfile.countryCode) {
-      toast.error('Country needed for local meals', 'Choose your current country in food preferences so recipes fit where you live.');
+      toast.error(
+        'Country needed for local meals',
+        'Choose your current country in food preferences so recipes fit where you live.'
+      );
       setIsEditingProfile(true);
       return;
     }
-    const accepted=(mealPlan?.days||[]).flatMap(day=>day.meals.filter(meal=>meal.pinned));
-    if(!validateDietPreferenceFit({days:[{meals:accepted}]},requestProfile.planningPreferences).valid){toast.error('Review accepted meals','A pinned recipe conflicts with your current food preferences. Review or unpin it before regeneration.');return;}
+    const accepted = (mealPlan?.days || []).flatMap((day) =>
+      day.meals.filter((meal) => meal.pinned)
+    );
+    if (
+      !validateDietPreferenceFit(
+        { days: [{ meals: accepted }] },
+        requestProfile.planningPreferences
+      ).valid
+    ) {
+      toast.error(
+        'Review accepted meals',
+        'A pinned recipe conflicts with your current food preferences. Review or unpin it before regeneration.'
+      );
+      return;
+    }
     setIsGeneratingPlan(true);
     setPlanGenerationError('');
     try {
       const rawPlan = await generateMealPlan(requestProfile, 7, planProfileKey);
-      if (getProfileKey() !== planProfileKey || getCoreProfile()?.id !== planProfileId || constraintSnapshot !== planningConstraintSnapshot(getCoreProfile(), getCoreProfile()?.dietProfile || profile))
+      if (
+        getProfileKey() !== planProfileKey ||
+        getCoreProfile()?.id !== planProfileId ||
+        constraintSnapshot !==
+          planningConstraintSnapshot(getCoreProfile(), getCoreProfile()?.dietProfile || profile)
+      )
         throw new Error('diet_plan_context_changed');
       const validation = validateGeneratedMealPlan(rawPlan, 7);
       if (validation.valid) {
         if (isMounted.current) {
-          if(getCoreProfile()?.dietMealPlan?.updatedAt!==mealPlan?.updatedAt)throw new Error('diet_plan_context_changed');
-          const normalized = preserveAcceptedMeals(normalizeFullMealPlan({...rawPlan,startDate:currentDate,constraintSnapshot}, {
-            caseId: activeCaseScope.caseId || undefined,
-            profileKey: getProfileKey(),
-          }),mealPlan);
-          const updatedArchived = mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))
-            ? archiveCurrentPlan(mealPlan, archivedPlans) : archivedPlans;
+          if (getCoreProfile()?.dietMealPlan?.updatedAt !== mealPlan?.updatedAt)
+            throw new Error('diet_plan_context_changed');
+          const normalized = preserveAcceptedMeals(
+            normalizeFullMealPlan(
+              { ...rawPlan, startDate: currentDate, constraintSnapshot },
+              {
+                caseId: activeCaseScope.caseId || undefined,
+                profileKey: getProfileKey(),
+              }
+            ),
+            mealPlan
+          );
+          const updatedArchived =
+            mealPlan &&
+            ((mealPlan.days && mealPlan.days.length > 0) ||
+              (mealPlan.plan && mealPlan.plan.length > 0))
+              ? archiveCurrentPlan(mealPlan, archivedPlans)
+              : archivedPlans;
           const current = getCoreProfile();
           if (!current) throw new Error('profile_unavailable');
           await saveProfile({
             ...current,
             dietMealPlan: normalized,
             dietArchivedPlans: updatedArchived,
-            dietician: { ...(current.dietician || {}), mealPlan: normalized, archivedPlans: updatedArchived },
+            dietician: {
+              ...(current.dietician || {}),
+              mealPlan: normalized,
+              archivedPlans: updatedArchived,
+            },
           });
           const persisted = getCoreProfile();
-          if (persisted?.dietMealPlan?.id !== normalized.id) throw new Error('plan_storage_failure');
+          if (persisted?.dietMealPlan?.id !== normalized.id)
+            throw new Error('plan_storage_failure');
           setArchivedPlans(updatedArchived);
           setMealPlan(normalized);
-          awardPoints(15, 'Created Editable 7-Day Meal Blueprint', 'lifestyle', `diet_plan_${Date.now()}`);
+          awardPoints(
+            15,
+            'Created Editable 7-Day Meal Blueprint',
+            'lifestyle',
+            `diet_plan_${Date.now()}`
+          );
           triggerHapticSuccess();
           recordTrialUsage('dietician');
           await clearPendingDietPlanRequest(planProfileKey);
-          toast.success('Blueprint saved locally', 'Seven days were saved with estimated nutrients. Ingredients and quantities still need verification.');
+          toast.success(
+            'Blueprint saved locally',
+            'Seven days were saved with estimated nutrients. Ingredients and quantities still need verification.'
+          );
         }
-        try { addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan }); }
-        catch (eventError) { console.warn('Plan saved; optional timeline event was unavailable', eventError); }
+        try {
+          addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan });
+        } catch (eventError) {
+          console.warn('Plan saved; optional timeline event was unavailable', eventError);
+        }
       } else {
-        setPlanGenerationError('The generated week was incomplete. No plan was saved. Please try again.');
-        toast.error('Plan incomplete', 'The generated plan had missing or invalid meals. No plan was saved or trial used. Please try again.');
+        setPlanGenerationError(
+          'The generated week was incomplete. No plan was saved. Please try again.'
+        );
+        toast.error(
+          'Plan incomplete',
+          'The generated plan had missing or invalid meals. No plan was saved or trial used. Please try again.'
+        );
       }
     } catch (err) {
       console.error('Failed to generate meal plan:', err);
       if (err instanceof Error && err.message === 'diet_plan_quota_exceeded') {
         openTrialModal('Food Planner (1 Free Trial Meal Plan)');
       } else if (err instanceof Error && err.message === 'diet_plan_unsupported_setup') {
-        setPlanGenerationError('This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.');
-        toast.error('Plan setup needs review', 'This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.');
+        setPlanGenerationError(
+          'This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.'
+        );
+        toast.error(
+          'Plan setup needs review',
+          'This setup cannot yet be generated safely. Review your planning details and ingredient restrictions.'
+        );
       } else if (err instanceof Error && err.message === 'diet_plan_in_progress') {
-        setPlanGenerationError('Your plan is still processing. Wait a moment, then retry to resume the same request.');
-        toast.error('Plan still processing', 'Please wait a moment, then retry. Your request will resume without using another plan.');
+        setPlanGenerationError(
+          'Your plan is still processing. Wait a moment, then retry to resume the same request.'
+        );
+        toast.error(
+          'Plan still processing',
+          'Please wait a moment, then retry. Your request will resume without using another plan.'
+        );
       } else if (err instanceof Error && err.message === 'diet_plan_retry_ready') {
-        setPlanGenerationError('The previous request failed. Please try again; it was not counted against your free plan.');
-        toast.error('Previous attempt failed', 'Please try again. The failed plan was not counted against your free plan.');
+        setPlanGenerationError(
+          'The previous request failed. Please try again; it was not counted against your free plan.'
+        );
+        toast.error(
+          'Previous attempt failed',
+          'Please try again. The failed plan was not counted against your free plan.'
+        );
       } else if (err instanceof Error && err.message === 'diet_plan_recovery_unavailable') {
-        setPlanGenerationError('This browser cannot save the recovery key. Enable local storage before generating a plan.');
-        toast.error('Plan recovery unavailable', 'This browser cannot safely save a recovery key. Please enable local storage before generating a plan.');
+        setPlanGenerationError(
+          'This browser cannot save the recovery key. Enable local storage before generating a plan.'
+        );
+        toast.error(
+          'Plan recovery unavailable',
+          'This browser cannot safely save a recovery key. Please enable local storage before generating a plan.'
+        );
       } else if (err instanceof Error && err.message === 'diet_plan_context_changed') {
-        setPlanGenerationError('The selected profile changed during generation. Return to the original profile and retry to recover its plan.');
-      } else if (err instanceof Error && ['diet_plan_incomplete', 'diet_plan_generation_failed'].includes(err.message)) {
-        const message = err.message === 'diet_plan_incomplete'
-          ? 'The food planner returned an incomplete week. Please try again. Your free plan was not used.'
-          : 'The food planner could not complete this request. Please try again. Your free plan was not used.';
+        setPlanGenerationError(
+          'The selected profile changed during generation. Return to the original profile and retry to recover its plan.'
+        );
+      } else if (
+        err instanceof Error &&
+        ['diet_plan_incomplete', 'diet_plan_generation_failed'].includes(err.message)
+      ) {
+        const message =
+          err.message === 'diet_plan_incomplete'
+            ? 'The food planner returned an incomplete week. Please try again. Your free plan was not used.'
+            : 'The food planner could not complete this request. Please try again. Your free plan was not used.';
         setPlanGenerationError(message);
         toast.error('Plan generation failed', message);
       } else {
-        setPlanGenerationError('The plan was not received or saved in this browser. Retry to recover the same request without generating a duplicate.');
-        toast.error('Plan not saved yet', 'Please try again. The same request will resume if generation already finished.');
+        setPlanGenerationError(
+          'The plan was not received or saved in this browser. Retry to recover the same request without generating a duplicate.'
+        );
+        toast.error(
+          'Plan not saved yet',
+          'Please try again. The same request will resume if generation already finished.'
+        );
       }
     } finally {
       if (isMounted.current) setIsGeneratingPlan(false);
     }
   };
 
-  const persistPlanUpdate = async (next:FullMealPlan, nextArchives?:FullMealPlan[]) => {
-    const current=getCoreProfile(), scope=getProfileKey(); if(!current)return false;
-    await saveProfile({...current,dietMealPlan:next,...(nextArchives?{dietArchivedPlans:nextArchives}:{}),dietician:{...(current.dietician||{}),mealPlan:next,...(nextArchives?{archivedPlans:nextArchives}:{})}});
-    if(getProfileKey()!==scope||getCoreProfile()?.id!==current.id||JSON.stringify(getCoreProfile()?.dietMealPlan)!==JSON.stringify(next)){toast.error('Plan not saved','Your plan update was not confirmed. Please retry.');return false;}
-    setMealPlan(next);if(nextArchives)setArchivedPlans(nextArchives);return true;
+  const persistPlanUpdate = async (next: FullMealPlan, nextArchives?: FullMealPlan[]) => {
+    const current = getCoreProfile(),
+      scope = getProfileKey();
+    if (!current) return false;
+    await saveProfile({
+      ...current,
+      dietMealPlan: next,
+      ...(nextArchives ? { dietArchivedPlans: nextArchives } : {}),
+      dietician: {
+        ...(current.dietician || {}),
+        mealPlan: next,
+        ...(nextArchives ? { archivedPlans: nextArchives } : {}),
+      },
+    });
+    if (
+      getProfileKey() !== scope ||
+      getCoreProfile()?.id !== current.id ||
+      JSON.stringify(getCoreProfile()?.dietMealPlan) !== JSON.stringify(next)
+    ) {
+      toast.error('Plan not saved', 'Your plan update was not confirmed. Please retry.');
+      return false;
+    }
+    setMealPlan(next);
+    if (nextArchives) setArchivedPlans(nextArchives);
+    return true;
   };
-  const planNeedsReview = !!mealPlan && (!mealPlan.constraintSnapshot || mealPlan.constraintSnapshot !== planningConstraintSnapshot(getCoreProfile(), profile));
+  const planNeedsReview =
+    !!mealPlan &&
+    (!mealPlan.constraintSnapshot ||
+      mealPlan.constraintSnapshot !== planningConstraintSnapshot(getCoreProfile(), profile));
   const requireCurrentPlan = () => {
     if (!planNeedsReview) return true;
-    toast.error('Review changed profile', 'This plan predates your current health or food preferences. Regenerate it with the current inputs before following it.');
+    toast.error(
+      'Review changed profile',
+      'This plan predates your current health or food preferences. Regenerate it with the current inputs before following it.'
+    );
     return false;
   };
   // --- Package 7 Plan Lifecycle Handlers ---
@@ -1056,7 +1585,7 @@ export default function Dietician() {
     if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'selected');
-    if(!await persistPlanUpdate(updated))return;
+    if (!(await persistPlanUpdate(updated))) return;
     toast.success('Plan Selected', 'Plan selected as your active blueprint.');
   };
 
@@ -1064,7 +1593,7 @@ export default function Dietician() {
     if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
-    if(!await persistPlanUpdate(updated))return;
+    if (!(await persistPlanUpdate(updated))) return;
     toast.success('Plan Active', 'You are now actively following this meal blueprint!');
   };
 
@@ -1072,15 +1601,18 @@ export default function Dietician() {
     if (!mealPlan) return;
     triggerHapticLight();
     const updated = transitionPlanStatus(mealPlan, 'paused');
-    if(!await persistPlanUpdate(updated))return;
-    toast.info('Plan Paused', 'Meal plan paused. Your daily logs and reactions remain completely safe.');
+    if (!(await persistPlanUpdate(updated))) return;
+    toast.info(
+      'Plan Paused',
+      'Meal plan paused. Your daily logs and reactions remain completely safe.'
+    );
   };
 
   const handleResumePlan = async () => {
     if (!mealPlan || !requireCurrentPlan()) return;
     triggerHapticSuccess();
     const updated = transitionPlanStatus(mealPlan, 'active');
-    if(!await persistPlanUpdate(updated))return;
+    if (!(await persistPlanUpdate(updated))) return;
     toast.success('Plan Resumed', 'Welcome back! Plan adherence resumed.');
   };
 
@@ -1090,9 +1622,17 @@ export default function Dietician() {
     const updated = transitionPlanStatus(mealPlan, 'completed', {
       completionNotes: 'User marked this plan complete; this does not verify all meals were eaten.',
     });
-    if(!await persistPlanUpdate(updated))return;
-    awardPoints(25, 'Completed Clinical Meal Blueprint', 'lifestyle', `diet_complete_${Date.now()}`);
-    toast.success('Cycle Completed!', 'Congratulations on completing this plan! Plan history preserved; eating records stay separate.');
+    if (!(await persistPlanUpdate(updated))) return;
+    awardPoints(
+      25,
+      'Completed Clinical Meal Blueprint',
+      'lifestyle',
+      `diet_complete_${Date.now()}`
+    );
+    toast.success(
+      'Cycle Completed!',
+      'Congratulations on completing this plan! Plan history preserved; eating records stay separate.'
+    );
   };
 
   const handleConfirmStopPlan = async () => {
@@ -1102,28 +1642,41 @@ export default function Dietician() {
       stopReason: selectedStopReason,
       stopReasonDetails: stopReasonDetails.trim() || undefined,
     });
-    if(!await persistPlanUpdate(updated))return;
+    if (!(await persistPlanUpdate(updated))) return;
     setShowStopPlanModal(false);
-    toast.info('Plan Stopped', 'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.');
+    toast.info(
+      'Plan Stopped',
+      'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.'
+    );
   };
 
-  const handleServingMultiplierChange = async (dayNum: number, mealId: string, multiplier: number) => {
+  const handleServingMultiplierChange = async (
+    dayNum: number,
+    mealId: string,
+    multiplier: number
+  ) => {
     if (!mealPlan) return;
     triggerHapticLight();
     const updated = updateMealServing(mealPlan, dayNum, mealId, multiplier);
-    if(!await persistPlanUpdate(updated))return;
-    toast.success('Portion Adjusted', `Serving updated to ${multiplier}x. Daily totals recalculated.`);
+    if (!(await persistPlanUpdate(updated))) return;
+    toast.success(
+      'Portion Adjusted',
+      `Serving updated to ${multiplier}x. Daily totals recalculated.`
+    );
   };
 
   const handleExportToCasePrep = () => {
     const summary = generateDietObservationsSummary(mealPlan, foodLogs, activeCaseScope.caseItem);
     if (!activeCaseScope.caseId) {
-      toast.info('Select a case', 'Choose the case that should receive these dietary observations.');
+      toast.info(
+        'Select a case',
+        'Choose the case that should receive these dietary observations.'
+      );
       navigate('/app/case-prep', {
         state: {
           returnTo: '/app/dietician?tab=mealplan',
           returnLabel: 'Back to Diet Plan',
-        }
+        },
       });
       return;
     }
@@ -1133,12 +1686,15 @@ export default function Dietician() {
       return;
     }
     triggerHapticSuccess();
-    toast.success('Exported to Case Prep', 'Factual dietary observations added to your appointment visit brief.');
+    toast.success(
+      'Exported to Case Prep',
+      'Factual dietary observations added to your appointment visit brief.'
+    );
     navigate(`/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`, {
       state: {
         returnTo: '/app/dietician?tab=mealplan',
         returnLabel: 'Back to Diet Plan',
-      }
+      },
     });
   };
 
@@ -1153,28 +1709,80 @@ export default function Dietician() {
       carbs: meal.carbs,
       fat: meal.fat,
       description: meal.description || '',
-      ingredientsText: (meal.ingredients || []).map((item) => `${item.name} | ${item.amount} | ${item.unit}`).join('\n'),
-      stepsText: (meal.steps || []).join('\n'), prepMinutes: meal.prepMinutes || 0,
+      ingredientsText: (meal.ingredients || [])
+        .map((item) => `${item.name} | ${item.amount} | ${item.unit}`)
+        .join('\n'),
+      stepsText: (meal.steps || []).join('\n'),
+      prepMinutes: meal.prepMinutes || 0,
     });
   };
 
   const handleSaveEditMeal = async () => {
     if (!mealPlan || !editingMeal) return;
-    const ingredientLines = editMealForm.ingredientsText.split('\n').map((line) => line.trim()).filter(Boolean);
+    const ingredientLines = editMealForm.ingredientsText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
     const ingredients = ingredientLines.map((line) => {
       const [name, amountText, unit] = line.split('|').map((part) => part.trim());
-      return { name, amount: Number(amountText), unit: unit as 'g' | 'ml' | 'piece', verified: false };
+      return {
+        name,
+        amount: Number(amountText),
+        unit: unit as 'g' | 'ml' | 'piece',
+        verified: false,
+      };
     });
-    if (ingredients.length > 12 || ingredients.some((item) => !item.name || !Number.isFinite(item.amount) || item.amount <= 0 || item.amount > 5000 || !['g', 'ml', 'piece'].includes(item.unit))) {
-      toast.error('Check ingredients', 'Use one ingredient per line: name | amount | g, ml, or piece.');
+    if (
+      ingredients.length > 12 ||
+      ingredients.some(
+        (item) =>
+          !item.name ||
+          !Number.isFinite(item.amount) ||
+          item.amount <= 0 ||
+          item.amount > 5000 ||
+          !['g', 'ml', 'piece'].includes(item.unit)
+      )
+    ) {
+      toast.error(
+        'Check ingredients',
+        'Use one ingredient per line: name | amount | g, ml, or piece.'
+      );
       return;
     }
-    const steps = editMealForm.stepsText.split('\n').map((line) => line.trim()).filter(Boolean);
-    if (steps.length > 6 || steps.some((step) => step.length > 300) || (steps.length > 0 && (!Number.isInteger(editMealForm.prepMinutes) || editMealForm.prepMinutes < 1 || editMealForm.prepMinutes > 360))) {
-      toast.error('Check recipe', 'Use up to six preparation steps and a time from 1 to 360 minutes.');
+    const steps = editMealForm.stepsText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (
+      steps.length > 6 ||
+      steps.some((step) => step.length > 300) ||
+      (steps.length > 0 &&
+        (!Number.isInteger(editMealForm.prepMinutes) ||
+          editMealForm.prepMinutes < 1 ||
+          editMealForm.prepMinutes > 360))
+    ) {
+      toast.error(
+        'Check recipe',
+        'Use up to six preparation steps and a time from 1 to 360 minutes.'
+      );
       return;
     }
-    if(editNutrientsConfirmed && ['calories','protein','carbs','fat'].some(key=>editMealForm[key]==='' || !Number.isFinite(Number(editMealForm[key])) || Number(editMealForm[key])<0 || Number(editMealForm[key])>(key==='calories'?3000:500))){toast.error('Check nutrients','Enter checked nonnegative nutrient values, or leave the confirmation off.');return;}
+    if (
+      editNutrientsConfirmed &&
+      ['calories', 'protein', 'carbs', 'fat'].some(
+        (key) =>
+          editMealForm[key] === '' ||
+          !Number.isFinite(Number(editMealForm[key])) ||
+          Number(editMealForm[key]) < 0 ||
+          Number(editMealForm[key]) > (key === 'calories' ? 3000 : 500)
+      )
+    ) {
+      toast.error(
+        'Check nutrients',
+        'Enter checked nonnegative nutrient values, or leave the confirmation off.'
+      );
+      return;
+    }
     triggerHapticSuccess();
 
     const parseMacro = (val: any, fallback: number) => {
@@ -1185,60 +1793,115 @@ export default function Dietician() {
     const updated = editMealContent(mealPlan, editingMeal.day, editingMeal.meal.id, {
       name: editMealForm.name.trim() || editingMeal.meal.name,
       portion: editMealForm.portion.trim() || editingMeal.meal.portion,
-      ...(editNutrientsConfirmed ? {calories: parseMacro(editMealForm.calories, editingMeal.meal.calories) / editingMeal.meal.servingMultiplier} : {}),
-      ...(editNutrientsConfirmed ? {protein: parseMacro(editMealForm.protein, editingMeal.meal.protein) / editingMeal.meal.servingMultiplier} : {}),
-      ...(editNutrientsConfirmed ? {carbs: parseMacro(editMealForm.carbs, editingMeal.meal.carbs) / editingMeal.meal.servingMultiplier} : {}),
-      ...(editNutrientsConfirmed ? {fat: parseMacro(editMealForm.fat, editingMeal.meal.fat) / editingMeal.meal.servingMultiplier} : {}),
+      ...(editNutrientsConfirmed
+        ? {
+            calories:
+              parseMacro(editMealForm.calories, editingMeal.meal.calories) /
+              editingMeal.meal.servingMultiplier,
+          }
+        : {}),
+      ...(editNutrientsConfirmed
+        ? {
+            protein:
+              parseMacro(editMealForm.protein, editingMeal.meal.protein) /
+              editingMeal.meal.servingMultiplier,
+          }
+        : {}),
+      ...(editNutrientsConfirmed
+        ? {
+            carbs:
+              parseMacro(editMealForm.carbs, editingMeal.meal.carbs) /
+              editingMeal.meal.servingMultiplier,
+          }
+        : {}),
+      ...(editNutrientsConfirmed
+        ? {
+            fat:
+              parseMacro(editMealForm.fat, editingMeal.meal.fat) /
+              editingMeal.meal.servingMultiplier,
+          }
+        : {}),
       description: editMealForm.description,
-      ingredients, steps, prepMinutes: steps.length ? editMealForm.prepMinutes : undefined,
-      macrosNeedReview:editNutrientsConfirmed?false:editingMeal.meal.macrosNeedReview || editMealForm.name.trim()!==editingMeal.meal.name || editMealForm.portion.trim()!==(editingMeal.meal.portion||'') || JSON.stringify(ingredients.map(({name,amount,unit})=>({name,amount,unit})))!==JSON.stringify((editingMeal.meal.ingredients||[]).map(({name,amount,unit})=>({name,amount,unit}))),
+      ingredients,
+      steps,
+      prepMinutes: steps.length ? editMealForm.prepMinutes : undefined,
+      macrosNeedReview: editNutrientsConfirmed
+        ? false
+        : editingMeal.meal.macrosNeedReview ||
+          editMealForm.name.trim() !== editingMeal.meal.name ||
+          editMealForm.portion.trim() !== (editingMeal.meal.portion || '') ||
+          JSON.stringify(ingredients.map(({ name, amount, unit }) => ({ name, amount, unit }))) !==
+            JSON.stringify(
+              (editingMeal.meal.ingredients || []).map(({ name, amount, unit }) => ({
+                name,
+                amount,
+                unit,
+              }))
+            ),
     });
-    if(!await persistPlanUpdate(updated))return;
+    if (!(await persistPlanUpdate(updated))) return;
     setEditingMeal(null);
     toast.success('Meal Updated', 'Nutritional estimates and day totals recalculated.');
   };
 
   const handleApplyCustomSwap = async () => {
     if (!mealPlan || !swappingMeal || !customSwapName.trim()) return;
-    if(swappingMeal.meal.pinned){toast.info('Meal pinned','Unpin this accepted meal before replacing it.');return;}
+    if (swappingMeal.meal.pinned) {
+      toast.info('Meal pinned', 'Unpin this accepted meal before replacing it.');
+      return;
+    }
     triggerHapticSuccess();
     const customSwap: DietarySwap = {
       triggerName: swappingMeal.meal.name,
       category: 'ADDITIVE',
       offendingCompound: 'User personalized preference',
-      biologicalMechanism: customSwapRationale.trim() ? `User note: ${customSwapRationale.trim()}` : 'User-selected meal replacement; no clinical effect established',
+      biologicalMechanism: customSwapRationale.trim()
+        ? `User note: ${customSwapRationale.trim()}`
+        : 'User-selected meal replacement; no clinical effect established',
       smartReplacement: customSwapName.trim(),
       replacementDetails: 'Custom personalized tolerance swap',
       expectedReliefTimeline: '',
     };
-    const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, customSwap);
-    if(!await persistPlanUpdate(updated))return;
+    const updated = applyMealClinicalSwap(
+      mealPlan,
+      swappingMeal.day,
+      swappingMeal.meal.id,
+      customSwap
+    );
+    if (!(await persistPlanUpdate(updated))) return;
     setSwappingMeal(null);
     setCustomSwapName('');
     setCustomSwapRationale('');
     toast.success('Custom Swap Applied', `Replaced with ${customSwap.smartReplacement}.`);
   };
 
-  const handleRestoreArchivedPlan = async (archived:FullMealPlan) => {
-    const nextArchives=mealPlan?archiveCurrentPlan(mealPlan,archivedPlans):archivedPlans;
-    const reactivated=transitionPlanStatus({...archived,id:`plan_${crypto.randomUUID()}`,archivedFromId:archived.id},'active');
-    if(!await persistPlanUpdate(reactivated,nextArchives))return;
-    setShowArchivedPlansModal(false);toast.success('Plan restored','Historical eating records remain unchanged.');
+  const handleRestoreArchivedPlan = async (archived: FullMealPlan) => {
+    const nextArchives = mealPlan ? archiveCurrentPlan(mealPlan, archivedPlans) : archivedPlans;
+    const reactivated = transitionPlanStatus(
+      { ...archived, id: `plan_${crypto.randomUUID()}`, archivedFromId: archived.id },
+      'active'
+    );
+    if (!(await persistPlanUpdate(reactivated, nextArchives))) return;
+    setShowArchivedPlansModal(false);
+    toast.success('Plan restored', 'Historical eating records remain unchanged.');
   };
 
   const toggleGroceryItem = async (catIndex: number, itemId: string) => {
     triggerHapticLight();
     const next = displayedGroceryList.map((cat, idx) => {
-        if (idx !== catIndex || !cat.items) return cat;
-        return {
-          ...cat,
-          items: cat.items.map((item: any) =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          ),
-        };
-      });
-    if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) {
-      toast.error('Checklist not saved', 'The item was not confirmed as updated. Please try again.');
+      if (idx !== catIndex || !cat.items) return cat;
+      return {
+        ...cat,
+        items: cat.items.map((item: any) =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        ),
+      };
+    });
+    if (!(await saveDietAncillary('dietGrocery', 'groceryList', next))) {
+      toast.error(
+        'Checklist not saved',
+        'The item was not confirmed as updated. Please try again.'
+      );
       return;
     }
     setGroceryList(next);
@@ -1247,7 +1910,7 @@ export default function Dietician() {
   const copyGroceryListText = async () => {
     triggerHapticLight();
     let text = `🛒 HealthChain 7-Day Grocery List (${profile?.cuisine || 'Healthy'} Plan)\n\n`;
-    displayedGroceryList.forEach(cat => {
+    displayedGroceryList.forEach((cat) => {
       text += `${cat.emoji} ${cat.category}\n`;
       cat.items.forEach((item: any) => {
         text += `  ${item.checked ? '☑' : '☐'} ${item.name}\n`;
@@ -1278,21 +1941,19 @@ export default function Dietician() {
   };
 
   const normalizedPlanDays = mealPlan?.plan || mealPlan?.days || [];
-  const currentSelectedDayObj = normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) || normalizedPlanDays[0];
-
-  const currentFeatureId: FeatureId =
-    (activeTab === 'sensitivities' || activeTab === 'insights') ? 'food-detective' :
-    'diet-plan';
+  const currentSelectedDayObj =
+    normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) ||
+    normalizedPlanDays[0];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
-      paddingBottom: '100px',
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
+        paddingBottom: '100px',
+      }}
+    >
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        
-
         {/* Header */}
         <div
           style={{
@@ -1343,13 +2004,20 @@ export default function Dietician() {
                     fontSize: '11px',
                     fontWeight: 800,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
                   }}
                 >
                   Active
                 </span>
               </div>
-              <p style={{ fontSize: '14.5px', color: '#64748B', margin: '2px 0 0 0', fontWeight: 500 }}>
+              <p
+                style={{
+                  fontSize: '14.5px',
+                  color: '#64748B',
+                  margin: '2px 0 0 0',
+                  fontWeight: 500,
+                }}
+              >
                 Editable meal examples, food logs, and condition-aware questions in one place.
               </p>
             </div>
@@ -1365,7 +2033,10 @@ export default function Dietician() {
               borderRadius: '14px',
               border: '1px solid #F1E5E7',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-              overflowX: 'auto', width: isMobile ? '100%' : 'auto', maxWidth: '100%', flexWrap: 'nowrap',
+              overflowX: 'auto',
+              width: isMobile ? '100%' : 'auto',
+              maxWidth: '100%',
+              flexWrap: 'nowrap',
               WebkitOverflowScrolling: 'touch',
               alignItems: 'center',
             }}
@@ -1391,7 +2062,9 @@ export default function Dietician() {
             >
               <Target size={15} /> Dashboard
             </button>
-            {(activeTab === 'sensitivities' || activeTab === 'calendar' || activeTab === 'insights') && (
+            {(activeTab === 'sensitivities' ||
+              activeTab === 'calendar' ||
+              activeTab === 'insights') && (
               <button
                 onClick={() => setActiveTab(activeTab)}
                 style={{
@@ -1414,7 +2087,11 @@ export default function Dietician() {
                 {activeTab === 'sensitivities' && <Activity size={15} color="#10B981" />}
                 {activeTab === 'calendar' && <Calendar size={15} color="#10B981" />}
                 {activeTab === 'insights' && <Brain size={15} color="#10B981" />}
-                {activeTab === 'sensitivities' ? 'Food Detective' : activeTab === 'calendar' ? 'Digestion Heatmap' : 'Smart Insights'}
+                {activeTab === 'sensitivities'
+                  ? 'Food Detective'
+                  : activeTab === 'calendar'
+                    ? 'Digestion Heatmap'
+                    : 'Smart Insights'}
               </button>
             )}
             <button
@@ -1459,7 +2136,7 @@ export default function Dietician() {
             >
               <ShoppingCart size={15} /> Grocery List
             </button>
-            
+
             <button
               onClick={() => setActiveTab('guardrails')}
               style={{
@@ -1500,9 +2177,18 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Sparkles size={15} color={activeTab === 'longevity' ? '#38BDF8' : '#64748B'} /> Longevity Bio-Stack
+              <Sparkles size={15} color={activeTab === 'longevity' ? '#38BDF8' : '#64748B'} />{' '}
+              Longevity Bio-Stack
             </button>
-            <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px', flexShrink: 0 }} />
+            <div
+              style={{
+                width: '1px',
+                height: '22px',
+                background: '#E2E8F0',
+                margin: '6px 2px',
+                flexShrink: 0,
+              }}
+            />
             <button
               onClick={() => setShowResetDietConfirm(true)}
               style={{
@@ -1524,8 +2210,57 @@ export default function Dietician() {
           </div>
         </div>
 
-        {undoMeal && <div className="diet-everyday diet-row" role="status"><span>{undoMeal.entry?.name || 'Meal'} removed.</span><button onClick={async()=>{ const undo=undoMeal; if(undo.scope!==`${getProfileKey()}:${getCoreProfile()?.id}`){setUndoMeal(null);return;} const saved=await createMeal({localDate:undo.date,captureMethod:'diet_diary',entry:{...undo.entry,id:`undo:${undo.entry.id}`,nutritionSource:undo.entry.nutritionSource}}); if(saved.ok){setFoodLogs(await listMealDiary());setUndoMeal(null);}else toast.error('Undo failed','The meal could not be restored.'); }}>Undo meal removal</button><button onClick={()=>setUndoMeal(null)}>Dismiss</button></div>}
-        <div className="diet-everyday diet-row" style={{ marginBottom: 16 }}>{['Ideas', 'Meals', 'Plan choices', 'Pantry', 'Packaged food', 'Reminders', 'Preferences'].map(panel => <button key={panel} onClick={() => { setEverydayPanel(panel); setShowSavedMealsModal(true); }}>{panel === 'Meals' ? 'My meals & history' : panel}</button>)}</div>
+        {undoMeal && (
+          <div className="diet-everyday diet-row" role="status">
+            <span>{undoMeal.entry?.name || 'Meal'} removed.</span>
+            <button
+              onClick={async () => {
+                const undo = undoMeal;
+                if (undo.scope !== `${getProfileKey()}:${getCoreProfile()?.id}`) {
+                  setUndoMeal(null);
+                  return;
+                }
+                const saved = await createMeal({
+                  localDate: undo.date,
+                  captureMethod: 'diet_diary',
+                  entry: {
+                    ...undo.entry,
+                    id: `undo:${undo.entry.id}`,
+                    nutritionSource: undo.entry.nutritionSource,
+                  },
+                });
+                if (saved.ok) {
+                  setFoodLogs(await listMealDiary());
+                  setUndoMeal(null);
+                } else toast.error('Undo failed', 'The meal could not be restored.');
+              }}
+            >
+              Undo meal removal
+            </button>
+            <button onClick={() => setUndoMeal(null)}>Dismiss</button>
+          </div>
+        )}
+        <div className="diet-everyday diet-row" style={{ marginBottom: 16 }}>
+          {[
+            'Ideas',
+            'Meals',
+            'Plan choices',
+            'Pantry',
+            'Packaged food',
+            'Reminders',
+            'Preferences',
+          ].map((panel) => (
+            <button
+              key={panel}
+              onClick={() => {
+                setEverydayPanel(panel);
+                setShowSavedMealsModal(true);
+              }}
+            >
+              {panel === 'Meals' ? 'My meals & history' : panel}
+            </button>
+          ))}
+        </div>
         {/* TAB 1: DASHBOARD */}
         {activeTab === 'dashboard' && (
           <motion.div
@@ -1535,8 +2270,23 @@ export default function Dietician() {
             style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
           >
             {/* Date Selector & Action */}
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'space-between' : 'flex-start', gap: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isMobile ? 'space-between' : 'flex-start',
+                  gap: '14px',
+                }}
+              >
                 <button
                   onClick={() => {
                     const d = parseLocalDate(currentDate);
@@ -1555,7 +2305,14 @@ export default function Dietician() {
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '160px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '160px',
+                  }}
+                >
                   <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                     {currentDate === formatLocalDate(new Date())
                       ? 'Today'
@@ -1565,7 +2322,15 @@ export default function Dietician() {
                           day: 'numeric',
                         })}
                   </h2>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#64748B',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.8px',
+                    }}
+                  >
                     Daily Nutrition Log
                   </span>
                 </div>
@@ -1640,139 +2405,180 @@ export default function Dietician() {
               </div>
             </div>
 
-            
-              <DieticianDashboardTracker 
-                profile={profile} 
-                foodLogs={foodLogs} 
-                currentDate={currentDate}
-                waterGlasses={waterGlasses}
-                onLogMeal={(mealName: string) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
-                onDeleteMeal={handleDeleteFood}
-                onEditMeal={handleStartDiaryCorrection}
-                onUpdateHydration={handleUpdateHydration}
-                onSnap={() => setShowARLens(true)}
-                onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
-                onOpenSavedMeals={() => { triggerHapticLight(); setEverydayPanel('Meals'); setShowSavedMealsModal(true); }}
-                onOpenIdeas={(mealName: string) => { setSelectedMealType(mealName); setEverydayPanel('Ideas'); setShowSavedMealsModal(true); }}
-                onOpenGallery={() => setShowARLens(true)}
-                onSelectTab={(t: any) => setActiveTab(t)}
-              />
-            </motion.div>
-          )}
+            <DieticianDashboardTracker
+              profile={profile}
+              foodLogs={foodLogs}
+              currentDate={currentDate}
+              waterGlasses={waterGlasses}
+              onLogMeal={(mealName: string) => {
+                setSelectedMealType(mealName);
+                setIsLoggingFood(true);
+              }}
+              onDeleteMeal={handleDeleteFood}
+              onEditMeal={handleStartDiaryCorrection}
+              onUpdateHydration={handleUpdateHydration}
+              onSnap={() => setShowARLens(true)}
+              onOpenSettings={() => {
+                triggerHapticLight();
+                setIsEditingProfile(true);
+              }}
+              onOpenSavedMeals={() => {
+                triggerHapticLight();
+                setEverydayPanel('Meals');
+                setShowSavedMealsModal(true);
+              }}
+              onOpenIdeas={(mealName: string) => {
+                setSelectedMealType(mealName);
+                setEverydayPanel('Ideas');
+                setShowSavedMealsModal(true);
+              }}
+              onOpenGallery={() => setShowARLens(true)}
+              onSelectTab={(t: any) => setActiveTab(t)}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
-          {activeTab === 'sensitivities' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setActiveTab('dashboard');
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '10px',
-                    color: '#0F172A',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <ChevronLeft size={16} />
-                  <span>Back to Dashboard</span>
-                </button>
-              </div>
-              <PostMealReactionTimeline onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
-            </motion.div>
-          )}
-
-          {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
-          {activeTab === 'calendar' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setActiveTab('dashboard');
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '10px',
-                    color: '#0F172A',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <ChevronLeft size={16} />
-                  <span>Back to Dashboard</span>
-                </button>
-              </div>
-              <DigestionCalendarHeatmap onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
-            </motion.div>
-          )}
-
-          {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
-          {activeTab === 'insights' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setActiveTab('dashboard');
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '10px',
-                    color: '#0F172A',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <ChevronLeft size={16} />
-                  <span>Back to Dashboard</span>
-                </button>
-              </div>
-              <SmartCorrelationInsightsView
-                onOpenElimination={() => {
-                  triggerHapticSelection();
-                  openEliminationSuiteModal();
+        {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
+        {activeTab === 'sensitivities' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveTab('dashboard');
                 }}
-                onOpenTimeline={() => setActiveTab('sensitivities')}
-                onOpenHeatmap={() => setActiveTab('calendar')}
-              />
-            </motion.div>
-          )}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '10px',
+                  color: '#0F172A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ChevronLeft size={16} />
+                <span>Back to Dashboard</span>
+              </button>
+            </div>
+            <PostMealReactionTimeline
+              onOpenQuickMeal={() => {
+                setSelectedMealType('Quick Meal');
+                setIsLoggingFood(true);
+              }}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB 2: 7-DAY MEAL PLAN */}
+        {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
+        {activeTab === 'calendar' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveTab('dashboard');
+                }}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '10px',
+                  color: '#0F172A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ChevronLeft size={16} />
+                <span>Back to Dashboard</span>
+              </button>
+            </div>
+            <DigestionCalendarHeatmap
+              onOpenQuickMeal={() => {
+                setSelectedMealType('Quick Meal');
+                setIsLoggingFood(true);
+              }}
+            />
+          </motion.div>
+        )}
+
+        {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
+        {activeTab === 'insights' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setActiveTab('dashboard');
+                }}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '10px',
+                  color: '#0F172A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ChevronLeft size={16} />
+                <span>Back to Dashboard</span>
+              </button>
+            </div>
+            <SmartCorrelationInsightsView
+              onOpenElimination={() => {
+                triggerHapticSelection();
+                openEliminationSuiteModal();
+              }}
+              onOpenTimeline={() => setActiveTab('sensitivities')}
+              onOpenHeatmap={() => setActiveTab('calendar')}
+            />
+          </motion.div>
+        )}
+
+        {/* TAB 2: 7-DAY MEAL PLAN */}
         {activeTab === 'mealplan' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -1784,11 +2590,32 @@ export default function Dietician() {
               }}
             >
               <div>
-                <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  {mealPlan && mealPlan.days.length !== 7 ? `${mealPlan.days.length}-day chosen meal plan` : '7-day meal plan'}
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
+                  {mealPlan && mealPlan.days.length !== 7
+                    ? `${mealPlan.days.length}-day chosen meal plan`
+                    : '7-day meal plan'}
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Editable example · {(mealPlan?.cuisine || profile?.cuisine) === 'Local' ? 'Local meals' : mealPlan?.cuisine || profile?.cuisine || 'Any cuisine'}{formatFoodLocation(mealPlan || profile) ? ` · ${formatFoodLocation(mealPlan || profile)}` : ''} · {normalizeDietPreferences(profile?.practical).showNumbers ? profile?.targetCalories ? `planning target ${profile.targetCalories} kcal/day` : 'no calorie target set' : 'qualitative food planning'}
+                  Editable example ·{' '}
+                  {(mealPlan?.cuisine || profile?.cuisine) === 'Local'
+                    ? 'Local meals'
+                    : mealPlan?.cuisine || profile?.cuisine || 'Any cuisine'}
+                  {formatFoodLocation(mealPlan || profile)
+                    ? ` · ${formatFoodLocation(mealPlan || profile)}`
+                    : ''}{' '}
+                  ·{' '}
+                  {normalizeDietPreferences(profile?.practical).showNumbers
+                    ? profile?.targetCalories
+                      ? `planning target ${profile.targetCalories} kcal/day`
+                      : 'no calorie target set'
+                    : 'qualitative food planning'}
                 </p>
               </div>
 
@@ -1842,19 +2669,28 @@ export default function Dietician() {
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      const planDays = mealPlan.days?.length ? mealPlan.days : (mealPlan.plan || []);
-                      const planSummary = planDays.map((day) => {
-                        const meals = (day.meals || []).map((meal) => `${meal.type || 'Meal'}: ${meal.name}${meal.portion ? ` (${meal.portion})` : ''}`).join('; ');
-                        return `Day ${day.day || day.dayNumber}: ${meals}`;
-                      }).join('\n');
-                      const caseQuery = activeCaseScope.caseId ? `?caseId=${encodeURIComponent(activeCaseScope.caseId)}` : '';
+                      const planDays = mealPlan.days?.length ? mealPlan.days : mealPlan.plan || [];
+                      const planSummary = planDays
+                        .map((day) => {
+                          const meals = (day.meals || [])
+                            .map(
+                              (meal) =>
+                                `${meal.type || 'Meal'}: ${meal.name}${meal.portion ? ` (${meal.portion})` : ''}`
+                            )
+                            .join('; ');
+                          return `Day ${day.day || day.dayNumber}: ${meals}`;
+                        })
+                        .join('\n');
+                      const caseQuery = activeCaseScope.caseId
+                        ? `?caseId=${encodeURIComponent(activeCaseScope.caseId)}`
+                        : '';
                       navigate(`/app/ava${caseQuery}`, {
                         state: {
                           caseId: activeCaseScope.caseId || undefined,
                           returnTo: '/app/dietician?tab=mealplan',
                           returnLabel: 'Back to Meal Plan',
-                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: ${mealPlan.targetCalories || profile?.targetCalories ? `about ${mealPlan.targetCalories || profile?.targetCalories} kcal/day` : 'not set'}\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\nLocation used for this plan: ${formatFoodLocation(mealPlan) || 'Not recorded'}\n\n${planSummary}`
-                        }
+                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: ${mealPlan.targetCalories || profile?.targetCalories ? `about ${mealPlan.targetCalories || profile?.targetCalories} kcal/day` : 'not set'}\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\nLocation used for this plan: ${formatFoodLocation(mealPlan) || 'Not recorded'}\n\n${planSummary}`,
+                        },
                       });
                     }}
                     style={{
@@ -1874,46 +2710,77 @@ export default function Dietician() {
                     <MessageCircle size={15} /> Discuss with Ava
                   </button>
                 )}
-                {mealPlan && <button
-                  onClick={handleGeneratePlan}
-                  disabled={isGeneratingPlan}
-                  style={{
-                    background: '#0F172A',
-                    color: '#FFF',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '12px',
-                    fontWeight: 700,
-                    fontSize: '13.5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: isGeneratingPlan ? 'not-allowed' : 'pointer',
-                    opacity: isGeneratingPlan ? 0.7 : 1,
-                  }}
-                >
-                  {isGeneratingPlan ? (
-                    <>
-                      <Loader2 size={16} className="spin" /> Synthesizing Plan...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} /> {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
-                    </>
-                  )}
-                </button>}
+                {mealPlan && (
+                  <button
+                    onClick={handleGeneratePlan}
+                    disabled={isGeneratingPlan}
+                    style={{
+                      background: '#0F172A',
+                      color: '#FFF',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      fontSize: '13.5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: isGeneratingPlan ? 'not-allowed' : 'pointer',
+                      opacity: isGeneratingPlan ? 0.7 : 1,
+                    }}
+                  >
+                    {isGeneratingPlan ? (
+                      <>
+                        <Loader2 size={16} className="spin" /> Synthesizing Plan...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} />{' '}
+                        {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
-            <div role="note" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', margin: '-4px 0 20px', padding: '13px 15px', borderRadius: '14px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#7C2D12' }}>
+            <div
+              role="note"
+              style={{
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'flex-start',
+                margin: '-4px 0 20px',
+                padding: '13px 15px',
+                borderRadius: '14px',
+                background: '#FFF7F2',
+                border: '1px solid #F8D8C6',
+                color: '#7C2D12',
+              }}
+            >
               <Info size={18} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
               <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.55 }}>
-                <strong>Editable planning aid.</strong> Portions, calories, and nutrients are estimates. Verify packaged-food labels and review condition-specific restrictions, allergies, pregnancy needs, kidney disease, diabetes treatment, or eating-disorder concerns with a qualified clinician or registered dietitian.
+                <strong>Editable planning aid.</strong> Portions, calories, and nutrients are
+                estimates. Verify packaged-food labels and review condition-specific restrictions,
+                allergies, pregnancy needs, kidney disease, diabetes treatment, or eating-disorder
+                concerns with a qualified clinician or registered dietitian.
               </p>
             </div>
 
             {planGenerationError && (
-              <div role="alert" style={{ margin: '0 0 20px', padding: '14px 16px', borderRadius: '14px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#7C2D12', fontSize: '14px', lineHeight: 1.5 }}>
+              <div
+                role="alert"
+                style={{
+                  margin: '0 0 20px',
+                  padding: '14px 16px',
+                  borderRadius: '14px',
+                  background: '#FFF7F2',
+                  border: '1px solid #F8D8C6',
+                  color: '#7C2D12',
+                  fontSize: '14px',
+                  lineHeight: 1.5,
+                }}
+              >
                 <strong>Plan generation needs attention.</strong> {planGenerationError}
               </div>
             )}
@@ -1922,7 +2789,26 @@ export default function Dietician() {
                 Creating all seven days and saving your plan. This can take up to a minute.
               </p>
             )}
-            {planNeedsReview && <div role="status" style={{ margin: '16px 0', padding: 16, borderRadius: 12, border: '1px solid #fbbf24', background: '#fffbeb', color: '#92400e' }}><strong>Review this saved plan</strong><p>Your current profile or food preferences differ from the inputs used for this plan, or its original inputs were not recorded. Regenerate before selecting or following it. Your saved meals and food logs remain available.</p></div>}
+            {planNeedsReview && (
+              <div
+                role="status"
+                style={{
+                  margin: '16px 0',
+                  padding: 16,
+                  borderRadius: 12,
+                  border: '1px solid #fbbf24',
+                  background: '#fffbeb',
+                  color: '#92400e',
+                }}
+              >
+                <strong>Review this saved plan</strong>
+                <p>
+                  Your current profile or food preferences differ from the inputs used for this
+                  plan, or its original inputs were not recorded. Regenerate before selecting or
+                  following it. Your saved meals and food logs remain available.
+                </p>
+              </div>
+            )}
             {!mealPlan ? (
               <div
                 style={{
@@ -1949,11 +2835,27 @@ export default function Dietician() {
                 >
                   <Calendar size={32} />
                 </div>
-                <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>
+                <h3
+                  style={{
+                    fontSize: '19px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 8px 0',
+                  }}
+                >
                   No Active 7-Day Plan
                 </h3>
-                <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                  Generate a balanced nutritional schedule tailored to macro targets and health conditions.
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: '14.5px',
+                    maxWidth: '440px',
+                    margin: '0 auto 24px auto',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Generate a balanced nutritional schedule tailored to macro targets and health
+                  conditions.
                 </p>
                 <button
                   onClick={handleGeneratePlan}
@@ -1973,7 +2875,11 @@ export default function Dietician() {
                     boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                   }}
                 >
-                  {isGeneratingPlan ? <Loader2 size={18} className="spin" /> : <Sparkles size={18} />}
+                  {isGeneratingPlan ? (
+                    <Loader2 size={18} className="spin" />
+                  ) : (
+                    <Sparkles size={18} />
+                  )}
                   Generate My 7-Day Plan
                 </button>
               </div>
@@ -1992,20 +2898,73 @@ export default function Dietician() {
                     gap: '14px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#64748B',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.6px',
+                        }}
+                      >
                         Blueprint Status:
                       </span>
                       {(() => {
                         const status = mealPlan.lifecycle?.status || 'draft';
                         const config = {
-                          draft: { bg: '#F1F5F9', color: '#475569', border: '#CBD5E1', label: 'Draft Blueprint' },
-                          selected: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE', label: 'Selected Blueprint' },
-                          active: { bg: '#ECFDF5', color: '#047857', border: '#A7F3D0', label: 'Active (Following)' },
-                          paused: { bg: '#FFFBEB', color: '#B45309', border: '#FDE68A', label: 'Paused' },
-                          completed: { bg: '#FAF5FF', color: '#7E22CE', border: '#E9D5FF', label: 'Completed Cycle' },
-                          stopped: { bg: '#FFF1F2', color: '#BE123C', border: '#FECDD3', label: 'Stopped' },
+                          draft: {
+                            bg: '#F1F5F9',
+                            color: '#475569',
+                            border: '#CBD5E1',
+                            label: 'Draft Blueprint',
+                          },
+                          selected: {
+                            bg: '#EFF6FF',
+                            color: '#1D4ED8',
+                            border: '#BFDBFE',
+                            label: 'Selected Blueprint',
+                          },
+                          active: {
+                            bg: '#ECFDF5',
+                            color: '#047857',
+                            border: '#A7F3D0',
+                            label: 'Active (Following)',
+                          },
+                          paused: {
+                            bg: '#FFFBEB',
+                            color: '#B45309',
+                            border: '#FDE68A',
+                            label: 'Paused',
+                          },
+                          completed: {
+                            bg: '#FAF5FF',
+                            color: '#7E22CE',
+                            border: '#E9D5FF',
+                            label: 'Completed Cycle',
+                          },
+                          stopped: {
+                            bg: '#FFF1F2',
+                            color: '#BE123C',
+                            border: '#FECDD3',
+                            label: 'Stopped',
+                          },
                         }[status];
                         return (
                           <span
@@ -2022,7 +2981,14 @@ export default function Dietician() {
                               border: `1px solid ${config.border}`,
                             }}
                           >
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: config.color }} />
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: config.color,
+                              }}
+                            />
                             {config.label}
                           </span>
                         );
@@ -2042,13 +3008,21 @@ export default function Dietician() {
                             fontWeight: 600,
                           }}
                         >
-                          <BookOpen size={12} color="#059669" /> Case: {activeCaseScope.caseItem.title}
+                          <BookOpen size={12} color="#059669" /> Case:{' '}
+                          {activeCaseScope.caseItem.title}
                         </span>
                       )}
                     </div>
 
                     {/* Action Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       {(!mealPlan.lifecycle || mealPlan.lifecycle.status === 'draft') && (
                         <>
                           <button
@@ -2244,7 +3218,8 @@ export default function Dietician() {
                         </>
                       )}
 
-                      {(mealPlan.lifecycle?.status === 'completed' || mealPlan.lifecycle?.status === 'stopped') && (
+                      {(mealPlan.lifecycle?.status === 'completed' ||
+                        mealPlan.lifecycle?.status === 'stopped') && (
                         <button
                           type="button"
                           onClick={handleActivatePlan}
@@ -2326,8 +3301,12 @@ export default function Dietician() {
                     >
                       <AlertCircle size={15} color="#BE123C" />
                       <span>
-                        <strong>Stopped Reason:</strong> {PLAN_STOP_REASON_LABELS[mealPlan.lifecycle.stopReason] || mealPlan.lifecycle.stopReason}
-                        {mealPlan.lifecycle.stopReasonDetails ? ` — "${mealPlan.lifecycle.stopReasonDetails}"` : ''}
+                        <strong>Stopped Reason:</strong>{' '}
+                        {PLAN_STOP_REASON_LABELS[mealPlan.lifecycle.stopReason] ||
+                          mealPlan.lifecycle.stopReason}
+                        {mealPlan.lifecycle.stopReasonDetails
+                          ? ` — "${mealPlan.lifecycle.stopReasonDetails}"`
+                          : ''}
                       </span>
                     </div>
                   )}
@@ -2348,17 +3327,25 @@ export default function Dietician() {
                   >
                     <ShieldCheck size={14} color="#059669" />
                     <span>
-                      <strong>Non-destructive history retention:</strong> Changing, pausing, or stopping a plan never alters past daily food logs or recorded reactions. Past logs remain permanently intact in your calendar.
+                      <strong>Non-destructive history retention:</strong> Changing, pausing, or
+                      stopping a plan never alters past daily food logs or recorded reactions. Past
+                      logs remain permanently intact in your calendar.
                     </span>
                   </div>
                 </div>
 
                 {/* Day selector tabs */}
-                <div 
-                  role="tablist" 
+                <div
+                  role="tablist"
                   aria-label="7-Day Plan Days"
-                  className="hide-scrollbar scrollable-row" 
-                  style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}
+                  className="hide-scrollbar scrollable-row"
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    overflowX: 'auto',
+                    paddingBottom: '4px',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
                 >
                   {normalizedPlanDays.map((day: any, idx: number) => {
                     const dayNum = day.day || idx + 1;
@@ -2374,7 +3361,10 @@ export default function Dietician() {
                           setSelectedPlanDay(dayNum);
                         }}
                         style={{
-                          flexShrink: 0, padding: '10px 18px', borderRadius: '12px', border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                          flexShrink: 0,
+                          padding: '10px 18px',
+                          borderRadius: '12px',
+                          border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
                           background: isSelected ? '#ECFDF5' : '#FFFFFF',
                           color: isSelected ? '#065F46' : '#64748B',
                           fontWeight: 800,
@@ -2413,195 +3403,352 @@ export default function Dietician() {
                         gap: '12px',
                       }}
                     >
-                      <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                        Day {currentSelectedDayObj.day || selectedPlanDay} · {datedPlanDay(mealPlan?.startDate,currentSelectedDayObj.day || selectedPlanDay) || 'Date not assigned'}
+                      <h3
+                        style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                      >
+                        Day {currentSelectedDayObj.day || selectedPlanDay} ·{' '}
+                        {datedPlanDay(
+                          mealPlan?.startDate,
+                          currentSelectedDayObj.day || selectedPlanDay
+                        ) || 'Date not assigned'}
                       </h3>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: normalizeDietPreferences(profile?.practical).showNumbers?'flex':'none', alignItems: 'center', gap: '4px' }}>
-                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.meals?.some((meal: MealPlanItem) => meal.macrosNeedReview)
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: '#059669',
+                            display: normalizeDietPreferences(profile?.practical).showNumbers
+                              ? 'flex'
+                              : 'none',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Flame size={15} color="#F59E0B" />{' '}
+                          {currentSelectedDayObj.meals?.some(
+                            (meal: MealPlanItem) => meal.macrosNeedReview
+                          )
                             ? 'Nutrition incomplete after a meal edit'
                             : `${currentSelectedDayObj.total_calories} estimated kcal`}
                         </span>
-                        <span style={{ color: '#64748B', fontSize: '12px' }}>Log only meals you actually ate in the diary.</span>
+                        <span style={{ color: '#64748B', fontSize: '12px' }}>
+                          Log only meals you actually ate in the diary.
+                        </span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-                      {(currentSelectedDayObj.meals || []).map((meal: MealPlanItem, mIdx: number) => {
-                        const dayNum = currentSelectedDayObj.day || selectedPlanDay;
-                        const multiplier = meal.servingMultiplier || 1.0;
-                        return (
-                          <div
-                            key={meal.id || mIdx}
-                            style={{
-                              background: '#FFFAFA',
-                              borderRadius: '16px',
-                              padding: '18px',
-                              border: '1px solid #F1E5E7',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
-                              gap: '12px',
-                            }}
-                          >
-                            <div>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  marginBottom: '6px',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '11px',
-                                    fontWeight: 800,
-                                    color: '#059669',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.8px',
-                                  }}
-                                >
-                                  {meal.type}
-                                </span>
-                                
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStartEditMeal(dayNum, meal)}
-                                    title="Edit meal content or portions"
-                                    style={{
-                                      background: '#FFFFFF',
-                                      border: '1px solid #CBD5E1',
-                                      borderRadius: '6px',
-                                      padding: '3px 8px',
-                                      fontSize: '11px',
-                                      fontWeight: 700,
-                                      color: '#475569',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '3px',
-                                    }}
-                                  >
-                                    <Edit2 size={11} /> Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSwappingMeal({ day: dayNum, meal })}
-                                    title="Replace this meal"
-                                    style={{
-                                      background: '#ECFDF5',
-                                      border: '1px solid #A7F3D0',
-                                      borderRadius: '6px',
-                                      padding: '3px 8px',
-                                      fontSize: '11px',
-                                      fontWeight: 700,
-                                      color: '#065F46',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '3px',
-                                    }}
-                                  >
-                                    <RefreshCw size={11} /> Swap
-                                  </button>
-                                </div>
-                              </div>
-
-                              <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
-                                {meal.name}
-                              </h4>
-
-                              {meal.isSwapped && meal.originalName && (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: isMobile
+                          ? '1fr'
+                          : 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '16px',
+                      }}
+                    >
+                      {(currentSelectedDayObj.meals || []).map(
+                        (meal: MealPlanItem, mIdx: number) => {
+                          const dayNum = currentSelectedDayObj.day || selectedPlanDay;
+                          const multiplier = meal.servingMultiplier || 1.0;
+                          return (
+                            <div
+                              key={meal.id || mIdx}
+                              style={{
+                                background: '#FFFAFA',
+                                borderRadius: '16px',
+                                padding: '18px',
+                                border: '1px solid #F1E5E7',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                              }}
+                            >
+                              <div>
                                 <div
                                   style={{
-                                    fontSize: '11px',
-                                    background: '#EFF6FF',
-                                    color: '#1D4ED8',
-                                    border: '1px solid #BFDBFE',
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    marginBottom: '8px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '6px',
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      color: '#059669',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.8px',
+                                    }}
+                                  >
+                                    {meal.type}
+                                  </span>
+
+                                  <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartEditMeal(dayNum, meal)}
+                                      title="Edit meal content or portions"
+                                      style={{
+                                        background: '#FFFFFF',
+                                        border: '1px solid #CBD5E1',
+                                        borderRadius: '6px',
+                                        padding: '3px 8px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        color: '#475569',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                      }}
+                                    >
+                                      <Edit2 size={11} /> Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSwappingMeal({ day: dayNum, meal })}
+                                      title="Replace this meal"
+                                      style={{
+                                        background: '#ECFDF5',
+                                        border: '1px solid #A7F3D0',
+                                        borderRadius: '6px',
+                                        padding: '3px 8px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        color: '#065F46',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                      }}
+                                    >
+                                      <RefreshCw size={11} /> Swap
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <h4
+                                  style={{
+                                    fontSize: '15px',
+                                    fontWeight: 700,
+                                    color: '#0F172A',
+                                    margin: '0 0 6px 0',
                                     lineHeight: 1.4,
                                   }}
                                 >
-                                  <strong>Swapped from:</strong> {meal.originalName}
-                                  {meal.swapRationale ? ` · ${meal.swapRationale}` : ''}
-                                </div>
-                              )}
+                                  {meal.name}
+                                </h4>
 
-                              {meal.description && (
-                                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 10px 0', lineHeight: 1.5 }}>
-                                  {meal.description}
-                                </p>
-                              )}
-                              {meal.ingredients?.length ? (
-                                <details style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>
-                                  <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Recipe draft · {meal.ingredients.length} ingredients · {meal.prepMinutes || '?'} min</summary>
-                                  <ul style={{ paddingLeft: '18px', margin: '8px 0' }}>
-                                    {meal.ingredients.map((ingredient, index) => <li key={`${ingredient.name}-${index}`}>
-                                      {ingredient.name}: {Math.round(ingredient.amount * multiplier * 10) / 10} {ingredient.unit}
-                                    </li>)}
-                                  </ul>
-                                  {meal.steps?.length ? <ol style={{ paddingLeft: '18px', margin: '8px 0' }}>
-                                    {meal.steps.map((step, index) => <li key={index}>{step}</li>)}
-                                  </ol> : null}
-                                  <span>Ingredient amounts are for one selected portion, raw/dry unless the name says cooked or ready-to-eat. Household recipe quantities are in Plan choices. Check the ingredients and cooking oil before cooking.</span>
-                                </details>
-                              ) : <div style={{ fontSize: '11px', color: '#B45309' }}>Ingredients not recorded; shopping quantities unavailable.</div>}
-                            </div>
+                                {meal.isSwapped && meal.originalName && (
+                                  <div
+                                    style={{
+                                      fontSize: '11px',
+                                      background: '#EFF6FF',
+                                      color: '#1D4ED8',
+                                      border: '1px solid #BFDBFE',
+                                      padding: '4px 8px',
+                                      borderRadius: '6px',
+                                      marginBottom: '8px',
+                                      lineHeight: 1.4,
+                                    }}
+                                  >
+                                    <strong>Swapped from:</strong> {meal.originalName}
+                                    {meal.swapRationale ? ` · ${meal.swapRationale}` : ''}
+                                  </div>
+                                )}
 
-                            {/* Serving Multiplier Selector */}
-                            <div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                                  Serving: {meal.portion || '1 serving'}
-                                </span>
-                                <div style={{ display: 'flex', gap: '3px' }}>
-                                  {[0.5, 1.0, 1.5, 2.0].map((mult) => (
-                                    <button
-                                      key={mult}
-                                      type="button"
-                                      onClick={() => handleServingMultiplierChange(dayNum, meal.id, mult)}
-                                      style={{
-                                        padding: '2px 6px',
-                                        borderRadius: '4px',
-                                        fontSize: '10.5px',
-                                        fontWeight: 700,
-                                        border: multiplier === mult ? '1px solid #059669' : '1px solid #E2E8F0',
-                                        background: multiplier === mult ? '#ECFDF5' : '#FFFFFF',
-                                        color: multiplier === mult ? '#065F46' : '#64748B',
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      {mult}x
-                                    </button>
-                                  ))}
-                                </div>
+                                {meal.description && (
+                                  <p
+                                    style={{
+                                      fontSize: '12px',
+                                      color: '#64748B',
+                                      margin: '0 0 10px 0',
+                                      lineHeight: 1.5,
+                                    }}
+                                  >
+                                    {meal.description}
+                                  </p>
+                                )}
+                                {meal.ingredients?.length ? (
+                                  <details
+                                    style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}
+                                  >
+                                    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
+                                      Recipe draft · {meal.ingredients.length} ingredients ·{' '}
+                                      {meal.prepMinutes || '?'} min
+                                    </summary>
+                                    <ul style={{ paddingLeft: '18px', margin: '8px 0' }}>
+                                      {meal.ingredients.map((ingredient, index) => (
+                                        <li key={`${ingredient.name}-${index}`}>
+                                          {ingredient.name}:{' '}
+                                          {Math.round(ingredient.amount * multiplier * 10) / 10}{' '}
+                                          {ingredient.unit}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                    {meal.steps?.length ? (
+                                      <ol style={{ paddingLeft: '18px', margin: '8px 0' }}>
+                                        {meal.steps.map((step, index) => (
+                                          <li key={index}>{step}</li>
+                                        ))}
+                                      </ol>
+                                    ) : null}
+                                    <span>
+                                      Ingredient amounts are for one selected portion, raw/dry
+                                      unless the name says cooked or ready-to-eat. Household recipe
+                                      quantities are in Plan choices. Check the ingredients and
+                                      cooking oil before cooking.
+                                    </span>
+                                  </details>
+                                ) : (
+                                  <div style={{ fontSize: '11px', color: '#B45309' }}>
+                                    Ingredients not recorded; shopping quantities unavailable.
+                                  </div>
+                                )}
                               </div>
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
-                                {meal.macrosNeedReview ? <span style={{ color: '#B45309', fontWeight: 700 }}>Nutrition needs review after this change</span> : <>
-                                  <span style={{ display:normalizeDietPreferences(profile?.practical).showNumbers?undefined:'none',color: '#059669', fontWeight: 700 }}>{meal.calories} estimated kcal</span>
-                                  <span style={{ display:normalizeDietPreferences(profile?.practical).showNumbers?undefined:'none',color: '#94A3B8', fontSize: '11.5px' }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</span>
-                                </>}
+                              {/* Serving Multiplier Selector */}
+                              <div>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '6px',
+                                  }}
+                                >
+                                  <span
+                                    style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}
+                                  >
+                                    Serving: {meal.portion || '1 serving'}
+                                  </span>
+                                  <div style={{ display: 'flex', gap: '3px' }}>
+                                    {[0.5, 1.0, 1.5, 2.0].map((mult) => (
+                                      <button
+                                        key={mult}
+                                        type="button"
+                                        onClick={() =>
+                                          handleServingMultiplierChange(dayNum, meal.id, mult)
+                                        }
+                                        style={{
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10.5px',
+                                          fontWeight: 700,
+                                          border:
+                                            multiplier === mult
+                                              ? '1px solid #059669'
+                                              : '1px solid #E2E8F0',
+                                          background: multiplier === mult ? '#ECFDF5' : '#FFFFFF',
+                                          color: multiplier === mult ? '#065F46' : '#64748B',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        {mult}x
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingTop: '8px',
+                                    borderTop: '1px solid #E2E8F0',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {meal.macrosNeedReview ? (
+                                    <span style={{ color: '#B45309', fontWeight: 700 }}>
+                                      Nutrition needs review after this change
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span
+                                        style={{
+                                          display: normalizeDietPreferences(profile?.practical)
+                                            .showNumbers
+                                            ? undefined
+                                            : 'none',
+                                          color: '#059669',
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {meal.calories} estimated kcal
+                                      </span>
+                                      <span
+                                        style={{
+                                          display: normalizeDietPreferences(profile?.practical)
+                                            .showNumbers
+                                            ? undefined
+                                            : 'none',
+                                          color: '#94A3B8',
+                                          fontSize: '11.5px',
+                                        }}
+                                      >
+                                        P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleConfirmPlannedMeal(dayNum, meal)}
+                                  disabled={(foodLogs[currentDate] || []).some(
+                                    (item: any) =>
+                                      item.sourceRecordId ===
+                                      `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`
+                                  )}
+                                  style={{
+                                    width: '100%',
+                                    marginTop: '10px',
+                                    padding: '9px',
+                                    border: '1px solid #0D9488',
+                                    borderRadius: '9px',
+                                    background: '#F0FDFA',
+                                    color: '#0F766E',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  {(foodLogs[currentDate] || []).some(
+                                    (item: any) =>
+                                      item.sourceRecordId ===
+                                      `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`
+                                  )
+                                    ? 'Logged in diary'
+                                    : 'Record this meal as eaten'}
+                                </button>
                               </div>
-                              <button type="button" onClick={() => void handleConfirmPlannedMeal(dayNum, meal)}
-                                disabled={(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)}
-                                style={{ width: '100%', marginTop: '10px', padding: '9px', border: '1px solid #0D9488', borderRadius: '9px', background: '#F0FDFA', color: '#0F766E', fontWeight: 700, cursor: 'pointer' }}>
-                                {(foodLogs[currentDate] || []).some((item: any) => item.sourceRecordId === `plan:${mealPlan.id}:day:${dayNum}:meal:${meal.id}:date:${currentDate}`)
-                                  ? 'Logged in diary' : 'Record this meal as eaten'}
-                              </button>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
 
                     {/* Portion and Nutrient Disclaimer & Clinical Guardrail */}
-                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div
+                      style={{
+                        marginTop: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
                       <div
                         style={{
                           display: 'flex',
@@ -2616,9 +3763,14 @@ export default function Dietician() {
                           lineHeight: 1.5,
                         }}
                       >
-                        <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <Info
+                          size={16}
+                          color="#64748B"
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
                         <span>
-                          <strong>Portion & Nutrient Estimates:</strong> {PORTION_ESTIMATE_DISCLAIMER}
+                          <strong>Portion & Nutrient Estimates:</strong>{' '}
+                          {PORTION_ESTIMATE_DISCLAIMER}
                         </span>
                       </div>
 
@@ -2636,7 +3788,11 @@ export default function Dietician() {
                           lineHeight: 1.5,
                         }}
                       >
-                        <ShieldCheck size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <ShieldCheck
+                          size={16}
+                          color="#DC2626"
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
                         <span>
                           <strong>Clinical Safety Guardrail:</strong> {CLINICAL_SAFETY_GUARDRAIL}
                         </span>
@@ -2651,7 +3807,11 @@ export default function Dietician() {
 
         {/* TAB 3: SMART GROCERY LIST */}
         {activeTab === 'grocery' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -2663,11 +3823,19 @@ export default function Dietician() {
               }}
             >
               <div>
-                <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
                   Grocery list
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Categorized grocery checklist mapped to your 7-day meal plan. Check off items as you shop.
+                  Categorized grocery checklist mapped to your 7-day meal plan. Check off items as
+                  you shop.
                 </p>
               </div>
 
@@ -2690,10 +3858,14 @@ export default function Dietician() {
                     boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
                     flex: isMobile ? 1 : 'unset',
                     justifyContent: 'center',
-                    opacity: isGeneratingGrocery ? 0.7 : 1
+                    opacity: isGeneratingGrocery ? 0.7 : 1,
                   }}
                 >
-                  {isGeneratingGrocery ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
+                  {isGeneratingGrocery ? (
+                    <Loader2 size={16} className="spin" />
+                  ) : (
+                    <Sparkles size={16} />
+                  )}
                   {isGeneratingGrocery ? 'Generating...' : 'Auto-Generate'}
                 </button>
                 <button
@@ -2718,15 +3890,46 @@ export default function Dietician() {
               </div>
             </div>
 
-            <div className="diet-everyday"><p>Shopping follows selected meals and {groceryOptions.householdSize} person(s) per recipe. {profile?.practical?.usePantry ? 'Matching pantry stock is subtracted.' : 'Enable pantry use in everyday preferences to subtract stock.'}</p></div>
-            <GroceryControls list={displayedGroceryList} onSave={async next => { if (!await saveDietAncillary('dietGrocery', 'groceryList', next)) return false; setGroceryList(next); return true; }} />
+            <div className="diet-everyday">
+              <p>
+                Shopping follows selected meals and {groceryOptions.householdSize} person(s) per
+                recipe.{' '}
+                {profile?.practical?.usePantry
+                  ? 'Matching pantry stock is subtracted.'
+                  : 'Enable pantry use in everyday preferences to subtract stock.'}
+              </p>
+            </div>
+            <GroceryControls
+              list={displayedGroceryList}
+              onSave={async (next) => {
+                if (!(await saveDietAncillary('dietGrocery', 'groceryList', next))) return false;
+                setGroceryList(next);
+                return true;
+              }}
+            />
             {displayedGroceryList.length === 0 && (
-              <div role="status" style={{ padding: '18px', border: '1px solid #CBD5E1', borderRadius: '14px', color: '#475569', marginBottom: '18px' }}>
-                {mealPlan ? 'Nothing to buy for the selected measured ingredients after pantry stock is applied. Review Plan choices, or add missing recipe quantities and manual items.'
+              <div
+                role="status"
+                style={{
+                  padding: '18px',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '14px',
+                  color: '#475569',
+                  marginBottom: '18px',
+                }}
+              >
+                {mealPlan
+                  ? 'Nothing to buy for the selected measured ingredients after pantry stock is applied. Review Plan choices, or add missing recipe quantities and manual items.'
                   : 'Create a meal plan to build a shopping list from its ingredients.'}
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '20px',
+              }}
+            >
               {displayedGroceryList.map((cat, catIdx) => {
                 const total = cat.items.length;
                 const done = cat.items.filter((i: any) => i.checked).length;
@@ -2742,11 +3945,34 @@ export default function Dietician() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <h3 style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <h3
+                        style={{
+                          fontSize: '15.5px',
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          margin: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
                         <span>{cat.emoji}</span> {cat.category}
                       </h3>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: done === total ? '#059669' : '#64748B' }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: done === total ? '#059669' : '#64748B',
+                        }}
+                      >
                         {done} / {total}
                       </span>
                     </div>
@@ -2814,105 +4040,258 @@ export default function Dietician() {
           </motion.div>
         )}
 
-        
-          {/* TAB 4: CLINICAL GUARDRAILS */}
-          {activeTab === 'guardrails' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', marginBottom: '20px', gap: '12px' }}>
-                <div>
-                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                    Meal guide
-                  </h2>
-                  <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                    General planning prompts from your saved profile. This guide does not verify the current plan, ingredients, or allergens.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={handleGenerateGuardrails}
-                    disabled={isGeneratingGuardrails}
-                    style={{
-                      background: guardrails.length > 0 ? '#FFFFFF' : '#0F172A',
-                      color: guardrails.length > 0 ? '#334155' : '#FFF',
-                      border: guardrails.length > 0 ? '1px solid #CBD5E1' : 'none',
-                      padding: '10px 16px',
-                      borderRadius: '12px',
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      cursor: isGeneratingGuardrails ? 'not-allowed' : 'pointer',
-                      opacity: isGeneratingGuardrails ? 0.7 : 1,
-                    }}
-                  >
-                    {isGeneratingGuardrails ? (
-                      <><Loader2 size={15} className="spin" /> Working...</>
-                    ) : (
-                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Update guide' : 'Create guide'}</>
-                    )}
-                  </button>
-                </div>
+        {/* TAB 4: CLINICAL GUARDRAILS */}
+        {activeTab === 'guardrails' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                marginBottom: '20px',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
+                  Meal guide
+                </h2>
+                <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
+                  General planning prompts from your saved profile. This guide does not verify the
+                  current plan, ingredients, or allergens.
+                </p>
               </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleGenerateGuardrails}
+                  disabled={isGeneratingGuardrails}
+                  style={{
+                    background: guardrails.length > 0 ? '#FFFFFF' : '#0F172A',
+                    color: guardrails.length > 0 ? '#334155' : '#FFF',
+                    border: guardrails.length > 0 ? '1px solid #CBD5E1' : 'none',
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: isGeneratingGuardrails ? 'not-allowed' : 'pointer',
+                    opacity: isGeneratingGuardrails ? 0.7 : 1,
+                  }}
+                >
+                  {isGeneratingGuardrails ? (
+                    <>
+                      <Loader2 size={15} className="spin" /> Working...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck size={15} />{' '}
+                      {guardrails.length > 0 ? 'Update guide' : 'Create guide'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
-              {guardrails.length === 0 && !isGeneratingGuardrails ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', background: '#FFFFFF', borderRadius: '24px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto' }}>
-                    <ShieldCheck size={32} />
-                  </div>
-                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>No meal guide yet</h3>
-                  <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                    Create an editable guide from your saved preferences. Review it before use.
-                  </p>
-                  <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
-                    Create guide
-                  </button>
+            {guardrails.length === 0 && !isGeneratingGuardrails ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: '#F1F5F9',
+                    color: '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 18px auto',
+                  }}
+                >
+                  <ShieldCheck size={32} />
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
-                  {guardrails.map((gr: any, idx: number) => {
-                    let IconComponent = ShieldCheck;
-                    if (gr.icon === 'Zap') IconComponent = Zap;
-                    if (gr.icon === 'Heart') IconComponent = Heart;
-                    if (gr.icon === 'Layers') IconComponent = Layers;
-                    if (gr.icon === 'Activity') IconComponent = Activity;
-                    if (gr.icon === 'Droplet') IconComponent = Droplet;
-                    if (gr.icon === 'Brain') IconComponent = Brain;
-                    if (gr.icon === 'Flame') IconComponent = Flame;
+                <h3
+                  style={{
+                    fontSize: '19px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  No meal guide yet
+                </h3>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: '14.5px',
+                    maxWidth: '440px',
+                    margin: '0 auto 24px auto',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Create an editable guide from your saved preferences. Review it before use.
+                </p>
+                <button
+                  onClick={handleGenerateGuardrails}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '14px 28px',
+                    borderRadius: '14px',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Create guide
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: '20px',
+                }}
+              >
+                {guardrails.map((gr: any, idx: number) => {
+                  let IconComponent = ShieldCheck;
+                  if (gr.icon === 'Zap') IconComponent = Zap;
+                  if (gr.icon === 'Heart') IconComponent = Heart;
+                  if (gr.icon === 'Layers') IconComponent = Layers;
+                  if (gr.icon === 'Activity') IconComponent = Activity;
+                  if (gr.icon === 'Droplet') IconComponent = Droplet;
+                  if (gr.icon === 'Brain') IconComponent = Brain;
+                  if (gr.icon === 'Flame') IconComponent = Flame;
 
-                    let bgColor = '#F1F5F9';
-                    let iconColor = '#64748B';
-                    let targetColor = '#0F172A';
-                    
-                    if (gr.color === 'orange') { bgColor = '#FEF3C7'; iconColor = '#D97706'; targetColor = '#D97706'; }
-                    if (gr.color === 'blue') { bgColor = '#EFF6FF'; iconColor = '#2563EB'; targetColor = '#2563EB'; }
-                    if (gr.color === 'green') { bgColor = '#ECFDF5'; iconColor = '#059669'; targetColor = '#059669'; }
-                    if (gr.color === 'purple') { bgColor = '#F3E8FF'; iconColor = '#7E22CE'; targetColor = '#7E22CE'; }
-                    if (gr.color === 'red') { bgColor = '#FEE2E2'; iconColor = '#DC2626'; targetColor = '#DC2626'; }
+                  let bgColor = '#F1F5F9';
+                  let iconColor = '#64748B';
+                  let targetColor = '#0F172A';
 
-                    return (
-                      <div key={idx} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #F1E5E7' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor }}>
-                            <IconComponent size={18} />
-                          </div>
-                          <div>
-                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>{gr.title}</h3>
-                            <span style={{ fontSize: '12px', color: targetColor, fontWeight: 700 }}>{gr.target}</span>
-                          </div>
+                  if (gr.color === 'orange') {
+                    bgColor = '#FEF3C7';
+                    iconColor = '#D97706';
+                    targetColor = '#D97706';
+                  }
+                  if (gr.color === 'blue') {
+                    bgColor = '#EFF6FF';
+                    iconColor = '#2563EB';
+                    targetColor = '#2563EB';
+                  }
+                  if (gr.color === 'green') {
+                    bgColor = '#ECFDF5';
+                    iconColor = '#059669';
+                    targetColor = '#059669';
+                  }
+                  if (gr.color === 'purple') {
+                    bgColor = '#F3E8FF';
+                    iconColor = '#7E22CE';
+                    targetColor = '#7E22CE';
+                  }
+                  if (gr.color === 'red') {
+                    bgColor = '#FEE2E2';
+                    iconColor = '#DC2626';
+                    targetColor = '#DC2626';
+                  }
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        background: '#FFFFFF',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        border: '1px solid #F1E5E7',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '10px',
+                            background: bgColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: iconColor,
+                          }}
+                        >
+                          <IconComponent size={18} />
                         </div>
-                        <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                          {gr.description}
-                        </p>
-                        <div style={{ fontSize: '12px', background: '#FFFAFA', padding: '10px 14px', borderRadius: '10px', color: '#334155', border: '1px solid #F1E5E7' }}>
-                          <strong>Key Nutrients:</strong> {gr.keyNutrients}
+                        <div>
+                          <h3
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: 800,
+                              color: '#0F172A',
+                              margin: 0,
+                            }}
+                          >
+                            {gr.title}
+                          </h3>
+                          <span style={{ fontSize: '12px', color: targetColor, fontWeight: 700 }}>
+                            {gr.target}
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-</motion.div>
+                      <p
+                        style={{
+                          fontSize: '13.5px',
+                          color: '#475569',
+                          lineHeight: 1.6,
+                          margin: '0 0 12px 0',
+                        }}
+                      >
+                        {gr.description}
+                      </p>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          background: '#FFFAFA',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          color: '#334155',
+                          border: '1px solid #F1E5E7',
+                        }}
+                      >
+                        <strong>Key Nutrients:</strong> {gr.keyNutrients}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
         )}
 
         {/* TAB 4: LONGEVITY BIO-STACK */}
@@ -3001,7 +4380,14 @@ export default function Dietician() {
                     <X size={16} />
                   </button>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '8px',
+                    }}
+                  >
                     <div
                       style={{
                         width: '38px',
@@ -3017,7 +4403,9 @@ export default function Dietician() {
                       <Utensils size={20} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                      <h3
+                        style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                      >
                         Log Meal / Nutrition
                       </h3>
                       <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
@@ -3027,8 +4415,18 @@ export default function Dietician() {
                   </div>
 
                   {/* Meal type selection */}
-                  <div style={{ display: 'flex', gap: '6px', margin: '18px 0 14px 0', flexWrap: 'wrap' }}>
-                    {[...dietMealSlots(profile.mealSchedule).map(slot => slot.name), 'Other meals'].map((type) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '6px',
+                      margin: '18px 0 14px 0',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {[
+                      ...dietMealSlots(profile.mealSchedule).map((slot) => slot.name),
+                      'Other meals',
+                    ].map((type) => (
                       <button
                         key={type}
                         onClick={() => setSelectedMealType(type)}
@@ -3051,7 +4449,14 @@ export default function Dietician() {
 
                   {/* Quick Presets */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '8px',
+                      }}
+                    >
                       ⚡ One-tap meal names (nutrition unknown):
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -3084,7 +4489,14 @@ export default function Dietician() {
 
                   {/* 1-Tap Pantry Staples */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '6px',
+                      }}
+                    >
                       🥗 1-Tap Pantry Staples (Tap to append):
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -3094,7 +4506,9 @@ export default function Dietician() {
                           type="button"
                           onClick={() => {
                             triggerHapticLight();
-                            setFoodInput((prev) => (prev.trim() ? `${prev.trim()}, ${staple.name}` : staple.name));
+                            setFoodInput((prev) =>
+                              prev.trim() ? `${prev.trim()}, ${staple.name}` : staple.name
+                            );
                           }}
                           style={{
                             padding: '5px 10px',
@@ -3121,7 +4535,14 @@ export default function Dietician() {
 
                   {/* Latency / Reaction Window Chips */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '6px',
+                      }}
+                    >
                       <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                         ⏱️ Post-Meal Reaction Window:
                       </span>
@@ -3144,7 +4565,8 @@ export default function Dietician() {
                             fontSize: '11.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            border: mealLatency === lat ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            border:
+                              mealLatency === lat ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                             background: mealLatency === lat ? '#CCFBF1' : '#FFFFFF',
                             color: mealLatency === lat ? '#0F766E' : '#475569',
                           }}
@@ -3157,7 +4579,16 @@ export default function Dietician() {
 
                   {/* Natural Language Input */}
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <label htmlFor="dietician-food-input" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    <label
+                      htmlFor="dietician-food-input"
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '6px',
+                      }}
+                    >
                       Or type in plain English / Hindi:
                     </label>
                     <textarea
@@ -3183,13 +4614,37 @@ export default function Dietician() {
                     />
                   </div>
 
-                  <MealDetailsFields date={currentDate} onDate={setCurrentDate} value={mealDetails} onChange={setMealDetails} />
-                  <div className="diet-everyday"><button disabled={isAnalyzingFood || !foodInput.trim()} onClick={() => handleAddFood(true)}>Estimate nutrition and save</button><p>Optional AI estimate. A name-only record works without a network connection.</p></div>
+                  <MealDetailsFields
+                    date={currentDate}
+                    onDate={setCurrentDate}
+                    value={mealDetails}
+                    onChange={setMealDetails}
+                  />
+                  <div className="diet-everyday">
+                    <button
+                      disabled={isAnalyzingFood || !foodInput.trim()}
+                      onClick={() => handleAddFood(true)}
+                    >
+                      Estimate nutrition and save
+                    </button>
+                    <p>
+                      Optional AI estimate. A name-only record works without a network connection.
+                    </p>
+                  </div>
                   {/* Ingredient verification is unavailable for a free-text description. */}
                   {foodInput.trim().length > 2 && (
-                    <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#FFFAFA', border: '1px solid #F1E5E7' }}>
+                    <div
+                      style={{
+                        marginBottom: '16px',
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        background: '#FFFAFA',
+                        border: '1px solid #F1E5E7',
+                      }}
+                    >
                       <div style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>
-                        A food description does not verify ingredients, allergens, FODMAP content or how you will react. Check the label or recipe before relying on it.
+                        A food description does not verify ingredients, allergens, FODMAP content or
+                        how you will react. Check the label or recipe before relying on it.
                       </div>
                     </div>
                   )}
@@ -3200,7 +4655,10 @@ export default function Dietician() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: isAnalyzingFood || !foodInput.trim() ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      background:
+                        isAnalyzingFood || !foodInput.trim()
+                          ? '#E2E8F0'
+                          : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                       color: isAnalyzingFood || !foodInput.trim() ? '#94A3B8' : '#FFF',
                       border: 'none',
                       borderRadius: '14px',
@@ -3211,7 +4669,10 @@ export default function Dietician() {
                       justifyContent: 'center',
                       gap: '8px',
                       cursor: isAnalyzingFood || !foodInput.trim() ? 'not-allowed' : 'pointer',
-                      boxShadow: isAnalyzingFood || !foodInput.trim() ? 'none' : '0 6px 20px rgba(13, 148, 136, 0.35)',
+                      boxShadow:
+                        isAnalyzingFood || !foodInput.trim()
+                          ? 'none'
+                          : '0 6px 20px rgba(13, 148, 136, 0.35)',
                       transition: 'all 0.2s',
                     }}
                   >
@@ -3245,7 +4706,7 @@ export default function Dietician() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px'
+                padding: '20px',
               }}
               onClick={() => setShowResetDietConfirm(false)}
             >
@@ -3264,17 +4725,40 @@ export default function Dietician() {
                   maxWidth: '440px',
                   width: '100%',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                  border: '1px solid #F1F5F9'
+                  border: '1px solid #F1F5F9',
                 }}
               >
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '14px',
+                    background: '#FEE2E2',
+                    color: '#EF4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '16px',
+                  }}
+                >
                   <Trash2 size={24} />
                 </div>
-                <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>
+                <h3
+                  style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}
+                >
                   Reset Diet Profile & Plan?
                 </h3>
-                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
-                  This will clear Diet settings, plans, the grocery checklist, favorites, pantry stock, food reminders, and meals created in Diet or imported from older Diet logs. Gut Quick Log observations remain in Gut Health and the shared diary.
+                <p
+                  style={{
+                    margin: '0 0 24px',
+                    fontSize: '14px',
+                    color: '#64748B',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  This will clear Diet settings, plans, the grocery checklist, favorites, pantry
+                  stock, food reminders, and meals created in Diet or imported from older Diet logs.
+                  Gut Quick Log observations remain in Gut Health and the shared diary.
                 </p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
@@ -3288,29 +4772,74 @@ export default function Dietician() {
                     onClick={async () => {
                       const core = getCoreProfile();
                       if (!core) {
-                        toast.error('Reset failed', 'Your profile could not be loaded. Please try again.');
+                        toast.error(
+                          'Reset failed',
+                          'Your profile could not be loaded. Please try again.'
+                        );
                         return;
                       }
-                      const resetKey=getProfileKey();
+                      const resetKey = getProfileKey();
                       const mealsRemoved = await removeAllDietMeals();
                       if (!mealsRemoved.ok) {
-                        toast.error('Reset incomplete', 'Some meal records could not be removed. Reopen the diary and try again.');
+                        toast.error(
+                          'Reset incomplete',
+                          'Some meal records could not be removed. Reopen the diary and try again.'
+                        );
                         setFoodLogs(await listMealDiary());
                         return;
                       }
-                      if(resetKey!==getProfileKey()||core.id!==getCoreProfile()?.id){toast.error('Profile changed','Reopen Diet before resetting.');return;}
+                      if (resetKey !== getProfileKey() || core.id !== getCoreProfile()?.id) {
+                        toast.error('Profile changed', 'Reopen Diet before resetting.');
+                        return;
+                      }
                       const resetAt = new Date().toISOString();
                       await saveProfile({
-                        ...getCoreProfile(), dietResetAt: resetAt,
-                        dietEveryday:{...getDietEveryday(),updatedAt:resetAt,reminders:[],selectedPlanId:undefined,selectedMeals:[],favorites:getDietEveryday().favorites.map(item=>({...item,updatedAt:resetAt,deletedAt:resetAt})),pantry:getDietEveryday().pantry.map(item=>({...item,updatedAt:resetAt,deletedAt:resetAt}))},
-                        dietGroceryUpdatedAt:resetAt,dietGuardrailsUpdatedAt:resetAt,
-                        dietician: { profile: null, foodLogs: {}, hydration: {}, mealPlan: null, advice: null, groceryList: [], archivedPlans: [], guardrails: [] },
-                        dietProfile: null, dietFoodLogs: {}, dietHydration: {}, dietMealPlan: null,
-                        dietArchivedPlans: [], dietAdvice: null, dietGrocery: [], dietGuardrails: [],
+                        ...getCoreProfile(),
+                        dietResetAt: resetAt,
+                        dietEveryday: {
+                          ...getDietEveryday(),
+                          updatedAt: resetAt,
+                          reminders: [],
+                          selectedPlanId: undefined,
+                          selectedMeals: [],
+                          favorites: getDietEveryday().favorites.map((item) => ({
+                            ...item,
+                            updatedAt: resetAt,
+                            deletedAt: resetAt,
+                          })),
+                          pantry: getDietEveryday().pantry.map((item) => ({
+                            ...item,
+                            updatedAt: resetAt,
+                            deletedAt: resetAt,
+                          })),
+                        },
+                        dietGroceryUpdatedAt: resetAt,
+                        dietGuardrailsUpdatedAt: resetAt,
+                        dietician: {
+                          profile: null,
+                          foodLogs: {},
+                          hydration: {},
+                          mealPlan: null,
+                          advice: null,
+                          groceryList: [],
+                          archivedPlans: [],
+                          guardrails: [],
+                        },
+                        dietProfile: null,
+                        dietFoodLogs: {},
+                        dietHydration: {},
+                        dietMealPlan: null,
+                        dietArchivedPlans: [],
+                        dietAdvice: null,
+                        dietGrocery: [],
+                        dietGuardrails: [],
                         nutrition: { ...(core.nutrition || {}), recentLogs: [] },
                       });
                       if (getCoreProfile()?.dietResetAt !== resetAt) {
-                        toast.error('Reset failed', 'The diet records were not confirmed as saved. Please try again.');
+                        toast.error(
+                          'Reset failed',
+                          'The diet records were not confirmed as saved. Please try again.'
+                        );
                         return;
                       }
                       setProfile(null);
@@ -3323,7 +4852,10 @@ export default function Dietician() {
                       setHydration({});
                       setGroceryList([]);
                       setShowResetDietConfirm(false);
-                      toast.success('Diet Profile Reset', 'Diet plans, estimates and Diet-created meal records were cleared for this profile. Gut Quick Log records remain.');
+                      toast.success(
+                        'Diet Profile Reset',
+                        'Diet plans, estimates and Diet-created meal records were cleared for this profile. Gut Quick Log records remain.'
+                      );
                     }}
                     style={{
                       flex: 1,
@@ -3333,7 +4865,7 @@ export default function Dietician() {
                       color: '#FFF',
                       border: 'none',
                       fontWeight: 650,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     Reset Diet
@@ -3364,12 +4896,14 @@ export default function Dietician() {
                 overflowY: 'auto',
               }}
             >
-              <div style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div
+                style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}
+              >
                 <OnboardingWizard
                   initialData={profile}
                   onCancel={() => setIsEditingProfile(false)}
                   onComplete={async (data) => {
-                    if(await handleSaveProfile(data)) setIsEditingProfile(false);
+                    if (await handleSaveProfile(data)) setIsEditingProfile(false);
                   }}
                 />
               </div>
@@ -3377,13 +4911,55 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
-        {showSavedMealsModal && createPortal(<div style={{ position: 'fixed', inset: 0, zIndex: 11000, background: 'rgba(15,23,42,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }} onClick={() => setShowSavedMealsModal(false)}>
-          <FocusTrap isActive={true} style={{width:'min(860px, 94vw)',height:'auto'}}><div role="dialog" aria-modal="true" aria-label="Everyday food tools" style={{ width: 'min(860px, 94vw)', maxHeight: '90vh', overflowY: 'auto', borderRadius: 20, background: '#fff' }} onClick={e => e.stopPropagation()}>
-            <DietEverydayTools key={`${getProfileKey()}:${getCoreProfile()?.id}`} profile={profile} date={currentDate} diary={foodLogs} plan={mealPlan} initialPanel={everydayPanel}
-              onClose={() => setShowSavedMealsModal(false)} onPreferences={handleSaveProfile} onLogged={async () => setFoodLogs(await listMealDiary())}
-              onPlan={async next => { if(isGeneratingPlan)return false; return persistPlanUpdate(next); }} />
-          </div></FocusTrap>
-        </div>, document.body)}
+        {showSavedMealsModal &&
+          createPortal(
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 11000,
+                background: 'rgba(15,23,42,.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 12,
+              }}
+              onClick={() => setShowSavedMealsModal(false)}
+            >
+              <FocusTrap isActive={true} style={{ width: 'min(860px, 94vw)', height: 'auto' }}>
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Everyday food tools"
+                  style={{
+                    width: 'min(860px, 94vw)',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    borderRadius: 20,
+                    background: '#fff',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DietEverydayTools
+                    key={`${getProfileKey()}:${getCoreProfile()?.id}`}
+                    profile={profile}
+                    date={currentDate}
+                    diary={foodLogs}
+                    plan={mealPlan}
+                    initialPanel={everydayPanel}
+                    onClose={() => setShowSavedMealsModal(false)}
+                    onPreferences={handleSaveProfile}
+                    onLogged={async () => setFoodLogs(await listMealDiary())}
+                    onPlan={async (next) => {
+                      if (isGeneratingPlan) return false;
+                      return persistPlanUpdate(next);
+                    }}
+                  />
+                </div>
+              </FocusTrap>
+            </div>,
+            document.body
+          )}
 
         {/* Package 7: Stop Plan Modal with Structured Reasons */}
         <AnimatePresence>
@@ -3439,13 +5015,32 @@ export default function Dietician() {
                     gap: '16px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFF1F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BE123C' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FFF1F2',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#BE123C',
+                        }}
+                      >
                         <StopCircle size={20} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Stop Meal Blueprint
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3456,7 +5051,18 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setShowStopPlanModal(false)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
@@ -3481,7 +5087,9 @@ export default function Dietician() {
                       }}
                     >
                       {Object.entries(PLAN_STOP_REASON_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -3523,13 +5131,26 @@ export default function Dietician() {
                       lineHeight: 1.5,
                     }}
                   >
-                    <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <ShieldCheck
+                      size={16}
+                      color="#059669"
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
                     <span>
-                      <strong>Non-Destructive Guarantee:</strong> Stopping this blueprint archives it safely. All past daily food logs, symptom reactions, and calendar records remain 100% intact.
+                      <strong>Non-Destructive Guarantee:</strong> Stopping this blueprint archives
+                      it safely. All past daily food logs, symptom reactions, and calendar records
+                      remain 100% intact.
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      marginTop: '6px',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setShowStopPlanModal(false)}
@@ -3626,13 +5247,32 @@ export default function Dietician() {
                     gap: '14px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#ECFDF5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#059669',
+                        }}
+                      >
                         <Edit2 size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Edit Day {editingMeal.day} Meal
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3643,113 +5283,277 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setEditingMeal(null)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Meal Name</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Meal Name
+                    </label>
                     <input
                       type="text"
                       value={editMealForm.name}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, name: e.target.value }))}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Portion Assumption</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Portion Assumption
+                    </label>
                     <input
                       type="text"
                       value={editMealForm.portion}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, portion: e.target.value }))}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, portion: e.target.value }))
+                      }
                       placeholder="e.g. 1 bowl (300g) or 2 medium slices"
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}
+                  >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Calories (kcal)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>
+                        Calories (kcal)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.calories}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, calories: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            calories: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Protein (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Protein (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.protein}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, protein: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            protein: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Carbs (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Carbs (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.carbs}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, carbs: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            carbs: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Fat (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Fat (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.fat}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, fat: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({ ...prev, fat: Number(e.target.value) || 0 }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Description / Recipe Notes</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Description / Recipe Notes
+                    </label>
                     <textarea
                       value={editMealForm.description}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       rows={2}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                      }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Draft ingredients · one per line: name | amount | g, ml, or piece</label>
-                    <textarea value={editMealForm.ingredientsText} rows={4}
-                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, ingredientsText: e.target.value }))}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }} />
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Draft ingredients · one per line: name | amount | g, ml, or piece
+                    </label>
+                    <textarea
+                      value={editMealForm.ingredientsText}
+                      rows={4}
+                      onChange={(e) =>
+                        setEditMealForm((previous) => ({
+                          ...previous,
+                          ingredientsText: e.target.value,
+                        }))
+                      }
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                      }}
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Preparation steps · one per line</label>
-                    <textarea value={editMealForm.stepsText} rows={3}
-                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, stepsText: e.target.value }))}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }} />
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Preparation steps · one per line
+                    </label>
+                    <textarea
+                      value={editMealForm.stepsText}
+                      rows={3}
+                      onChange={(e) =>
+                        setEditMealForm((previous) => ({ ...previous, stepsText: e.target.value }))
+                      }
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                      }}
+                    />
                   </div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Preparation time (minutes)
-                    <input type="number" min={1} max={360} value={editMealForm.prepMinutes || ''}
-                      onChange={(e) => setEditMealForm((previous) => ({ ...previous, prepMinutes: Number(e.target.value) || 0 }))}
-                      style={{ marginLeft: '8px', width: '80px', padding: '8px', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                    Preparation time (minutes)
+                    <input
+                      type="number"
+                      min={1}
+                      max={360}
+                      value={editMealForm.prepMinutes || ''}
+                      onChange={(e) =>
+                        setEditMealForm((previous) => ({
+                          ...previous,
+                          prepMinutes: Number(e.target.value) || 0,
+                        }))
+                      }
+                      style={{
+                        marginLeft: '8px',
+                        width: '80px',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                      }}
+                    />
                   </label>
 
-                    <label className="diet-everyday" style={{display:'block',marginBottom:12}}><input type="checkbox" checked={editNutrientsConfirmed} onChange={e=>setEditNutrientsConfirmed(e.target.checked)} /> I checked these nutrient values for this portion</label>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                  <label className="diet-everyday" style={{ display: 'block', marginBottom: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={editNutrientsConfirmed}
+                      onChange={(e) => setEditNutrientsConfirmed(e.target.checked)}
+                    />{' '}
+                    I checked these nutrient values for this portion
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      marginTop: '6px',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setEditingMeal(null)}
-                      style={{ padding: '8px 16px', borderRadius: '10px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#475569', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '10px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        color: '#475569',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
                     >
                       Cancel
                     </button>
-                  <button
+                    <button
                       type="button"
                       onClick={handleSaveEditMeal}
-                      style={{ padding: '8px 18px', borderRadius: '10px', background: '#059669', border: 'none', color: '#FFFFFF', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{
+                        padding: '8px 18px',
+                        borderRadius: '10px',
+                        background: '#059669',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
                     >
                       Save Changes
                     </button>
@@ -3816,31 +5620,70 @@ export default function Dietician() {
                     overflowY: 'auto',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#ECFDF5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#059669',
+                        }}
+                      >
                         <RefreshCw size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Edit Meal Replacement
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-                          Replace <strong>{swappingMeal.meal.name}</strong> with a food you choose. No symptom effect is assumed.
+                          Replace <strong>{swappingMeal.meal.name}</strong> with a food you choose.
+                          No symptom effect is assumed.
                         </p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSwappingMeal(null)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
                   </div>
 
                   {/* Custom Swap */}
-                  <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div
+                    style={{
+                      borderTop: '1px solid #E2E8F0',
+                      paddingTop: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
                     <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
                       Choose a Replacement:
                     </div>
@@ -3849,14 +5692,24 @@ export default function Dietician() {
                       placeholder="Replacement food / dish name..."
                       value={customSwapName}
                       onChange={(e) => setCustomSwapName(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                     <input
                       type="text"
                       placeholder="Your reason (optional)..."
                       value={customSwapRationale}
                       onChange={(e) => setCustomSwapRationale(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                     <button
                       type="button"
@@ -3939,13 +5792,33 @@ export default function Dietician() {
                     overflowY: 'auto',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFFAFA', border: '1px solid #F1E5E7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FFFAFA',
+                          border: '1px solid #F1E5E7',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#475569',
+                        }}
+                      >
                         <Archive size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Past Nutritional Blueprints
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3956,7 +5829,18 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setShowArchivedPlansModal(false)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
@@ -3982,11 +5866,17 @@ export default function Dietician() {
                             {archived.title || `Blueprint (${archived.days?.length || 7} Days)`}
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                            Archived: {new Date(archived.lifecycle?.updatedAt || archived.createdAt || Date.now()).toLocaleDateString()} · Status: {archived.lifecycle?.status || 'archived'}
+                            Archived:{' '}
+                            {new Date(
+                              archived.lifecycle?.updatedAt || archived.createdAt || Date.now()
+                            ).toLocaleDateString()}{' '}
+                            · Status: {archived.lifecycle?.status || 'archived'}
                           </div>
                           {archived.lifecycle?.stopReason && (
                             <div style={{ fontSize: '11.5px', color: '#BE123C', marginTop: '4px' }}>
-                              Stop reason: {PLAN_STOP_REASON_LABELS[archived.lifecycle.stopReason] || archived.lifecycle.stopReason}
+                              Stop reason:{' '}
+                              {PLAN_STOP_REASON_LABELS[archived.lifecycle.stopReason] ||
+                                archived.lifecycle.stopReason}
                             </div>
                           )}
                         </div>
@@ -4016,51 +5906,178 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
+        {showARLens && (
+          <Suspense fallback={<FeatureLoading label="Loading tool…" />}>
+            <ARGroceryLens
+              onClose={() => setShowARLens(false)}
+              onLogFood={async (food) => {
+                try {
+                  const entry = {
+                    ...food,
+                    id:
+                      crypto.randomUUID?.() ||
+                      `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+                    date: currentDate,
+                    nutritionSource: food.nutritionBasis || 'scan_estimate',
+                  };
+                  const saved = await createMeal({
+                    localDate: currentDate,
+                    entry,
+                    captureMethod: 'clinical_lens',
+                  });
+                  if (!saved.ok) return false;
+                  setFoodLogs(await listMealDiary());
+                  if (saved.sync === 'queue_failed')
+                    toast.error(
+                      'Sync needs attention',
+                      'Food saved on this device, but cloud sync could not be queued.'
+                    );
+                  triggerHapticSuccess();
+                  toast.success(
+                    'Food saved locally',
+                    `Added "${food.name}" to your ${food.type || 'Meal'} diary.`
+                  );
+                  return true;
+                } catch (error) {
+                  console.warn('Failed to log Clinical Lens estimate:', error);
+                  return false;
+                }
+              }}
+            />
+          </Suspense>
+        )}
 
-        
-
-        {showARLens && <Suspense fallback={<FeatureLoading label="Loading tool…" />}><ARGroceryLens
-          onClose={() => setShowARLens(false)} 
-          onLogFood={async (food) => {
-            try {
-              const entry = { ...food, id: crypto.randomUUID?.() || `scan_${Date.now()}_${Math.random().toString(36).slice(2)}`, date: currentDate, nutritionSource: food.nutritionBasis || 'scan_estimate' };
-              const saved = await createMeal({ localDate: currentDate, entry, captureMethod: 'clinical_lens' });
-              if (!saved.ok) return false;
-              setFoodLogs(await listMealDiary());
-              if (saved.sync === 'queue_failed') toast.error('Sync needs attention', 'Food saved on this device, but cloud sync could not be queued.');
-              triggerHapticSuccess();
-              toast.success('Food saved locally', `Added "${food.name}" to your ${food.type || 'Meal'} diary.`);
-              return true;
-            } catch (error) {
-              console.warn('Failed to log Clinical Lens estimate:', error);
-              return false;
+        {confirmPlanned && (
+          <ConfirmPlannedMeal
+            meal={confirmPlanned.meal}
+            date={datedPlanDay(mealPlan?.startDate, confirmPlanned.day) || currentDate}
+            onClose={() => setConfirmPlanned(null)}
+            onConfirm={(date, ratio, details) =>
+              saveConfirmedPlanMeal(confirmPlanned.day, confirmPlanned.meal, date, ratio, details)
             }
-          }} 
-        /></Suspense>}
-
-        {confirmPlanned && <ConfirmPlannedMeal meal={confirmPlanned.meal} date={datedPlanDay(mealPlan?.startDate,confirmPlanned.day)||currentDate} onClose={()=>setConfirmPlanned(null)} onConfirm={(date,ratio,details)=>saveConfirmedPlanMeal(confirmPlanned.day,confirmPlanned.meal,date,ratio,details)} />}
+          />
+        )}
         {editingDiaryMeal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(15,23,42,.55)', display: 'grid', placeItems: 'center', padding: '16px' }}>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1200,
+              background: 'rgba(15,23,42,.55)',
+              display: 'grid',
+              placeItems: 'center',
+              padding: '16px',
+            }}
+          >
             <FocusTrap isActive>
-              <div role="dialog" aria-modal="true" aria-label="Correct meal" style={{ width: '100%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto', background: '#FFFFFF', borderRadius: '18px', padding: '24px', boxShadow: '0 24px 50px rgba(0,0,0,.2)' }}>
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Correct meal"
+                style={{
+                  width: '100%',
+                  maxWidth: '440px',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  background: '#FFFFFF',
+                  borderRadius: '18px',
+                  padding: '24px',
+                  boxShadow: '0 24px 50px rgba(0,0,0,.2)',
+                }}
+              >
                 <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>Correct meal</h3>
-                <p style={{ margin: '0 0 16px', color: '#64748B', fontSize: '13px' }}>Enter values you checked. Leave a nutrient blank when it is unknown.</p>
-                <label style={{ display: 'block', marginBottom: '12px', fontWeight: 700, fontSize: '13px' }}>Meal name
-                  <input value={diaryCorrection.name} onChange={(e) => setDiaryCorrection((current) => ({ ...current, name: e.target.value }))}
-                    style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
+                <p style={{ margin: '0 0 16px', color: '#64748B', fontSize: '13px' }}>
+                  Enter values you checked. Leave a nutrient blank when it is unknown.
+                </p>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '12px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                  }}
+                >
+                  Meal name
+                  <input
+                    value={diaryCorrection.name}
+                    onChange={(e) =>
+                      setDiaryCorrection((current) => ({ ...current, name: e.target.value }))
+                    }
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '9px',
+                      marginTop: '5px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                    }}
+                  />
                 </label>
                 {(['calories', 'protein', 'carbs', 'fat'] as const).map((field) => (
-                  <label key={field} style={{ display: 'block', marginBottom: '12px', fontWeight: 700, fontSize: '13px' }}>
-                    {field === 'calories' ? 'Calories (kcal)' : `${field[0].toUpperCase()}${field.slice(1)} (g)`}
-                    <input type="number" min={0} step="any" value={diaryCorrection[field]}
-                      onChange={(e) => setDiaryCorrection((current) => ({ ...current, [field]: e.target.value }))}
-                      style={{ display: 'block', width: '100%', padding: '9px', marginTop: '5px', border: '1px solid #CBD5E1', borderRadius: '8px' }} />
+                  <label
+                    key={field}
+                    style={{
+                      display: 'block',
+                      marginBottom: '12px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                    }}
+                  >
+                    {field === 'calories'
+                      ? 'Calories (kcal)'
+                      : `${field[0].toUpperCase()}${field.slice(1)} (g)`}
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      value={diaryCorrection[field]}
+                      onChange={(e) =>
+                        setDiaryCorrection((current) => ({ ...current, [field]: e.target.value }))
+                      }
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '9px',
+                        marginTop: '5px',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                      }}
+                    />
                   </label>
                 ))}
-                <MealDetailsFields date={correctionDate} onDate={setCorrectionDate} value={correctionDetails} onChange={setCorrectionDetails} />
+                <MealDetailsFields
+                  date={correctionDate}
+                  onDate={setCorrectionDate}
+                  value={correctionDetails}
+                  onChange={setCorrectionDetails}
+                />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <button type="button" onClick={() => setEditingDiaryMeal(null)} style={{ padding: '9px 14px', border: '1px solid #CBD5E1', borderRadius: '8px', background: '#FFF' }}>Cancel</button>
-                  <button type="button" onClick={() => void handleSaveDiaryCorrection()} style={{ padding: '9px 14px', border: 'none', borderRadius: '8px', background: '#0F766E', color: '#FFF', fontWeight: 700 }}>Save correction</button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingDiaryMeal(null)}
+                    style={{
+                      padding: '9px 14px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      background: '#FFF',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveDiaryCorrection()}
+                    style={{
+                      padding: '9px 14px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: '#0F766E',
+                      color: '#FFF',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Save correction
+                  </button>
                 </div>
               </div>
             </FocusTrap>

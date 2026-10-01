@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
-import React from 'react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, act } from '@testing-library/react';
-import FocusTrap from '../ui/FocusTrap';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { announceToScreenReader } from '../../services/a11y';
+import FocusTrap from '../ui/FocusTrap';
 
 describe('Phase 8: Mounted Accessibility Gates & Keyboard Rigor', () => {
   let containerDiv: HTMLDivElement;

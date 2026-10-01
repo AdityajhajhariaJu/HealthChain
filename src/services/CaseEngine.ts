@@ -61,19 +61,23 @@ export interface MedicalRecord {
   auditTrail?: InformationAuditEntry[];
 }
 
-export type QuestionLifecycleStatus = 'open' | 'prepared' | 'discussed' | 'deferred' | 'resolved' | 'addressed';
+export type QuestionLifecycleStatus =
+  'open' | 'prepared' | 'discussed' | 'deferred' | 'resolved' | 'addressed';
 
 export type OutcomeProvenance =
-  | 'user_reported_clinician_statement'
-  | 'clinical_record_corroborated'
-  | 'clinician_portal_import';
+  'user_reported_clinician_statement' | 'clinical_record_corroborated' | 'clinician_portal_import';
 
 export interface ClinicalQuestion {
   id: string;
   questionText: string;
   raisedBySpecialty: string;
   supportingEvidenceIds: string[];
-  sourceRef?: { feature: 'gut_resolution'; threadId: string; profileId: string; threadUpdatedAt: string };
+  sourceRef?: {
+    feature: 'gut_resolution';
+    threadId: string;
+    profileId: string;
+    threadUpdatedAt: string;
+  };
   status: QuestionLifecycleStatus;
   outcomeNote?: string;
   outcomeDate?: string;
@@ -159,9 +163,19 @@ export interface CasePrepDraft {
 
 import { getProfileKey } from './ProfileEngine';
 
-export interface BriefTimelineItem { date: string; event: string; sourceIds: string[]; }
-export interface BriefFact { text: string; sourceIds: string[]; }
-export interface BriefGap { missingText: string; reason: string; }
+export interface BriefTimelineItem {
+  date: string;
+  event: string;
+  sourceIds: string[];
+}
+export interface BriefFact {
+  text: string;
+  sourceIds: string[];
+}
+export interface BriefGap {
+  missingText: string;
+  reason: string;
+}
 export interface BriefQuestion {
   id?: string;
   question: string;
@@ -170,7 +184,11 @@ export interface BriefQuestion {
   status?: QuestionLifecycleStatus;
   outcomeNote?: string;
 }
-export interface BriefPerspective { title: string; summary: string; sourceId: string; }
+export interface BriefPerspective {
+  title: string;
+  summary: string;
+  sourceId: string;
+}
 
 export interface BriefChangeItem {
   type: 'record_added' | 'differential_shift' | 'outcome_recorded' | 'symptom_update';
@@ -210,7 +228,6 @@ export interface AppointmentBrief {
   isRefinedByAI: boolean;
 }
 
-
 const getActiveProfileId = () => {
   try {
     const profileData = getItemSync(getProfileKey());
@@ -232,7 +249,8 @@ const getActiveCaseKey = () => {
   return `${base}_${getActiveProfileId()}`;
 };
 
-const getCasePrepDraftKey = () => `${getProfileKey().replace('hc_unified_profile', 'hc_case_prep_draft')}_${getActiveProfileId()}`;
+const getCasePrepDraftKey = () =>
+  `${getProfileKey().replace('hc_unified_profile', 'hc_case_prep_draft')}_${getActiveProfileId()}`;
 
 export function getCasePrepDraft(): CasePrepDraft | null {
   try {
@@ -244,7 +262,10 @@ export function getCasePrepDraft(): CasePrepDraft | null {
 }
 
 export function saveCasePrepDraft(draft: CasePrepDraft) {
-  setItemSync(getCasePrepDraftKey(), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+  setItemSync(
+    getCasePrepDraftKey(),
+    JSON.stringify({ ...draft, savedAt: new Date().toISOString() })
+  );
 }
 
 export function clearCasePrepDraft() {
@@ -264,8 +285,9 @@ const id = () => {
     return crypto.randomUUID();
   }
   // Fallback UUID v4 generator
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c == 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };
@@ -292,7 +314,6 @@ export function getCases(): CaseItem[] {
   return cachedCases || [];
 }
 
-let syncTimeout: any = null;
 let currentCasesKey: string | null = null;
 
 function safeIsoDate(val?: string | number | Date | null): string {
@@ -313,36 +334,51 @@ async function save(cases: CaseItem[]) {
   // Find changed cases and increment monotonic revision
   const updatedWithRevision = cases.map((c: any) => {
     if (!cachedCases) return { ...c, revision: c.revision || 1 };
-    const old = cachedCases.find(o => o.id === c.id);
-    const isChanged = !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
+    const old = cachedCases.find((o) => o.id === c.id);
+    const isChanged =
+      !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
     return isChanged ? { ...c, revision: (c.revision || old?.revision || 1) + 1 } : c;
   });
 
-  const safeCases = (typeof structuredClone === 'function') ? structuredClone(updatedWithRevision) : JSON.parse(JSON.stringify(updatedWithRevision));
+  const safeCases =
+    typeof structuredClone === 'function'
+      ? structuredClone(updatedWithRevision)
+      : JSON.parse(JSON.stringify(updatedWithRevision));
   // Persist before awaiting authentication/network work: users can reload as
   // soon as the case is visible. Capture the profile scope before any await.
   setItemSync(storageKey, JSON.stringify(safeCases));
   if (typeof indexedDB !== 'undefined') {
-    idbSet(storageKey, JSON.stringify(safeCases)).catch(error => {
+    idbSet(storageKey, JSON.stringify(safeCases)).catch((error) => {
       safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
     });
   }
-  
+
   const changedCases = safeCases.filter((c: any) => {
     if (!cachedCases) return true;
-    const old = cachedCases.find(o => o.id === c.id);
-    return !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length || old.revision !== c.revision;
+    const old = cachedCases.find((o) => o.id === c.id);
+    return (
+      !old ||
+      old.updatedAt !== c.updatedAt ||
+      old.events?.length !== c.events?.length ||
+      old.revision !== c.revision
+    );
   });
-  
+
   cachedCases = safeCases;
   safeDispatchEvent(new Event('hc_cases_updated'));
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (storageKey !== getCasesKey() || profileId !== getActiveProfileId()) return;
-    if (session?.user && isHealthMemoryScopeCurrent(accountScope) && session.user.id === accountScope.accountId) {
+    if (
+      session?.user &&
+      isHealthMemoryScopeCurrent(accountScope) &&
+      session.user.id === accountScope.accountId
+    ) {
       const currentProfileId = profileId;
-      for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
+      for (const c of changedCases.length > 0 ? changedCases : safeCases) {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
         if (!isUUID) continue;
         await enqueueSync('case_upsert', session.user.id, {
@@ -353,7 +389,7 @@ async function save(cases: CaseItem[]) {
           specialty: c.currentStage,
           revision: c.revision || 1,
           data: { ...c, __profileId: currentProfileId },
-          updated_at: safeIsoDate(c.updatedAt)
+          updated_at: safeIsoDate(c.updatedAt),
         });
       }
       if (storageKey !== getCasesKey() || profileId !== getActiveProfileId()) return;
@@ -366,12 +402,14 @@ async function save(cases: CaseItem[]) {
 
 export function getActiveCaseId(): string | null {
   const explicitId = getItemSync(getActiveCaseKey());
-  const cases = getCases().filter(c => !c.intakeData?.scenarioId);
-  if (explicitId && cases.some(c => c.id === explicitId)) {
+  const cases = getCases().filter((c) => !c.intakeData?.scenarioId);
+  if (explicitId && cases.some((c) => c.id === explicitId)) {
     return explicitId;
   }
   if (cases.length > 0) {
-    return [...cases].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0].id;
+    return [...cases].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )[0].id;
   }
   return null;
 }
@@ -399,26 +437,29 @@ export function deleteCase(caseId: string) {
   const now = new Date().toISOString();
   const profileId = getActiveProfileId();
 
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
-    if (!isHealthMemoryScopeCurrent(accountScope)) return;
-    const userId = accountScope.accountId;
-    if (userId !== 'guest' && session?.user?.id !== userId) return;
-    await recordTombstone({
-      id: caseId,
-      entityType: 'case',
-      deletedAt: deletedCase?.updatedAt || now,
-      userId,
-      profileId,
-    });
+  supabase.auth
+    .getSession()
+    .then(async ({ data: { session } }) => {
+      if (!isHealthMemoryScopeCurrent(accountScope)) return;
+      const userId = accountScope.accountId;
+      if (userId !== 'guest' && session?.user?.id !== userId) return;
+      await recordTombstone({
+        id: caseId,
+        entityType: 'case',
+        deletedAt: deletedCase?.updatedAt || now,
+        userId,
+        profileId,
+      });
 
-    if (!session?.user || userId === 'guest' || !isHealthMemoryScopeCurrent(accountScope)) return;
-    await enqueueSync('case_delete', session.user.id, {
-      id: caseId,
-      profile_id: profileId,
-      updated_at: deletedCase?.updatedAt || now,
-    });
-    await flushSyncOutbox(session.user.id);
-  }).catch((error) => safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
+      if (!session?.user || userId === 'guest' || !isHealthMemoryScopeCurrent(accountScope)) return;
+      await enqueueSync('case_delete', session.user.id, {
+        id: caseId,
+        profile_id: profileId,
+        updated_at: deletedCase?.updatedAt || now,
+      });
+      await flushSyncOutbox(session.user.id);
+    })
+    .catch((error) => safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
     setActiveCase(null);
   }
@@ -448,7 +489,7 @@ export function deleteCaseRecord(caseId: string, recordId: string): CaseItem | n
     ].slice(0, 100),
   };
 
-  save(cases.map((c) => c.id === caseId ? updatedCase : c));
+  save(cases.map((c) => (c.id === caseId ? updatedCase : c)));
   return updatedCase;
 }
 
@@ -456,20 +497,23 @@ export function updateExtractedFindingCorrection(
   caseId: string,
   recordId: string,
   findingId: string,
-  correction: string | {
-    correctedText: string;
-    biomarker?: string;
-    value?: string;
-    unit?: string;
-    standardRange?: string;
-    note?: string;
-  }
+  correction:
+    | string
+    | {
+        correctedText: string;
+        biomarker?: string;
+        value?: string;
+        unit?: string;
+        standardRange?: string;
+        note?: string;
+      }
 ): CaseItem | null {
   const cases = getCases();
   const existing = cases.find((c) => c.id === caseId);
   if (!existing) return null;
 
-  const normCorrection = typeof correction === 'string' ? { correctedText: correction } : correction;
+  const normCorrection =
+    typeof correction === 'string' ? { correctedText: correction } : correction;
   const now = new Date().toISOString();
   let found = false;
 
@@ -503,7 +547,10 @@ export function updateExtractedFindingCorrection(
     let recordAuditTrail = (record as any).auditTrail || [];
     let recordOriginalText = (record as any).originalText || record.findings;
 
-    if (!found && (record.id === findingId || findingId.startsWith('record_') || findingId === record.filename)) {
+    if (
+      !found &&
+      (record.id === findingId || findingId.startsWith('record_') || findingId === record.filename)
+    ) {
       found = true;
       const audit: InformationAuditEntry = {
         originalText: record.findings,
@@ -534,22 +581,22 @@ export function updateExtractedFindingCorrection(
         id: id(),
         date: now,
         label: 'Observation corrected',
-        note: normCorrection.note ? `Extracted wording corrected by user: "${normCorrection.note}"` : 'Extracted wording corrected by user.',
+        note: normCorrection.note
+          ? `Extracted wording corrected by user: "${normCorrection.note}"`
+          : 'Extracted wording corrected by user.',
       },
       ...(existing.events || []),
     ].slice(0, 100),
   };
 
-  save(cases.map((c) => c.id === caseId ? updatedCase : c));
+  save(cases.map((c) => (c.id === caseId ? updatedCase : c)));
   return updatedCase;
 }
 
 export function resolveCase(caseId: string) {
   const cases = getCases();
-  const updatedCases = cases.map((c) => 
-    c.id === caseId 
-      ? { ...c, status: 'archived' as const, updatedAt: new Date().toISOString() } 
-      : c
+  const updatedCases = cases.map((c) =>
+    c.id === caseId ? { ...c, status: 'archived' as const, updatedAt: new Date().toISOString() } : c
   );
   save(updatedCases);
   if (getActiveCaseId() === caseId) {
@@ -557,7 +604,19 @@ export function resolveCase(caseId: string) {
   }
 }
 
-export function createCaseDraft({ title, intakeData = {}, specialists = [], mode, medicalRecords = [] }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' | 'jarvis', medicalRecords?: MedicalRecord[] }): CaseItem {
+export function createCaseDraft({
+  title,
+  intakeData = {},
+  specialists = [],
+  mode,
+  medicalRecords = [],
+}: {
+  title?: string;
+  intakeData?: any;
+  specialists?: any[];
+  mode?: 'multi' | 'mdt' | 'jarvis';
+  medicalRecords?: MedicalRecord[];
+}): CaseItem {
   const now = new Date().toISOString();
   const item: CaseItem = {
     id: id(),
@@ -587,7 +646,15 @@ export function createCaseDraft({ title, intakeData = {}, specialists = [], mode
   return item;
 }
 
-export function saveCasePrepCase({ caseId, concern, timeline, records, appointment, goal, careSoFar }: Omit<CasePrepDraft, 'savedAt'>): CaseItem {
+export function saveCasePrepCase({
+  caseId,
+  concern,
+  timeline,
+  records,
+  appointment,
+  goal,
+  careSoFar,
+}: Omit<CasePrepDraft, 'savedAt'>): CaseItem {
   const now = new Date().toISOString();
   const intakeData = {
     chiefComplaint: concern.trim(),
@@ -596,29 +663,79 @@ export function saveCasePrepCase({ caseId, concern, timeline, records, appointme
     appointmentGoal: goal?.trim() || '',
     careSoFar: careSoFar?.trim() || '',
   };
-  const notes = records.split('\n').map((note) => note.trim()).filter(Boolean).map((findings, index) => ({
-    id: id(), filename: `Case note ${index + 1}`, findings, source: 'case_prep', type: 'patient_note', addedAt: now,
-  }));
+  const notes = records
+    .split('\n')
+    .map((note) => note.trim())
+    .filter(Boolean)
+    .map((findings, index) => ({
+      id: id(),
+      filename: `Case note ${index + 1}`,
+      findings,
+      source: 'case_prep',
+      type: 'patient_note',
+      addedAt: now,
+    }));
   const existing = caseId ? getCase(caseId) : undefined;
   if (!existing) {
     const created = createCaseDraft({ title: concern.trim().slice(0, 58), intakeData });
-    const updated = { ...created, medicalRecords: notes, updatedAt: now, currentStage: 'case_prep_ready', events: [{ id: id(), date: now, label: 'Case brief prepared', note: 'Your appointment-prep brief was saved.' }, ...created.events] } as CaseItem;
-    save(getCases().map((item) => item.id === created.id ? updated : item));
-    recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
+    const updated = {
+      ...created,
+      medicalRecords: notes,
+      updatedAt: now,
+      currentStage: 'case_prep_ready',
+      events: [
+        {
+          id: id(),
+          date: now,
+          label: 'Case brief prepared',
+          note: 'Your appointment-prep brief was saved.',
+        },
+        ...created.events,
+      ],
+    } as CaseItem;
+    save(getCases().map((item) => (item.id === created.id ? updated : item)));
+    recordHealthMemory({
+      kind: 'case_prep',
+      source: 'case_prep',
+      title: `Case Prep: ${updated.title}`,
+      occurredAt: now,
+      caseId: updated.id,
+      payload: intakeData,
+      dedupeKey: `case-prep:${updated.id}`,
+    });
     return updated;
   }
   const updated: CaseItem = {
     ...existing,
     title: concern.trim().slice(0, 58) || existing.title,
     intakeData,
-    medicalRecords: [...(existing.medicalRecords || []).filter((record) => record.source !== 'case_prep'), ...notes],
+    medicalRecords: [
+      ...(existing.medicalRecords || []).filter((record) => record.source !== 'case_prep'),
+      ...notes,
+    ],
     updatedAt: now,
     currentStage: 'case_prep_ready',
-    events: [{ id: id(), date: now, label: 'Case brief updated', note: 'Your appointment-prep brief was updated.' }, ...(existing.events || [])].slice(0, 100),
+    events: [
+      {
+        id: id(),
+        date: now,
+        label: 'Case brief updated',
+        note: 'Your appointment-prep brief was updated.',
+      },
+      ...(existing.events || []),
+    ].slice(0, 100),
   };
-  save(getCases().map((item) => item.id === existing.id ? updated : item));
+  save(getCases().map((item) => (item.id === existing.id ? updated : item)));
   setActiveCase(existing.id);
-  recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
+  recordHealthMemory({
+    kind: 'case_prep',
+    source: 'case_prep',
+    title: `Case Prep: ${updated.title}`,
+    occurredAt: now,
+    caseId: updated.id,
+    payload: intakeData,
+    dedupeKey: `case-prep:${updated.id}`,
+  });
   return updated;
 }
 
@@ -645,7 +762,7 @@ export function saveReviewSnapshot({
 }): CaseItem {
   const cases = getCases();
   const existing = cases.find((item) => item.id === caseId);
-  if (!existing) throw new Error("Case not found");
+  if (!existing) throw new Error('Case not found');
 
   const now = new Date().toISOString();
   let updatedTitle = existing.title;
@@ -657,13 +774,17 @@ export function saveReviewSnapshot({
   }
 
   // Fulfill Promise 1 & 2: Synthesize or preserve multi-perspective specialist cards and stable clinical question IDs
-  const rawPerspectives: SpecialistPerspective[] = report?.groundingVersion === 1 && Array.isArray(report.perspectives)
-    ? report.perspectives.map((p: any) => ({
-      id: p.id, specialty: p.specialty, doctorName: p.doctorName,
-      uniqueContribution: p.interpretation || p.uniqueContribution || '',
-      supportingEvidenceIds: p.evidenceConsidered || p.supportingEvidenceIds || [],
-      remainingQuestions: p.missingInformation || [],
-    })) : [];
+  const rawPerspectives: SpecialistPerspective[] =
+    report?.groundingVersion === 1 && Array.isArray(report.perspectives)
+      ? report.perspectives.map((p: any) => ({
+          id: p.id,
+          specialty: p.specialty,
+          doctorName: p.doctorName,
+          uniqueContribution: p.interpretation || p.uniqueContribution || '',
+          supportingEvidenceIds: p.evidenceConsidered || p.supportingEvidenceIds || [],
+          remainingQuestions: p.missingInformation || [],
+        }))
+      : [];
 
   const snapshot: ReviewSnapshot = {
     id: id(),
@@ -686,42 +807,57 @@ export function saveReviewSnapshot({
     ...(Array.isArray(report?.questions) ? report.questions : []),
   ];
   const existingQuestions = existing.questions || [];
-  const existingTexts = new Set(existingQuestions.map(q => q.questionText.trim().toLowerCase()));
+  const existingTexts = new Set(existingQuestions.map((q) => q.questionText.trim().toLowerCase()));
   const newQuestions: ClinicalQuestion[] = [];
   for (const raw of rawQuestions) {
-    const questionText = (typeof raw === 'string' ? raw : raw?.questionText || raw?.question || '').trim();
+    const questionText = (
+      typeof raw === 'string' ? raw : raw?.questionText || raw?.question || ''
+    ).trim();
     const key = questionText.toLowerCase();
     if (!questionText || existingTexts.has(key)) continue;
     existingTexts.add(key);
     newQuestions.push({
-      id: typeof raw === 'object' && raw?.id ? raw.id : id(), questionText, raisedBySpecialty: raw?.raisedBySpecialty || specialists?.[0] || 'AI review',
-      supportingEvidenceIds: raw?.supportingEvidenceIds || basedOnEvidenceIds || [], status: 'open', createdAt: now,
+      id: typeof raw === 'object' && raw?.id ? raw.id : id(),
+      questionText,
+      raisedBySpecialty: raw?.raisedBySpecialty || specialists?.[0] || 'AI review',
+      supportingEvidenceIds: raw?.supportingEvidenceIds || basedOnEvidenceIds || [],
+      status: 'open',
+      createdAt: now,
     });
   }
   const unifiedQuestions: ClinicalQuestion[] = [...existingQuestions, ...newQuestions];
 
   const priorActions = existing.actions || [];
-  const rawActions = Array.isArray(report?.recommendedActionPlan) && report.recommendedActionPlan.length > 0
-    ? report.recommendedActionPlan
-    : Array.isArray(report?.doctorActionPlan?.confirmatoryTests)
-      ? report.doctorActionPlan.confirmatoryTests.map((t: any) => ({
-          title: typeof t === 'string' ? t : `Request ${t.test || 'Test'}`,
-          description: typeof t === 'string' ? '' : t.rationale || '',
-          category: 'diagnostic',
-          priority: typeof t === 'string' ? 'high' : (t.priority?.toLowerCase() || 'high')
-        }))
-      : [];
-  const nextActions = rawActions.map((action: any, index: number) => ({
-    id: id(),
-    ...action,
-    status: 'pending' as const,
-    order: priorActions.length + index,
-  } as CaseAction));
+  const rawActions =
+    Array.isArray(report?.recommendedActionPlan) && report.recommendedActionPlan.length > 0
+      ? report.recommendedActionPlan
+      : Array.isArray(report?.doctorActionPlan?.confirmatoryTests)
+        ? report.doctorActionPlan.confirmatoryTests.map((t: any) => ({
+            title: typeof t === 'string' ? t : `Request ${t.test || 'Test'}`,
+            description: typeof t === 'string' ? '' : t.rationale || '',
+            category: 'diagnostic',
+            priority: typeof t === 'string' ? 'high' : t.priority?.toLowerCase() || 'high',
+          }))
+        : [];
+  const nextActions = rawActions.map(
+    (action: any, index: number) =>
+      ({
+        id: id(),
+        ...action,
+        status: 'pending' as const,
+        order: priorActions.length + index,
+      }) as CaseAction
+  );
 
   const updated: CaseItem = {
     ...existing,
     title: updatedTitle,
-    currentStage: type === 'parallel' ? 'parallel_complete' : type === 'jarvis' ? 'jarvis_complete' : 'mdt_complete',
+    currentStage:
+      type === 'parallel'
+        ? 'parallel_complete'
+        : type === 'jarvis'
+          ? 'jarvis_complete'
+          : 'mdt_complete',
     currentSummary: report,
     updatedAt: now,
     reviews: [snapshot, ...(existing.reviews || [])].slice(0, 50),
@@ -729,23 +865,32 @@ export function saveReviewSnapshot({
       {
         id: id(),
         date: now,
-        label: type === 'jarvis' ? 'Clinical Review complete' : type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
+        label:
+          type === 'jarvis'
+            ? 'Clinical Review complete'
+            : type === 'parallel'
+              ? 'Parallel review complete'
+              : 'Board consensus reached',
         note: 'New specialist findings were added to this active case.',
       },
       ...(existing.events || []),
     ].slice(0, 100),
     actions: [...nextActions, ...priorActions].slice(0, 50),
-    differentials: (Array.isArray(report?.topDiagnoses) && report.topDiagnoses.length > 0)
-      ? report.topDiagnoses.map((d: any, idx: number) => ({
-          id: `diff-${idx}-${Date.now()}`,
-          condition: typeof d === 'string' ? d : d.condition || 'Clinical Finding',
-          probability: typeof d.confidence === 'number' ? d.confidence : parseInt(d.confidence) || 75,
-          trend: 'stable' as const,
-          supportingEvidence: d.rationale ? [d.rationale] : [],
-          refutingEvidence: [],
-          nextBestTests: (report?.doctorActionPlan?.confirmatoryTests || []).map((t: any) => typeof t === 'string' ? t : t.test || '')
-        }))
-      : existing.differentials,
+    differentials:
+      Array.isArray(report?.topDiagnoses) && report.topDiagnoses.length > 0
+        ? report.topDiagnoses.map((d: any, idx: number) => ({
+            id: `diff-${idx}-${Date.now()}`,
+            condition: typeof d === 'string' ? d : d.condition || 'Clinical Finding',
+            probability:
+              typeof d.confidence === 'number' ? d.confidence : parseInt(d.confidence) || 75,
+            trend: 'stable' as const,
+            supportingEvidence: d.rationale ? [d.rationale] : [],
+            refutingEvidence: [],
+            nextBestTests: (report?.doctorActionPlan?.confirmatoryTests || []).map((t: any) =>
+              typeof t === 'string' ? t : t.test || ''
+            ),
+          }))
+        : existing.differentials,
     questions: unifiedQuestions,
   };
 
@@ -754,11 +899,23 @@ export function saveReviewSnapshot({
   recordHealthMemory({
     kind: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'research' : 'quick_consult',
     source: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'jarvis' : 'quick_consult',
-    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : type === 'jarvis' ? `Clinical Review: ${updated.title}` : `Quick Consult: ${updated.title}`,
+    title:
+      type === 'mdt'
+        ? `Collaborative brief: ${updated.title}`
+        : type === 'jarvis'
+          ? `Clinical Review: ${updated.title}`
+          : `Quick Consult: ${updated.title}`,
     occurredAt: now,
     caseId,
     // The complete transcript remains in the case. Health Memory keeps the concise result users need over years.
-    payload: { report, readiness, specialists, basedOnEvidenceIds, basedOnReviewIds, reviewId: snapshot.id },
+    payload: {
+      report,
+      readiness,
+      specialists,
+      basedOnEvidenceIds,
+      basedOnReviewIds,
+      reviewId: snapshot.id,
+    },
     dedupeKey: `review:${snapshot.id}`,
   });
   return updated;
@@ -767,22 +924,57 @@ export function saveReviewSnapshot({
 export function backfillCaseHealthMemory() {
   getCases().forEach((caseItem) => {
     if (caseItem.currentStage === 'case_prep_ready') {
-      recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${caseItem.title}`, occurredAt: caseItem.updatedAt, caseId: caseItem.id, payload: caseItem.intakeData || {}, dedupeKey: `case-prep:${caseItem.id}` });
+      recordHealthMemory({
+        kind: 'case_prep',
+        source: 'case_prep',
+        title: `Case Prep: ${caseItem.title}`,
+        occurredAt: caseItem.updatedAt,
+        caseId: caseItem.id,
+        payload: caseItem.intakeData || {},
+        dedupeKey: `case-prep:${caseItem.id}`,
+      });
     }
-    (caseItem.reviews || []).forEach((review) => recordHealthMemory({
-      id: review.id,
-      kind: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'research' : 'quick_consult',
-      source: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'jarvis' : 'quick_consult',
-      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : review.type === 'jarvis' ? `Clinical Review: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
-      occurredAt: review.createdAt,
-      caseId: caseItem.id,
-      payload: { report: review.report, readiness: review.readiness, specialists: review.specialists, reviewId: review.id },
-      dedupeKey: `review:${review.id}`,
-    }));
+    (caseItem.reviews || []).forEach((review) =>
+      recordHealthMemory({
+        id: review.id,
+        kind:
+          review.type === 'mdt'
+            ? 'deep_collab'
+            : review.type === 'jarvis'
+              ? 'research'
+              : 'quick_consult',
+        source:
+          review.type === 'mdt'
+            ? 'deep_collab'
+            : review.type === 'jarvis'
+              ? 'jarvis'
+              : 'quick_consult',
+        title:
+          review.type === 'mdt'
+            ? `Collaborative brief: ${caseItem.title}`
+            : review.type === 'jarvis'
+              ? `Clinical Review: ${caseItem.title}`
+              : `Quick Consult: ${caseItem.title}`,
+        occurredAt: review.createdAt,
+        caseId: caseItem.id,
+        payload: {
+          report: review.report,
+          readiness: review.readiness,
+          specialists: review.specialists,
+          reviewId: review.id,
+        },
+        dedupeKey: `review:${review.id}`,
+      })
+    );
   });
 }
 
-export function addCaseEvent(caseId: string, note: string, label: string = 'Evidence update', currentSummary?: any) {
+export function addCaseEvent(
+  caseId: string,
+  note: string,
+  label: string = 'Evidence update',
+  currentSummary?: any
+) {
   const cases = getCases().map((item) =>
     item.id !== caseId
       ? item
@@ -790,10 +982,10 @@ export function addCaseEvent(caseId: string, note: string, label: string = 'Evid
           ...item,
           currentSummary: currentSummary || item.currentSummary,
           updatedAt: new Date().toISOString(),
-          events: [
-            { id: id(), date: new Date().toISOString(), label, note },
-            ...item.events,
-          ].slice(0, 100),
+          events: [{ id: id(), date: new Date().toISOString(), label, note }, ...item.events].slice(
+            0,
+            100
+          ),
         }
   );
   save(cases);
@@ -808,7 +1000,11 @@ export function toggleCaseAction(caseId: string, actionId: string) {
           updatedAt: new Date().toISOString(),
           actions: item.actions.map((action) =>
             action.id === actionId
-              ? { ...action, status: (action.status === 'completed' ? 'pending' : 'completed') as 'pending' | 'completed' }
+              ? {
+                  ...action,
+                  status: (action.status === 'completed' ? 'pending' : 'completed') as
+                    'pending' | 'completed',
+                }
               : action
           ),
         }
@@ -836,17 +1032,20 @@ export function addEvidenceToActiveCase({
   return addEvidenceToCase(activeCaseId, { filename, findings, source, type });
 }
 
-export function addEvidenceToCase(caseId: string, {
-  filename,
-  findings,
-  source = 'healthchain',
-  type = 'report',
-}: {
-  filename: string;
-  findings: string;
-  source?: string;
-  type?: string;
-}): MedicalRecord | null {
+export function addEvidenceToCase(
+  caseId: string,
+  {
+    filename,
+    findings,
+    source = 'healthchain',
+    type = 'report',
+  }: {
+    filename: string;
+    findings: string;
+    source?: string;
+    type?: string;
+  }
+): MedicalRecord | null {
   if (!getCase(caseId)) return null;
   const evidence: MedicalRecord = ensureRecordPassages({
     id: id(),
@@ -882,14 +1081,16 @@ export function addEvidenceToCase(caseId: string, {
 export function updateCaseDifferentials(caseId: string, differentials: Differential[]) {
   const cases = getCases().map((item) => {
     if (item.id !== caseId) return item;
-    
+
     const prevDifferentials = item.differentials || [];
     const historyEntry = { date: new Date().toISOString(), differentials: prevDifferentials };
     const newHistory = [historyEntry, ...(item.differentialHistory || [])].slice(0, 20);
 
     // Mathematically calculate trend based on previous probabilities
-    const updatedDifferentials = differentials.map(ddx => {
-      const prev = prevDifferentials.find(p => p.condition.toLowerCase() === ddx.condition.toLowerCase());
+    const updatedDifferentials = differentials.map((ddx) => {
+      const prev = prevDifferentials.find(
+        (p) => p.condition.toLowerCase() === ddx.condition.toLowerCase()
+      );
       let trend: 'up' | 'down' | 'stable' = 'stable';
       if (prev) {
         if (ddx.probability > prev.probability) trend = 'up';
@@ -922,7 +1123,9 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
 
 export async function initCaseEngine() {
   const requestedKey = getCasesKey();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (getCasesKey() !== requestedKey) return;
   const key = getCasesKey();
   const currentProfileId = getActiveProfileId();
@@ -930,7 +1133,7 @@ export async function initCaseEngine() {
     cachedCases = null;
     currentCasesKey = key;
   }
-  
+
   if (session?.user) {
     // 1. Fetch remote tombstones first so deleted cases are not resurrected
     const tombstones = await fetchRemoteTombstones(session.user.id, currentProfileId);
@@ -942,7 +1145,7 @@ export async function initCaseEngine() {
     if (getCasesKey() !== key) return;
 
     // Migration: upload existing local cases
-    const indexedSnapshot = await idbGet(key) as string;
+    const indexedSnapshot = (await idbGet(key)) as string;
     if (getCasesKey() !== key) return;
     let localRaw = getItemSync(key) || indexedSnapshot;
     const initialMirror = getItemSync(key);
@@ -953,13 +1156,15 @@ export async function initCaseEngine() {
           const eligibleCases: CaseItem[] = [];
           for (const c of localCases) {
             if (getCasesKey() !== key) return;
-            const tomb = tombstones.find(t => t.id === c.id);
+            const tomb = tombstones.find((t) => t.id === c.id);
             if (tomb && new Date(tomb.deletedAt).getTime() >= new Date(c.updatedAt).getTime()) {
               // Deleted on another device: do not upload
               continue;
             }
             eligibleCases.push(c);
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              c.id
+            );
             if (!isUUID) continue;
             await enqueueSync('case_upsert', session.user.id, {
               id: c.id,
@@ -969,7 +1174,7 @@ export async function initCaseEngine() {
               specialty: c.currentStage,
               revision: c.revision || 1,
               data: { ...c, __profileId: currentProfileId },
-              updated_at: safeIsoDate(c.updatedAt)
+              updated_at: safeIsoDate(c.updatedAt),
             });
           }
           if (eligibleCases.length !== localCases.length) {
@@ -982,7 +1187,7 @@ export async function initCaseEngine() {
         console.error('Migration failed', e);
       }
     }
-    
+
     // Fetch in bounded pages. Case data contains structured review history and
     // can grow substantially for long-running cases; one unbounded response
     // would make reinstall/device recovery fragile.
@@ -1006,7 +1211,7 @@ export async function initCaseEngine() {
       if (!result.data || result.data.length < pageSize) break;
       page += 1;
     }
-       
+
     if (getCasesKey() !== key) return;
     if (getItemSync(key) !== initialMirror) {
       // A local edit occurred during the request. Its queued write will sync;
@@ -1014,51 +1219,55 @@ export async function initCaseEngine() {
       safeDispatchEvent(new Event('hc_cases_updated'));
       return;
     }
-    if (!error && data && await getPendingSyncCount(session.user.id) === 0) {
-       if (getCasesKey() !== key || getItemSync(key) !== initialMirror) return;
-       // Filter remote cases by profile and active tombstones
-       const remoteCases = data
-         .map(row => row.data)
-         .filter(d => (d.__profileId || 'profile_1') === currentProfileId && !tombstones.some(t => t.id === d.id));
+    if (!error && data && (await getPendingSyncCount(session.user.id)) === 0) {
+      if (getCasesKey() !== key || getItemSync(key) !== initialMirror) return;
+      // Filter remote cases by profile and active tombstones
+      const remoteCases = data
+        .map((row) => row.data)
+        .filter(
+          (d) =>
+            (d.__profileId || 'profile_1') === currentProfileId &&
+            !tombstones.some((t) => t.id === d.id)
+        );
 
-       // Merge remote cases with existing local cases by stable ID
-       const existingLocal = getCases().filter(c => !tombstones.some(t => t.id === c.id));
-       const localMap = new Map<string, CaseItem>();
-       for (const lc of existingLocal) localMap.set(lc.id, lc);
+      // Merge remote cases with existing local cases by stable ID
+      const existingLocal = getCases().filter((c) => !tombstones.some((t) => t.id === c.id));
+      const localMap = new Map<string, CaseItem>();
+      for (const lc of existingLocal) localMap.set(lc.id, lc);
 
-       const mergedList: CaseItem[] = [];
-       for (const rc of remoteCases) {
-         const lc = localMap.get(rc.id);
-         if (lc) {
-           const mergeRes = mergeCaseItems(lc, rc);
-           mergedList.push(mergeRes.merged);
-           localMap.delete(rc.id);
-         } else {
-           mergedList.push(rc);
-         }
-       }
-       for (const remainingLocal of localMap.values()) {
-         mergedList.push(remainingLocal);
-       }
+      const mergedList: CaseItem[] = [];
+      for (const rc of remoteCases) {
+        const lc = localMap.get(rc.id);
+        if (lc) {
+          const mergeRes = mergeCaseItems(lc, rc);
+          mergedList.push(mergeRes.merged);
+          localMap.delete(rc.id);
+        } else {
+          mergedList.push(rc);
+        }
+      }
+      for (const remainingLocal of localMap.values()) {
+        mergedList.push(remainingLocal);
+      }
 
-       cachedCases = mergedList;
-       idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
-       setItemSync(key, JSON.stringify(cachedCases));
+      cachedCases = mergedList;
+      idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
+      setItemSync(key, JSON.stringify(cachedCases));
     } else if (localRaw) {
-       // A transient remote read failure must never erase the last known case
-       // list from the current device.
-       try {
-         const localCases = JSON.parse(localRaw);
-         cachedCases = Array.isArray(localCases) ? localCases : [];
-       } catch {
-         cachedCases = cachedCases || [];
-       }
+      // A transient remote read failure must never erase the last known case
+      // list from the current device.
+      try {
+        const localCases = JSON.parse(localRaw);
+        cachedCases = Array.isArray(localCases) ? localCases : [];
+      } catch {
+        cachedCases = cachedCases || [];
+      }
     } else {
-       cachedCases = cachedCases || [];
+      cachedCases = cachedCases || [];
     }
   } else {
     // Guest
-    const indexedSnapshot = await idbGet(key) as string;
+    const indexedSnapshot = (await idbGet(key)) as string;
     if (getCasesKey() !== key) return;
     // A review may have been saved while IndexedDB was loading. The synchronous
     // mirror contains that latest write; do not replace it with an older read.
@@ -1069,45 +1278,55 @@ export async function initCaseEngine() {
       cachedCases = [];
     }
   }
-  
+
   safeDispatchEvent(new Event('hc_cases_updated'));
 }
 
 export async function fetchCaseFromCloud(caseId: string): Promise<CaseItem | null> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) return null;
-  const { data, error } = await supabase.from('cases').select('data').eq('id', caseId).eq('user_id', session.user.id).single();
+  const { data, error } = await supabase
+    .from('cases')
+    .select('data')
+    .eq('id', caseId)
+    .eq('user_id', session.user.id)
+    .single();
   if (error || !data) return null;
   return data.data as CaseItem;
 }
 
 export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
   const cases = getCases();
-  const idx = cases.findIndex(c => c.id === caseId);
+  const idx = cases.findIndex((c) => c.id === caseId);
   if (idx !== -1) {
     const updated = {
       ...cases[idx],
       connectionMap,
       updatedAt: new Date().toISOString(),
     };
-    save(cases.map((item, index) => index === idx ? updated : item));
+    save(cases.map((item, index) => (index === idx ? updated : item)));
     safeDispatchEvent(new Event('hc_cases_updated'));
   }
 }
 
 export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief): CaseItem | null {
   const cases = getCases();
-  const index = cases.findIndex(item => item.id === caseId);
+  const index = cases.findIndex((item) => item.id === caseId);
   if (index === -1) return null;
 
   const existing = cases[index];
   const now = new Date().toISOString();
   const priorHistory = existing.appointmentBriefs?.history || [];
-  
+
   // Calculate next monotonic version
   const currentBrief = existing.appointmentBriefs?.current;
-  const currentVersion = currentBrief?.version || (priorHistory.length > 0 ? Math.max(...priorHistory.map(h => h.version || 1)) : 0);
-  const nextVersion = brief.version && brief.version > currentVersion ? brief.version : currentVersion + 1;
+  const currentVersion =
+    currentBrief?.version ||
+    (priorHistory.length > 0 ? Math.max(...priorHistory.map((h) => h.version || 1)) : 0);
+  const nextVersion =
+    brief.version && brief.version > currentVersion ? brief.version : currentVersion + 1;
 
   const finalizedBrief: AppointmentBrief = {
     ...brief,
@@ -1115,8 +1334,10 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief): C
     version: nextVersion,
     parentBriefId: currentBrief?.briefId,
     generatedAt: brief.generatedAt || now,
-    questionIdsIncluded: brief.questionIdsIncluded || (brief.questionsForClinician || []).map(q => q.id).filter(Boolean) as string[],
-    recordIdsIncluded: brief.recordIdsIncluded || (existing.medicalRecords || []).map(r => r.id),
+    questionIdsIncluded:
+      brief.questionIdsIncluded ||
+      ((brief.questionsForClinician || []).map((q) => q.id).filter(Boolean) as string[]),
+    recordIdsIncluded: brief.recordIdsIncluded || (existing.medicalRecords || []).map((r) => r.id),
   };
 
   // Push previous current into history as an immutable clone (never mutate past briefs in place)
@@ -1125,7 +1346,7 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief): C
     : priorHistory.slice(0, 30);
 
   // Update questions included in this brief to 'prepared' if currently 'open'
-  const updatedQuestions = (existing.questions || []).map(q => {
+  const updatedQuestions = (existing.questions || []).map((q) => {
     if (finalizedBrief.questionIdsIncluded?.includes(q.id)) {
       return {
         ...q,
@@ -1143,16 +1364,19 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief): C
       current: finalizedBrief,
       history: updatedHistory,
     },
-    events: [{
-      id: id(),
-      date: now,
-      label: `Appointment brief v${nextVersion} prepared`,
-      note: `Patient prepared structured appointment brief v${nextVersion} with ${finalizedBrief.questionsForClinician?.length || 0} questions.`
-    }, ...(existing.events || [])].slice(0, 100),
+    events: [
+      {
+        id: id(),
+        date: now,
+        label: `Appointment brief v${nextVersion} prepared`,
+        note: `Patient prepared structured appointment brief v${nextVersion} with ${finalizedBrief.questionsForClinician?.length || 0} questions.`,
+      },
+      ...(existing.events || []),
+    ].slice(0, 100),
     updatedAt: now,
   };
 
-  save(cases.map((item, itemIndex) => itemIndex === index ? updated : item));
+  save(cases.map((item, itemIndex) => (itemIndex === index ? updated : item)));
   safeDispatchEvent(new Event('hc_cases_updated'));
   return updated;
 }
@@ -1162,24 +1386,34 @@ export function ensureRecordPassages(record: MedicalRecord): MedicalRecord {
   // Legacy findings are a stored summary, not an original page transcription.
   return {
     ...record,
-    passages: record.findings?.trim() ? [{
-      id: 'summary_' + record.id,
-      section: 'Stored summary (original page not available)',
-      text: record.findings,
-      originalText: record.originalText || record.findings,
-      extractionStatus: record.extractionStatus || 'provisional',
-      auditTrail: record.auditTrail || [],
-    }] : []
+    passages: record.findings?.trim()
+      ? [
+          {
+            id: 'summary_' + record.id,
+            section: 'Stored summary (original page not available)',
+            text: record.findings,
+            originalText: record.originalText || record.findings,
+            extractionStatus: record.extractionStatus || 'provisional',
+            auditTrail: record.auditTrail || [],
+          },
+        ]
+      : [],
   };
 }
 
-export function getRecordPassage(caseId: string, recordId: string, passageId?: string): { record: MedicalRecord; passage?: RecordPassage } | null {
+export function getRecordPassage(
+  caseId: string,
+  recordId: string,
+  passageId?: string
+): { record: MedicalRecord; passage?: RecordPassage } | null {
   const caseItem = getCase(caseId);
   if (!caseItem) return null;
-  const record = caseItem.medicalRecords?.find(r => r.id === recordId || r.filename === recordId);
+  const record = caseItem.medicalRecords?.find((r) => r.id === recordId || r.filename === recordId);
   if (!record) return null;
   const enriched = ensureRecordPassages(record);
-  const passage = passageId ? enriched.passages?.find(p => p.id === passageId || false) : enriched.passages?.[0];
+  const passage = passageId
+    ? enriched.passages?.find((p) => p.id === passageId || false)
+    : enriched.passages?.[0];
   return { record: enriched, passage };
 }
 
@@ -1190,10 +1424,10 @@ export function getCaseQuestions(caseId: string): ClinicalQuestion[] {
   if (explicit.length > 0) return explicit;
 
   const harvested: ClinicalQuestion[] = [];
-  caseItem.reviews?.forEach(r => {
-    r.perspectives?.forEach(p => {
-      p.remainingQuestions?.forEach(q => {
-        if (!harvested.some(h => h.id === q.id || h.questionText === q.questionText)) {
+  caseItem.reviews?.forEach((r) => {
+    r.perspectives?.forEach((p) => {
+      p.remainingQuestions?.forEach((q) => {
+        if (!harvested.some((h) => h.id === q.id || h.questionText === q.questionText)) {
           harvested.push(q);
         }
       });
@@ -1203,10 +1437,14 @@ export function getCaseQuestions(caseId: string): ClinicalQuestion[] {
 }
 
 export function generateStableQuestionId(caseId: string, text: string): string {
-  const normalized = text.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 32);
+  const normalized = text
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 32);
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash = (hash << 5) - hash + text.charCodeAt(i);
     hash |= 0;
   }
   const hex = Math.abs(hash).toString(16);
@@ -1215,10 +1453,13 @@ export function generateStableQuestionId(caseId: string, text: string): string {
 
 export function addCaseQuestion(
   caseId: string,
-  question: Omit<ClinicalQuestion, 'id' | 'createdAt' | 'status'> & { id?: string; status?: QuestionLifecycleStatus }
+  question: Omit<ClinicalQuestion, 'id' | 'createdAt' | 'status'> & {
+    id?: string;
+    status?: QuestionLifecycleStatus;
+  }
 ): ClinicalQuestion {
   const cases = getCases();
-  const idx = cases.findIndex(c => c.id === caseId);
+  const idx = cases.findIndex((c) => c.id === caseId);
   const now = new Date().toISOString();
   const normText = question.questionText.trim().toLowerCase();
 
@@ -1226,7 +1467,8 @@ export function addCaseQuestion(
     const existingCase = cases[idx];
     const existingQuestions = existingCase.questions || [];
     const duplicate = existingQuestions.find(
-      q => (question.id && q.id === question.id) || q.questionText.trim().toLowerCase() === normText
+      (q) =>
+        (question.id && q.id === question.id) || q.questionText.trim().toLowerCase() === normText
     );
     if (duplicate) {
       // Re-use existing question with its stable ID to prevent repeat navigation duplicate explosion
@@ -1250,7 +1492,7 @@ export function addCaseQuestion(
       questions,
       updatedAt: now,
     };
-    save(cases.map((c, i) => i === idx ? updated : c));
+    save(cases.map((c, i) => (i === idx ? updated : c)));
     safeDispatchEvent(new Event('hc_cases_updated'));
   }
   return newQ;
@@ -1260,26 +1502,29 @@ export function transitionCaseQuestionLifecycle(
   caseId: string,
   questionId: string,
   nextStatus: QuestionLifecycleStatus,
-  options?: string | {
-    note?: string;
-    doctorAction?: string;
-    provenance?: OutcomeProvenance;
-    outcomeDate?: string;
-  }
+  options?:
+    | string
+    | {
+        note?: string;
+        doctorAction?: string;
+        provenance?: OutcomeProvenance;
+        outcomeDate?: string;
+      }
 ): boolean {
   const cases = getCases();
-  const idx = cases.findIndex(c => c.id === caseId);
+  const idx = cases.findIndex((c) => c.id === caseId);
   if (idx === -1) return false;
   const existing = cases[idx];
   const now = new Date().toISOString();
   let found = false;
   let targetQuestionText = '';
 
-  const opts = typeof options === 'string' ? { note: options } : (options || {});
-  const outcomeProvenance: OutcomeProvenance = opts.provenance || 'user_reported_clinician_statement';
+  const opts = typeof options === 'string' ? { note: options } : options || {};
+  const outcomeProvenance: OutcomeProvenance =
+    opts.provenance || 'user_reported_clinician_statement';
   const outcomeDate = opts.outcomeDate || now;
 
-  const questions = (existing.questions || []).map(q => {
+  const questions = (existing.questions || []).map((q) => {
     if (q.id === questionId) {
       found = true;
       targetQuestionText = q.questionText;
@@ -1292,13 +1537,18 @@ export function transitionCaseQuestionLifecycle(
         ...q,
         status: nextStatus,
         outcomeNote: opts.note !== undefined ? opts.note : q.outcomeNote,
-        outcomeDate: (opts.note || isDiscussed || isDeferred || isResolved) ? outcomeDate : q.outcomeDate,
+        outcomeDate:
+          opts.note || isDiscussed || isDeferred || isResolved ? outcomeDate : q.outcomeDate,
         outcomeProvenance: outcomeProvenance,
         doctorAction: opts.doctorAction || q.doctorAction,
-        discussedAt: isDiscussed ? (q.discussedAt || now) : q.discussedAt,
-        deferredAt: isDeferred ? (q.deferredAt || now) : q.deferredAt,
+        discussedAt: isDiscussed ? q.discussedAt || now : q.discussedAt,
+        deferredAt: isDeferred ? q.deferredAt || now : q.deferredAt,
         // Invariant: "discussed" does NOT set resolvedAt; only resolved sets resolvedAt!
-        resolvedAt: isResolved ? (q.resolvedAt || now) : (nextStatus === 'open' ? undefined : q.resolvedAt),
+        resolvedAt: isResolved
+          ? q.resolvedAt || now
+          : nextStatus === 'open'
+            ? undefined
+            : q.resolvedAt,
       };
     }
     return q;
@@ -1306,17 +1556,19 @@ export function transitionCaseQuestionLifecycle(
 
   if (!found) return false;
 
-  const eventLabel = (nextStatus === 'resolved' || nextStatus === 'addressed')
-    ? 'Physician Question Resolved'
-    : nextStatus === 'discussed'
-    ? 'Physician Question Discussed'
-    : nextStatus === 'deferred'
-    ? 'Physician Question Deferred'
-    : `Question: ${nextStatus.toUpperCase()}`;
+  const eventLabel =
+    nextStatus === 'resolved' || nextStatus === 'addressed'
+      ? 'Physician Question Resolved'
+      : nextStatus === 'discussed'
+        ? 'Physician Question Discussed'
+        : nextStatus === 'deferred'
+          ? 'Physician Question Deferred'
+          : `Question: ${nextStatus.toUpperCase()}`;
 
-  const provenanceSuffix = outcomeProvenance === 'user_reported_clinician_statement'
-    ? ' (Patient-reported clinician statement)'
-    : '';
+  const provenanceSuffix =
+    outcomeProvenance === 'user_reported_clinician_statement'
+      ? ' (Patient-reported clinician statement)'
+      : '';
 
   const eventUpdate: CaseUpdate = {
     id: id(),
@@ -1334,7 +1586,7 @@ export function transitionCaseQuestionLifecycle(
     updatedAt: now,
   };
 
-  save(cases.map((c, i) => i === idx ? updated : c));
+  save(cases.map((c, i) => (i === idx ? updated : c)));
   safeDispatchEvent(new Event('hc_cases_updated'));
   return true;
 }
@@ -1370,12 +1622,12 @@ export function updateCaseQuestionOutcome(
 
 export function setQuestionsForAppointment(caseId: string, questionIds: string[]): boolean {
   const cases = getCases();
-  const idx = cases.findIndex(c => c.id === caseId);
+  const idx = cases.findIndex((c) => c.id === caseId);
   if (idx === -1) return false;
   const existing = cases[idx];
   const now = new Date().toISOString();
 
-  const questions = (existing.questions || []).map(q => {
+  const questions = (existing.questions || []).map((q) => {
     if (questionIds.includes(q.id) && q.status === 'open') {
       return { ...q, status: 'prepared' as const };
     }
@@ -1388,7 +1640,7 @@ export function setQuestionsForAppointment(caseId: string, questionIds: string[]
     updatedAt: now,
   };
 
-  save(cases.map((c, i) => i === idx ? updated : c));
+  save(cases.map((c, i) => (i === idx ? updated : c)));
   safeDispatchEvent(new Event('hc_cases_updated'));
   return true;
 }
@@ -1397,14 +1649,24 @@ export function clearCaseEngineCache() {
   cachedCases = null;
 }
 
-
 /** Attach records to an explicit case, never whichever case became active later. */
-export function appendCaseRecords(caseId:string, records:MedicalRecord[]):void {
-  const cases=getCases(),target=cases.find(c=>c.id===caseId);
-  if(!target || target.intakeData?.scenarioId) throw new Error('Case unavailable.');
-  const existing=new Set((target.medicalRecords || []).map(r=>r.id));
-  const additions=records.filter(r=>!existing.has(r.id)).map(ensureRecordPassages);
-  save(cases.map(c=>c.id===caseId?{...c,medicalRecords:[...additions,...c.medicalRecords],updatedAt:new Date().toISOString()}:c));
+export function appendCaseRecords(caseId: string, records: MedicalRecord[]): void {
+  const cases = getCases(),
+    target = cases.find((c) => c.id === caseId);
+  if (!target || target.intakeData?.scenarioId) throw new Error('Case unavailable.');
+  const existing = new Set((target.medicalRecords || []).map((r) => r.id));
+  const additions = records.filter((r) => !existing.has(r.id)).map(ensureRecordPassages);
+  save(
+    cases.map((c) =>
+      c.id === caseId
+        ? {
+            ...c,
+            medicalRecords: [...additions, ...c.medicalRecords],
+            updatedAt: new Date().toISOString(),
+          }
+        : c
+    )
+  );
 }
 
 if (typeof window !== 'undefined') {
@@ -1412,7 +1674,7 @@ if (typeof window !== 'undefined') {
     const mergedCase = e.detail?.case as CaseItem;
     if (!mergedCase?.id) return;
     const current = getCases();
-    const idx = current.findIndex(c => c.id === mergedCase.id);
+    const idx = current.findIndex((c) => c.id === mergedCase.id);
     if (idx >= 0) {
       current[idx] = mergedCase;
       const key = getCasesKey();
@@ -1424,18 +1686,61 @@ if (typeof window !== 'undefined') {
   }) as EventListener);
 }
 
-export async function saveAvaCaseAction(caseId:string,messageId:string,type:'observation'|'question',text:string,specialty='General'){
- const cases=getCases();const target=cases.find(item=>item.id===caseId);
- if(!target || !text.trim())throw new Error('Case or action is unavailable.');
- const actionId='ava_'+type+'_'+messageId;
- const existing=type==='observation'?target.events?.find(item=>item.id===actionId):target.questions?.find(item=>item.id===actionId || item.questionText.trim().toLowerCase()===text.trim().toLowerCase());
- if(existing)return existing.id;
- const now=new Date().toISOString();
- const updated=type==='observation'?{...target,updatedAt:now,events:[{id:actionId,date:now,label:'Patient observation (Ava conversation)',note:text.trim()},...(target.events || [])]}
-  :{...target,updatedAt:now,questions:[...(target.questions || []),{id:actionId,questionText:text.trim(),raisedBySpecialty:specialty,supportingEvidenceIds:[],status:'open' as const,createdAt:now}]};
- await save(cases.map(item=>item.id===caseId?updated:item));
- // LocalStorage is the synchronous durable mirror used by save().
- const raw=getItemSync(getCasesKey());
- if(!raw || !raw.includes(actionId))throw new Error('The action could not be saved on this device.');
- return actionId;
+export async function saveAvaCaseAction(
+  caseId: string,
+  messageId: string,
+  type: 'observation' | 'question',
+  text: string,
+  specialty = 'General'
+) {
+  const cases = getCases();
+  const target = cases.find((item) => item.id === caseId);
+  if (!target || !text.trim()) throw new Error('Case or action is unavailable.');
+  const actionId = 'ava_' + type + '_' + messageId;
+  const existing =
+    type === 'observation'
+      ? target.events?.find((item) => item.id === actionId)
+      : target.questions?.find(
+          (item) =>
+            item.id === actionId ||
+            item.questionText.trim().toLowerCase() === text.trim().toLowerCase()
+        );
+  if (existing) return existing.id;
+  const now = new Date().toISOString();
+  const updated =
+    type === 'observation'
+      ? {
+          ...target,
+          updatedAt: now,
+          events: [
+            {
+              id: actionId,
+              date: now,
+              label: 'Patient observation (Ava conversation)',
+              note: text.trim(),
+            },
+            ...(target.events || []),
+          ],
+        }
+      : {
+          ...target,
+          updatedAt: now,
+          questions: [
+            ...(target.questions || []),
+            {
+              id: actionId,
+              questionText: text.trim(),
+              raisedBySpecialty: specialty,
+              supportingEvidenceIds: [],
+              status: 'open' as const,
+              createdAt: now,
+            },
+          ],
+        };
+  await save(cases.map((item) => (item.id === caseId ? updated : item)));
+  // LocalStorage is the synchronous durable mirror used by save().
+  const raw = getItemSync(getCasesKey());
+  if (!raw || !raw.includes(actionId))
+    throw new Error('The action could not be saved on this device.');
+  return actionId;
 }

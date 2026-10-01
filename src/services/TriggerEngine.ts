@@ -34,7 +34,8 @@ export interface FoodItem {
   id: string;
   name: string;
   emoji: string;
-  category: 'Protein' | 'Dairy' | 'Grain' | 'Vegetable' | 'Fruit' | 'Beverage' | 'Condiment' | 'Snack';
+  category:
+    'Protein' | 'Dairy' | 'Grain' | 'Vegetable' | 'Fruit' | 'Beverage' | 'Condiment' | 'Snack';
   riskLevel: 'Low' | 'Moderate' | 'High';
   sensitivityFlags: string[]; // IDs from CLINICAL_SENSITIVITIES
   reactionWindow: string;
@@ -99,7 +100,6 @@ export interface EmpiricalMatchInsight {
   recommendedAction: string;
 }
 
-
 export interface ActiveTrialState {
   trialId: string;
   startDate: string;
@@ -107,7 +107,14 @@ export interface ActiveTrialState {
   totalDays: number;
   completedDays: number;
   adherencePercentage: number | null;
-  symptomScores: { day: number; date?: string; severity: number; adhered: boolean | null; note?: string; adherenceLevel?: string | null }[];
+  symptomScores: {
+    day: number;
+    date?: string;
+    severity: number;
+    adhered: boolean | null;
+    note?: string;
+    adherenceLevel?: string | null;
+  }[];
   baselineSeverity: number | null; // null until the user records it
   currentSeverity: number | null;
   reductionPercent: number | null;
@@ -158,9 +165,27 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Histamine',
     category: 'chemical',
     icon: '⚗️',
-    description: 'Biogenic amine found in aged, cured, and fermented foods that overloads diamine oxidase (DAO) clearance capacity.',
-    commonTriggers: ['Red Wine', 'Salami', 'Aged Cheese', 'Cured Meats', 'Fermented Foods', 'Spinach', 'Tomatoes', 'Canned Tuna'],
-    associatedSymptoms: ['Bloating', 'Headache', 'Migraine', 'Flushing', 'Fatigue', 'Nasal Congestion', 'Pruritus'],
+    description:
+      'Biogenic amine found in aged, cured, and fermented foods that overloads diamine oxidase (DAO) clearance capacity.',
+    commonTriggers: [
+      'Red Wine',
+      'Salami',
+      'Aged Cheese',
+      'Cured Meats',
+      'Fermented Foods',
+      'Spinach',
+      'Tomatoes',
+      'Canned Tuna',
+    ],
+    associatedSymptoms: [
+      'Bloating',
+      'Headache',
+      'Migraine',
+      'Flushing',
+      'Fatigue',
+      'Nasal Congestion',
+      'Pruritus',
+    ],
     reactionWindow: 'within 1 day',
   },
   histamine_liberators: {
@@ -168,8 +193,17 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Histamine Liberators',
     category: 'chemical',
     icon: '⚡',
-    description: 'Foods that stimulate endogenous mast cells and basophils to degranulate and release stored histamine directly.',
-    commonTriggers: ['Citrus Fruits', 'Strawberries', 'Pineapple', 'Egg Whites', 'Dark Chocolate', 'Papaya', 'Shellfish'],
+    description:
+      'Foods that stimulate endogenous mast cells and basophils to degranulate and release stored histamine directly.',
+    commonTriggers: [
+      'Citrus Fruits',
+      'Strawberries',
+      'Pineapple',
+      'Egg Whites',
+      'Dark Chocolate',
+      'Papaya',
+      'Shellfish',
+    ],
     associatedSymptoms: ['Skin Flushing', 'Hives', 'Nausea', 'Throat Tickle', 'Palpitations'],
     reactionWindow: '30 mins - 4 hours',
   },
@@ -178,9 +212,23 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Tyramine',
     category: 'chemical',
     icon: '🧀',
-    description: 'Vasoactive amino acid derivative that provokes sympathetic norepinephrine release, precipitating vascular headaches.',
-    commonTriggers: ['Aged Cheddar', 'Parmesan', 'Cured Salami', 'Red Wine', 'Soy Sauce', 'Smoked Fish', 'Craft Beer'],
-    associatedSymptoms: ['Throbbing Headache', 'Migraine Aura', 'Hypertension Spikes', 'Restlessness'],
+    description:
+      'Vasoactive amino acid derivative that provokes sympathetic norepinephrine release, precipitating vascular headaches.',
+    commonTriggers: [
+      'Aged Cheddar',
+      'Parmesan',
+      'Cured Salami',
+      'Red Wine',
+      'Soy Sauce',
+      'Smoked Fish',
+      'Craft Beer',
+    ],
+    associatedSymptoms: [
+      'Throbbing Headache',
+      'Migraine Aura',
+      'Hypertension Spikes',
+      'Restlessness',
+    ],
     reactionWindow: '2 - 8 hours',
   },
   fructans: {
@@ -188,9 +236,23 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Fructans (FODMAP)',
     category: 'carbohydrate',
     icon: '🌾',
-    description: 'Inulin and fructo-oligosaccharide polymer chains poorly cleaved by human brush border enzymes, causing rapid cecal fermentation.',
-    commonTriggers: ['Wheat Sourdough', 'Garlic', 'Onions', 'Shallots', 'Rye', 'Barley', 'Inulin Fiber'],
-    associatedSymptoms: ['Lower Abdominal Gas', 'Severe Distension', 'Bowel Urgency', 'Visceral Hypersensitivity'],
+    description:
+      'Inulin and fructo-oligosaccharide polymer chains poorly cleaved by human brush border enzymes, causing rapid cecal fermentation.',
+    commonTriggers: [
+      'Wheat Sourdough',
+      'Garlic',
+      'Onions',
+      'Shallots',
+      'Rye',
+      'Barley',
+      'Inulin Fiber',
+    ],
+    associatedSymptoms: [
+      'Lower Abdominal Gas',
+      'Severe Distension',
+      'Bowel Urgency',
+      'Visceral Hypersensitivity',
+    ],
     reactionWindow: '4 - 12 hours',
   },
   gos: {
@@ -198,8 +260,16 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'GOS (Galacto-oligosaccharides)',
     category: 'carbohydrate',
     icon: '🫘',
-    description: 'Galactose-containing oligosaccharides in legumes and nuts that rapidly feed gas-producing colonic methanogens and bacteroides.',
-    commonTriggers: ['Chickpeas', 'Lentils / Dal', 'Kidney Beans', 'Cashews', 'Pistachios', 'Soybeans'],
+    description:
+      'Galactose-containing oligosaccharides in legumes and nuts that rapidly feed gas-producing colonic methanogens and bacteroides.',
+    commonTriggers: [
+      'Chickpeas',
+      'Lentils / Dal',
+      'Kidney Beans',
+      'Cashews',
+      'Pistachios',
+      'Soybeans',
+    ],
     associatedSymptoms: ['Gas Cramping', 'Sharp Pelvic Colic', 'Early Satiety', 'Loud Borborygmi'],
     reactionWindow: '6 - 16 hours',
   },
@@ -208,8 +278,16 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Excess Fructose',
     category: 'carbohydrate',
     icon: '🍎',
-    description: 'Monosaccharide when uncoupled from equimolar glucose relies on saturated GLUT5 transporters, leading to osmotic colonic water draw.',
-    commonTriggers: ['Apples', 'Pears', 'Honey', 'High-Fructose Corn Syrup', 'Mango', 'Agave Nectar'],
+    description:
+      'Monosaccharide when uncoupled from equimolar glucose relies on saturated GLUT5 transporters, leading to osmotic colonic water draw.',
+    commonTriggers: [
+      'Apples',
+      'Pears',
+      'Honey',
+      'High-Fructose Corn Syrup',
+      'Mango',
+      'Agave Nectar',
+    ],
     associatedSymptoms: ['Watery Stools', 'Epigastric Bloat', 'Nausea', 'Lethargy'],
     reactionWindow: 'within 4 hours',
   },
@@ -218,8 +296,16 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Polyols (Sorbitol & Mannitol)',
     category: 'carbohydrate',
     icon: '🍄',
-    description: 'Sugar alcohols that diffuse slowly across intestinal epithelium, drawing fluid and fermenting in the ileocecal junction.',
-    commonTriggers: ['Mushrooms', 'Cauliflower', 'Peaches', 'Cherries', 'Avocado', 'Sugar-free Gums / Xylitol'],
+    description:
+      'Sugar alcohols that diffuse slowly across intestinal epithelium, drawing fluid and fermenting in the ileocecal junction.',
+    commonTriggers: [
+      'Mushrooms',
+      'Cauliflower',
+      'Peaches',
+      'Cherries',
+      'Avocado',
+      'Sugar-free Gums / Xylitol',
+    ],
     associatedSymptoms: ['Bloating', 'Osmotic Diarrhea', 'Gurgling Abdomen'],
     reactionWindow: '2 - 6 hours',
   },
@@ -228,7 +314,8 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Lactose',
     category: 'carbohydrate',
     icon: '🥛',
-    description: 'Disaccharide lacking sufficient mucosal lactase-phlorizin hydrolase enzyme activity for small intestinal cleavage.',
+    description:
+      'Disaccharide lacking sufficient mucosal lactase-phlorizin hydrolase enzyme activity for small intestinal cleavage.',
     commonTriggers: ['Fresh Cow Milk', 'Soft Cheeses', 'Ice Cream', 'Custard', 'Whey Concentrate'],
     associatedSymptoms: ['Abdominal Spasms', 'Watery Stool', 'Flatulence', 'Acid Stool Burning'],
     reactionWindow: '30 mins - 2 hours',
@@ -238,9 +325,23 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Salicylates',
     category: 'chemical',
     icon: '🌸',
-    description: 'Naturally synthesized defensive phyto-compounds that trigger cyclooxygenase (COX-1) and leukotriene hyper-responsiveness.',
-    commonTriggers: ['Blackberries', 'Curry Powders', 'Tomato Puree', 'Almonds', 'Coffee', 'Aspirin', 'Peppermint Tea'],
-    associatedSymptoms: ['Tension Headache', 'Urticaria / Hives', 'Nasal Congestion', 'Asthmatic Tightness'],
+    description:
+      'Naturally synthesized defensive phyto-compounds that trigger cyclooxygenase (COX-1) and leukotriene hyper-responsiveness.',
+    commonTriggers: [
+      'Blackberries',
+      'Curry Powders',
+      'Tomato Puree',
+      'Almonds',
+      'Coffee',
+      'Aspirin',
+      'Peppermint Tea',
+    ],
+    associatedSymptoms: [
+      'Tension Headache',
+      'Urticaria / Hives',
+      'Nasal Congestion',
+      'Asthmatic Tightness',
+    ],
     reactionWindow: 'within 6 hours',
   },
   oxalates: {
@@ -248,9 +349,22 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Oxalates',
     category: 'chemical',
     icon: '💎',
-    description: 'Dicarboxylic acid salts forming insoluble microscopic calcium oxalate crystals that irritate mucosa, joints, and renal tubules.',
-    commonTriggers: ['Baby Spinach', 'Raw Almonds', 'Dark Cocoa (85%+)', 'Swiss Chard', 'Beets', 'Sweet Potatoes'],
-    associatedSymptoms: ['Joint Stiffness', 'Generalized Fibro-Aches', 'Burning Bladder', 'Malaise'],
+    description:
+      'Dicarboxylic acid salts forming insoluble microscopic calcium oxalate crystals that irritate mucosa, joints, and renal tubules.',
+    commonTriggers: [
+      'Baby Spinach',
+      'Raw Almonds',
+      'Dark Cocoa (85%+)',
+      'Swiss Chard',
+      'Beets',
+      'Sweet Potatoes',
+    ],
+    associatedSymptoms: [
+      'Joint Stiffness',
+      'Generalized Fibro-Aches',
+      'Burning Bladder',
+      'Malaise',
+    ],
     reactionWindow: '12 - 36 hours',
   },
   nightshades: {
@@ -258,9 +372,22 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Nightshades (Solanine)',
     category: 'chemical',
     icon: '🍆',
-    description: 'Steroidal glycoalkaloids (solanine, chaconine) that inhibit acetylcholinesterase, impairing gut mucosal barrier permeability.',
-    commonTriggers: ['Eggplant / Baingan', 'Bell Peppers', 'Paprika', 'White Potatoes', 'Tomatoes', 'Cayenne Pepper'],
-    associatedSymptoms: ['Joint Inflammation', 'Morning Musculoskeletal Ache', 'Gut Hyper-permeability', 'GERD'],
+    description:
+      'Steroidal glycoalkaloids (solanine, chaconine) that inhibit acetylcholinesterase, impairing gut mucosal barrier permeability.',
+    commonTriggers: [
+      'Eggplant / Baingan',
+      'Bell Peppers',
+      'Paprika',
+      'White Potatoes',
+      'Tomatoes',
+      'Cayenne Pepper',
+    ],
+    associatedSymptoms: [
+      'Joint Inflammation',
+      'Morning Musculoskeletal Ache',
+      'Gut Hyper-permeability',
+      'GERD',
+    ],
     reactionWindow: '8 - 24 hours',
   },
   lectins: {
@@ -268,8 +395,15 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Lectins',
     category: 'protein',
     icon: '🛡️',
-    description: 'Carbohydrate-binding proteins that resist gastric peptic digestion, binding to enterocyte brush border glycans and increasing zonulin.',
-    commonTriggers: ['Kidney Beans (Undercooked)', 'Peanuts', 'Raw Grains', 'Chia Seeds', 'Goji Berries'],
+    description:
+      'Carbohydrate-binding proteins that resist gastric peptic digestion, binding to enterocyte brush border glycans and increasing zonulin.',
+    commonTriggers: [
+      'Kidney Beans (Undercooked)',
+      'Peanuts',
+      'Raw Grains',
+      'Chia Seeds',
+      'Goji Berries',
+    ],
     associatedSymptoms: ['Postprandial Nausea', 'Intestinal Permeability', 'Systemic Fatigue'],
     reactionWindow: '2 - 6 hours',
   },
@@ -278,8 +412,16 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Dietary Nickel',
     category: 'mineral',
     icon: '🪙',
-    description: 'Ubiquitous trace heavy metal that triggers systemic contact dermatitis (SNAS) and dyshidrotic pompholyx flares in sensitive individuals.',
-    commonTriggers: ['Cocoa Beans', 'Soybeans', 'Whole Oats', 'Buckwheat', 'Canned Foods', 'Cashews'],
+    description:
+      'Ubiquitous trace heavy metal that triggers systemic contact dermatitis (SNAS) and dyshidrotic pompholyx flares in sensitive individuals.',
+    commonTriggers: [
+      'Cocoa Beans',
+      'Soybeans',
+      'Whole Oats',
+      'Buckwheat',
+      'Canned Foods',
+      'Cashews',
+    ],
     associatedSymptoms: ['Dyshidrotic Hand Eczema', 'Perioral Dermatitis', 'Headaches', 'Reflux'],
     reactionWindow: '24 - 48 hours',
   },
@@ -288,9 +430,21 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Sulfites',
     category: 'additive',
     icon: '🍷',
-    description: 'Sulfur dioxide preservatives that provoke bronchial spasm via cholinergic parasympathetic airway stimulation and sulfite oxidase deficiency.',
-    commonTriggers: ['White & Red Wine', 'Dried Apricots', 'Apple Cider', 'Wine Vinegar', 'Deli Cold Cuts'],
-    associatedSymptoms: ['Bronchial Wheezing', 'Chest Tightness', 'Facial Flushing', 'Sinus Pressure'],
+    description:
+      'Sulfur dioxide preservatives that provoke bronchial spasm via cholinergic parasympathetic airway stimulation and sulfite oxidase deficiency.',
+    commonTriggers: [
+      'White & Red Wine',
+      'Dried Apricots',
+      'Apple Cider',
+      'Wine Vinegar',
+      'Deli Cold Cuts',
+    ],
+    associatedSymptoms: [
+      'Bronchial Wheezing',
+      'Chest Tightness',
+      'Facial Flushing',
+      'Sinus Pressure',
+    ],
     reactionWindow: '15 mins - 2 hours',
   },
   nitrites: {
@@ -298,7 +452,8 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Nitrites & Nitrates',
     category: 'additive',
     icon: '🥓',
-    description: 'Nitrogen salts utilized in meat curing that convert to nitric oxide and vasoactive nitrosamines, causing cranial vasodilation.',
+    description:
+      'Nitrogen salts utilized in meat curing that convert to nitric oxide and vasoactive nitrosamines, causing cranial vasodilation.',
     commonTriggers: ['Cured Bacon', 'Hot Dogs', 'Smoked Sausages', 'Deli Ham', 'Pepperoni'],
     associatedSymptoms: ['Pulsating Headache', 'Facial Erythema', 'Palpitations'],
     reactionWindow: '30 mins - 3 hours',
@@ -308,8 +463,15 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Free Glutamates / MSG',
     category: 'chemical',
     icon: '🥣',
-    description: 'Unbound L-glutamate neurotransmitter molecules that overstimulate central NMDA receptors, triggering neuro-excitotoxicity.',
-    commonTriggers: ['Hydrolyzed Vegetable Protein', 'Yeast Extract', 'Aged Parmesan', 'Soy Sauce', 'Ultra-concentrated Broths'],
+    description:
+      'Unbound L-glutamate neurotransmitter molecules that overstimulate central NMDA receptors, triggering neuro-excitotoxicity.',
+    commonTriggers: [
+      'Hydrolyzed Vegetable Protein',
+      'Yeast Extract',
+      'Aged Parmesan',
+      'Soy Sauce',
+      'Ultra-concentrated Broths',
+    ],
     associatedSymptoms: ['Perioral Tingling', 'Restlessness', 'Temple Pressure', 'Sweating'],
     reactionWindow: '20 mins - 3 hours',
   },
@@ -318,9 +480,15 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Caffeine & Methylxanthines',
     category: 'chemical',
     icon: '☕',
-    description: 'Adenosine receptor antagonists that elevate cyclic AMP, induce gastric acid secretion, and stimulate bowel transit motility.',
+    description:
+      'Adenosine receptor antagonists that elevate cyclic AMP, induce gastric acid secretion, and stimulate bowel transit motility.',
     commonTriggers: ['Espresso Coffee', 'Matcha', 'Pre-workout Drinks', 'Black Tea', 'Dark Cocoa'],
-    associatedSymptoms: ['Tachycardia', 'Gastric Hyperacidity', 'Anxiety Jitters', 'Gut Motility Spasms'],
+    associatedSymptoms: [
+      'Tachycardia',
+      'Gastric Hyperacidity',
+      'Anxiety Jitters',
+      'Gut Motility Spasms',
+    ],
     reactionWindow: '15 mins - 4 hours',
   },
   dairy_proteins: {
@@ -328,9 +496,21 @@ export const CLINICAL_SENSITIVITIES: Record<string, SensitivityProfile> = {
     name: 'Dairy Proteins (Casein & Whey)',
     category: 'protein',
     icon: '🧀',
-    description: 'A1 beta-casein and beta-lactoglobulin peptides that liberate beta-casomorphin-7 (BCM-7), inciting systemic mucosal inflammation.',
-    commonTriggers: ['Cow Milk Curd', 'Commercial Whey Protein', 'A1 Cow Butter', 'Cottage Cheese', 'Paneer (Standard)'],
-    associatedSymptoms: ['Chronic Mucus / Sinus Drainage', 'Acne Vulgaris', 'Gut Inflammation', 'Constipation'],
+    description:
+      'A1 beta-casein and beta-lactoglobulin peptides that liberate beta-casomorphin-7 (BCM-7), inciting systemic mucosal inflammation.',
+    commonTriggers: [
+      'Cow Milk Curd',
+      'Commercial Whey Protein',
+      'A1 Cow Butter',
+      'Cottage Cheese',
+      'Paneer (Standard)',
+    ],
+    associatedSymptoms: [
+      'Chronic Mucus / Sinus Drainage',
+      'Acne Vulgaris',
+      'Gut Inflammation',
+      'Constipation',
+    ],
     reactionWindow: '12 - 48 hours',
   },
 };
@@ -347,8 +527,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine', 'tyramine', 'sulfites'],
     reactionWindow: 'within 1 day',
-    safeSubstitutes: ['Vodka Soda with Fresh Lime', 'Pomegranate Spritzer with Sparkling Water', 'Non-Alcoholic Botanical Elixir'],
-    clinicalNote: 'Fermentation produces high histamine, tyramine, and sulfur dioxide preservatives. Strongly correlates with flushing and delayed migraines.',
+    safeSubstitutes: [
+      'Vodka Soda with Fresh Lime',
+      'Pomegranate Spritzer with Sparkling Water',
+      'Non-Alcoholic Botanical Elixir',
+    ],
+    clinicalNote:
+      'Fermentation produces high histamine, tyramine, and sulfur dioxide preservatives. Strongly correlates with flushing and delayed migraines.',
     dietLenses: ['Keto', 'Mediterranean'],
   },
   {
@@ -359,8 +544,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine', 'tyramine', 'nitrites'],
     reactionWindow: 'within 1 day',
-    safeSubstitutes: ['Freshly Cooked Free-Range Chicken Breast', 'Fresh Roasted Turkey Breast', 'Fresh Grilled Salmon'],
-    clinicalNote: 'Slow lactic fermentation and curing yields dense biogenic amines and sodium nitrites that overload hepatic and intestinal DAO enzymes.',
+    safeSubstitutes: [
+      'Freshly Cooked Free-Range Chicken Breast',
+      'Fresh Roasted Turkey Breast',
+      'Fresh Grilled Salmon',
+    ],
+    clinicalNote:
+      'Slow lactic fermentation and curing yields dense biogenic amines and sodium nitrites that overload hepatic and intestinal DAO enzymes.',
     dietLenses: ['Keto', 'Carnivore'],
   },
   {
@@ -371,8 +561,14 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine', 'tyramine', 'glutamates', 'dairy_proteins'],
     reactionWindow: '2 - 8 hours',
-    safeSubstitutes: ['Fresh Mozzarella (Fior di Latte)', 'Fresh Ricotta', 'Fresh A2 Paneer', 'Young Goat Cheese'],
-    clinicalNote: 'Aging cheese over 3 months allows bacterial decarboxylation to concentrate free tyramine, histamine, and natural free glutamates.',
+    safeSubstitutes: [
+      'Fresh Mozzarella (Fior di Latte)',
+      'Fresh Ricotta',
+      'Fresh A2 Paneer',
+      'Young Goat Cheese',
+    ],
+    clinicalNote:
+      'Aging cheese over 3 months allows bacterial decarboxylation to concentrate free tyramine, histamine, and natural free glutamates.',
     dietLenses: ['Keto', 'Low-Carb'],
   },
   {
@@ -383,8 +579,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Moderate',
     sensitivityFlags: ['fructans', 'lectins'],
     reactionWindow: '4 - 12 hours',
-    safeSubstitutes: ['100% Gluten-Free Sprouted Bread', 'Rice Cakes with Sea Salt', 'Buckwheat Sourdough (Authentic Gluten-Free)'],
-    clinicalNote: 'While genuine 24-hr fermentation reduces fructan content by 50%, wheat fructan polymers still provoke rapid distension in visceral hypersensitivity.',
+    safeSubstitutes: [
+      '100% Gluten-Free Sprouted Bread',
+      'Rice Cakes with Sea Salt',
+      'Buckwheat Sourdough (Authentic Gluten-Free)',
+    ],
+    clinicalNote:
+      'While genuine 24-hr fermentation reduces fructan content by 50%, wheat fructan polymers still provoke rapid distension in visceral hypersensitivity.',
     dietLenses: ['Mediterranean'],
   },
   {
@@ -395,8 +596,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Moderate',
     sensitivityFlags: ['polyols', 'histamine'],
     reactionWindow: '2 - 6 hours',
-    safeSubstitutes: ['Pure Cold-Pressed Olive Oil', 'Steamed Zucchini Mash', 'Cucumber Slices with Himalayan Salt'],
-    clinicalNote: 'Rich in sorbitol (polyol) and histamine precursors. A quarter avocado is well tolerated, but a full Hass avocado frequently triggers gas and gut spasms.',
+    safeSubstitutes: [
+      'Pure Cold-Pressed Olive Oil',
+      'Steamed Zucchini Mash',
+      'Cucumber Slices with Himalayan Salt',
+    ],
+    clinicalNote:
+      'Rich in sorbitol (polyol) and histamine precursors. A quarter avocado is well tolerated, but a full Hass avocado frequently triggers gas and gut spasms.',
     dietLenses: ['Keto', 'Anti-inflammatory', 'Mediterranean'],
   },
   {
@@ -407,8 +613,14 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['oxalates', 'histamine'],
     reactionWindow: '12 - 24 hours',
-    safeSubstitutes: ['Lacinato Kale (Dino Kale)', 'Romaine Lettuce', 'Bok Choy', 'Arugula / Rocket'],
-    clinicalNote: 'One cup of cooked spinach contains over 700mg oxalates and significant histamine. Boiling and discarding water reduces oxalates by ~30%.',
+    safeSubstitutes: [
+      'Lacinato Kale (Dino Kale)',
+      'Romaine Lettuce',
+      'Bok Choy',
+      'Arugula / Rocket',
+    ],
+    clinicalNote:
+      'One cup of cooked spinach contains over 700mg oxalates and significant histamine. Boiling and discarding water reduces oxalates by ~30%.',
     dietLenses: ['Anti-inflammatory', 'Low-Carb'],
   },
   {
@@ -419,8 +631,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Moderate',
     sensitivityFlags: ['histamine', 'dairy_proteins', 'lactose'],
     reactionWindow: 'within 4 hours',
-    safeSubstitutes: ['Coconut Milk Yogurt (No Gums)', 'A2 Cow Dahi (Freshly Prepared within 12h)', 'Almond Milk Yogurt'],
-    clinicalNote: 'Fermented bacterial cultures increase histamine content as the yogurt sits refrigerated. Strained Greek yogurt is lower in lactose but retains casein.',
+    safeSubstitutes: [
+      'Coconut Milk Yogurt (No Gums)',
+      'A2 Cow Dahi (Freshly Prepared within 12h)',
+      'Almond Milk Yogurt',
+    ],
+    clinicalNote:
+      'Fermented bacterial cultures increase histamine content as the yogurt sits refrigerated. Strained Greek yogurt is lower in lactose but retains casein.',
     dietLenses: ['Mediterranean', 'High-Protein'],
   },
   {
@@ -431,8 +648,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Low',
     sensitivityFlags: ['dairy_proteins', 'lactose'],
     reactionWindow: 'within 4 hours',
-    safeSubstitutes: ['A2 Buffalo Milk Paneer', 'Firm Pressed Tofu (Organic Non-GMO)', 'Hemp Seed Tofu'],
-    clinicalNote: 'Unaged and non-fermented, meaning near-zero histamine and zero tyramine! Highly safe for biogenic amine sensitivity if lactose tolerant.',
+    safeSubstitutes: [
+      'A2 Buffalo Milk Paneer',
+      'Firm Pressed Tofu (Organic Non-GMO)',
+      'Hemp Seed Tofu',
+    ],
+    clinicalNote:
+      'Unaged and non-fermented, meaning near-zero histamine and zero tyramine! Highly safe for biogenic amine sensitivity if lactose tolerant.',
     dietLenses: ['Vegetarian', 'High-Protein', 'Keto'],
   },
   {
@@ -444,7 +666,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: ['gos', 'lectins'],
     reactionWindow: '6 - 16 hours',
     safeSubstitutes: ['Sprouted Moong Dal (Yellow Mung)', 'Firm Tofu', 'Quinoa with Cumin Seeds'],
-    clinicalNote: 'Very high in GOS (galacto-oligosaccharides). Pressure cooking with ajwain (carom) and hing (asafoetida) breaks down gas-forming oligosaccharides.',
+    clinicalNote:
+      'Very high in GOS (galacto-oligosaccharides). Pressure cooking with ajwain (carom) and hing (asafoetida) breaks down gas-forming oligosaccharides.',
     dietLenses: ['Vegetarian', 'Indian Traditional'],
   },
   {
@@ -456,7 +679,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: [],
     reactionWindow: 'mild',
     safeSubstitutes: ['Red Lentil Soup', 'Bone Broth with Rice'],
-    clinicalNote: 'The gold standard Ayurvedic and clinical convalescent food. De-husked, easily broken down by brush border enzymes, and very low in GOS.',
+    clinicalNote:
+      'The gold standard Ayurvedic and clinical convalescent food. De-husked, easily broken down by brush border enzymes, and very low in GOS.',
     dietLenses: ['Ayurvedic', 'Gut-Rest', 'Low-FODMAP'],
   },
   {
@@ -467,8 +691,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Moderate',
     sensitivityFlags: ['caffeine', 'salicylates'],
     reactionWindow: '15 mins - 4 hours',
-    safeSubstitutes: ['Roasted Chicory Root Latte', 'Dandelion Root Tea', 'Swiss Water Decaf Coffee'],
-    clinicalNote: 'Caffeine stimulates gastrin secretion and increases colonic peristalsis within 4 minutes. Contains moderate salicylates.',
+    safeSubstitutes: [
+      'Roasted Chicory Root Latte',
+      'Dandelion Root Tea',
+      'Swiss Water Decaf Coffee',
+    ],
+    clinicalNote:
+      'Caffeine stimulates gastrin secretion and increases colonic peristalsis within 4 minutes. Contains moderate salicylates.',
     dietLenses: ['Intermittent Fasting', 'Keto'],
   },
   {
@@ -480,7 +709,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: ['caffeine', 'salicylates'],
     reactionWindow: 'within 2 hours',
     safeSubstitutes: ['Fresh Ginger Lemongrass Infusion', 'Chamomile Flowers', 'Rooibos Red Tea'],
-    clinicalNote: 'Contains calming L-theanine and EGCG catechins. Lower histamine and gentler on gastric mucosa than espresso.',
+    clinicalNote:
+      'Contains calming L-theanine and EGCG catechins. Lower histamine and gentler on gastric mucosa than espresso.',
     dietLenses: ['Anti-inflammatory', 'Mediterranean'],
   },
   {
@@ -492,7 +722,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: [],
     reactionWindow: 'none',
     safeSubstitutes: ['Wild Cod', 'Fresh Trout', 'Haddock'],
-    clinicalNote: 'When flash-frozen or prepared fresh, salmon has exceptionally low histamine and delivers potent anti-inflammatory Resolvins (EPA/DHA).',
+    clinicalNote:
+      'When flash-frozen or prepared fresh, salmon has exceptionally low histamine and delivers potent anti-inflammatory Resolvins (EPA/DHA).',
     dietLenses: ['Anti-inflammatory', 'Mediterranean', 'AIP', 'Keto'],
   },
   {
@@ -503,8 +734,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine'],
     reactionWindow: 'within 2 hours',
-    safeSubstitutes: ['Fresh White Fish Fillet', 'Canned Sardines with Low Storage Time', 'Fresh Chicken'],
-    clinicalNote: 'Scombroid fish can accumulate extremely high histamine concentrations during handling and canning before final sealing.',
+    safeSubstitutes: [
+      'Fresh White Fish Fillet',
+      'Canned Sardines with Low Storage Time',
+      'Fresh Chicken',
+    ],
+    clinicalNote:
+      'Scombroid fish can accumulate extremely high histamine concentrations during handling and canning before final sealing.',
     dietLenses: ['Keto', 'High-Protein'],
   },
   {
@@ -516,7 +752,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: ['histamine_liberators'],
     reactionWindow: 'within 3 hours',
     safeSubstitutes: ['Egg Yolks Only (Soft-boiled)', 'Fresh Chicken', 'Firm Tofu'],
-    clinicalNote: 'Egg whites contain ovomucoid and avidin which can act as mild histamine liberators in atopic individuals; egg yolks are almost universally safe.',
+    clinicalNote:
+      'Egg whites contain ovomucoid and avidin which can act as mild histamine liberators in atopic individuals; egg yolks are almost universally safe.',
     dietLenses: ['Keto', 'Vegetarian', 'Whole30'],
   },
   {
@@ -527,8 +764,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['fructans'],
     reactionWindow: '4 - 12 hours',
-    safeSubstitutes: ['Garlic-Infused Extra Virgin Olive Oil (Fructan-free!)', 'Asafoetida (Hing Powder in Pure Form)', 'Green Onion Tops (Green Part Only)'],
-    clinicalNote: 'Fructans are water-soluble but lipid-insoluble. Sautéing whole garlic cloves in oil and removing them imparts rich flavor with zero fructan gut distress!',
+    safeSubstitutes: [
+      'Garlic-Infused Extra Virgin Olive Oil (Fructan-free!)',
+      'Asafoetida (Hing Powder in Pure Form)',
+      'Green Onion Tops (Green Part Only)',
+    ],
+    clinicalNote:
+      'Fructans are water-soluble but lipid-insoluble. Sautéing whole garlic cloves in oil and removing them imparts rich flavor with zero fructan gut distress!',
     dietLenses: ['Anti-inflammatory', 'Mediterranean'],
   },
   {
@@ -539,8 +781,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['fructans'],
     reactionWindow: '4 - 12 hours',
-    safeSubstitutes: ['Scallion Greens (Spring Onion Dark Tops)', 'Chives', 'Fennel Bulb (Small Portions)'],
-    clinicalNote: 'One medium onion packs over 6g of fermentable fructan chains. The single most common driver of lower quadrant distension and morning gas.',
+    safeSubstitutes: [
+      'Scallion Greens (Spring Onion Dark Tops)',
+      'Chives',
+      'Fennel Bulb (Small Portions)',
+    ],
+    clinicalNote:
+      'One medium onion packs over 6g of fermentable fructan chains. The single most common driver of lower quadrant distension and morning gas.',
     dietLenses: ['Anti-inflammatory'],
   },
   {
@@ -551,8 +798,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine', 'histamine_liberators', 'salicylates', 'nightshades'],
     reactionWindow: 'within 6 hours',
-    safeSubstitutes: ['Roasted Butternut Squash Puree', 'Beetroot & Carrot "No-Mato" Sauce', 'Red Bell Pepper (if nightshade tolerant)'],
-    clinicalNote: 'A quadruple sensitivity threat: contains free histamine, stimulates mast cell release, carries salicylates, and possesses solanine nightshade alkaloids.',
+    safeSubstitutes: [
+      'Roasted Butternut Squash Puree',
+      'Beetroot & Carrot "No-Mato" Sauce',
+      'Red Bell Pepper (if nightshade tolerant)',
+    ],
+    clinicalNote:
+      'A quadruple sensitivity threat: contains free histamine, stimulates mast cell release, carries salicylates, and possesses solanine nightshade alkaloids.',
     dietLenses: ['Mediterranean'],
   },
   {
@@ -563,8 +815,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'Moderate',
     sensitivityFlags: ['histamine_liberators', 'oxalates', 'caffeine', 'nickel'],
     reactionWindow: 'within 4 hours',
-    safeSubstitutes: ['Raw Carob Powder Bark', 'White Chocolate (Pure Cocoa Butter)', 'Coconut Butter Chips'],
-    clinicalNote: 'High in theobromine, dietary nickel, and soluble oxalates. Moderation is key for migraineurs and oxalate-sensitive joints.',
+    safeSubstitutes: [
+      'Raw Carob Powder Bark',
+      'White Chocolate (Pure Cocoa Butter)',
+      'Coconut Butter Chips',
+    ],
+    clinicalNote:
+      'High in theobromine, dietary nickel, and soluble oxalates. Moderation is key for migraineurs and oxalate-sensitive joints.',
     dietLenses: ['Antioxidant-Rich', 'Keto'],
   },
   {
@@ -576,7 +833,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: ['salicylates'],
     reactionWindow: 'mild',
     safeSubstitutes: ['Peeled Golden Delicious Apples', 'Papaya', 'Ripe Bananas'],
-    clinicalNote: 'Rich in protective anthocyanins and gut-calming polyphenols. Low FODMAP at normal 1/2 cup servings.',
+    clinicalNote:
+      'Rich in protective anthocyanins and gut-calming polyphenols. Low FODMAP at normal 1/2 cup servings.',
     dietLenses: ['Anti-inflammatory', 'Mediterranean', 'Low-FODMAP', 'Keto'],
   },
   {
@@ -588,7 +846,8 @@ export const FOOD_DATABASE: FoodItem[] = [
     sensitivityFlags: ['nickel'],
     reactionWindow: 'none',
     safeSubstitutes: ['Quinoa Flakes', 'Buckwheat Porridge', 'Chia Seed Pudding'],
-    clinicalNote: 'Contains soothing beta-glucan prebiotics that strengthen colonocyte tight junctions. Certified GF prevents cross-contamination.',
+    clinicalNote:
+      'Contains soothing beta-glucan prebiotics that strengthen colonocyte tight junctions. Certified GF prevents cross-contamination.',
     dietLenses: ['Heart-Healthy', 'Low-FODMAP', 'High-Fiber'],
   },
   {
@@ -599,8 +858,13 @@ export const FOOD_DATABASE: FoodItem[] = [
     riskLevel: 'High',
     sensitivityFlags: ['histamine', 'fructose'],
     reactionWindow: 'within 2 hours',
-    safeSubstitutes: ['Sparkling Water with Fresh Mint Leaves', 'Water Kefir (Lightly Fermented)', 'Infused Basil Water'],
-    clinicalNote: 'Living symbiotic colony of bacteria and yeast (SCOBY) produces dense organic acids and histamine. Often exacerbates histamine intolerance.',
+    safeSubstitutes: [
+      'Sparkling Water with Fresh Mint Leaves',
+      'Water Kefir (Lightly Fermented)',
+      'Infused Basil Water',
+    ],
+    clinicalNote:
+      'Living symbiotic colony of bacteria and yeast (SCOBY) produces dense organic acids and histamine. Often exacerbates histamine intolerance.',
     dietLenses: ['Probiotic'],
   },
 ];
@@ -609,15 +873,23 @@ export const FOOD_DATABASE: FoodItem[] = [
 // 3. SUSPECT FOODS CLINICAL LEADERBOARD & CORRELATION ENGINE
 // ─────────────────────────────────────────────────────────────
 const CONFIRMED_TRIGGERS_KEY = 'hc_confirmed_food_triggers';
-const confirmedTriggersStorageKey = () => `${CONFIRMED_TRIGGERS_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+const confirmedTriggersStorageKey = () =>
+  `${CONFIRMED_TRIGGERS_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
 
-export function recordConfirmedTrigger(trigger: { food: string; symptom: string; date?: string; sensitivity?: string }): void {
+export function recordConfirmedTrigger(trigger: {
+  food: string;
+  symptom: string;
+  date?: string;
+  sensitivity?: string;
+}): void {
   try {
     const raw = getItemSync(confirmedTriggersStorageKey());
     const list: any[] = raw ? JSON.parse(raw) : [];
     const date = trigger.date || new Date().toISOString().split('T')[0];
     const existingIndex = list.findIndex(
-      (t: any) => t.food?.toLowerCase() === trigger.food?.toLowerCase() && t.symptom?.toLowerCase() === trigger.symptom?.toLowerCase()
+      (t: any) =>
+        t.food?.toLowerCase() === trigger.food?.toLowerCase() &&
+        t.symptom?.toLowerCase() === trigger.symptom?.toLowerCase()
     );
 
     if (existingIndex >= 0) {
@@ -630,7 +902,7 @@ export function recordConfirmedTrigger(trigger: { food: string; symptom: string;
         symptom: trigger.symptom,
         sensitivity: trigger.sensitivity || 'Biochemical Reactive',
         count: 1,
-        lastConfirmedAt: date
+        lastConfirmedAt: date,
       });
     }
     setItemSync(confirmedTriggersStorageKey(), JSON.stringify(list));
@@ -662,17 +934,8 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
   const confirmed = getConfirmedTriggers();
 
   // Determine dietary preferences
-  const restrictions: string[] = [
-    ...(profile?.restrictions || []),
-    ...(profile?.dietProfile?.restrictions || []),
-    ...(profile?.dietaryRestrictions || [])
-  ].map((r: any) => String(r).toLowerCase());
 
-  const isVegetarian = restrictions.some((r: string) => r.includes('veg') || r.includes('plant') || r.includes('none') === false && (r.includes('meat') === false));
-  const isGlutenFree = restrictions.some((r: string) => r.includes('gluten'));
-  const isLactoseFree = restrictions.some((r: string) => r.includes('lactose') || r.includes('dairy'));
-  const cuisine = (profile?.cuisine || profile?.dietProfile?.cuisine || 'Indian').toLowerCase();
-  const isIndianContext = cuisine.includes('indian') || true; // Default culturally relevant
+  // Default culturally relevant
 
   // Pull actual logged meals from profile
   const recentLogs: any[] = profile?.nutrition?.recentLogs || [];
@@ -690,7 +953,9 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
   const daysObserved = observationDates.size;
 
   // Count high-severity flares (Moderate = 2, Severe = 3)
-  const flareCheckins = checkins.filter((c: any) => c?.score >= 2 || c?.severity === 'Moderate' || c?.severity === 'Severe');
+  const flareCheckins = checkins.filter(
+    (c: any) => c?.score >= 2 || c?.severity === 'Moderate' || c?.severity === 'Severe'
+  );
   const totalFlares = flareCheckins.length;
 
   // Map confirmed triggers to real suspect food items
@@ -699,17 +964,26 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
   confirmed.forEach((conf: any) => {
     const foodName = conf.food || 'Logged Food';
     const flaresTracked = Math.max(0, Number(conf.count) || 0);
-    const correlationPercent = totalFlares > 0 ? Math.min(100, Math.round((flaresTracked / totalFlares) * 100)) : 0;
+    const correlationPercent =
+      totalFlares > 0 ? Math.min(100, Math.round((flaresTracked / totalFlares) * 100)) : 0;
 
     dynamicItems.push({
       id: 'conf_' + foodName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
       name: foodName,
-      emoji: foodName.toLowerCase().includes('coffee') || foodName.toLowerCase().includes('espresso') ? '☕' :
-             foodName.toLowerCase().includes('egg') ? '🥚' :
-             foodName.toLowerCase().includes('toast') || foodName.toLowerCase().includes('bread') ? '🍞' :
-             foodName.toLowerCase().includes('tomato') ? '🍅' :
-             foodName.toLowerCase().includes('avocado') ? '🥑' :
-             foodName.toLowerCase().includes('dal') ? '🍲' : '🍽️',
+      emoji:
+        foodName.toLowerCase().includes('coffee') || foodName.toLowerCase().includes('espresso')
+          ? '☕'
+          : foodName.toLowerCase().includes('egg')
+            ? '🥚'
+            : foodName.toLowerCase().includes('toast') || foodName.toLowerCase().includes('bread')
+              ? '🍞'
+              : foodName.toLowerCase().includes('tomato')
+                ? '🍅'
+                : foodName.toLowerCase().includes('avocado')
+                  ? '🥑'
+                  : foodName.toLowerCase().includes('dal')
+                    ? '🍲'
+                    : '🍽️',
       category: 'User-reported food observation',
       primarySensitivity: conf.sensitivity || 'Sensitivity not established',
       correlationPercent,
@@ -717,7 +991,7 @@ export function getSuspectFoodsLeaderboard(): SuspectFoodItem[] {
       flaresTracked,
       daysObserved,
       safeSwap: 'No substitution recommended from this observation alone',
-      mechanism: `The user linked ${foodName} with ${conf.symptom || 'a symptom'}; causation has not been established.`
+      mechanism: `The user linked ${foodName} with ${conf.symptom || 'a symptom'}; causation has not been established.`,
     });
   });
 
@@ -734,53 +1008,97 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Bloating Hunt',
     targetSensitivity: 'FODMAPs & Rapid Cecal Gas Fermentation',
     durationDays: 28,
-    description: 'Systematically identify and isolate the exact fermentable carbohydrate families triggering postprandial gut distension and visceral hypersensitivity.',
+    description:
+      'Systematically identify and isolate the exact fermentable carbohydrate families triggering postprandial gut distension and visceral hypersensitivity.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: High-FODMAP Washout & Baseline',
         daysRange: 'Days 1 – 7',
-        focus: 'Eliminate high-fructan alliums (garlic, onion) and legumes (chana dal, rajma). Establish baseline daily severity.',
-        clinicalInstructions: ['Strict avoidance of onions, garlic, and high-GOS beans.', 'Switch to garlic-infused olive oil and yellow moong.', 'Log morning fasting waist circumference and post-dinner bloating score.'],
+        focus:
+          'Eliminate high-fructan alliums (garlic, onion) and legumes (chana dal, rajma). Establish baseline daily severity.',
+        clinicalInstructions: [
+          'Strict avoidance of onions, garlic, and high-GOS beans.',
+          'Switch to garlic-infused olive oil and yellow moong.',
+          'Log morning fasting waist circumference and post-dinner bloating score.',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Deep Mucosal Rest & Microbiome Soothing',
         daysRange: 'Days 8 – 14',
-        focus: 'Consolidate gut barrier calm. Introduce soothing glutamine and polyphenol rich broths.',
-        clinicalInstructions: ['Maintain strict low-fermentation diet.', 'Add fresh ginger tea post-meal to accelerate gastric migrating motor complex (MMC).', 'Confirm symptom reduction delta.'],
+        focus:
+          'Consolidate gut barrier calm. Introduce soothing glutamine and polyphenol rich broths.',
+        clinicalInstructions: [
+          'Maintain strict low-fermentation diet.',
+          'Add fresh ginger tea post-meal to accelerate gastric migrating motor complex (MMC).',
+          'Confirm symptom reduction delta.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: Stepwise Single-Item Challenge',
         daysRange: 'Days 15 – 21',
-        focus: 'Systematic reintroduction challenge: Test 1 item in isolation for 24h, observe for 48h.',
-        clinicalInstructions: ['Day 15: Challenge with 1/2 cup cooked Chana Dal. Observe Days 16-17.', 'Day 18: Challenge with 1 slice sourdough bread. Observe Days 19-20.', 'Record exact latency window and flare magnitude.'],
+        focus:
+          'Systematic reintroduction challenge: Test 1 item in isolation for 24h, observe for 48h.',
+        clinicalInstructions: [
+          'Day 15: Challenge with 1/2 cup cooked Chana Dal. Observe Days 16-17.',
+          'Day 18: Challenge with 1 slice sourdough bread. Observe Days 19-20.',
+          'Record exact latency window and flare magnitude.',
+        ],
       },
       {
         phase: 4,
         title: 'Phase 4: Tolerance Threshold & Maintenance Blueprint',
         daysRange: 'Days 22 – 28',
         focus: 'Determine personal portion tolerance thresholds and compile physician SBAR report.',
-        clinicalInstructions: ['Establish safe threshold portions (e.g. 2 tbsp dal tolerated).', 'Export clinical trial SBAR summary for doctor review.', 'Transition to customized long-term maintenance diet.'],
+        clinicalInstructions: [
+          'Establish safe threshold portions (e.g. 2 tbsp dal tolerated).',
+          'Export clinical trial SBAR summary for doctor review.',
+          'Transition to customized long-term maintenance diet.',
+        ],
       },
     ],
-    eliminatedFoods: ['Onions & Garlic', 'Chana Dal & Rajma', 'Commercial Wheat Roti', 'Apples & Pears', 'Cauliflower'],
-    allowedAlternatives: ['Garlic-Infused Oil', 'Scallion Greens', 'Yellow Moong Dal Khichdi', 'Sourdough GF Bread', 'Zucchini & Carrots'],
-    expectedBiomarkerImpact: 'Systematic observation of postprandial distension timing and hydrogen/methane breath records (if ordered by clinician).',
-    dailyChecklist: ['Avoid all hidden alliums/beans', 'Drink warm ginger water post-meal', 'Log post-meal bloating latency in app'],
+    eliminatedFoods: [
+      'Onions & Garlic',
+      'Chana Dal & Rajma',
+      'Commercial Wheat Roti',
+      'Apples & Pears',
+      'Cauliflower',
+    ],
+    allowedAlternatives: [
+      'Garlic-Infused Oil',
+      'Scallion Greens',
+      'Yellow Moong Dal Khichdi',
+      'Sourdough GF Bread',
+      'Zucchini & Carrots',
+    ],
+    expectedBiomarkerImpact:
+      'Systematic observation of postprandial distension timing and hydrogen/methane breath records (if ordered by clinician).',
+    dailyChecklist: [
+      'Avoid all hidden alliums/beans',
+      'Drink warm ginger water post-meal',
+      'Log post-meal bloating latency in app',
+    ],
     governance: {
-      intendedUse: 'Structured self-observation to identify fermentable carbohydrate triggers associated with postprandial bloating.',
+      intendedUse:
+        'Structured self-observation to identify fermentable carbohydrate triggers associated with postprandial bloating.',
       notFor: [
         'Active eating disorder or history of anorexia/bulimia',
         'Severe unintended weight loss (>5% in 3 months)',
         'Uninvestigated persistent GI bleeding or nocturnal diarrhea',
         'Pregnancy or lactation without maternal dietitian supervision',
       ],
-      evidenceScope: 'Based on clinical low-FODMAP dietary principles and reintroduction frameworks (Monash University / ACG Guidelines).',
-      sourceReferences: ['Monash FODMAP Framework', 'ACG Clinical Guideline: Management of Irritable Bowel Syndrome (2021)'],
+      evidenceScope:
+        'Based on clinical low-FODMAP dietary principles and reintroduction frameworks (Monash University / ACG Guidelines).',
+      sourceReferences: [
+        'Monash FODMAP Framework',
+        'ACG Clinical Guideline: Management of Irritable Bowel Syndrome (2021)',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Ensure sufficient caloric intake via low-FODMAP grains, proteins, and allowable fruits/vegetables.'],
+      minimumNutritionRequirements: [
+        'Ensure sufficient caloric intake via low-FODMAP grains, proteins, and allowable fruits/vegetables.',
+      ],
       stopRules: [
         'Severe abdominal pain, persistent vomiting, or fever',
         'Progressive weight loss or signs of malnutrition',
@@ -799,52 +1117,89 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Heartburn & Gastrocardiac Hunt',
     targetSensitivity: 'Gastric Acid, Delayed Motility & Vagal Irritation',
     durationDays: 28,
-    description: 'Target upward hemidiaphragmatic displacement (Roemheld syndrome) where gastric gas and acid irritation trigger postprandial palpitations and chest tightness.',
+    description:
+      'Target upward hemidiaphragmatic displacement (Roemheld syndrome) where gastric gas and acid irritation trigger postprandial palpitations and chest tightness.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Volume & Acid Trigger Washout',
         daysRange: 'Days 1 – 7',
-        focus: 'Halt post-meal splanchnic pooling and diaphragm compression. Zero late-night dining.',
-        clinicalInstructions: ['No meals within 3.5 hours of sleep.', 'Eliminate carbonated beverages, aged citrus, and tomato gravies.', 'Divide food intake into smaller circadian portions.'],
+        focus:
+          'Halt post-meal splanchnic pooling and diaphragm compression. Zero late-night dining.',
+        clinicalInstructions: [
+          'No meals within 3.5 hours of sleep.',
+          'Eliminate carbonated beverages, aged citrus, and tomato gravies.',
+          'Divide food intake into smaller circadian portions.',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Vagal Parasympathetic & Diaphragmatic Calming',
         daysRange: 'Days 8 – 14',
         focus: 'Restore vagal tone and subdiaphragmatic excursion to prevent esophageal reflux.',
-        clinicalInstructions: ['Perform 3 minutes of diaphragmatic nasal breathing prior to every meal.', 'Chew each bite 25 times to optimize salivary amylase and reduce bolus air swallowing.', 'Sleep with head of bed elevated 15 degrees.'],
+        clinicalInstructions: [
+          'Perform 3 minutes of diaphragmatic nasal breathing prior to every meal.',
+          'Chew each bite 25 times to optimize salivary amylase and reduce bolus air swallowing.',
+          'Sleep with head of bed elevated 15 degrees.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: Systematic Challenge Reintroductions',
         daysRange: 'Days 15 – 21',
         focus: 'Test acid vs volume thresholds.',
-        clinicalInstructions: ['Day 15: Reintroduce 1 shot of espresso with breakfast. Track heart rate variability and acid reflux.', 'Day 18: Reintroduce cooked tomato sauce. Track nocturnal palpitations.'],
+        clinicalInstructions: [
+          'Day 15: Reintroduce 1 shot of espresso with breakfast. Track heart rate variability and acid reflux.',
+          'Day 18: Reintroduce cooked tomato sauce. Track nocturnal palpitations.',
+        ],
       },
       {
         phase: 4,
         title: 'Phase 4: Personal Gastrocardiac Blueprint',
         daysRange: 'Days 22 – 28',
         focus: 'Finalize optimal meal timings and vagal activation protocol.',
-        clinicalInstructions: ['Lock in maximum tolerated meal volume.', 'Review resting ECG and orthostatic heart rate trends with physician.'],
+        clinicalInstructions: [
+          'Lock in maximum tolerated meal volume.',
+          'Review resting ECG and orthostatic heart rate trends with physician.',
+        ],
       },
     ],
-    eliminatedFoods: ['Late Night Meals (<3h to bed)', 'Tomato Purees & Achaar', 'Sparkling Water & Soda', 'Deep Fried Snacks', 'Espresso on Empty Stomach'],
-    allowedAlternatives: ['Steamed Rice + Ghee', 'Moong Dal Broth', 'Alkaline Water with Cucumber', 'Baked Sweet Potatoes', 'Oatmeal Porridge'],
-    expectedBiomarkerImpact: 'Structured tracking of postprandial acid regurgitation, meal volume correlation, and orthostatic heart rate trends for physician review.',
-    dailyChecklist: ['Stop eating by 08:00 PM', 'Do 3-min pre-meal diaphragmatic breathing', 'Track postprandial heart rate at 60 mins'],
+    eliminatedFoods: [
+      'Late Night Meals (<3h to bed)',
+      'Tomato Purees & Achaar',
+      'Sparkling Water & Soda',
+      'Deep Fried Snacks',
+      'Espresso on Empty Stomach',
+    ],
+    allowedAlternatives: [
+      'Steamed Rice + Ghee',
+      'Moong Dal Broth',
+      'Alkaline Water with Cucumber',
+      'Baked Sweet Potatoes',
+      'Oatmeal Porridge',
+    ],
+    expectedBiomarkerImpact:
+      'Structured tracking of postprandial acid regurgitation, meal volume correlation, and orthostatic heart rate trends for physician review.',
+    dailyChecklist: [
+      'Stop eating by 08:00 PM',
+      'Do 3-min pre-meal diaphragmatic breathing',
+      'Track postprandial heart rate at 60 mins',
+    ],
     governance: {
-      intendedUse: 'Observational trial to correlate meal timing, portion volume, and posture with acid reflux and gastrocardiac palpitations.',
+      intendedUse:
+        'Observational trial to correlate meal timing, portion volume, and posture with acid reflux and gastrocardiac palpitations.',
       notFor: [
         'Severe progressive dysphagia or odynophagia (difficulty swallowing)',
         'Unexplained chest pain without prior cardiac workup',
         'Persistent vomiting or hematemesis (vomiting blood)',
       ],
-      evidenceScope: 'Gastroenterological lifestyle guidelines for gastroesophageal reflux and Roemheld syndrome literature.',
+      evidenceScope:
+        'Gastroenterological lifestyle guidelines for gastroesophageal reflux and Roemheld syndrome literature.',
       sourceReferences: ['ACG Guidelines for the Diagnosis and Management of GERD (2022)'],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Maintain adequate hydration and balanced caloric distribution across smaller meals.'],
+      minimumNutritionRequirements: [
+        'Maintain adequate hydration and balanced caloric distribution across smaller meals.',
+      ],
       stopRules: [
         'Radiating chest pain, shortness of breath, or syncope (call emergency services immediately)',
         'Inability to tolerate liquids or medications',
@@ -862,52 +1217,88 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Histamine & MCAS Hunt',
     targetSensitivity: 'Biogenic Amines & Enteric DAO Saturation',
     durationDays: 28,
-    description: 'Systematically cleanse high-biogenic amine foods to recharge mucosal Diamine Oxidase (DAO) reserves and stabilize mast cell degranulation.',
+    description:
+      'Systematically cleanse high-biogenic amine foods to recharge mucosal Diamine Oxidase (DAO) reserves and stabilize mast cell degranulation.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Biogenic Amine Elimination',
         daysRange: 'Days 1 – 7',
         focus: 'Strict zero-aged, zero-fermented protocol to empty circulating amine pool.',
-        clinicalInstructions: ['Eliminate aged cheese, wine, vinegar, achaar, leftover cooked meats, and fermented batter.', 'All food must be cooked fresh and consumed immediately (zero refrigerated leftovers > 24h).'],
+        clinicalInstructions: [
+          'Eliminate aged cheese, wine, vinegar, achaar, leftover cooked meats, and fermented batter.',
+          'All food must be cooked fresh and consumed immediately (zero refrigerated leftovers > 24h).',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: DAO Reserve Recharge & Quercetin Calming',
         daysRange: 'Days 8 – 14',
         focus: 'Allow small intestinal brush-border DAO enzymes to recover synthetic capacity.',
-        clinicalInstructions: ['Incorporate natural mast cell stabilizing polyphenols (quercetin, fresh blueberries, watercress).', 'Monitor morning temperature stability, facial flushing, and dermographia.'],
+        clinicalInstructions: [
+          'Incorporate natural mast cell stabilizing polyphenols (quercetin, fresh blueberries, watercress).',
+          'Monitor morning temperature stability, facial flushing, and dermographia.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: Single-Item Challenge',
         daysRange: 'Days 15 – 21',
         focus: 'Controlled reintroduction of moderate-histamine foods in isolation.',
-        clinicalInstructions: ['Day 15: Challenge with fresh avocado. Observe for flushing or tachycardia.', 'Day 18: Challenge with 1 tbsp fresh dahi/curd. Observe for 48 hours.'],
+        clinicalInstructions: [
+          'Day 15: Challenge with fresh avocado. Observe for flushing or tachycardia.',
+          'Day 18: Challenge with 1 tbsp fresh dahi/curd. Observe for 48 hours.',
+        ],
       },
       {
         phase: 4,
         title: 'Phase 4: Long-Term DAO Threshold Plan',
         daysRange: 'Days 22 – 28',
         focus: 'Define personal "Histamine Bucket" capacity and flare recovery toolkit.',
-        clinicalInstructions: ['Establish personal frequency limit for fermented foods (e.g. 1 serving every 3 days).', 'Generate Clinical Allergist / Immunology summary.'],
+        clinicalInstructions: [
+          'Establish personal frequency limit for fermented foods (e.g. 1 serving every 3 days).',
+          'Generate Clinical Allergist / Immunology summary.',
+        ],
       },
     ],
-    eliminatedFoods: ['Mango & Lime Achaar', 'Aged Cheeses & Paneer', 'Alcohol (Red Wine, Beer)', 'Leftovers older than 24h', 'Spinach & Eggplant'],
-    allowedAlternatives: ['Freshly Cooked Poultry', 'Flash-Frozen Fish', 'Fresh Homemade Mozzarella', 'Fresh White/Brown Basmati Rice', 'Blueberries & Pomegranates'],
-    expectedBiomarkerImpact: 'Structured observation of biogenic amine intake relative to facial flushing, temple warmth, and postprandial fatigue.',
-    dailyChecklist: ['Eat only freshly cooked meals', 'No fermented or pickled items', 'Log dermographia or temple flushing'],
+    eliminatedFoods: [
+      'Mango & Lime Achaar',
+      'Aged Cheeses & Paneer',
+      'Alcohol (Red Wine, Beer)',
+      'Leftovers older than 24h',
+      'Spinach & Eggplant',
+    ],
+    allowedAlternatives: [
+      'Freshly Cooked Poultry',
+      'Flash-Frozen Fish',
+      'Fresh Homemade Mozzarella',
+      'Fresh White/Brown Basmati Rice',
+      'Blueberries & Pomegranates',
+    ],
+    expectedBiomarkerImpact:
+      'Structured observation of biogenic amine intake relative to facial flushing, temple warmth, and postprandial fatigue.',
+    dailyChecklist: [
+      'Eat only freshly cooked meals',
+      'No fermented or pickled items',
+      'Log dermographia or temple flushing',
+    ],
     governance: {
-      intendedUse: 'Short-term tracking of symptom responses when removing aged, fermented, and biogenic amine-rich foods.',
+      intendedUse:
+        'Short-term tracking of symptom responses when removing aged, fermented, and biogenic amine-rich foods.',
       notFor: [
         'History of anaphylaxis without emergency epinephrine auto-injector access and allergist guidance',
         'Severe systemic mastocytosis requiring specialized inpatient hematology management',
         'Active severe malnutrition',
       ],
-      evidenceScope: 'Observational histamine intolerance and diamine oxidase (DAO) clearance dietary trial frameworks.',
-      sourceReferences: ['Histamine Intolerance: The Current State of the Art (Biomolecules, 2020)'],
+      evidenceScope:
+        'Observational histamine intolerance and diamine oxidase (DAO) clearance dietary trial frameworks.',
+      sourceReferences: [
+        'Histamine Intolerance: The Current State of the Art (Biomolecules, 2020)',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Consume fresh unprocessed meats, safe low-histamine vegetables, and adequate minerals.'],
+      minimumNutritionRequirements: [
+        'Consume fresh unprocessed meats, safe low-histamine vegetables, and adequate minerals.',
+      ],
       stopRules: [
         'Facial/lip swelling, wheezing, respiratory distress, or severe urticaria (seek immediate emergency care)',
         'Inability to prepare fresh meals safely',
@@ -925,52 +1316,86 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Kinetic Cephalgia Hunt',
     targetSensitivity: 'Sacral Dural Traction & Suboccipital Nerve Entrapment',
     durationDays: 28,
-    description: 'Track whether posture, prolonged sitting, and cervical mobility coincide with occipital throbbing and headache patterns.',
+    description:
+      'Track whether posture, prolonged sitting, and cervical mobility coincide with occipital throbbing and headache patterns.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Ergonomic & Pelvic Posture Baseline',
         daysRange: 'Days 1 – 7',
-        focus: 'Audit seated immobility hours, leg-crossing habits, and monitor occipital pain onset.',
-        clinicalInstructions: ['Zero leg-crossing while seated.', 'Set a 45-minute stand and mobility alarm.', 'Record daily occipital throbbing severity and cervical stiffness.'],
+        focus:
+          'Audit seated immobility hours, leg-crossing habits, and monitor occipital pain onset.',
+        clinicalInstructions: [
+          'Zero leg-crossing while seated.',
+          'Set a 45-minute stand and mobility alarm.',
+          'Record daily occipital throbbing severity and cervical stiffness.',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Daily Myodural & Sacral Decompression',
         daysRange: 'Days 8 – 14',
         focus: 'Execute the 3-minute craniosacral pelvic release protocol twice daily.',
-        clinicalInstructions: ['Morning and evening: 3-minute suboccipital base-of-skull release + gentle sacral mobilization.', 'Eliminate inflammatory seed oils to minimize neurogenic perineural inflammation.'],
+        clinicalInstructions: [
+          'Morning and evening: 3-minute suboccipital base-of-skull release + gentle sacral mobilization.',
+          'Eliminate inflammatory seed oils to minimize neurogenic perineural inflammation.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: Sustained Desk Load Challenge',
         daysRange: 'Days 15 – 21',
         focus: 'Evaluate spinal tensegrity under normal cognitive and postural work stress.',
-        clinicalInstructions: ['Measure headache frequency after 4+ hours of desk work.', 'Verify whether pelvic leveling prevented the ascending occipital pull.'],
+        clinicalInstructions: [
+          'Measure headache frequency after 4+ hours of desk work.',
+          'Verify whether pelvic leveling prevented the ascending occipital pull.',
+        ],
       },
       {
         phase: 4,
         title: 'Phase 4: Craniosacral Maintenance Blueprint',
         daysRange: 'Days 22 – 28',
         focus: 'Embed permanent micro-movement habits and print physiatry report.',
-        clinicalInstructions: ['Lock in workstation lumbar-pelvic ergonomic wedge.', 'Export Kinetic Chain Biomechanics SBAR for physiatrist or physical therapist.'],
+        clinicalInstructions: [
+          'Lock in workstation lumbar-pelvic ergonomic wedge.',
+          'Export Kinetic Chain Biomechanics SBAR for physiatrist or physical therapist.',
+        ],
       },
     ],
-    eliminatedFoods: ['High-Omega-6 Seed Oils', 'Refined Sugars', 'Excessive Caffeine Rebounds', 'Pro-inflammatory Trans Fats'],
-    allowedAlternatives: ['Pure Desi Ghee', 'Cold-Pressed Mustard Oil', 'Anti-Inflammatory Turmeric Milk', 'Magnesium-Rich Pumpkin Seeds'],
-    expectedBiomarkerImpact: 'Observation of seated desk hours and cervical tension scores relative to occipital headache frequency for physical therapy review.',
-    dailyChecklist: ['Zero leg-crossing', 'Do 3-minute pelvic decompression twice daily', 'Log desk hours and tension score'],
+    eliminatedFoods: [
+      'High-Omega-6 Seed Oils',
+      'Refined Sugars',
+      'Excessive Caffeine Rebounds',
+      'Pro-inflammatory Trans Fats',
+    ],
+    allowedAlternatives: [
+      'Pure Desi Ghee',
+      'Cold-Pressed Mustard Oil',
+      'Anti-Inflammatory Turmeric Milk',
+      'Magnesium-Rich Pumpkin Seeds',
+    ],
+    expectedBiomarkerImpact:
+      'Observation of seated desk hours and cervical tension scores relative to occipital headache frequency for physical therapy review.',
+    dailyChecklist: [
+      'Zero leg-crossing',
+      'Do 3-minute pelvic decompression twice daily',
+      'Log desk hours and tension score',
+    ],
     governance: {
-      intendedUse: 'Tracking mechanical posture, desk ergonomic intervals, and neck tension in relation to headache frequency.',
+      intendedUse:
+        'Tracking mechanical posture, desk ergonomic intervals, and neck tension in relation to headache frequency.',
       notFor: [
         'Sudden onset "thunderclap" headache (requires immediate emergency medical evaluation)',
         'Headache accompanied by focal neurological deficits, visual field loss, fever, or neck stiffness',
         'Recent traumatic head or cervical spine injury',
       ],
-      evidenceScope: 'Cervicogenic headache clinical diagnostic criteria and ergonomic behavioral interventions.',
+      evidenceScope:
+        'Cervicogenic headache clinical diagnostic criteria and ergonomic behavioral interventions.',
       sourceReferences: ['International Headache Society (ICHD-3) Cervicogenic Headache Criteria'],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Ensure regular hydration and balanced anti-inflammatory nutritional foundation.'],
+      minimumNutritionRequirements: [
+        'Ensure regular hydration and balanced anti-inflammatory nutritional foundation.',
+      ],
       stopRules: [
         'Onset of aura, visual blackout, extremity numbness, or thunderclap intensity pain',
         'Worsening pain with coughing or bending over',
@@ -988,52 +1413,84 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The POTS & Splanchnic Pooling Hunt',
     targetSensitivity: 'Mesenteric Venous Pooling & Autonomic Orthostatic Delta',
     durationDays: 28,
-    description: 'Stabilize postprandial splanchnic blood pooling and autonomic catecholamine swings causing palpitations, lightheadedness, and orthostatic tachycardia.',
+    description:
+      'Stabilize postprandial splanchnic blood pooling and autonomic catecholamine swings causing palpitations, lightheadedness, and orthostatic tachycardia.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Orthostatic Baseline & Carb Audit',
         daysRange: 'Days 1 – 7',
         focus: 'Track 10-minute active stand heart rate deltas and postprandial spikes.',
-        clinicalInstructions: ['Log active 10-minute standing heart rate delta daily.', 'Reduce refined carbohydrates per meal to < 35g to minimize mesenteric vasodilation.'],
+        clinicalInstructions: [
+          'Log active 10-minute standing heart rate delta daily.',
+          'Reduce refined carbohydrates per meal to < 35g to minimize mesenteric vasodilation.',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Electrolyte Expansion & Counter-Maneuvers',
         daysRange: 'Days 8 – 14',
         focus: 'Expand intravascular plasma volume and optimize splanchnic vascular tone.',
-        clinicalInstructions: ['Target 3.5 – 5.0 g dietary sodium under physician protocol with 2.5L water.', 'Utilize waist-high compression or abdominal binder during high-risk postprandial windows.'],
+        clinicalInstructions: [
+          'Target 3.5 – 5.0 g dietary sodium under physician protocol with 2.5L water.',
+          'Utilize waist-high compression or abdominal binder during high-risk postprandial windows.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: High vs Low Carb Stress Challenge',
         daysRange: 'Days 15 – 21',
-        focus: 'Directly compare postprandial tachycardia after heavy grain meal vs protein/vegetable meal.',
-        clinicalInstructions: ['Day 15: Heavy grain lunch test. Record 60-min standing HR delta.', 'Day 18: High protein/healthy fat lunch test. Compare symptom severity.'],
+        focus:
+          'Directly compare postprandial tachycardia after heavy grain meal vs protein/vegetable meal.',
+        clinicalInstructions: [
+          'Day 15: Heavy grain lunch test. Record 60-min standing HR delta.',
+          'Day 18: High protein/healthy fat lunch test. Compare symptom severity.',
+        ],
       },
       {
         phase: 4,
         title: 'Phase 4: Hemodynamic Stability Blueprint',
         daysRange: 'Days 22 – 28',
         focus: 'Finalize personalized volume management and autonomic exercise protocol.',
-        clinicalInstructions: ['Compile 28-day NASA Lean Test trend graph.', 'Prepare Autonomic Specialist / Dysautonomia consultation dossier.'],
+        clinicalInstructions: [
+          'Compile 28-day NASA Lean Test trend graph.',
+          'Prepare Autonomic Specialist / Dysautonomia consultation dossier.',
+        ],
       },
     ],
-    eliminatedFoods: ['Large High-Glycemic Carbs in Single Sitting', 'Alcohol / Vasodilators', 'Scalding Hot Soups (excessive vasodilation)'],
-    allowedAlternatives: ['Frequent Smaller Low-Glycemic Meals', 'Electrolyte-Infused Waters', 'Chilled Mineral Broths', 'Salted Roasted Makhana'],
-    expectedBiomarkerImpact: 'Structured tracking of active standing heart rate deltas, meal carbohydrate density, and hydration response for autonomic clinician evaluation.',
-    dailyChecklist: ['Reach daily sodium & fluid target', 'Wear abdominal compression post-lunch', 'Record morning & post-meal standing HR'],
+    eliminatedFoods: [
+      'Large High-Glycemic Carbs in Single Sitting',
+      'Alcohol / Vasodilators',
+      'Scalding Hot Soups (excessive vasodilation)',
+    ],
+    allowedAlternatives: [
+      'Frequent Smaller Low-Glycemic Meals',
+      'Electrolyte-Infused Waters',
+      'Chilled Mineral Broths',
+      'Salted Roasted Makhana',
+    ],
+    expectedBiomarkerImpact:
+      'Structured tracking of active standing heart rate deltas, meal carbohydrate density, and hydration response for autonomic clinician evaluation.',
+    dailyChecklist: [
+      'Reach daily sodium & fluid target',
+      'Wear abdominal compression post-lunch',
+      'Record morning & post-meal standing HR',
+    ],
     governance: {
-      intendedUse: 'Tracking hemodynamic orthostatic response, fluid/sodium pacing, and carbohydrate meal size in suspected autonomic orthostatic intolerance.',
+      intendedUse:
+        'Tracking hemodynamic orthostatic response, fluid/sodium pacing, and carbohydrate meal size in suspected autonomic orthostatic intolerance.',
       notFor: [
         'Undiagnosed syncope with loss of consciousness without prior cardiology evaluation',
         'Known structural heart disease, cardiac arrhythmias, or coronary artery disease',
         'Severe renal dysfunction or sodium-restricted medical conditions',
       ],
-      evidenceScope: 'Postural Orthostatic Tachycardia Syndrome (POTS) dietary and lifestyle management consensus statements.',
+      evidenceScope:
+        'Postural Orthostatic Tachycardia Syndrome (POTS) dietary and lifestyle management consensus statements.',
       sourceReferences: ['Heart Rhythm Society Consensus on PASC and Dysautonomia (2021)'],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Follow physician-approved hydration and electrolyte guidelines; never restrict essential calories.'],
+      minimumNutritionRequirements: [
+        'Follow physician-approved hydration and electrolyte guidelines; never restrict essential calories.',
+      ],
       stopRules: [
         'Near-syncope or true syncopal events with loss of consciousness',
         'Chest pain, severe dyspnea, or resting sustained tachycardia >130 bpm',
@@ -1050,21 +1507,41 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     name: '7-Day Low-Histamine Protocol',
     targetSensitivity: 'Histamine & Biogenic Amines',
     durationDays: 7,
-    description: 'Systematically remove aged, fermented, and cured foods to allow intestinal diamine oxidase (DAO) reserves to recharge.',
-    eliminatedFoods: ['Red Wine & Beer', 'Aged Cheeses', 'Salami & Cured Meats', 'Tomatoes & Spinach', 'Fermented Sauerkraut / Kombucha'],
-    allowedAlternatives: ['Freshly Cooked Poultry', 'Flash-Frozen Fish', 'Fresh Mozzarella', 'Quinoa & Rice', 'Fresh Blueberries'],
-    expectedBiomarkerImpact: 'Log whether eliminating aged and fermented foods correlates with fewer flushing, headache, or digestive episodes.',
+    description:
+      'Systematically remove aged, fermented, and cured foods to allow intestinal diamine oxidase (DAO) reserves to recharge.',
+    eliminatedFoods: [
+      'Red Wine & Beer',
+      'Aged Cheeses',
+      'Salami & Cured Meats',
+      'Tomatoes & Spinach',
+      'Fermented Sauerkraut / Kombucha',
+    ],
+    allowedAlternatives: [
+      'Freshly Cooked Poultry',
+      'Flash-Frozen Fish',
+      'Fresh Mozzarella',
+      'Quinoa & Rice',
+      'Fresh Blueberries',
+    ],
+    expectedBiomarkerImpact:
+      'Log whether eliminating aged and fermented foods correlates with fewer flushing, headache, or digestive episodes.',
     governance: {
-      intendedUse: '7-day structured food-symptom logging reset focusing on biogenic amine reduction.',
+      intendedUse:
+        '7-day structured food-symptom logging reset focusing on biogenic amine reduction.',
       notFor: [
         'Suspected IgE-mediated immediate food allergies (requires allergist evaluation)',
         'Active eating disorders',
         'Severe chronic malnutrition',
       ],
-      evidenceScope: 'Short-term diagnostic dietary elimination for biogenic amine sensitivity assessment.',
-      sourceReferences: ['European Academy of Allergy and Clinical Immunology (EAACI) Task Force Guidelines'],
+      evidenceScope:
+        'Short-term diagnostic dietary elimination for biogenic amine sensitivity assessment.',
+      sourceReferences: [
+        'European Academy of Allergy and Clinical Immunology (EAACI) Task Force Guidelines',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Ensure adequate intake of fresh meats, wholesome grains, and non-restricted vegetables.'],
+      minimumNutritionRequirements: [
+        'Ensure adequate intake of fresh meats, wholesome grains, and non-restricted vegetables.',
+      ],
       stopRules: [
         'Severe hives, breathing difficulty, or significant dizziness',
         'Severe restriction-induced anxiety',
@@ -1081,21 +1558,42 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     name: '14-Day Low-FODMAP Phase 1 Reset',
     targetSensitivity: 'Fermentable Oligosaccharides & Polyols',
     durationDays: 14,
-    description: 'Calm visceral hypersensitivity and colonic gas fermentation by restricting short-chain poorly absorbed carbohydrates.',
-    eliminatedFoods: ['Garlic & Onions', 'Wheat Sourdough & Pastas', 'Legumes (Chickpeas, Kidney Beans)', 'Apples & Pears', 'Cauliflower & Mushrooms'],
-    allowedAlternatives: ['Garlic-Infused Olive Oil', 'Scallion Green Tops', 'Gluten-Free Oats', 'Carrots & Zucchini', 'Strawberries & Oranges'],
-    expectedBiomarkerImpact: 'Assess whether reducing fermentable carbohydrates corresponds to fewer episodes of lower abdominal distension and urgency.',
+    description:
+      'Calm visceral hypersensitivity and colonic gas fermentation by restricting short-chain poorly absorbed carbohydrates.',
+    eliminatedFoods: [
+      'Garlic & Onions',
+      'Wheat Sourdough & Pastas',
+      'Legumes (Chickpeas, Kidney Beans)',
+      'Apples & Pears',
+      'Cauliflower & Mushrooms',
+    ],
+    allowedAlternatives: [
+      'Garlic-Infused Olive Oil',
+      'Scallion Green Tops',
+      'Gluten-Free Oats',
+      'Carrots & Zucchini',
+      'Strawberries & Oranges',
+    ],
+    expectedBiomarkerImpact:
+      'Assess whether reducing fermentable carbohydrates corresponds to fewer episodes of lower abdominal distension and urgency.',
     governance: {
-      intendedUse: '14-day initial phase logging trial to evaluate response to low-FODMAP food choices.',
+      intendedUse:
+        '14-day initial phase logging trial to evaluate response to low-FODMAP food choices.',
       notFor: [
         'Long-term strict restriction without reintroduction (risks microbiome dysbiosis)',
         'Uninvestigated red flag symptoms (rectal bleeding, unexplained anemia)',
         'Active eating disorders',
       ],
-      evidenceScope: 'Short-term Phase 1 FODMAP elimination protocol based on Monash clinical criteria.',
-      sourceReferences: ['Monash FODMAP Framework', 'British Dietetic Association (BDA) Guidelines for IBS'],
+      evidenceScope:
+        'Short-term Phase 1 FODMAP elimination protocol based on Monash clinical criteria.',
+      sourceReferences: [
+        'Monash FODMAP Framework',
+        'British Dietetic Association (BDA) Guidelines for IBS',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Incorporate safe prebiotic fibers (e.g. oat bran, chia seeds) and diverse allowable produce.'],
+      minimumNutritionRequirements: [
+        'Incorporate safe prebiotic fibers (e.g. oat bran, chia seeds) and diverse allowable produce.',
+      ],
       stopRules: [
         'Unintentional weight loss or persistent diarrhea',
         'Fever, rectal bleeding, or night-time awakening symptoms',
@@ -1112,21 +1610,40 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     name: '10-Day Dairy & Casein Elimination',
     targetSensitivity: 'A1 Beta-Casein & Lactose',
     durationDays: 10,
-    description: 'Assess if dairy proteins stimulate mucosal immune complexes, sinus congestion, or epithelial hyper-permeability.',
-    eliminatedFoods: ['Cow Milk', 'Commercial Cheeses', 'Dairy Ice Cream', 'Cow Butter', 'Whey Protein Powders'],
-    allowedAlternatives: ['Coconut Yogurt', 'Almond Milk', 'Pure Ghee (Casein-free)', 'Hemp Seed Protein'],
-    expectedBiomarkerImpact: 'Track whether dairy avoidance coincides with changes in digestive comfort, congestion, or skin irritation.',
+    description:
+      'Assess if dairy proteins stimulate mucosal immune complexes, sinus congestion, or epithelial hyper-permeability.',
+    eliminatedFoods: [
+      'Cow Milk',
+      'Commercial Cheeses',
+      'Dairy Ice Cream',
+      'Cow Butter',
+      'Whey Protein Powders',
+    ],
+    allowedAlternatives: [
+      'Coconut Yogurt',
+      'Almond Milk',
+      'Pure Ghee (Casein-free)',
+      'Hemp Seed Protein',
+    ],
+    expectedBiomarkerImpact:
+      'Track whether dairy avoidance coincides with changes in digestive comfort, congestion, or skin irritation.',
     governance: {
-      intendedUse: 'Short-term 10-day evaluation of whether bovine dairy products correlate with mucosal or digestive symptoms.',
+      intendedUse:
+        'Short-term 10-day evaluation of whether bovine dairy products correlate with mucosal or digestive symptoms.',
       notFor: [
         'Known severe IgE milk anaphylaxis without physician care',
         'Pediatric patients without pediatric dietitian oversight',
         'Individuals at high risk for calcium deficiency without supplementation',
       ],
-      evidenceScope: 'Structured elimination trial for non-IgE lactose or cow milk protein sensitivity.',
-      sourceReferences: ['World Allergy Organization (WAO) Diagnosis and Rationale for Action against Cow’s Milk Allergy (DRACMA) Guidelines'],
+      evidenceScope:
+        'Structured elimination trial for non-IgE lactose or cow milk protein sensitivity.',
+      sourceReferences: [
+        'World Allergy Organization (WAO) Diagnosis and Rationale for Action against Cow’s Milk Allergy (DRACMA) Guidelines',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Ensure adequate dietary calcium and vitamin D through fortified alternatives or leafy greens.'],
+      minimumNutritionRequirements: [
+        'Ensure adequate dietary calcium and vitamin D through fortified alternatives or leafy greens.',
+      ],
       stopRules: [
         'Immediate hives, swelling, or wheezing upon accidental exposure (emergency care)',
         'Excessive dietary restriction without adequate caloric replacement',
@@ -1143,20 +1660,41 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     name: '14-Day Gluten-Free Gut Rest',
     targetSensitivity: 'Gluten & Gliadin Zonulin Stimulation',
     durationDays: 14,
-    description: 'Halt gliadin-induced zonulin upregulation to support intestinal epithelial tight junction repair.',
-    eliminatedFoods: ['Wheat Bread', 'Barley & Rye', 'Regular Pasta', 'Beer', 'Soy Sauce with Wheat'],
-    allowedAlternatives: ['Certified Gluten-Free Oats', 'Brown & Basmati Rice', 'Quinoa', 'Sweet Potatoes', 'Tamari (Gluten-Free Soy Sauce)'],
-    expectedBiomarkerImpact: 'Record whether gluten elimination aligns with changes in abdominal comfort, joint stiffness, or general energy.',
+    description:
+      'Halt gliadin-induced zonulin upregulation to support intestinal epithelial tight junction repair.',
+    eliminatedFoods: [
+      'Wheat Bread',
+      'Barley & Rye',
+      'Regular Pasta',
+      'Beer',
+      'Soy Sauce with Wheat',
+    ],
+    allowedAlternatives: [
+      'Certified Gluten-Free Oats',
+      'Brown & Basmati Rice',
+      'Quinoa',
+      'Sweet Potatoes',
+      'Tamari (Gluten-Free Soy Sauce)',
+    ],
+    expectedBiomarkerImpact:
+      'Record whether gluten elimination aligns with changes in abdominal comfort, joint stiffness, or general energy.',
     governance: {
-      intendedUse: '14-day symptom tracking trial to observe responses to dietary wheat/gluten elimination.',
+      intendedUse:
+        '14-day symptom tracking trial to observe responses to dietary wheat/gluten elimination.',
       notFor: [
         'Suspected Celiac Disease BEFORE diagnostic serology (tTG-IgA) and biopsy testing (eliminating gluten invalidates celiac tests)',
         'Active severe malnutrition or uncontrolled weight loss',
       ],
-      evidenceScope: 'Clinical evaluation protocol for non-celiac gluten/wheat sensitivity (NCGS) after celiac disease exclusion.',
-      sourceReferences: ['Salerno Experts Criteria on Non-Celiac Gluten Sensitivity', 'ACG Clinical Guidelines: Diagnosis and Management of Celiac Disease'],
+      evidenceScope:
+        'Clinical evaluation protocol for non-celiac gluten/wheat sensitivity (NCGS) after celiac disease exclusion.',
+      sourceReferences: [
+        'Salerno Experts Criteria on Non-Celiac Gluten Sensitivity',
+        'ACG Clinical Guidelines: Diagnosis and Management of Celiac Disease',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Substitute certified gluten-free grains (brown rice, quinoa, certified GF oats) to maintain dietary fiber and B vitamins.'],
+      minimumNutritionRequirements: [
+        'Substitute certified gluten-free grains (brown rice, quinoa, certified GF oats) to maintain dietary fiber and B vitamins.',
+      ],
       stopRules: [
         'Unintentional weight loss or persistent diarrhea',
         'Signs of nutrient malabsorption',
@@ -1174,36 +1712,64 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Colonic Motility Hunt',
     targetSensitivity: 'Colonic Transit Time & Soluble Fiber Deficit',
     durationDays: 21,
-    description: 'Modulate stool hydration and migrating motor complex (MMC) speed using soluble mucilaginous fiber and timed peristaltic cues to eliminate constipation and diarrhea flares.',
+    description:
+      'Modulate stool hydration and migrating motor complex (MMC) speed using soluble mucilaginous fiber and timed peristaltic cues to eliminate constipation and diarrhea flares.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Soluble Fiber Priming',
         daysRange: 'Days 1 – 7',
         focus: 'Introduce gentle psyllium husk and chia gel hydration.',
-        clinicalInstructions: ['Eliminate raw abrasive insoluble bran and artificial sweeteners.', 'Start with 5g partially hydrolyzed guar gum (PHGG) with 500ml warm water.', 'Log daily Bristol stool form.'],
+        clinicalInstructions: [
+          'Eliminate raw abrasive insoluble bran and artificial sweeteners.',
+          'Start with 5g partially hydrolyzed guar gum (PHGG) with 500ml warm water.',
+          'Log daily Bristol stool form.',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Transit Pacing & Motility Cueing',
         daysRange: 'Days 8 – 14',
         focus: 'Achieve consistent Bristol Type 3–4 bowel motion without straining.',
-        clinicalInstructions: ['Incorporate morning 15-minute gastrocolic ambulation post-breakfast.', 'Track transit latency windows.'],
+        clinicalInstructions: [
+          'Incorporate morning 15-minute gastrocolic ambulation post-breakfast.',
+          'Track transit latency windows.',
+        ],
       },
       {
         phase: 3,
         title: 'Phase 3: Autonomic Rhythm Stabilization',
         daysRange: 'Days 15 – 21',
         focus: 'Gastrocolic morning reflex anchoring after waking.',
-        clinicalInstructions: ['Anchor circadian defecation window within 45 mins of waking.', 'Export Bristol Motility SBAR report for gastroenterologist.'],
+        clinicalInstructions: [
+          'Anchor circadian defecation window within 45 mins of waking.',
+          'Export Bristol Motility SBAR report for gastroenterologist.',
+        ],
       },
     ],
-    eliminatedFoods: ['Coarse Wheat Bran (Raw Insoluble)', 'Artificial Sweeteners (Sorbitol, Xylitol)', 'Processed Dehydrated Snacks', 'High-Fat Greasy Takeout'],
-    allowedAlternatives: ['Partially Hydrolyzed Guar Gum (PHGG)', 'Soaked Chia Seed Pudding', 'Stewed Prunes with Warm Water', 'Steamed Zucchini & Squash'],
-    expectedBiomarkerImpact: 'Daily Bristol stool form scoring and transit timing correlation to establish personal motility baseline.',
-    dailyChecklist: ['Morning 500ml warm hydration', '5g soluble fiber dose consumed', 'Log Bristol stool type in tracker', '30-minute movement session'],
+    eliminatedFoods: [
+      'Coarse Wheat Bran (Raw Insoluble)',
+      'Artificial Sweeteners (Sorbitol, Xylitol)',
+      'Processed Dehydrated Snacks',
+      'High-Fat Greasy Takeout',
+    ],
+    allowedAlternatives: [
+      'Partially Hydrolyzed Guar Gum (PHGG)',
+      'Soaked Chia Seed Pudding',
+      'Stewed Prunes with Warm Water',
+      'Steamed Zucchini & Squash',
+    ],
+    expectedBiomarkerImpact:
+      'Daily Bristol stool form scoring and transit timing correlation to establish personal motility baseline.',
+    dailyChecklist: [
+      'Morning 500ml warm hydration',
+      '5g soluble fiber dose consumed',
+      'Log Bristol stool type in tracker',
+      '30-minute movement session',
+    ],
     governance: {
-      intendedUse: 'Structured daily tracking of stool consistency (Bristol Scale) and soluble fiber timing to understand bowel habit variability.',
+      intendedUse:
+        'Structured daily tracking of stool consistency (Bristol Scale) and soluble fiber timing to understand bowel habit variability.',
       notFor: [
         'Acute bowel obstruction, paralytic ileus, or toxic megacolon',
         'Unexplained rectal bleeding or severe acute abdominal pain',
@@ -1212,7 +1778,9 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
       evidenceScope: 'Bristol Stool Form Scale monitoring and fiber titration guidelines.',
       sourceReferences: ['Rome IV Diagnostic Criteria for Functional Bowel Disorders'],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Maintain minimum 2.0L daily fluid intake when adjusting fiber.'],
+      minimumNutritionRequirements: [
+        'Maintain minimum 2.0L daily fluid intake when adjusting fiber.',
+      ],
       stopRules: [
         'Severe sharp abdominal distension, intractable vomiting, or inability to pass flatus (seek immediate emergency care)',
         'High fever or melena (black tarry stool)',
@@ -1230,38 +1798,68 @@ export const ELIMINATION_PROTOCOLS: EliminationTrialProtocol[] = [
     huntTitle: '🎯 The Gut-Brain & Vagal Axis Hunt',
     targetSensitivity: 'Enteric Visceral Hypersensitivity & Diaphragmatic Clutching',
     durationDays: 14,
-    description: 'Activate the motor nucleus of the Vagus Nerve via diaphragmatic breathing and posture de-slouching, shifting the enteric nervous system from sympathetic fight-or-flight cramping into rest-and-digest motility.',
+    description:
+      'Activate the motor nucleus of the Vagus Nerve via diaphragmatic breathing and posture de-slouching, shifting the enteric nervous system from sympathetic fight-or-flight cramping into rest-and-digest motility.',
     phases: [
       {
         phase: 1,
         title: 'Phase 1: Mealtime Sensory Reset',
         daysRange: 'Days 1 – 7',
         focus: 'Screen-free dining and 5-min diaphragmatic pre-meal breathing.',
-        clinicalInstructions: ['Zero phone or laptop screens during all meals.', 'Perform 5-min 4-7-8 parasympathetic breathwork prior to first bite.', 'Rest fork between bites (chew > 20x).'],
+        clinicalInstructions: [
+          'Zero phone or laptop screens during all meals.',
+          'Perform 5-min 4-7-8 parasympathetic breathwork prior to first bite.',
+          'Rest fork between bites (chew > 20x).',
+        ],
       },
       {
         phase: 2,
         title: 'Phase 2: Diaphragmatic Uncoupling & Maintenance',
         daysRange: 'Days 8 – 14',
         focus: 'De-slouching posture to eliminate Roemheld stomach clutching.',
-        clinicalInstructions: ['Maintain upright thoracic posture for 30 minutes post-meal.', 'Complete evening 60-second heart rate variability reset.'],
+        clinicalInstructions: [
+          'Maintain upright thoracic posture for 30 minutes post-meal.',
+          'Complete evening 60-second heart rate variability reset.',
+        ],
       },
     ],
-    eliminatedFoods: ['High-Caffeine Energy Drinks', 'Dining While Working / Screens', 'Speed Dining (<10 minutes)', 'Slouched / Hunched Seating'],
-    allowedAlternatives: ['Screen-Free Dining Table', 'Minimum 20 Chews Per Bite', 'Upright 10-Min Slow Stroll', 'Chamomile & Lavender Evening Tea'],
-    expectedBiomarkerImpact: 'Evaluation of mealtime pace, diaphragmatic breathing cues, and thoracic posture on visceral digestive comfort.',
-    dailyChecklist: ['5-minute mindful breathing before meals', '100% screen-free mealtime', 'Paced meal duration to 20+ mins', 'Evening calming routine'],
+    eliminatedFoods: [
+      'High-Caffeine Energy Drinks',
+      'Dining While Working / Screens',
+      'Speed Dining (<10 minutes)',
+      'Slouched / Hunched Seating',
+    ],
+    allowedAlternatives: [
+      'Screen-Free Dining Table',
+      'Minimum 20 Chews Per Bite',
+      'Upright 10-Min Slow Stroll',
+      'Chamomile & Lavender Evening Tea',
+    ],
+    expectedBiomarkerImpact:
+      'Evaluation of mealtime pace, diaphragmatic breathing cues, and thoracic posture on visceral digestive comfort.',
+    dailyChecklist: [
+      '5-minute mindful breathing before meals',
+      '100% screen-free mealtime',
+      'Paced meal duration to 20+ mins',
+      'Evening calming routine',
+    ],
     governance: {
-      intendedUse: 'Mindful meal pacing and parasympathetic vagal stimulation tracking for visceral digestive comfort.',
+      intendedUse:
+        'Mindful meal pacing and parasympathetic vagal stimulation tracking for visceral digestive comfort.',
       notFor: [
         'Acute severe dysphagia with aspiration risk',
         'Active gastrointestinal bleed or ulcer perforation',
         'Severe clinical psychiatric eating disorder without multidisciplinary supervision',
       ],
-      evidenceScope: 'Behavioral gut-brain axis modulation and autonomic mealtime pacing literature.',
-      sourceReferences: ['Rome Foundation Working Team Report on Neuromodulators and Behavioral Interventions'],
+      evidenceScope:
+        'Behavioral gut-brain axis modulation and autonomic mealtime pacing literature.',
+      sourceReferences: [
+        'Rome Foundation Working Team Report on Neuromodulators and Behavioral Interventions',
+      ],
       contentVersion: '2.0.0',
-      minimumNutritionRequirements: ['Ensure all regular nutritious foods are consumed without arbitrary caloric restriction.'],
+      minimumNutritionRequirements: [
+        'Ensure all regular nutritious foods are consumed without arbitrary caloric restriction.',
+      ],
       stopRules: [
         'Severe choking episodes or persistent regurgitation',
         'Severe persistent anxiety around eating',
@@ -1297,7 +1895,8 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
         latencyWindow: 'Timing not established',
         pathophysiologicalMechanism: `${c.food} and ${c.symptom || 'a symptom'} were manually linked by the user. This does not establish causation.`,
         targetedSwap: 'No substitution is recommended from this observation alone.',
-        recommendedAction: 'Collect dated exposure and symptom records, then review recurring patterns with a clinician.',
+        recommendedAction:
+          'Collect dated exposure and symptom records, then review recurring patterns with a clinician.',
       });
     });
   }
@@ -1305,11 +1904,12 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
   return results;
 }
 
-
 const TRIAL_STORAGE_KEY = 'hc_active_elimination_trial';
 const TRIAL_HISTORY_STORAGE_KEY = 'hc_elimination_trial_history';
-const trialStorageKey = () => `${TRIAL_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
-const trialHistoryStorageKey = () => `${TRIAL_HISTORY_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+const trialStorageKey = () =>
+  `${TRIAL_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+const trialHistoryStorageKey = () =>
+  `${TRIAL_HISTORY_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
 const localDateString = () => new Date().toLocaleDateString('en-CA');
 
 export function getActiveTrial(): ActiveTrialState | null {
@@ -1320,10 +1920,11 @@ export function getActiveTrial(): ActiveTrialState | null {
     }
     const parsed = JSON.parse(raw);
     // Self-healing migration: Detect legacy hardcoded mock trial seeds
-    if (parsed && (
-      (parsed.currentDay === 4 && parsed.reductionPercent === 57) ||
-      (!parsed.userInitiated && parsed.trialId === 'low_histamine' && parsed.completedDays === 0)
-    )) {
+    if (
+      parsed &&
+      ((parsed.currentDay === 4 && parsed.reductionPercent === 57) ||
+        (!parsed.userInitiated && parsed.trialId === 'low_histamine' && parsed.completedDays === 0))
+    ) {
       try {
         removeItemSync(trialStorageKey());
       } catch {}
@@ -1351,14 +1952,14 @@ function archiveTrial(state: ActiveTrialState, endReason: ArchivedTrialState['en
 }
 
 export const PROTOCOL_ALIASES: Record<string, string> = {
-  'bloating_hunt': 'hunt_bloat',
-  'heartburn_hunt': 'hunt_heartburn',
-  'transit_hunt': 'hunt_transit',
-  'vagal_hunt': 'hunt_vagal',
-  'hunt_bloat': 'bloating_hunt',
-  'hunt_heartburn': 'heartburn_hunt',
-  'hunt_transit': 'transit_hunt',
-  'hunt_vagal': 'vagal_hunt',
+  bloating_hunt: 'hunt_bloat',
+  heartburn_hunt: 'hunt_heartburn',
+  transit_hunt: 'hunt_transit',
+  vagal_hunt: 'hunt_vagal',
+  hunt_bloat: 'bloating_hunt',
+  hunt_heartburn: 'heartburn_hunt',
+  hunt_transit: 'transit_hunt',
+  hunt_vagal: 'vagal_hunt',
 };
 
 export function startTrial(trialId: string, _initialSeverity?: number): ActiveTrialState {
@@ -1388,27 +1989,64 @@ export function resetActiveTrial(): void {
   }
 }
 
-export function logTrialDay(severityScore: number, adhered: boolean | 'unknown' | 'followed' | 'partly_followed' | 'partially_followed' | 'not_followed' | null, note?: string): ActiveTrialState {
+export function logTrialDay(
+  severityScore: number,
+  adhered:
+    | boolean
+    | 'unknown'
+    | 'followed'
+    | 'partly_followed'
+    | 'partially_followed'
+    | 'not_followed'
+    | null,
+  note?: string
+): ActiveTrialState {
   const state = getActiveTrial();
   if (!state) throw new Error('Start an elimination protocol before recording a daily check-in.');
 
   const today = localDateString();
-  const elapsedDay = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
+  const elapsedDay = Math.min(
+    state.totalDays,
+    Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1)
+  );
   const priorScores = state.symptomScores || [];
-  const existingIndex = priorScores.findIndex((score) => score.date === today || (!score.date && score.day === elapsedDay));
+  const existingIndex = priorScores.findIndex(
+    (score) => score.date === today || (!score.date && score.day === elapsedDay)
+  );
   const isAdhered = adhered === true || adhered === 'followed';
-  const nextScore = { day: elapsedDay, date: today, severity: severityScore, adhered: adhered === null || adhered === 'unknown' ? null : isAdhered, adherenceLevel: adhered === null || adhered === 'unknown' ? null : typeof adhered === 'string' ? adhered : (isAdhered ? 'followed' : 'not_followed'), note: note || 'Daily check-in recorded.' };
-  const updatedScores = existingIndex >= 0
-    ? priorScores.map((score, index) => index === existingIndex ? nextScore : score)
-    : [...priorScores, nextScore];
+  const nextScore = {
+    day: elapsedDay,
+    date: today,
+    severity: severityScore,
+    adhered: adhered === null || adhered === 'unknown' ? null : isAdhered,
+    adherenceLevel:
+      adhered === null || adhered === 'unknown'
+        ? null
+        : typeof adhered === 'string'
+          ? adhered
+          : isAdhered
+            ? 'followed'
+            : 'not_followed',
+    note: note || 'Daily check-in recorded.',
+  };
+  const updatedScores =
+    existingIndex >= 0
+      ? priorScores.map((score, index) => (index === existingIndex ? nextScore : score))
+      : [...priorScores, nextScore];
 
   const adherenceScoreTotal = updatedScores.reduce((acc, s: any) => {
     if (s.adherenceLevel === 'followed' || s.adhered === true) return acc + 1.0;
-    if (s.adherenceLevel === 'partly_followed' || s.adherenceLevel === 'partially_followed') return acc + 0.5;
+    if (s.adherenceLevel === 'partly_followed' || s.adherenceLevel === 'partially_followed')
+      return acc + 0.5;
     return acc;
   }, 0);
-  const knownAdherenceCount = updatedScores.filter((score: any) => score.adherenceLevel !== null && score.adherenceLevel !== undefined || score.adhered !== null && score.adhered !== undefined).length;
-  const adherencePercentage = knownAdherenceCount > 0 ? Math.round((adherenceScoreTotal / knownAdherenceCount) * 100) : null;
+  const knownAdherenceCount = updatedScores.filter(
+    (score: any) =>
+      (score.adherenceLevel !== null && score.adherenceLevel !== undefined) ||
+      (score.adhered !== null && score.adhered !== undefined)
+  ).length;
+  const adherencePercentage =
+    knownAdherenceCount > 0 ? Math.round((adherenceScoreTotal / knownAdherenceCount) * 100) : null;
   const baseline = state.baselineSeverity ?? severityScore;
   const reduction = baseline > 0 ? Math.round(((baseline - severityScore) / baseline) * 100) : 0;
 
@@ -1432,8 +2070,13 @@ export function logTrialExposure(trigger: string, note?: string): ActiveTrialSta
   const state = getActiveTrial();
   if (!state) throw new Error('Start an elimination protocol before recording an exposure.');
   const date = localDateString();
-  const day = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
-  const withoutTodayDuplicate = (state.exposures || []).filter((entry) => !(entry.date === date && entry.trigger === trigger));
+  const day = Math.min(
+    state.totalDays,
+    Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1)
+  );
+  const withoutTodayDuplicate = (state.exposures || []).filter(
+    (entry) => !(entry.date === date && entry.trigger === trigger)
+  );
   const updatedState: ActiveTrialState = {
     ...state,
     currentDay: day,
@@ -1459,7 +2102,12 @@ export function getGardenState(): GardenState {
     if (raw) {
       const parsed = JSON.parse(raw);
       // Self-healing: clear legacy mock seed (waterCount 22, breathworkMinutes 45, level 3)
-      if (parsed && (parsed.waterCount === 22 && parsed.breathworkMinutes === 45 && parsed.cleanMealsCount === 18)) {
+      if (
+        parsed &&
+        parsed.waterCount === 22 &&
+        parsed.breathworkMinutes === 45 &&
+        parsed.cleanMealsCount === 18
+      ) {
         removeItemSync(gardenStorageKey());
       } else {
         return parsed;
@@ -1493,7 +2141,9 @@ export function getGardenState(): GardenState {
   }
 }
 
-export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal' | 'flare_free'): GardenState {
+export function recordGardenAction(
+  action: 'water' | 'breathwork' | 'clean_meal' | 'flare_free'
+): GardenState {
   const current = getGardenState();
   const updated = { ...current };
 
@@ -1503,8 +2153,9 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
       const previousWateredDate = updated.lastWateredDate;
       const dayGap = previousWateredDate
         ? Math.round(
-            (new Date(`${today}T12:00:00`).getTime() - new Date(`${previousWateredDate}T12:00:00`).getTime()) /
-              86400000,
+            (new Date(`${today}T12:00:00`).getTime() -
+              new Date(`${previousWateredDate}T12:00:00`).getTime()) /
+              86400000
           )
         : 0;
       updated.waterCount += 1;
@@ -1566,49 +2217,92 @@ export function generateDoctorSummary(): DoctorSummaryReport {
   const topSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
   const chiefComplaint = topSymptom
     ? `Recurring ${topSymptom.toLowerCase()} recorded in daily check-ins.`
-    : (profile?.conditions?.[0] ? `Review of the recorded condition: ${profile.conditions[0]}.` : 'No primary concern recorded.');
+    : profile?.conditions?.[0]
+      ? `Review of the recorded condition: ${profile.conditions[0]}.`
+      : 'No primary concern recorded.';
 
   // Generate dynamic 7-day symptom trend summary
   const weeklyData = getWeeklySymptomSeverity();
-  const symptomTrends = weeklyData.map(d => ({
+  const symptomTrends = weeklyData.map((d) => ({
     day: d.fullDay,
-    severity: d.severity === 3 ? 'Severe (+3)' : d.severity === 2 ? 'Moderate (+2)' : d.severity === 1 ? 'Mild (+1)' : 'Calm (0)'
+    severity:
+      d.severity === 3
+        ? 'Severe (+3)'
+        : d.severity === 2
+          ? 'Moderate (+2)'
+          : d.severity === 1
+            ? 'Mild (+1)'
+            : 'Calm (0)',
   }));
 
-  const primarySensitivity1 = culprits[0]?.primarySensitivity || (culprits.length > 0 ? 'Histamine Biogenic Amines' : 'None detected');
-  const primarySensitivity2 = culprits[1]?.primarySensitivity || (culprits.length > 1 ? 'FODMAPs (Fructans)' : 'None detected');
+  const primarySensitivity1 =
+    culprits[0]?.primarySensitivity ||
+    (culprits.length > 0 ? 'Histamine Biogenic Amines' : 'None detected');
+  const primarySensitivity2 =
+    culprits[1]?.primarySensitivity ||
+    (culprits.length > 1 ? 'FODMAPs (Fructans)' : 'None detected');
 
   return {
-    generatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    generatedAt: new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
     patientName,
     age,
     chiefComplaint,
     symptomTrends,
     topCulpritFoods: culprits,
-    biochemicalSensitivities: culprits.some((culprit) => culprit.correlationPercent > 0) ? [
-      { name: primarySensitivity1, percentage: culprits[0]?.correlationPercent || 0, window: culprits[0]?.reactionWindow || 'Timing not established' },
-      ...(culprits[1]?.correlationPercent > 0 ? [{ name: primarySensitivity2, percentage: culprits[1].correlationPercent, window: culprits[1]?.reactionWindow || 'Timing not established' }] : []),
-    ] : [],
+    biochemicalSensitivities: culprits.some((culprit) => culprit.correlationPercent > 0)
+      ? [
+          {
+            name: primarySensitivity1,
+            percentage: culprits[0]?.correlationPercent || 0,
+            window: culprits[0]?.reactionWindow || 'Timing not established',
+          },
+          ...(culprits[1]?.correlationPercent > 0
+            ? [
+                {
+                  name: primarySensitivity2,
+                  percentage: culprits[1].correlationPercent,
+                  window: culprits[1]?.reactionWindow || 'Timing not established',
+                },
+              ]
+            : []),
+        ]
+      : [],
     activeTrials: activeTrial
       ? `${trialProtocol?.name || 'Dietary Trial'} (Calendar day ${activeTrial.currentDay} of ${activeTrial.totalDays}, ${activeTrial.completedDays} dated check-in${activeTrial.completedDays === 1 ? '' : 's'}${activeTrial.reductionPercent === null ? ', baseline not recorded' : `, recorded symptom change ${activeTrial.reductionPercent}%`})`
       : 'No active elimination trial; baseline food logging active.',
-    clinicalRecommendations: culprits.length > 0 ? [
-      `Review the recorded observations involving ${culprits.slice(0, 2).map(c => c.name).join(', ')} with a qualified clinician.`,
-      'Continue dated meal and symptom observations before inferring a cause.',
-    ] : [
-      'Log dated meals and symptoms before assessing recurring timing patterns.',
-    ],
+    clinicalRecommendations:
+      culprits.length > 0
+        ? [
+            `Review the recorded observations involving ${culprits
+              .slice(0, 2)
+              .map((c) => c.name)
+              .join(', ')} with a qualified clinician.`,
+            'Continue dated meal and symptom observations before inferring a cause.',
+          ]
+        : ['Log dated meals and symptoms before assessing recurring timing patterns.'],
     sbarSummary: {
       situation: `${patientName}${age ? ` (${age}y)` : ''} presents with ${chiefComplaint.toLowerCase()}`,
-      background: checkins.length > 0
-        ? `Patient has tracked ${checkins.length} daily check-in cycles alongside time-stamped meal entries, hydration, and onset latencies.`
-        : 'Patient has initialized baseline health profile; awaiting longitudinal check-in records.',
-      assessment: culprits.length > 0
-        ? `Recorded observations mention ${culprits.slice(0, 2).map(c => c.name).join(' and ')}. These observations do not establish causation.${activeTrial && activeTrial.reductionPercent !== null ? ` The recorded symptom-score change from baseline is ${activeTrial.reductionPercent}%.` : ''}`
-        : 'No recurring food culprits or high-confidence sensitivities identified from current logs.',
-      recommendation: culprits.length > 0
-        ? `1. Review the observations with a qualified clinician. 2. Continue dated logging. 3. Do not start or extend restriction based on this summary alone.`
-        : 'Continue dated logging and discuss persistent or concerning symptoms with a qualified clinician.',
+      background:
+        checkins.length > 0
+          ? `Patient has tracked ${checkins.length} daily check-in cycles alongside time-stamped meal entries, hydration, and onset latencies.`
+          : 'Patient has initialized baseline health profile; awaiting longitudinal check-in records.',
+      assessment:
+        culprits.length > 0
+          ? `Recorded observations mention ${culprits
+              .slice(0, 2)
+              .map((c) => c.name)
+              .join(
+                ' and '
+              )}. These observations do not establish causation.${activeTrial && activeTrial.reductionPercent !== null ? ` The recorded symptom-score change from baseline is ${activeTrial.reductionPercent}%.` : ''}`
+          : 'No recurring food culprits or high-confidence sensitivities identified from current logs.',
+      recommendation:
+        culprits.length > 0
+          ? `1. Review the observations with a qualified clinician. 2. Continue dated logging. 3. Do not start or extend restriction based on this summary alone.`
+          : 'Continue dated logging and discuss persistent or concerning symptoms with a qualified clinician.',
     },
   };
 }
@@ -1619,7 +2313,11 @@ export function generateDoctorSummary(): DoctorSummaryReport {
 // Computes personal associations only from repeated, dated records.
 export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTriggerReport {
   const profile = getProfile();
-  const symptomTokens = symptomName.trim().toLowerCase().split(/\s+/).filter((token) => token.length > 2);
+  const symptomTokens = symptomName
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length > 2);
   const checkins: any[] = profile?.dailyCheckins || [];
   const recentLogs: any[] = profile?.nutrition?.recentLogs || [];
   const dieticianLogs: any[] = [];
@@ -1628,21 +2326,31 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
     if (Array.isArray(entries)) dieticianLogs.push(...entries);
   });
   const logs = [...recentLogs, ...dieticianLogs];
-  const dateOf = (entry: any): string => String(entry?.date || entry?.loggedAt || entry?.createdAt || '').slice(0, 10);
+  const dateOf = (entry: any): string =>
+    String(entry?.date || entry?.loggedAt || entry?.createdAt || '').slice(0, 10);
   const symptomDates = new Set(
     checkins
       .filter((entry: any) => {
-        const reported = String(entry?.symptom || entry?.symptoms || entry?.note || '').toLowerCase();
+        const reported = String(
+          entry?.symptom || entry?.symptoms || entry?.note || ''
+        ).toLowerCase();
         return dateOf(entry) && symptomTokens.some((token) => reported.includes(token));
       })
       .map(dateOf)
   );
 
-  const aggregate = (values: { key: string; label: string; date: string }[], type: 'sensitivity' | 'ingredient'): TriggerItem[] => {
+  const aggregate = (
+    values: { key: string; label: string; date: string }[],
+    type: 'sensitivity' | 'ingredient'
+  ): TriggerItem[] => {
     const groups = new Map<string, { label: string; dates: Set<string>; matches: Set<string> }>();
     values.forEach(({ key, label, date }) => {
       if (!date || !key) return;
-      const current = groups.get(key) || { label, dates: new Set<string>(), matches: new Set<string>() };
+      const current = groups.get(key) || {
+        label,
+        dates: new Set<string>(),
+        matches: new Set<string>(),
+      };
       current.dates.add(date);
       if (symptomDates.has(date)) current.matches.add(date);
       groups.set(key, current);
@@ -1663,7 +2371,13 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
   };
 
   const ingredientValues = logs
-    .map((log: any) => ({ key: String(log?.name || '').trim().toLowerCase(), label: String(log?.name || '').trim(), date: dateOf(log) }))
+    .map((log: any) => ({
+      key: String(log?.name || '')
+        .trim()
+        .toLowerCase(),
+      label: String(log?.name || '').trim(),
+      date: dateOf(log),
+    }))
     .filter((entry) => entry.key);
   const sensitivityValues = logs.flatMap((log: any) =>
     (Array.isArray(log?.sensitivities) ? log.sensitivities : []).map((sensitivity: any) => ({
@@ -1687,17 +2401,53 @@ export function getEducationalTriggerReference(symptomName = 'Bloating'): Sympto
   const checkins = profile?.dailyCheckins || [];
   const totalDays = checkins.length;
 
-  if (normSymptom.includes('bloat') || normSymptom.includes('gut') || normSymptom.includes('digest')) {
+  if (
+    normSymptom.includes('bloat') ||
+    normSymptom.includes('gut') ||
+    normSymptom.includes('digest')
+  ) {
     return {
       symptom: 'Bloating & Distension',
       reactionWindow: 'within 1 - 4 hours',
       sensitivities: [
-        { id: 'fodmaps', name: 'FODMAPs (Fructans & GOS)', type: 'sensitivity', icon: 'grain', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 36 : 0, reactionWindow: '4 - 8 hours' },
-        { id: 'histamine', name: 'Histamine & Amines', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(18, totalDays) : 0, correlationPercent: totalDays > 0 ? 32 : 0, reactionWindow: 'within 2 hours' },
+        {
+          id: 'fodmaps',
+          name: 'FODMAPs (Fructans & GOS)',
+          type: 'sensitivity',
+          icon: 'grain',
+          daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 36 : 0,
+          reactionWindow: '4 - 8 hours',
+        },
+        {
+          id: 'histamine',
+          name: 'Histamine & Amines',
+          type: 'sensitivity',
+          icon: 'flask',
+          daysTracked: totalDays > 0 ? Math.min(18, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 32 : 0,
+          reactionWindow: 'within 2 hours',
+        },
       ],
       ingredients: [
-        { id: 'chana_dal', name: 'Chana Dal & Besan', type: 'ingredient', icon: '🍲', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 32 : 0, reactionWindow: '4 - 8 hours' },
-        { id: 'alliums', name: 'Raw Onion & Garlic', type: 'ingredient', icon: '🧄', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 28 : 0, reactionWindow: 'within 4 hours' },
+        {
+          id: 'chana_dal',
+          name: 'Chana Dal & Besan',
+          type: 'ingredient',
+          icon: '🍲',
+          daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 32 : 0,
+          reactionWindow: '4 - 8 hours',
+        },
+        {
+          id: 'alliums',
+          name: 'Raw Onion & Garlic',
+          type: 'ingredient',
+          icon: '🧄',
+          daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 28 : 0,
+          reactionWindow: 'within 4 hours',
+        },
       ],
     };
   }
@@ -1707,27 +2457,95 @@ export function getEducationalTriggerReference(symptomName = 'Bloating'): Sympto
       symptom: 'Headache & Cephalgia',
       reactionWindow: 'within 2 - 4 hours',
       sensitivities: [
-        { id: 'tyramine', name: 'Tyramine Vasoactivity', type: 'sensitivity', icon: 'meat', daysTracked: totalDays > 0 ? Math.min(16, totalDays) : 0, correlationPercent: totalDays > 0 ? 38 : 0, reactionWindow: 'within 4 hours' },
-        { id: 'caffeine', name: 'Caffeine Rebound', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 31 : 0, reactionWindow: 'within 2 hours' },
+        {
+          id: 'tyramine',
+          name: 'Tyramine Vasoactivity',
+          type: 'sensitivity',
+          icon: 'meat',
+          daysTracked: totalDays > 0 ? Math.min(16, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 38 : 0,
+          reactionWindow: 'within 4 hours',
+        },
+        {
+          id: 'caffeine',
+          name: 'Caffeine Rebound',
+          type: 'sensitivity',
+          icon: 'flask',
+          daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 31 : 0,
+          reactionWindow: 'within 2 hours',
+        },
       ],
       ingredients: [
-        { id: 'masala_chai', name: 'Concentrated Chai / Coffee', type: 'ingredient', icon: '☕', daysTracked: totalDays > 0 ? Math.min(15, totalDays) : 0, correlationPercent: totalDays > 0 ? 34 : 0, reactionWindow: 'within 2 hours' },
-        { id: 'fermented_pickles', name: 'Aged Achaar / Cheese', type: 'ingredient', icon: '🧀', daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0, correlationPercent: totalDays > 0 ? 29 : 0, reactionWindow: 'within 4 hours' },
+        {
+          id: 'masala_chai',
+          name: 'Concentrated Chai / Coffee',
+          type: 'ingredient',
+          icon: '☕',
+          daysTracked: totalDays > 0 ? Math.min(15, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 34 : 0,
+          reactionWindow: 'within 2 hours',
+        },
+        {
+          id: 'fermented_pickles',
+          name: 'Aged Achaar / Cheese',
+          type: 'ingredient',
+          icon: '🧀',
+          daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 29 : 0,
+          reactionWindow: 'within 4 hours',
+        },
       ],
     };
   }
 
-  if (normSymptom.includes('fatigue') || normSymptom.includes('fog') || normSymptom.includes('energy')) {
+  if (
+    normSymptom.includes('fatigue') ||
+    normSymptom.includes('fog') ||
+    normSymptom.includes('energy')
+  ) {
     return {
       symptom: 'Brain Fog & Fatigue',
       reactionWindow: 'within 1 - 3 hours',
       sensitivities: [
-        { id: 'histamine', name: 'Histamine & Mast Cell Load', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 36 : 0, reactionWindow: 'within 3 hours' },
-        { id: 'glycemic', name: 'Reactive Hypoglycemia', type: 'sensitivity', icon: 'gem', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 30 : 0, reactionWindow: 'within 2 hours' },
+        {
+          id: 'histamine',
+          name: 'Histamine & Mast Cell Load',
+          type: 'sensitivity',
+          icon: 'flask',
+          daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 36 : 0,
+          reactionWindow: 'within 3 hours',
+        },
+        {
+          id: 'glycemic',
+          name: 'Reactive Hypoglycemia',
+          type: 'sensitivity',
+          icon: 'gem',
+          daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 30 : 0,
+          reactionWindow: 'within 2 hours',
+        },
       ],
       ingredients: [
-        { id: 'refined_carbs', name: 'Refined Wheat / Maida', type: 'ingredient', icon: '🍞', daysTracked: totalDays > 0 ? Math.min(10, totalDays) : 0, correlationPercent: totalDays > 0 ? 28 : 0, reactionWindow: 'within 2 hours' },
-        { id: 'sugars', name: 'High-Glycemic Sweeteners', type: 'ingredient', icon: '🍬', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 26 : 0, reactionWindow: 'within 1 hour' },
+        {
+          id: 'refined_carbs',
+          name: 'Refined Wheat / Maida',
+          type: 'ingredient',
+          icon: '🍞',
+          daysTracked: totalDays > 0 ? Math.min(10, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 28 : 0,
+          reactionWindow: 'within 2 hours',
+        },
+        {
+          id: 'sugars',
+          name: 'High-Glycemic Sweeteners',
+          type: 'ingredient',
+          icon: '🍬',
+          daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0,
+          correlationPercent: totalDays > 0 ? 26 : 0,
+          reactionWindow: 'within 1 hour',
+        },
       ],
     };
   }
@@ -1736,20 +2554,66 @@ export function getEducationalTriggerReference(symptomName = 'Bloating'): Sympto
     symptom: symptomName,
     reactionWindow: 'within 2 - 6 hours',
     sensitivities: [
-      { id: 'histamine', name: 'Histamine', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 33 : 0, reactionWindow: 'within 1 day' },
-      { id: 'fodmaps', name: 'FODMAPs', type: 'sensitivity', icon: 'grain', daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0, correlationPercent: totalDays > 0 ? 22 : 0, reactionWindow: 'within 1 day' },
+      {
+        id: 'histamine',
+        name: 'Histamine',
+        type: 'sensitivity',
+        icon: 'flask',
+        daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0,
+        correlationPercent: totalDays > 0 ? 33 : 0,
+        reactionWindow: 'within 1 day',
+      },
+      {
+        id: 'fodmaps',
+        name: 'FODMAPs',
+        type: 'sensitivity',
+        icon: 'grain',
+        daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0,
+        correlationPercent: totalDays > 0 ? 22 : 0,
+        reactionWindow: 'within 1 day',
+      },
     ],
     ingredients: [
-      { id: 'dairy', name: 'Aged Dairy / Paneer', type: 'ingredient', icon: '🧀', daysTracked: totalDays > 0 ? Math.min(9, totalDays) : 0, correlationPercent: totalDays > 0 ? 25 : 0, reactionWindow: 'within 1 day' },
-      { id: 'preservatives', name: 'Fermented Spices', type: 'ingredient', icon: '🥒', daysTracked: totalDays > 0 ? Math.min(8, totalDays) : 0, correlationPercent: totalDays > 0 ? 19 : 0, reactionWindow: 'within 1 day' },
+      {
+        id: 'dairy',
+        name: 'Aged Dairy / Paneer',
+        type: 'ingredient',
+        icon: '🧀',
+        daysTracked: totalDays > 0 ? Math.min(9, totalDays) : 0,
+        correlationPercent: totalDays > 0 ? 25 : 0,
+        reactionWindow: 'within 1 day',
+      },
+      {
+        id: 'preservatives',
+        name: 'Fermented Spices',
+        type: 'ingredient',
+        icon: '🥒',
+        daysTracked: totalDays > 0 ? Math.min(8, totalDays) : 0,
+        correlationPercent: totalDays > 0 ? 19 : 0,
+        reactionWindow: 'within 1 day',
+      },
     ],
   };
 }
 
-export function getWeeklySymptomSeverity(): { day: string; fullDay: string; severity: number; label: string; height: number; color: string }[] {
+export function getWeeklySymptomSeverity(): {
+  day: string;
+  fullDay: string;
+  severity: number;
+  label: string;
+  height: number;
+  color: string;
+}[] {
   const profile = getProfile();
   const checkins: any[] = profile?.dailyCheckins || [];
-  const result: { day: string; fullDay: string; severity: number; label: string; height: number; color: string }[] = [];
+  const result: {
+    day: string;
+    fullDay: string;
+    severity: number;
+    label: string;
+    height: number;
+    color: string;
+  }[] = [];
   const now = new Date();
 
   for (let i = 6; i >= 0; i--) {
@@ -1765,23 +2629,47 @@ export function getWeeklySymptomSeverity(): { day: string; fullDay: string; seve
     const match = checkins.find((c: any) => c?.date && c.date.startsWith(dateStr));
     if (match) {
       const severityLabel = String(match.severity || '').toLowerCase();
-      const score = severityLabel === 'severe' ? 3 : severityLabel === 'moderate' ? 2 : severityLabel === 'mild' ? 1 :
-        ['none', 'calm', 'stable'].includes(severityLabel) ? 0 : null;
+      const score =
+        severityLabel === 'severe'
+          ? 3
+          : severityLabel === 'moderate'
+            ? 2
+            : severityLabel === 'mild'
+              ? 1
+              : ['none', 'calm', 'stable'].includes(severityLabel)
+                ? 0
+                : null;
       if (score === null) {
-        result.push({ day: dayName, fullDay: fullDayName, severity: 0,
-          label: Number.isFinite(match.score) ? `Score ${match.score}; scale not established` : 'Severity not recorded',
-          height: 14, color: '#E2E8F0' });
+        result.push({
+          day: dayName,
+          fullDay: fullDayName,
+          severity: 0,
+          label: Number.isFinite(match.score)
+            ? `Score ${match.score}; scale not established`
+            : 'Severity not recorded',
+          height: 14,
+          color: '#E2E8F0',
+        });
         continue;
       }
       const height = score === 3 ? 85 : score === 2 ? 60 : score === 1 ? 35 : 18;
-      const color = score === 3 ? '#EF4444' : score === 2 ? '#F59E0B' : score === 1 ? '#0284C7' : '#10B981';
+      const color =
+        score === 3 ? '#EF4444' : score === 2 ? '#F59E0B' : score === 1 ? '#0284C7' : '#10B981';
       result.push({
         day: dayName,
         fullDay: fullDayName,
         severity: score,
-        label: match.severity || (score === 3 ? 'Severe' : score === 2 ? 'Moderate' : score === 1 ? 'Mild' : 'No symptom reported'),
+        label:
+          match.severity ||
+          (score === 3
+            ? 'Severe'
+            : score === 2
+              ? 'Moderate'
+              : score === 1
+                ? 'Mild'
+                : 'No symptom reported'),
         height,
-        color
+        color,
       });
     } else {
       result.push({
@@ -1790,14 +2678,22 @@ export function getWeeklySymptomSeverity(): { day: string; fullDay: string; seve
         severity: 0,
         label: 'No entry',
         height: 14,
-        color: '#E2E8F0'
+        color: '#E2E8F0',
       });
     }
   }
   return result;
 }
 
-export function getExposureTrends(): { id: string; name: string; icon: string; bites: number; changePercent: number; trend: 'up' | 'down'; path: string }[] {
+export function getExposureTrends(): {
+  id: string;
+  name: string;
+  icon: string;
+  bites: number;
+  changePercent: number;
+  trend: 'up' | 'down';
+  path: string;
+}[] {
   const profile = getProfile();
   const logs: any[] = profile?.nutrition?.recentLogs || [];
   let histamineCount = 0;

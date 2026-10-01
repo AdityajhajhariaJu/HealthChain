@@ -1,11 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  FEATURE_CONTRACTS,
   FeatureId,
-  getFeatureContract,
   getAllFeatureContracts,
-  getDownstreamHandoffs,
-  getUpstreamFeeds,
+  getFeatureContract,
   isPermissiblePipelineHandoff,
 } from '../FeatureArchitectureContract';
 
@@ -50,12 +47,8 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     expect(getFeatureContract('cases').uniqueQuestion).toBe(
       'Where is the complete history of this issue?'
     );
-    expect(getFeatureContract('case-prep').uniqueQuestion).toBe(
-      'What should I bring and ask?'
-    );
-    expect(getFeatureContract('diet-plan').uniqueQuestion).toBe(
-      'What can I realistically eat?'
-    );
+    expect(getFeatureContract('case-prep').uniqueQuestion).toBe('What should I bring and ask?');
+    expect(getFeatureContract('diet-plan').uniqueQuestion).toBe('What can I realistically eat?');
     expect(getFeatureContract('food-detective').uniqueQuestion).toBe(
       'What patterns occur in my food logs?'
     );
@@ -87,9 +80,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
   });
 
   it('enforces non-duplication rules for all 11 features', () => {
-    expect(getFeatureContract('ava').mustNotDuplicate).toBe(
-      'A separate competing clinical report'
-    );
+    expect(getFeatureContract('ava').mustNotDuplicate).toBe('A separate competing clinical report');
     expect(getFeatureContract('engine').mustNotDuplicate).toBe(
       'Day-to-day logging or a decorative specialist chat'
     );
@@ -99,15 +90,9 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     expect(getFeatureContract('canvas').mustNotDuplicate).toBe(
       'Simulated specialist discussion after every post'
     );
-    expect(getFeatureContract('cases').mustNotDuplicate).toBe(
-      'Another interpretation engine'
-    );
-    expect(getFeatureContract('case-prep').mustNotDuplicate).toBe(
-      'An entirely new assessment'
-    );
-    expect(getFeatureContract('diet-plan').mustNotDuplicate).toBe(
-      'Food-trigger investigation'
-    );
+    expect(getFeatureContract('cases').mustNotDuplicate).toBe('Another interpretation engine');
+    expect(getFeatureContract('case-prep').mustNotDuplicate).toBe('An entirely new assessment');
+    expect(getFeatureContract('diet-plan').mustNotDuplicate).toBe('Food-trigger investigation');
     expect(getFeatureContract('food-detective').mustNotDuplicate).toBe(
       'Broad cross-system reasoning'
     );
@@ -117,9 +102,7 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
     expect(getFeatureContract('clinical-trials').mustNotDuplicate).toBe(
       'Eligibility determination'
     );
-    expect(getFeatureContract('zen-garden').mustNotDuplicate).toBe(
-      'Clinical interpretation'
-    );
+    expect(getFeatureContract('zen-garden').mustNotDuplicate).toBe('Clinical interpretation');
   });
 
   it('validates the complete unidirectional pipeline flow', () => {
@@ -151,8 +134,6 @@ describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
   });
 
   it('throws an error for unknown feature IDs', () => {
-    expect(() => getFeatureContract('non_existent' as any)).toThrow(
-      /Unknown feature id/
-    );
+    expect(() => getFeatureContract('non_existent' as any)).toThrow(/Unknown feature id/);
   });
 });

@@ -1,26 +1,23 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { clearCaseEngineCache, createCaseDraft, getCaseQuestions } from '../CaseEngine';
+import { getAllClinicalDietarySwaps, type DietarySwap } from '../clinicalDietarySwaps';
 import {
-  normalizeFullMealPlan,
-  normalizeMealItem,
-  normalizeDayItem,
-  updateMealServing,
-  editMealContent,
   applyMealClinicalSwap,
-  transitionPlanStatus,
   archiveCurrentPlan,
-  generateDietObservationsSummary,
-  exportDietObservationsToCase,
-  PORTION_ESTIMATE_DISCLAIMER,
-  NON_CAUSAL_TIMING_DISCLAIMER,
   CLINICAL_SAFETY_GUARDRAIL,
+  editMealContent,
+  exportDietObservationsToCase,
+  generateDietObservationsSummary,
+  NON_CAUSAL_TIMING_DISCLAIMER,
+  normalizeFullMealPlan,
   PLAN_STOP_REASON_LABELS,
+  PORTION_ESTIMATE_DISCLAIMER,
+  transitionPlanStatus,
+  updateMealServing,
   type FullMealPlan,
-  type MealPlanItem,
   type PlanStopReason,
 } from '../dietPlanLifecycle';
-import { getAllClinicalDietarySwaps, type DietarySwap } from '../clinicalDietarySwaps';
-import { createCaseDraft, getCase, getCaseQuestions, clearCaseEngineCache } from '../CaseEngine';
 
 describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
   beforeEach(() => {
@@ -128,7 +125,9 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
       expect(plan.lifecycle.status).toBe('stopped');
       expect(plan.stoppedAt).toBeDefined();
       expect(plan.stopReason).toBe('digestive_discomfort');
-      expect(PLAN_STOP_REASON_LABELS[plan.stopReason as PlanStopReason]).toBe('Experienced digestive discomfort or symptoms');
+      expect(PLAN_STOP_REASON_LABELS[plan.stopReason as PlanStopReason]).toBe(
+        'Experienced digestive discomfort or symptoms'
+      );
     });
 
     it('covers all predefined clinical stop reasons with descriptive user-facing labels', () => {
@@ -160,9 +159,9 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
       expect(breakfast).toBeDefined();
       expect(breakfast?.servingMultiplier).toBe(1.5);
       expect(breakfast?.calories).toBe(Math.round(350 * 1.5)); // 525
-      expect(breakfast?.protein).toBe(Math.round(20 * 1.5));   // 30
-      expect(breakfast?.carbs).toBe(Math.round(30 * 1.5));     // 45
-      expect(breakfast?.fat).toBe(Math.round(15 * 1.5));       // 23
+      expect(breakfast?.protein).toBe(Math.round(20 * 1.5)); // 30
+      expect(breakfast?.carbs).toBe(Math.round(30 * 1.5)); // 45
+      expect(breakfast?.fat).toBe(Math.round(15 * 1.5)); // 23
       expect(breakfast?.userEdited).toBe(true);
 
       // Day totals must reflect the recalculation immediately
@@ -180,9 +179,9 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
 
       expect(lunch?.servingMultiplier).toBe(0.5);
       expect(lunch?.calories).toBe(Math.round(550 * 0.5)); // 275
-      expect(lunch?.protein).toBe(Math.round(40 * 0.5));   // 20
-      expect(lunch?.carbs).toBe(Math.round(45 * 0.5));     // 23
-      expect(lunch?.fat).toBe(Math.round(20 * 0.5));       // 10
+      expect(lunch?.protein).toBe(Math.round(40 * 0.5)); // 20
+      expect(lunch?.carbs).toBe(Math.round(45 * 0.5)); // 23
+      expect(lunch?.fat).toBe(Math.round(20 * 0.5)); // 10
 
       // Total calories: 350 (breakfast) + 275 (lunch) = 625
       expect(updated.days[0].total_calories).toBe(625);
@@ -226,7 +225,15 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
     it('stores a user-selected replacement and marks nutrition estimates for review', () => {
       const plan = normalizeFullMealPlan(sampleRawPlan);
       expect(getAllClinicalDietarySwaps()).toEqual([]);
-      const chosenSwap: DietarySwap = { triggerName: 'Greek Yogurt', category: 'ADDITIVE', offendingCompound: 'User preference', biologicalMechanism: 'User note: preference', smartReplacement: 'User chosen breakfast', replacementDetails: 'User selected', expectedReliefTimeline: '' };
+      const chosenSwap: DietarySwap = {
+        triggerName: 'Greek Yogurt',
+        category: 'ADDITIVE',
+        offendingCompound: 'User preference',
+        biologicalMechanism: 'User note: preference',
+        smartReplacement: 'User chosen breakfast',
+        replacementDetails: 'User selected',
+        expectedReliefTimeline: '',
+      };
       const swapped = applyMealClinicalSwap(plan, 1, 'm1_breakfast', chosenSwap);
       const meal = swapped.days[0].meals[0];
 
@@ -297,12 +304,16 @@ describe('Package 7: Diet and Elimination Workflows & Plan Lifecycle', () => {
 
   describe('6. Clinical Safety & Non-Causality Disclaimers', () => {
     it('asserts that symptom timing represents chronological correlation, not proof of causation', () => {
-      expect(NON_CAUSAL_TIMING_DISCLAIMER).toContain('chronological associations, not proven biological causation');
+      expect(NON_CAUSAL_TIMING_DISCLAIMER).toContain(
+        'chronological associations, not proven biological causation'
+      );
     });
 
     it('does not claim an unverified nutrient table was calculated from a reference source', () => {
       expect(PORTION_ESTIMATE_DISCLAIMER).toContain('AI estimates');
-      expect(PORTION_ESTIMATE_DISCLAIMER).toContain('without a verified ingredient and portion breakdown');
+      expect(PORTION_ESTIMATE_DISCLAIMER).toContain(
+        'without a verified ingredient and portion breakdown'
+      );
     });
 
     it('strictly guards against medication washouts and extreme caloric restriction', () => {

@@ -18,7 +18,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     let isMounted = true;
     let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
     let isGuest = false;
-    try { isGuest = localStorage.getItem('hc_guest_mode') === 'true'; } catch (e) {}
+    try {
+      isGuest = localStorage.getItem('hc_guest_mode') === 'true';
+    } catch (e) {}
     if (isGuest) {
       setIsAuthenticated(true);
       return;
@@ -26,18 +28,23 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     async function checkAuth() {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!isMounted) return;
         if (session) {
           setIsAuthenticated(true);
           lastSignedInRef.current = Date.now();
-          try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
+          try {
+            localStorage.setItem('isAuthenticated', 'true');
+          } catch {}
           return;
         }
 
         // Also check if there's a PKCE code in the URL — if so, Supabase is about to
         // exchange it for a session. Do NOT declare unauthenticated yet.
-        const urlHasAuthCode = window.location.search.includes('code=') ||
+        const urlHasAuthCode =
+          window.location.search.includes('code=') ||
           window.location.hash.includes('access_token=');
 
         if (urlHasAuthCode) {
@@ -51,7 +58,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         }
 
         // Definitely unauthenticated & no pending auth flow
-        try { localStorage.removeItem('isAuthenticated'); } catch {}
+        try {
+          localStorage.removeItem('isAuthenticated');
+        } catch {}
         setIsAuthenticated(false);
       } catch (err) {
         if (!isMounted) return;
@@ -63,14 +72,23 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     checkAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || (event === 'INITIAL_SESSION' && session)) {
+      if (
+        event === 'SIGNED_IN' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED' ||
+        (event === 'INITIAL_SESSION' && session)
+      ) {
         if (!session) return;
         clearTimeout(recoveryTimer);
         lastSignedInRef.current = Date.now();
         setIsAuthenticated(true);
-        try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
+        try {
+          localStorage.setItem('isAuthenticated', 'true');
+        } catch {}
       } else if (event === 'SIGNED_OUT') {
         // CRITICAL: Debounce false SIGNED_OUT events that race with a fresh SIGNED_IN.
         // Supabase can fire a spurious SIGNED_OUT during PKCE exchange or when
@@ -81,7 +99,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           console.warn('[ProtectedRoute] Ignoring SIGNED_OUT that raced with recent SIGNED_IN');
           return;
         }
-        try { localStorage.removeItem('isAuthenticated'); } catch {}
+        try {
+          localStorage.removeItem('isAuthenticated');
+        } catch {}
         setIsAuthenticated(false);
       }
     });
@@ -89,15 +109,20 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Re-validate when window regains focus or tab is reopened without abruptly kicking out
     const onWake = () => {
       if (isGuest || !isMounted) return;
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!isMounted) return;
-        if (session) {
-          setIsAuthenticated(true);
-          try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
-        }
-      }).catch(() => {
-        // Do not kick out on wake error - allow background auto-refresh
-      });
+      supabase.auth
+        .getSession()
+        .then(({ data: { session } }) => {
+          if (!isMounted) return;
+          if (session) {
+            setIsAuthenticated(true);
+            try {
+              localStorage.setItem('isAuthenticated', 'true');
+            } catch {}
+          }
+        })
+        .catch(() => {
+          // Do not kick out on wake error - allow background auto-refresh
+        });
     };
 
     window.addEventListener('focus', onWake);

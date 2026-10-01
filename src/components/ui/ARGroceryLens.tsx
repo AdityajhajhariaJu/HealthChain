@@ -38,7 +38,12 @@ function checkCanvasBrightness(canvas: HTMLCanvasElement): number {
   }
 }
 
-function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHeight: number, maxDim = 1024): { base64: string; canvas: HTMLCanvasElement } {
+function compressCanvas(
+  imgSource: CanvasImageSource,
+  origWidth: number,
+  origHeight: number,
+  maxDim = 1024
+): { base64: string; canvas: HTMLCanvasElement } {
   let width = origWidth || 1024;
   let height = origHeight || 1024;
   if (width > maxDim || height > maxDim) {
@@ -58,7 +63,7 @@ function compressCanvas(imgSource: CanvasImageSource, origWidth: number, origHei
   ctx.drawImage(imgSource, 0, 0, width, height);
   return {
     base64: canvas.toDataURL('image/jpeg', 0.82),
-    canvas
+    canvas,
   };
 }
 
@@ -100,7 +105,8 @@ export function normalizeNutritionTo100g(food: {
 }): NormalizedNutrition {
   const name = food.foodName || food.name || 'Identified Food';
   const requiredNumber = (value: unknown, label: string): number => {
-    if (value === null || value === undefined || value === '' || typeof value === 'boolean') throw new Error(`Missing ${label}`);
+    if (value === null || value === undefined || value === '' || typeof value === 'boolean')
+      throw new Error(`Missing ${label}`);
     const number = Number(value);
     if (!Number.isFinite(number) || number < 0) throw new Error(`Invalid ${label}`);
     return number;
@@ -113,14 +119,24 @@ export function normalizeNutritionTo100g(food: {
   const rawFibre = requiredNumber(food.fibre, 'fibre');
   const rawSodium = requiredNumber(food.sodium, 'sodium');
 
-  if (food.foodType !== 'packaged' && food.foodType !== 'meal') throw new Error('Unknown food type');
-  if (food.nutritionBasis !== 'per_100g' && food.nutritionBasis !== 'per_serving') throw new Error('Unknown nutrition basis');
-  if (food.foodType === 'meal' && food.nutritionBasis !== 'per_100g') throw new Error('Meal basis must be per 100g');
-  const servingGrams = food.nutritionBasis === 'per_serving' ? requiredNumber(food.servingGrams, 'serving weight') : 100;
+  if (food.foodType !== 'packaged' && food.foodType !== 'meal')
+    throw new Error('Unknown food type');
+  if (food.nutritionBasis !== 'per_100g' && food.nutritionBasis !== 'per_serving')
+    throw new Error('Unknown nutrition basis');
+  if (food.foodType === 'meal' && food.nutritionBasis !== 'per_100g')
+    throw new Error('Meal basis must be per 100g');
+  const servingGrams =
+    food.nutritionBasis === 'per_serving'
+      ? requiredNumber(food.servingGrams, 'serving weight')
+      : 100;
   if (servingGrams < 1 || servingGrams > 5000) throw new Error('Invalid serving weight');
   const factor = 100 / servingGrams;
-  const portionGrams = food.portionGrams === undefined ? undefined : requiredNumber(food.portionGrams, 'portion weight');
-  if (portionGrams !== undefined && (portionGrams < 1 || portionGrams > 5000)) throw new Error('Invalid portion weight');
+  const portionGrams =
+    food.portionGrams === undefined
+      ? undefined
+      : requiredNumber(food.portionGrams, 'portion weight');
+  if (portionGrams !== undefined && (portionGrams < 1 || portionGrams > 5000))
+    throw new Error('Invalid portion weight');
 
   const calories = Math.round(rawCalories * factor);
   const protein = Math.round(rawProtein * factor * 10) / 10;
@@ -129,12 +145,18 @@ export function normalizeNutritionTo100g(food: {
   const sugar = Math.round(rawSugar * factor * 10) / 10;
   const fibre = Math.round(rawFibre * factor * 10) / 10;
   const sodium = Math.round(rawSodium * factor);
-  if (calories > 900 || [protein, carbs, fats, sugar, fibre].some(value => value > 100) || sodium > 40000) {
+  if (
+    calories > 900 ||
+    [protein, carbs, fats, sugar, fibre].some((value) => value > 100) ||
+    sodium > 40000
+  ) {
     throw new Error('Nutrition values are not plausible per 100g');
   }
 
   const packSizeNote = portionGrams
-    ? (food.foodType === 'meal' ? `Photo-estimated portion: ~${portionGrams}g` : `Pack: ${portionGrams}g`)
+    ? food.foodType === 'meal'
+      ? `Photo-estimated portion: ~${portionGrams}g`
+      : `Pack: ${portionGrams}g`
     : undefined;
 
   return {
@@ -151,12 +173,13 @@ export function normalizeNutritionTo100g(food: {
     portionGrams,
     packSizeNote,
     warning: food.warning || null,
-    subtitle: food.subtitle
+    subtitle: food.subtitle,
   };
 }
 
 export function scaleNutritionForPortion(food: NormalizedNutrition, grams: number) {
-  if (!Number.isFinite(grams) || grams < 1 || grams > 5000) throw new Error('Choose a portion between 1g and 5000g');
+  if (!Number.isFinite(grams) || grams < 1 || grams > 5000)
+    throw new Error('Choose a portion between 1g and 5000g');
   const factor = grams / 100;
   return {
     calories: Math.round(food.calories * factor),
@@ -169,67 +192,13 @@ export function scaleNutritionForPortion(food: NormalizedNutrition, grams: numbe
   };
 }
 
-const CircularProgress = ({
-  value,
-  max,
-  color,
-  title,
-  subtitle
+export const ARGroceryLens = ({
+  onClose,
+  onLogFood,
 }: {
-  value: number;
-  max: number;
-  color: string;
-  title: string;
-  subtitle: string;
+  onClose: () => void;
+  onLogFood?: (food: any) => boolean | Promise<boolean>;
 }) => {
-  const radius = 28;
-  const circumference = 2 * Math.PI * radius;
-  const percent = max > 0 ? Math.min(Math.max(value, 0) / max, 1) : 0;
-  const offset = circumference - percent * circumference;
-
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '4px',
-      flexShrink: 0,
-      width: '100%',
-      maxWidth: '96px'
-    }}>
-      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px', textAlign: 'center' }}>
-        {title}
-      </div>
-      <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" strokeOpacity="0.18" />
-          <circle
-            cx="40"
-            cy="40"
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth="6"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
-          />
-        </svg>
-        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>
-            {Math.round(value * 10) / 10}
-          </span>
-          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
-            {subtitle}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => boolean | Promise<boolean> }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [cameraAttempt, setCameraAttempt] = useState(0);
@@ -274,10 +243,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
     // Start camera
     if (navigator.mediaDevices?.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } } })
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: { ideal: facingMode } } })
         .then((s) => {
           if (isCancelled) {
-            s.getTracks().forEach(t => t.stop());
+            s.getTracks().forEach((t) => t.stop());
             return;
           }
           activeStream = s;
@@ -289,27 +259,43 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         })
         .catch((err) => {
           if (isCancelled) return;
-          console.error("Camera access denied or unavailable", err);
-          setCameraError("Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.");
+          console.error('Camera access denied or unavailable', err);
+          setCameraError(
+            'Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.'
+          );
         });
     } else {
-      setCameraError("Camera is unavailable on this device. You can upload a photo from your gallery.");
+      setCameraError(
+        'Camera is unavailable on this device. You can upload a photo from your gallery.'
+      );
     }
 
     return () => {
       isCancelled = true;
       if (activeStream) {
-        activeStream.getTracks().forEach(t => t.stop());
+        activeStream.getTracks().forEach((t) => t.stop());
       }
     };
   }, [facingMode, cameraAttempt]);
 
   const scanFailure = (error: unknown) => {
     const message = error instanceof Error ? error.message : '';
-    if (message === 'Offline') return { title: 'You are offline', message: 'Connect to the internet, then try the scan again.' };
-    if (message === 'QUOTA_EXCEEDED') return { title: 'Scan limit reached', message: 'Your AI scan limit has been reached. Please try again later.' };
+    if (message === 'Offline')
+      return {
+        title: 'You are offline',
+        message: 'Connect to the internet, then try the scan again.',
+      };
+    if (message === 'QUOTA_EXCEEDED')
+      return {
+        title: 'Scan limit reached',
+        message: 'Your AI scan limit has been reached. Please try again later.',
+      };
     if (message.includes('AbortError')) return null;
-    return { title: 'Scan Inconclusive', message: 'We could not analyze this photo. Try a clearer meal photo or a readable nutrition panel.' };
+    return {
+      title: 'Scan Inconclusive',
+      message:
+        'We could not analyze this photo. Try a clearer meal photo or a readable nutrition panel.',
+    };
   };
 
   const beginScan = () => {
@@ -327,10 +313,18 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     return { sequence, controller };
   };
 
-  const finishScan = async (base64: string, canvas: HTMLCanvasElement, sequence: number, controller: AbortController) => {
+  const finishScan = async (
+    base64: string,
+    canvas: HTMLCanvasElement,
+    sequence: number,
+    controller: AbortController
+  ) => {
     try {
       if (checkCanvasBrightness(canvas) < 16) {
-        setScanError({ title: 'Photo is Too Dark', message: 'Try again in better light with the meal or nutrition panel in focus.' });
+        setScanError({
+          title: 'Photo is Too Dark',
+          message: 'Try again in better light with the meal or nutrition panel in focus.',
+        });
         setShowResults(true);
         triggerHapticWarning();
         return;
@@ -338,7 +332,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       const result = await analyzeFoodImage(base64, {}, controller.signal);
       if (sequence !== scanSequenceRef.current || controller.signal.aborted) return;
       if (!result.detected || !result.foodName) {
-        setScanError({ title: 'Nutrition Not Clear', message: result.errorMessage || 'Try a clearer nutrition panel or meal photo.' });
+        setScanError({
+          title: 'Nutrition Not Clear',
+          message: result.errorMessage || 'Try a clearer nutrition panel or meal photo.',
+        });
         setShowResults(true);
         triggerHapticWarning();
         return;
@@ -371,7 +368,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     event.target.value = '';
     if (!file || scanActiveRef.current) return;
     if (!file.type.startsWith('image/')) {
-      setScanError({ title: 'Unsupported photo', message: 'Choose an image file such as JPEG, PNG, or HEIC.' });
+      setScanError({
+        title: 'Unsupported photo',
+        message: 'Choose an image file such as JPEG, PNG, or HEIC.',
+      });
       setShowResults(true);
       return;
     }
@@ -387,7 +387,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       const rawData = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         readerRef.current = reader;
-        reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Empty image'));
+        reader.onload = () =>
+          typeof reader.result === 'string'
+            ? resolve(reader.result)
+            : reject(new Error('Empty image'));
         reader.onerror = () => reject(reader.error || new Error('Image read failed'));
         reader.onabort = () => reject(new DOMException('Image read cancelled', 'AbortError'));
         reader.readAsDataURL(file);
@@ -432,14 +435,18 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     setEstimateConfirmed(false);
     setLogError('');
     setCameraError(null);
-    if (videoRef.current && stream) videoRef.current.play().catch(() => setCameraAttempt(value => value + 1));
-    else setCameraAttempt(value => value + 1);
+    if (videoRef.current && stream)
+      videoRef.current.play().catch(() => setCameraAttempt((value) => value + 1));
+    else setCameraAttempt((value) => value + 1);
   };
 
   const handleScan = async () => {
     if (!videoRef.current || scanActiveRef.current) return;
     if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
-      setScanError({ title: 'Camera is warming up', message: 'Wait a moment, then choose Try Again.' });
+      setScanError({
+        title: 'Camera is warming up',
+        message: 'Wait a moment, then choose Try Again.',
+      });
       setShowResults(true);
       return;
     }
@@ -447,7 +454,11 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     if (!operation) return;
     triggerHapticLight();
     try {
-      const { base64, canvas } = compressCanvas(videoRef.current, videoRef.current.videoWidth, videoRef.current.videoHeight);
+      const { base64, canvas } = compressCanvas(
+        videoRef.current,
+        videoRef.current.videoWidth,
+        videoRef.current.videoHeight
+      );
       setShutterFlash(true);
       window.setTimeout(() => setShutterFlash(false), 220);
       setCapturedPhoto(base64);
@@ -469,10 +480,10 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const handleToggleFacingMode = () => {
     triggerHapticLight();
     if (stream) {
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach((t) => t.stop());
       setStream(null);
     }
-    setFacingMode(prev => (prev === 'environment' ? 'user' : 'environment'));
+    setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
   };
 
   const handleClose = () => {
@@ -481,7 +492,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     if (readerRef.current?.readyState === FileReader.LOADING) readerRef.current.abort();
     scanActiveRef.current = false;
     if (stream) {
-      stream.getTracks().forEach(t => t.stop());
+      stream.getTracks().forEach((t) => t.stop());
     }
     onClose();
   };
@@ -492,15 +503,27 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         e.preventDefault();
         handleClose();
       } else if (e.key === 'Tab' && dialogRef.current) {
-        const controls = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]):not([type="file"]), a[href], [tabindex]:not([tabindex="-1"])'))
-          .filter(element => element.getClientRects().length > 0);
-        if (!controls.length) { e.preventDefault(); dialogRef.current.focus(); return; }
+        const controls = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), input:not([disabled]):not([type="file"]), a[href], [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((element) => element.getClientRects().length > 0);
+        if (!controls.length) {
+          e.preventDefault();
+          dialogRef.current.focus();
+          return;
+        }
         const first = controls[0];
         const last = controls[controls.length - 1];
-        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
-          e.preventDefault(); last.focus();
+        if (
+          e.shiftKey &&
+          (document.activeElement === first || document.activeElement === dialogRef.current)
+        ) {
+          e.preventDefault();
+          last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault(); first.focus();
+          e.preventDefault();
+          first.focus();
         }
       }
     };
@@ -509,7 +532,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   }, [stream]);
 
   return createPortal(
-    <div 
+    <div
       ref={dialogRef}
       tabIndex={-1}
       role="dialog"
@@ -527,19 +550,25 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         zIndex: 999999,
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       {/* Live Camera Feed */}
-      <video 
+      <video
         ref={videoRef}
-        autoPlay 
-        playsInline 
-        muted 
-        onError={() => setCameraError("Video stream could not be loaded")}
+        autoPlay
+        playsInline
+        muted
+        onError={() => setCameraError('Video stream could not be loaded')}
         style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0
-        }} 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+        }}
       />
 
       {/* Instant Frozen Snapshot Preview while analyzing */}
@@ -554,7 +583,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            zIndex: 1
+            zIndex: 1,
           }}
         />
       )}
@@ -572,7 +601,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               inset: 0,
               background: '#FFFFFF',
               zIndex: 35,
-              pointerEvents: 'none'
+              pointerEvents: 'none',
             }}
           />
         )}
@@ -580,28 +609,46 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       {/* Header - Camera Mode Only */}
       {!showResults && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
-          paddingLeft: '20px',
-          paddingRight: '20px',
-          paddingBottom: '16px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 40,
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
+            paddingLeft: '20px',
+            paddingRight: '20px',
+            paddingBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 40,
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 10px #10B981' }} />
-            <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '13.5px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+            <div
+              style={{
+                background: '#10B981',
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                boxShadow: '0 0 10px #10B981',
+              }}
+            />
+            <span
+              style={{
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '13.5px',
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase',
+              }}
+            >
               Clinical Lens
             </span>
           </div>
-          <button 
+          <button
             type="button"
             aria-label="Close Clinical Lens"
             onClick={handleClose}
@@ -617,7 +664,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             <X size={20} />
@@ -627,121 +674,146 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       {/* Themed Minimal Guidance Pill */}
       {!showResults && (
-        <div style={{
-          position: 'absolute',
-          top: 'max(68px, calc(env(safe-area-inset-top, 16px) + 52px))',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          background: 'rgba(15, 23, 42, 0.82)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(52, 211, 153, 0.35)',
-          borderRadius: '999px',
-          padding: '6px 14px',
-          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
-          width: 'max-content',
-          maxWidth: 'calc(100% - 32px)',
-          boxSizing: 'border-box',
-          pointerEvents: 'auto'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 'max(68px, calc(env(safe-area-inset-top, 16px) + 52px))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(52, 211, 153, 0.35)',
+            borderRadius: '999px',
+            padding: '6px 14px',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
+            width: 'max-content',
+            maxWidth: 'calc(100% - 32px)',
+            boxSizing: 'border-box',
+            pointerEvents: 'auto',
+          }}
+        >
           <Sparkles size={13} color="#34D399" style={{ flexShrink: 0 }} />
-          <span style={{
-            color: '#F1F5F9',
-            fontSize: '11.5px',
-            fontWeight: 600,
-            letterSpacing: '0.1px',
-            textAlign: 'center',
-            lineHeight: 1.3,
-            whiteSpace: 'normal'
-          }}>
-            {isScanning ? 'Snapshot captured · Analyzing nutrition...' : 'Photograph food or a readable nutrition label. Your photo is sent to Google Gemini via HealthChain.'}
-            {' '}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#A7F3D0', textDecoration: 'underline' }}>Privacy details</a>
+          <span
+            style={{
+              color: '#F1F5F9',
+              fontSize: '11.5px',
+              fontWeight: 600,
+              letterSpacing: '0.1px',
+              textAlign: 'center',
+              lineHeight: 1.3,
+              whiteSpace: 'normal',
+            }}
+          >
+            {isScanning
+              ? 'Snapshot captured · Analyzing nutrition...'
+              : 'Photograph food or a readable nutrition label. Your photo is sent to Google Gemini via HealthChain.'}{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#A7F3D0', textDecoration: 'underline' }}
+            >
+              Privacy details
+            </a>
           </span>
         </div>
       )}
 
       {/* Center AR Reticle Viewfinder */}
       {!showResults && !cameraError && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -55%)',
-          width: 'min(270px, 72vw)',
-          height: 'min(270px, 72vw)',
-          pointerEvents: 'none',
-          zIndex: 5,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -55%)',
+            width: 'min(270px, 72vw)',
+            height: 'min(270px, 72vw)',
+            pointerEvents: 'none',
+            zIndex: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           {/* Top-Left Corner */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '28px',
-            height: '28px',
-            borderTop: '3px solid #34D399',
-            borderLeft: '3px solid #34D399',
-            borderTopLeftRadius: '14px',
-            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '28px',
+              height: '28px',
+              borderTop: '3px solid #34D399',
+              borderLeft: '3px solid #34D399',
+              borderTopLeftRadius: '14px',
+              filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))',
+            }}
+          />
           {/* Top-Right Corner */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '28px',
-            height: '28px',
-            borderTop: '3px solid #34D399',
-            borderRight: '3px solid #34D399',
-            borderTopRightRadius: '14px',
-            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '28px',
+              height: '28px',
+              borderTop: '3px solid #34D399',
+              borderRight: '3px solid #34D399',
+              borderTopRightRadius: '14px',
+              filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))',
+            }}
+          />
           {/* Bottom-Left Corner */}
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '28px',
-            height: '28px',
-            borderBottom: '3px solid #34D399',
-            borderLeft: '3px solid #34D399',
-            borderBottomLeftRadius: '14px',
-            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '28px',
+              height: '28px',
+              borderBottom: '3px solid #34D399',
+              borderLeft: '3px solid #34D399',
+              borderBottomLeftRadius: '14px',
+              filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))',
+            }}
+          />
           {/* Bottom-Right Corner */}
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: '28px',
-            height: '28px',
-            borderBottom: '3px solid #34D399',
-            borderRight: '3px solid #34D399',
-            borderBottomRightRadius: '14px',
-            filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))'
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: '28px',
+              height: '28px',
+              borderBottom: '3px solid #34D399',
+              borderRight: '3px solid #34D399',
+              borderBottomRightRadius: '14px',
+              filter: 'drop-shadow(0 0 6px rgba(52, 211, 153, 0.6))',
+            }}
+          />
 
           {/* Frame Label */}
-          <span style={{
-            color: 'rgba(255, 255, 255, 0.75)',
-            fontSize: '11px',
-            fontWeight: 600,
-            letterSpacing: '0.4px',
-            textTransform: 'uppercase',
-            textAlign: 'center',
-            background: 'rgba(0, 0, 0, 0.35)',
-            padding: '4px 10px',
-            borderRadius: '999px',
-            backdropFilter: 'blur(6px)'
-          }}>
+          <span
+            style={{
+              color: 'rgba(255, 255, 255, 0.75)',
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.4px',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+              background: 'rgba(0, 0, 0, 0.35)',
+              padding: '4px 10px',
+              borderRadius: '999px',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
             {isScanning ? 'Snapshot Locked · Analyzing...' : 'Align Item Inside'}
           </span>
         </div>
@@ -754,8 +826,15 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           animate={{ y: '80vh' }}
           transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse', ease: 'linear' }}
           style={{
-            position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', willChange: 'transform', background: '#10B981',
-            boxShadow: '0 0 20px 4px rgba(16, 185, 129, 0.5)', zIndex: 5
+            position: 'absolute',
+            top: 0,
+            left: '10%',
+            right: '10%',
+            height: '2px',
+            willChange: 'transform',
+            background: '#10B981',
+            boxShadow: '0 0 20px 4px rgba(16, 185, 129, 0.5)',
+            zIndex: 5,
           }}
         />
       )}
@@ -777,28 +856,46 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               flexDirection: 'column',
               overflow: 'hidden',
               height: '100%',
-              width: '100%'
+              width: '100%',
             }}
           >
             {/* Warm Porcelain Header */}
-            <header style={{
-              flexShrink: 0,
-              paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
-              paddingBottom: '12px',
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              background: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              borderBottom: '1px solid #F1E5E7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              zIndex: 10
-            }}>
+            <header
+              style={{
+                flexShrink: 0,
+                paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
+                paddingBottom: '12px',
+                paddingLeft: '20px',
+                paddingRight: '20px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderBottom: '1px solid #F1E5E7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                zIndex: 10,
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ background: '#10B981', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 8px #10B981' }} />
-                <span style={{ color: '#0F172A', fontWeight: 800, fontSize: '13.5px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                <div
+                  style={{
+                    background: '#10B981',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    boxShadow: '0 0 8px #10B981',
+                  }}
+                />
+                <span
+                  style={{
+                    color: '#0F172A',
+                    fontWeight: 800,
+                    fontSize: '13.5px',
+                    letterSpacing: '0.6px',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Clinical Lens
                 </span>
               </div>
@@ -817,7 +914,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 <X size={18} />
@@ -825,51 +922,75 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             </header>
 
             {/* Scrollable Single-Page Body with Native Inertia & Pan-Y Touch Action */}
-            <div style={{
-              flex: '1 1 0%',
-              minHeight: 0,
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              touchAction: 'pan-y',
-              overscrollBehaviorY: 'contain',
-              padding: '14px 16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              maxWidth: '520px',
-              margin: '0 auto',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}>
+            <div
+              style={{
+                flex: '1 1 0%',
+                minHeight: 0,
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y',
+                overscrollBehaviorY: 'contain',
+                padding: '14px 16px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                maxWidth: '520px',
+                margin: '0 auto',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
               {/* Non-Detection / Scan Error Card */}
               {scanError ? (
-                <div style={{
-                  background: '#FFFFFF',
-                  borderRadius: '24px',
-                  padding: '32px 20px',
-                  border: '1px solid #F1E5E7',
-                  boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
-                  textAlign: 'center'
-                }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    background: '#FEF2F2',
-                    border: '1.5px solid #FCA5A5',
-                    margin: '0 auto 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#DC2626'
-                  }}>
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    padding: '32px 20px',
+                    border: '1px solid #F1E5E7',
+                    boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '50%',
+                      background: '#FEF2F2',
+                      border: '1.5px solid #FCA5A5',
+                      margin: '0 auto 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#DC2626',
+                    }}
+                  >
                     <AlertTriangle size={28} />
                   </div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
+                  <h3
+                    style={{
+                      margin: '0 0 8px',
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                    }}
+                  >
                     {scanError.title || 'No Food or Label Detected'}
                   </h3>
-                  <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#64748B', lineHeight: 1.5, maxWidth: '380px', marginLeft: 'auto', marginRight: 'auto' }}>
-                    {scanError.message || 'Position the camera directly in front of the grocery item, barcode, or ingredient table.'}
+                  <p
+                    style={{
+                      margin: '0 0 24px',
+                      fontSize: '13px',
+                      color: '#64748B',
+                      lineHeight: 1.5,
+                      maxWidth: '380px',
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                    }}
+                  >
+                    {scanError.message ||
+                      'Position the camera directly in front of the grocery item, barcode, or ingredient table.'}
                   </p>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                     <button
@@ -893,7 +1014,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25)'
+                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25)',
                       }}
                     >
                       <RefreshCw size={16} /> Try Again
@@ -914,79 +1035,228 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         border: '1.5px solid #F1E5E7',
                         fontSize: '13.5px',
                         fontWeight: 700,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
                       }}
                     >
                       Upload Photo
                     </button>
                   </div>
                 </div>
-              ) : analysis && (() => {
-                const food = normalizeNutritionTo100g(analysis);
-                const suggestion = analysis.betterAlternatives?.[0]?.name;
-                const isPackaged = food.foodType === 'packaged';
-                const shown = isPackaged ? food : portionGrams >= 1 && portionGrams <= 5000 ? scaleNutritionForPortion(food, portionGrams) : null;
-                const nutrients: Array<[string, string]> = shown ? [
-                  ['Calories', `${shown.calories} kcal`], ['Protein', `${shown.protein} g`],
-                  ['Carbs', `${shown.carbs} g`], ['Fat', `${shown.fats} g`],
-                  ['Sugar', `${shown.sugar} g`], ['Fibre', `${shown.fibre} g`],
-                  ['Sodium', `${shown.sodium} mg`],
-                ] : [];
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <section style={{ background: '#FFFFFF', border: '1px solid #F1E5E7', borderRadius: '24px', padding: '18px', boxShadow: '0 4px 16px rgba(15,23,42,0.04)' }}>
-                      <div style={{ display: 'inline-flex', padding: '5px 10px', borderRadius: '999px', background: '#FFF1F2', color: '#BE123C', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px' }}>
-                        {isPackaged ? 'PACKAGE LABEL READ · PER 100 G' : shown ? `MEAL ESTIMATE · ${portionGrams} G PORTION` : 'MEAL ESTIMATE · ENTER PORTION'}
-                      </div>
-                      <h2 style={{ margin: '12px 0 5px', color: '#0F172A', fontSize: '21px', lineHeight: 1.25 }}>{food.name}</h2>
-                      <p style={{ margin: '0 0 15px', color: '#64748B', fontSize: '12px', lineHeight: 1.5 }}>
-                        {isPackaged
-                          ? 'Per 100 g, converted from the photographed nutrition panel when needed. Compare every number with the package label before relying on it.'
-                          : 'For the amount shown below. Calories and nutrients are estimated from the photo and the portion weight; recipe and cooking method can change them.'}
-                        {' '}This scan cannot determine allergens or your glucose response.
-                      </p>
-                      {!shown && <p style={{ margin: '0 0 14px', color: '#475569', fontSize: '13px' }}>Enter the grams you ate below to calculate this meal's calories and nutrients.</p>}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
-                        {nutrients.map(([label, value]) => (
-                          <div key={label} style={{ background: '#FFFAFA', border: '1px solid #F1E5E7', borderRadius: '12px', padding: '10px 11px' }}>
-                            <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>{label}</div>
-                            <div style={{ color: '#0F172A', fontSize: '16px', fontWeight: 800, marginTop: '2px' }}>{value}</div>
-                          </div>
-                        ))}
-                      </div>
-                      {food.packSizeNote && <p style={{ margin: '12px 0 0', color: '#475569', fontSize: '12px' }}>{food.packSizeNote}. Confirm the amount you actually consumed below.</p>}
-                    </section>
-                    {suggestion && (
-                      <section style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '18px', padding: '13px 16px' }}>
-                        <div style={{ color: '#047857', fontSize: '10px', fontWeight: 800, letterSpacing: '0.4px' }}>OPTION TO CONSIDER · AI SUGGESTION</div>
-                        <div style={{ color: '#0F172A', fontSize: '15px', fontWeight: 800, marginTop: '4px' }}>{suggestion}</div>
-                        <div style={{ color: '#475569', fontSize: '12px', lineHeight: 1.4, marginTop: '3px' }}>Compare its real ingredient list and nutrition label before choosing it. It is not logged from this scan.</div>
+              ) : (
+                analysis &&
+                (() => {
+                  const food = normalizeNutritionTo100g(analysis);
+                  const suggestion = analysis.betterAlternatives?.[0]?.name;
+                  const isPackaged = food.foodType === 'packaged';
+                  const shown = isPackaged
+                    ? food
+                    : portionGrams >= 1 && portionGrams <= 5000
+                      ? scaleNutritionForPortion(food, portionGrams)
+                      : null;
+                  const nutrients: Array<[string, string]> = shown
+                    ? [
+                        ['Calories', `${shown.calories} kcal`],
+                        ['Protein', `${shown.protein} g`],
+                        ['Carbs', `${shown.carbs} g`],
+                        ['Fat', `${shown.fats} g`],
+                        ['Sugar', `${shown.sugar} g`],
+                        ['Fibre', `${shown.fibre} g`],
+                        ['Sodium', `${shown.sodium} mg`],
+                      ]
+                    : [];
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <section
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid #F1E5E7',
+                          borderRadius: '24px',
+                          padding: '18px',
+                          boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            padding: '5px 10px',
+                            borderRadius: '999px',
+                            background: '#FFF1F2',
+                            color: '#BE123C',
+                            fontWeight: 800,
+                            fontSize: '11px',
+                            letterSpacing: '0.3px',
+                          }}
+                        >
+                          {isPackaged
+                            ? 'PACKAGE LABEL READ · PER 100 G'
+                            : shown
+                              ? `MEAL ESTIMATE · ${portionGrams} G PORTION`
+                              : 'MEAL ESTIMATE · ENTER PORTION'}
+                        </div>
+                        <h2
+                          style={{
+                            margin: '12px 0 5px',
+                            color: '#0F172A',
+                            fontSize: '21px',
+                            lineHeight: 1.25,
+                          }}
+                        >
+                          {food.name}
+                        </h2>
+                        <p
+                          style={{
+                            margin: '0 0 15px',
+                            color: '#64748B',
+                            fontSize: '12px',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {isPackaged
+                            ? 'Per 100 g, converted from the photographed nutrition panel when needed. Compare every number with the package label before relying on it.'
+                            : 'For the amount shown below. Calories and nutrients are estimated from the photo and the portion weight; recipe and cooking method can change them.'}{' '}
+                          This scan cannot determine allergens or your glucose response.
+                        </p>
+                        {!shown && (
+                          <p style={{ margin: '0 0 14px', color: '#475569', fontSize: '13px' }}>
+                            Enter the grams you ate below to calculate this meal's calories and
+                            nutrients.
+                          </p>
+                        )}
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                            gap: '8px',
+                          }}
+                        >
+                          {nutrients.map(([label, value]) => (
+                            <div
+                              key={label}
+                              style={{
+                                background: '#FFFAFA',
+                                border: '1px solid #F1E5E7',
+                                borderRadius: '12px',
+                                padding: '10px 11px',
+                              }}
+                            >
+                              <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>
+                                {label}
+                              </div>
+                              <div
+                                style={{
+                                  color: '#0F172A',
+                                  fontSize: '16px',
+                                  fontWeight: 800,
+                                  marginTop: '2px',
+                                }}
+                              >
+                                {value}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {food.packSizeNote && (
+                          <p style={{ margin: '12px 0 0', color: '#475569', fontSize: '12px' }}>
+                            {food.packSizeNote}. Confirm the amount you actually consumed below.
+                          </p>
+                        )}
                       </section>
-                    )}
-                  </div>
-                );
-              })()}
+                      {suggestion && (
+                        <section
+                          style={{
+                            background: '#F0FDF4',
+                            border: '1px solid #BBF7D0',
+                            borderRadius: '18px',
+                            padding: '13px 16px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              color: '#047857',
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              letterSpacing: '0.4px',
+                            }}
+                          >
+                            OPTION TO CONSIDER · AI SUGGESTION
+                          </div>
+                          <div
+                            style={{
+                              color: '#0F172A',
+                              fontSize: '15px',
+                              fontWeight: 800,
+                              marginTop: '4px',
+                            }}
+                          >
+                            {suggestion}
+                          </div>
+                          <div
+                            style={{
+                              color: '#475569',
+                              fontSize: '12px',
+                              lineHeight: 1.4,
+                              marginTop: '3px',
+                            }}
+                          >
+                            Compare its real ingredient list and nutrition label before choosing it.
+                            It is not logged from this scan.
+                          </div>
+                        </section>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
             </div>
 
             {/* Pinned Bottom Action Footer (Sleek, Ergonomic, Non-Intrusive) */}
-            <footer style={{
-              flexShrink: 0,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              borderTop: '1px solid #F1E5E7',
-              paddingTop: '10px',
-              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              zIndex: 20,
-              boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)'
-            }}>
-              <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {logError && <p role="alert" style={{ margin: 0, color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}>{logError}</p>}
+            <footer
+              style={{
+                flexShrink: 0,
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderTop: '1px solid #F1E5E7',
+                paddingTop: '10px',
+                paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+                zIndex: 20,
+                boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: '480px',
+                  margin: '0 auto',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                {logError && (
+                  <p
+                    role="alert"
+                    style={{ margin: 0, color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}
+                  >
+                    {logError}
+                  </p>
+                )}
                 {onLogFood && analysis?.foodName && (
                   <>
-                    <label htmlFor="clinical-lens-portion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', color: '#334155', fontSize: '12px', fontWeight: 700 }}>
+                    <label
+                      htmlFor="clinical-lens-portion"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        color: '#334155',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                      }}
+                    >
                       Amount you ate (grams)
                       <input
                         id="clinical-lens-portion"
@@ -996,28 +1266,76 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                         step="1"
                         value={portionGrams || ''}
                         placeholder="Enter g"
-                        onChange={event => { setPortionGrams(Number(event.target.value)); setEstimateConfirmed(false); }}
-                        style={{ width: '88px', height: '34px', borderRadius: '9px', border: '1px solid #CBD5E1', padding: '0 8px', color: '#0F172A', background: '#FFFFFF' }}
+                        onChange={(event) => {
+                          setPortionGrams(Number(event.target.value));
+                          setEstimateConfirmed(false);
+                        }}
+                        style={{
+                          width: '88px',
+                          height: '34px',
+                          borderRadius: '9px',
+                          border: '1px solid #CBD5E1',
+                          padding: '0 8px',
+                          color: '#0F172A',
+                          background: '#FFFFFF',
+                        }}
                       />
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '11px', lineHeight: 1.35 }}>
-                      <input type="checkbox" checked={estimateConfirmed} onChange={event => setEstimateConfirmed(event.target.checked)} />
-                      I checked this estimate and the amount. I will use the real label for allergy decisions.
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: '#475569',
+                        fontSize: '11px',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={estimateConfirmed}
+                        onChange={(event) => setEstimateConfirmed(event.target.checked)}
+                      />
+                      I checked this estimate and the amount. I will use the real label for allergy
+                      decisions.
                     </label>
                   </>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <button
                     type="button"
-                    onClick={() => { triggerHapticLight(); handleResumeCamera(); }}
-                    style={{ flex: '0 0 auto', height: '42px', padding: '0 13px', background: '#FFFAFA', color: '#475569', border: '1px solid #F1E5E7', borderRadius: '12px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => {
+                      triggerHapticLight();
+                      handleResumeCamera();
+                    }}
+                    style={{
+                      flex: '0 0 auto',
+                      height: '42px',
+                      padding: '0 13px',
+                      background: '#FFFAFA',
+                      color: '#475569',
+                      border: '1px solid #F1E5E7',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
                   >
                     <RefreshCw size={14} /> Scan Another
                   </button>
                   {onLogFood && analysis?.foodName && (
                     <button
                       type="button"
-                      disabled={!estimateConfirmed || !Number.isFinite(portionGrams) || portionGrams < 1 || portionGrams > 5000 || isLogging}
+                      disabled={
+                        !estimateConfirmed ||
+                        !Number.isFinite(portionGrams) ||
+                        portionGrams < 1 ||
+                        portionGrams > 5000 ||
+                        isLogging
+                      }
                       onClick={async () => {
                         if (!analysis || !onLogFood || isLogging) return;
                         setIsLogging(true);
@@ -1025,7 +1343,14 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           const food = normalizeNutritionTo100g(analysis);
                           const scaled = scaleNutritionForPortion(food, portionGrams);
                           const hour = new Date().getHours();
-                          const mealType = hour < 11 ? 'Breakfast' : hour < 14 ? 'Lunch' : hour < 18 ? 'Evening Snack' : 'Dinner';
+                          const mealType =
+                            hour < 11
+                              ? 'Breakfast'
+                              : hour < 14
+                                ? 'Lunch'
+                                : hour < 18
+                                  ? 'Evening Snack'
+                                  : 'Dinner';
                           const saved = await onLogFood({
                             name: food.name,
                             ...scaled,
@@ -1034,16 +1359,32 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                             portion: `${portionGrams}g consumed`,
                             portionGrams,
                             foodType: food.foodType,
-                            nutritionBasis: food.foodType === 'packaged' ? 'label_photo_per_100g' : 'meal_estimate_per_100g',
+                            nutritionBasis:
+                              food.foodType === 'packaged'
+                                ? 'label_photo_per_100g'
+                                : 'meal_estimate_per_100g',
                             originalNutritionBasis: analysis.nutritionBasis,
                             originalServingGrams: analysis.servingGrams,
-                            originalLabelNutrients: food.foodType === 'packaged' ? {
-                              calories: analysis.calories, protein: analysis.protein, carbs: analysis.carbs,
-                              fat: analysis.fats, sugar: analysis.sugar, fibre: analysis.fibre, sodium: analysis.sodium,
-                            } : undefined,
+                            originalLabelNutrients:
+                              food.foodType === 'packaged'
+                                ? {
+                                    calories: analysis.calories,
+                                    protein: analysis.protein,
+                                    carbs: analysis.carbs,
+                                    fat: analysis.fats,
+                                    sugar: analysis.sugar,
+                                    fibre: analysis.fibre,
+                                    sodium: analysis.sodium,
+                                  }
+                                : undefined,
                             per100Nutrients: {
-                              calories: food.calories, protein: food.protein, carbs: food.carbs,
-                              fat: food.fats, sugar: food.sugar, fibre: food.fibre, sodium: food.sodium,
+                              calories: food.calories,
+                              protein: food.protein,
+                              carbs: food.carbs,
+                              fat: food.fats,
+                              sugar: food.sugar,
+                              fibre: food.fibre,
+                              sodium: food.sodium,
                             },
                             type: mealType,
                           });
@@ -1052,12 +1393,26 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                           handleClose();
                         } catch (error) {
                           console.warn('Clinical Lens meal log failed', error);
-                          setLogError('Meal not saved. Please try again; your scan is still available.');
+                          setLogError(
+                            'Meal not saved. Please try again; your scan is still available.'
+                          );
                         } finally {
                           setIsLogging(false);
                         }
                       }}
-                      style={{ flex: 1, height: '42px', padding: '0 12px', background: '#047857', color: '#FFFFFF', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: 800, opacity: estimateConfirmed ? 1 : 0.55, cursor: estimateConfirmed ? 'pointer' : 'not-allowed' }}
+                      style={{
+                        flex: 1,
+                        height: '42px',
+                        padding: '0 12px',
+                        background: '#047857',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        opacity: estimateConfirmed ? 1 : 0.55,
+                        cursor: estimateConfirmed ? 'pointer' : 'not-allowed',
+                      }}
                     >
                       Log estimate
                     </button>
@@ -1081,50 +1436,121 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
       {/* Camera Unavailable Glassmorphic Card */}
       {cameraError && !showResults && (
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 15
-        }}>
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px)',
-            borderRadius: '24px', padding: '32px 24px', maxWidth: '420px', textAlign: 'center',
-            border: '1px solid rgba(255,255,255,0.15)', color: '#FFF'
-          }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', color: '#F87171', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            zIndex: 15,
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              padding: '32px 24px',
+              maxWidth: '420px',
+              textAlign: 'center',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#FFF',
+            }}
+          >
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#F87171',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+            >
               <Camera size={28} />
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>Camera Not Available</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>
+              Camera Not Available
+            </h3>
             <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#94A3B8', lineHeight: 1.5 }}>
               {cameraError}
             </p>
-            <p style={{ color: '#CBD5E1', fontSize: '12px', lineHeight: 1.5 }}>Uploaded photos are sent to Google Gemini via HealthChain for nutrition estimation. <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#A7F3D0' }}>Privacy details</a></p>
+            <p style={{ color: '#CBD5E1', fontSize: '12px', lineHeight: 1.5 }}>
+              Uploaded photos are sent to Google Gemini via HealthChain for nutrition estimation.{' '}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#A7F3D0' }}
+              >
+                Privacy details
+              </a>
+            </p>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="btn btn-primary"
-              style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 700,
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
             >
               <Upload size={16} /> Choose Photo from Device
             </button>
-            <button type="button" onClick={() => { setCameraError(null); setCameraAttempt(value => value + 1); }} style={{ marginTop: 12, padding: '12px 24px', borderRadius: 12, width: '100%', border: '1px solid rgba(255,255,255,.35)', color: '#fff', background: 'transparent', cursor: 'pointer' }}>Retry Camera</button>
+            <button
+              type="button"
+              onClick={() => {
+                setCameraError(null);
+                setCameraAttempt((value) => value + 1);
+              }}
+              style={{
+                marginTop: 12,
+                padding: '12px 24px',
+                borderRadius: 12,
+                width: '100%',
+                border: '1px solid rgba(255,255,255,.35)',
+                color: '#fff',
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              Retry Camera
+            </button>
           </div>
         </div>
       )}
 
       {/* Capture & Upload Bar */}
       {!showResults && !cameraError && (
-        <div style={{
-          position: 'absolute',
-          bottom: 'max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '36px',
-          zIndex: 20,
-          padding: '0 24px'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '36px',
+            zIndex: 20,
+            padding: '0 24px',
+          }}
+        >
           {/* Left: Gallery Upload Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+          >
             <motion.button
               type="button"
               whileTap={{ scale: 0.9 }}
@@ -1144,24 +1570,33 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 alignItems: 'center',
                 cursor: 'pointer',
                 color: '#FFFFFF',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
               }}
             >
               <ImageIcon size={22} />
             </motion.button>
-            <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.2px' }}>
+            <span
+              style={{
+                color: 'rgba(255, 255, 255, 0.85)',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                letterSpacing: '0.2px',
+              }}
+            >
               Gallery
             </span>
           </div>
 
           {/* Center: Tactile Capture Shutter Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-            <motion.button 
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+          >
+            <motion.button
               type="button"
               onClick={handleScan}
               disabled={isScanning}
               whileTap={{ scale: 0.92 }}
-              aria-label={isScanning ? "Scanning..." : "Capture and analyze food"}
+              aria-label={isScanning ? 'Scanning...' : 'Capture and analyze food'}
               style={{
                 width: '76px',
                 height: '76px',
@@ -1175,7 +1610,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 boxShadow: isScanning
                   ? '0 0 24px rgba(16, 185, 129, 0.6)'
                   : '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(16, 185, 129, 0.25)',
-                position: 'relative'
+                position: 'relative',
               }}
             >
               {isScanning ? (
@@ -1184,13 +1619,22 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 <Scan size={30} color="#0F172A" strokeWidth={2.4} />
               )}
             </motion.button>
-            <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: 700, letterSpacing: '0.3px' }}>
+            <span
+              style={{
+                color: '#FFFFFF',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.3px',
+              }}
+            >
               {isScanning ? 'Scanning...' : 'Capture'}
             </span>
           </div>
 
           {/* Right: Camera Flip Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+          >
             <motion.button
               type="button"
               whileTap={{ scale: 0.9 }}
@@ -1210,12 +1654,19 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 alignItems: 'center',
                 cursor: 'pointer',
                 color: '#FFFFFF',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
               }}
             >
               <RefreshCw size={20} />
             </motion.button>
-            <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.2px' }}>
+            <span
+              style={{
+                color: 'rgba(255, 255, 255, 0.85)',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                letterSpacing: '0.2px',
+              }}
+            >
               Flip
             </span>
           </div>

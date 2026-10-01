@@ -1,23 +1,22 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  AppNotification,
+  checkAndRegisterEventDeduplication,
+  checkAndUpdateTimezone,
+  clearDeduplicationCache,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  dispatchNotification,
   getActiveNotifications,
   getUnreadNotificationCount,
-  markNotificationAsRead,
-  markNotificationAsDismissed,
-  markAllNotificationsAsRead,
-  resolveNotificationDestination,
   getWaterGlassesForDate,
-  setWaterGlassesForDate,
-  checkAndRegisterEventDeduplication,
-  clearDeduplicationCache,
   isQuietHoursActive,
-  getNotificationPreferences,
+  markAllNotificationsAsRead,
+  markNotificationAsDismissed,
+  markNotificationAsRead,
+  resolveNotificationDestination,
   saveNotificationPreferences,
-  checkAndUpdateTimezone,
-  dispatchNotification,
-  DEFAULT_NOTIFICATION_PREFERENCES,
-  AppNotification
+  setWaterGlassesForDate,
 } from '../NotificationEngine';
 
 // Mock ProfileEngine & CaseEngine & VitaminScheduleService
@@ -65,7 +64,14 @@ describe('NotificationEngine & Complete Notifications (Package 9)', () => {
         },
       ];
       mockVitamins = [
-        { id: 'vit_d3', name: 'Vitamin D3', dosage: '2000 IU', time: '09:00', enabled: true, takenToday: false },
+        {
+          id: 'vit_d3',
+          name: 'Vitamin D3',
+          dosage: '2000 IU',
+          time: '09:00',
+          enabled: true,
+          takenToday: false,
+        },
       ];
 
       const notifications = getActiveNotifications();
@@ -159,7 +165,7 @@ describe('NotificationEngine & Complete Notifications (Package 9)', () => {
 
     it('removes checkin notification from unread count once checkin is completed', () => {
       const countBefore = getUnreadNotificationCount('profile_1');
-      
+
       // Simulate today's checkin completed
       mockCheckin = { id: 'chk_today', symptom: 'Good', score: 0 };
       const countAfter = getUnreadNotificationCount('profile_1');
@@ -178,7 +184,10 @@ describe('NotificationEngine & Complete Notifications (Package 9)', () => {
     });
 
     it('dispatchNotification rejects duplicates and stores valid custom notifications', () => {
-      const customNotif: Omit<AppNotification, 'createdAt' | 'isRead' | 'isDismissed' | 'profileId'> = {
+      const customNotif: Omit<
+        AppNotification,
+        'createdAt' | 'isRead' | 'isDismissed' | 'profileId'
+      > = {
         id: 'cloud_sync_alert_1',
         category: 'system_info',
         title: 'Cloud Backup Complete',
@@ -309,7 +318,13 @@ describe('NotificationEngine & Complete Notifications (Package 9)', () => {
         },
       ];
       mockVitamins = [
-        { id: 'med_antidepressant', name: 'Sertraline', dosage: '50mg', time: '08:00', enabled: true },
+        {
+          id: 'med_antidepressant',
+          name: 'Sertraline',
+          dosage: '50mg',
+          time: '08:00',
+          enabled: true,
+        },
       ];
 
       const notifs = getActiveNotifications('profile_1');

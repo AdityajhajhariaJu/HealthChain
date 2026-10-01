@@ -13,12 +13,13 @@ declare global {
   }
 }
 
-
 let inMemoryAnonId: string | null = null;
 
 export const hasAnalyticsConsent = () => {
   try {
-    return typeof window !== 'undefined' && localStorage.getItem('hc_cookies_accepted') === 'accepted';
+    return (
+      typeof window !== 'undefined' && localStorage.getItem('hc_cookies_accepted') === 'accepted'
+    );
   } catch {
     return false;
   }
@@ -81,14 +82,15 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
       platform = 'web';
     }
 
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(({ data }) => {
         return supabase.from('analytics_events').insert({
           event_name: eventName,
           event_params: { ...payload, anonymous_id: getAnonymousId() },
           user_id: data?.session?.user?.id || null,
           platform: platform,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
       })
       .then((res: any) => {
@@ -110,18 +112,22 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
 
 // Common & Advanced Telemetry Events (100% GDPR/CCPA Privacy Compliant)
 export const trackPageView = (path: string) => trackEvent('page_view', { path });
-export const trackFeatureUsed = (featureName: string, metadata: any = {}) => trackEvent('feature_used', { feature: featureName, ...metadata });
-export const trackButtonClick = (buttonName: string, context: string = '') => trackEvent('button_click', { button: buttonName, context });
+export const trackFeatureUsed = (featureName: string, metadata: any = {}) =>
+  trackEvent('feature_used', { feature: featureName, ...metadata });
+export const trackButtonClick = (buttonName: string, context: string = '') =>
+  trackEvent('button_click', { button: buttonName, context });
 export const trackSignup = () => trackEvent('sign_up');
 export const trackLabUpload = () => trackEvent('LabReportUploaded', { status: 'success' });
-export const trackCheckoutInitiated = (value: number, planId?: string) => trackEvent('begin_checkout', { value, currency: 'INR', planId });
+export const trackCheckoutInitiated = (value: number, planId?: string) =>
+  trackEvent('begin_checkout', { value, currency: 'INR', planId });
 export const trackPurchase = (value: number, planId?: string) => {
+  if (!hasAnalyticsConsent()) return;
   const txId = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   trackEvent('purchase', {
     value,
     currency: 'INR',
     transaction_id: txId,
-    plan_id: planId
+    plan_id: planId,
   });
 
   if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -130,13 +136,16 @@ export const trackPurchase = (value: number, planId?: string) => {
         send_to: 'AW-18407555330/FYfpCI65uOccEIKCtMlE',
         value: value,
         currency: 'INR',
-        transaction_id: txId
+        transaction_id: txId,
       });
     } catch (err) {
       console.warn('Google Ads conversion tag error:', err);
     }
   }
 };
-export const trackConsultationStarted = (mode: 'quick' | 'mdt' | 'jarvis' | 'ava', details: any = {}) => trackEvent('consultation_started', { mode, ...details });
-export const trackCaseAction = (action: string, metadata: any = {}) => trackEvent('case_action', { action, ...metadata });
-
+export const trackConsultationStarted = (
+  mode: 'quick' | 'mdt' | 'jarvis' | 'ava',
+  details: any = {}
+) => trackEvent('consultation_started', { mode, ...details });
+export const trackCaseAction = (action: string, metadata: any = {}) =>
+  trackEvent('case_action', { action, ...metadata });

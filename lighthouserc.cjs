@@ -1,17 +1,18 @@
 module.exports = {
   ci: {
     collect: {
-      staticDistDir: './dist',
+      startServerCommand: 'node scripts/serve-lighthouse.mjs',
+      startServerReadyPattern: 'Lighthouse server ready',
       url: ['http://localhost:8080'],
     },
     assert: {
-      // Track site-wide category thresholds as warnings while individual
-      // Lighthouse findings are reviewed and assigned explicit budgets.
+      // Functional accessibility/quality categories are release gates.
+      // Keep the higher mobile performance target visible as a warning.
       assertions: {
         'categories:performance': ['warn', { minScore: 0.9 }],
-        'categories:accessibility': ['warn', { minScore: 0.9 }],
-        'categories:best-practices': ['warn', { minScore: 0.9 }],
-        'categories:seo': ['warn', { minScore: 0.9 }],
+        'categories:accessibility': ['error', { minScore: 0.9 }],
+        'categories:best-practices': ['error', { minScore: 0.9 }],
+        'categories:seo': ['error', { minScore: 0.9 }],
       },
     },
     upload: {

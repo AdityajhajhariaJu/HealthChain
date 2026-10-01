@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRpc = vi.fn();
 const mockFrom = vi.fn();
@@ -78,7 +78,6 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
       return { data: null, error: null };
     });
 
-    let updatedPaymentRow: any = null;
     mockFrom.mockImplementation((table: string) => {
       if (table === 'payments') {
         return {
@@ -89,7 +88,6 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
           })),
           update: vi.fn((data: any) => ({
             eq: vi.fn(() => {
-              updatedPaymentRow = data;
               return { error: null, eq: vi.fn(async () => ({ error: null })) };
             }),
           })),
@@ -129,9 +127,17 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
     const res: any = {
       statusCode: 200,
       headers: {},
-      setHeader: (k: string, v: string) => { res.headers[k] = v; },
-      status: (code: number) => { res.statusCode = code; return res; },
-      json: vi.fn((data: any) => { res.body = data; return res; }),
+      setHeader: (k: string, v: string) => {
+        res.headers[k] = v;
+      },
+      status: (code: number) => {
+        res.statusCode = code;
+        return res;
+      },
+      json: vi.fn((data: any) => {
+        res.body = data;
+        return res;
+      }),
       end: vi.fn(),
     };
 
@@ -210,9 +216,17 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
     const res: any = {
       statusCode: 200,
       headers: {},
-      setHeader: (k: string, v: string) => { res.headers[k] = v; },
-      status: (code: number) => { res.statusCode = code; return res; },
-      json: vi.fn((data: any) => { res.body = data; return res; }),
+      setHeader: (k: string, v: string) => {
+        res.headers[k] = v;
+      },
+      status: (code: number) => {
+        res.statusCode = code;
+        return res;
+      },
+      json: vi.fn((data: any) => {
+        res.body = data;
+        return res;
+      }),
       end: vi.fn(),
     };
 

@@ -1,18 +1,17 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  saveInterruptedTask,
-  getInterruptedTask,
-  clearInterruptedTask,
-  resumeInterruptedTask,
-  recordPendingPayment,
-  getPendingPayment,
-  clearPendingPayment,
-  pollPaymentEntitlement,
-  recoverPendingPayment,
-  initiateRazorpayCheckout,
-} from '../razorpay';
 import crypto from 'crypto';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  clearPendingPayment,
+  getInterruptedTask,
+  getPendingPayment,
+  initiateRazorpayCheckout,
+  pollPaymentEntitlement,
+  recordPendingPayment,
+  recoverPendingPayment,
+  resumeInterruptedTask,
+  saveInterruptedTask,
+} from '../razorpay';
 
 describe('PaymentLifecycleAndEntitlements (Package 10)', () => {
   const mockUserId = 'user-test-uuid-123';
@@ -324,7 +323,8 @@ describe('PaymentLifecycleAndEntitlements (Package 10)', () => {
         planDurationDays: number,
         now: Date
       ): Date => {
-        const baseDate = currentExpiry && currentExpiry > now ? new Date(currentExpiry) : new Date(now);
+        const baseDate =
+          currentExpiry && currentExpiry > now ? new Date(currentExpiry) : new Date(now);
         baseDate.setDate(baseDate.getDate() + planDurationDays);
         return baseDate;
       };
@@ -404,7 +404,11 @@ describe('PaymentLifecycleAndEntitlements (Package 10)', () => {
       const processPayment = (paymentId: string, orderId: string, expiresAt: string) => {
         const existing = mockDb[paymentId];
         if (existing && existing.status === 'paid' && existing.entitlementExpiresAt) {
-          return { status: 200, already_processed: true, expires_at: existing.entitlementExpiresAt };
+          return {
+            status: 200,
+            already_processed: true,
+            expires_at: existing.entitlementExpiresAt,
+          };
         }
 
         mockDb[paymentId] = {

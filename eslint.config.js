@@ -11,6 +11,11 @@ export default [
       'dist/**',
       'node_modules/**',
       'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      '.lighthouseci/**',
+      '.vercel/**',
+      'supabase/.temp/**',
       'android/**',
       'ios/**',
       '*.js',
@@ -37,7 +42,7 @@ export default [
       ecmaVersion: 2020,
       globals: {
         ...globals.browser,
-        ...globals.node
+        ...globals.node,
       },
       parserOptions: {
         ecmaVersion: 'latest',
@@ -57,13 +62,10 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'no-unused-vars': 'warn',
       'react/prop-types': 'off',
     },
   },
-  prettier
+  prettier,
 ];

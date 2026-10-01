@@ -40,31 +40,28 @@ vi.mock('../supabaseClient', () => ({
 }));
 
 import {
-  saveOriginalCaseFile,
-  loadOriginalCaseFile,
   checkOriginalFileAvailability,
-  reattachOriginalCaseFile,
-  deleteOriginalCaseFile,
-  cleanupCaseOriginalFiles,
-  validateCaseFile,
   FileStorageError,
+  reattachOriginalCaseFile,
+  saveOriginalCaseFile,
+  validateCaseFile,
 } from '../caseRecordFiles';
 
 import {
-  matchesBiomarkerValue,
   matchesBiomarkerName,
+  matchesBiomarkerValue,
   preserveAmbiguousDate,
   preserveAmbiguousUnit,
 } from '../clinicalReview';
 
 import {
   createCaseDraft,
-  getCase,
   deleteCase,
   deleteCaseRecord,
-  updateExtractedFindingCorrection,
   ensureRecordPassages,
+  getCase,
   MedicalRecord,
+  updateExtractedFindingCorrection,
 } from '../CaseEngine';
 
 describe('Package 2: Document Extraction and Correction', () => {
@@ -116,7 +113,9 @@ describe('Package 2: Document Extraction and Correction', () => {
       mockState.set.mockRejectedValueOnce(quotaErr);
 
       const validPdf = new File(['sample pdf content'], 'report.pdf', { type: 'application/pdf' });
-      await expect(saveOriginalCaseFile('case_123', 'rec_456', validPdf)).rejects.toThrowError(FileStorageError);
+      await expect(saveOriginalCaseFile('case_123', 'rec_456', validPdf)).rejects.toThrowError(
+        FileStorageError
+      );
 
       try {
         mockState.set.mockRejectedValueOnce(quotaErr);
@@ -145,7 +144,9 @@ describe('Package 2: Document Extraction and Correction', () => {
       });
 
       const validPdf = new File(['sample content'], 'lab.pdf', { type: 'application/pdf' });
-      await expect(saveOriginalCaseFile('case_123', 'rec_456', validPdf)).rejects.toThrowError(FileStorageError);
+      await expect(saveOriginalCaseFile('case_123', 'rec_456', validPdf)).rejects.toThrowError(
+        FileStorageError
+      );
 
       try {
         mockState.set.mockImplementationOnce(async () => {
@@ -181,7 +182,9 @@ describe('Package 2: Document Extraction and Correction', () => {
       };
       window.addEventListener('hc_case_file_reattached', handler);
 
-      const reattachedFile = new File(['restored document'], 'restored.pdf', { type: 'application/pdf' });
+      const reattachedFile = new File(['restored document'], 'restored.pdf', {
+        type: 'application/pdf',
+      });
       await reattachOriginalCaseFile('case_123', 'rec_789', reattachedFile);
 
       expect(mockState.set).toHaveBeenCalled();
