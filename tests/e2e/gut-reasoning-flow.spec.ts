@@ -21,11 +21,12 @@ const setup = async (page: import('@playwright/test').Page) => {
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(output) }] } }] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     };
   });
-  await page.route(/https:\/\/www\.ebi\.ac\.uk/, route => route.abort());
+  // This mocked AI/research-failure flow must not wait on analytics or font CDNs.
+  await page.route(/https:\/\//, route => route.abort());
 };
 test('current concerns get an AI answer without logs; refinement survives reload when research fails', async ({ page }) => {
   await setup(page); await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/app/today?gut=1&view=deep'); const gut = page.getByRole('dialog', { name: 'Gut Health' });
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' }); const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('I have stomach pain after lunch today');
   await gut.getByRole('button', { name: 'Connect my question', exact: true }).click();
   await gut.getByRole('button', { name: 'Explore my answer' }).click();
@@ -35,7 +36,7 @@ test('current concerns get an AI answer without logs; refinement survives reload
   await gut.getByLabel('Does it happen before meals too?').fill('Yes, it happens before meals too.');
   await gut.getByRole('button', { name: 'Refine answer' }).click();
   await expect(gut.getByRole('heading', { name: 'The added timing changes the interpretation' })).toBeVisible();
-  await page.goto('/app/today?gut=1&view=deep');
+  await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   await gut.getByRole('button', { name: /Continue/ }).click();
   await expect(gut.getByRole('heading', { name: 'The added timing changes the interpretation' })).toBeVisible();
   await gut.getByText('Sources & what could change this').click();

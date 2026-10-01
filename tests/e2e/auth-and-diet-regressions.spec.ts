@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test';
 
+test('dashboard renders while the optional font service is still pending', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('hc_guest_mode', 'true');
+    localStorage.setItem('hc_onboarded', 'true');
+    localStorage.setItem('hc_cookies_accepted', 'declined');
+  });
+  const fonts: import('@playwright/test').Route[] = [];
+  await page.route(/https:\/\//, route => route.abort());
+  await page.route(/https:\/\/fonts\.googleapis\.com\//, route => { fonts.push(route); });
+  try {
+    await page.goto('/app/today', { waitUntil: 'commit' });
+    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible({ timeout: 15000 });
+    expect(fonts.length).toBeGreaterThan(0);
+  } finally {
+    for (const font of fonts) await font.abort().catch(() => {});
+  }
+});
+
 test('Diet Plan opens without a runtime failure', async ({ page }) => {
   const pageErrors: string[] = [];
   page.on('pageerror', error => pageErrors.push(error.message));

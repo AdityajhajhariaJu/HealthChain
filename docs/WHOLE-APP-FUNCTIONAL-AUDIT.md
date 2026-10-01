@@ -69,6 +69,7 @@ Legacy aliases were traced: `/app/war-room`, `/app/cases`, `/app/multi`, `/app/m
 12. **Shared AI response integrity:** non-Diet/non-Ava operations now reject blank, thought-only, truncated and malformed structured provider responses, mark the request failed and release reserved quota. Answer parts are joined without exposing thought parts. Diet/Ava retain their operation-specific validators.
 13. **Legacy database helpers:** the timestamp trigger and optional vector matcher had mutable schema lookup. Their search paths are now fixed; the matcher qualifies its table and vector operator. Invoker permissions and existing grants are preserved. A temporary-row timestamp test and a zero-result matcher call passed in a rolled-back transaction.
 14. **Medication dialog dismissal:** Escape could leave the medication overlay open after schedule edits, blocking the baseline button below it. The listener is now stable, uses the current dismiss action and respects an overlaid dialog. The reproduced browser regression explicitly checks that the medication dialog has closed before editing the baseline.
+15. **Startup font dependency:** a production diagnostic held Google Fonts requests and the dashboard did not render until they were released. The HTML font sheet now loads without blocking startup, and a duplicate Inter import was removed from the main CSS. The regression keeps the font service pending while requiring the dashboard to render, with the same fonts applied when available.
 
 The public bucket is created lazily on a genuine authorized upload; no production cover image was uploaded by this audit. No real account received new CMS privileges.
 
@@ -101,6 +102,10 @@ The first 190-case browser sweep passed 185 cases and reported five timeouts. A 
 Three live rolled-back suites establish guest/owner feedback isolation, subscription recovery behavior (latest expiry, longer existing expiry, idempotence, full refunds/top-ups excluded and client execution denied), and unchanged behavior under fixed legacy function lookup. The full live SQL verifier passed. Build, lint, runtime dependency audit, server syntax and the **41-migration** contract passed; none establishes native delivery or clinical accuracy. Fresh security adviser output contains no mutable-function-search-path warning.
 
 The live public Auth settings endpoint returned HTTP 200: Google and email signup are enabled, signup is allowed, and Apple is disabled. The current login screen exposes Google; the unused Apple handler type does not establish an available Apple sign-in flow. These settings do not verify email delivery or the native redirect allowlist.
+
+Production follow-up: nine guest pages rendered with zero uncaught runtime errors; 17 read-only page/API/CORS checks passed. One real synthetic guest Ava request returned a complete HTTP 200 response. Real-provider meal-plan evaluations passed for India/Maharashtra (seven days, four meals/day) and Japan/Tokyo (seven days, five meals/day), using the shipped payload and validators. These samples establish operational generation and structure, not measured nutrient accuracy, universal clinical correctness or an authenticated user's complete generation/recovery path.
+
+Hosted CI on the first release commit passed unit/build gates and 189/190 browser cases. The failing case waited for `load` while analytics/font requests remained live in an otherwise mocked AI/research-failure fixture. The fixture now isolates external requests and waits for DOM readiness; its full interaction, research-outage and reload assertions remain in place. Final hosted results are recorded in the release evidence.
 
 ## Remaining acceptance and implementation boundaries
 
