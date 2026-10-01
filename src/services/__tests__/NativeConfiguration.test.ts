@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { expect, it } from 'vitest';
 import config from '../../../capacitor.config';
 
@@ -18,4 +19,12 @@ it('uses portable relative paths for Swift packages built on macOS', () => {
   expect(
     paths.every((path) => path.startsWith('../../../node_modules/') && !path.includes('\\'))
   ).toBe(true);
+});
+
+it('keeps the Xcode project parser and identifier generator compatible with the patched UUID dependency', () => {
+  const require = createRequire(import.meta.url);
+  const project = require('xcode').project('ios/App/App.xcodeproj/project.pbxproj').parseSync();
+  expect(project.getFirstTarget().firstTarget.name).toBe('App');
+  expect(project.generateUuid()).toMatch(/^[A-F0-9]{24}$/);
+  expect(project.writeSync()).toContain('PBXProject');
 });

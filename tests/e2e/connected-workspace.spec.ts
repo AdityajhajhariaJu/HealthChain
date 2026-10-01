@@ -29,8 +29,12 @@ test('a draft remains visible and connects My Cases, Ava, and the engine', async
     .fill('My energy changes after lunch. I want to prepare for my appointment.');
   await page.getByRole('button', { name: 'Save case draft', exact: true }).click();
   await expect(page).toHaveURL(/\/app\/cases\//);
+  // The router updates the URL before the lazy case screen finishes loading.
+  // Wait for the saved record, then use the same navigation as a person would.
+  await expect(page.getByRole('heading', { name: 'My energy timeline' })).toBeVisible();
   const caseId = new URL(page.url()).pathname.split('/').pop();
-  await page.goto('/app/my-cases', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('link', { name: 'My Cases', exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/my-cases$/);
   await expect(page.getByRole('heading', { name: 'My energy timeline' })).toBeVisible();
   await page.getByRole('link', { name: 'Discuss My energy timeline with Ava' }).click();
   await expect(page).toHaveURL(/\/app\/ava\?caseId=/);
