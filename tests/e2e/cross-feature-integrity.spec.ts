@@ -30,6 +30,9 @@ test('actual logout retains unqueued owned records and daily logs, while another
   expect(Object.keys(retained.local).some(key => key.startsWith('healthchain_hydration'))).toBe(true);
   expect(retained.indexed.some(([key]) => String(key).startsWith('hc_observations_v1:'))).toBe(true);
   await page.evaluate(() => window.dispatchEvent(new Event('hc_logout')));
+  // A guest already has no account key. Wait for completed logout navigation,
+  // otherwise the next page.goto can race the asynchronous sign-out redirect.
+  await expect(page).toHaveURL(/\/$/);
   await expect.poll(() => page.evaluate(() => localStorage.getItem('hc_account'))).toBeNull();
   const after = await page.evaluate(async (before) => {
     const idb = await import('/node_modules/.vite/deps/idb-keyval.js');

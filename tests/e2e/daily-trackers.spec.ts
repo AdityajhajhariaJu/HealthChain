@@ -93,7 +93,10 @@ for (const timezoneId of ['UTC', 'Asia/Kolkata']) {
       // Finish the scheduler's first lazy load before freezing React's retry timers.
       await page.getByRole('button', { name: /Daily Meds & Vitamins -/ }).click();
       await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toBeVisible();
-      await page.keyboard.press('Escape');
+      await page
+        .getByRole('dialog', { name: 'Medication & Chrono-Schedule' })
+        .getByRole('button', { name: 'Close', exact: true })
+        .click();
       await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
       await page.clock.pauseAt(start + 55000);
       await seedProfile(page);
