@@ -1,0 +1,3 @@
+## 2024-06-12 - Wrap Canvas Animation Loops in React.memo
+**Learning:** HTML5 Canvas components that contain continuous `requestAnimationFrame` loops cause severe performance bottlenecks if they re-render frequently (e.g., when a parent component's timer ticks every second), as React destroys and recreates the canvas context or continuously re-evaluates the component tree while the loop is running.
+**Action:** Always wrap Canvas components with animation loops in `React.memo` (using the `const Component = React.memo<Props>((...)` syntax in React 18+ TypeScript) to isolate them from frequent parent component re-renders.

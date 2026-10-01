@@ -72,7 +72,10 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+// ⚡ Bolt: Wrapped HTML5 Canvas containing a requestAnimationFrame loop in React.memo
+// Impact: Eliminates ~60 unnecessary canvas unmount/remount cycles per minute
+// when the parent MeditationPlayer component re-renders due to the ticking timeRemaining state.
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -385,7 +388,7 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});
 
 interface MeditationPlayerProps {
   content: FitnessContent | null;
