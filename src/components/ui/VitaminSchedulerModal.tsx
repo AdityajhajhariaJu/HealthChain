@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Bell,
   BellOff,
@@ -1138,7 +1138,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   };
 
   return createPortal(
-    <AnimatePresence>
       <div
         style={{
           position: 'fixed',
@@ -1154,14 +1153,10 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
         }}
         onClick={handleDismiss}
       >
-        <motion.div
+        <div
           role="dialog"
           aria-modal="true"
           aria-label="Medication & Chrono-Schedule"
-          initial={{ y: '100%' }}
-          animate={{ y: '0%' }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
           style={{
             width: '100%',
             maxWidth: '520px',
@@ -1939,9 +1934,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 : 'Save Schedule'}
             </button>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>,
+        </div>
+      </div>,
     document.body
   );
 };

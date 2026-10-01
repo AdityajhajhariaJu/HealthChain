@@ -106,6 +106,12 @@ for (const timezoneId of ['UTC', 'Asia/Kolkata']) {
       await page.getByRole('button', { name: 'Mark daily meds taken' }).click();
       await page.getByRole('button', { name: /Daily Meds & Vitamins -/ }).click();
       await expect(page.getByText('1 of 1 scheduled doses taken')).toBeVisible();
+      // Core dose actions must remain usable even when animation timers pause.
+      const scheduler = page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' });
+      await scheduler.getByRole('button', { name: 'Taken', exact: true }).click();
+      await expect(page.getByText('0 of 1 scheduled doses taken')).toBeVisible();
+      await scheduler.getByRole('button', { name: 'Take Dose', exact: true }).click();
+      await expect(page.getByText('1 of 1 scheduled doses taken')).toBeVisible();
       await page.clock.runFor(6000);
       await expect(page.getByText('0 of 1 scheduled doses taken')).toBeVisible();
       await page.keyboard.press('Escape');
@@ -162,10 +168,6 @@ test('baseline medicines reach the schedule and baseline edits preserve time, ID
   const time = page.getByLabel('Reminder time for Metformin');
   await expect(time).toHaveValue('08:30');
   await time.fill('21:30');
-  // Finish the native time editor before the separate dose action. WebKit can
-  // keep scrolling its focused time field into view during pointer preflight.
-  await time.press('Tab');
-  await expect(time).toHaveValue('21:30');
   await page.getByRole('button', { name: 'Take Dose', exact: true }).click();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
