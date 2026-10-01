@@ -44,6 +44,25 @@ test('landing text is visible immediately, zoom is available, and declining cons
       exact: true,
     })
   ).toBeInViewport();
+  expect(
+    await showcase
+      .locator('[class*="bentoColumnTrackLeft"]')
+      .evaluate((track) => getComputedStyle(track).animationName)
+  ).toBe('none');
+  await expect(showcase).toHaveAttribute('tabindex', '0');
+  expect(await showcase.evaluate((element) => getComputedStyle(element).overflowY)).toBe('auto');
+  await showcase.evaluate((window) => {
+    window.scrollTop = window.scrollHeight;
+  });
+  await expect(
+    page.getByRole('heading', {
+      name: 'When a Report Is Hard to Interpret, Keep the Source Visible',
+      exact: true,
+    })
+  ).toBeInViewport();
+  await showcase.evaluate((window) => {
+    window.scrollTop = 0;
+  });
   await expect
     .poll(() =>
       showcase

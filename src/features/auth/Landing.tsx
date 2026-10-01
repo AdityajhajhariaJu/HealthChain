@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   Activity,
   ArrowRight,
@@ -289,6 +289,7 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
 
 export default function Landing() {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1005,7 +1006,12 @@ export default function Landing() {
             </div>
 
             {/* 2-Column Continuous Vertical Auto-Scroller Window */}
-            <div className={styles.bentoScrollWindow}>
+            <div
+              className={styles.bentoScrollWindow}
+              role="region"
+              aria-label="Connected case workflow examples"
+              tabIndex={reduceMotion ? 0 : undefined}
+            >
               <div className={styles.bentoMasonryLayout}>
                 {/* Column 1 Track (Left Infinite Loop) */}
                 <div className={styles.bentoColumnScroll}>

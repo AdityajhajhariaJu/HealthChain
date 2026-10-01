@@ -41,7 +41,7 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 - Added repository hygiene and emitted-manifest startup-size gates to CI/build. Rewrote the inaccurate placeholder README/architecture guide and ignored CLI/build caches.
 - Updated vulnerable build/test dependencies within their supported release ranges. The native Xcode helper uses a scoped `uuid` 11.1.1 override: it preserves CommonJS support and the helper's `v4` API while including the [upstream security fix](https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq). A regression check parses the real iOS project, generates an identifier and serializes it without modifying the file. CI now audits development dependencies as well as application dependencies.
 - Removed unused locals, stale Ava prompt builders, redundant meal reductions, unused hashes and a background case-history subscription whose results were never rendered. Required model requests, payment handling, storage writes and API idempotency keys remain covered by their existing tests. The TypeScript build now rejects unused local declarations, and touched source is formatted consistently.
-- Landing text renders without an entrance delay. Removed an unused recurring update and limited an offscreen SVG animation to its visible period. Improved text contrast, heading order, minimum label size, mobile tag wrapping and browser zoom. Reduced-motion preferences stop decorative looping animations. A trial rendering shortcut was removed after it interfered with scrolling.
+- Landing text renders without an entrance delay. Removed an unused recurring update and limited an offscreen SVG animation to its visible period. Improved text contrast, heading order, minimum label size, mobile tag wrapping and browser zoom. Reduced-motion overrides follow the default animation rules; the regression failed before that ordering correction. The stopped showcase remains keyboard-focusable and manually scrollable, with duplicate loop cards hidden. Both browser engines verify that later cards remain reachable. A trial rendering shortcut was removed after it interfered with scrolling.
 - Analytics and Ads share one SDK loaded after optional consent; purchase conversion dispatch also requires consent. Accepted conversions retain their existing destination and values. Browser tests check both acceptance and decline paths. See [Google tag configuration](https://developers.google.com/tag-platform/gtagjs/configure).
 - Lighthouse now serves the built application with text compression using a small local audit server. Measurements from this harness must not be presented as a direct speed comparison with the old uncompressed static-server results. Accessibility, best-practices and SEO now require scores of at least 90; mobile performance's 90 target remains a warning.
 - After repeated Ubuntu mirror delays during browser installation, the quality job uses the official Playwright image matching the locked version, pinned by digest. A preflight verifies both Chromium/WebKit executables, so a future package/image mismatch fails before the full suite. This removes the separate system-package installation step. Guidance: [Playwright container CI](https://playwright.dev/docs/ci#via-containers).
@@ -50,10 +50,10 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 
 | Measurement | Before | After |
 |---|---:|---:|
-| Initial static JavaScript | 2,173,698 bytes | 854,100 bytes |
-| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,707 bytes |
+| Initial static JavaScript | 2,173,698 bytes | 854,127 bytes |
+| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,723 bytes |
 | Dashboard screen JavaScript chunk | 500,023 bytes | 92,939 bytes |
-| Built deployment files | 273,725,683 bytes | 252,905,288 bytes |
+| Built deployment files | 273,725,683 bytes | 252,905,733 bytes |
 | Repository working files | 1,565 | 767 |
 
 The initial JavaScript graph is **60.7% smaller** (59.6% for the gzip comparison). The dashboard chunk is **81.4% smaller**. These measure emitted bytes; route-specific requests, network/device conditions and provider response time also affect what users experience. The used audio library remains the largest part of the deployed/native asset footprint and was retained.
