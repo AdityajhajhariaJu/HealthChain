@@ -130,7 +130,7 @@ export default async function handler(req, res) {
           console.error('Webhook entitlement error:', error);
           const { error: statusError } = await supabase.from('payments').update({
             fulfillment_status: 'failed',
-            fulfillment_error: error.message || 'Webhook subscription activation failed',
+            fulfillment_error: 'Webhook subscription activation failed',
           }).eq('razorpay_payment_id', paymentId);
           if (statusError) console.error('Unable to record fulfillment failure:', statusError);
           return res.status(500).json({ error: 'Failed to activate entitlement' });
@@ -161,7 +161,7 @@ export default async function handler(req, res) {
           console.error('Webhook topup error:', topupError);
           const { error: statusError } = await supabase.from('payments').update({
             fulfillment_status: 'failed',
-            fulfillment_error: topupError.message || 'Webhook top-up activation failed',
+            fulfillment_error: 'Webhook top-up activation failed',
           }).eq('razorpay_payment_id', paymentId);
           if (statusError) console.error('Unable to record fulfillment failure:', statusError);
           return res.status(500).json({ error: 'Failed to record topup' });
