@@ -20,13 +20,15 @@ Set the public Supabase URL/key in `.env`. Keep service credentials and model/pa
 npm run verify:repository
 npm run verify:migrations
 npm run lint
-npm test -- --run
 npm run build
+npx cap copy android
+npx cap copy ios
+npm test -- --run
 npx playwright install chromium webkit
 npm run e2e -- --workers=1
 ```
 
-The build checks TypeScript, emits a Vite manifest and enforces the initial JavaScript budget. Generate bundle analysis only when needed by setting `ANALYZE=true`; `bundle-stats.html` stays outside the deployed output.
+The build checks TypeScript, emits a Vite manifest and enforces the initial JavaScript budget. Native parity tests read generated configuration, so a clean checkout must build/copy before running them. Generate bundle analysis only when needed by setting `ANALYZE=true`; `bundle-stats.html` stays outside the deployed output.
 
 After building, `npx cap copy` refreshes the native web assets/configuration. Signed native builds and phone acceptance require the platform toolchains and configured providers.
 
