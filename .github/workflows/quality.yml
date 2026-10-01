@@ -13,6 +13,11 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Match package-lock's Playwright version. Preinstalled browsers/dependencies
+    # avoid repeated, variable-duration Ubuntu mirror downloads.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble@sha256:baed2032d533817f3dbe6425de795788430ba345e819a1201337009ba17c9d07
+      options: --ipc=host --init
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +31,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify preinstalled browser version
+        run: |
+          node --input-type=module <<'NODE'
+          import { existsSync } from 'node:fs';
+          import { chromium, webkit } from '@playwright/test';
+          for (const browser of [chromium, webkit]) {
+            if (!existsSync(browser.executablePath())) {
+              throw new Error(`${browser.name()} is missing. Match the CI image to package-lock's Playwright version.`);
+            }
+          }
+          console.log('Matching Chromium and WebKit executables are preinstalled.');
+          NODE
 
       - name: Audit application and development dependencies
         run: npm audit --audit-level=moderate
@@ -56,9 +74,6 @@ jobs:
 
       - name: Unit tests
         run: npm test -- --run
-
-      - name: Install browsers for smoke tests
-        run: npx playwright install --with-deps chromium webkit
 
       - name: Browser smoke tests
         run: npm run e2e -- --project=chromium --project=webkit

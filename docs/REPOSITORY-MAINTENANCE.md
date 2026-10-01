@@ -44,6 +44,7 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 - Landing text renders without an entrance delay. Removed an unused recurring update and limited an offscreen SVG animation to its visible period. Improved text contrast, heading order, minimum label size, mobile tag wrapping and browser zoom. Reduced-motion preferences stop decorative looping animations. A trial rendering shortcut was removed after it interfered with scrolling.
 - Analytics and Ads share one SDK loaded after optional consent; purchase conversion dispatch also requires consent. Accepted conversions retain their existing destination and values. Browser tests check both acceptance and decline paths. See [Google tag configuration](https://developers.google.com/tag-platform/gtagjs/configure).
 - Lighthouse now serves the built application with text compression using a small local audit server. Measurements from this harness must not be presented as a direct speed comparison with the old uncompressed static-server results. Accessibility, best-practices and SEO now require scores of at least 90; mobile performance's 90 target remains a warning.
+- After repeated Ubuntu mirror delays during browser installation, the quality job uses the official Playwright image matching the locked version, pinned by digest. A preflight verifies both Chromium/WebKit executables, so a future package/image mismatch fails before the full suite. This removes the separate system-package installation step. Guidance: [Playwright container CI](https://playwright.dev/docs/ci#via-containers).
 
 ## Measured results
 
