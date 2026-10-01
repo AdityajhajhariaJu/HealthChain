@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     StatusBar: { style: 'dark', backgroundColor: '#0F172A' },
     SplashScreen: { launchShowDuration: 2000, backgroundColor: '#0F172A', showSpinner: false },
     Keyboard: { resize: 'body', resizeOnFullScreen: true },
-    PushNotifications: { presentationOptions: ['badge', 'sound', 'alert'] },
+    PushNotifications: { presentationOptions: ['badge', 'sound', 'alert', 'banner', 'list'] },
     LocalNotifications: { presentationOptions: ['badge', 'sound', 'banner', 'list'] },
   },
 };

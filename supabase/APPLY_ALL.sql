@@ -2891,3 +2891,169 @@ $$;
 create index if not exists idx_user_health_metrics_owner_start_time
   on public.user_health_metrics (user_id, start_time desc);
 
+-- ===== 20261001113341_profile_atomic_field_sync.sql =====
+-- A client first merges against its immutable baseline, then submits a CAS.
+-- The lock covers first inserts as well as updates. RLS and the erasure trigger
+-- remain in force; this function never takes a caller-supplied owner ID.
+create or replace function public.sync_health_profile_snapshot(
+  p_profile_id text, p_expected_data jsonb, p_expected_legacy_at timestamptz, p_data jsonb
+)
+returns jsonb language plpgsql security invoker set search_path = '' as $$
+declare
+  owner_id uuid := auth.uid();
+  current_data jsonb;
+  legacy_at timestamptz;
+  next_data jsonb;
+  stamp timestamptz := now();
+begin
+  if owner_id is null or not public.healthchain_current_account_active()
+     or p_profile_id is null or p_profile_id !~ '^profile_[0-9]{1,12}$'
+     or p_data is null or jsonb_typeof(p_data) <> 'object' or octet_length(p_data::text) > 10000000 then
+    raise exception 'Invalid health profile sync' using errcode = '42501';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended(owner_id::text || ':profile:' || p_profile_id, 0));
+  select data into current_data from public.healthchain_profiles
+    where user_id = owner_id and profile_id = p_profile_id for update;
+  if p_profile_id = 'profile_1' then
+    select updated_at into legacy_at from public.profiles where id = owner_id for update;
+  end if;
+  if current_data is distinct from p_expected_data or legacy_at is distinct from p_expected_legacy_at then
+    return jsonb_build_object('success', false, 'conflict', true);
+  end if;
+  next_data := (p_data - array['isPro','proExpiresAt','is_pro','pro_expires_at','ai_token_usage','ai_usage_reset_date','access_token','refresh_token'])
+    || jsonb_build_object('id', p_profile_id, 'updatedAt', stamp);
+  insert into public.healthchain_profiles(user_id,profile_id,profile_name,data,updated_at)
+    values(owner_id,p_profile_id,coalesce(next_data->>'profileName','My Profile'),next_data,stamp)
+    on conflict(user_id,profile_id) do update set
+      profile_name=excluded.profile_name,data=excluded.data,updated_at=excluded.updated_at;
+  if p_profile_id = 'profile_1' then
+    -- One transaction keeps the primary compatibility row aligned. Paid access
+    -- and quota columns are deliberately never included in this projection.
+    insert into public.profiles(id,full_name,demographics,conditions,medications,allergies,family_history,timeline,vitals,nutrition,health_focus)
+    values(owner_id,next_data->>'profileName',
+      coalesce(next_data->'demographics','{}'::jsonb) || jsonb_build_object('onboardingCompletedAt',next_data->'onboardingCompletedAt'),
+      coalesce(next_data->'conditions','[]'::jsonb),coalesce(next_data->'medications','[]'::jsonb),
+      coalesce(next_data->'allergies','[]'::jsonb),coalesce(next_data->'familyHistory','[]'::jsonb),
+      coalesce(next_data->'timeline','[]'::jsonb),coalesce(next_data->'vitals','{}'::jsonb),
+      coalesce(next_data->'nutrition','{}'::jsonb),next_data->>'healthFocus')
+    on conflict(id) do update set full_name=excluded.full_name,demographics=excluded.demographics,
+      conditions=excluded.conditions,medications=excluded.medications,allergies=excluded.allergies,
+      family_history=excluded.family_history,timeline=excluded.timeline,vitals=excluded.vitals,
+      nutrition=excluded.nutrition,health_focus=excluded.health_focus;
+  end if;
+  return jsonb_build_object('success',true,'data',next_data);
+end $$;
+revoke all on function public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb) from public,anon;
+grant execute on function public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb) to authenticated;
+
+-- ===== 20261001114032_archive_complete_recovery.sql =====
+-- Recover missing rows atomically; existing cloud rows and newer facts win.
+-- Browser RLS, foreign keys, input checks and erasure guards stay enabled.
+create or replace function public.restore_health_archive_records(p_archive jsonb)
+returns jsonb language plpgsql security invoker set search_path = '' as $$
+declare
+  owner_id uuid := auth.uid();
+  target text;
+  rows jsonb;
+  filter_sql text;
+  restored integer;
+  counts jsonb := '{}';
+  profile jsonb := p_archive->'profile';
+begin
+  if owner_id is null or not public.healthchain_current_account_active()
+     or p_archive->>'userId' is distinct from owner_id::text
+     or jsonb_typeof(p_archive) <> 'object' or octet_length(p_archive::text) > 20000000 then
+    raise exception 'Invalid archive owner or size' using errcode='42501';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended(owner_id::text || ':archive',0));
+  if profile is not null and profile <> 'null'::jsonb then
+    if profile->>'id' is distinct from owner_id::text then raise exception 'Invalid archive profile owner' using errcode='42501'; end if;
+    insert into public.profiles(id,full_name,demographics,conditions,medications,allergies,family_history,timeline,vitals,nutrition,health_focus)
+    values(owner_id,profile->>'full_name',coalesce(profile->'demographics','{}'),coalesce(profile->'conditions','[]'),
+      coalesce(profile->'medications','[]'),coalesce(profile->'allergies','[]'),coalesce(profile->'family_history','[]'),
+      coalesce(profile->'timeline','[]'),coalesce(profile->'vitals','{}'),coalesce(profile->'nutrition','{}'),profile->>'health_focus')
+    on conflict(id) do nothing;
+  end if;
+  foreach target in array array['case_tombstones','cases','healthchain_profiles','health_memory','health_observations','ava_messages','user_health_metrics','user_body_measurements','user_fitness_history'] loop
+    rows := coalesce(p_archive->target,'[]'::jsonb);
+    if jsonb_typeof(rows) <> 'array' or jsonb_array_length(rows) > 100000
+       or exists(select 1 from jsonb_array_elements(rows) item where jsonb_typeof(item)<>'object' or item->>'user_id' is distinct from owner_id::text) then
+      raise exception 'Invalid archive collection: %',target using errcode='42501';
+    end if;
+    if target='healthchain_profiles' and exists(select 1 from jsonb_array_elements(rows) item where
+        jsonb_typeof(item->'data')<>'object' or item->'data' ?| array['isPro','proExpiresAt','is_pro','pro_expires_at','access_token','refresh_token']) then
+      raise exception 'Archive cannot restore access claims' using errcode='42501';
+    end if;
+    filter_sql := 'true';
+    if target='cases' then
+      filter_sql := 'not exists(select 1 from public.case_tombstones t where t.user_id=r.user_id and t.id=r.id)';
+    elsif target='case_tombstones' then
+      filter_sql := 'not exists(select 1 from public.cases c where c.user_id=r.user_id and c.id=r.id and c.deleted_at is null)';
+    elsif target='ava_messages' then
+      filter_sql := '(r.case_id is null or exists(select 1 from public.cases c where c.user_id=r.user_id and c.id::text=r.case_id and c.deleted_at is null))';
+    end if;
+    execute format('insert into public.%I select r.* from jsonb_populate_recordset(null::public.%I,$1) r where %s on conflict do nothing',target,target,filter_sql) using rows;
+    get diagnostics restored = row_count;
+    counts := counts || jsonb_build_object(target,restored);
+  end loop;
+  return jsonb_build_object('success',true,'restored',counts,'existingCloudRecordsPreserved',true);
+end $$;
+revoke all on function public.restore_health_archive_records(jsonb) from public,anon;
+grant execute on function public.restore_health_archive_records(jsonb) to authenticated;
+
+-- ===== 20261001115502_archive_case_identity_compatibility.sql =====
+-- Live cases use UUID identifiers; legacy tombstones use text. Compare their canonical text identity.
+-- Recover missing rows atomically; existing cloud rows and newer facts win.
+-- Browser RLS, foreign keys, input checks and erasure guards stay enabled.
+create or replace function public.restore_health_archive_records(p_archive jsonb)
+returns jsonb language plpgsql security invoker set search_path = '' as $$
+declare
+  owner_id uuid := auth.uid();
+  target text;
+  rows jsonb;
+  filter_sql text;
+  restored integer;
+  counts jsonb := '{}';
+  profile jsonb := p_archive->'profile';
+begin
+  if owner_id is null or not public.healthchain_current_account_active()
+     or p_archive->>'userId' is distinct from owner_id::text
+     or jsonb_typeof(p_archive) <> 'object' or octet_length(p_archive::text) > 20000000 then
+    raise exception 'Invalid archive owner or size' using errcode='42501';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended(owner_id::text || ':archive',0));
+  if profile is not null and profile <> 'null'::jsonb then
+    if profile->>'id' is distinct from owner_id::text then raise exception 'Invalid archive profile owner' using errcode='42501'; end if;
+    insert into public.profiles(id,full_name,demographics,conditions,medications,allergies,family_history,timeline,vitals,nutrition,health_focus)
+    values(owner_id,profile->>'full_name',coalesce(profile->'demographics','{}'),coalesce(profile->'conditions','[]'),
+      coalesce(profile->'medications','[]'),coalesce(profile->'allergies','[]'),coalesce(profile->'family_history','[]'),
+      coalesce(profile->'timeline','[]'),coalesce(profile->'vitals','{}'),coalesce(profile->'nutrition','{}'),profile->>'health_focus')
+    on conflict(id) do nothing;
+  end if;
+  foreach target in array array['case_tombstones','cases','healthchain_profiles','health_memory','health_observations','ava_messages','user_health_metrics','user_body_measurements','user_fitness_history'] loop
+    rows := coalesce(p_archive->target,'[]'::jsonb);
+    if jsonb_typeof(rows) <> 'array' or jsonb_array_length(rows) > 100000
+       or exists(select 1 from jsonb_array_elements(rows) item where jsonb_typeof(item)<>'object' or item->>'user_id' is distinct from owner_id::text) then
+      raise exception 'Invalid archive collection: %',target using errcode='42501';
+    end if;
+    if target='healthchain_profiles' and exists(select 1 from jsonb_array_elements(rows) item where
+        jsonb_typeof(item->'data')<>'object' or item->'data' ?| array['isPro','proExpiresAt','is_pro','pro_expires_at','access_token','refresh_token']) then
+      raise exception 'Archive cannot restore access claims' using errcode='42501';
+    end if;
+    filter_sql := 'true';
+    if target='cases' then
+      filter_sql := 'not exists(select 1 from public.case_tombstones t where t.user_id=r.user_id and t.id::text=r.id::text)';
+    elsif target='case_tombstones' then
+      filter_sql := 'not exists(select 1 from public.cases c where c.user_id=r.user_id and c.id::text=r.id::text and c.deleted_at is null)';
+    elsif target='ava_messages' then
+      filter_sql := '(r.case_id is null or exists(select 1 from public.cases c where c.user_id=r.user_id and c.id::text=r.case_id and c.deleted_at is null))';
+    end if;
+    execute format('insert into public.%I select r.* from jsonb_populate_recordset(null::public.%I,$1) r where %s on conflict do nothing',target,target,filter_sql) using rows;
+    get diagnostics restored = row_count;
+    counts := counts || jsonb_build_object(target,restored);
+  end loop;
+  return jsonb_build_object('success',true,'restored',counts,'existingCloudRecordsPreserved',true);
+end $$;
+revoke all on function public.restore_health_archive_records(jsonb) from public,anon;
+grant execute on function public.restore_health_archive_records(jsonb) to authenticated;
+

@@ -1,4 +1,4 @@
-import { checkRateLimit } from './utils/rate-limit.js';
+import { checkRateLimit } from '../server/rate-limit.js';
 import { validProductBarcode, normalizeFoodProduct } from '../shared/food-product.js';
 import { allowedOrigin } from '../shared/http-origins.js';
 export default async function handler(req, res) {

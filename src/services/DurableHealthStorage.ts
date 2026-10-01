@@ -8,6 +8,7 @@ const prefixes = [
   'hc_medication_schedule_linked:',
   'hc_observation_conflict_history:', 'hc_observation_conflicts:',
   'hc_device_metrics:',
+  'hc_profile_sync_base:',
   'hc_ava_vault_', 'hc_plan_',
   'hc_food_logs_', 'hc_diet_profile_', 'hc_hydration_', 'hc_meal_plan_', 'hc_diet_advice_',
 ];

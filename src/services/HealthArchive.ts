@@ -17,6 +17,8 @@ import { validateObservationDraft } from '../domain/observations/types';
 import { isOwnerStorageKey, isDurableHealthStorageKey } from './DurableHealthStorage';
 import { ALLOWED_FILE_MIME_TYPES, MAX_FILE_SIZE_BYTES, originalBlobFromStored, storeOriginalBlob } from './caseRecordFiles';
 import { supabase } from './supabaseClient';
+import { restoreArchivedSyncQueue, exportSyncQueue } from './SyncOutbox';
+import { CLOUD_ARCHIVE_TABLES, validateCloudRecovery, validateArchiveQueue } from './ArchiveRecoveryValidation';
 
 type ArchivedOriginal = { encoding: 'base64'; data: string; type: string; size: number; sha256: string };
 const MAX_ARCHIVE_ORIGINAL_BYTES = 100 * 1024 * 1024;
@@ -37,11 +39,11 @@ export async function exportCloudArchive(ownerId: string) {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', ownerId).maybeSingle();
   if (error) throw error;
   const collections: Record<string, unknown[]> = {};
-  for (const table of ['cases', 'health_memory', 'healthchain_profiles', 'health_observations', 'ava_messages', 'user_health_metrics']) {
+  for (const table of CLOUD_ARCHIVE_TABLES) {
     const rows: unknown[] = [];
     for (let offset = 0; ; offset += 500) {
       if (!isHealthMemoryScopeCurrent(scope)) throw new Error('Account changed.');
-      const result = await supabase.from(table).select('*').eq('user_id', ownerId).order('id', { ascending: true }).range(offset, offset + 499);
+      const result = await supabase.from(table).select('*').eq('user_id', ownerId).order(table === 'healthchain_profiles' ? 'profile_id' : 'id', { ascending: true }).range(offset, offset + 499);
       if (result.error) throw new Error(`Cloud export failed for ${table}. No partial archive was downloaded.`);
       rows.push(...(result.data || []));
       if (!result.data || result.data.length < 500) break;
@@ -107,13 +109,14 @@ export async function addDurableArchiveData(local: Record<string, string>) {
   }
   if (!isHealthMemoryScopeCurrent(scope))
     throw new Error('Account changed. Export again from the intended account.');
+  if (scope.accountId !== 'guest') pendingSync[`hc_sync_outbox_${scope.accountId}`] = withoutClaims(await exportSyncQueue(scope.accountId));
   local[scope.key] = JSON.stringify(memory);
   if (messages) local[avaConversationKey()] = JSON.stringify(messages);
   return {
     ownerId: scope.accountId,
     originals,
     pendingSync,
-    manifest: { version: 3, localCount: Object.keys(local).length, observationCount: observations.length, originalCount: Object.keys(originals).length, originalBytes: totalBytes, restoreScope: 'local-device-records-and-originals; pending sync and cloud snapshots are reference copies' },
+    manifest: { version: 3, localCount: Object.keys(local).length, observationCount: observations.length, originalCount: Object.keys(originals).length, originalBytes: totalBytes, restoreScope: 'local records and originals; unsent changes recovered; missing cloud records recovered without replacing current cloud facts' },
     indexedDB: { ['hc_observations_v1:' + scope.accountId + ':' + scope.profileId]: observations },
   };
 }
@@ -126,6 +129,8 @@ export function validateHealthArchive(raw: unknown, prefixes: string[]) {
   const owner = archive.ownerId || archive.supabase?.userId;
   if (owner && owner !== scope.accountId)
     throw new Error('This archive belongs to a different account.');
+  const cloud = validateCloudRecovery(withoutClaims(archive.supabase), scope.accountId);
+  const pending = validateArchiveQueue(withoutClaims(archive.pendingSync), scope.accountId);
   const local =
     archive.format?.startsWith('healthchain-user-data-v') ? archive.localStorage : archive.data || archive;
   if (!local || typeof local !== 'object' || Array.isArray(local))
@@ -217,9 +222,9 @@ export function validateHealthArchive(raw: unknown, prefixes: string[]) {
     indexed[key] = value;
   }
   if (archive.manifest && (archive.manifest.localCount !== Object.keys(local).length || archive.manifest.observationCount !== ((indexed['hc_observations_v1:' + scope.accountId + ':' + scope.profileId] as any[]) || []).length || archive.manifest.originalCount !== Object.keys(originals).length || archive.manifest.originalBytes !== originalBytes)) throw new Error('Archive manifest counts do not match its records.');
-  if (!Object.keys(entries).length && !Object.keys(indexed).length)
+  if (!Object.keys(entries).length && !Object.keys(indexed).length && !Object.keys(originals).length && !pending.length && !cloud)
     throw new Error('No restorable records for this account were found.');
-  return { entries, indexed, originals, skipped, scope };
+  return { entries, indexed, originals, skipped, scope, pending, cloud };
 }
 export async function restoreHealthArchive(raw: unknown, prefixes: string[]) {
   const validated = validateHealthArchive(raw, prefixes);
@@ -254,8 +259,10 @@ export async function restoreHealthArchive(raw: unknown, prefixes: string[]) {
       await storeOriginalBlob(key, value);
     }
     if (!isHealthMemoryScopeCurrent(validated.scope)) throw new Error('Account changed.');
+    const queued = validated.pending.length || validated.cloud ? await restoreArchivedSyncQueue(validated.scope.accountId, validated.pending, validated.cloud) : 0;
     return {
-      count: Object.keys(validated.entries).length + Object.keys(validated.indexed).length + Object.keys(validated.originals).length,
+      count: Object.keys(validated.entries).length + Object.keys(validated.indexed).length + Object.keys(validated.originals).length + queued,
+      queued,
       skipped: validated.skipped,
     };
   } catch (error) {

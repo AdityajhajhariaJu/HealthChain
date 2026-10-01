@@ -1,6 +1,6 @@
 import { validateAvaRequest, buildAvaProviderPayload, usableAvaReply, validateAvaMemoryRequest, buildAvaMemoryProviderPayload } from '../shared/ava-request.js';
-import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from './utils/gut-reasoning.js';
-import { checkRateLimit } from './utils/rate-limit.js';
+import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from '../server/gut-reasoning.js';
+import { checkRateLimit } from '../server/rate-limit.js';
 import { validateGeneratedMealPlan, alignMealPlanPortions } from '../shared/diet-plan-validation.js';
 import { validateDietPreferenceFit } from '../shared/diet-preference-fit.js';
 import { buildDietPlanProviderPayload, validateDietPlanRequest, DIET_PLAN_OUTPUT_TOKENS } from '../shared/diet-plan-request.js';

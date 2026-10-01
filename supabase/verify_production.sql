@@ -257,3 +257,13 @@ begin
     raise exception 'Deleted-owner write barrier missing';
   end if;
 end $$;
+-- Profile CAS and archive recovery run with the caller's RLS privileges.
+do $$ begin
+  if to_regprocedure('public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb)') is null
+    or to_regprocedure('public.restore_health_archive_records(jsonb)') is null then raise exception 'Missing profile/archive recovery functions'; end if;
+  if exists(select 1 from pg_proc where oid in (
+      'public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb)'::regprocedure,
+      'public.restore_health_archive_records(jsonb)'::regprocedure) and prosecdef) then raise exception 'Recovery must enforce caller RLS'; end if;
+  if has_function_privilege('anon','public.sync_health_profile_snapshot(text,jsonb,timestamptz,jsonb)','execute')
+    or has_function_privilege('anon','public.restore_health_archive_records(jsonb)','execute') then raise exception 'Recovery exposed anonymously'; end if;
+end $$;

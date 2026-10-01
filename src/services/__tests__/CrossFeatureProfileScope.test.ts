@@ -37,7 +37,7 @@ describe('shared profile ownership and corrections', () => {
     const oldSave = saveProfile({ ...getProfile(), healthFocus: 'old local concern' });
     await saveProfile({ ...getProfile(), healthFocus: 'new local concern' });
     auth.resolve({ data: { session: { user: { id: 'account-a' } } } }); await oldSave;
-    expect(mocks.queue).toHaveBeenCalledTimes(2);
+    expect(mocks.queue).toHaveBeenCalledTimes(1);
     expect(mocks.queue.mock.calls.every((call: any[]) => !JSON.stringify(call).includes('old local concern'))).toBe(true);
   });
   it('does not queue account A profile under account B after delayed authentication', async () => {
@@ -68,6 +68,7 @@ describe('shared profile ownership and corrections', () => {
   });
   it('respects newer explicitly empty medications, conditions and allergies', async () => {
     seed('account-a', { updatedAt: '2026-09-01T00:00:00Z', conditions: ['old'], allergies: ['old'], medications: [{ id: 'old', name: 'old', time: '' }] });
+    localStorage.setItem('hc_profile_sync_base:account-a:profile_1', JSON.stringify(getProfileEngineState().profiles.profile_1));
     remote({ data: { full_name: 'updated', updated_at: '2026-10-01T00:00:00Z', medications: [], conditions: [], allergies: [] }, error: null });
     await syncProfileFromSupabase('account-a'); const saved = getProfileEngineState().profiles.profile_1;
     expect(saved.medications).toEqual([]); expect(saved.conditions).toEqual([]); expect(saved.allergies).toEqual([]);

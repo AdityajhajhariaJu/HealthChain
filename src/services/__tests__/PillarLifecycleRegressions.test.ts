@@ -24,9 +24,8 @@ describe('pillar lifecycle regression checks', () => {
     const archive = { format: 'healthchain-user-data-v2', ownerId: 'guest', localStorage: { hc_active_case_guest_profile_1: 'de305d54-75b4-431b-adb2-eb6b9e546014', hc_cases_guest_profile_1: '[]' } };
     expect(validateHealthArchive(archive, ['hc_active_case_guest', 'hc_cases_guest']).entries.hc_active_case_guest_profile_1).toBe(archive.localStorage.hc_active_case_guest_profile_1);
   });
-  it('DA-03: cloud snapshots are explicitly separate from local restore', async () => {
-    const result = await restoreHealthArchive({ format: 'healthchain-user-data-v2', ownerId: 'guest', localStorage: { hc_unified_profile_guest: '{"profiles":{}}' }, supabase: { cases: [{ id: 'cloud-only-case', data: { title: 'SYNTHETIC_CLOUD_ONLY' } }] } }, ['hc_unified_profile_guest', 'hc_cases_guest']);
-    expect(result.count).toBe(1);
+  it('DA-03: an unowned cloud snapshot is rejected before any local writes', async () => {
+    await expect(restoreHealthArchive({ format: 'healthchain-user-data-v2', ownerId: 'guest', localStorage: { hc_unified_profile_guest: '{"profiles":{}}' }, supabase: { cases: [{ id: 'cloud-only-case', data: { title: 'SYNTHETIC_CLOUD_ONLY' } }] } }, ['hc_unified_profile_guest', 'hc_cases_guest'])).rejects.toThrow('Cloud archive belongs');
     expect(localStorage.getItem('hc_cases_guest_profile_1')).toBeNull();
     expect(JSON.stringify([...state.disk.values()])).not.toContain('SYNTHETIC_CLOUD_ONLY');
   });

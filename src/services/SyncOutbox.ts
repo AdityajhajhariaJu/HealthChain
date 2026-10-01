@@ -7,8 +7,11 @@ import { mergeCaseItems } from './CaseMergeEngine';
 import { recordTombstone, isTombstoned } from './TombstoneManager';
 import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
 import { getProfileKey, getProfileEngineState } from './ProfileEngine';
-import { mergeGutThreads } from './GutThreadMerge';
-import { preserveDietPlanState } from './DietProfileMerge';
+import { sendProfileSnapshot } from './ProfileCloudSync';
+import { readProfileBaseline, rebaseDeviceProfile } from './ProfileSyncBaseline';
+import { applyProfileChoice } from './ProfileFieldMerge';
+import { mergeConnectedProfiles } from './ConnectedProfileMerge';
+import { validateArchiveQueue, validateCloudRecovery } from './ArchiveRecoveryValidation';
 import { sameObservationMutation } from '../../shared/observation-sync-content.js';
 import { isOwnerErased } from './DurableHealthStorage';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
@@ -23,7 +26,8 @@ type OutboxKind =
   | 'caregiver_profile_upsert'
   | 'fitness_history_upsert'
   | 'body_measurements_upsert'
-  | 'health_metrics_upsert';
+  | 'health_metrics_upsert'
+  | 'archive_cloud_restore';
 
 interface OutboxEntry {
   id: string;
@@ -122,6 +126,10 @@ async function enqueueSyncUnserialized(kind: OutboxKind, userId: string, payload
     (entry.payload?.id || entry.payload?.profile_id || entry.payload?.data?.id) === stableId &&
     (kind !== 'health_observation_upsert' || entry.payload?.revision === payload?.revision));
   const currentScope = getCurrentScope();
+  if (kind === 'caregiver_profile_upsert' || kind === 'profile_upsert') {
+    payload = { ...payload, _sync_base: existing >= 0 ? queue[existing].payload._sync_base
+      : payload._sync_base ?? readProfileBaseline(userId, payload.profile_id || 'profile_1') ?? {} };
+  }
   const entry: OutboxEntry = {
     id: existing >= 0 ? queue[existing].id : entryId(),
     kind,
@@ -152,6 +160,12 @@ async function enqueueSyncUnserialized(kind: OutboxKind, userId: string, payload
 }
 
 async function send(entry: OutboxEntry, expectedScope?: string) {
+  if (entry.kind === 'archive_cloud_restore') {
+    validateCloudRecovery(entry.payload.archive, entry.userId);
+    const result = await supabase.rpc('restore_health_archive_records', { p_archive: entry.payload.archive });
+    if (result.error) return result;
+    return { error: result.data?.success ? null : new Error('Cloud archive recovery was not acknowledged') };
+  }
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
     : entry.kind === 'ava_message_upsert' ? 'ava_messages'
@@ -166,7 +180,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
 
   // Protect non-case entities from stale offline snapshots overwriting newer remote updates
   if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' &&
-      entry.kind !== 'health_observation_upsert' && entry.kind !== 'caregiver_profile_upsert' &&
+      entry.kind !== 'health_observation_upsert' && entry.kind !== 'caregiver_profile_upsert' && entry.kind !== 'profile_upsert' &&
       recordId && localUpdatedAt) {
     const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
     const remoteResult = table === 'healthchain_profiles'
@@ -471,38 +485,7 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
     return result;
   }
 
-  if (entry.kind === 'caregiver_profile_upsert') {
-    const profileId = entry.payload?.profile_id;
-    if (!profileId || entry.payload?.user_id !== entry.userId || !entry.payload?.data) {
-      return { error: new Error('Invalid profile sync payload') };
-    }
-    const { data: remote, error: readError } = await supabase.from('healthchain_profiles')
-      .select('data,updated_at').eq('user_id', entry.userId).eq('profile_id', profileId).maybeSingle();
-    if (readError) return { error: readError };
-    const localData = entry.payload.data;
-    const remoteData = remote?.data && typeof remote.data === 'object' ? remote.data : {};
-    // Compare actual edits, not a later delivery timestamp from an older queued write.
-    const remoteEditedAt = remoteData.updatedAt || remote?.updated_at;
-    const localEditedAt = localData.updatedAt || entry.payload.updated_at;
-    const remoteNewer = !!remoteEditedAt && remoteEditedAt > String(localEditedAt || '');
-    const mergedData = preserveDietPlanState({
-      ...(remoteNewer ? localData : remoteData),
-      ...(remoteNewer ? remoteData : localData),
-      id: profileId,
-      gutResolutionThreads: mergeGutThreads(
-        localData.gutResolutionThreads, remoteData.gutResolutionThreads, getProfileKey(), profileId
-      ),
-    }, localData, remoteData);
-    const updatedAt = new Date(Math.max(Date.now(), Date.parse(entry.payload.updated_at) || 0,
-      Date.parse(remote?.updated_at || '') || 0) + 1).toISOString();
-    return supabase.from('healthchain_profiles').upsert({
-      ...entry.payload, data: mergedData, updated_at: updatedAt,
-    }, { onConflict: 'user_id,profile_id' });
-  }
-
-  if (entry.kind === 'profile_upsert') {
-    return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
-  }
+  if (entry.kind === 'caregiver_profile_upsert' || entry.kind === 'profile_upsert') return sendProfileSnapshot(entry);
 
   if (entry.kind === 'fitness_history_upsert') {
     return supabase.from('user_fitness_history').upsert(entry.payload, { onConflict: 'id' });
@@ -547,7 +530,9 @@ export async function flushSyncOutbox(userId?: string) {
     const initialPayloadById = new Map(queue.map(entry => [entry.id, JSON.stringify(entry.payload)]));
 
     const remaining: OutboxEntry[] = [];
+    const profileAcknowledgements = new Map<string, any>();
     for (const entry of queue) {
+      if (entry.conflictRemote) { remaining.push(entry); continue; }
       // Step 15: Guard against profile switch mid-operation
       if (getCurrentScope() !== startScope || !isAccountScopeCurrent(accountScope)) {
         remaining.push(entry);
@@ -555,9 +540,11 @@ export async function flushSyncOutbox(userId?: string) {
       }
 
       try {
-        const { error } = await send(entry, startScope);
+        const result = await send(entry, startScope);
+        const { error } = result;
         if (!isAccountScopeCurrent(accountScope)) return;
         if (error) throw error;
+        if ('profileAcknowledgement' in result) profileAcknowledgements.set(entry.id, result.profileAcknowledgement);
         lastSyncError = null;
         lastSyncedAt = new Date().toISOString();
       } catch (error: any) {
@@ -607,6 +594,14 @@ export async function flushSyncOutbox(userId?: string) {
       const initial = initialPayloadById.get(entry.id);
       return initial === undefined || initial !== JSON.stringify(entry.payload);
     });
+    for (const entry of concurrentEntries) {
+      const ack = profileAcknowledgements.get(entry.id);
+      if (!ack || entry.kind !== 'caregiver_profile_upsert') continue;
+      const rebased = mergeConnectedProfiles(ack.local, entry.payload.data, ack.cloud, accountId, ack.profileId);
+      let data = rebased.merged;
+      for (const field of rebased.conflicts) data = applyProfileChoice(data, field, 'local');
+      entry.payload = { ...entry.payload, data, _sync_base: ack.cloud };
+    }
     const merged = new Map(remaining.map((entry) => [entry.id, entry]));
     concurrentEntries.forEach((entry) => merged.set(entry.id, entry));
     const result = Array.from(merged.values());
@@ -682,7 +677,7 @@ export async function getSyncStatus(userId?: string): Promise<SyncStatusDetail> 
     pendingCount: queue.length,
     lastSyncedAt: lastSyncedAt || undefined,
     lastError: lastSyncError || undefined,
-    conflictsCount: queue.filter(entry => entry.lastError?.includes('conflict')).length,
+    conflictsCount: queue.filter(entry => entry.conflictRemote).length,
   };
 }
 
@@ -692,10 +687,62 @@ export async function clearSyncOutbox(userId: string) {
   try { await del(key); } catch {}
   try { window.localStorage.removeItem(key); } catch {}
 }
+/** Restore atomically with concurrent enqueues; existing device edits are never dropped. */
+export function restoreArchivedSyncQueue(userId: string, archived: any[], cloud: any) {
+  return serializeQueue(async () => {
+    const scope = captureAccountScope();
+    if (scope.accountId !== userId || !isAccountScopeCurrent(scope)) throw new Error('Account changed.');
+    validateArchiveQueue({ [currentUserKey(userId)]: archived }, userId);
+    validateCloudRecovery(cloud, userId);
+    const current = await readQueue(userId), restored: OutboxEntry[] = [];
+    if (cloud) restored.push({ id: entryId(), kind: 'archive_cloud_restore', userId, payload: { archive: cloud }, attempts: 0, createdAt: new Date().toISOString(), scopeKey: getCurrentScope() });
+    for (const source of archived) {
+      const sameId = current.find(entry => entry.id === source.id);
+      if (sameId && JSON.stringify(sameId.payload) === JSON.stringify(source.payload)) continue;
+      const entry = { ...JSON.parse(JSON.stringify(source)), id: sameId ? entryId() : source.id, scopeKey: getCurrentScope() };
+      // Imported review state is untrusted and can be recomputed against the actual cloud.
+      delete entry.conflictRemote; delete entry.lastError; entry.attempts = 0;
+      restored.push(entry);
+    }
+    const queue = [...restored, ...current];
+    if (queue.length > MAX_OUTBOX_ENTRIES) throw new Error('The restored and current unsent changes exceed device capacity. Sync existing changes first.');
+    if (!isAccountScopeCurrent(scope) || !await writeQueue(userId, queue)) throw new Error('Unsent changes could not be restored.');
+    window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: queue.length } }));
+    return restored.length;
+  });
+}
+export async function exportSyncQueue(userId: string) { return JSON.parse(JSON.stringify(await serializeQueue(() => readQueue(userId)))); }
 
 export async function getObservationConflicts(userId: string) {
   return (await readQueue(userId)).filter(entry => entry.kind === 'health_observation_upsert' && entry.conflictRemote)
     .map(entry => JSON.parse(JSON.stringify({ entryId: entry.id, local: entry.payload, remote: entry.conflictRemote })));
+}
+export async function getProfileConflicts(userId: string) {
+  return (await readQueue(userId)).filter(entry => ['profile_upsert', 'caregiver_profile_upsert'].includes(entry.kind) && entry.conflictRemote)
+    .map(entry => JSON.parse(JSON.stringify(entry)));
+}
+export function settleProfileConflict(userId: string, reviewed: any, choices: Record<string, 'local' | 'remote'>) {
+  return serializeQueue(async () => {
+    const scope = captureAccountScope();
+    if (scope.accountId !== userId) throw new Error('Account changed.');
+    const queue = await readQueue(userId), entry = queue.find(item => item.id === reviewed.id);
+    if (!entry || JSON.stringify(entry.payload) !== JSON.stringify(reviewed.payload) ||
+        JSON.stringify(entry.conflictRemote) !== JSON.stringify(reviewed.conflictRemote)) throw new Error('This profile changed during review. Reopen it.');
+    let merged = entry.conflictRemote.merged;
+    for (const field of entry.conflictRemote.fields) {
+      const choice = choices[JSON.stringify(field.path)];
+      if (!choice) throw new Error('Choose a value for every conflicting field.');
+      merged = applyProfileChoice(merged, field, choice);
+    }
+    entry.kind = 'caregiver_profile_upsert';
+    entry.payload = { user_id: userId, profile_id: reviewed.payload.profile_id || 'profile_1',
+      profile_name: merged.profileName || 'My Profile', data: merged, _sync_base: entry.conflictRemote.data };
+    delete entry.conflictRemote; delete entry.lastError; entry.attempts = 0;
+    if (!isAccountScopeCurrent(scope) || !await writeQueue(userId, queue)) throw new Error('The profile decision could not be saved.');
+    rebaseDeviceProfile(userId, entry.payload.profile_id, reviewed.payload.data || {}, merged);
+    window.dispatchEvent(new Event('hc_profile_updated'));
+    window.dispatchEvent(new Event('hc_sync_pending'));
+  });
 }
 /** Drop a reviewed snapshot only. Concurrent newer edits are never discarded. */
 export function settleObservationConflict(userId: string, entryId: string, expectedPayload: any) {

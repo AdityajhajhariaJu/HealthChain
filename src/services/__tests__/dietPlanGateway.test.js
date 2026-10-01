@@ -1,7 +1,7 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
 const gateway = vi.hoisted(() => ({ rpc: vi.fn(), writes: [], requests: new Map(), plans: new Map(), failPlanSave: false }));
-vi.mock('../../../api/utils/rate-limit.js', () => ({ checkRateLimit: () => true }));
+vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: () => true }));
 vi.mock('@supabase/supabase-js', () => ({
   createClient: (_url, key) => key === 'test-anon-key'
     ? { auth: { getUser: async () => ({ data: { user: { id: 'test-user' } }, error: null }) } }

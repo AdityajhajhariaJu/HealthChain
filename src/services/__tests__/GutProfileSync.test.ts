@@ -18,6 +18,7 @@ describe('Gut questions during profile download', () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.localStorage.setItem('hc_account', JSON.stringify({ id: 'account-a' }));
+    window.localStorage.setItem('hc_profile_sync_base:account-a:profile_1', JSON.stringify({profileName:'Local'}));
     from.mockReset();
     enqueueSync.mockClear();
     flushSyncOutbox.mockClear();

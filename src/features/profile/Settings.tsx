@@ -1,5 +1,8 @@
 import { createPortal } from 'react-dom';
 import { addDurableArchiveData, restoreHealthArchive, validateHealthArchive, exportCloudArchive } from '../../services/HealthArchive';
+import { MAX_HEALTH_ARCHIVE_BYTES } from '../../services/ArchiveRecoveryValidation';
+import { testRemotePush } from '../../services/PushService';
+import { Capacitor } from '@capacitor/core';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
@@ -632,9 +635,13 @@ export default function Settings() {
                     )}
                   </button>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Local device push notification
+                    Local device reminder
                   </span>
                 </div>
+                {Capacitor.isNativePlatform() && <button type="button" className="btn btn-outline" onClick={async () => {
+                  try { await testRemotePush(); success('Remote test accepted', 'The provider accepted the test. Confirm receipt on this phone; acceptance does not confirm delivery.'); }
+                  catch (error) { toastError('Remote test unavailable', error instanceof Error ? error.message : 'Please try again.'); }
+                }} style={{ marginTop: 12 }}>Test remote push connection</button>}
               </div>
             )}
           </div>
@@ -953,6 +960,7 @@ export default function Settings() {
                   localStorage: exportedData,
                   supabase: cloudData,
                 }, null, 2);
+                if (new Blob([dataStr]).size > MAX_HEALTH_ARCHIVE_BYTES) throw new Error('Archive exceeds the 160 MB restore limit. Use support-assisted export.');
                 const blobUrl = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
                 const linkElement = document.createElement('a');
                 linkElement.setAttribute('href', blobUrl);
@@ -1003,7 +1011,7 @@ export default function Settings() {
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if(file.size>20*1024*1024){toastError('Import Failed','Archive exceeds the 20MB limit.');return;}
+                if(file.size>MAX_HEALTH_ARCHIVE_BYTES){toastError('Import Failed','Archive exceeds the 160 MB limit.');return;}
                 const reader = new FileReader();
                 reader.onerror = () => {
                   toastError('Import Failed', 'Failed to read the backup file.');
@@ -1230,8 +1238,8 @@ export default function Settings() {
           <div role="dialog" aria-modal="true" aria-label="Review backup restore" style={{background:'white',color:'#0f172a',borderRadius:24,padding:24,maxWidth:480}}>
             <h3>Review backup restore</h3>
             <p>{archivePreview.count} local data stores can be restored. {archivePreview.skipped} unsupported or other-account entries will be skipped.</p>
-            {(archivePreview.raw?.supabase || Object.keys(archivePreview.raw?.pendingSync || {}).length > 0) && <p>Cloud snapshots and unsent sync entries in this download are reference copies. This restore applies local records and original files only.</p>}
-            <p>This replaces matching data on this device. Your account's cloud records remain available for synchronization.</p>
+            {(archivePreview.raw?.supabase || Object.keys(archivePreview.raw?.pendingSync || {}).length > 0) && <p>Unsent changes will be recovered. Missing cloud records will be restored after reconnecting; existing cloud records and deletions are preserved.</p>}
+            <p>This replaces matching data on this device. Your current unsent changes will also be kept for synchronization.</p>
             <button className="btn btn-outline" disabled={restoring} onClick={()=>setArchivePreview(null)}>Cancel</button>
             <button className="btn btn-primary" disabled={restoring} onClick={async()=>{
               setRestoring(true);

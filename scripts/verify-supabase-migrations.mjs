@@ -31,6 +31,9 @@ const requiredFiles = [
   '20261001082335_pillar_entitlement_write_guards.sql',
   '20261001084938_pillar_daily_events_and_erasure.sql',
   '20261001102326_pillar_policy_efficiency.sql',
+  '20261001113341_profile_atomic_field_sync.sql',
+  '20261001114032_archive_complete_recovery.sql',
+  '20261001115502_archive_case_identity_compatibility.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -44,6 +47,8 @@ const requiredVerifierTokens = [
   'healthchain_erased_owner_guard',
   'list_healthchain_user_storage',
   'idx_user_health_metrics_owner_start_time',
+  'sync_health_profile_snapshot',
+  'restore_health_archive_records',
   'activate_payment_entitlement',
 ];
 

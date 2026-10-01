@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../api/utils/rate-limit.js', () => ({ checkRateLimit: () => true }));
+vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: () => true }));
 import handler from '../../../api/gemini.js';
 
 const response = () => {

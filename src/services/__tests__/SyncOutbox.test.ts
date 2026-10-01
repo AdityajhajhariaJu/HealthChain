@@ -38,6 +38,7 @@ describe('SyncOutbox', () => {
     getSession.mockResolvedValue({ data: { session: null } });
     from.mockReset();
     rpc.mockReset();
+    rpc.mockImplementation(async (_name, args) => ({ data: { success: true, data: args?.p_data }, error: null }));
   });
 
   it('deduplicates pending updates for the same record', async () => {
@@ -126,15 +127,16 @@ describe('SyncOutbox', () => {
     await flushSyncOutbox('user-1');
 
     expect(query.eq).toHaveBeenCalledWith('id', 'user-1');
-    expect(query.eq).not.toHaveBeenCalledWith('user_id', 'user-1');
-    expect(query.upsert).toHaveBeenCalledOnce();
+    expect(query.eq).toHaveBeenCalledWith('user_id', 'user-1');
+    expect(query.upsert).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith('sync_health_profile_snapshot', expect.objectContaining({p_profile_id:'profile_1'}));
     expect(await getPendingSyncCount('user-1')).toBe(0);
   });
 
   it('retains an offline profile edit when the cloud row is newer', async () => {
     const query = {
       select: vi.fn(() => query), eq: vi.fn(() => query),
-      maybeSingle: vi.fn(async () => ({ data: { updated_at: '2026-10-01T10:00:00.000Z' }, error: null })),
+      maybeSingle: vi.fn(async () => ({ data: { full_name: 'Cloud edit', data: { profileName: 'Cloud edit' }, updated_at: '2026-10-01T10:00:00.000Z' }, error: null })),
       upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
@@ -145,7 +147,7 @@ describe('SyncOutbox', () => {
     await flushSyncOutbox('user-profile-conflict');
     expect(query.upsert).not.toHaveBeenCalled();
     expect(await getPendingSyncCount('user-profile-conflict')).toBe(1);
-    expect((await getSyncStatus('user-profile-conflict')).state).toBe('sync_failed');
+    expect((await getSyncStatus('user-profile-conflict')).state).toBe('conflict_needs_review');
   });
 
   it('merges Gut questions before an offline profile snapshot overwrites the cloud', async () => {
@@ -170,13 +172,13 @@ describe('SyncOutbox', () => {
     from.mockReturnValue(query);
     signIn('user-gut');
     await enqueueSync('caregiver_profile_upsert', 'user-gut', {
-      user_id: 'user-gut', profile_id: 'profile_1', profile_name: 'Local name',
+      user_id: 'user-gut', profile_id: 'profile_1', profile_name: 'Local name', _sync_base: {profileName:'Local name'},
       data: { profileName: 'Local name', gutResolutionThreads: [localOld, question('local-only', '2026-09-23T08:00:00.000Z')] },
       updated_at: '2026-09-23T09:00:00.000Z',
     });
     await flushSyncOutbox('user-gut');
-    expect(query.upsert).toHaveBeenCalledOnce();
-    const payload = query.upsert.mock.calls[0][0] as any;
+    expect(query.upsert).not.toHaveBeenCalled();
+    const payload = {data: rpc.mock.calls[0][1].p_data} as any;
     expect(payload.data.profileName).toBe('Remote name');
     expect(payload.data.gutResolutionThreads.map((item: any) => item.id)).toEqual(['shared', 'remote-only', 'local-only']);
     expect(payload.data.gutResolutionThreads[0].reflection).toBe('revised');
@@ -200,7 +202,7 @@ describe('SyncOutbox', () => {
       updated_at: '2026-09-30T09:10:00.000Z',
     });
     await flushSyncOutbox('user-diet');
-    const payload = query.upsert.mock.calls[0][0] as any;
+    const payload = {data: rpc.mock.calls[0][1].p_data} as any;
     expect(payload.data.dietMealPlan.id).toBe('new-plan');
     expect(payload.data.dietician.mealPlan.id).toBe('new-plan');
     expect(payload.data.dietArchivedPlans.map((plan: any) => plan.id)).toEqual(['old-plan']);
@@ -230,6 +232,7 @@ describe('SyncOutbox', () => {
     };
     from.mockReturnValue(query);
     signIn('user-network');
+    rpc.mockRejectedValue(new Error('Failed to fetch (network drop)'));
 
     await enqueueSync('profile_upsert', 'user-network', {
       id: 'user-network',
@@ -275,8 +278,8 @@ describe('SyncOutbox', () => {
     const query = { upsert: vi.fn(async (payload: any) => ({ error: payload.id === 'failure' ? { message: 'Temporary sync failure' } : null })) };
     from.mockReturnValue(query);
     signIn('user-errors');
-    await enqueueSync('profile_upsert', 'user-errors', { id: 'failure' });
-    await enqueueSync('profile_upsert', 'user-errors', { id: 'success' });
+    await enqueueSync('ava_message_upsert', 'user-errors', { id: 'failure', user_id:'user-errors', profile_id:'profile_1' });
+    await enqueueSync('ava_message_upsert', 'user-errors', { id: 'success', user_id:'user-errors', profile_id:'profile_1' });
     await flushSyncOutbox('user-errors');
     expect(await getSyncStatus('user-errors')).toMatchObject({ state: 'sync_failed', pendingCount: 1, lastError: 'Temporary sync failure' });
     expect(errorEvent).toHaveBeenCalled();

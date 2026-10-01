@@ -3,8 +3,9 @@ import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
-import { mergeGutThreads } from './GutThreadMerge';
-import { preserveDietPlanState } from './DietProfileMerge';
+import { readProfileBaseline, rememberProfileBaseline } from './ProfileSyncBaseline';
+import { cleanProfile, legacyProfileData, sameProfileValue, applyProfileChoice } from './ProfileFieldMerge';
+import { mergeConnectedProfiles } from './ConnectedProfileMerge';
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 
 export function getProfileKey() {
@@ -349,6 +350,8 @@ export async function saveProfile(profile) {
     const state = getProfileEngineState();
     const stillCurrent = () => isAccountScopeCurrent(accountScope) && getProfileKey() === profileKey && getProfileEngineState().activeId === state.activeId && getItemSync(profileKey) === stateStr;
     
+    if (accountScope.accountId !== 'guest' && readProfileBaseline(accountScope.accountId, state.activeId) === undefined)
+      rememberProfileBaseline(accountScope.accountId, state.activeId, state.profiles[state.activeId] || {});
     const nowIso = new Date().toISOString();
     if (!profile.demographics) {
       profile.demographics = {};
@@ -415,28 +418,7 @@ export async function saveProfile(profile) {
           data: { ...profile, id: state.activeId, updatedAt: snapshotUpdatedAt },
           updated_at: snapshotUpdatedAt
         });
-
-        // Keep the legacy primary row for entitlements and older deployments.
-        if (!stillCurrent()) return;
-        if (state.activeId === 'profile_1') {
-          await enqueueSync('profile_upsert', session.user.id, {
-            id: session.user.id,
-            full_name: profile.profileName,
-            demographics: {
-              ...profile.demographics,
-              onboardingCompletedAt: profile.onboardingCompletedAt || null
-            },
-            conditions: profile.conditions,
-            medications: profile.medications,
-            allergies: profile.allergies,
-            family_history: profile.familyHistory,
-            timeline: profile.timeline,
-            vitals: profile.vitals,
-            nutrition: profile.nutrition,
-            health_focus: profile.healthFocus,
-            updated_at: new Date().toISOString()
-          });
-        }
+        // The atomic snapshot RPC mirrors the primary legacy row in the same transaction.
         if (stillCurrent()) await flushSyncOutbox(session.user.id);
       }
     }
@@ -1026,188 +1008,60 @@ export function calculateHealthScore(profile) {
 /**
  * @param {string | null} overrideUserId
  */
-export async function syncProfileFromSupabase(overrideUserId = null) {
-  const accountScope = captureAccountScope();
-  const profileKey = getProfileKey();
-  const profileId = getProfileEngineState().activeId;
+export async function syncProfileFromSupabase(userId) {
+  const scope = captureAccountScope(), profileKey = getProfileKey();
   const initialRaw = getItemSync(profileKey);
-  const stillCurrent = () => isAccountScopeCurrent(accountScope) && getProfileKey() === profileKey && getProfileEngineState().activeId === profileId && getItemSync(profileKey) === initialRaw;
-  if (accountScope.accountId === 'guest') return;
+  const current = () => isAccountScopeCurrent(scope) && getProfileKey() === profileKey;
   try {
-    let userId = overrideUserId;
     if (!userId) {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
-      userId = session.user.id;
+      userId = session?.user?.id;
     }
-    if (userId !== accountScope.accountId || !stillCurrent()) return;
-    
-    const [{ data, error: legacyError }, { data: snapshots, error: snapshotError }] = await Promise.all([
+    if (!userId || userId !== scope.accountId || !current()) return;
+    const [legacy, snapshots] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('healthchain_profiles')
-        .select('profile_id,profile_name,data,updated_at')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false })
+      supabase.from('healthchain_profiles').select('profile_id,profile_name,data,updated_at').eq('user_id', userId).order('updated_at', { ascending: false })
     ]);
-    if (!stillCurrent()) return;
-    const schemaMissing = (error) => error?.code === 'PGRST205' || error?.code === '42P01';
-    if (legacyError && !schemaMissing(legacyError)) console.warn('Legacy profile sync failed:', legacyError);
-    if (snapshotError && !schemaMissing(snapshotError)) console.warn('Caregiver profile sync failed:', snapshotError);
-
-    const state = getProfileEngineState();
-    let changed = false;
-    if (data) {
-      const localPrimary = state.profiles.profile_1 || state.profiles[state.activeId];
-      const localUpdated = localPrimary?.demographics?.updatedAt || localPrimary?.updatedAt;
-      if (localUpdated && data.updated_at && new Date(localUpdated).getTime() > new Date(data.updated_at).getTime()) {
-        if (import.meta.env?.DEV) console.log('Local primary profile is newer than remote. Pushing local changes to cloud.');
-        await enqueueSync('profile_upsert', userId, {
-          id: userId,
-          full_name: localPrimary.profileName,
-          demographics: { ...localPrimary.demographics, onboardingCompletedAt: localPrimary.onboardingCompletedAt || null },
-          conditions: localPrimary.conditions || [], medications: localPrimary.medications || [],
-          allergies: localPrimary.allergies || [], family_history: localPrimary.familyHistory || [],
-          timeline: localPrimary.timeline || [], vitals: localPrimary.vitals || {},
-          nutrition: localPrimary.nutrition || {}, health_focus: localPrimary.healthFocus || '',
-          updated_at: new Date().toISOString()
-        });
-      } else {
-        const localNutrition = localPrimary?.nutrition || {};
-        const remoteNutrition = data.nutrition || {};
-
-        // Merge recentLogs: union by ID or loggedAt, preserving local reactions and offline logs
-        const logMap = new Map();
-        (remoteNutrition.recentLogs || []).forEach((l) => {
-          if (l && (l.id || l.loggedAt)) logMap.set(l.id || l.loggedAt, l);
-        });
-        (localNutrition.recentLogs || []).forEach((l) => {
-          if (l && (l.id || l.loggedAt)) {
-            const key = l.id || l.loggedAt;
-            const existing = logMap.get(key);
-            if (!existing || (l.reaction && !existing.reaction)) {
-              logMap.set(key, { ...(existing || {}), ...l });
-            }
-          }
-        });
-        const mergedRecentLogs = Array.from(logMap.values());
-
-        // Merge digestion logs and elimination protocols safely
-        const mergedDigestionLogs = {
-          ...(data.digestion_logs || data.digestionLogs || {}),
-          ...(localPrimary?.digestionLogs || {})
-        };
-        const mergedElimination = {
-          ...(data.elimination_protocols || data.eliminationProtocols || {}),
-          ...(localPrimary?.eliminationProtocols || {})
-        };
-
-        state.profiles.profile_1 = {
-          ...(state.profiles.profile_1 || DEFAULT_PROFILE),
-          id: 'profile_1',
-          profileName: data.full_name || localPrimary?.profileName || 'My Profile',
-          isPro: data.is_pro ?? localPrimary?.isPro ?? false,
-          proExpiresAt: data.pro_expires_at || localPrimary?.proExpiresAt || null,
-          demographics: { ...(localPrimary?.demographics || {}), ...(data.demographics || {}) },
-          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || localPrimary?.onboardingCompletedAt || (data.demographics?.age ? new Date().toISOString() : null),
-          conditions: Array.isArray(data.conditions) ? data.conditions : (localPrimary?.conditions || []),
-          medications: Array.isArray(data.medications) ? data.medications : (localPrimary?.medications || []),
-          allergies: Array.isArray(data.allergies) ? data.allergies : (localPrimary?.allergies || []),
-          familyHistory: data.family_history || localPrimary?.familyHistory || [],
-          timeline: Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : (localPrimary?.timeline || []),
-          vitals: data.vitals || localPrimary?.vitals || { latestLabValues: {}, historicalLabs: [] },
-          nutrition: {
-            targetCalories: remoteNutrition.targetCalories || localNutrition.targetCalories || 2000,
-            avgProtein: remoteNutrition.avgProtein || localNutrition.avgProtein || 0,
-            recentLogs: mergedRecentLogs
-          },
-          digestionLogs: mergedDigestionLogs,
-          eliminationProtocols: mergedElimination,
-          healthFocus: data.health_focus || localPrimary?.healthFocus || ''
-        };
-        changed = true;
+    if (!current() || getItemSync(profileKey) !== initialRaw) return;
+    if (legacy.error || snapshots.error) throw legacy.error || snapshots.error;
+    const rows = [...(snapshots.data || [])];
+    const primary = rows.find(row => row.profile_id === 'profile_1');
+    if (legacy.data && !primary) rows.push({ profile_id: 'profile_1', profile_name: legacy.data.full_name, data: legacyProfileData(legacy.data) });
+    else if (primary && Date.parse(legacy.data?.updated_at || '') > Date.parse(primary.updated_at || '')) primary.data = { ...primary.data, ...legacyProfileData(legacy.data) };
+    const state = getProfileEngineState(), pending = [];
+    for (const row of rows) {
+      if (!/^profile_\d+$/.test(row.profile_id) || !row.data || typeof row.data !== 'object') continue;
+      const local = state.profiles[row.profile_id], remote = cleanProfile({ ...row.data, id: row.profile_id });
+      const baseline = readProfileBaseline(userId, row.profile_id);
+      const result = local?.updatedAt || baseline !== undefined
+        ? mergeConnectedProfiles(baseline, local, remote, userId, row.profile_id)
+        : { merged: remote, conflicts: [] };
+      // Conflicting facts remain on this device until the outbox review is resolved.
+      let merged = result.merged;
+      for (const field of result.conflicts) merged = applyProfileChoice(merged, field, 'local');
+      state.profiles[row.profile_id] = { ...(local || DEFAULT_PROFILE), ...merged, id: row.profile_id };
+      if (Array.isArray(remote.medications)) {
+        state.profiles[row.profile_id].medicationScheduleLinked = true;
+        setItemSync(`hc_medication_schedule_linked:${profileKey}:${row.profile_id}`, 'true');
       }
-    }
-
-    for (const row of snapshots || []) {
-      if (!stillCurrent()) return;
-      if (!row?.profile_id || !row.data || typeof row.data !== 'object') continue;
-      const local = state.profiles[row.profile_id];
-      const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
-      const remoteUpdated = row.data.updatedAt || row.updated_at;
-      const gutResolutionThreads = mergeGutThreads(
-        local?.gutResolutionThreads, row.data.gutResolutionThreads, getProfileKey(), row.profile_id
-      );
-      if (localUpdated && remoteUpdated && new Date(localUpdated).getTime() > new Date(remoteUpdated).getTime()) {
-        const mergedLocal = preserveDietPlanState({ ...local, gutResolutionThreads }, local, row.data);
-        state.profiles[row.profile_id] = mergedLocal;
-        changed = true;
-        await enqueueSync('caregiver_profile_upsert', userId, {
-          user_id: userId, profile_id: row.profile_id,
-          profile_name: local.profileName || row.profile_name || 'My Profile',
-          data: { ...mergedLocal, id: row.profile_id }, updated_at: new Date().toISOString()
-        });
-        continue;
+      if (row.profile_id === 'profile_1' && legacy.data) {
+        state.profiles[row.profile_id].isPro = legacy.data.is_pro;
+        state.profiles[row.profile_id].proExpiresAt = legacy.data.pro_expires_at;
       }
-      const existingPro = state.profiles[row.profile_id]?.isPro;
-      const existingProExpiresAt = state.profiles[row.profile_id]?.proExpiresAt;
-      
-      // Merge local and remote nutrition logs to avoid clobbering offline entries
-      const localNut = local?.nutrition || {};
-      const remoteNut = row.data.nutrition || {};
-      const snapLogMap = new Map();
-      (remoteNut.recentLogs || []).forEach((l) => {
-        if (l && (l.id || l.loggedAt)) snapLogMap.set(l.id || l.loggedAt, l);
+      if (result.conflicts.length || !sameProfileValue(cleanProfile(state.profiles[row.profile_id]), remote)) pending.push({
+        user_id: userId, profile_id: row.profile_id, profile_name: state.profiles[row.profile_id].profileName || 'My Profile',
+        data: state.profiles[row.profile_id], _sync_base: baseline ?? {}, updated_at: new Date().toISOString()
       });
-      (localNut.recentLogs || []).forEach((l) => {
-        if (l && (l.id || l.loggedAt)) {
-          const key = l.id || l.loggedAt;
-          const existing = snapLogMap.get(key);
-          if (!existing || (l.reaction && !existing.reaction)) {
-            snapLogMap.set(key, { ...(existing || {}), ...l });
-          }
-        }
-      });
-
-      state.profiles[row.profile_id] = preserveDietPlanState({
-        ...(local || {}),
-        ...row.data,
-        id: row.profile_id,
-        profileName: row.profile_name || row.data.profileName || local?.profileName || 'My Profile',
-        nutrition: {
-          ...(row.data.nutrition || local?.nutrition || {}),
-          recentLogs: Array.from(snapLogMap.values())
-        },
-        digestionLogs: { ...(row.data.digestionLogs || {}), ...(local?.digestionLogs || {}) },
-        eliminationProtocols: { ...(row.data.eliminationProtocols || {}), ...(local?.eliminationProtocols || {}) },
-        gutResolutionThreads
-      }, local, row.data);
-
-      if (JSON.stringify(gutResolutionThreads) !== JSON.stringify(row.data.gutResolutionThreads || []) ||
-          JSON.stringify(state.profiles[row.profile_id].dietMealPlan) !== JSON.stringify(row.data.dietMealPlan) ||
-          JSON.stringify(state.profiles[row.profile_id].dietArchivedPlans) !== JSON.stringify(row.data.dietArchivedPlans)) {
-        await enqueueSync('caregiver_profile_upsert', userId, {
-          user_id: userId, profile_id: row.profile_id,
-          profile_name: state.profiles[row.profile_id].profileName,
-          data: state.profiles[row.profile_id], updated_at: new Date().toISOString()
-        });
-      }
-      
-      if (row.profile_id === 'profile_1' || row.profile_id === state.activeId) {
-        state.profiles[row.profile_id].isPro = existingPro;
-        state.profiles[row.profile_id].proExpiresAt = existingProExpiresAt;
-      }
-      
-      changed = true;
+      else rememberProfileBaseline(userId, row.profile_id, remote);
     }
-    if (changed) {
-      if (!stillCurrent()) return;
-      localStorage.setItem(profileKey, JSON.stringify(state));
-      window.dispatchEvent(new Event('hc_profile_updated'));
-      await flushSyncOutbox(userId);
-      if (import.meta.env?.DEV) console.log('Profile snapshots synced successfully from Supabase');
-    }
-  } catch (err) {
-    console.error('Failed to sync profile from Supabase:', err);
+    if (!current()) return;
+    setItemSync(profileKey, JSON.stringify(state));
+    window.dispatchEvent(new Event('hc_profile_updated'));
+    for (const payload of pending) { if (!current()) return; await enqueueSync('caregiver_profile_upsert', userId, payload); }
+    if (current()) await flushSyncOutbox(userId);
+  } catch (error) {
+    console.warn('Profile sync needs retry:', error);
+    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
   }
 }
 

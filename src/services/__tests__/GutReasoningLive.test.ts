@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { config } from 'dotenv';
-import { GUT_REASONING_INSTRUCTION, GUT_REASONING_SCHEMA } from '../../../api/utils/gut-reasoning.js';
+import { GUT_REASONING_INSTRUCTION, GUT_REASONING_SCHEMA } from '../../../server/gut-reasoning.js';
 const { gateway } = vi.hoisted(() => ({ gateway: vi.fn() }));
 vi.mock('../geminiService', () => ({ fetchGutReasoning: gateway }));
 import { searchGutResearch } from '../GutResearchService';

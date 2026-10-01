@@ -33,6 +33,7 @@ import { useToast } from './components/ui/ToastProvider';
 import OfflineBanner from './components/ui/OfflineBanner';
 import ConsentManager from './components/ui/ConsentManager';
 import ObservationConflictReview from './components/ui/ObservationConflictReview';
+import ProfileConflictReview from './components/ui/ProfileConflictReview';
 import DeviceErasureRecovery from './components/ui/DeviceErasureRecovery';
 
 import ProductTour from './components/ui/ProductTour';
@@ -327,7 +328,7 @@ export default function App() {
   useEffect(() => {
     initGlobalHaptics();
     initNativeLifecycle();
-    setupPushListeners();
+    void setupPushListeners(navigate).catch(error => console.warn('Push listeners unavailable', error));
 
     // Check for email verification / password recovery hash
     const hash = window.location.hash;
@@ -500,6 +501,7 @@ export default function App() {
       <OfflineBanner />
       <ConsentManager />
       <ObservationConflictReview />
+      <ProfileConflictReview />
       <DeviceErasureRecovery />
       <ProductTour />
       <Routes>

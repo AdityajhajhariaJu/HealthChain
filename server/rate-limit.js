@@ -1,3 +1,4 @@
+// Server helper kept outside /api so it is not deployed as an HTTP endpoint.
 const rateLimitCache = new Map();
 const MAX_CACHE_SIZE = 3000;
 

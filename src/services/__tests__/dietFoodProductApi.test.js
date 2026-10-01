@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 const limited = vi.hoisted(() => ({ allow: true }));
-vi.mock('../../../api/utils/rate-limit.js', () => ({ checkRateLimit: () => limited.allow }));
+vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: () => limited.allow }));
 import handler from '../../../api/food-product.js';
 import { allowedOrigin } from '../../../shared/http-origins.js';
 const response = () => ({

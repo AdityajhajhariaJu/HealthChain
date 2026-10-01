@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ ledger: new Map(), rpc: vi.fn(), failCompletion: false }));
-vi.mock('../../../api/utils/rate-limit.js', () => ({ checkRateLimit: () => true }));
+vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: () => true }));
 vi.mock('@supabase/supabase-js', () => ({
   createClient: (_url, key) =>
     key === 'anon'

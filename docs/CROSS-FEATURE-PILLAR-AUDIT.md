@@ -1,6 +1,6 @@
 # Cross-feature pillar audit
 
-> This document preserves the original audit baseline. The follow-on implementation and remaining limits are recorded in the **October 1 follow-on verification** section at the end.
+> This document preserves the original audit baseline. The latest implementation and remaining limits are recorded in **October 1 continuation: concurrent profiles and archive recovery** at the end.
 
 Audit date: 1 October 2026. Baseline: `e98083238ab932e9da96ae6d009c35c77dbf3b70`.
 Scope: Health Memory, Ava, Clinical Review, hydration, medications, Gut Health, Diet Plan, My Cases, their subfeatures, API boundaries, local persistence, cloud ownership and notifications.
@@ -166,3 +166,50 @@ This section supersedes the baseline's descriptions of daily records, selected c
 Verification for this follow-on: **721 unit tests passed, 1 live-model test skipped**; production build, lint, 35-migration contract and production SQL verifier passed. The 154-case Chromium/WebKit browser sweep yielded 143 passes under four concurrent workers. After fixing the archive contract and testing stored facts rather than JSON formatting, four targeted archive/logout journeys passed in both browsers. Seven remaining WebKit journeys passed on a serial rerun; the clinical missing-case journey passed after the test activated its fixed action dock through the keyboard. These reruns establish those paths but do not turn the earlier concurrent sweep into a clean run. Two synthetic database owner transactions and a daily-erasure transaction were rolled back after asserting isolation and write guards. No private patient rows were inspected.
 
 The release is **not** a claim that every health answer is accurate or every device notification arrives. The next engineering gates are field-level profile reconciliation, full archive/guest convergence and signed-in multi-device plus physical-device acceptance. Clinical and nutrition accuracy also requires source-labelled evaluation and qualified review.
+## October 1 continuation: concurrent profiles and archive recovery
+
+This section supersedes the earlier open profile/backup items for same-account
+recovery. Previous baseline findings are retained above for traceability.
+
+- Profile saves now merge fields against an immutable baseline and submit an
+  atomic compare-and-swap RPC. Separate edits merge; competing health facts are
+  paused for field-by-field review. Arrays such as allergies and medications
+  are not silently unioned. Empty arrays, null, zero and false remain intentional
+  edits. Established Gut and Diet record merge rules remain in place.
+- The RPC maintains the canonical profile and primary compatibility row in one
+  transaction. It runs as the authenticated caller with RLS and erasure guards;
+  paid-access and quota fields are never restored from client snapshots.
+- Coalesced offline saves retain their original baseline. Edits made during a
+  network save are rebased onto that save's acknowledgement, preserving incoming
+  cloud facts without creating a false conflict with the device's own earlier edit.
+- Archive exports use the composite caregiver identity, include case tombstones,
+  device metrics, fitness history and measurements, and use the reconciled outbox.
+  Restore validates account ownership and manifests, recovers original document
+  bytes and queues unsent changes alongside existing device edits. Cloud recovery
+  is atomic and restores missing rows; existing cloud records and deletions win.
+  The shared JSON limit is 160 MB, sufficient for the 100 MB original-byte limit
+  after base64 encoding. Larger cloud collections explicitly require assisted
+  recovery rather than being partially imported.
+- FCM/APNs transport and an authenticated installation-only remote test endpoint
+  are implemented. iOS registration callbacks and signing entitlements were
+  added; native listeners are ready before registration, reject foreign owner
+  actions and deduplicate receipts. Internal backend helpers moved outside `/api`
+  to avoid deploying them as unnecessary endpoints. Local and remote tests are
+  labelled separately. See `REMOTE-PUSH-SETUP.md` for the remaining configuration.
+
+Verification: live rolled-back transactions tested profile CAS, primary mirror,
+no entitlement promotion, recovery of missing exact-ml history, preservation of
+newer cloud data, deletion protection, foreign-account rejection and anonymous
+RPC denial. Production build and migration contract passed. Fourteen targeted
+Chromium/WebKit journeys passed, including the actual profile-conflict review.
+Full local verification: **738 tests passed, 1 live-model test skipped**; lint,
+production build, 38-migration contract, production SQL verifier and anonymous
+database smoke checks passed. Hosted quality and deployment checks run on the
+same release commit.
+
+Remaining boundaries: provider credentials and real Android/iPhone receipt tests;
+live signed-in multi-device acceptance; reviewed guest-to-account migration;
+and qualified evaluation of clinical/nutrition answers. Remote test transport is
+not a deployed scheduled server notification service. Existing Supabase advisor
+findings outside the changed functions remain tracked separately; the new
+recovery functions use invoker security and fixed search paths.

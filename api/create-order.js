@@ -1,4 +1,4 @@
-import { checkRateLimit } from './utils/rate-limit.js';
+import { checkRateLimit } from '../server/rate-limit.js';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 import { PRODUCT_CATALOG as ALLOWED_PLANS } from '../shared/productCatalog.js';
