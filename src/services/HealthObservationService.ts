@@ -94,6 +94,7 @@ function remoteRow(observation: Observation, expectedRevision: number) {
     source: observation.source, evidence_type: observation.evidenceType,
     source_record_id: observation.sourceRecordId || null,
     source_locator: observation.sourceLocator || null, payload: observation.payload,
+    record_references: observation.references || [],
     revision: observation.revision, idempotency_key: observation.idempotencyKey,
     deleted_at: observation.deletedAt, created_at: observation.createdAt,
     updated_at: observation.updatedAt, expected_revision: expectedRevision,
@@ -181,6 +182,7 @@ function observationFromRemote(row: any, scope: ObservationScope): Observation |
     occurredAt: row.occurred_at, localDate: row.local_date, timezone: row.timezone,
     timePrecision: row.time_precision, source: row.source, evidenceType: row.evidence_type,
     sourceRecordId: row.source_record_id || undefined, sourceLocator: row.source_locator || undefined,
+    references: row.record_references || [],
     idempotencyKey: row.idempotency_key,
   };
   if (!validateObservationDraft(draft).ok) return null;
@@ -222,12 +224,13 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
       if (!previous) { merged.set(item.id, item); imported++; continue; }
       if (pending.has(item.id)) {
         if (item.revision >= previous.revision && (item.revision !== previous.revision ||
-            JSON.stringify(item.payload) !== JSON.stringify(previous.payload) || item.deletedAt !== previous.deletedAt)) conflicts++;
+            JSON.stringify(item.payload) !== JSON.stringify(previous.payload) || item.deletedAt !== previous.deletedAt ||
+            JSON.stringify(item.references || []) !== JSON.stringify(previous.references || []))) conflicts++;
         continue;
       }
       if (item.revision > previous.revision) { merged.set(item.id, item); imported++; continue; }
       if (item.revision < previous.revision || JSON.stringify(item.payload) !== JSON.stringify(previous.payload) ||
-          item.deletedAt !== previous.deletedAt) conflicts++;
+          item.deletedAt !== previous.deletedAt || JSON.stringify(item.references || []) !== JSON.stringify(previous.references || [])) conflicts++;
     }
     if (!await sameScope(scope)) return empty('scope_changed');
     if (imported && !await writeLocal(scope, [...merged.values()])) return empty('storage_failure');

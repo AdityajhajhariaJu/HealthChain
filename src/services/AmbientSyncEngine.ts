@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-import { Toast } from '@capacitor/toast';
 
 export interface BiometricData {
   heartRate: number;
@@ -22,60 +21,15 @@ export class AmbientSyncEngine {
       return null;
     }
 
-    try {
-      if (platform === 'ios') {
-        // Implementation for Apple HealthKit bridge
-        // Using standard Capacitor health plugins
-        // await HealthKit.requestAuthorization({ read: ['heartRate', 'hrv', 'sleepAnalysis'] });
-        // const rawHRV = await HealthKit.queryHRV({ startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) });
-        
-        return {
-          heartRate: 62,
-          hrv: 48,
-          sleepHours: 6.2,
-          deepSleepPercentage: 18,
-          readings: [
-            { timestamp: new Date(Date.now() - 3600000).toISOString(), value: 65 },
-            { timestamp: new Date().toISOString(), value: 62 }
-          ]
-        };
-      } else if (platform === 'android') {
-        // Implementation for Google Health Connect
-        return {
-          heartRate: 64,
-          hrv: 45,
-          sleepHours: 6.5,
-          deepSleepPercentage: 20,
-          readings: []
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error('AmbientSyncEngine Hardware Failure:', error);
-      await Toast.show({
-        text: 'Failed to read biometric sensors. Check Health permissions.',
-        duration: 'long'
-      });
-      return null;
-    }
+    // No current caller uses this legacy adapter. A real typed adapter is
+    // required before enabling it; never return sample data as hardware data.
+    return null;
   }
 
   /**
    * Generates a proactive AI briefing prompt based on raw hardware telemetry.
    */
   static generateBriefingPrompt(biometrics: BiometricData): string {
-    const isStressed = biometrics.hrv < 50;
-    const isFatigued = biometrics.sleepHours < 7;
-
-    let briefing = `SYSTEM INSTRUCTION: You are Ava. The user has just opened the app. You have silently pulled their real-time biometrics from their hardware sensors. `;
-    briefing += `Their current HRV is ${biometrics.hrv}ms, Resting Heart Rate is ${biometrics.heartRate}bpm, and they got ${biometrics.sleepHours} hours of sleep last night. `;
-    
-    if (isStressed || isFatigued) {
-      briefing += `They are showing signs of physiological fatigue and autonomic stress. Proactively greet them, inform them of this biomarker trend, advise gentle pacing and hydration, and generate a [WIDGET:CALM] for an autonomic breathwork reset.`;
-    } else {
-      briefing += `They are in a state of optimal autonomic stability. Proactively greet them, inform them that their biometrics reflect strong parasympathetic recovery and physiological equilibrium, and encourage them to sustain their health regimen or log their morning vitals.`;
-    }
-
-    return briefing;
+    return `Unverified supplied biometric data: ${JSON.stringify(biometrics)}. Source and measurement dates must be checked. These values alone do not establish stress, fatigue, recovery, or a need for an intervention.`;
   }
 }

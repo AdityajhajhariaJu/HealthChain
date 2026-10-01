@@ -5,7 +5,6 @@ import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
 import { parseModelJson } from './modelJson';
 export { parseModelJson } from './modelJson';
-import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
 import { getDeterministicMedicineData } from './clinicalPharmacyData';
 import { buildVersionedEvidenceSet, runSubstantiveDebateRound } from './MultiPerspectiveReviewEngine';
 import { getCanonicalFeatureRegistryPrompt } from './FeatureArchitectureContract';
@@ -32,12 +31,14 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     throw new Error('Offline');
   }
 
-  const avaScope=options.headers?.['X-HC-Operation']==='ava_chat' || options.headers?.['X-HC-Operation']==='memory_extraction' ? captureHealthMemoryScope():null;
+  const avaScope = captureHealthMemoryScope();
+  const explicitGuest = typeof localStorage !== 'undefined' && localStorage.getItem('hc_guest_mode') === 'true';
+  const reviewedConversation = ['ava_chat', 'memory_extraction'].includes(options.headers?.['X-HC-Operation']);
   let sessionToken = '';
   try {
     const { data } = await supabase.auth.getSession();
     if(avaScope && (!isHealthMemoryScopeCurrent(avaScope) || (avaScope.accountId!=='guest' && data?.session?.user?.id!==avaScope.accountId)))throw new Error('Account changed. Please retry.');
-    if (data?.session?.access_token && avaScope?.accountId!=='guest') {
+    if (data?.session?.access_token && !explicitGuest && (!reviewedConversation || avaScope.accountId !== 'guest')) {
       sessionToken = data.session.access_token;
     }
   } catch(error) { if(avaScope)throw error; }
@@ -66,6 +67,7 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     else externalSignal?.addEventListener('abort', abortForCaller, { once: true });
     try {
       const response = await fetch(url, { ...secureOptions, signal: controller.signal });
+      if (!isHealthMemoryScopeCurrent(avaScope)) throw new Error('Account changed. Please retry.');
       if (!response.ok) {
         if (response.status === 401 && retryCount < 1) {
           // getSession() automatically triggers a safe, lock-protected refresh if the token is expired.
@@ -76,11 +78,11 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
             return executeFetch(retryCount + 1);
           }
           throw new Error('Session expired or unauthorized. Please verify your login.');
-        } else if (response.status === 429 && secureOptions.headers['X-HC-Operation'] === 'ava_chat') {
+        } else if (response.status === 429) {
           throw new Error('RATE_LIMITED: Too many requests right now. Wait a moment and retry.');
-        } else if (response.status === 402 || response.status === 429) {
+        } else if (response.status === 402) {
           window.dispatchEvent(new CustomEvent('hc_quota_exceeded', { 
-            detail: { operation: secureOptions.headers['X-HC-Operation'], isRateLimit: response.status === 429 } 
+            detail: { operation: secureOptions.headers['X-HC-Operation'], isRateLimit: false }
           }));
           throw new Error('QUOTA_EXCEEDED');
         } else if ((response.status === 502 || response.status === 503 || response.status === 504) && retryCount < 2) {
@@ -97,7 +99,7 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
       }
       return response;
     } catch (err: any) {
-      if (retryCount < 2 && err.name !== 'AbortError' && err.message !== 'QUOTA_EXCEEDED' && !err.message?.startsWith('RATE_LIMITED')) {
+      if (retryCount < 2 && err.name !== 'AbortError' && err.message !== 'QUOTA_EXCEEDED' && !err.message?.startsWith('RATE_LIMITED') && isHealthMemoryScopeCurrent(avaScope)) {
         const delay = (retryCount + 1) * 800;
         await new Promise(res => setTimeout(res, delay));
         return executeFetch(retryCount + 1);
@@ -391,7 +393,7 @@ Transcribe exact visible values, units, dates and the laboratory's printed refer
 If no document is provided or it is unreadable, return a JSON object with "testName": "Unrecognized / No Document", and explain the issue in "interpretation".${CLINICAL_SAFETY_RULES}`;
 
 export async function analyzeLabReport(base64Data: string, mimeType: string, profile: any): Promise<any> {
-  const dynamicPrompt = `${LAB_SYSTEM_PROMPT}\n\nPatient Context:\nAge: ${profile?.demographics?.age || 'Unknown'}\nGender: ${profile?.demographics?.gender || 'Unknown'}\n(Use this patient context strictly for determining the correct normal reference ranges for lab vitals like testosterone, eGFR, hemoglobin, etc.)`;
+  const dynamicPrompt = `${LAB_SYSTEM_PROMPT}\n\nPatient Context (user reported):\nAge: ${profile?.demographics?.age ?? 'Unknown'}\nGender: ${profile?.demographics?.gender || 'Unknown'}\nPreserve the laboratory's printed reference ranges. Demographics do not supply a missing reference range.`;
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: dynamicPrompt }] },
@@ -426,28 +428,7 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
         biomarkers: {}
       });
 
-      if (parsed?.biomarkers && typeof parsed.biomarkers === 'object') {
-        const extraAbnormalities: string[] = [];
-        Object.entries(parsed.biomarkers).forEach(([bioName, bioData]: [string, any]) => {
-          const val = typeof bioData === 'object' ? Number(bioData?.value) : Number(bioData);
-          if (!isNaN(val)) {
-            const reportedUnit = typeof bioData === 'object' ? String(bioData?.unit || '') : '';
-            const functionalRes = evaluateBiomarkerFunctionally(bioName, val, reportedUnit);
-            if (functionalRes && (functionalRes.status === 'SUBCLINICAL_LOW' || functionalRes.status === 'SUBCLINICAL_HIGH')) {
-              const note = `[Functional Alert] ${functionalRes.biomarkerName} (${val} ${functionalRes.unit}): ${functionalRes.clinicalInsight}`;
-              if (!extraAbnormalities.includes(note)) extraAbnormalities.push(note);
-              if (typeof bioData === 'object') {
-                bioData.functionalStatus = functionalRes.status;
-                bioData.optimalRange = functionalRes.optimalRange;
-              }
-            }
-          }
-        });
-        if (extraAbnormalities.length > 0) {
-          parsed.abnormalities = [...(parsed.abnormalities || []), ...extraAbnormalities];
-        }
-      }
-
+      // Extraction must not append findings from unrelated local threshold rules.
       return parsed;
     }
     throw new Error('No candidate returned');

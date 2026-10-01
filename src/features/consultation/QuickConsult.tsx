@@ -36,6 +36,7 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { useToast } from '../../components/ui/ToastProvider';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -276,6 +277,7 @@ export default function QuickConsult() {
   };
 
   const handleProceedWithUpload = async () => {
+    const uploadScope = captureAccountScope();
     if (uploadedFiles.length > 0) {
       setIsProcessingFiles(true);
       abortProcessingRef.current = false;
@@ -292,8 +294,10 @@ export default function QuickConsult() {
             reader.onerror = () => resolve('');
             reader.readAsDataURL(file);
           });
+          if (!isAccountScopeCurrent(uploadScope)) return;
           if (base64Data && !abortProcessingRef.current) {
             const result = await analyzeLabReport(base64Data, file.type, profile);
+            if (!isAccountScopeCurrent(uploadScope) || abortProcessingRef.current) return;
             if (result) {
               if (result.biomarkers && Object.keys(result.biomarkers).length > 0) {
                 updateVitals(result.biomarkers, 'quick_consult_upload');
@@ -312,14 +316,18 @@ export default function QuickConsult() {
           setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
         }
       } catch (err) {
+        if (!isAccountScopeCurrent(uploadScope)) return;
         console.error('Error parsing files in Quick Consult:', err);
         const fileNames = uploadedFiles.map(f => f.name).join(', ');
         setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
       } finally {
-        setIsProcessingFiles(false);
-        setProcessingStepText('');
+        if (isAccountScopeCurrent(uploadScope)) {
+          setIsProcessingFiles(false);
+          setProcessingStepText('');
+        }
       }
     }
+    if (!isAccountScopeCurrent(uploadScope)) return;
     trackConsultationStarted('quick', { specialist: selectedSpecialist?.name, hasFiles: uploadedFiles.length > 0 });
     setPhase('chat');
   };

@@ -53,8 +53,10 @@ export function HealthDeviceIntegrations() {
     triggerHapticLight();
     setIsSyncing(true);
     try {
-      await syncHealthData(7); // Sync last 7 days
-      success('Sync Complete', 'Latest health metrics have been securely pulled and synced to HealthChain.');
+      const result = await syncHealthData(7);
+      if (result.status === 'partial') error('Import needs attention', `${result.queued} samples queued; ${result.failures} imports failed. Reconnect and retry.`);
+      else if (result.status === 'no_data') error('No readable samples', 'No usable device samples were imported. Check the individual health permissions.');
+      else success('Health samples queued', `${result.queued} device samples are queued for account sync.`);
     } catch (err) {
       error('Sync Error', 'An error occurred while syncing your health data.');
     } finally {

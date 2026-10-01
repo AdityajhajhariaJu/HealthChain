@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { safeNavigateBack } from '../../services/navigation';
 import { createMeal, mealEntryFromAnalysis } from '../../services/MealCommandService';
 import { recordHealthMemory } from '../../services/HealthMemory';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 const RAPID_MEAL_BUILDERS = [
   '🥑 Avocado Toast & Poached Egg',
@@ -64,17 +65,20 @@ export const NutritionInterceptor: React.FC = () => {
 
   const handleLog = async () => {
     if (!input.trim()) return;
+    const scope = captureAccountScope();
     triggerHapticLight();
     setIsAnalyzing(true);
     setSaveError(null);
     
     try {
       const result = await analyzeFoodEntry(input);
+      if (!isAccountScopeCurrent(scope)) return;
       if (result && Array.isArray(result.items) && result.items.length > 0) {
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const entry = mealEntryFromAnalysis(input, result.items, { type: 'Meal' });
         const saved = await createMeal({ localDate: today, entry, captureMethod: 'quick_nutrition' });
+        if (!isAccountScopeCurrent(scope)) return;
         if (!saved.ok) throw new Error(`Meal save failed: ${saved.error}`);
         setRecentLog(result);
         triggerHapticSuccess();
@@ -94,10 +98,11 @@ export const NutritionInterceptor: React.FC = () => {
         setSaveError('No food items were recognized. Add more detail and try again.');
       }
     } catch (err) {
+      if (!isAccountScopeCurrent(scope)) return;
       console.error('Failed to analyze or save food', err);
       setSaveError('The meal was not confirmed as saved. Please try again.');
     } finally {
-      setIsAnalyzing(false);
+      if (isAccountScopeCurrent(scope)) setIsAnalyzing(false);
     }
   };
 

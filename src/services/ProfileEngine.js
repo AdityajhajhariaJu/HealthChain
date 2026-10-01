@@ -5,6 +5,7 @@ import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
 import { mergeGutThreads } from './GutThreadMerge';
 import { preserveDietPlanState } from './DietProfileMerge';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 
 export function getProfileKey() {
   try {
@@ -24,6 +25,16 @@ export function getProfileKey() {
 
 let historyStack = [];
 let historyIndex = -1;
+let historyKey = getProfileKey();
+
+function ensureHistoryScope() {
+  const key = getProfileKey();
+  if (key !== historyKey) {
+    historyKey = key;
+    historyStack = [];
+    historyIndex = -1;
+  }
+}
 
 const initialState = getItemSync(getProfileKey());
 if (initialState) {
@@ -32,6 +43,7 @@ if (initialState) {
 }
 
 function pushToHistory(stateStr) {
+  ensureHistoryScope();
   if (historyIndex < historyStack.length - 1) {
     historyStack = historyStack.slice(0, historyIndex + 1);
   }
@@ -44,6 +56,7 @@ function pushToHistory(stateStr) {
 }
 
 export function undoProfileEdit() {
+  ensureHistoryScope();
   if (historyIndex > 0) {
     historyIndex--;
     const prevState = historyStack[historyIndex];
@@ -53,6 +66,7 @@ export function undoProfileEdit() {
 }
 
 export function redoProfileEdit() {
+  ensureHistoryScope();
   if (historyIndex < historyStack.length - 1) {
     historyIndex++;
     const nextState = historyStack[historyIndex];
@@ -62,10 +76,12 @@ export function redoProfileEdit() {
 }
 
 export function canUndo() {
+  ensureHistoryScope();
   return historyIndex > 0;
 }
 
 export function canRedo() {
+  ensureHistoryScope();
   return historyIndex < historyStack.length - 1;
 }
 
@@ -336,8 +352,11 @@ export function getProfile() {
 }
 
 export async function saveProfile(profile) {
+  const accountScope = captureAccountScope();
+  const profileKey = getProfileKey();
   try {
     const state = getProfileEngineState();
+    const stillCurrent = () => isAccountScopeCurrent(accountScope) && getProfileKey() === profileKey && getProfileEngineState().activeId === state.activeId && getItemSync(profileKey) === stateStr;
     
     const nowIso = new Date().toISOString();
     if (!profile.demographics) {
@@ -394,8 +413,9 @@ export async function saveProfile(profile) {
     // local-first UX while preventing a dropped tab/network transition from
     // losing an important profile update.
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      if (accountScope.accountId === 'guest') return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      if (session?.user?.id === accountScope.accountId && stillCurrent()) {
         const snapshotUpdatedAt = new Date().toISOString();
         await enqueueSync('caregiver_profile_upsert', session.user.id, {
           user_id: session.user.id,
@@ -406,6 +426,7 @@ export async function saveProfile(profile) {
         });
 
         // Keep the legacy primary row for entitlements and older deployments.
+        if (!stillCurrent()) return;
         if (state.activeId === 'profile_1') {
           await enqueueSync('profile_upsert', session.user.id, {
             id: session.user.id,
@@ -425,7 +446,7 @@ export async function saveProfile(profile) {
             updated_at: new Date().toISOString()
           });
         }
-        await flushSyncOutbox(session.user.id);
+        if (stillCurrent()) await flushSyncOutbox(session.user.id);
       }
     }
   } catch (e) {
@@ -802,21 +823,28 @@ export function updateNutritionLogReaction(logIdentifier, reaction) {
   }
 }
 
+function checkinLocalDate(checkin) {
+  if (checkin.localDate) return checkin.localDate;
+  if (!checkin.date || !Number.isFinite(Date.parse(checkin.date))) return null;
+  const when = new Date(checkin.date);
+  return `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}`;
+}
+
 export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }) {
   const profile = getProfile();
   if (!profile.dailyCheckins) {
     profile.dailyCheckins = [];
   }
 
-  const todayIso = new Date().toISOString().split('T')[0];
   const d = new Date();
   const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   // Remove existing checkin for today if any, so we update it smoothly
-  profile.dailyCheckins = profile.dailyCheckins.filter(c => !c.date || (!c.date.startsWith(todayIso) && !c.date.startsWith(todayLocal)));
+  profile.dailyCheckins = profile.dailyCheckins.filter(c => checkinLocalDate(c) !== todayLocal);
 
   const checkinEntry = {
     id: generateId(),
     date: new Date().toISOString(),
+    localDate: todayLocal,
     symptom: symptom || 'Overall Wellness',
     severity: severity || 'Mild',
     score: score ?? 1,
@@ -843,12 +871,12 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
 
   try {
     recordHealthMemory({
-      kind: 'timeline_event',
+      kind: 'profile_event',
       source: 'daily_checkin',
       title: `Daily Check-in: ${symptom} (${severity})`,
       occurredAt: new Date().toISOString(),
       payload: { symptom, severity, score, note, lifestyle },
-      dedupeKey: `daily_checkin:${todayIso}`,
+      dedupeKey: `daily_checkin:${todayLocal}`,
     });
   } catch (e) { console.error(e); }
 
@@ -858,10 +886,9 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
 
 export function getTodayCheckin() {
   const profile = getProfile();
-  const todayIso = new Date().toISOString().split('T')[0];
   const d = new Date();
   const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  return (profile.dailyCheckins || []).find(c => c.date && (c.date.startsWith(todayIso) || c.date.startsWith(todayLocal)));
+  return (profile.dailyCheckins || []).find(c => checkinLocalDate(c) === todayLocal);
 }
 
 export function getRecentCheckins(days = 7) {
@@ -1016,6 +1043,12 @@ export function calculateHealthScore(profile) {
  * @param {string | null} overrideUserId
  */
 export async function syncProfileFromSupabase(overrideUserId = null) {
+  const accountScope = captureAccountScope();
+  const profileKey = getProfileKey();
+  const profileId = getProfileEngineState().activeId;
+  const initialRaw = getItemSync(profileKey);
+  const stillCurrent = () => isAccountScopeCurrent(accountScope) && getProfileKey() === profileKey && getProfileEngineState().activeId === profileId && getItemSync(profileKey) === initialRaw;
+  if (accountScope.accountId === 'guest') return;
   try {
     let userId = overrideUserId;
     if (!userId) {
@@ -1023,6 +1056,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       if (!session?.user) return;
       userId = session.user.id;
     }
+    if (userId !== accountScope.accountId || !stillCurrent()) return;
     
     const [{ data, error: legacyError }, { data: snapshots, error: snapshotError }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
@@ -1031,6 +1065,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
         .eq('user_id', userId)
         .order('updated_at', { ascending: false })
     ]);
+    if (!stillCurrent()) return;
     const schemaMissing = (error) => error?.code === 'PGRST205' || error?.code === '42P01';
     if (legacyError && !schemaMissing(legacyError)) console.warn('Legacy profile sync failed:', legacyError);
     if (snapshotError && !schemaMissing(snapshotError)) console.warn('Caregiver profile sync failed:', snapshotError);
@@ -1090,9 +1125,9 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
           proExpiresAt: data.pro_expires_at || localPrimary?.proExpiresAt || null,
           demographics: { ...(localPrimary?.demographics || {}), ...(data.demographics || {}) },
           onboardingCompletedAt: data.demographics?.onboardingCompletedAt || localPrimary?.onboardingCompletedAt || (data.demographics?.age ? new Date().toISOString() : null),
-          conditions: Array.isArray(data.conditions) && data.conditions.length > 0 ? data.conditions : (localPrimary?.conditions || []),
-          medications: Array.isArray(data.medications) && data.medications.length > 0 ? data.medications : (localPrimary?.medications || []),
-          allergies: Array.isArray(data.allergies) && data.allergies.length > 0 ? data.allergies : (localPrimary?.allergies || []),
+          conditions: Array.isArray(data.conditions) ? data.conditions : (localPrimary?.conditions || []),
+          medications: Array.isArray(data.medications) ? data.medications : (localPrimary?.medications || []),
+          allergies: Array.isArray(data.allergies) ? data.allergies : (localPrimary?.allergies || []),
           familyHistory: data.family_history || localPrimary?.familyHistory || [],
           timeline: Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : (localPrimary?.timeline || []),
           vitals: data.vitals || localPrimary?.vitals || { latestLabValues: {}, historicalLabs: [] },
@@ -1110,6 +1145,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
     }
 
     for (const row of snapshots || []) {
+      if (!stillCurrent()) return;
       if (!row?.profile_id || !row.data || typeof row.data !== 'object') continue;
       const local = state.profiles[row.profile_id];
       const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
@@ -1180,7 +1216,8 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       changed = true;
     }
     if (changed) {
-      localStorage.setItem(getProfileKey(), JSON.stringify(state));
+      if (!stillCurrent()) return;
+      localStorage.setItem(profileKey, JSON.stringify(state));
       window.dispatchEvent(new Event('hc_profile_updated'));
       await flushSyncOutbox(userId);
       if (import.meta.env?.DEV) console.log('Profile snapshots synced successfully from Supabase');

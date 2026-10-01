@@ -14,6 +14,9 @@ import { supabase } from './services/supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './services/storage';
 import { clearPersistedMDTSession } from './stores/useMDTStore';
 import { flushSyncOutbox } from './services/SyncOutbox';
+import { captureAccountScope, isAccountScopeCurrent, invalidateAccountScope } from './services/AccountScope';
+import { loadObservationsFromCloud, retryFailedObservationQueues } from './services/HealthObservationService';
+import { isDurableHealthStorageKey, retainHealthStorage } from './services/DurableHealthStorage';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
@@ -241,55 +244,46 @@ export default function App() {
 
   useEffect(() => {
     ensureWelcomeGrant();
-    const flush = () => { flushSyncOutbox().catch((error) => console.warn('Sync outbox flush failed', error)); };
+    const flush = () => {
+      const scope = captureAccountScope();
+      void flushSyncOutbox().then(async () => {
+        if (!isAccountScopeCurrent(scope) || scope.accountId === 'guest') return;
+        await retryFailedObservationQueues();
+        if (!isAccountScopeCurrent(scope)) return;
+        await flushSyncOutbox(scope.accountId);
+        if (isAccountScopeCurrent(scope)) await loadObservationsFromCloud();
+      }).catch(error => console.warn('Sync recovery failed', error));
+    };
     flush();
     window.addEventListener('online', flush);
 
     const handleLogout = async () => {
+      const logoutScope = captureAccountScope();
       try {
         const idb = await import('idb-keyval');
         await clearPersistedMDTSession();
         const keys = await idb.keys();
         for (const k of keys) {
-          if (typeof k === 'string' && k.startsWith('hc_sync_outbox_')) continue;
+          if (!isAccountScopeCurrent(logoutScope)) return;
+          if (isDurableHealthStorageKey(k)) continue;
           await idb.del(k);
         }
       } catch (e) {}
       
       try {
-        const theme = localStorage.getItem('hc_theme');
-        const consent = localStorage.getItem('hc_consent');
+        if (!isAccountScopeCurrent(logoutScope)) return;
+        const retained = retainHealthStorage(localStorage);
         sessionStorage.clear();
-          // Preserve local-only Dietician data from destructive logout
-          const preservedKeys: { key: string; value: string | null }[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.includes('hc_food_logs') || key.includes('hc_diet_profile') || key.includes('hc_hydration') || key.includes('hc_meal_plan') || key.includes('hc_diet_advice'))) {
-              preservedKeys.push({ key, value: localStorage.getItem(key) });
-            }
-          }
-          // Keep an offline account-scoped outbox across logout. It cannot be
-          // read by another account, and deleting it here would silently lose
-          // writes that are waiting for the next connection.
-          const pendingOutbox: { key: string; value: string | null }[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
-          }
-          localStorage.clear();
-          preservedKeys.forEach(p => {
-            if (p.value !== null) {
-              localStorage.setItem(p.key, p.value);
-            }
-          });
-          pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
-        if (theme) localStorage.setItem('hc_theme', theme);
-        if (consent) localStorage.setItem('hc_consent', consent);
+        // Remove only transient keys, avoiding a native Preferences.clear race
+        // that could erase the durable records being retained.
+        Object.keys(localStorage).forEach(key => { if (!(key in retained)) removeItemSync(key); });
+        const clearedScope = captureAccountScope();
         await unregisterPushDevice();
+        if (!isAccountScopeCurrent(clearedScope)) return;
         await supabase.auth.signOut();
       } catch (e) {}
       
-      navigate('/', { replace: true });
+      if (captureAccountScope().accountId === 'guest') navigate('/', { replace: true });
     };
     window.addEventListener('hc_logout', handleLogout);
 
@@ -350,9 +344,9 @@ export default function App() {
             const authPrefix = `hc_unified_profile_${session.user.id}`;
             
             const guestProfile = getItemSync(guestPrefix);
-            if (guestProfile) {
+            if (guestProfile && !getItemSync(authPrefix)) {
               setItemSync(authPrefix, guestProfile);
-              removeItemSync(guestPrefix);
+              if (getItemSync(authPrefix) === guestProfile) removeItemSync(guestPrefix);
             }
             
             // Older features used both *_guest and *_guest_profile_1 key shapes.
@@ -363,8 +357,11 @@ export default function App() {
                 const value = getItemSync(key);
                 if (!value) return;
                 const targetKey = key.replace('_guest', `_${session.user.id}`);
+                // A returning account keeps its existing records. Guest/account
+                // reconciliation needs review rather than a blind overwrite.
+                if (!isDurableHealthStorageKey(key) || getItemSync(targetKey) !== null) return;
                 setItemSync(targetKey, value);
-                removeItemSync(key);
+                if (getItemSync(targetKey) === value) removeItemSync(key);
               });
             } catch (e) {
                // Ignore if Object.keys(localStorage) throws due to security block
@@ -391,7 +388,9 @@ export default function App() {
         // inside this callback. Re-calling getSession() acquires the internal
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
+        const bootstrapScope = captureAccountScope();
         authBootstrapTimer = setTimeout(() => {
+          if (!isAccountScopeCurrent(bootstrapScope)) return;
           void registerPushNotifications().catch(error => console.warn('Push registration failed', error));
           // Navigate FIRST based on what's already in localStorage.
           // Do NOT block navigation on network calls (syncProfile, initCaseEngine)
@@ -405,6 +404,7 @@ export default function App() {
             } catch (err) {
               console.warn('Initial profile sync failed, falling back to local storage', err);
             }
+            if (!isAccountScopeCurrent(bootstrapScope)) return;
 
             const path = window.location.pathname;
             if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding' || path === '/auth/callback') {
@@ -414,7 +414,11 @@ export default function App() {
             // Sync other background data
             try {
               await initCaseEngine();
+              if (!isAccountScopeCurrent(bootstrapScope)) return;
               syncHealthMemoryFromSupabase().catch(console.error);
+              void loadObservationsFromCloud().then(() => {
+                if (isAccountScopeCurrent(bootstrapScope)) return retryFailedObservationQueues();
+              }).catch(error => console.warn('Observation history sync failed', error));
               backfillHealthMemoryFromProfile();
               backfillCaseHealthMemory();
             } catch (err) {
@@ -443,6 +447,7 @@ export default function App() {
           sessionStorage.clear();
           localStorage.removeItem('isAuthenticated');
           localStorage.removeItem('hc_account');
+          invalidateAccountScope();
           if (theme) localStorage.setItem('hc_theme', theme);
           if (consent) localStorage.setItem('hc_consent', consent);
         } catch (e) {
@@ -451,9 +456,10 @@ export default function App() {
         
         const path = window.location.pathname;
         if (path.startsWith('/app')) {
+          const endedScope = captureAccountScope();
           info('Session ended', 'Please sign in to continue.');
           setTimeout(() => {
-            navigate('/login', { replace: true });
+            if (isAccountScopeCurrent(endedScope)) navigate('/login', { replace: true });
           }, 300);
         }
       }

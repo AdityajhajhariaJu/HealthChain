@@ -23,6 +23,16 @@ begin
 end $$;
 
 -- Ava conversation ownership and exact wellness completion contract.
+-- Observation links must survive cloud sync while retaining owner/profile scope.
+do $$
+begin
+ if not exists(select 1 from information_schema.columns where table_schema='public' and table_name='health_observations' and column_name='record_references' and data_type='jsonb' and is_nullable='NO') then raise exception 'Observation reference storage is missing'; end if;
+ if not exists(select 1 from pg_constraint where conrelid='public.health_observations'::regclass and conname='health_observations_references_check' and convalidated) then raise exception 'Observation reference owner constraint is missing'; end if;
+ if to_regprocedure('public.healthchain_observation_references_valid(jsonb,uuid,text)') is null then raise exception 'Observation reference validator is missing'; end if;
+ if has_function_privilege('anon','public.healthchain_observation_references_valid(jsonb,uuid,text)','EXECUTE') then raise exception 'Anonymous reference validator execution is open'; end if;
+ if not has_function_privilege('authenticated','public.healthchain_observation_references_valid(jsonb,uuid,text)','EXECUTE') then raise exception 'Owned observation writes cannot validate links'; end if;
+end $$;
+
 do $$
 begin
  if to_regclass('public.ava_messages') is null then raise exception 'Ava conversation storage is missing';end if;

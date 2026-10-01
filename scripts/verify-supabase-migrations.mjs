@@ -27,6 +27,7 @@ const requiredFiles = [
   '20260929195913_security_advisor_hardening.sql',
   '20260930_diet_plan_generation_recovery.sql',
   '20260930164327_ava_reliability_foundation.sql',
+  '20261001060004_cross_feature_observation_links.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -69,6 +70,8 @@ const requiredSchemaTokens = [
   'public.start_fitness_session',
   'public.complete_fitness_session',
   'public.health_observations',
+  'healthchain_observation_references_valid',
+  'health_observations_references_check',
   'public.healthchain_profiles',
   'public.user_devices',
   'public.ai_requests',

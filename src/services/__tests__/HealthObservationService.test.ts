@@ -144,4 +144,37 @@ describe('canonical observation local commands', () => {
     expect(await loadObservationsFromCloud()).toMatchObject({ status: 'loaded', imported: 1 });
     expect(await listObservations()).toHaveLength(0);
   });
+
+  it('round-trips meal and case references onto a fresh device', async () => {
+    const references = [
+      { ownerId: 'account-a', profileId: 'profile_1', kind: 'observation' as const, id: 'meal-1' },
+      { ownerId: 'account-a', profileId: 'profile_1', kind: 'case' as const, id: 'case-1' },
+    ];
+    const saved = await createObservation({ ...draft(), references, payload: { kind: 'symptom', symptom: 'Bloating' } });
+    expect(saved.ok).toBe(true);
+    expect(state.queued[0].payload.record_references).toEqual(references);
+    const { expected_revision, ...remote } = state.queued[0].payload;
+    state.remoteRows = [remote]; state.records.clear();
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'loaded', imported: 1 });
+    expect((await listObservations())[0].references).toEqual(references);
+  });
+
+  it('rejects a cloud reference that claims another owner or an unsupported link type', async () => {
+    await createObservation(draft());
+    const { expected_revision, ...remote } = state.queued[0].payload;
+    state.records.clear();
+    state.remoteRows = [{ ...remote, record_references: [{ ownerId: 'account-b', profileId: 'profile_1', id: 'private', kind: 'case' }] }];
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'unavailable' });
+    expect(await listObservations()).toEqual([]);
+    state.remoteRows[0].record_references = [{ ownerId: 'account-a', profileId: 'profile_1', id: 'url', kind: 'arbitrary_url' }];
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'unavailable' });
+  });
+
+  it('reports divergent same-revision references instead of silently swapping case context', async () => {
+    await createObservation({ ...draft(), references: [{ ownerId: 'account-a', profileId: 'profile_1', kind: 'case', id: 'case-1' }] });
+    const { expected_revision, ...remote } = state.queued[0].payload;
+    state.remoteRows = [{ ...remote, record_references: [] }];
+    expect(await loadObservationsFromCloud()).toMatchObject({ status: 'conflict', conflicts: 1 });
+    expect((await listObservations())[0].references?.[0].id).toBe('case-1');
+  });
 });

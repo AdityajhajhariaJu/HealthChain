@@ -138,8 +138,14 @@ export default function HealthMemory() {
   useEffect(() => {
     const refresh = () => setItems(getHealthMemory());
     window.addEventListener('hc_health_memory_updated', refresh);
+    window.addEventListener('hc_profile_updated', refresh);
+    window.addEventListener('hc_logout', refresh);
     syncHealthMemoryFromSupabase().catch(console.error);
-    return () => window.removeEventListener('hc_health_memory_updated', refresh);
+    return () => {
+      window.removeEventListener('hc_health_memory_updated', refresh);
+      window.removeEventListener('hc_profile_updated', refresh);
+      window.removeEventListener('hc_logout', refresh);
+    };
   }, []);
 
   const visible = useMemo(() => items.filter(item => filter === 'all' || item.kind === filter), [items, filter]);

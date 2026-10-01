@@ -21,6 +21,7 @@ const safePart = (value: unknown, fallback: string) => {
 
 export function getAccountScope(): string {
   try {
+    if (localStorage.getItem('hc_guest_mode') === 'true') return 'guest';
     const account = JSON.parse(localStorage.getItem('hc_account') || 'null');
     if (account?.id) return safePart(account.id, 'account');
   } catch {}
@@ -30,7 +31,7 @@ export function getAccountScope(): string {
 export function getProfileScope(): string {
   try {
     const account = getAccountScope();
-    const raw = localStorage.getItem(`hc_unified_profile_${account}`) || localStorage.getItem('hc_unified_profile');
+    const raw = localStorage.getItem(`hc_unified_profile_${account}`);
     if (!raw) return 'profile-default';
     const state = JSON.parse(raw);
     const activeId = state?.activeId || state?.id || 'profile_1';

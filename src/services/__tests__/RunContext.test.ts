@@ -29,4 +29,12 @@ describe('RunContext profile isolation', () => {
 
     expect(secondScope).not.toBe(firstScope);
   });
+
+  it('gives explicit guest mode priority over a stale signed-in account and legacy profile', () => {
+    localStorage.setItem('hc_unified_profile', JSON.stringify({ id: 'private-legacy-profile' }));
+    const signedIn = getRunScope('lab', 'draft', 'session');
+    localStorage.setItem('hc_guest_mode', 'true');
+    const guest = getRunScope('lab', 'draft', 'session');
+    expect(guest).not.toBe(signedIn); expect(guest).toContain('_guest_profile-default_');
+  });
 });

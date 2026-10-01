@@ -90,7 +90,7 @@ export function validateObservationDraft(draft: ObservationDraft): ObservationVa
     try { new Intl.DateTimeFormat('en-US', { timeZone: draft.timezone }).format(); }
     catch { errors.push('Enter a valid IANA time zone or leave it unknown.'); }
   }
-  if (draft.references?.some((reference) => reference.ownerId !== draft.ownerId || reference.profileId !== draft.profileId || !text(reference.id))) errors.push('Linked records must belong to the same account and profile.');
+  if (draft.references !== undefined && (!Array.isArray(draft.references) || draft.references.length > 32 || draft.references.some((reference) => !reference || reference.ownerId !== draft.ownerId || reference.profileId !== draft.profileId || !text(reference.id) || reference.id.length > 200 || !['observation', 'case', 'trial'].includes(reference.kind)))) errors.push('Linked records must belong to the same account and profile, with a valid type and identifier.');
 
   const payload = draft.payload;
   if (!payload || typeof payload !== 'object') errors.push('Add an observation.');
