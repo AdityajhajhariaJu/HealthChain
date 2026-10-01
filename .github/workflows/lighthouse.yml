@@ -24,6 +24,11 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Generate native configuration and assets
+        run: |
+          npx cap copy android
+          npx cap copy ios
+
       - name: Run unit tests
         run: npm test -- --run
         

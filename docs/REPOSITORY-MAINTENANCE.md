@@ -35,7 +35,7 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 - Bounded the entire native Preferences restore, including value reads, to two seconds with at most eight concurrent reads. Late reads cannot overwrite newer edits or revive cleared values. Native clear/set/remove operations now share one ordered queue. Apply the saved theme after restoration.
 - Responsive hooks observe breakpoint changes instead of every browser resize; older environments retain a resize fallback.
 - Reused the 36 optimized image files from the prior production build in source, saving **14,582,869 bytes** without introducing another recompression generation. Removed the automatic image optimizer and its unused development dependencies. Bundle visualization runs only when requested and is outside `dist`.
-- Refreshed checked-in Capacitor configuration from the current source and fixed Windows-only Swift package path separators. Native configuration regression checks cover both platform copies and portable package paths. Signed builds are still a separate gate.
+- Refreshed generated Capacitor configuration from the current source and fixed Windows-only Swift package path separators. CI builds and generates both platform copies before the native configuration regression checks, which also cover portable package paths. Generated assets/configuration remain ignored. Signed builds are still a separate gate.
 - Added repository hygiene and emitted-manifest startup-size gates to CI/build. Rewrote the inaccurate placeholder README/architecture guide and ignored CLI/build caches.
 
 ## Measured results

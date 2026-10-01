@@ -46,11 +46,16 @@ jobs:
       - name: Validate Supabase migration contract
         run: npm run verify:migrations
 
-      - name: Unit tests
-        run: npm test -- --run
-
       - name: Production build
         run: npm run build
+
+      - name: Generate native configuration and assets
+        run: |
+          npx cap copy android
+          npx cap copy ios
+
+      - name: Unit tests
+        run: npm test -- --run
 
       - name: Install browsers for smoke tests
         run: npx playwright install --with-deps chromium webkit

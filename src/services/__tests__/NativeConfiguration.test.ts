@@ -3,7 +3,7 @@ import { expect, it } from 'vitest';
 import config from '../../../capacitor.config';
 
 it.each(['android/app/src/main/assets/capacitor.config.json', 'ios/App/App/capacitor.config.json'])(
-  'keeps checked-in native configuration aligned with the source: %s',
+  'keeps generated native configuration aligned with the source: %s',
   (file) => {
     const native = JSON.parse(readFileSync(file, 'utf8'));
     expect(native.appId).toBe(config.appId);
