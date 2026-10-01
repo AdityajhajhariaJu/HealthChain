@@ -1,6 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
 
 test.setTimeout(90000);
+// Keep the first failing native-control/clock trace, even when a retry passes.
+test.use({ trace: 'retain-on-failure' });
 test.beforeEach(async ({ page }) => {
   page.on('pageerror', (error) => console.error('Browser error:', error.message));
   await page.addInitScript(() => {
@@ -160,6 +162,10 @@ test('baseline medicines reach the schedule and baseline edits preserve time, ID
   const time = page.getByLabel('Reminder time for Metformin');
   await expect(time).toHaveValue('08:30');
   await time.fill('21:30');
+  // Finish the native time editor before the separate dose action. WebKit can
+  // keep scrolling its focused time field into view during pointer preflight.
+  await time.press('Tab');
+  await expect(time).toHaveValue('21:30');
   await page.getByRole('button', { name: 'Take Dose', exact: true }).click();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
