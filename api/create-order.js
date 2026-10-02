@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
-    return res.status(502).json({ error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error') });
+    return res.status(502).json({ error: 'Payment gateway error occurred' });
   }
 }
 
