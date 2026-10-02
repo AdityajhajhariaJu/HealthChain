@@ -1,0 +1,3 @@
+## 2026-10-02 - Missing ARIA labels in floating and dynamic media player controls
+**Learning:** Floating, interactive media UI elements (e.g. glassmorphic mute/play toggles, ambient mixer drawers) that rely purely on icons for their minimal aesthetic frequently introduce critical accessibility barriers for screen-reader users, leading to unannounced focus stops and functional dead ends.
+**Action:** Audit complex, custom interactive media players specifically for ARIA labels on all icon-only control toggles and close buttons, establishing a pattern where minimal visual design does not compromise assistive text context.

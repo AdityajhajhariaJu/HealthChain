@@ -1131,6 +1131,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   >
                     {/* Frosted Close Pill */}
                     <button 
+                      aria-label="Minimize player"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleClose();
@@ -1185,6 +1186,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                     {/* Point 4: Interactive Sleep Timer & Session Countdown Pill */}
                     <button 
+                      aria-label="Open sleep timer"
                       onClick={(e) => {
                         e.stopPropagation();
                         triggerHapticLight();
@@ -1460,6 +1462,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                       {/* Mute Toggle */}
                       <button
+                        aria-label={isMuted ? "Unmute" : "Mute"}
                         onClick={() => {
                           setIsMuted(!isMuted);
                           triggerHapticLight();
@@ -1608,6 +1611,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       {/* Tracks Drawer Trigger */}
                       {isPlaylistMode && currentPlaylist.length > 0 ? (
                         <button
+                          aria-label="Open playlist"
                           onClick={() => {
                             triggerHapticLight();
                             setShowPlaylist(true);
@@ -1636,6 +1640,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       {/* Center Controls: Prev / Play / Next */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <button
+                          aria-label="Previous track"
                           onClick={() => {
                             if (isPlaylistMode && currentPlaylist.length > 0) {
                               const newIdx = activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1;
@@ -1661,6 +1666,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                         {/* Luxury Glass Play Button */}
                         <button
+                          aria-label={isPlaying ? "Pause" : "Play"}
                           onClick={() => {
                             triggerHapticLight();
                             setIsPlaying(!isPlaying);
@@ -1687,6 +1693,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         </button>
 
                         <button
+                          aria-label="Next track"
                           onClick={() => {
                             if (isPlaylistMode && currentPlaylist.length > 0) {
                               const newIdx = activeTrackIndex < currentPlaylist.length - 1 ? activeTrackIndex + 1 : 0;
@@ -1713,6 +1720,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                       <div style={{ width: '88px', display: 'flex', justifyContent: 'flex-end' }}>
                         <button
+                          aria-label="Open ambient mixer"
                           onClick={() => {
                             triggerHapticLight();
                             setShowAmbientMixer(true);
@@ -1814,6 +1822,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           </span>
                         </div>
                         <button
+                          aria-label="Close playlist"
                           onClick={() => setShowPlaylist(false)}
                           style={{
                             background: 'rgba(255, 255, 255, 0.1)',
@@ -1982,6 +1991,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           </h4>
                         </div>
                         <button
+                          aria-label="Close sleep timer"
                           onClick={() => setShowSleepTimerSheet(false)}
                           style={{
                             background: 'rgba(255, 255, 255, 0.1)',
@@ -2107,6 +2117,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           </div>
                         </div>
                         <button
+                          aria-label="Close ambient mixer"
                           onClick={() => setShowAmbientMixer(false)}
                           style={{
                             background: 'rgba(255, 255, 255, 0.1)',
