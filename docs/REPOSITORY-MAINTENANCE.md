@@ -76,3 +76,51 @@ Migration `20261001173602_app_query_efficiency.sql` was applied to project `ciki
 Final local unit suite: **801 passed, 1 skipped**. The skip is the opt-in live-model suite. The browser sweeps exposed frozen-clock initialization and short journey deadlines, then a closing-dialog focus race; the corrected Ava and daily-tracker suites passed all 38 Chromium/WebKit checks. The case/Ava/clinical journey waits for the saved screen before its next navigation and passed six repeated Chromium/WebKit runs without retries. A hosted archive/export journey exposed the same premature-navigation pattern in another fixture; it now waits for the saved case screen and uses the app's navigation links. All six repeated Chromium/WebKit archive journeys passed without retries, preserving export, hydration, original-file and logout assertions. Four new mobile Chromium/WebKit checks verify visible initial text, zoom, rendered cards/fallback images, deep scrolling, no horizontal overflow and optional tracking consent. Exact-release full browser, build, migration/repository, lint, dependency and production results are recorded in the task's external release evidence and [GitHub Actions](https://github.com/AdityajhajhariaJu/HealthChain/actions). The complete application/development dependency audit reports zero vulnerabilities after a clean install.
 
 Device restore fallback retains native data for later recovery if the bridge misses the deadline; signed phone recovery still needs acceptance. Native sign-in/provider setup, physical notification delivery, two-device convergence, remaining legacy AI semantic contracts and clinical/nutrition review remain as described in the [functional audit](WHOLE-APP-FUNCTIONAL-AUDIT.md). Cleanup does not turn those into completed acceptance claims.
+
+## Second cleanup pass — 2 October 2026
+
+This pass starts from commit `3e6b84f5`, after the earlier cleanup above. Its measurements and removals are separate from the 814 files removed in that earlier release.
+
+### Structure and dependency cleanup
+
+- Split the model service into transport, consultation, collaboration, investigation, diet, vision, Gut and shared safety/cache modules under `src/services/ai`. The small `geminiService.ts` compatibility API preserves existing callers, operation identifiers, prompts and payment/request contracts.
+- Moved account bootstrap, recovery and conflict UI out of the route root into `features/account`. The public route loads only auth detection until an account, guest workspace or pending erasure receipt needs recovery.
+- Separated public landing scenario data from case construction and clinical comparison. Workspace code loads on launch; fixed 900/600 ms navigation delays are removed, duplicate launch clicks are guarded, and failed loads expose a retry message.
+- Extracted shared diet workspace initialization into `dietWorkspace.ts`, removing the components-to-page import cycle and unused presets. Moved meditation rendering into `features/calm` and garden state into a focused service, retaining compatibility exports.
+- Removed the unused analytics provider and six unused dependencies: five Capacitor plugins (camera, filesystem, share, status bar and toast) and `eslint-plugin-prettier`. Refreshed native plugin registrations and kept portable Swift paths. Ava loads its React Query provider with its route.
+- Rechecked the tracked source import graph. All production implementation modules remain reachable; the standalone Vite declaration file is expected. Referenced media, original health records and all 42 migration files are retained.
+
+### Runtime efficiency and glitches
+
+- Added TypeScript/TSX Hook-order linting. Fixed conditional Hooks in the connection map, conflict dialog and report template, with data/open-state transition regressions.
+- Auth events bootstrap once per account/profile generation. Deferred network work stays outside Supabase's serialized auth callback, hidden-page wake events skip session work, and switching accounts cannot inherit the prior account's display name.
+- Browser reconnect, Capacitor network and native resume requests share a coalesced recovery worker. Native recovery does not depend on a WebView emitting the browser's `online` event. Tracker projection events also coalesce rather than queue repeated full-history scans. Changed observations still trigger a fresh pass, and failed work can retry.
+- Daily tracker projections group history by date in one pass and write/emit only actual changes. Hydration synchronization and case revision comparison use indexed lookups. Tombstones, exact quantities and recorded occurrence times remain covered by the existing ledger tests.
+- Model result caches retain at most 16 entries per operation and isolate account/profile generations. Logout clears temporary results; durable review history stays in its repositories.
+- The shared model deadline and caller cancellation stay active through the entire response body, and account ownership is rechecked after body delivery. Successful headers alone cannot end the deadline. Stream regressions verify stalled bodies, caller cancellation and account changes; the existing request/recovery tests retain idempotency and terminal-failure behavior.
+- Explicit guest requests skip account-session lookup, including automatic refresh after a 401 response. An account lookup cannot contribute an authorization token to these requests and could stall scans while WebKit restores account storage. Fresh request identifiers use synchronous random generation instead of hashing entire photo payloads; caller-provided recovery/idempotency identifiers still survive retries unchanged. Stalled-session/crypto and unauthorized-response regressions, plus 15 repeated WebKit scanner checks, verify this path.
+- Decorative meditation loops stop when paused, hidden or reduced motion is requested. Crossfade timers are cancelled on close, pause, mute and content changes; Media Session seeking accepts zero. Reconnection UI cancels old timers and avoids claiming a completed sync before recovery finishes.
+- Shared sensitive API CORS keeps its exact-origin policy. Trial searches reject deceptive host suffixes, unsupported methods and oversized conditions, cap provider results at 50, and retain the deadline through response-body reading.
+- Recursive syntax validation now covers nested endpoints and operational JavaScript. Build guards protect startup and the entire public landing static import graph.
+
+### Measurements for this pass
+
+| Measurement | Start of this pass | After |
+|---|---:|---:|
+| Startup JavaScript | 854,127 bytes | 662,225 bytes |
+| Startup JavaScript, gzip | 253,708 bytes | 196,256 bytes |
+| Public landing including shared startup, gzip | — | 222,110 bytes |
+
+Startup JavaScript fell by **22.5%**, or **22.6%** using gzip. Landing's complete static graph is 734,689 raw bytes across 16 assets; account workers, clinical repositories, charts, 3D and PDF code remain deferred. Budget limits leave modest room for routine additions and reject their return to public startup.
+
+The current local Lighthouse 11.4 compressed-build audit scores **53 performance and 100 each for accessibility, best practices and SEO**, with simulated mobile LCP 10.2 seconds and blocking time 210 ms. It remains below the mobile performance target. Smaller emitted bundles and fewer background scans establish less download/work; they do not establish instant paint on a slow phone. Optional font display keeps system text when a font arrives late, following [Chrome's font loading guidance](https://web.dev/learn/performance/optimize-web-fonts). Signed devices, live model quality, physical notifications and payment-provider acceptance retain their separate gates.
+
+### Verification for this pass
+
+- Production TypeScript/build and both JavaScript budget gates pass. ESLint, repository hygiene, recursive JavaScript syntax and all 42 migration files/27 schema checks pass.
+- The complete unit suite passes **827 tests**, with the existing opt-in live-model suite skipped. New regressions cover Hook transitions, coalesced recovery, native reconnect events, public account-runtime deferral, scoped model caches, stalled response bodies and unauthorized guest responses.
+- The complete Chromium/WebKit browser sweep passes **198 checks without retries**, including daily boundaries, deletion, owner isolation, clinical review, diet/Gut records and archive/export workflows.
+- Both browser engines pass **14 built-asset journeys**, including the public landing, authentication boundary, guest assessment, case save and Ava reply/reload. Fifteen repeated WebKit scanner checks pass without retries after the guest transport correction.
+- After the guest 401 correction, the fresh build and complete unit suite pass again, followed by all 14 production journeys and **24 affected Ava/scanner browser checks**. Guest success, error, cancellation and account-change behavior remain covered.
+- The read-only Supabase smoke check passes for 18 required relations and confirms protected account tables reject anonymous access. This pass adds no migrations and deletes no database records.
+- The full application/development dependency audit reports **zero vulnerabilities**. Capacitor synchronization and refreshed Android/iOS web copies pass with the ten used native plugins; signed builds and physical-device acceptance are separate checks.

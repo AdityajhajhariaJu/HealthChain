@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -7,10 +6,7 @@ import App from './App';
 import FallbackError from './components/ui/FallbackError';
 import { ToastProvider } from './components/ui/ToastProvider';
 import './index.css';
-import { AnalyticsProvider } from './services/AnalyticsProvider';
 import { syncStorageFromPreferences } from './services/storage';
-
-const queryClient = new QueryClient();
 
 // Initialize Capacitor storage sync before rendering
 syncStorageFromPreferences()
@@ -27,20 +23,13 @@ syncStorageFromPreferences()
     }
     ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <ErrorBoundary
-              FallbackComponent={FallbackError}
-              onReset={() => window.location.reload()}
-            >
-              <AnalyticsProvider>
-                <ToastProvider>
-                  <App />
-                </ToastProvider>
-              </AnalyticsProvider>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </QueryClientProvider>
+        <BrowserRouter>
+          <ErrorBoundary FallbackComponent={FallbackError} onReset={() => window.location.reload()}>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </ErrorBoundary>
+        </BrowserRouter>
       </React.StrictMode>
     );
 

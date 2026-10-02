@@ -5,7 +5,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Cold workspace compilation and WebKit compete for memory on local hosts.
+  // Run serially by default; --workers can override for a provisioned machine.
+  workers: 1,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:3001',
@@ -22,6 +24,8 @@ export default defineConfig({
     },
   ],
   webServer: {
+    // Repository fixtures import source modules; production journeys have a
+    // separate config that interacts exclusively through the emitted UI.
     command: 'npm run dev',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,

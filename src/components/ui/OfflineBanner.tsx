@@ -2,38 +2,51 @@ import { Network } from '@capacitor/network';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { flushSyncOutbox } from '../../services/SyncOutbox';
 
 export default function OfflineBanner() {
-  const [isOffline, setIsOffline] = useState(false);
+  const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
   const [justReconnected, setJustReconnected] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
+    let offline = !navigator.onLine;
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    const updateStatus = (connected: boolean) => {
+      if (!isMounted) return;
+      const reconnected = connected && offline;
+      offline = !connected;
+      setIsOffline(offline);
+      if (!connected) {
+        clearTimeout(reconnectTimer);
+        setJustReconnected(false);
+      } else if (reconnected) {
+        setJustReconnected(true);
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(() => {
+          if (isMounted) setJustReconnected(false);
+        }, 3000);
+      }
+    };
 
     // Check initial network status
-    Network.getStatus().then(status => {
-      if (isMounted) setIsOffline(!status.connected);
-    }).catch(() => {
-      if (isMounted) setIsOffline(!navigator.onLine);
-    });
+    Network.getStatus()
+      .then((status) => {
+        updateStatus(status.connected);
+      })
+      .catch(() => {
+        updateStatus(navigator.onLine);
+      });
 
     const handleConnected = () => {
-      setIsOffline(false);
-      setJustReconnected(true);
-      flushSyncOutbox().catch(() => {});
-      setTimeout(() => {
-        if (isMounted) setJustReconnected(false);
-      }, 3000);
+      updateStatus(true);
     };
 
     const handleDisconnected = () => {
-      setIsOffline(true);
-      setJustReconnected(false);
+      updateStatus(false);
     };
 
     // Native Capacitor Network listener
-    const networkListenerPromise = Network.addListener('networkStatusChange', status => {
+    const networkListenerPromise = Network.addListener('networkStatusChange', (status) => {
       if (!isMounted) return;
       if (status.connected) {
         handleConnected();
@@ -48,7 +61,8 @@ export default function OfflineBanner() {
 
     return () => {
       isMounted = false;
-      networkListenerPromise.then(handle => handle?.remove?.()).catch(() => {});
+      clearTimeout(reconnectTimer);
+      networkListenerPromise.then((handle) => handle?.remove?.()).catch(() => {});
       window.removeEventListener('online', handleConnected);
       window.removeEventListener('offline', handleDisconnected);
     };
@@ -81,11 +95,13 @@ export default function OfflineBanner() {
             fontWeight: 500,
             zIndex: 999999,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            border: isOffline ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.2)',
+            border: isOffline
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             maxWidth: '90vw',
-            textAlign: 'center'
+            textAlign: 'center',
           }}
         >
           {isOffline ? (
@@ -96,7 +112,7 @@ export default function OfflineBanner() {
           ) : (
             <>
               <Wifi size={14} />
-              <span>Connection restored • Synced ✓</span>
+              <span>Connection restored • Syncing resumes</span>
             </>
           )}
         </motion.div>

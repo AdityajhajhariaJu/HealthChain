@@ -330,11 +330,12 @@ async function save(cases: CaseItem[]) {
   const accountScope = captureHealthMemoryScope();
   const storageKey = getCasesKey();
   const profileId = getActiveProfileId();
+  const previousById = new Map(cachedCases?.map((item) => [item.id, item]));
 
   // Find changed cases and increment monotonic revision
   const updatedWithRevision = cases.map((c: any) => {
     if (!cachedCases) return { ...c, revision: c.revision || 1 };
-    const old = cachedCases.find((o) => o.id === c.id);
+    const old = previousById.get(c.id);
     const isChanged =
       !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
     return isChanged ? { ...c, revision: (c.revision || old?.revision || 1) + 1 } : c;
@@ -355,7 +356,7 @@ async function save(cases: CaseItem[]) {
 
   const changedCases = safeCases.filter((c: any) => {
     if (!cachedCases) return true;
-    const old = cachedCases.find((o) => o.id === c.id);
+    const old = previousById.get(c.id);
     return (
       !old ||
       old.updatedAt !== c.updatedAt ||

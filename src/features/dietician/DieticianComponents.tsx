@@ -37,14 +37,14 @@ import {
   MEAL_SCHEDULES,
   MEDICAL_CONDITIONS,
   RESTRICTIONS,
-} from './Dietician';
+} from './dietWorkspace';
 import { DietPracticalPreferences } from './DietPracticalPreferences';
 
-export function OnboardingWizard({ 
-  onComplete, 
-  initialData, 
-  onCancel 
-}: { 
+export function OnboardingWizard({
+  onComplete,
+  initialData,
+  onCancel,
+}: {
   onComplete: (data: any) => void;
   initialData?: any;
   onCancel?: () => void;
@@ -62,15 +62,15 @@ export function OnboardingWizard({
   const [data, setData] = useState(() => {
     if (initialData) {
       return {
-        weight: initialData.weight ? String(initialData.weight) : (defaultW ? String(defaultW) : ''),
+        weight: initialData.weight ? String(initialData.weight) : defaultW ? String(defaultW) : '',
         weightUnit: initialData.weightUnit || 'kg',
         targetWeight: initialData.targetWeight ? String(initialData.targetWeight) : '',
         targetDays: initialData.targetDays ? String(initialData.targetDays) : '90',
-        height: initialData.height ? String(initialData.height) : (defaultH ? String(defaultH) : ''),
+        height: initialData.height ? String(initialData.height) : defaultH ? String(defaultH) : '',
         heightUnit: initialData.heightUnit || 'cm',
         heightFt: initialData.heightFt || '',
         heightIn: initialData.heightIn || '',
-        age: initialData.age ? String(initialData.age) : (defaultA ? String(defaultA) : ''),
+        age: initialData.age ? String(initialData.age) : defaultA ? String(defaultA) : '',
         gender: initialData.gender || defaultG,
         pregnancyStatus: initialData.pregnancyStatus || 'unknown',
         goal: initialData.goal || 'Maintain',
@@ -84,10 +84,18 @@ export function OnboardingWizard({
       };
     }
 
-    const rawConds = (coreProfile?.conditions || []).map((c: any) => typeof c === 'string' ? c : c.name || '');
-    const matchedConds = MEDICAL_CONDITIONS.filter(mc => rawConds.some((rc: string) => rc.toLowerCase().includes(mc.toLowerCase())));
-    const allergies = (coreProfile?.allergies || []).map((a: any) => typeof a === 'string' ? a : a?.name || '');
-    const matchedRestrictions = RESTRICTIONS.filter(r => allergies.some((a: string) => a.toLowerCase().includes(r.toLowerCase())));
+    const rawConds = (coreProfile?.conditions || []).map((c: any) =>
+      typeof c === 'string' ? c : c.name || ''
+    );
+    const matchedConds = MEDICAL_CONDITIONS.filter((mc) =>
+      rawConds.some((rc: string) => rc.toLowerCase().includes(mc.toLowerCase()))
+    );
+    const allergies = (coreProfile?.allergies || []).map((a: any) =>
+      typeof a === 'string' ? a : a?.name || ''
+    );
+    const matchedRestrictions = RESTRICTIONS.filter((r) =>
+      allergies.some((a: string) => a.toLowerCase().includes(r.toLowerCase()))
+    );
 
     return {
       weight: defaultW ? String(defaultW) : '',
@@ -113,12 +121,16 @@ export function OnboardingWizard({
   });
 
   const next = () => {
-    try { triggerHapticLight(); } catch {}
+    try {
+      triggerHapticLight();
+    } catch {}
     setStep((s) => Math.min(8, s + 1));
   };
 
   const prev = () => {
-    try { triggerHapticLight(); } catch {}
+    try {
+      triggerHapticLight();
+    } catch {}
     setStep((s) => Math.max(1, s - 1));
   };
 
@@ -141,22 +153,39 @@ export function OnboardingWizard({
   // Live Metrics
   const result = calculateDietTargets(data);
   const parsedW = parseFloat(data.weight);
-  const parsedH = data.heightUnit === 'ft'
-    ? ((Number(data.heightFt) || 0) * 30.48 + (Number(data.heightIn) || 0) * 2.54) / 100
-    : parseFloat(data.height) / 100;
-  const w = !Number.isNaN(parsedW) ? (data.weightUnit === 'lbs' ? parsedW * 0.45359237 : parsedW) : 0;
+  const parsedH =
+    data.heightUnit === 'ft'
+      ? ((Number(data.heightFt) || 0) * 30.48 + (Number(data.heightIn) || 0) * 2.54) / 100
+      : parseFloat(data.height) / 100;
+  const w = !Number.isNaN(parsedW)
+    ? data.weightUnit === 'lbs'
+      ? parsedW * 0.45359237
+      : parsedW
+    : 0;
   const h = !Number.isNaN(parsedH) ? parsedH : 0;
-  const targetW = data.weightUnit === 'lbs' ? parseFloat(data.targetWeight) * 0.45359237 : parseFloat(data.targetWeight);
-  const bmi = (w > 0 && h > 0) ? (w / (h * h)).toFixed(1) : null;
-  
+  const targetW =
+    data.weightUnit === 'lbs'
+      ? parseFloat(data.targetWeight) * 0.45359237
+      : parseFloat(data.targetWeight);
+  const bmi = w > 0 && h > 0 ? (w / (h * h)).toFixed(1) : null;
+
   let bmiCategory = '';
   let bmiColor = '#059669';
   if (bmi) {
     const num = parseFloat(bmi);
-    if (num < 18.5) { bmiCategory = 'Underweight'; bmiColor = '#D97706'; }
-    else if (num <= 24.9) { bmiCategory = 'Optimal Range'; bmiColor = '#059669'; }
-    else if (num <= 29.9) { bmiCategory = 'Overweight'; bmiColor = '#D97706'; }
-    else { bmiCategory = 'Obesity Class'; bmiColor = '#DC2626'; }
+    if (num < 18.5) {
+      bmiCategory = 'Underweight';
+      bmiColor = '#D97706';
+    } else if (num <= 24.9) {
+      bmiCategory = 'Optimal Range';
+      bmiColor = '#059669';
+    } else if (num <= 29.9) {
+      bmiCategory = 'Overweight';
+      bmiColor = '#D97706';
+    } else {
+      bmiCategory = 'Obesity Class';
+      bmiColor = '#DC2626';
+    }
   }
 
   const calculated = result.available ? result.targets : null;
@@ -204,14 +233,16 @@ export function OnboardingWizard({
 
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.9) 100%)',
+          background:
+            'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.9) 100%)',
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderRadius: isMobile ? '28px' : '36px',
           padding: isMobile ? '24px 18px' : '44px 40px',
           maxWidth: '600px',
           width: '100%',
-          boxShadow: '0 25px 60px -15px rgba(5, 150, 105, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 10px 25px rgba(0, 0, 0, 0.03)',
+          boxShadow:
+            '0 25px 60px -15px rgba(5, 150, 105, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 10px 25px rgba(0, 0, 0, 0.03)',
           border: '1px solid rgba(16, 185, 129, 0.2)',
           position: 'relative',
           overflow: 'hidden',
@@ -289,7 +320,14 @@ export function OnboardingWizard({
               </div>
             )}
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+              <div
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  letterSpacing: '-0.2px',
+                }}
+              >
                 Food Planner Setup
               </div>
               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
@@ -339,8 +377,11 @@ export function OnboardingWizard({
 
         {/* STEP 1: METABOLIC BASELINE */}
         {step === 1 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
             <h2
               style={{
                 fontSize: isMobile ? '22px' : '26px',
@@ -352,13 +393,24 @@ export function OnboardingWizard({
             >
               Add optional planning details.
             </h2>
-            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px', lineHeight: 1.45 }}>
-              Age, height, weight, and the equation option below can produce a general Mifflin-St Jeor energy estimate. It is not a measured metabolic rate or prescription.
+            <p
+              style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px', lineHeight: 1.45 }}
+            >
+              Age, height, weight, and the equation option below can produce a general Mifflin-St
+              Jeor energy estimate. It is not a measured metabolic rate or prescription.
             </p>
 
             {/* Gender Toggle */}
             <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#475569',
+                  marginBottom: '6px',
+                }}
+              >
                 Biological Sex (for metabolic coefficient)
               </label>
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -394,12 +446,31 @@ export function OnboardingWizard({
 
             {data.gender === 'female' && (
               <div style={{ marginBottom: '18px' }}>
-                <label htmlFor="diet-pregnancy-status" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <label
+                  htmlFor="diet-pregnancy-status"
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    marginBottom: '6px',
+                  }}
+                >
                   Pregnant or breastfeeding? (for target eligibility)
                 </label>
-                <select id="diet-pregnancy-status" value={data.pregnancyStatus}
+                <select
+                  id="diet-pregnancy-status"
+                  value={data.pregnancyStatus}
                   onChange={(e) => setData({ ...data, pregnancyStatus: e.target.value })}
-                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #CBD5E1', color: '#0F172A', background: '#FFFFFF' }}>
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid #CBD5E1',
+                    color: '#0F172A',
+                    background: '#FFFFFF',
+                  }}
+                >
                   <option value="unknown">Prefer not to say / unsure</option>
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
@@ -408,21 +479,112 @@ export function OnboardingWizard({
             )}
 
             {/* Unit Toggles */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px' }}>
-                <button onClick={() => setData({...data, weightUnit: 'kg'})} style={{ background: data.weightUnit === 'kg' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.weightUnit === 'kg' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.weightUnit === 'kg' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>kg</button>
-                <button onClick={() => setData({...data, weightUnit: 'lbs'})} style={{ background: data.weightUnit === 'lbs' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.weightUnit === 'lbs' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.weightUnit === 'lbs' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>lbs</button>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '8px',
+                marginBottom: '8px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#F1F5F9',
+                  borderRadius: '8px',
+                  padding: '2px',
+                }}
+              >
+                <button
+                  onClick={() => setData({ ...data, weightUnit: 'kg' })}
+                  style={{
+                    background: data.weightUnit === 'kg' ? '#FFF' : 'transparent',
+                    border: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: data.weightUnit === 'kg' ? '#0F172A' : '#64748B',
+                    cursor: 'pointer',
+                    boxShadow: data.weightUnit === 'kg' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  kg
+                </button>
+                <button
+                  onClick={() => setData({ ...data, weightUnit: 'lbs' })}
+                  style={{
+                    background: data.weightUnit === 'lbs' ? '#FFF' : 'transparent',
+                    border: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: data.weightUnit === 'lbs' ? '#0F172A' : '#64748B',
+                    cursor: 'pointer',
+                    boxShadow: data.weightUnit === 'lbs' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  lbs
+                </button>
               </div>
-              <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px' }}>
-                <button onClick={() => setData({...data, heightUnit: 'cm'})} style={{ background: data.heightUnit === 'cm' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.heightUnit === 'cm' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.heightUnit === 'cm' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>cm</button>
-                <button onClick={() => setData({...data, heightUnit: 'ft'})} style={{ background: data.heightUnit === 'ft' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.heightUnit === 'ft' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.heightUnit === 'ft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>ft/in</button>
+              <div
+                style={{
+                  display: 'flex',
+                  background: '#F1F5F9',
+                  borderRadius: '8px',
+                  padding: '2px',
+                }}
+              >
+                <button
+                  onClick={() => setData({ ...data, heightUnit: 'cm' })}
+                  style={{
+                    background: data.heightUnit === 'cm' ? '#FFF' : 'transparent',
+                    border: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: data.heightUnit === 'cm' ? '#0F172A' : '#64748B',
+                    cursor: 'pointer',
+                    boxShadow: data.heightUnit === 'cm' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  cm
+                </button>
+                <button
+                  onClick={() => setData({ ...data, heightUnit: 'ft' })}
+                  style={{
+                    background: data.heightUnit === 'ft' ? '#FFF' : 'transparent',
+                    border: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: data.heightUnit === 'ft' ? '#0F172A' : '#64748B',
+                    cursor: 'pointer',
+                    boxShadow: data.heightUnit === 'ft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  ft/in
+                </button>
               </div>
             </div>
 
             {/* Weight & Target Weight */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    marginBottom: '6px',
+                  }}
+                >
                   <Scale size={13} color="#059669" /> Current Weight ({data.weightUnit})
                 </label>
                 <input
@@ -431,7 +593,7 @@ export function OnboardingWizard({
                   max="600"
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: e.target.value })}
-                  placeholder={data.weightUnit === 'kg' ? "e.g. 75" : "e.g. 165"}
+                  placeholder={data.weightUnit === 'kg' ? 'e.g. 75' : 'e.g. 165'}
                   aria-label={`Current weight in ${data.weightUnit}`}
                   style={{
                     width: '100%',
@@ -448,7 +610,17 @@ export function OnboardingWizard({
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    marginBottom: '6px',
+                  }}
+                >
                   <Target size={13} color="#059669" /> Optional planning weight ({data.weightUnit})
                 </label>
                 <input
@@ -457,7 +629,7 @@ export function OnboardingWizard({
                   max="600"
                   value={data.targetWeight}
                   onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
-                  placeholder={data.weightUnit === 'kg' ? "e.g. 70" : "e.g. 150"}
+                  placeholder={data.weightUnit === 'kg' ? 'e.g. 70' : 'e.g. 150'}
                   aria-label={`Target weight in ${data.weightUnit}`}
                   style={{
                     width: '100%',
@@ -478,7 +650,17 @@ export function OnboardingWizard({
             {/* Height & Age */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    marginBottom: '6px',
+                  }}
+                >
                   <Ruler size={13} color="#059669" /> Height ({data.heightUnit})
                 </label>
                 {data.heightUnit === 'cm' ? (
@@ -551,7 +733,17 @@ export function OnboardingWizard({
                 )}
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    marginBottom: '6px',
+                  }}
+                >
                   <Clock size={13} color="#059669" /> Age (Years)
                 </label>
                 <input
@@ -580,7 +772,17 @@ export function OnboardingWizard({
 
             {/* Timeframe */}
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#475569',
+                  marginBottom: '6px',
+                }}
+              >
                 <Clock size={13} color="#059669" /> Optional planning horizon (days)
               </label>
               <input
@@ -651,12 +853,20 @@ export function OnboardingWizard({
                 </div>
 
                 {w > 0 && targetW > 0 && (
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      textAlign: 'right',
+                    }}
+                  >
                     {w === targetW ? (
                       <span style={{ color: '#059669' }}>⚖️ Maintenance Plan</span>
                     ) : (
                       <span>
-                        {w > targetW ? '📉 -' : '📈 +'}{Math.abs(w - targetW).toFixed(1)} kg over {data.targetDays || 90}d
+                        {w > targetW ? '📉 -' : '📈 +'}
+                        {Math.abs(w - targetW).toFixed(1)} kg over {data.targetDays || 90}d
                       </span>
                     )}
                   </div>
@@ -691,42 +901,68 @@ export function OnboardingWizard({
 
         {/* STEP 2: PRIMARY GOAL */}
         {step === 2 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               What would you like the example to support?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              This choice adjusts the editable estimates. Review weight-change goals with a qualified professional, especially if you have a medical condition or history of disordered eating.
+              This choice adjusts the editable estimates. Review weight-change goals with a
+              qualified professional, especially if you have a medical condition or history of
+              disordered eating.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                marginBottom: '24px',
+              }}
+            >
               {[
-                { 
-                  id: 'Lose weight', 
-                  title: 'Fat Loss & Metabolic Reset', 
-                  subtitle: 'Targeted caloric deficit with high protein satiety to spare lean tissue.', 
-                  icon: Flame, 
-                  color: '#EF4444', 
-                  bg: '#FEF2F2' 
+                {
+                  id: 'Lose weight',
+                  title: 'Fat Loss & Metabolic Reset',
+                  subtitle:
+                    'Targeted caloric deficit with high protein satiety to spare lean tissue.',
+                  icon: Flame,
+                  color: '#EF4444',
+                  bg: '#FEF2F2',
                 },
-                { 
-                  id: 'Maintain', 
-                  title: 'Metabolic Balance & Longevity', 
-                  subtitle: 'Energy equilibrium with steady glycemic control and mitochondrial support.', 
-                  icon: Heart, 
-                  color: '#059669', 
-                  bg: '#ECFDF5' 
+                {
+                  id: 'Maintain',
+                  title: 'Metabolic Balance & Longevity',
+                  subtitle:
+                    'Energy equilibrium with steady glycemic control and mitochondrial support.',
+                  icon: Heart,
+                  color: '#059669',
+                  bg: '#ECFDF5',
                 },
-                { 
-                  id: 'Lean mass preservation', 
-                  title: 'Lean Mass Preservation & Recovery', 
-                  subtitle: 'Optimized amino acid distribution and micronutrient density to sustain lean muscle mass and metabolic vitality.', 
-                  icon: Zap, 
-                  color: '#3B82F6', 
-                  bg: '#EFF6FF' 
+                {
+                  id: 'Lean mass preservation',
+                  title: 'Lean Mass Preservation & Recovery',
+                  subtitle:
+                    'Optimized amino acid distribution and micronutrient density to sustain lean muscle mass and metabolic vitality.',
+                  icon: Zap,
+                  color: '#3B82F6',
+                  bg: '#EFF6FF',
                 },
               ].map((item) => {
-                const isSelected = data.goal === item.id || (item.id === 'Lean mass preservation' && data.goal === 'Gain muscle');
+                const isSelected =
+                  data.goal === item.id ||
+                  (item.id === 'Lean mass preservation' && data.goal === 'Gain muscle');
                 const IconComponent = item.icon;
                 return (
                   <motion.button
@@ -742,7 +978,9 @@ export function OnboardingWizard({
                       borderRadius: '20px',
                       border: `2px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
                       background: isSelected ? '#ECFDF5' : '#FFFFFF',
-                      boxShadow: isSelected ? '0 8px 20px rgba(5, 150, 105, 0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      boxShadow: isSelected
+                        ? '0 8px 20px rgba(5, 150, 105, 0.15)'
+                        : '0 2px 8px rgba(0,0,0,0.02)',
                       textAlign: 'left',
                       cursor: 'pointer',
                       display: 'flex',
@@ -769,16 +1007,41 @@ export function OnboardingWizard({
                         <IconComponent size={22} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '15px', color: isSelected ? '#065F46' : '#0F172A', marginBottom: '3px' }}>
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            fontSize: '15px',
+                            color: isSelected ? '#065F46' : '#0F172A',
+                            marginBottom: '3px',
+                          }}
+                        >
                           {item.title}
                         </div>
-                        <div style={{ fontSize: '12px', color: isSelected ? '#047857' : '#64748B', lineHeight: 1.35 }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: isSelected ? '#047857' : '#64748B',
+                            lineHeight: 1.35,
+                          }}
+                        >
                           {item.subtitle}
                         </div>
                       </div>
                     </div>
                     {isSelected && (
-                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFF',
+                          flexShrink: 0,
+                        }}
+                      >
                         <Check size={15} />
                       </div>
                     )}
@@ -791,15 +1054,34 @@ export function OnboardingWizard({
 
         {/* STEP 3: ACTIVITY LEVEL */}
         {step === 3 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Daily activity level
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
               Physical activity sets the Total Daily Energy Expenditure (TDEE) multiplier.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '12px',
+                marginBottom: '24px',
+              }}
+            >
               {ACTIVITY_LEVELS.map((level) => {
                 const isSelected = data.activityLevel === level.id;
                 return (
@@ -816,19 +1098,40 @@ export function OnboardingWizard({
                       borderRadius: '18px',
                       border: `2px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
                       background: isSelected ? '#ECFDF5' : '#FFFFFF',
-                      boxShadow: isSelected ? '0 8px 20px rgba(5, 150, 105, 0.12)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      boxShadow: isSelected
+                        ? '0 8px 20px rgba(5, 150, 105, 0.12)'
+                        : '0 2px 8px rgba(0,0,0,0.02)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <div style={{ fontWeight: 800, fontSize: '15px', color: isSelected ? '#065F46' : '#0F172A' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: '15px',
+                          color: isSelected ? '#065F46' : '#0F172A',
+                        }}
+                      >
                         {level.label}
                       </div>
                       {isSelected && <CheckCircle2 size={18} color="#059669" />}
                     </div>
-                    <div style={{ fontSize: '12px', color: isSelected ? '#047857' : '#64748B', lineHeight: 1.4 }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: isSelected ? '#047857' : '#64748B',
+                        lineHeight: 1.4,
+                      }}
+                    >
                       {level.desc}
                     </div>
                   </motion.button>
@@ -840,8 +1143,20 @@ export function OnboardingWizard({
 
         {/* STEP 4: DIETARY RESTRICTIONS */}
         {step === 4 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Any dietary preferences or restrictions?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
@@ -869,7 +1184,9 @@ export function OnboardingWizard({
                       padding: '14px 20px',
                       borderRadius: '999px',
                       border: `1.5px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
-                      background: isSelected ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)' : '#FFFFFF',
+                      background: isSelected
+                        ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)'
+                        : '#FFFFFF',
                       color: isSelected ? '#047857' : '#475569',
                       fontWeight: 700,
                       fontSize: '14px',
@@ -914,12 +1231,26 @@ export function OnboardingWizard({
 
         {/* STEP 5: MEDICAL CONDITIONS */}
         {step === 5 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Conditions or restrictions to keep visible?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              HealthChain can keep the conditions you select visible while drafting examples. It does not provide medical nutrition therapy or confirm that a meal is safe for a condition.
+              HealthChain can keep the conditions you select visible while drafting examples. It
+              does not provide medical nutrition therapy or confirm that a meal is safe for a
+              condition.
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
@@ -936,14 +1267,19 @@ export function OnboardingWizard({
                         const newCond = isSelected
                           ? data.medicalConditions.filter((x: string) => x !== c)
                           : [...data.medicalConditions.filter((x: string) => x !== 'None'), c];
-                        setData({ ...data, medicalConditions: newCond.length > 0 ? newCond : ['None'] });
+                        setData({
+                          ...data,
+                          medicalConditions: newCond.length > 0 ? newCond : ['None'],
+                        });
                       }
                     }}
                     style={{
                       padding: '14px 20px',
                       borderRadius: '999px',
                       border: `1.5px solid ${isSelected ? '#2563EB' : '#E2E8F0'}`,
-                      background: isSelected ? 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)' : '#FFFFFF',
+                      background: isSelected
+                        ? 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)'
+                        : '#FFFFFF',
                       color: isSelected ? '#1D4ED8' : '#475569',
                       fontWeight: 700,
                       fontSize: '14px',
@@ -988,17 +1324,42 @@ export function OnboardingWizard({
 
         {/* STEP 6: CUISINE PREFERENCE */}
         {step === 6 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Location & culinary style
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Local meals follow where you live. You can also choose a different cuisine using ingredients available in your country.
+              Local meals follow where you live. You can also choose a different cuisine using
+              ingredients available in your country.
             </p>
 
-            <FoodLocationFields countryCode={data.countryCode} region={data.region} required={data.cuisine === 'Local'} onChange={location => setData({ ...data, ...location })} />
+            <FoodLocationFields
+              countryCode={data.countryCode}
+              region={data.region}
+              required={data.cuisine === 'Local'}
+              onChange={(location) => setData({ ...data, ...location })}
+            />
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)',
+                gap: '12px',
+                marginBottom: '24px',
+              }}
+            >
               {CUISINES.map((c) => {
                 const isSelected = data.cuisine === c;
                 return (
@@ -1019,32 +1380,77 @@ export function OnboardingWizard({
                       fontSize: '14px',
                       textAlign: 'center',
                       cursor: 'pointer',
-                      boxShadow: isSelected ? '0 6px 16px rgba(245, 158, 11, 0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
+                      boxShadow: isSelected
+                        ? '0 6px 16px rgba(245, 158, 11, 0.15)'
+                        : '0 2px 6px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s',
                     }}
                   >
-                    <Utensils size={18} style={{ margin: '0 auto 6px', color: isSelected ? '#D97706' : '#94A3B8' }} />
+                    <Utensils
+                      size={18}
+                      style={{ margin: '0 auto 6px', color: isSelected ? '#D97706' : '#94A3B8' }}
+                    />
                     {c === 'Local' ? 'Local meals (recommended)' : c}
                   </motion.button>
                 );
               })}
             </div>
-            {data.cuisine === 'Local' && !data.countryCode && <p style={{ color: '#475569', fontSize: 13 }}>Select your country to use local meals.</p>}
-            <button type="button" onClick={next} disabled={data.cuisine === 'Local' && !data.countryCode} style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#059669', color: '#FFFFFF', fontWeight: 800, cursor: 'pointer', opacity: data.cuisine === 'Local' && !data.countryCode ? 0.5 : 1 }}>Continue to Meal Schedule</button>
+            {data.cuisine === 'Local' && !data.countryCode && (
+              <p style={{ color: '#475569', fontSize: 13 }}>
+                Select your country to use local meals.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={next}
+              disabled={data.cuisine === 'Local' && !data.countryCode}
+              style={{
+                width: '100%',
+                padding: 14,
+                borderRadius: 12,
+                border: 'none',
+                background: '#059669',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                cursor: 'pointer',
+                opacity: data.cuisine === 'Local' && !data.countryCode ? 0.5 : 1,
+              }}
+            >
+              Continue to Meal Schedule
+            </button>
           </motion.div>
         )}
 
         {/* STEP 7: MEAL SCHEDULE */}
         {step === 7 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <h2
+              style={{
+                fontSize: isMobile ? '22px' : '26px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Daily Meal Timing & Schedule
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
               Choose a structure that matches daily schedule and digestion windows.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                marginBottom: '24px',
+              }}
+            >
               {MEAL_SCHEDULES.map((m) => {
                 const isSelected = data.mealSchedule === m;
                 return (
@@ -1069,7 +1475,9 @@ export function OnboardingWizard({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      boxShadow: isSelected ? '0 6px 18px rgba(99, 102, 241, 0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
+                      boxShadow: isSelected
+                        ? '0 6px 18px rgba(99, 102, 241, 0.15)'
+                        : '0 2px 6px rgba(0,0,0,0.02)',
                       transition: 'all 0.2s',
                     }}
                   >
@@ -1092,8 +1500,14 @@ export function OnboardingWizard({
             animate={{ opacity: 1, scale: 1 }}
             style={{ textAlign: 'center' }}
           >
-            <details style={{ marginBottom: 24, textAlign: 'left' }}><summary style={{ cursor: 'pointer', fontWeight: 800, padding: 12 }}>Make meals fit my everyday life</summary>
-              <DietPracticalPreferences value={data.practical} onChange={practical => setData({ ...data, practical })} />
+            <details style={{ marginBottom: 24, textAlign: 'left' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 800, padding: 12 }}>
+                Make meals fit my everyday life
+              </summary>
+              <DietPracticalPreferences
+                value={data.practical}
+                onChange={(practical) => setData({ ...data, practical })}
+              />
             </details>
             <div
               style={{
@@ -1112,57 +1526,188 @@ export function OnboardingWizard({
               <Sparkles size={36} />
             </div>
 
-            <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.8px' }}>
+            <h2
+              style={{
+                fontSize: isMobile ? '24px' : '28px',
+                fontWeight: 900,
+                color: '#0F172A',
+                marginBottom: '8px',
+                letterSpacing: '-0.8px',
+              }}
+            >
               Editable planning estimates ready
             </h2>
-            <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', lineHeight: 1.5 }}>
-              These estimates and preferences can now prefill food-planning examples across HealthChain. Review and edit them whenever your needs change.
+            <p
+              style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', lineHeight: 1.5 }}
+            >
+              These estimates and preferences can now prefill food-planning examples across
+              HealthChain. Review and edit them whenever your needs change.
             </p>
 
             {/* Calculated Blueprint Card */}
-            {calculated && data.practical.showNumbers ? <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: '20px',
-                border: '1.5px solid #A7F3D0',
-                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.08)',
-                marginBottom: '28px',
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Flame size={18} color="#EF4444" />
-                  <span style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A' }}>General daily energy estimate</span>
+            {calculated && data.practical.showNumbers ? (
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  padding: '20px',
+                  border: '1.5px solid #A7F3D0',
+                  boxShadow: '0 10px 25px rgba(16, 185, 129, 0.08)',
+                  marginBottom: '28px',
+                  textAlign: 'left',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px solid #F1F5F9',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Flame size={18} color="#EF4444" />
+                    <span style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A' }}>
+                      General daily energy estimate
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669' }}>
+                    {calculated.targetCalories}{' '}
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>
+                      kcal/day
+                    </span>
+                  </div>
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669' }}>
-                  {calculated.targetCalories} <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>kcal/day</span>
-                </div>
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                <div style={{ background: '#FEF2F2', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#991B1B', textTransform: 'uppercase' }}>Protein (25%)</div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#DC2626', marginTop: '2px' }}>{calculated.targetProtein}g</div>
+                <div
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+                >
+                  <div
+                    style={{
+                      background: '#FEF2F2',
+                      padding: '12px 10px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#991B1B',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Protein (25%)
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '17px',
+                        fontWeight: 900,
+                        color: '#DC2626',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {calculated.targetProtein}g
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: '#EFF6FF',
+                      padding: '12px 10px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#1E40AF',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Carbs (45%)
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '17px',
+                        fontWeight: 900,
+                        color: '#2563EB',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {calculated.targetCarbs}g
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: '#FFFBEB',
+                      padding: '12px 10px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#92400E',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Healthy Fat (30%)
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '17px',
+                        fontWeight: 900,
+                        color: '#D97706',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {calculated.targetFat}g
+                    </div>
+                  </div>
                 </div>
-                <div style={{ background: '#EFF6FF', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#1E40AF', textTransform: 'uppercase' }}>Carbs (45%)</div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#2563EB', marginTop: '2px' }}>{calculated.targetCarbs}g</div>
-                </div>
-                <div style={{ background: '#FFFBEB', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400E', textTransform: 'uppercase' }}>Healthy Fat (30%)</div>
-                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#D97706', marginTop: '2px' }}>{calculated.targetFat}g</div>
-                </div>
-              </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', fontSize: '12px', color: '#475569' }}>
-                <ShieldCheck size={15} color="#059669" />
-                <span>Planning context: <strong>{data.goal}</strong> · {data.cuisine === 'Local' ? 'Local meals' : `${data.cuisine} cuisine`} · {formatFoodLocation(data) || 'Location not shared'} · {data.mealSchedule}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '16px',
+                    fontSize: '12px',
+                    color: '#475569',
+                  }}
+                >
+                  <ShieldCheck size={15} color="#059669" />
+                  <span>
+                    Planning context: <strong>{data.goal}</strong> ·{' '}
+                    {data.cuisine === 'Local' ? 'Local meals' : `${data.cuisine} cuisine`} ·{' '}
+                    {formatFoodLocation(data) || 'Location not shared'} · {data.mealSchedule}
+                  </span>
+                </div>
               </div>
-            </div> : <div role="status" style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '18px', marginBottom: '24px', color: '#334155', textAlign: 'left' }}>
-              <strong>No calorie target set.</strong> {result.available ? '' : result.reason} You can still save preferences and record meals without a calorie goal.
-            </div>}
+            ) : (
+              <div
+                role="status"
+                style={{
+                  background: '#F8FAFC',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '16px',
+                  padding: '18px',
+                  marginBottom: '24px',
+                  color: '#334155',
+                  textAlign: 'left',
+                }}
+              >
+                <strong>No calorie target set.</strong> {result.available ? '' : result.reason} You
+                can still save preferences and record meals without a calorie goal.
+              </div>
+            )}
 
             <motion.button
               whileTap={{ scale: 0.985 }}

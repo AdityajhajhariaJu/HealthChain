@@ -2,7 +2,7 @@ import { triggerHapticSuccess } from './haptics';
 import { getProfile, saveProfile } from './ProfileEngine';
 import { getHabitStorageKey } from './profileScope';
 import { getItemSync } from './storage';
-import { getGardenState } from './TriggerEngine';
+import { getGardenState } from './WellnessGardenService';
 
 function getLocalDateString(date = new Date()): string {
   const year = date.getFullYear();

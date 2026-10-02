@@ -9,37 +9,6 @@ const ARGroceryLens = React.lazy(() =>
   import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))
 );
 
-export function formatLocalDate(date: Date): string {
-  const validDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
-  const year = validDate.getFullYear();
-  const month = String(validDate.getMonth() + 1).padStart(2, '0');
-  const day = String(validDate.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export function parseLocalDate(dateStr?: string): Date {
-  if (!dateStr || typeof dateStr !== 'string' || !dateStr.includes('-')) {
-    return new Date();
-  }
-  const parts = dateStr.split('-').map(Number);
-  if (
-    parts.length < 3 ||
-    Number.isNaN(parts[0]) ||
-    Number.isNaN(parts[1]) ||
-    Number.isNaN(parts[2])
-  ) {
-    return new Date();
-  }
-  const [year, month, day] = parts;
-  return new Date(year, month - 1, day, 12, 0, 0);
-}
-
-export function shiftDateString(dateStr: string, deltaDays: number): string {
-  const d = parseLocalDate(dateStr);
-  d.setDate(d.getDate() + (Number.isNaN(deltaDays) ? 0 : deltaDays));
-  return formatLocalDate(d);
-}
-
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -85,11 +54,7 @@ import {
   locationMealIdeas,
   normalizeDietPreferences,
 } from '../../../shared/diet-preferences';
-import {
-  formatFoodLocation,
-  normalizeFoodLocation,
-  resolveFoodLocation,
-} from '../../../shared/food-location';
+import { formatFoodLocation, normalizeFoodLocation } from '../../../shared/food-location';
 import { ClinicalEliminationModal } from '../../components/ui/ClinicalEliminationModal';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
 import FocusTrap from '../../components/ui/FocusTrap';
@@ -124,7 +89,6 @@ import {
   hasUnverifiableDietConstraints,
   validateGeneratedMealPlan,
 } from '../../services/dietPlanValidation';
-import { targetFields } from '../../services/dietTargets';
 import {
   analyzeFoodEntry,
   clearPendingDietPlanRequest,
@@ -170,188 +134,17 @@ import { OnboardingWizard } from './DieticianComponents';
 import { GroceryControls } from './GroceryControls';
 import { MealDetailsFields, emptyMealDetails, mealDetailsEntry } from './MealDetailsFields';
 
-// --- Constants & Helpers ---
-export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
-export const ACTIVITY_LEVELS = [
-  { id: 'sedentary', label: 'Sedentary', desc: 'Minimal ambulation' },
-  { id: 'light', label: 'Light', desc: 'Active movement 1-3 days/week' },
-  { id: 'moderate', label: 'Moderate', desc: 'Active physical movement 4-5 days/week' },
-  { id: 'active', label: 'Very Active', desc: 'Daily functional physical activity or active work' },
-];
-export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
-export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
-export const CUISINES = [
-  'Local',
-  'North Indian',
-  'South Indian',
-  'Mediterranean',
-  'Middle Eastern',
-  'Mexican',
-  'East Asian',
-  'Western',
-  'Keto',
-  'Any',
-];
-export const MEAL_SCHEDULES = [
-  '3 Meals',
-  '3 Meals + 1 Snack',
-  '5 Small Meals',
-  'Intermittent Fasting (16:8)',
-];
-
-export const QUICK_PRESETS = [
-  {
-    name: 'Oats with almonds and berries',
-    portion: 'Amount not recorded',
-    calories: null,
-    protein: null,
-    carbs: null,
-    fat: null,
-    emoji: '🥣',
-    type: 'Breakfast',
-  },
-  {
-    name: 'Dal with roti and salad',
-    portion: 'Amount not recorded',
-    calories: null,
-    protein: null,
-    carbs: null,
-    fat: null,
-    emoji: '🥗',
-    type: 'Lunch',
-  },
-  {
-    name: 'Avocado toast with eggs',
-    portion: 'Amount not recorded',
-    calories: null,
-    protein: null,
-    carbs: null,
-    fat: null,
-    emoji: '🥑',
-    type: 'Breakfast',
-  },
-  {
-    name: 'Moong dal khichdi with curd',
-    portion: 'Amount not recorded',
-    calories: null,
-    protein: null,
-    carbs: null,
-    fat: null,
-    emoji: '🍲',
-    type: 'Dinner',
-  },
-];
-
-export const PANTRY_STAPLES = [
-  { name: 'Double Espresso', emoji: '☕' },
-  { name: 'Fresh Avocado', emoji: '🥑' },
-  { name: '2 Poached Eggs', emoji: '🥚' },
-  { name: 'Sourdough Toast', emoji: '🍞' },
-  { name: 'Rolled Oats & Berries', emoji: '🥣' },
-  { name: 'Low-Fat Paneer / Tofu', emoji: '🧀' },
-  { name: 'Yellow Moong Dal', emoji: '🍲' },
-  { name: 'Grilled Chicken Breast', emoji: '🍗' },
-  { name: 'Cucumber Tomato Salad', emoji: '🥗' },
-  { name: 'Greek Set Curd', emoji: '🥛' },
-];
-
-export const DEFAULT_GROCERY_CATEGORIES = [
-  {
-    category: 'Fresh Produce & Antioxidant Greens',
-    emoji: '🥬',
-    items: [
-      { id: 'gp1', name: 'Baby Spinach / Palak (500g)', checked: false },
-      { id: 'gp2', name: 'English Cucumbers & Tomatoes (1kg)', checked: false },
-      { id: 'gp3', name: 'Avocados or Hass Pears (3 pcs)', checked: false },
-      { id: 'gp4', name: 'Fresh Lemons & Mint Leaves', checked: false },
-      { id: 'gp5', name: 'Bell Peppers / Shimla Mirch (Tri-color)', checked: false },
-      { id: 'gp6', name: 'Fresh Ginger Root & Garlic bulbs', checked: false },
-    ],
-  },
-  {
-    category: 'Whole Grains & Complex Legumes',
-    emoji: '🌾',
-    items: [
-      { id: 'gg1', name: 'Organic Yellow Moong Dal (1kg)', checked: false },
-      { id: 'gg2', name: 'Rolled Steel-Cut Oats (1kg)', checked: false },
-      { id: 'gg3', name: 'Organic White / Tricolor Quinoa (500g)', checked: false },
-      { id: 'gg4', name: 'Whole Wheat / Multigrain Atta', checked: false },
-      { id: 'gg5', name: 'Brown Basmati Rice / Millets', checked: false },
-    ],
-  },
-  {
-    category: 'Clean Proteins & Probiotics',
-    emoji: '🥚',
-    items: [
-      { id: 'gpr1', name: 'Fresh Low-Fat Paneer / Organic Tofu (400g)', checked: false },
-      { id: 'gpr2', name: 'Free-Range Eggs (Pack of 12)', checked: false },
-      { id: 'gpr3', name: 'Probiotic Set Greek Dahi / Curd (800g)', checked: false },
-      { id: 'gpr4', name: 'Whey Protein Isolate or Plant Blend', checked: false },
-    ],
-  },
-  {
-    category: 'Cold-Pressed Fats, Seeds & Spices',
-    emoji: '🫒',
-    items: [
-      { id: 'gf1', name: 'Extra Virgin Cold-Pressed Olive Oil (500ml)', checked: false },
-      { id: 'gf2', name: 'Raw California Almonds & Walnuts (250g)', checked: false },
-      { id: 'gf3', name: 'Chia Seeds & Roasted Flaxseeds (200g)', checked: false },
-      { id: 'gf4', name: 'Pure Desi Cow Ghee (A2)', checked: false },
-      { id: 'gf5', name: 'Organic Haldi (Turmeric) & Cumin (Jeera)', checked: false },
-      { id: 'gf6', name: 'Himalayan Pink Mineral Salt', checked: false },
-    ],
-  },
-];
-
-function calculateTargets(p: any) {
-  return targetFields(p);
-}
-
-function withFoodLocation(p: any) {
-  return {
-    ...p,
-    ...resolveFoodLocation(p, getCoreProfile()?.demographics),
-    ...calculateTargets(p),
-  };
-}
-
-export function getInitialDietProfile(): any {
-  try {
-    const core = getCoreProfile();
-    if (core?.dietResetAt && !core?.dietProfile) return null;
-    if (core?.dietician?.profile) {
-      return withFoodLocation(core.dietician.profile);
-    }
-    if (core?.dietProfile) {
-      return withFoodLocation(core.dietProfile);
-    }
-  } catch (e) {}
-  return null;
-}
-
-export const validTabs = [
-  'dashboard',
-  'mealplan',
-  'sensitivities',
-  'calendar',
-  'insights',
-  'grocery',
-  'guardrails',
-  'longevity',
-] as const;
-export type DietTab = (typeof validTabs)[number];
-
-export const resolveTabKey = (raw?: string | null): DietTab => {
-  if (!raw) return 'dashboard';
-  const clean = raw.trim().toLowerCase();
-  if (clean === 'food-detective') return 'sensitivities';
-  if (clean === 'elimination' || clean === 'elimination-suite') {
-    return 'sensitivities';
-  }
-  if (clean === 'diet-plan') return 'mealplan';
-  if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
-  return 'dashboard';
-};
+import {
+  calculateTargets,
+  withFoodLocation,
+  getInitialDietProfile,
+  resolveTabKey,
+  formatLocalDate,
+  parseLocalDate,
+  QUICK_PRESETS,
+  PANTRY_STAPLES,
+  type DietTab,
+} from './dietWorkspace';
 
 // --- Main Component ---
 export default function Dietician() {

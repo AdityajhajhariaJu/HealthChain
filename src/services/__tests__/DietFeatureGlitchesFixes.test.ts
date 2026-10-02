@@ -16,7 +16,7 @@ import {
   getProfile,
   getProfileKey,
 } from '../ProfileEngine';
-import { resolveTabKey, validTabs, getInitialDietProfile } from '../../features/dietician/Dietician';
+import { resolveTabKey, validTabs, getInitialDietProfile } from '../../features/dietician/dietWorkspace';
 
 describe('Diet Feature Glitches & Persistence Fixes (Tickets 1 - 7)', () => {
   beforeEach(() => {

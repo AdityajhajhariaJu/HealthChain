@@ -5,6 +5,27 @@ test.beforeEach(async ({ page }) => {
   await page.route(/https:\/\//, (route) => route.abort());
 });
 
+test('anonymous landing does not download account recovery or clinical workspaces', async ({
+  page,
+}) => {
+  const modules: string[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.endsWith('.js') || request.url().includes('/src/'))
+      modules.push(request.url());
+  });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(
+    page.getByRole('heading', { name: 'Your Health Story. Finally Connected.' })
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Necessary only' }).click();
+  await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(0);
+  expect(
+    modules.filter((url) =>
+      /AccountLifecycle|CaseEngine|HealthMemory|geminiService|clinicalReasoningEngine/.test(url)
+    )
+  ).toEqual([]);
+});
+
 test('landing text is visible immediately, zoom is available, and declining consent loads no tracking', async ({
   page,
 }, testInfo) => {

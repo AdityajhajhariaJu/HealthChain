@@ -1,8 +1,9 @@
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { Network } from '@capacitor/network';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { flushSyncOutbox } from './SyncOutbox';
+import { requestAccountRecovery } from './AccountRecovery';
 
 let isNativeLifecycleInitialized = false;
 
@@ -10,7 +11,7 @@ let isNativeLifecycleInitialized = false;
  * Initializes mobile native lifecycle handlers on iOS and Android:
  * - Dismisses splash screen safely once React mounts
  * - Handles Android physical/gesture back button (modal dismiss -> history back -> app minimize)
- * - Auto-flushes sync outbox when app resumes from background
+ * - Runs shared recovery when the app resumes or native connectivity returns
  * - Configures keyboard resize behavior
  */
 export function initNativeLifecycle() {
@@ -32,7 +33,9 @@ export function initNativeLifecycle() {
   try {
     App.addListener('backButton', ({ canGoBack }) => {
       // Priority A: Check if any modal, alert, or slide drawer is currently open
-      const openModal = document.querySelector('[role="dialog"], [aria-modal="true"], .modal-open, .drawer-open');
+      const openModal = document.querySelector(
+        '[role="dialog"], [aria-modal="true"], .modal-open, .drawer-open'
+      );
       if (openModal) {
         // Dispatch synthetic Escape key event to trigger modal dismissal handlers
         const escapeEvent = new KeyboardEvent('keydown', {
@@ -41,7 +44,7 @@ export function initNativeLifecycle() {
           keyCode: 27,
           which: 27,
           bubbles: true,
-          cancelable: true
+          cancelable: true,
         });
         window.dispatchEvent(escapeEvent);
         return;
@@ -69,13 +72,29 @@ export function initNativeLifecycle() {
     App.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         // App just entered active foreground — flush any queued outbox items
-        flushSyncOutbox().catch((err) => {
+        requestAccountRecovery().catch((err) => {
           console.warn('[NativeLifecycle] Auto-flush on resume failed:', err);
         });
       }
     });
   } catch (e) {
     console.warn('[NativeLifecycle] Failed to register appStateChange listener', e);
+  }
+
+  // Native WebViews may report connectivity through Capacitor without firing
+  // the browser's online event. Route both signals through the same worker.
+  try {
+    void Network.addListener('networkStatusChange', ({ connected }) => {
+      if (connected) {
+        void requestAccountRecovery().catch((error) =>
+          console.warn('[NativeLifecycle] Recovery on reconnect failed:', error)
+        );
+      }
+    }).catch((error) =>
+      console.warn('[NativeLifecycle] Failed to register network listener', error)
+    );
+  } catch (error) {
+    console.warn('[NativeLifecycle] Failed to register network listener', error);
   }
 
   // 4. Keyboard Ergonomics for Mobile Viewports

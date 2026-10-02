@@ -5,6 +5,7 @@ This directory contains deployment verification scripts and live-model evaluatio
 ## Maintained commands
 
 - `npm run verify:repository`: reject tracked generated output and root scratch files.
+- `npm run verify:syntax`: parse JavaScript in API, server, shared and script directories, including nested endpoints.
 - `npm run build`: TypeScript, Vite and emitted-manifest startup JavaScript budget.
 - `npm run verify:migrations`: migration/bundle/schema-contract alignment.
 - `npm run build:migrations`: regenerate the initial-install SQL bundle; do not reapply it to an existing production database.

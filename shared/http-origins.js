@@ -1,6 +1,7 @@
 const origins = new Set([
   'https://healthchain360.com',
   'https://www.healthchain360.com',
+  'https://healthchain-live.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5173',
@@ -8,6 +9,9 @@ const origins = new Set([
   'http://localhost',
   'https://localhost',
 ]);
+export function trustedOrigin(origin) {
+  return typeof origin === 'string' && origins.has(origin);
+}
 export function allowedOrigin(origin) {
   if (typeof origin !== 'string') return false;
   if (origins.has(origin)) return true;

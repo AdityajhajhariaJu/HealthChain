@@ -1,36 +1,29 @@
-const ALLOWED_ORIGINS = [
-  'https://www.healthchain360.com',
-  'https://healthchain360.com',
-  'https://healthchain-live.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173',
-  'capacitor://localhost',
-  'https://localhost',
-  'http://localhost'
-];
+import { setCors } from '../server/cors.js';
+import { allowedOrigin } from '../shared/http-origins.js';
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  const isAllowed = origin && (
-    ALLOWED_ORIGINS.includes(origin) ||
-    origin.endsWith('.vercel.app') ||
-    origin.endsWith('healthchain360.com')
-  );
-  if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-HC-Request-Id');
+  setCors(req, res, {
+    accepts: allowedOrigin,
+    methods: 'GET, POST, OPTIONS',
+    headers: 'Content-Type, Authorization, X-HC-Request-Id',
+  });
   res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  if (!['GET', 'POST'].includes(req.method)) {
+    res.setHeader('Allow', 'GET, POST, OPTIONS');
+    return res.status(405).json({ error: 'method_not_allowed' });
+  }
   const queryCondition = req.query?.condition || req.body?.condition || req.query?.q || 'diabetes';
-  const pageSize = parseInt(req.query?.pageSize || req.body?.pageSize || '8', 10);
+  if (typeof queryCondition !== 'string' || queryCondition.length > 300)
+    return res.status(400).json({ error: 'invalid_condition' });
+  const requestedSize = Number(req.query?.pageSize || req.body?.pageSize || 8);
+  const pageSize = Number.isFinite(requestedSize)
+    ? Math.max(1, Math.min(50, Math.trunc(requestedSize)))
+    : 8;
 
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
     queryCondition
@@ -41,12 +34,14 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeoutId));
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: `ClinicalTrials API responded with ${response.statusText}` });
+      return res
+        .status(response.status)
+        .json({ error: `ClinicalTrials API responded with ${response.statusText}` });
     }
 
     const data = await response.json();
@@ -60,12 +55,18 @@ export default async function handler(req, res) {
       const summary = protocol?.descriptionModule?.briefSummary || 'No summary provided.';
       const conds = protocol?.conditionsModule?.conditions || [];
       const interventionsList = protocol?.armsInterventionsModule?.interventions || [];
-      const interventions = interventionsList.map((i) => typeof i === 'string' ? i : i?.name).filter(Boolean);
+      const interventions = interventionsList
+        .map((i) => (typeof i === 'string' ? i : i?.name))
+        .filter(Boolean);
       const locations = protocol?.contactsLocationsModule?.locations || [];
       let locationStr = 'Multiple Locations / Global';
       if (locations.length > 0) {
         const firstLoc = locations[0];
-        locationStr = `${firstLoc.facility || 'Clinical Site'}, ${firstLoc.city || ''}, ${firstLoc.country || ''}`.replace(/,\s*,/g, ',');
+        locationStr =
+          `${firstLoc.facility || 'Clinical Site'}, ${firstLoc.city || ''}, ${firstLoc.country || ''}`.replace(
+            /,\s*,/g,
+            ','
+          );
       }
 
       return {
@@ -89,5 +90,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('Error in /api/trials backend handler:', err);
     return res.status(500).json({ error: 'Failed to fetch clinical trials', details: err.message });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

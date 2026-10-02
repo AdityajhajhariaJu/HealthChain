@@ -1,27 +1,8 @@
+import { setCors } from '../server/cors.js';
 import { checkRateLimit } from '../server/rate-limit.js';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 import { PRODUCT_CATALOG as ALLOWED_PLANS } from '../shared/productCatalog.js';
-
-const ALLOWED_ORIGINS = [
-  'https://www.healthchain360.com',
-  'https://healthchain360.com',
-  'https://healthchain-live.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173',
-  'capacitor://localhost',
-  'https://localhost',
-  'http://localhost'
-];
-
-function setCors(req, res) {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-}
 
 export default async function handler(req, res) {
   setCors(req, res);
@@ -32,7 +13,9 @@ export default async function handler(req, res) {
 
   // 1. Rate Limiting: Max 10 requests per minute per IP
   if (!checkRateLimit(req, 10, 60000)) {
-    return res.status(429).json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });
+    return res
+      .status(429)
+      .json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });
   }
 
   if (req.method !== 'POST') {
@@ -47,7 +30,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Authentication required to create an order.' });
     }
     const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
-    const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
+    const {
+      data: { user },
+    } = await supabase.auth.getUser(authHeader.slice(7));
     if (!user) return res.status(401).json({ error: 'Invalid authentication session.' });
     const { planId, plan_id } = req.body || {};
     const resolvedPlanId = planId || plan_id || 'pro_30_days';
@@ -58,14 +43,22 @@ export default async function handler(req, res) {
     }
 
     if (plan.type === 'topup') {
-      const { data: profile } = await supabase.from('profiles').select('is_pro').eq('id', user.id).single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_pro')
+        .eq('id', user.id)
+        .single();
       if (!profile?.is_pro) {
-        return res.status(403).json({ error: 'Top-ups are only available for active Pro subscribers.' });
+        return res
+          .status(403)
+          .json({ error: 'Top-ups are only available for active Pro subscribers.' });
       }
     }
 
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({ error: 'Payment gateway configuration is missing on the server.' });
+      return res
+        .status(500)
+        .json({ error: 'Payment gateway configuration is missing on the server.' });
     }
 
     const instance = new Razorpay({
@@ -79,21 +72,24 @@ export default async function handler(req, res) {
       receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       notes: {
         plan_id: resolvedPlanId,
-        user_id: user.id
-      }
+        user_id: user.id,
+      },
     };
 
     const order = await instance.orders.create(options);
-    
+
     return res.status(200).json({
       id: order.id,
       currency: order.currency,
       amount: order.amount,
-      plan_id: resolvedPlanId
+      plan_id: resolvedPlanId,
     });
   } catch (error) {
-    console.error("Error creating Razorpay order:", error);
-    return res.status(502).json({ error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error') });
+    console.error('Error creating Razorpay order:', error);
+    return res
+      .status(502)
+      .json({
+        error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error'),
+      });
   }
 }
-

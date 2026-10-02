@@ -19,18 +19,21 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HCLogo } from '../../components/ui/HCLogo';
-import { LandingWorkflowReasoningModal } from '../../components/ui/LandingWorkflowReasoningModal';
+import { useToast } from '../../components/ui/ToastProvider';
+const LandingWorkflowReasoningModal = React.lazy(() =>
+  import('../../components/ui/LandingWorkflowReasoningModal').then((module) => ({
+    default: module.LandingWorkflowReasoningModal,
+  }))
+);
+
 import { trackButtonClick, trackPageView } from '../../services/analytics';
 import { getActiveSession } from '../../services/authSession';
-import { setActiveCase } from '../../services/CaseEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import {
   getLandingWorkflowScenarios,
-  instantiateWorkflowCase,
   LandingWorkflowScenario,
-} from '../../services/LandingCaseWorkflowEngine';
+} from '../../data/LandingWorkflowScenarios';
 import { supabase } from '../../services/supabaseClient';
-import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
 
 const SYMPTOM_PRESETS = [
@@ -294,20 +297,23 @@ export default function Landing() {
   const [customInput, setCustomInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { error: showError } = useToast();
+  const navigationLocked = useRef(false);
+  const mounted = useRef(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
   const isLoggedOut = !hasSession;
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     trackPageView('/');
   }, []);
 
   useEffect(() => {
+    mounted.current = true;
     return () => {
-      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+      mounted.current = false;
     };
   }, []);
 
@@ -351,16 +357,16 @@ export default function Landing() {
     };
   }, [navigate]);
 
-  const handleStartInvestigation = (
+  const handleStartInvestigation = async (
     context: string = 'landing_hero',
     presetSymptom?: string,
     presetSpecialist?: string
   ) => {
+    if (navigationLocked.current) return;
+    navigationLocked.current = true;
     triggerHapticLight();
     trackButtonClick('Get Started', context);
     setIsNavigating(true);
-    setActiveCase(null);
-    useMDTStore.getState().reset();
 
     if (!hasSession && !guestMode) {
       try {
@@ -379,17 +385,31 @@ export default function Landing() {
       } catch (e) {}
     }
 
-    if (navTimerRef.current) clearTimeout(navTimerRef.current);
-    navTimerRef.current = setTimeout(() => {
+    try {
+      const [{ setActiveCase }, { useMDTStore }] = await Promise.all([
+        import('../../services/CaseEngine'),
+        import('../../stores/useMDTStore'),
+      ]);
+      if (!mounted.current) return;
+      setActiveCase(null);
+      useMDTStore.getState().reset();
       navigate('/app/consult?new=true');
-    }, 900);
+    } catch {
+      if (mounted.current) {
+        navigationLocked.current = false;
+        setIsNavigating(false);
+        showError('Workspace could not open', 'Check your connection and try again.');
+      }
+    }
   };
 
   const [inspectingScenario, setInspectingScenario] = useState<LandingWorkflowScenario | null>(
     null
   );
 
-  const handleLaunchWorkflowScenario = (scenarioId: string) => {
+  const handleLaunchWorkflowScenario = async (scenarioId: string) => {
+    if (navigationLocked.current) return;
+    navigationLocked.current = true;
     triggerHapticLight();
     trackButtonClick('Launch Workflow Case', scenarioId);
     setIsNavigating(true);
@@ -400,12 +420,18 @@ export default function Landing() {
       } catch (e) {}
     }
 
-    const newCase = instantiateWorkflowCase(scenarioId);
-
-    if (navTimerRef.current) clearTimeout(navTimerRef.current);
-    navTimerRef.current = setTimeout(() => {
+    try {
+      const { instantiateWorkflowCase } = await import('../../services/LandingCaseWorkflowEngine');
+      if (!mounted.current) return;
+      const newCase = instantiateWorkflowCase(scenarioId);
       navigate(`/app/cases/${encodeURIComponent(newCase.id)}`);
-    }, 600);
+    } catch {
+      if (mounted.current) {
+        navigationLocked.current = false;
+        setIsNavigating(false);
+        showError('Example case could not open', 'Check your connection and try again.');
+      }
+    }
   };
 
   useEffect(() => {
@@ -1439,11 +1465,15 @@ export default function Landing() {
       </footer>
 
       {/* Step 6: Workflow Reasoning Design Modal */}
-      <LandingWorkflowReasoningModal
-        scenario={inspectingScenario}
-        onClose={() => setInspectingScenario(null)}
-        onLaunchCase={handleLaunchWorkflowScenario}
-      />
+      {inspectingScenario && (
+        <React.Suspense fallback={null}>
+          <LandingWorkflowReasoningModal
+            scenario={inspectingScenario}
+            onClose={() => setInspectingScenario(null)}
+            onLaunchCase={handleLaunchWorkflowScenario}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }

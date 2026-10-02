@@ -12,7 +12,8 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Allow the full serial browser suite plus built-asset journeys and build gates.
+    timeout-minutes: 35
     # Match package-lock's Playwright version. Preinstalled browsers/dependencies
     # avoid repeated, variable-duration Ubuntu mirror downloads.
     container:
@@ -60,11 +61,7 @@ jobs:
         run: npm run verify:repository
 
       - name: Validate serverless API syntax
-        shell: bash
-        run: |
-          for file in api/*.js server/*.js shared/*.js; do
-            node --check "$file"
-          done
+        run: npm run verify:syntax
 
       - name: Validate Supabase migration contract
         run: npm run verify:migrations
@@ -79,6 +76,9 @@ jobs:
 
       - name: Unit tests
         run: npm test -- --run
+
+      - name: Production asset journeys
+        run: npm run e2e:production
 
       - name: Browser smoke tests
         run: npm run e2e -- --project=chromium --project=webkit

@@ -38,16 +38,19 @@ import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngi
 import { useActionIslandStore } from '../../stores/actionIslandStore';
 import { useToast } from './ToastProvider';
 
-export type AtmosphereTheme = 'meditation' | 'sleep' | 'focus' | 'energy' | 'rain' | 'frequency' | 'forest';
+import {
+  LivingAtmosphereCanvas,
+  type AtmosphereTheme,
+} from '../../features/calm/LivingAtmosphereCanvas';
 
 // Dual-Layer Ambient Soundscape Mixer
 export type AmbientLayerKey = 'off' | 'rain' | 'forest' | 'frequency';
 
 function getMindfulStreakDays(): number {
   const activeDates = new Set(
-    getVitalityState().history
-      .filter((entry) => entry.category === 'mindful' && entry.date)
-      .map((entry) => new Date(entry.date).toLocaleDateString('en-CA')),
+    getVitalityState()
+      .history.filter((entry) => entry.category === 'mindful' && entry.date)
+      .map((entry) => new Date(entry.date).toLocaleDateString('en-CA'))
   );
   const cursor = new Date();
   if (!activeDates.has(cursor.toLocaleDateString('en-CA'))) cursor.setDate(cursor.getDate() - 1);
@@ -59,332 +62,13 @@ function getMindfulStreakDays(): number {
   return streak;
 }
 
-export const AMBIENT_LAYERS: Record<AmbientLayerKey, { label: string; icon: string; url: string }> = {
-  off: { label: 'None', icon: 'Off', url: '' },
-  rain: { label: 'Rain on Glass', icon: '🌧️', url: '/audio/Raindrops on Glass.m4a' },
-  forest: { label: 'Whispering Pines', icon: '🍃', url: '/audio/Whispering Pines.m4a' },
-  frequency: { label: '432Hz Resonant Drone', icon: '〰️', url: '/audio/432Hz Clarity.m4a' }
-};
-
-interface LivingAtmosphereCanvasProps {
-  theme: AtmosphereTheme;
-  isPlaying: boolean;
-}
-
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
-  theme,
-  isPlaying,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    interface Particle {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      baseSize: number;
-      alpha: number;
-      baseAlpha: number;
-      color: string;
-      pulseOffset: number;
-      length?: number;
-    }
-
-    const particles: Particle[] = [];
-    const count = theme === 'rain' ? 130 : theme === 'sleep' ? 90 : theme === 'forest' ? 55 : theme === 'frequency' ? 40 : 65;
-
-    let shootingStar: { x: number; y: number; length: number; speed: number; opacity: number; active: boolean } = {
-      x: 0,
-      y: 0,
-      length: 120,
-      speed: 16,
-      opacity: 0,
-      active: false
-    };
-
-    const triggerShootingStar = () => {
-      if (theme !== 'sleep' || shootingStar.active) return;
-      shootingStar = {
-        x: Math.random() * width * 0.7,
-        y: Math.random() * (height * 0.35),
-        length: 80 + Math.random() * 80,
-        speed: 12 + Math.random() * 8,
-        opacity: 0.9,
-        active: true
-      };
-    };
-
-    const shootingStarInterval = setInterval(() => {
-      if (Math.random() > 0.4) triggerShootingStar();
-    }, 6500);
-
-    const getThemeColors = () => {
-      switch (theme) {
-        case 'sleep':
-          return ['rgba(226, 232, 255, ', 'rgba(196, 181, 253, ', 'rgba(253, 230, 138, '];
-        case 'rain':
-          return ['rgba(186, 230, 253, ', 'rgba(147, 197, 253, ', 'rgba(224, 242, 254, '];
-        case 'frequency':
-          return ['rgba(167, 139, 250, ', 'rgba(56, 189, 248, ', 'rgba(236, 72, 153, '];
-        case 'forest':
-          return ['rgba(110, 231, 183, ', 'rgba(253, 224, 71, ', 'rgba(52, 211, 153, '];
-        case 'energy':
-          return ['rgba(253, 224, 71, ', 'rgba(251, 146, 60, ', 'rgba(254, 240, 138, '];
-        case 'focus':
-          return ['rgba(56, 189, 248, ', 'rgba(125, 211, 252, ', 'rgba(148, 163, 184, '];
-        default:
-          return ['rgba(56, 189, 248, ', 'rgba(192, 132, 252, ', 'rgba(255, 255, 255, '];
-      }
-    };
-
-    const colors = getThemeColors();
-
-    for (let i = 0; i < count; i++) {
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      if (theme === 'rain') {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: -1.2 + Math.random() * 0.4,
-          vy: 9 + Math.random() * 11,
-          size: 1 + Math.random() * 1.5,
-          baseSize: 1,
-          length: 14 + Math.random() * 20,
-          alpha: 0.15 + Math.random() * 0.4,
-          baseAlpha: 0.3,
-          color,
-          pulseOffset: 0
-        });
-      } else {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.35,
-          vy: (Math.random() - 0.5) * 0.35 - (theme === 'energy' || theme === 'forest' ? 0.3 : 0),
-          size: 1.5 + Math.random() * 3.5,
-          baseSize: 1.5 + Math.random() * 3.5,
-          alpha: 0.2 + Math.random() * 0.6,
-          baseAlpha: 0.2 + Math.random() * 0.6,
-          color,
-          pulseOffset: Math.random() * Math.PI * 2
-        });
-      }
-    }
-
-    let time = 0;
-
-    const render = () => {
-      time += 0.016;
-      ctx.clearRect(0, 0, width, height);
-
-      const naturalWave = Math.sin(time * 0.75);
-      const ambientScale = 1 + naturalWave * 0.05;
-      const ambientGlow = 1 + naturalWave * 0.12;
-
-      if (theme === 'rain') {
-        for (const p of particles) {
-          p.x += p.vx;
-          p.y += isPlaying ? p.vy : p.vy * 0.3;
-
-          if (p.y > height) {
-            p.y = -20;
-            p.x = Math.random() * width;
-          }
-          if (p.x < 0) p.x = width;
-
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x + p.vx * 3, p.y + (p.length || 15));
-          ctx.strokeStyle = `${p.color}${p.alpha})`;
-          ctx.lineWidth = p.size;
-          ctx.stroke();
-        }
-      } else if (theme === 'frequency') {
-        const cx = width / 2;
-        const cy = height / 2;
-        const ringCount = 5;
-
-        for (let r = 0; r < ringCount; r++) {
-          const ringProgress = (time * 0.35 + r / ringCount) % 1;
-          const radius = ringProgress * Math.min(width, height) * 0.48;
-          const ringAlpha = (1 - ringProgress) * 0.35 * (isPlaying ? 1 : 0.4);
-
-          ctx.beginPath();
-          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(56, 189, 248, ${ringAlpha})`;
-          ctx.lineWidth = 1.5 + (1 - ringProgress) * 2;
-          ctx.stroke();
-
-          if (r % 2 === 0) {
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(167, 139, 250, ${ringAlpha * 0.6})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
-
-        for (const p of particles) {
-          p.x += p.vx;
-          p.y += p.vy;
-
-          if (p.x < 0) p.x = width;
-          if (p.x > width) p.x = 0;
-          if (p.y < 0) p.y = height;
-          if (p.y > height) p.y = 0;
-
-          const currentAlpha = (Math.sin(time * 3 + p.pulseOffset) * 0.3 + 0.7) * p.baseAlpha;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * ambientScale, 0, Math.PI * 2);
-          ctx.fillStyle = `${p.color}${currentAlpha * ambientGlow})`;
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-      } else {
-        if (theme === 'sleep' && shootingStar.active) {
-          ctx.beginPath();
-          ctx.moveTo(shootingStar.x, shootingStar.y);
-          ctx.lineTo(shootingStar.x + shootingStar.length * 0.7, shootingStar.y + shootingStar.length * 0.5);
-          ctx.strokeStyle = `rgba(255, 255, 255, ${shootingStar.opacity})`;
-          ctx.lineWidth = 2;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = '#FFFFFF';
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          shootingStar.x += shootingStar.speed;
-          shootingStar.y += shootingStar.speed * 0.7;
-          shootingStar.opacity -= 0.025;
-
-          if (shootingStar.opacity <= 0 || shootingStar.x > width || shootingStar.y > height) {
-            shootingStar.active = false;
-          }
-        }
-
-        if (theme === 'energy') {
-          const sunX = width / 2;
-          const sunY = -60;
-          const beamCount = 6;
-          for (let b = 0; b < beamCount; b++) {
-            const angle = (Math.PI / 4) + (b / beamCount) * (Math.PI / 2) + Math.sin(time * 0.2 + b) * 0.05;
-            const beamLength = Math.max(width, height) * 1.2;
-            const targetX = sunX + Math.cos(angle) * beamLength;
-            const targetY = sunY + Math.sin(angle) * beamLength;
-
-            const grad = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, beamLength);
-            grad.addColorStop(0, 'rgba(253, 224, 71, 0.15)');
-            grad.addColorStop(0.5, 'rgba(251, 146, 60, 0.05)');
-            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-            ctx.beginPath();
-            ctx.moveTo(sunX, sunY);
-            ctx.lineTo(targetX - 80, targetY);
-            ctx.lineTo(targetX + 80, targetY);
-            ctx.closePath();
-            ctx.fillStyle = grad;
-            ctx.fill();
-          }
-        }
-
-        for (const p of particles) {
-          if (theme === 'forest') {
-            p.x += Math.sin(time + p.pulseOffset) * 0.6;
-            p.y -= 0.35 + Math.cos(time + p.pulseOffset) * 0.3;
-          } else if (theme === 'energy') {
-            p.y -= 0.5;
-            p.x += Math.sin(time * 0.8 + p.pulseOffset) * 0.3;
-          } else {
-            p.x += p.vx;
-            p.y += p.vy;
-          }
-
-          if (p.x < 0) p.x = width;
-          if (p.x > width) p.x = 0;
-          if (p.y < 0) p.y = height;
-          if (p.y > height) p.y = 0;
-
-          const currentAlpha = (Math.sin(time * 2 + p.pulseOffset) * 0.35 + 0.65) * p.baseAlpha;
-          const currentSize = p.baseSize * ambientScale * (theme === 'forest' ? (Math.sin(time * 3 + p.pulseOffset) * 0.4 + 1.1) : 1);
-
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.max(0.5, currentSize), 0, Math.PI * 2);
-          ctx.fillStyle = `${p.color}${currentAlpha * ambientGlow})`;
-          
-          if (theme === 'forest' || theme === 'sleep') {
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = p.color + '0.8)';
-          }
-          
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-
-        if (theme === 'focus') {
-          ctx.lineWidth = 0.5;
-          for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-              const dx = particles[i].x - particles[j].x;
-              const dy = particles[i].y - particles[j].y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 85) {
-                const alpha = (1 - dist / 85) * 0.15 * (isPlaying ? 1 : 0.5);
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
-                ctx.stroke();
-              }
-            }
-          }
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-      clearInterval(shootingStarInterval);
-    };
-  }, [theme, isPlaying]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 2,
-        pointerEvents: 'none',
-        width: '100%',
-        height: '100%',
-      }}
-    />
-  );
-};
+export const AMBIENT_LAYERS: Record<AmbientLayerKey, { label: string; icon: string; url: string }> =
+  {
+    off: { label: 'None', icon: 'Off', url: '' },
+    rain: { label: 'Rain on Glass', icon: '🌧️', url: '/audio/Raindrops on Glass.m4a' },
+    forest: { label: 'Whispering Pines', icon: '🍃', url: '/audio/Whispering Pines.m4a' },
+    frequency: { label: '432Hz Resonant Drone', icon: '〰️', url: '/audio/432Hz Clarity.m4a' },
+  };
 
 interface MeditationPlayerProps {
   content: FitnessContent | null;
@@ -397,13 +81,13 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [mediaActive,setMediaActive] = useState(false);
-  const [saveError,setSaveError] = useState('');
-  const scopeRef=useRef(captureAccountScope());
-  const sessionIdRef=useRef(crypto.randomUUID());
-  const sessionStartRef=useRef<Promise<any>|null>(null);
-  const participationRef=useRef(0);
-  const completingRef=useRef(false);
+  const [mediaActive, setMediaActive] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const scopeRef = useRef(captureAccountScope());
+  const sessionIdRef = useRef(crypto.randomUUID());
+  const sessionStartRef = useRef<Promise<any> | null>(null);
+  const participationRef = useRef(0);
+  const completingRef = useRef(false);
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -411,30 +95,80 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showSleepTimerSheet, setShowSleepTimerSheet] = useState(false);
-  const [sleepTimerOption, setSleepTimerOption] = useState<'off' | '15' | '30' | '45' | '60' | 'end_of_track'>('off');
+  const [sleepTimerOption, setSleepTimerOption] = useState<
+    'off' | '15' | '30' | '45' | '60' | 'end_of_track'
+  >('off');
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
   const isCrossfading = useRef(false);
+  const transitionTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const cancelCrossfade = () => {
+    for (const timer of transitionTimers.current) {
+      clearInterval(timer);
+      clearTimeout(timer);
+    }
+    transitionTimers.current.clear();
+    isCrossfading.current = false;
+    if (audioRef.current) audioRef.current.volume = 1;
+  };
 
   const contentTitleLower = (content?.title || '').toLowerCase();
   const contentTypeLower = (content?.type || '').toLowerCase();
 
-  const isSleep = content?.id === 'mood-0' || contentTypeLower === 'sleep_story' || contentTitleLower.includes('sleep') || contentTitleLower.includes('slumber') || contentTitleLower.includes('lullaby') || contentTitleLower.includes('ocean');
-  const isRain = content?.id === 'soundscape-0' || contentTitleLower.includes('rain') || contentTitleLower.includes('storm') || contentTitleLower.includes('drizzle');
-  const isFrequency = content?.id === 'soundscape-1' || contentTitleLower.includes('frequency') || contentTitleLower.includes('frequencies') || contentTitleLower.includes('hz') || contentTitleLower.includes('cymatic') || contentTitleLower.includes('binaural');
-  const isForest = content?.id === 'soundscape-2' || contentTitleLower.includes('forest') || contentTitleLower.includes('woodland') || contentTitleLower.includes('pines') || contentTitleLower.includes('nature');
-  const isFocus = content?.id === 'mood-1' || contentTitleLower.includes('focus') || contentTitleLower.includes('study') || contentTitleLower.includes('work') || contentTitleLower.includes('productivity');
-  const isEnergy = content?.id === 'mood-2' || contentTitleLower.includes('energy') || contentTitleLower.includes('morning') || contentTitleLower.includes('wake') || contentTitleLower.includes('vitality');
+  const isSleep =
+    content?.id === 'mood-0' ||
+    contentTypeLower === 'sleep_story' ||
+    contentTitleLower.includes('sleep') ||
+    contentTitleLower.includes('slumber') ||
+    contentTitleLower.includes('lullaby') ||
+    contentTitleLower.includes('ocean');
+  const isRain =
+    content?.id === 'soundscape-0' ||
+    contentTitleLower.includes('rain') ||
+    contentTitleLower.includes('storm') ||
+    contentTitleLower.includes('drizzle');
+  const isFrequency =
+    content?.id === 'soundscape-1' ||
+    contentTitleLower.includes('frequency') ||
+    contentTitleLower.includes('frequencies') ||
+    contentTitleLower.includes('hz') ||
+    contentTitleLower.includes('cymatic') ||
+    contentTitleLower.includes('binaural');
+  const isForest =
+    content?.id === 'soundscape-2' ||
+    contentTitleLower.includes('forest') ||
+    contentTitleLower.includes('woodland') ||
+    contentTitleLower.includes('pines') ||
+    contentTitleLower.includes('nature');
+  const isFocus =
+    content?.id === 'mood-1' ||
+    contentTitleLower.includes('focus') ||
+    contentTitleLower.includes('study') ||
+    contentTitleLower.includes('work') ||
+    contentTitleLower.includes('productivity');
+  const isEnergy =
+    content?.id === 'mood-2' ||
+    contentTitleLower.includes('energy') ||
+    contentTitleLower.includes('morning') ||
+    contentTitleLower.includes('wake') ||
+    contentTitleLower.includes('vitality');
 
-  const playlistTitle = 
-    isSleep ? (contentTitleLower.includes('ocean') ? 'Ocean Waves' : 'Deep Sleep') :
-    isRain ? 'Rain Sounds' :
-    isFrequency ? 'Focus Frequencies' :
-    isForest ? 'Forest Ambience' :
-    isFocus ? 'Deep Focus' :
-    isEnergy ? 'Morning Energy' :
-    (content?.title || 'Full Meditation');
+  const playlistTitle = isSleep
+    ? contentTitleLower.includes('ocean')
+      ? 'Ocean Waves'
+      : 'Deep Sleep'
+    : isRain
+      ? 'Rain Sounds'
+      : isFrequency
+        ? 'Focus Frequencies'
+        : isForest
+          ? 'Forest Ambience'
+          : isFocus
+            ? 'Deep Focus'
+            : isEnergy
+              ? 'Morning Energy'
+              : content?.title || 'Full Meditation';
 
   // Point 2: Dual-Layer Ambient Soundscape Mixer
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -463,7 +197,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [sessionStats, setSessionStats] = useState({
     minutesLogged: 5,
     pointsAwarded: 0,
-    mindfulStreak: getMindfulStreakDays()
+    mindfulStreak: getMindfulStreakDays(),
   });
 
   // Point 5: Dismiss Island on Player active open
@@ -471,41 +205,108 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     useActionIslandStore.getState().dismissIsland();
   }, []);
 
-  const currentPlaylist = 
-    isSleep ? DEEP_SLEEP_TRACKS :
-    isRain ? RAIN_SOUNDS_TRACKS :
-    isFrequency ? FOCUS_FREQUENCIES_TRACKS :
-    isForest ? FOREST_AMBIENCE_TRACKS :
-    isFocus ? DEEP_FOCUS_TRACKS :
-    isEnergy ? HAPPY_HIGH_ENERGY_TRACKS :
-    MEDITATION_TRACKS;
+  const currentPlaylist = isSleep
+    ? DEEP_SLEEP_TRACKS
+    : isRain
+      ? RAIN_SOUNDS_TRACKS
+      : isFrequency
+        ? FOCUS_FREQUENCIES_TRACKS
+        : isForest
+          ? FOREST_AMBIENCE_TRACKS
+          : isFocus
+            ? DEEP_FOCUS_TRACKS
+            : isEnergy
+              ? HAPPY_HIGH_ENERGY_TRACKS
+              : MEDITATION_TRACKS;
 
   const isPlaylistMode = currentPlaylist.length > 0;
-  const currentTrack = isPlaylistMode ? currentPlaylist[activeTrackIndex % currentPlaylist.length] : null;
+  const currentTrack = isPlaylistMode
+    ? currentPlaylist[activeTrackIndex % currentPlaylist.length]
+    : null;
 
-  const atmosphereTheme: AtmosphereTheme = 
-    isSleep || (currentTrack && (currentTrack.title.includes('Sleep') || currentTrack.title.includes('Lullaby') || currentTrack.title.includes('Dream'))) ? 'sleep' :
-    isRain || (currentTrack && currentTrack.title.includes('Rain')) ? 'rain' :
-    isFrequency || (currentTrack && (currentTrack.title.includes('Frequency') || currentTrack.title.includes('Hz') || currentTrack.title.includes('Wave') || currentTrack.title.includes('Quantum'))) ? 'frequency' :
-    isForest || (currentTrack && (currentTrack.title.includes('Forest') || currentTrack.title.includes('Pines') || currentTrack.title.includes('Woodland'))) ? 'forest' :
-    isFocus || (currentTrack && (currentTrack.title.includes('Focus') || currentTrack.title.includes('Momentum') || currentTrack.title.includes('Study'))) ? 'focus' :
-    isEnergy || (currentTrack && (currentTrack.title.includes('Energy') || currentTrack.title.includes('Sun') || currentTrack.title.includes('Morning'))) ? 'energy' :
-    'meditation';
+  const atmosphereTheme: AtmosphereTheme =
+    isSleep ||
+    (currentTrack &&
+      (currentTrack.title.includes('Sleep') ||
+        currentTrack.title.includes('Lullaby') ||
+        currentTrack.title.includes('Dream')))
+      ? 'sleep'
+      : isRain || (currentTrack && currentTrack.title.includes('Rain'))
+        ? 'rain'
+        : isFrequency ||
+            (currentTrack &&
+              (currentTrack.title.includes('Frequency') ||
+                currentTrack.title.includes('Hz') ||
+                currentTrack.title.includes('Wave') ||
+                currentTrack.title.includes('Quantum')))
+          ? 'frequency'
+          : isForest ||
+              (currentTrack &&
+                (currentTrack.title.includes('Forest') ||
+                  currentTrack.title.includes('Pines') ||
+                  currentTrack.title.includes('Woodland')))
+            ? 'forest'
+            : isFocus ||
+                (currentTrack &&
+                  (currentTrack.title.includes('Focus') ||
+                    currentTrack.title.includes('Momentum') ||
+                    currentTrack.title.includes('Study')))
+              ? 'focus'
+              : isEnergy ||
+                  (currentTrack &&
+                    (currentTrack.title.includes('Energy') ||
+                      currentTrack.title.includes('Sun') ||
+                      currentTrack.title.includes('Morning')))
+                ? 'energy'
+                : 'meditation';
 
   const vibrationThemeColors = {
-    sleep: { ring: 'rgba(196, 181, 253, 0.85)', glow: 'rgba(167, 139, 250, 0.55)', fill: 'rgba(167, 139, 250, 0.08)' },
-    rain: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(14, 165, 233, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' },
-    frequency: { ring: 'rgba(217, 70, 239, 0.85)', glow: 'rgba(168, 85, 247, 0.6)', fill: 'rgba(192, 132, 252, 0.1)' },
-    forest: { ring: 'rgba(52, 211, 153, 0.85)', glow: 'rgba(16, 185, 129, 0.55)', fill: 'rgba(52, 211, 153, 0.08)' },
-    energy: { ring: 'rgba(251, 191, 36, 0.9)', glow: 'rgba(245, 158, 11, 0.6)', fill: 'rgba(253, 224, 71, 0.12)' },
-    focus: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' },
-    meditation: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(168, 85, 247, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' }
-  }[atmosphereTheme] || { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' };
+    sleep: {
+      ring: 'rgba(196, 181, 253, 0.85)',
+      glow: 'rgba(167, 139, 250, 0.55)',
+      fill: 'rgba(167, 139, 250, 0.08)',
+    },
+    rain: {
+      ring: 'rgba(56, 189, 248, 0.85)',
+      glow: 'rgba(14, 165, 233, 0.55)',
+      fill: 'rgba(56, 189, 248, 0.08)',
+    },
+    frequency: {
+      ring: 'rgba(217, 70, 239, 0.85)',
+      glow: 'rgba(168, 85, 247, 0.6)',
+      fill: 'rgba(192, 132, 252, 0.1)',
+    },
+    forest: {
+      ring: 'rgba(52, 211, 153, 0.85)',
+      glow: 'rgba(16, 185, 129, 0.55)',
+      fill: 'rgba(52, 211, 153, 0.08)',
+    },
+    energy: {
+      ring: 'rgba(251, 191, 36, 0.9)',
+      glow: 'rgba(245, 158, 11, 0.6)',
+      fill: 'rgba(253, 224, 71, 0.12)',
+    },
+    focus: {
+      ring: 'rgba(56, 189, 248, 0.85)',
+      glow: 'rgba(56, 189, 248, 0.55)',
+      fill: 'rgba(56, 189, 248, 0.08)',
+    },
+    meditation: {
+      ring: 'rgba(56, 189, 248, 0.85)',
+      glow: 'rgba(168, 85, 247, 0.55)',
+      fill: 'rgba(56, 189, 248, 0.08)',
+    },
+  }[atmosphereTheme] || {
+    ring: 'rgba(56, 189, 248, 0.85)',
+    glow: 'rgba(56, 189, 248, 0.55)',
+    fill: 'rgba(56, 189, 248, 0.08)',
+  };
 
   // Point 6: Seamless Audio Crossfade Engine
   const switchTrackSmoothly = (newIndex: number) => {
     triggerHapticLight();
     if (!audioRef.current || isMuted || !isPlaying) {
+      cancelCrossfade();
       setActiveTrackIndex(newIndex);
       return;
     }
@@ -517,13 +318,15 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     const fadeOutInterval = setInterval(() => {
       fadeOutStep += 1;
       if (audioRef.current) {
-        audioRef.current.volume = Math.max(0, 1 - (fadeOutStep / 5));
+        audioRef.current.volume = Math.max(0, 1 - fadeOutStep / 5);
       }
       if (fadeOutStep >= 5) {
         clearInterval(fadeOutInterval);
+        transitionTimers.current.delete(fadeOutInterval);
         setActiveTrackIndex(newIndex);
-        
-        setTimeout(() => {
+
+        const fadeDelay = setTimeout(() => {
+          transitionTimers.current.delete(fadeDelay);
           if (audioRef.current && !isMuted) {
             audioRef.current.volume = 0;
             let fadeInStep = 0;
@@ -534,33 +337,41 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               }
               if (fadeInStep >= 6) {
                 clearInterval(fadeInInterval);
+                transitionTimers.current.delete(fadeInInterval);
                 isCrossfading.current = false;
               }
             }, 100);
+            transitionTimers.current.add(fadeInInterval);
           } else {
             isCrossfading.current = false;
           }
         }, 150);
+        transitionTimers.current.add(fadeDelay);
       }
     }, 80);
+    transitionTimers.current.add(fadeOutInterval);
   };
 
   // Point 5: iOS Lock Screen & Dynamic Island MediaSession Integration
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
-    const trackTitle = isPlaylistMode && currentTrack ? currentTrack.title : (content?.title || 'Calm Meditation');
-    const rawCover = isPlaylistMode && currentTrack ? currentTrack.cover : (content?.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg');
-    const absoluteCover = rawCover.startsWith('http') ? rawCover : `${window.location.origin}${rawCover}`;
+    const trackTitle =
+      isPlaylistMode && currentTrack ? currentTrack.title : content?.title || 'Calm Meditation';
+    const rawCover =
+      isPlaylistMode && currentTrack
+        ? currentTrack.cover
+        : content?.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg';
+    const absoluteCover = rawCover.startsWith('http')
+      ? rawCover
+      : `${window.location.origin}${rawCover}`;
 
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: trackTitle,
         artist: `HealthChain • ${playlistTitle}`,
         album: 'Calm Space Soundscapes',
-        artwork: [
-          { src: absoluteCover, sizes: '512x512', type: 'image/jpeg' }
-        ]
+        artwork: [{ src: absoluteCover, sizes: '512x512', type: 'image/jpeg' }],
       });
 
       navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
@@ -577,7 +388,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         if (isPlaylistMode && currentPlaylist.length > 0) {
-          switchTrackSmoothly(activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1);
+          switchTrackSmoothly(
+            activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1
+          );
         }
       });
 
@@ -588,7 +401,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       });
 
       navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime && audioRef.current) {
+        if (typeof details.seekTime === 'number' && audioRef.current) {
           audioRef.current.currentTime = details.seekTime;
           setCurrentTime(details.seekTime);
         }
@@ -608,9 +421,19 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
         // ignore
       }
     };
-  }, [isPlaying, activeTrackIndex, currentTrack, isPlaylistMode, playlistTitle, content, currentPlaylist.length, isMuted]);
+  }, [
+    isPlaying,
+    activeTrackIndex,
+    currentTrack,
+    isPlaylistMode,
+    playlistTitle,
+    content,
+    currentPlaylist.length,
+    isMuted,
+  ]);
 
   useEffect(() => {
+    if (!isPlaying || isMuted) cancelCrossfade();
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
       if (isPlaying) {
@@ -627,31 +450,46 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   useEffect(() => {
     if (content) {
+      cancelCrossfade();
       setTimeRemaining(totalDuration);
       setIsPlaying(true);
       setIsCompleted(false);
       setActiveTrackIndex(0);
       setMediaActive(false);
       setSaveError('');
-      scopeRef.current=captureAccountScope();
-      sessionIdRef.current=crypto.randomUUID();
-      sessionStartRef.current=null;
-      participationRef.current=0;
-      completingRef.current=false;
+      scopeRef.current = captureAccountScope();
+      sessionIdRef.current = crypto.randomUUID();
+      sessionStartRef.current = null;
+      participationRef.current = 0;
+      completingRef.current = false;
     }
   }, [content?.id, totalDuration]);
 
-  useEffect(()=>{
-    if(!mediaActive || !content || scopeRef.current.accountId==='guest' || sessionStartRef.current)return;
-    if(!isAccountScopeCurrent(scopeRef.current)){setIsPlaying(false);setSaveError('Account changed. Close this session before starting another.');return;}
-    if(!/^[0-9a-f-]{36}$/i.test(content.id))return;
-    sessionStartRef.current=FitnessService.startSession(content.id,sessionIdRef.current);
-    void sessionStartRef.current.catch(()=>{setIsPlaying(false);setSaveError('This activity could not be started. Close and reopen it to retry.');});
-  },[mediaActive,content?.id]);
+  useEffect(() => {
+    if (
+      !mediaActive ||
+      !content ||
+      scopeRef.current.accountId === 'guest' ||
+      sessionStartRef.current
+    )
+      return;
+    if (!isAccountScopeCurrent(scopeRef.current)) {
+      setIsPlaying(false);
+      setSaveError('Account changed. Close this session before starting another.');
+      return;
+    }
+    if (!/^[0-9a-f-]{36}$/i.test(content.id)) return;
+    sessionStartRef.current = FitnessService.startSession(content.id, sessionIdRef.current);
+    void sessionStartRef.current.catch(() => {
+      setIsPlaying(false);
+      setSaveError('This activity could not be started. Close and reopen it to retry.');
+    });
+  }, [mediaActive, content?.id]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      cancelCrossfade();
       if (audioRef.current) {
         audioRef.current.pause();
       }
@@ -687,12 +525,12 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   // Point 4: Session Countdown Timer & 10s Exponential Volume Fade-Out
   useEffect(() => {
     if (!isPlaying || !mediaActive || isCompleted || timeRemaining <= 0) return;
-    let previous=performance.now();
+    let previous = performance.now();
     const timer = setInterval(() => {
-      const now=performance.now();
-      participationRef.current+=(now-previous)/1000;
-      previous=now;
-      setTimeRemaining(prev => {
+      const now = performance.now();
+      participationRef.current += (now - previous) / 1000;
+      previous = now;
+      setTimeRemaining((prev) => {
         const next = Math.max(0, prev - 1);
         // Fade volume out over last 10 seconds
         if (next <= 10 && next > 0 && audioRef.current && !isMuted) {
@@ -716,56 +554,72 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   // Point 3: Post-Session Mindful Summary & Streak Celebration
   const handleComplete = async () => {
-    if(completingRef.current || isCompleted)return;
-    completingRef.current=true;
+    if (completingRef.current || isCompleted) return;
+    completingRef.current = true;
     setIsPlaying(false);
-    const scope=scopeRef.current;
-    const actualSeconds=Math.floor(participationRef.current);
+    const scope = scopeRef.current;
+    const actualSeconds = Math.floor(participationRef.current);
     try {
-      if(!isAccountScopeCurrent(scope))throw new Error('Account changed. This session was not saved.');
-      if(actualSeconds<1)throw new Error('No playback participation was recorded. Play the audio before saving.');
-      if(content && /^[0-9a-f-]{36}$/i.test(content.id) && scope.accountId!=='guest'){
-        if(!sessionStartRef.current)throw new Error('No started activity session was found.');
-        const started=await sessionStartRef.current;
-        if(!isAccountScopeCurrent(scope))throw new Error('Account changed.');
-        await FitnessService.completeSession(started.session_id,actualSeconds);
+      if (!isAccountScopeCurrent(scope))
+        throw new Error('Account changed. This session was not saved.');
+      if (actualSeconds < 1)
+        throw new Error('No playback participation was recorded. Play the audio before saving.');
+      if (content && /^[0-9a-f-]{36}$/i.test(content.id) && scope.accountId !== 'guest') {
+        if (!sessionStartRef.current) throw new Error('No started activity session was found.');
+        const started = await sessionStartRef.current;
+        if (!isAccountScopeCurrent(scope)) throw new Error('Account changed.');
+        await FitnessService.completeSession(started.session_id, actualSeconds);
       }
-      if(!isAccountScopeCurrent(scope))throw new Error('Account changed.');
-      recordHealthMemory({kind:'health_buddy',source:'wellness_participation',title:content?.title || 'Audio relaxation',occurredAt:new Date().toISOString(),dedupeKey:'wellness_'+sessionIdRef.current,payload:{userConfirmed:true,participationSeconds:actualSeconds,contentId:content?.id,calories:null}});
+      if (!isAccountScopeCurrent(scope)) throw new Error('Account changed.');
+      recordHealthMemory({
+        kind: 'health_buddy',
+        source: 'wellness_participation',
+        title: content?.title || 'Audio relaxation',
+        occurredAt: new Date().toISOString(),
+        dedupeKey: 'wellness_' + sessionIdRef.current,
+        payload: {
+          userConfirmed: true,
+          participationSeconds: actualSeconds,
+          contentId: content?.id,
+          calories: null,
+        },
+      });
       await flushHealthMemory(scope);
       setSaveError('');
       setIsCompleted(true);
-    triggerHapticSuccess();
-    setShowConfetti(true);
+      triggerHapticSuccess();
+      setShowConfetti(true);
 
-    const minutesLogged = Math.round(actualSeconds / 60 * 10) / 10;
-    const pointsAwarded = awardPoints(5, 'Completed Mindful Meditation Session', 'mindful') ? 5 : 0;
+      const minutesLogged = Math.round((actualSeconds / 60) * 10) / 10;
+      const pointsAwarded = awardPoints(5, 'Completed Mindful Meditation Session', 'mindful')
+        ? 5
+        : 0;
 
-    setSessionStats({
-      minutesLogged,
-      pointsAwarded,
-      mindfulStreak: getMindfulStreakDays()
-    });
-    setShowSummaryModal(true);
-
-    } catch(error:any){setSaveError(error.message || 'Participation could not be saved. Retry.');toast.error('Session needs attention',error.message || 'Save failed.');}
-    finally{completingRef.current=false;}
+      setSessionStats({
+        minutesLogged,
+        pointsAwarded,
+        mindfulStreak: getMindfulStreakDays(),
+      });
+      setShowSummaryModal(true);
+    } catch (error: any) {
+      setSaveError(error.message || 'Participation could not be saved. Retry.');
+      toast.error('Session needs attention', error.message || 'Save failed.');
+    } finally {
+      completingRef.current = false;
+    }
   };
 
   // Point 5: Action Island Calm Trigger on Player Minimize
   const handleClose = () => {
     triggerHapticLight();
     if (isPlaying) {
-      const trackTitle = isPlaylistMode && currentTrack ? currentTrack.title : (content?.title || 'Calm Meditation');
-      useActionIslandStore.getState().triggerIsland(
-        'calm',
-        `${trackTitle}`,
-        `${playlistTitle} • Paused`,
-        'Restart',
-        () => {
+      const trackTitle =
+        isPlaylistMode && currentTrack ? currentTrack.title : content?.title || 'Calm Meditation';
+      useActionIslandStore
+        .getState()
+        .triggerIsland('calm', `${trackTitle}`, `${playlistTitle} • Paused`, 'Restart', () => {
           window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
-        }
-      );
+        });
     } else {
       useActionIslandStore.getState().dismissIsland();
     }
@@ -776,7 +630,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     if (isNaN(seconds)) return '00:00';
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   // Point 8: Eyes-Closed Zen Mode (Double-tap canvas gesture)
@@ -826,7 +680,18 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSummaryModal, showAmbientMixer, showSleepTimerSheet, showPlaylist, isZenMode, isPlaying, isPlaylistMode, currentTrack, content, playlistTitle]);
+  }, [
+    showSummaryModal,
+    showAmbientMixer,
+    showSleepTimerSheet,
+    showPlaylist,
+    isZenMode,
+    isPlaying,
+    isPlaylistMode,
+    currentTrack,
+    content,
+    playlistTitle,
+  ]);
 
   // Point 5: Haptic Precision Scrubber with Floating Time Bubble
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -903,7 +768,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   return createPortal(
     <AnimatePresence>
       {content && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -916,7 +781,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             flexDirection: 'column',
             overflow: 'hidden',
             userSelect: 'none',
-            WebkitUserSelect: 'none'
+            WebkitUserSelect: 'none',
           }}
           onDoubleClick={toggleZenMode}
           onClick={() => {
@@ -932,9 +797,27 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             }
           }}
         >
-          {saveError && <div role="alert" style={{position:'absolute',top:20,left:20,right:20,zIndex:20,background:'#fff',color:'#0f172a',padding:16,borderRadius:16}}>
-            {saveError} <button type="button" style={{minHeight:44}} onClick={()=>void handleComplete()}>Retry saving participation</button>
-          </div>}
+          {saveError && (
+            <div
+              role="alert"
+              style={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                right: 20,
+                zIndex: 20,
+                background: '#fff',
+                color: '#0f172a',
+                padding: 16,
+                borderRadius: 16,
+              }}
+            >
+              {saveError}{' '}
+              <button type="button" style={{ minHeight: 44 }} onClick={() => void handleComplete()}>
+                Retry saving participation
+              </button>
+            </div>
+          )}
           {/* Point 8: Zen Mode Floating Feedback Pill */}
           <AnimatePresence>
             {zenToastVisible && (
@@ -962,62 +845,85 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   alignItems: 'center',
                   gap: '8px',
                   pointerEvents: 'none',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
                 }}
               >
                 <Sparkles size={14} color="#38BDF8" />
-                <span>{isZenMode ? 'Zen Mode Active • Double-tap canvas to restore controls' : 'Controls Restored'}</span>
+                <span>
+                  {isZenMode
+                    ? 'Zen Mode Active • Double-tap canvas to restore controls'
+                    : 'Controls Restored'}
+                </span>
               </motion.div>
             )}
           </AnimatePresence>
 
           {isCompleted ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              style={{ 
-                zIndex: 10, 
-                textAlign: 'center', 
-                color: 'white', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                height: '100%',
-                padding: '24px'
-              }}
-            >
-              <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} colors={['#10B981', '#38BDF8', '#FFFFFF']} />
-              <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%)',
-                border: '1px solid rgba(16, 185, 129, 0.5)',
+              style={{
+                zIndex: 10,
+                textAlign: 'center',
+                color: 'white',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '24px',
-                boxShadow: '0 0 30px rgba(16, 185, 129, 0.25)'
-              }}>
+                height: '100%',
+                padding: '24px',
+              }}
+            >
+              <Confetti
+                width={window.innerWidth}
+                height={window.innerHeight}
+                recycle={false}
+                colors={['#10B981', '#38BDF8', '#FFFFFF']}
+              />
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background:
+                    'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%)',
+                  border: '1px solid rgba(16, 185, 129, 0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '24px',
+                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.25)',
+                }}
+              >
                 <Check size={40} color="#10B981" />
               </div>
-              <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>Mindful Session Complete</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 32px', fontSize: '15px' }}>
+              <h2
+                style={{
+                  fontSize: '32px',
+                  fontWeight: 800,
+                  margin: '0 0 8px',
+                  letterSpacing: '-0.5px',
+                }}
+              >
+                Mindful Session Complete
+              </h2>
+              <p
+                style={{ color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 32px', fontSize: '15px' }}
+              >
                 Your mindful state has been preserved and vitality logged.
               </p>
-              <button 
+              <button
                 onClick={onClose}
-                style={{ 
-                  padding: '16px 40px', 
-                  borderRadius: '30px', 
-                  background: 'linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%)', 
-                  color: '#0F172A', 
-                  fontSize: '16px', 
-                  fontWeight: 700, 
+                style={{
+                  padding: '16px 40px',
+                  borderRadius: '30px',
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%)',
+                  color: '#0F172A',
+                  fontSize: '16px',
+                  fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
                 }}
               >
                 Return to Calm Space
@@ -1027,51 +933,63 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             <>
               {/* Cinematic Ambient Background Layer */}
               <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden' }}>
-                <motion.img 
+                <motion.img
                   key={isPlaylistMode && currentTrack ? currentTrack.id : content.id}
                   initial={{ scale: 1, opacity: 0 }}
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.08, 1.02, 1],
                     x: [0, -12, 8, 0],
                     y: [0, 8, -6, 0],
-                    opacity: 0.88 
+                    opacity: 0.88,
                   }}
-                  transition={{ 
+                  transition={{
                     scale: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
                     x: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
                     y: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-                    opacity: { duration: 0.8 }
+                    opacity: { duration: 0.8 },
                   }}
-                  src={isPlaylistMode && currentTrack ? currentTrack.cover : (content.id === 'mood-0' ? '/images/thumb_night_clouds_1788262545783.jpg' : (content.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg'))} 
-                  alt="Atmosphere"  
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  src={
+                    isPlaylistMode && currentTrack
+                      ? currentTrack.cover
+                      : content.id === 'mood-0'
+                        ? '/images/thumb_night_clouds_1788262545783.jpg'
+                        : content.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg'
+                  }
+                  alt="Atmosphere"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 {/* Multi-Stage Cinematic Vignette */}
-                <div style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  background: 'radial-gradient(ellipse at center, rgba(5, 8, 17, 0.12) 0%, rgba(5, 8, 17, 0.52) 60%, rgba(5, 8, 17, 0.92) 100%)' 
-                }} />
-                <div style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  background: 'linear-gradient(to bottom, rgba(5, 8, 17, 0.6) 0%, transparent 25%, transparent 65%, rgba(5, 8, 17, 0.95) 100%)' 
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background:
+                      'radial-gradient(ellipse at center, rgba(5, 8, 17, 0.12) 0%, rgba(5, 8, 17, 0.52) 60%, rgba(5, 8, 17, 0.92) 100%)',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background:
+                      'linear-gradient(to bottom, rgba(5, 8, 17, 0.6) 0%, transparent 25%, transparent 65%, rgba(5, 8, 17, 0.95) 100%)',
+                  }}
+                />
                 {/* 60fps Living Particle Atmosphere Engine */}
                 <LivingAtmosphereCanvas theme={atmosphereTheme} isPlaying={isPlaying} />
               </div>
 
               {/* Native Audio Element with Auto-Recovery */}
               {isPlaylistMode && currentTrack && (
-                <audio 
-                  ref={audioRef} 
-                  src={encodeURI(currentTrack.audioUrl)} 
+                <audio
+                  ref={audioRef}
+                  src={encodeURI(currentTrack.audioUrl)}
                   autoPlay={isPlaying}
                   preload="auto"
                   playsInline
-                  onPlaying={()=>setMediaActive(true)}
-                  onPause={()=>setMediaActive(false)}
-                  onWaiting={()=>setMediaActive(false)}
+                  onPlaying={() => setMediaActive(true)}
+                  onPause={() => setMediaActive(false)}
+                  onWaiting={() => setMediaActive(false)}
                   onError={() => {
                     setMediaActive(false);
                     console.warn('Track audio playback error, resetting playing state');
@@ -1112,43 +1030,44 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Top Navigation Bar */}
               <AnimatePresence>
                 {showControls && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.25 }}
-                    style={{ 
-                      position: 'absolute', 
-                      top: 0, 
-                      left: 0, 
-                      right: 0, 
-                      padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 20px 16px', 
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 20px 16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      zIndex: 30 
+                      zIndex: 30,
                     }}
                   >
                     {/* Frosted Close Pill */}
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleClose();
                       }}
-                      style={{ 
-                        width: '42px', 
-                        height: '42px', 
-                        borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)', 
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background:
+                          'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)', 
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
                         color: 'white',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                       }}
                       aria-label="Close Player"
                     >
@@ -1156,35 +1075,47 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     </button>
 
                     {/* Environment / Track Info Pill (Point 1: Single-Line Mobile Fit) */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      color: 'white',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      letterSpacing: '-0.2px',
-                      whiteSpace: 'nowrap',
-                      minWidth: 0,
-                      flexShrink: 1
-                    }}>
-                      <span style={{ color: vibrationThemeColors.ring, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '20px',
+                        background:
+                          'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        color: 'white',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        letterSpacing: '-0.2px',
+                        whiteSpace: 'nowrap',
+                        minWidth: 0,
+                        flexShrink: 1,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: vibrationThemeColors.ring,
+                          display: 'flex',
+                          alignItems: 'center',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         <Wind size={13} style={{ marginRight: '4px', flexShrink: 0 }} />
                         {playlistTitle}
                       </span>
                       {isPlaylistMode && currentPlaylist.length > 0 && (
-                        <span style={{ opacity: 0.65, whiteSpace: 'nowrap', fontSize: '12px' }}>• {activeTrackIndex + 1}/{currentPlaylist.length}</span>
+                        <span style={{ opacity: 0.65, whiteSpace: 'nowrap', fontSize: '12px' }}>
+                          • {activeTrackIndex + 1}/{currentPlaylist.length}
+                        </span>
                       )}
                     </div>
 
                     {/* Point 4: Interactive Sleep Timer & Session Countdown Pill */}
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         triggerHapticLight();
@@ -1196,19 +1127,24 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         gap: '6px',
                         padding: '6px 12px',
                         borderRadius: '20px',
-                        background: sleepTimerOption !== 'off'
-                          ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
-                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        background:
+                          sleepTimerOption !== 'off'
+                            ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
+                            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
-                        border: sleepTimerOption !== 'off'
-                          ? `1px solid ${vibrationThemeColors.ring}`
-                          : '1px solid rgba(255, 255, 255, 0.25)',
+                        border:
+                          sleepTimerOption !== 'off'
+                            ? `1px solid ${vibrationThemeColors.ring}`
+                            : '1px solid rgba(255, 255, 255, 0.25)',
                         color: 'white',
                         fontSize: '13px',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        boxShadow: sleepTimerOption !== 'off' ? `0 0 16px ${vibrationThemeColors.glow}` : 'none'
+                        boxShadow:
+                          sleepTimerOption !== 'off'
+                            ? `0 0 16px ${vibrationThemeColors.glow}`
+                            : 'none',
                       }}
                       aria-label="Set Sleep Timer"
                     >
@@ -1224,90 +1160,101 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               </AnimatePresence>
 
               {/* Centerpiece: Living Acoustic Resonance & Organic Vibration Engine */}
-              <div style={{ 
-                flex: 1, 
-                position: 'relative', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                zIndex: 10,
-                padding: '0 24px',
-                width: '100%'
-              }}>
+              <div
+                style={{
+                  flex: 1,
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  padding: '0 24px',
+                  width: '100%',
+                }}
+              >
                 {/* Center Living Acoustic Resonance & Organic Vibration Waves Engine */}
-                <div style={{ position: 'relative', width: '280px', height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '280px',
+                    height: '280px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   {/* Deep Atmospheric Glow Aura */}
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: isPlaying ? [1, 1.25, 1] : 1,
-                      opacity: isPlaying ? [0.35, 0.65, 0.35] : 0.2
+                      opacity: isPlaying ? [0.35, 0.65, 0.35] : 0.2,
                     }}
-                    transition={{ 
-                      duration: 7.2, 
+                    transition={{
+                      duration: 7.2,
                       repeat: Infinity,
-                      ease: 'easeInOut'
+                      ease: 'easeInOut',
                     }}
-                    style={{ 
-                      position: 'absolute', 
+                    style={{
+                      position: 'absolute',
                       width: '320px',
                       height: '320px',
-                      borderRadius: '50%', 
+                      borderRadius: '50%',
                       background: `radial-gradient(circle, ${vibrationThemeColors.glow} 0%, rgba(0, 0, 0, 0) 72%)`,
                       filter: 'blur(45px)',
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
                     }}
                   />
 
                   {/* 5 Expansive, Silky Natural Acoustic Vibration Waves (Ripples smoothly across the entire screen) */}
-                  {isPlaying && [0, 1, 2, 3, 4].map((waveIndex) => (
-                    <motion.div
-                      key={`natural-acoustic-vibration-wave-${waveIndex}`}
-                      animate={{ 
-                        scale: [1, 2.2, 3.8, 5.5],
-                        opacity: [0, 0.55, 0.32, 0],
-                        borderWidth: ['1.5px', '1.2px', '1px', '0.75px']
-                      }}
-                      transition={{ 
-                        duration: 8.5,
-                        repeat: Infinity,
-                        ease: [0.25, 0.1, 0.25, 1],
-                        delay: waveIndex * 1.7,
-                      }}
-                      style={{ 
-                        position: 'absolute', 
-                        width: '136px', 
-                        height: '136px', 
-                        borderRadius: '50%', 
-                        borderStyle: 'solid',
-                        borderColor: vibrationThemeColors.ring,
-                        boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 15px ${vibrationThemeColors.glow}`,
-                        filter: 'blur(0.5px)',
-                        pointerEvents: 'none'
-                      }}
-                    />
-                  ))}
+                  {isPlaying &&
+                    [0, 1, 2, 3, 4].map((waveIndex) => (
+                      <motion.div
+                        key={`natural-acoustic-vibration-wave-${waveIndex}`}
+                        animate={{
+                          scale: [1, 2.2, 3.8, 5.5],
+                          opacity: [0, 0.55, 0.32, 0],
+                          borderWidth: ['1.5px', '1.2px', '1px', '0.75px'],
+                        }}
+                        transition={{
+                          duration: 8.5,
+                          repeat: Infinity,
+                          ease: [0.25, 0.1, 0.25, 1],
+                          delay: waveIndex * 1.7,
+                        }}
+                        style={{
+                          position: 'absolute',
+                          width: '136px',
+                          height: '136px',
+                          borderRadius: '50%',
+                          borderStyle: 'solid',
+                          borderColor: vibrationThemeColors.ring,
+                          boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 15px ${vibrationThemeColors.glow}`,
+                          filter: 'blur(0.5px)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    ))}
 
                   {/* Outer Harmonic Sheer Ring */}
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: isPlaying ? [1, 1.08, 1] : 1,
-                      opacity: isPlaying ? [0.4, 0.7, 0.4] : 0.25
+                      opacity: isPlaying ? [0.4, 0.7, 0.4] : 0.25,
                     }}
-                    transition={{ 
-                      duration: 6.0, 
+                    transition={{
+                      duration: 6.0,
                       repeat: Infinity,
-                      ease: 'easeInOut'
+                      ease: 'easeInOut',
                     }}
-                    style={{ 
-                      position: 'absolute', 
-                      width: '210px', 
-                      height: '210px', 
-                      borderRadius: '50%', 
+                    style={{
+                      position: 'absolute',
+                      width: '210px',
+                      height: '210px',
+                      borderRadius: '50%',
                       border: `1px solid rgba(255, 255, 255, 0.3)`,
                       boxShadow: `0 0 28px ${vibrationThemeColors.glow}, inset 0 0 16px rgba(255, 255, 255, 0.1)`,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
                     }}
                   />
 
@@ -1321,25 +1268,26 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 48px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.95)`,
                             `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 30px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.85)`,
                           ]
-                        : '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)'
+                        : '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
                     }}
                     transition={{
                       scale: {
                         duration: 5.5,
                         repeat: Infinity,
-                        ease: 'easeInOut'
+                        ease: 'easeInOut',
                       },
                       boxShadow: {
                         duration: 3.5,
                         repeat: Infinity,
-                        ease: 'easeInOut'
-                      }
+                        ease: 'easeInOut',
+                      },
                     }}
                     style={{
                       width: '136px',
                       height: '136px',
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.1) 100%)',
                       backdropFilter: 'blur(32px)',
                       WebkitBackdropFilter: 'blur(32px)',
                       border: '1.5px solid rgba(255, 255, 255, 0.65)',
@@ -1349,11 +1297,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       justifyContent: 'center',
                       textAlign: 'center',
                       zIndex: 2,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                     role="button"
                     tabIndex={0}
-                    aria-label={isPlaying ? "Pause playback" : "Resume playback"}
+                    aria-label={isPlaying ? 'Pause playback' : 'Resume playback'}
                     whileTap={{ scale: 0.96 }}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1370,27 +1318,112 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     }}
                   >
                     {isPlaying ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '28px' }}>
-                        <motion.span animate={{ height: ['8px', '24px', '10px', '22px', '8px'] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
-                        <motion.span animate={{ height: ['16px', '8px', '28px', '12px', '16px'] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }} style={{ width: '3.5px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
-                        <motion.span animate={{ height: ['10px', '26px', '14px', '20px', '10px'] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
-                        <motion.span animate={{ height: ['22px', '10px', '18px', '8px', '22px'] }} transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }} style={{ width: '3.5px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
-                        <motion.span animate={{ height: ['12px', '20px', '8px', '16px', '12px'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.25 }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          height: '28px',
+                        }}
+                      >
+                        <motion.span
+                          animate={{ height: ['8px', '24px', '10px', '22px', '8px'] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                          style={{
+                            width: '3.5px',
+                            background: '#FFFFFF',
+                            borderRadius: '3px',
+                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                          }}
+                        />
+                        <motion.span
+                          animate={{ height: ['16px', '8px', '28px', '12px', '16px'] }}
+                          transition={{
+                            duration: 1.2,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.15,
+                          }}
+                          style={{
+                            width: '3.5px',
+                            background: vibrationThemeColors.ring,
+                            borderRadius: '3px',
+                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                          }}
+                        />
+                        <motion.span
+                          animate={{ height: ['10px', '26px', '14px', '20px', '10px'] }}
+                          transition={{
+                            duration: 1.6,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.3,
+                          }}
+                          style={{
+                            width: '3.5px',
+                            background: '#FFFFFF',
+                            borderRadius: '3px',
+                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                          }}
+                        />
+                        <motion.span
+                          animate={{ height: ['22px', '10px', '18px', '8px', '22px'] }}
+                          transition={{
+                            duration: 1.3,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.1,
+                          }}
+                          style={{
+                            width: '3.5px',
+                            background: vibrationThemeColors.ring,
+                            borderRadius: '3px',
+                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                          }}
+                        />
+                        <motion.span
+                          animate={{ height: ['12px', '20px', '8px', '16px', '12px'] }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.25,
+                          }}
+                          style={{
+                            width: '3.5px',
+                            background: '#FFFFFF',
+                            borderRadius: '3px',
+                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                          }}
+                        />
                       </div>
                     ) : (
-                      <Play size={28} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: '4px' }} />
+                      <Play
+                        size={28}
+                        color="#FFFFFF"
+                        fill="#FFFFFF"
+                        style={{ marginLeft: '4px' }}
+                      />
                     )}
 
-                    <span style={{ 
-                      fontSize: '11px', 
-                      fontWeight: 700, 
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      letterSpacing: '1.4px',
-                      textTransform: 'uppercase',
-                      marginTop: '8px',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.5)'
-                    }}>
-                      {isPlaying ? (isFrequency ? 'Resonance' : isSleep ? 'Delta Waves' : 'Flow') : 'Paused'}
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        letterSpacing: '1.4px',
+                        textTransform: 'uppercase',
+                        marginTop: '8px',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                      }}
+                    >
+                      {isPlaying
+                        ? isFrequency
+                          ? 'Resonance'
+                          : isSleep
+                            ? 'Delta Waves'
+                            : 'Flow'
+                        : 'Paused'}
                     </span>
                   </motion.div>
                 </div>
@@ -1399,62 +1432,150 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Bottom Ultra-Sheer Glass Control Island */}
               <AnimatePresence>
                 {showControls && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 30 }}
                     transition={{ duration: 0.25 }}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ 
-                      position: 'absolute', 
-                      bottom: 'calc(env(safe-area-inset-bottom, 24px) + 12px)', 
-                      left: '16px', 
-                      right: '16px', 
+                    style={{
+                      position: 'absolute',
+                      bottom: 'calc(env(safe-area-inset-bottom, 24px) + 12px)',
+                      left: '16px',
+                      right: '16px',
                       zIndex: 30,
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 100%)',
                       backdropFilter: 'blur(32px)',
                       WebkitBackdropFilter: 'blur(32px)',
                       border: '1px solid rgba(255, 255, 255, 0.4)',
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1)',
+                      boxShadow:
+                        '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1)',
                       borderRadius: '28px',
-                      padding: '20px 20px 16px'
+                      padding: '20px 20px 16px',
                     }}
                   >
                     {/* Track Title & Artist Info */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '14px',
+                      }}
+                    >
                       <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h3 style={{ 
-                            margin: 0, 
-                            fontSize: '17px', 
-                            fontWeight: 700, 
-                            color: '#FFFFFF', 
-                            letterSpacing: '-0.3px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: '17px',
+                              fontWeight: 700,
+                              color: '#FFFFFF',
+                              letterSpacing: '-0.3px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             {isPlaylistMode && currentTrack ? currentTrack.title : content.title}
                           </h3>
                           {isPlaying && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, padding: '2px 4px' }}>
-                              <motion.span animate={{ height: ['4px', '16px', '6px', '14px', '4px'] }} transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
-                              <motion.span animate={{ height: ['12px', '4px', '18px', '8px', '12px'] }} transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.12 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
-                              <motion.span animate={{ height: ['6px', '18px', '9px', '16px', '6px'] }} transition={{ duration: 0.95, repeat: Infinity, ease: 'easeInOut', delay: 0.24 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
-                              <motion.span animate={{ height: ['14px', '6px', '13px', '5px', '14px'] }} transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.08 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
-                              <motion.span animate={{ height: ['8px', '16px', '5px', '12px', '8px'] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                flexShrink: 0,
+                                padding: '2px 4px',
+                              }}
+                            >
+                              <motion.span
+                                animate={{ height: ['4px', '16px', '6px', '14px', '4px'] }}
+                                transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }}
+                                style={{
+                                  width: '3px',
+                                  background: vibrationThemeColors.ring,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
+                              <motion.span
+                                animate={{ height: ['12px', '4px', '18px', '8px', '12px'] }}
+                                transition={{
+                                  duration: 0.75,
+                                  repeat: Infinity,
+                                  ease: 'easeInOut',
+                                  delay: 0.12,
+                                }}
+                                style={{
+                                  width: '3px',
+                                  background: vibrationThemeColors.ring,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
+                              <motion.span
+                                animate={{ height: ['6px', '18px', '9px', '16px', '6px'] }}
+                                transition={{
+                                  duration: 0.95,
+                                  repeat: Infinity,
+                                  ease: 'easeInOut',
+                                  delay: 0.24,
+                                }}
+                                style={{
+                                  width: '3px',
+                                  background: vibrationThemeColors.ring,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
+                              <motion.span
+                                animate={{ height: ['14px', '6px', '13px', '5px', '14px'] }}
+                                transition={{
+                                  duration: 0.8,
+                                  repeat: Infinity,
+                                  ease: 'easeInOut',
+                                  delay: 0.08,
+                                }}
+                                style={{
+                                  width: '3px',
+                                  background: vibrationThemeColors.ring,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
+                              <motion.span
+                                animate={{ height: ['8px', '16px', '5px', '12px', '8px'] }}
+                                transition={{
+                                  duration: 0.9,
+                                  repeat: Infinity,
+                                  ease: 'easeInOut',
+                                  delay: 0.2,
+                                }}
+                                style={{
+                                  width: '3px',
+                                  background: vibrationThemeColors.ring,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
                             </div>
                           )}
                         </div>
-                        <p style={{ 
-                          margin: '2px 0 0', 
-                          fontSize: '13px', 
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}>
-                          {isPlaylistMode && currentTrack ? currentTrack.subtitle : content.description}
+                        <p
+                          style={{
+                            margin: '2px 0 0',
+                            fontSize: '13px',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {isPlaylistMode && currentTrack
+                            ? currentTrack.subtitle
+                            : content.description}
                         </p>
                       </div>
 
@@ -1474,7 +1595,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           alignItems: 'center',
                           justifyContent: 'center',
                           color: 'white',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
                         }}
                         aria-label={isMuted ? 'Unmute' : 'Mute'}
                       >
@@ -1513,26 +1634,35 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                zIndex: 30
+                                zIndex: 30,
                               }}
                             >
                               <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
                               {/* Downward Arrow */}
-                              <div style={{
-                                position: 'absolute',
-                                bottom: '-5px',
-                                width: 0,
-                                height: 0,
-                                borderLeft: '5px solid transparent',
-                                borderRight: '5px solid transparent',
-                                borderTop: `5px solid ${vibrationThemeColors.ring}`
-                              }} />
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '-5px',
+                                  width: 0,
+                                  height: 0,
+                                  borderLeft: '5px solid transparent',
+                                  borderRight: '5px solid transparent',
+                                  borderTop: `5px solid ${vibrationThemeColors.ring}`,
+                                }}
+                              />
                             </motion.div>
                           )}
                         </AnimatePresence>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.7)', minWidth: '34px', fontWeight: 600 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              minWidth: '34px',
+                              fontWeight: 600,
+                            }}
+                          >
                             {formatTime(isScrubbing ? scrubValue : currentTime)}
                           </span>
 
@@ -1550,35 +1680,39 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                               alignItems: 'center',
                               cursor: 'pointer',
                               position: 'relative',
-                              touchAction: 'none'
+                              touchAction: 'none',
                             }}
                           >
                             {/* Track Rail */}
-                            <div style={{
-                              width: '100%',
-                              height: '5px',
-                              borderRadius: '3px',
-                              background: 'rgba(255, 255, 255, 0.18)',
-                              position: 'relative',
-                              overflow: 'hidden'
-                            }}>
-                              {/* Filled Progress Bar */}
-                              <div style={{
-                                width: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
-                                height: '100%',
-                                background: `linear-gradient(90deg, #38BDF8 0%, ${vibrationThemeColors.ring} 100%)`,
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '5px',
                                 borderRadius: '3px',
-                                boxShadow: `0 0 10px ${vibrationThemeColors.glow}`
-                              }} />
+                                background: 'rgba(255, 255, 255, 0.18)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {/* Filled Progress Bar */}
+                              <div
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
+                                  height: '100%',
+                                  background: `linear-gradient(90deg, #38BDF8 0%, ${vibrationThemeColors.ring} 100%)`,
+                                  borderRadius: '3px',
+                                  boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
+                                }}
+                              />
                             </div>
 
                             {/* Active Glowing Thumb */}
                             <motion.div
-                              animate={{ 
+                              animate={{
                                 scale: isScrubbing ? 1.45 : 1,
-                                boxShadow: isScrubbing 
-                                  ? `0 0 16px ${vibrationThemeColors.ring}, 0 2px 8px rgba(0,0,0,0.5)` 
-                                  : '0 2px 6px rgba(0, 0, 0, 0.4)'
+                                boxShadow: isScrubbing
+                                  ? `0 0 16px ${vibrationThemeColors.ring}, 0 2px 8px rgba(0,0,0,0.5)`
+                                  : '0 2px 6px rgba(0, 0, 0, 0.4)',
                               }}
                               transition={{ duration: 0.12 }}
                               style={{
@@ -1591,12 +1725,20 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 borderRadius: '50%',
                                 background: '#FFFFFF',
                                 border: `2px solid ${vibrationThemeColors.ring}`,
-                                pointerEvents: 'none'
+                                pointerEvents: 'none',
                               }}
                             />
                           </div>
 
-                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.7)', minWidth: '34px', textAlign: 'right', fontWeight: 600 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              minWidth: '34px',
+                              textAlign: 'right',
+                              fontWeight: 600,
+                            }}
+                          >
                             {formatTime(duration)}
                           </span>
                         </div>
@@ -1604,7 +1746,13 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     )}
 
                     {/* Primary Playback Bar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       {/* Tracks Drawer Trigger */}
                       {isPlaylistMode && currentPlaylist.length > 0 ? (
                         <button
@@ -1613,7 +1761,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             setShowPlaylist(true);
                           }}
                           style={{
-                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                            background:
+                              'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
                             border: '1px solid rgba(255, 255, 255, 0.25)',
                             borderRadius: '16px',
                             padding: '8px 12px',
@@ -1623,7 +1772,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             color: 'white',
                             fontSize: '12px',
                             fontWeight: 600,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           <ListMusic size={16} color="#38BDF8" />
@@ -1638,7 +1787,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         <button
                           onClick={() => {
                             if (isPlaylistMode && currentPlaylist.length > 0) {
-                              const newIdx = activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1;
+                              const newIdx =
+                                activeTrackIndex > 0
+                                  ? activeTrackIndex - 1
+                                  : currentPlaylist.length - 1;
                               switchTrackSmoothly(newIdx);
                             } else {
                               triggerHapticLight();
@@ -1652,7 +1804,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            padding: '8px'
+                            padding: '8px',
                           }}
                           aria-label="Previous Track"
                         >
@@ -1669,27 +1821,37 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             width: '58px',
                             height: '58px',
                             borderRadius: '50%',
-                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.8) 100%)',
+                            background:
+                              'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.8) 100%)',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
-                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.9)'
+                            boxShadow:
+                              '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
                           }}
                           aria-label={isPlaying ? 'Pause' : 'Play'}
                         >
                           {isPlaying ? (
                             <Pause size={24} color="#0F172A" fill="#0F172A" />
                           ) : (
-                            <Play size={24} color="#0F172A" fill="#0F172A" style={{ marginLeft: '2px' }} />
+                            <Play
+                              size={24}
+                              color="#0F172A"
+                              fill="#0F172A"
+                              style={{ marginLeft: '2px' }}
+                            />
                           )}
                         </button>
 
                         <button
                           onClick={() => {
                             if (isPlaylistMode && currentPlaylist.length > 0) {
-                              const newIdx = activeTrackIndex < currentPlaylist.length - 1 ? activeTrackIndex + 1 : 0;
+                              const newIdx =
+                                activeTrackIndex < currentPlaylist.length - 1
+                                  ? activeTrackIndex + 1
+                                  : 0;
                               switchTrackSmoothly(newIdx);
                             } else {
                               triggerHapticLight();
@@ -1703,7 +1865,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            padding: '8px'
+                            padding: '8px',
                           }}
                           aria-label="Next Track"
                         >
@@ -1718,12 +1880,14 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             setShowAmbientMixer(true);
                           }}
                           style={{
-                            background: ambientLayer !== 'off' 
-                              ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
-                              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                            border: ambientLayer !== 'off' 
-                              ? `1px solid ${vibrationThemeColors.ring}` 
-                              : '1px solid rgba(255, 255, 255, 0.25)',
+                            background:
+                              ambientLayer !== 'off'
+                                ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
+                                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                            border:
+                              ambientLayer !== 'off'
+                                ? `1px solid ${vibrationThemeColors.ring}`
+                                : '1px solid rgba(255, 255, 255, 0.25)',
                             borderRadius: '16px',
                             padding: '8px 12px',
                             display: 'flex',
@@ -1733,12 +1897,20 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             fontSize: '12px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            boxShadow: ambientLayer !== 'off' ? `0 0 12px ${vibrationThemeColors.glow}` : 'none'
+                            boxShadow:
+                              ambientLayer !== 'off'
+                                ? `0 0 12px ${vibrationThemeColors.glow}`
+                                : 'none',
                           }}
                           aria-label="Ambient Layer Mixer"
                         >
-                          <Layers size={15} color={ambientLayer !== 'off' ? vibrationThemeColors.ring : 'white'} />
-                          <span>{ambientLayer !== 'off' ? AMBIENT_LAYERS[ambientLayer].icon : 'Mixer'}</span>
+                          <Layers
+                            size={15}
+                            color={ambientLayer !== 'off' ? vibrationThemeColors.ring : 'white'}
+                          />
+                          <span>
+                            {ambientLayer !== 'off' ? AMBIENT_LAYERS[ambientLayer].icon : 'Mixer'}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -1762,7 +1934,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         background: 'rgba(0, 0, 0, 0.6)',
                         backdropFilter: 'blur(8px)',
                         WebkitBackdropFilter: 'blur(8px)',
-                        zIndex: 40
+                        zIndex: 40,
                       }}
                     />
 
@@ -1779,34 +1951,49 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         left: 0,
                         right: 0,
                         maxHeight: '75vh',
-                        background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.85) 0%, rgba(10, 15, 30, 0.95) 100%)',
+                        background:
+                          'linear-gradient(135deg, rgba(20, 27, 45, 0.85) 0%, rgba(10, 15, 30, 0.95) 100%)',
                         backdropFilter: 'blur(32px)',
                         WebkitBackdropFilter: 'blur(32px)',
                         borderTop: '1px solid rgba(255, 255, 255, 0.25)',
-                        boxShadow: '0 -20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        boxShadow:
+                          '0 -20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                         borderTopLeftRadius: '28px',
                         borderTopRightRadius: '28px',
                         display: 'flex',
                         flexDirection: 'column',
                         zIndex: 50,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
                       }}
                     >
                       {/* Pull Bar */}
-                      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.3)' }} />
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px' }}
+                      >
+                        <div
+                          style={{
+                            width: '40px',
+                            height: '4px',
+                            borderRadius: '2px',
+                            background: 'rgba(255, 255, 255, 0.3)',
+                          }}
+                        />
                       </div>
 
                       {/* Drawer Header */}
-                      <div style={{
-                        padding: '16px 20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
+                      <div
+                        style={{
+                          padding: '16px 20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                      >
                         <div>
-                          <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: 'white' }}>
+                          <h4
+                            style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: 'white' }}
+                          >
                             {playlistTitle}
                           </h4>
                           <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
@@ -1825,7 +2012,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           <X size={18} />
@@ -1862,59 +2049,112 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 gap: '14px',
                                 padding: '12px',
                                 borderRadius: '16px',
-                                background: isActive ? `${vibrationThemeColors.glow}` : 'transparent',
-                                border: isActive ? `1px solid ${vibrationThemeColors.ring}` : '1px solid transparent',
+                                background: isActive
+                                  ? `${vibrationThemeColors.glow}`
+                                  : 'transparent',
+                                border: isActive
+                                  ? `1px solid ${vibrationThemeColors.ring}`
+                                  : '1px solid transparent',
                                 cursor: 'pointer',
                                 marginBottom: '6px',
-                                transition: 'all 0.2s ease'
+                                transition: 'all 0.2s ease',
                               }}
                             >
                               <img
                                 src={track.cover}
                                 alt={track.title}
                                 onError={(e) => {
-                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80';
+                                  e.currentTarget.src =
+                                    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80';
                                 }}
-                                style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
+                                style={{
+                                  width: '48px',
+                                  height: '48px',
+                                  borderRadius: '12px',
+                                  objectFit: 'cover',
+                                  flexShrink: 0,
+                                }}
                               />
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{
-                                  color: isActive ? vibrationThemeColors.ring : 'white',
-                                  fontSize: '15px',
-                                  fontWeight: 600,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}>
+                                <div
+                                  style={{
+                                    color: isActive ? vibrationThemeColors.ring : 'white',
+                                    fontSize: '15px',
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                >
                                   {track.title}
                                 </div>
-                                <div style={{
-                                  color: 'rgba(255, 255, 255, 0.6)',
-                                  fontSize: '12px',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  marginTop: '2px'
-                                }}>
+                                <div
+                                  style={{
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    fontSize: '12px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    marginTop: '2px',
+                                  }}
+                                >
                                   {track.subtitle}
                                 </div>
                               </div>
                               {isActive && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingLeft: '8px' }}>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    paddingLeft: '8px',
+                                  }}
+                                >
                                   <motion.span
                                     animate={{ height: isPlaying ? ['4px', '16px', '4px'] : '6px' }}
-                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut' }}
-                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
+                                    transition={{
+                                      duration: 0.75,
+                                      repeat: Infinity,
+                                      ease: 'easeInOut',
+                                    }}
+                                    style={{
+                                      width: '3px',
+                                      background: vibrationThemeColors.ring,
+                                      borderRadius: '2px',
+                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
+                                    }}
                                   />
                                   <motion.span
-                                    animate={{ height: isPlaying ? ['14px', '4px', '14px'] : '12px' }}
-                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
-                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
+                                    animate={{
+                                      height: isPlaying ? ['14px', '4px', '14px'] : '12px',
+                                    }}
+                                    transition={{
+                                      duration: 0.75,
+                                      repeat: Infinity,
+                                      ease: 'easeInOut',
+                                      delay: 0.15,
+                                    }}
+                                    style={{
+                                      width: '3px',
+                                      background: vibrationThemeColors.ring,
+                                      borderRadius: '2px',
+                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
+                                    }}
                                   />
                                   <motion.span
                                     animate={{ height: isPlaying ? ['6px', '18px', '6px'] : '8px' }}
-                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
+                                    transition={{
+                                      duration: 0.75,
+                                      repeat: Infinity,
+                                      ease: 'easeInOut',
+                                      delay: 0.3,
+                                    }}
+                                    style={{
+                                      width: '3px',
+                                      background: vibrationThemeColors.ring,
+                                      borderRadius: '2px',
+                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
+                                    }}
                                   />
                                 </div>
                               )}
@@ -1943,7 +2183,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         background: 'rgba(0, 0, 0, 0.65)',
                         backdropFilter: 'blur(10px)',
                         WebkitBackdropFilter: 'blur(10px)',
-                        zIndex: 45
+                        zIndex: 45,
                       }}
                     />
 
@@ -1959,25 +2199,45 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(10, 15, 29, 0.98) 100%)',
+                        background:
+                          'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(10, 15, 29, 0.98) 100%)',
                         backdropFilter: 'blur(32px)',
                         WebkitBackdropFilter: 'blur(32px)',
                         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        boxShadow:
+                          '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                         borderTopLeftRadius: '28px',
                         borderTopRightRadius: '28px',
                         padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
-                        zIndex: 50
+                        zIndex: 50,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.3)' }} />
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
+                      >
+                        <div
+                          style={{
+                            width: '40px',
+                            height: '4px',
+                            borderRadius: '2px',
+                            background: 'rgba(255, 255, 255, 0.3)',
+                          }}
+                        />
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '18px',
+                        }}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Moon size={20} color={vibrationThemeColors.ring} />
-                          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}>
+                          <h4
+                            style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}
+                          >
                             Sleep Timer
                           </h4>
                         </div>
@@ -1993,7 +2253,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           <X size={18} />
@@ -2007,7 +2267,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           { label: '30 Minutes', value: '30', durationSec: 30 * 60 },
                           { label: '45 Minutes', value: '45', durationSec: 45 * 60 },
                           { label: '60 Minutes (1 Hour)', value: '60', durationSec: 60 * 60 },
-                          { label: 'End of Current Track', value: 'end_of_track', durationSec: Math.max(1, Math.floor(duration - currentTime)) }
+                          {
+                            label: 'End of Current Track',
+                            value: 'end_of_track',
+                            durationSec: Math.max(1, Math.floor(duration - currentTime)),
+                          },
                         ].map((option) => {
                           const isSelected = sleepTimerOption === option.value;
                           return (
@@ -2026,21 +2290,25 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 justifyContent: 'space-between',
                                 padding: '14px 18px',
                                 borderRadius: '16px',
-                                background: isSelected ? `${vibrationThemeColors.glow}` : 'rgba(255, 255, 255, 0.06)',
-                                border: isSelected ? `1.5px solid ${vibrationThemeColors.ring}` : '1px solid rgba(255, 255, 255, 0.12)',
+                                background: isSelected
+                                  ? `${vibrationThemeColors.glow}`
+                                  : 'rgba(255, 255, 255, 0.06)',
+                                border: isSelected
+                                  ? `1.5px solid ${vibrationThemeColors.ring}`
+                                  : '1px solid rgba(255, 255, 255, 0.12)',
                                 color: 'white',
                                 fontSize: '15px',
                                 fontWeight: isSelected ? 700 : 500,
                                 cursor: 'pointer',
-                                textAlign: 'left'
+                                textAlign: 'left',
                               }}
                             >
-                              <span style={{ color: isSelected ? vibrationThemeColors.ring : 'white' }}>
+                              <span
+                                style={{ color: isSelected ? vibrationThemeColors.ring : 'white' }}
+                              >
                                 {option.label}
                               </span>
-                              {isSelected && (
-                                <Check size={18} color={vibrationThemeColors.ring} />
-                              )}
+                              {isSelected && <Check size={18} color={vibrationThemeColors.ring} />}
                             </button>
                           );
                         })}
@@ -2065,7 +2333,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         background: 'rgba(0, 0, 0, 0.65)',
                         backdropFilter: 'blur(10px)',
                         WebkitBackdropFilter: 'blur(10px)',
-                        zIndex: 45
+                        zIndex: 45,
                       }}
                     />
                     <motion.div
@@ -2079,29 +2347,60 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 15, 29, 0.98) 100%)',
+                        background:
+                          'linear-gradient(135deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 15, 29, 0.98) 100%)',
                         backdropFilter: 'blur(32px)',
                         WebkitBackdropFilter: 'blur(32px)',
                         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        boxShadow:
+                          '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                         borderTopLeftRadius: '28px',
                         borderTopRightRadius: '28px',
                         padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
-                        zIndex: 50
+                        zIndex: 50,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.3)' }} />
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
+                      >
+                        <div
+                          style={{
+                            width: '40px',
+                            height: '4px',
+                            borderRadius: '2px',
+                            background: 'rgba(255, 255, 255, 0.3)',
+                          }}
+                        />
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '18px',
+                        }}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Layers size={20} color={vibrationThemeColors.ring} />
                           <div>
-                            <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}>
+                            <h4
+                              style={{
+                                margin: 0,
+                                fontSize: '18px',
+                                fontWeight: 700,
+                                color: 'white',
+                              }}
+                            >
                               Ambient Texture Layer
                             </h4>
-                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                            <p
+                              style={{
+                                margin: '2px 0 0',
+                                fontSize: '12px',
+                                color: 'rgba(255, 255, 255, 0.6)',
+                              }}
+                            >
                               Blend subtle nature sounds under your meditation
                             </p>
                           </div>
@@ -2118,7 +2417,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           <X size={18} />
@@ -2126,7 +2425,14 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       </div>
 
                       {/* Ambient Layer Options */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '10px',
+                          marginBottom: '20px',
+                        }}
+                      >
                         {(Object.keys(AMBIENT_LAYERS) as AmbientLayerKey[]).map((key) => {
                           const layer = AMBIENT_LAYERS[key];
                           const isSelected = ambientLayer === key;
@@ -2143,17 +2449,29 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 gap: '10px',
                                 padding: '14px',
                                 borderRadius: '16px',
-                                background: isSelected ? `${vibrationThemeColors.glow}` : 'rgba(255, 255, 255, 0.06)',
-                                border: isSelected ? `1.5px solid ${vibrationThemeColors.ring}` : '1px solid rgba(255, 255, 255, 0.12)',
+                                background: isSelected
+                                  ? `${vibrationThemeColors.glow}`
+                                  : 'rgba(255, 255, 255, 0.06)',
+                                border: isSelected
+                                  ? `1.5px solid ${vibrationThemeColors.ring}`
+                                  : '1px solid rgba(255, 255, 255, 0.12)',
                                 color: 'white',
                                 cursor: 'pointer',
                                 textAlign: 'left',
                                 fontSize: '14px',
-                                fontWeight: isSelected ? 700 : 500
+                                fontWeight: isSelected ? 700 : 500,
                               }}
                             >
                               <span style={{ fontSize: '18px' }}>{layer.icon}</span>
-                              <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isSelected ? vibrationThemeColors.ring : 'white' }}>
+                              <span
+                                style={{
+                                  flex: 1,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  color: isSelected ? vibrationThemeColors.ring : 'white',
+                                }}
+                              >
                                 {layer.label}
                               </span>
                               {isSelected && <Check size={16} color={vibrationThemeColors.ring} />}
@@ -2164,15 +2482,28 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                       {/* Volume Slider if ambient layer active */}
                       {ambientLayer !== 'off' && (
-                        <div style={{
-                          background: 'rgba(255, 255, 255, 0.06)',
-                          borderRadius: '18px',
-                          padding: '16px',
-                          border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
-                            <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}>Ambient Mix Level</span>
-                            <span style={{ color: vibrationThemeColors.ring, fontWeight: 700 }}>{Math.round(ambientVolume * 100)}%</span>
+                        <div
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            borderRadius: '18px',
+                            padding: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginBottom: '10px',
+                              fontSize: '13px',
+                            }}
+                          >
+                            <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}>
+                              Ambient Mix Level
+                            </span>
+                            <span style={{ color: vibrationThemeColors.ring, fontWeight: 700 }}>
+                              {Math.round(ambientVolume * 100)}%
+                            </span>
                           </div>
                           <input
                             type="range"
@@ -2183,13 +2514,14 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             value={ambientVolume}
                             onChange={(e) => {
                               const val = parseFloat(e.target.value);
-                              if (Number.isFinite(val)) setAmbientVolume(Math.min(1, Math.max(0, val)));
+                              if (Number.isFinite(val))
+                                setAmbientVolume(Math.min(1, Math.max(0, val)));
                             }}
                             style={{
                               width: '100%',
                               accentColor: vibrationThemeColors.ring,
                               height: '6px',
-                              cursor: 'pointer'
+                              cursor: 'pointer',
                             }}
                           />
                         </div>
@@ -2202,18 +2534,20 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Point 3: Post-Session Mindful Summary & Streak Celebration Modal */}
               <AnimatePresence>
                 {showSummaryModal && (
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    zIndex: 60,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '24px',
-                    background: 'rgba(5, 8, 17, 0.85)',
-                    backdropFilter: 'blur(24px)',
-                    WebkitBackdropFilter: 'blur(24px)'
-                  }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 60,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '24px',
+                      background: 'rgba(5, 8, 17, 0.85)',
+                      backdropFilter: 'blur(24px)',
+                      WebkitBackdropFilter: 'blur(24px)',
+                    }}
+                  >
                     {showConfetti && (
                       <Confetti
                         width={typeof window !== 'undefined' ? window.innerWidth : 400}
@@ -2234,72 +2568,140 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       style={{
                         width: '100%',
                         maxWidth: '380px',
-                        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)',
+                        background:
+                          'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)',
                         border: '1px solid rgba(255, 255, 255, 0.25)',
-                        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+                        boxShadow:
+                          '0 25px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
                         borderRadius: '32px',
                         padding: '32px 24px',
                         textAlign: 'center',
-                        position: 'relative'
+                        position: 'relative',
                       }}
                     >
                       {/* Trophy Glow */}
-                      <div style={{
-                        width: '72px',
-                        height: '72px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
-                        boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 20px'
-                      }}>
+                      <div
+                        style={{
+                          width: '72px',
+                          height: '72px',
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+                          boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          margin: '0 auto 20px',
+                        }}
+                      >
                         <Trophy size={36} color="#0F172A" />
                       </div>
 
-                      <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: 'rgba(245, 158, 11, 0.18)',
-                        border: '1px solid rgba(245, 158, 11, 0.4)',
-                        padding: '4px 14px',
-                        borderRadius: '20px',
-                        marginBottom: '12px'
-                      }}>
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(245, 158, 11, 0.18)',
+                          border: '1px solid rgba(245, 158, 11, 0.4)',
+                          padding: '4px 14px',
+                          borderRadius: '20px',
+                          marginBottom: '12px',
+                        }}
+                      >
                         <Sparkles size={14} color="#F59E0B" />
-                        <span style={{ color: '#FCD34D', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}>
-                          {sessionStats.pointsAwarded > 0 ? `+${sessionStats.pointsAwarded} VITALITY POINTS EARNED` : 'SESSION ALREADY RECORDED TODAY'}
+                        <span
+                          style={{
+                            color: '#FCD34D',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          {sessionStats.pointsAwarded > 0
+                            ? `+${sessionStats.pointsAwarded} VITALITY POINTS EARNED`
+                            : 'SESSION ALREADY RECORDED TODAY'}
                         </span>
                       </div>
 
-                      <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'white', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+                      <h3
+                        style={{
+                          fontSize: '24px',
+                          fontWeight: 800,
+                          color: 'white',
+                          margin: '0 0 8px',
+                          letterSpacing: '-0.5px',
+                        }}
+                      >
                         Session Completed
                       </h3>
-                      <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.7)', margin: '0 0 24px' }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          margin: '0 0 24px',
+                        }}
+                      >
                         Session complete. Rest and recharge.
                       </p>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>
-                        <div style={{
-                          background: 'rgba(255, 255, 255, 0.06)',
-                          borderRadius: '18px',
-                          padding: '14px',
-                          border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
-                          <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '4px' }}>Mindful Time</div>
-                          <div style={{ fontSize: '20px', fontWeight: 800, color: 'white' }}>{sessionStats.minutesLogged} mins</div>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '10px',
+                          marginBottom: '24px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            borderRadius: '18px',
+                            padding: '14px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'rgba(255, 255, 255, 0.6)',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            Mindful Time
+                          </div>
+                          <div style={{ fontSize: '20px', fontWeight: 800, color: 'white' }}>
+                            {sessionStats.minutesLogged} mins
+                          </div>
                         </div>
 
-                        <div style={{
-                          background: 'rgba(255, 255, 255, 0.06)',
-                          borderRadius: '18px',
-                          padding: '14px',
-                          border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
-                          <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '4px' }}>Calm Streak</div>
-                          <div style={{ fontSize: '20px', fontWeight: 800, color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                        <div
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            borderRadius: '18px',
+                            padding: '14px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'rgba(255, 255, 255, 0.6)',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            Calm Streak
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '20px',
+                              fontWeight: 800,
+                              color: '#F59E0B',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                            }}
+                          >
                             <Flame size={18} fill="#F59E0B" color="#F59E0B" />
                             {sessionStats.mindfulStreak} Days
                           </div>
@@ -2314,7 +2716,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             setShowConfetti(false);
                             onClose();
                             const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
-                            navigate('/app/ava', { state: { initialPrompt: calmPrompt, initialMessage: calmPrompt } });
+                            navigate('/app/ava', {
+                              state: { initialPrompt: calmPrompt, initialMessage: calmPrompt },
+                            });
                           }}
                           style={{
                             width: '100%',
@@ -2330,7 +2734,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px'
+                            gap: '8px',
                           }}
                         >
                           💬 Discuss Autonomic Reset with Ava
@@ -2352,7 +2756,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             color: 'white',
                             fontSize: '15px',
                             fontWeight: 600,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           Done

@@ -4,6 +4,7 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import prettier from 'eslint-config-prettier';
+import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
@@ -18,22 +19,6 @@ export default [
       'supabase/.temp/**',
       'android/**',
       'ios/**',
-      '*.js',
-      '*.cjs',
-      '*.mjs',
-      '*.py',
-      '*.ps1',
-      '*.bat',
-      '**/fix_*.js',
-      '**/debug_*.js',
-      '**/test_*.js',
-      '**/update_*.js',
-      '**/add_mode_to_case_engine.js',
-      '**/inject_shared_state.js',
-      '**/remove_mdt_trap.js',
-      '**/structural_refactor.cjs',
-      '**/scan_*.cjs',
-      '**/find-*.cjs',
     ],
   },
   {
@@ -50,7 +35,7 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: { react: { version: '18.3' } },
+    settings: { react: { version: 'detect' } },
     plugins: {
       react,
       'react-hooks': reactHooks,
@@ -65,6 +50,23 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'no-unused-vars': 'warn',
       'react/prop-types': 'off',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+      globals: { ...globals.browser, ...globals.node },
+    },
+    plugins: { 'react-hooks': reactHooks },
+    // TypeScript owns name/type/unused checks; ESLint catches invalid Hook order
+    // and control-flow errors that the compiler cannot detect.
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'no-async-promise-executor': 'error',
+      'no-dupe-else-if': 'error',
+      'no-unsafe-finally': 'error',
     },
   },
   prettier,

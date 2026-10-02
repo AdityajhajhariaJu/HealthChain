@@ -45,6 +45,146 @@ export function CaseConnectionMap({
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
 
+  const width = isMobile ? 500 : 640;
+  const height = isMobile ? 500 : 500;
+  const cx = width / 2;
+  const cy = height / 2;
+
+  const pillWidth = isMobile ? 126 : 156;
+  const pillHeight = isMobile ? 36 : 44;
+  const pillRx = isMobile ? 18 : 22;
+
+  const nodes = useMemo(() => {
+    let result: any[] = [];
+    const symps = data?.centralSymptoms || [];
+    const sympRadius = isMobile ? 58 : 76;
+
+    symps.forEach((symp: any, i: number) => {
+      const angle = (i / symps.length) * Math.PI * 2 - Math.PI / 2;
+      result.push({
+        ...symp,
+        type: 'symptom',
+        x: cx + Math.cos(angle) * sympRadius,
+        y: cy + Math.sin(angle) * sympRadius,
+      });
+    });
+
+    const conds = data?.conditions || [];
+    const condRadius = isMobile ? 166 : 185;
+    conds.forEach((cond: any, i: number) => {
+      const angle = (i / conds.length) * Math.PI * 2 - Math.PI / 2;
+      result.push({
+        ...cond,
+        type: 'condition',
+        x: cx + Math.cos(angle) * condRadius,
+        y: cy + Math.sin(angle) * condRadius,
+      });
+    });
+
+    return result;
+  }, [data, cx, cy, isMobile]);
+
+  const edges = useMemo(() => {
+    const result: any[] = [];
+    const connections = data?.connections || [];
+    const nodesById = new Map(nodes.map((node) => [node.id, node]));
+    connections.forEach((conn: any, i: number) => {
+      const fromNode = nodesById.get(conn.from);
+      const toNode = nodesById.get(conn.to);
+      if (fromNode && toNode) {
+        result.push({
+          ...conn,
+          id: `edge-${i}`,
+          x1: fromNode.x,
+          y1: fromNode.y,
+          x2: toNode.x,
+          y2: toNode.y,
+        });
+      }
+    });
+    return result;
+  }, [data, nodes]);
+
+  const getPath = (x1: number, y1: number, x2: number, y2: number) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    return `M${x1},${y1} Q${x1 + dx / 2},${y1 + dy / 2 - 20} ${x2},${y2}`;
+  };
+
+  const isNodeMatchingFilter = (node: any) => {
+    if (filterSystem === 'all') return true;
+    if (filterSystem === 'autonomic') {
+      return (
+        node.category === 'autonomic' ||
+        node.system === 'autonomic' ||
+        node.id?.includes('pots') ||
+        node.id?.includes('palpitations') ||
+        node.id?.includes('roemheld')
+      );
+    }
+    if (filterSystem === 'metabolic') {
+      return (
+        node.category === 'metabolic' ||
+        node.system === 'metabolic' ||
+        node.id?.includes('ferritin') ||
+        node.id?.includes('fatigue')
+      );
+    }
+    if (filterSystem === 'gut') {
+      return (
+        node.category === 'gastrointestinal' ||
+        node.system === 'gut' ||
+        node.id?.includes('histamine') ||
+        node.id?.includes('bloat')
+      );
+    }
+    if (filterSystem === 'neuro') {
+      return (
+        node.category === 'vascular' ||
+        node.system === 'neuro' ||
+        node.id?.includes('headache') ||
+        node.id?.includes('back') ||
+        node.id?.includes('dural')
+      );
+    }
+    if (filterSystem === 'immune') {
+      return (
+        node.category === 'inflammatory' || node.system === 'immune' || node.id?.includes('mcas')
+      );
+    }
+    return true;
+  };
+
+  const activeNodes = useMemo(() => {
+    if (selectedEdge) {
+      return [selectedEdge.from, selectedEdge.to];
+    }
+    const activeTarget = hoveredNode || selectedNodeId;
+    if (!activeTarget && !hoveredEdge) {
+      return nodes.filter(isNodeMatchingFilter).map((n) => n.id);
+    }
+    if (activeTarget) {
+      const connected = edges.filter((e) => e.from === activeTarget || e.to === activeTarget);
+      return [activeTarget, ...connected.map((e) => (e.from === activeTarget ? e.to : e.from))];
+    }
+    if (hoveredEdge) {
+      const edge = edges.find((e) => e.id === hoveredEdge);
+      return edge ? [edge.from, edge.to] : [];
+    }
+    return [];
+  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges, nodes, filterSystem]);
+
+  const activeEdges = useMemo(() => {
+    if (selectedEdge) return [selectedEdge.id];
+    const activeTarget = hoveredNode || selectedNodeId;
+    if (!activeTarget && !hoveredEdge) return edges.map((e) => e.id);
+    if (activeTarget) {
+      return edges.filter((e) => e.from === activeTarget || e.to === activeTarget).map((e) => e.id);
+    }
+    if (hoveredEdge) return [hoveredEdge];
+    return [];
+  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges]);
+
   if (!data || !data.conditions || data.conditions.length === 0) {
     return (
       <div
@@ -147,145 +287,6 @@ export function CaseConnectionMap({
       </div>
     );
   }
-
-  const width = isMobile ? 500 : 640;
-  const height = isMobile ? 500 : 500;
-  const cx = width / 2;
-  const cy = height / 2;
-
-  const pillWidth = isMobile ? 126 : 156;
-  const pillHeight = isMobile ? 36 : 44;
-  const pillRx = isMobile ? 18 : 22;
-
-  const nodes = useMemo(() => {
-    let result: any[] = [];
-    const symps = data.centralSymptoms || [];
-    const sympRadius = isMobile ? 58 : 76;
-
-    symps.forEach((symp: any, i: number) => {
-      const angle = (i / symps.length) * Math.PI * 2 - Math.PI / 2;
-      result.push({
-        ...symp,
-        type: 'symptom',
-        x: cx + Math.cos(angle) * sympRadius,
-        y: cy + Math.sin(angle) * sympRadius,
-      });
-    });
-
-    const conds = data.conditions || [];
-    const condRadius = isMobile ? 166 : 185;
-    conds.forEach((cond: any, i: number) => {
-      const angle = (i / conds.length) * Math.PI * 2 - Math.PI / 2;
-      result.push({
-        ...cond,
-        type: 'condition',
-        x: cx + Math.cos(angle) * condRadius,
-        y: cy + Math.sin(angle) * condRadius,
-      });
-    });
-
-    return result;
-  }, [data, cx, cy, isMobile]);
-
-  const edges = useMemo(() => {
-    const result: any[] = [];
-    const connections = data.connections || [];
-    connections.forEach((conn: any, i: number) => {
-      const fromNode = nodes.find((n) => n.id === conn.from);
-      const toNode = nodes.find((n) => n.id === conn.to);
-      if (fromNode && toNode) {
-        result.push({
-          ...conn,
-          id: `edge-${i}`,
-          x1: fromNode.x,
-          y1: fromNode.y,
-          x2: toNode.x,
-          y2: toNode.y,
-        });
-      }
-    });
-    return result;
-  }, [data, nodes]);
-
-  const getPath = (x1: number, y1: number, x2: number, y2: number) => {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    return `M${x1},${y1} Q${x1 + dx / 2},${y1 + dy / 2 - 20} ${x2},${y2}`;
-  };
-
-  const isNodeMatchingFilter = (node: any) => {
-    if (filterSystem === 'all') return true;
-    if (filterSystem === 'autonomic') {
-      return (
-        node.category === 'autonomic' ||
-        node.system === 'autonomic' ||
-        node.id?.includes('pots') ||
-        node.id?.includes('palpitations') ||
-        node.id?.includes('roemheld')
-      );
-    }
-    if (filterSystem === 'metabolic') {
-      return (
-        node.category === 'metabolic' ||
-        node.system === 'metabolic' ||
-        node.id?.includes('ferritin') ||
-        node.id?.includes('fatigue')
-      );
-    }
-    if (filterSystem === 'gut') {
-      return (
-        node.category === 'gastrointestinal' ||
-        node.system === 'gut' ||
-        node.id?.includes('histamine') ||
-        node.id?.includes('bloat')
-      );
-    }
-    if (filterSystem === 'neuro') {
-      return (
-        node.category === 'vascular' ||
-        node.system === 'neuro' ||
-        node.id?.includes('headache') ||
-        node.id?.includes('back') ||
-        node.id?.includes('dural')
-      );
-    }
-    if (filterSystem === 'immune') {
-      return (
-        node.category === 'inflammatory' || node.system === 'immune' || node.id?.includes('mcas')
-      );
-    }
-    return true;
-  };
-
-  const activeNodes = useMemo(() => {
-    if (selectedEdge) {
-      return [selectedEdge.from, selectedEdge.to];
-    }
-    const activeTarget = hoveredNode || selectedNodeId;
-    if (!activeTarget && !hoveredEdge) {
-      return nodes.filter(isNodeMatchingFilter).map((n) => n.id);
-    }
-    if (activeTarget) {
-      const connected = edges.filter((e) => e.from === activeTarget || e.to === activeTarget);
-      return [activeTarget, ...connected.map((e) => (e.from === activeTarget ? e.to : e.from))];
-    }
-    if (hoveredEdge) {
-      const edge = edges.find((e) => e.id === hoveredEdge);
-      return edge ? [edge.from, edge.to] : [];
-    }
-    return [];
-  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges, nodes, filterSystem]);
-
-  const activeEdges = useMemo(() => {
-    if (selectedEdge) return [selectedEdge.id];
-    const activeTarget = hoveredNode || selectedNodeId;
-    if (!activeTarget && !hoveredEdge) return edges.map((e) => e.id);
-    if (activeTarget) {
-      return edges.filter((e) => e.from === activeTarget || e.to === activeTarget).map((e) => e.id);
-    }
-    if (hoveredEdge) return [hoveredEdge];
-    return [];
-  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges]);
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>

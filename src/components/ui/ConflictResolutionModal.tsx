@@ -16,10 +16,10 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
   caseItem,
   onResolved,
 }) => {
+  const [selectedConflictIndex, setSelectedConflictIndex] = useState(0);
   if (!isOpen || !caseItem) return null;
 
   const unresolvedConflicts = (caseItem.conflicts || []).filter((c) => !c.resolved);
-  const [selectedConflictIndex, setSelectedConflictIndex] = useState(0);
 
   if (unresolvedConflicts.length === 0) {
     return (
@@ -30,7 +30,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
           </div>
           <h3 className="text-lg font-semibold text-slate-100 mb-2">All Conflicts Resolved</h3>
           <p className="text-sm text-slate-400 mb-6">
-            Every concurrent edit between your devices has been reconciled into your unified medical record.
+            Every concurrent edit between your devices has been reconciled into your unified medical
+            record.
           </p>
           <button
             onClick={onClose}
@@ -79,7 +80,10 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
             };
           } else {
             // Merge notes
-            const combinedNote = [currentConflict.localValue?.outcomeNote, currentConflict.remoteValue?.outcomeNote]
+            const combinedNote = [
+              currentConflict.localValue?.outcomeNote,
+              currentConflict.remoteValue?.outcomeNote,
+            ]
               .filter(Boolean)
               .join(' | ');
             return {
@@ -141,9 +145,12 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
               <AlertOctagon size={20} />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-slate-100">Simultaneous Edits Detected</h2>
+              <h2 className="text-base font-semibold text-slate-100">
+                Simultaneous Edits Detected
+              </h2>
               <p className="text-xs text-slate-400">
-                Conflict {selectedConflictIndex + 1} of {unresolvedConflicts.length}: {currentConflict.entityType} ({currentConflict.field})
+                Conflict {selectedConflictIndex + 1} of {unresolvedConflicts.length}:{' '}
+                {currentConflict.entityType} ({currentConflict.field})
               </p>
             </div>
           </div>
@@ -159,7 +166,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         {/* Content */}
         <div className="my-5 overflow-y-auto space-y-4">
           <p className="text-sm text-slate-300">
-            This item was modified on two devices before syncing. Choose how you want to record it in your unified timeline:
+            This item was modified on two devices before syncing. Choose how you want to record it
+            in your unified timeline:
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
