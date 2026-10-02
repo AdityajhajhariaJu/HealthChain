@@ -31,7 +31,7 @@ import { exportSyncQueue, restoreArchivedSyncQueue } from './SyncOutbox';
 
 type ArchivedOriginal = { encoding: 'base64'; data: string; type: string; size: number; sha256: string };
 const MAX_ARCHIVE_ORIGINAL_BYTES = 100 * 1024 * 1024;
-const hash = async (bytes: Uint8Array) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(byte => byte.toString(16).padStart(2, '0')).join('');
+const hash = async (bytes: Uint8Array) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes.buffer as ArrayBuffer))].map(byte => byte.toString(16).padStart(2, '0')).join('');
 async function bytesOf(blob: Blob): Promise<Uint8Array> {
   if (blob.arrayBuffer) return new Uint8Array(await blob.arrayBuffer());
   return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer)); reader.readAsArrayBuffer(blob); });
