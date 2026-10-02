@@ -1,0 +1,3 @@
+## 2024-05-18 - React.memo for Canvas with requestAnimationFrame
+**Learning:** In React apps where parent components frequently update (e.g., due to timers), child components holding `requestAnimationFrame` loops on HTML5 canvases can be bottlenecked if they are not memoized. The constant parent re-renders can disrupt or unnecessarily restart the canvas loop or just waste CPU cycles evaluating the component tree.
+**Action:** Always wrap HTML5 Canvas components that manage their own `requestAnimationFrame` loops in `React.memo` to isolate them from frequent parent component re-renders. Use `const Component = React.memo<Props>((...)` syntax.
