@@ -4,7 +4,12 @@ import development from './playwright.config';
 export default defineConfig({
   ...development,
   testDir: './tests',
-  testMatch: ['e2e/landing-loading.spec.ts', 'e2e/journey.spec.ts', 'production/*.spec.ts'],
+  testMatch: [
+    'e2e/landing-loading.spec.ts',
+    'e2e/journey.spec.ts',
+    'e2e/gut-reasoning-flow.spec.ts',
+    'production/*.spec.ts',
+  ],
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 3001 --strictPort',
     url: 'http://localhost:3001',

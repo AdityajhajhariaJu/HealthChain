@@ -561,6 +561,16 @@ export async function reasonOverGutEvidence(input: GutReasoningInput): Promise<G
     ),
     researchTopic: input.topic,
     researchIds: input.papers.slice(0, 6).map((paper) => paper.id),
+    researchSources: input.papers
+      .slice(0, 6)
+      .map((paper) => ({
+        id: paper.id,
+        title: paper.title,
+        publicationDate: paper.publicationDate || paper.year,
+        publicationTypes: paper.publicationTypes,
+        titlePopulationCue: paper.titlePopulationCue,
+        correctionNotice: paper.correctionNotice,
+      })),
     researchFingerprint: gutResearchFingerprint(input.papers),
     headline,
     personalReading,

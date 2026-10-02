@@ -20,7 +20,7 @@ if (process.argv.length > 2) {
   process.exit(1);
 }
 console.log(
-  'Evaluating 12 Gut and 7 clinical synthetic examples. Urgent cases use the local care path; other cases call Gemini. Authentication, quota and persistence are excluded.'
+  'Evaluating 12 Gut and 10 clinical synthetic examples. Urgent cases use the local care path; other cases call Gemini. Authentication, quota and persistence are excluded.'
 );
 const result = spawnSync(
   process.execPath,

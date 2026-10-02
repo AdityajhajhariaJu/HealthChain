@@ -4,12 +4,9 @@
  * HealthChain Core Architectural Blueprint — Step 7: "How the actual answer should look"
  * Reference: media_1789068538297.png
  *
- * 5 Progressive-Disclosure Layers:
- * 1. Main answer: 2-3 sentences answering their question -> Expandable: Full synthesis
- * 2. Why this matters in my case: Strongest relevant observations -> Expandable: Source passages and dates
- * 3. Other explanations: Plausible alternatives or reasons not to connect events -> Expandable: Supporting & conflicting evidence
- * 4. What we still need: 1-2 important gaps -> Expandable: Complete missing-information list
- * 5. Next step: 1 useful action chosen for this situation -> Expandable: Other available actions
+ * Five sections share one visible outcome page:
+ * summary, dated source observations, balanced explanations, complete gaps,
+ * and one specific next action. Only optional extra actions collapse.
  *
  * 5 Avoid vs Replace With Mandates:
  * - AVOID: "Ask your doctor" as the entire answer
@@ -35,6 +32,9 @@ export interface EvidenceOriginSource {
   date?: string;
   category?: ClinicalInformationCategory;
   confidenceBasis?: string;
+  recordId?: string;
+  findingId?: string;
+  pageNumber?: number;
 }
 
 export interface BalancedAlternativeEvidence {
@@ -104,6 +104,8 @@ export interface StructuredClinicalAnswer {
   avoidDisclaimersEnforced: boolean;
   generatedAt: string;
   urgency?: ClinicalUrgency;
+  interpretationUpdatePending?: boolean;
+  interpretationsWithheld?: boolean;
 }
 
 export interface BuildStructuredAnswerInput {
@@ -121,6 +123,8 @@ export interface BuildStructuredAnswerInput {
     extractionStatus?: string;
     allowedRole?: string;
     isUnverifiedSource?: boolean;
+    recordId?: string;
+    page?: number;
   }>;
   quarantinedFacts?: any[];
   quarantinedClaims?: any[];
@@ -194,6 +198,16 @@ export function buildStructuredClinicalAnswer(
   }
   const questions = input.questionsForClinician || [];
   const records = facts.map((f) => f.source).filter((s): s is string => Boolean(s));
+  const conflict = input.contradictions?.[0];
+  const question = hasQuarantine
+    ? ''
+    : conflict
+      ? conflict.resolutionNeed ||
+        `Which source entry applies to ${conflict.topic || 'these conflicting observations'}?`
+      : questions[0] ||
+        (gaps[0]
+          ? `What information would clarify this uncertainty: ${gaps[0]}`
+          : 'What additional information would help assess these recorded observations?');
 
   return {
     layer1_mainAnswer: {
@@ -211,6 +225,9 @@ export function buildStructuredClinicalAnswer(
         date: f.eventDate || f.reportDate || f.date,
         category: (f.category as ClinicalInformationCategory) || 'user_report',
         confidenceBasis: f.allowedRole || 'Not verified',
+        recordId: f.recordId,
+        findingId: f.id,
+        pageNumber: f.page,
       })),
     },
     layer3_otherExplanations: {
@@ -260,23 +277,44 @@ export function buildStructuredClinicalAnswer(
         input.userPriority ||
         (hasQuarantine
           ? 'Review the original sources and retry the review with confirmed information.'
-          : questions[0]
-            ? 'Review this question: ' + questions[0]
-            : facts.length
-              ? 'Review the saved observations and choose what to discuss next.'
-              : 'Add a record or describe your concern.'),
+          : conflict
+            ? 'Confirm the conflicting source entries before interpreting them together.'
+            : questions[0]
+              ? 'Review this question: ' + questions[0]
+              : facts.length
+                ? 'Bring the recorded observations and the unresolved question below to your clinician.'
+                : 'Add a record or describe your concern.'),
       otherActions: questions.slice(1),
       doctorVisitBrief: {
-        specificQuestion: questions[0] || '',
+        specificQuestion: facts.length ? question : '',
         whyItMatters:
           input.urgency?.reason ||
+          conflict?.clinicalSignificance ||
           input.reasoningPipeline?.stage7_focusedQuestion?.whyThisQuestion ||
           'Clarifies what the supplied evidence cannot establish.',
         relevantRecords: [...new Set(records)],
       },
     },
     avoidDisclaimersEnforced: false,
+    interpretationsWithheld: Boolean(
+      input.quarantinedClaims?.length || input.quarantinedFacts?.length
+    ),
     generatedAt: new Date().toISOString(),
     urgency: input.urgency,
   };
+}
+
+/** Render fresh and saved reviews through the same presentation contract without another AI call. */
+export function buildClinicalOutcome(report: any): StructuredClinicalAnswer {
+  const answer = buildStructuredClinicalAnswer({
+    ...report,
+    urgency: report.structuredAnswer?.urgency,
+    contradictions: report.contradictions || report.contradictionQueue,
+  });
+  answer.generatedAt =
+    report.structuredAnswer?.generatedAt ||
+    report.reasoningPipeline?.stage9_continuity?.savedAt ||
+    answer.generatedAt;
+  answer.interpretationUpdatePending = report.interpretationUpdatePending === true;
+  return answer;
 }

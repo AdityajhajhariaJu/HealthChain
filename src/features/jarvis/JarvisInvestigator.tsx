@@ -54,6 +54,7 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import '../../components/ui/caseWorkspace.css';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { ClinicalClarificationForm } from '../../components/ui/ClinicalClarificationForm';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import {
@@ -77,7 +78,11 @@ import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
-import { isCurrentClinicalReview, normalizeClinicalReview } from '../../services/clinicalReview';
+import {
+  isCurrentClinicalReview,
+  recordClinicalClarification,
+} from '../../services/clinicalReview';
+import { clinicalSourceFingerprint } from '../../services/clinicalReviewSourceState';
 import { runJarvisInvestigation } from '../../services/geminiService';
 import { ClinicalUrgencyNotice } from '../../components/ui/ClinicalUrgencyNotice';
 import { evaluateClinicalUrgency } from '../../services/clinicalTriageEngine';
@@ -88,7 +93,17 @@ import {
 } from '../../services/haptics';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
-import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
+import { buildClinicalOutcome } from '../../services/StructuredAnswerEngine';
+import {
+  readClinicalIntakeHistory,
+  updateClinicalIntakeField,
+} from '../../services/clinicalIntakeHistory';
+import {
+  clinicalDraftKey,
+  loadClinicalIntakeDraft,
+  saveClinicalIntakeDraft,
+} from '../../services/ClinicalIntakeDraft';
+import { useClinicalDailySourceFreshness } from '../../hooks/useClinicalDailySourceFreshness';
 import { openTrialModal } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 
@@ -1221,7 +1236,7 @@ const STEP_META: Record<number, { title: string; subtitle: string; label: string
     5: {
       title: 'Lab Reports & Medical Evidence',
       subtitle:
-        'Upload PDFs, lab panels, or discharge summaries. Files remain encrypted on your device.',
+        'Attach relevant PDFs or images. They are sent to the review service when you run the review.',
       label: '5. Evidence',
       badge: 'Evidence Vault 📄',
     },
@@ -1267,11 +1282,7 @@ export default function JarvisInvestigator() {
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
   const [missingCaseId, setMissingCaseId] = useState<string | null>(null);
 
-  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(() => {
-    const s = searchParams.get('step');
-    const parsed = s ? parseInt(s, 10) : 1;
-    return parsed >= 1 && parsed <= 6 ? (parsed as any) : 1;
-  });
+  const [intakeStep, setIntakeStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [reviewFocus, setReviewFocus] = useState<
     'differential' | 'doctor_prep' | 'lab_second_opinion'
   >('differential');
@@ -1304,7 +1315,7 @@ export default function JarvisInvestigator() {
     return [];
   });
   const [symptomSearch, setSymptomSearch] = useState('');
-  const [symptomCategoryFilter, setSymptomCategoryFilter] = useState<string>('all');
+  const [symptomCategoryFilter, setSymptomCategoryFilter] = useState<string>('common');
   const [customSymptoms, setCustomSymptoms] = useState<string[]>([]);
 
   const handleToggleSymptom = (symptomName: string) => {
@@ -1334,15 +1345,11 @@ export default function JarvisInvestigator() {
         : [...prev, canonicalName];
 
       setHistory((currentHistory) => {
-        const symptomPrefix = updated.length > 0 ? `Primary symptoms: ${updated.join(', ')}. ` : '';
-        if (!currentHistory.trim()) {
-          return symptomPrefix;
-        }
-        if (currentHistory.includes('Primary symptoms:')) {
-          const cleaned = currentHistory.replace(/Primary symptoms:\s*[^.\n]*\.\s*/i, '');
-          return symptomPrefix ? `${symptomPrefix}${cleaned}`.trim() : cleaned.trim();
-        }
-        return `${symptomPrefix}${currentHistory}`.trim();
+        return updateClinicalIntakeField(
+          currentHistory,
+          'Primary symptoms',
+          updated.length ? updated.join(', ') : null
+        );
       });
 
       return updated;
@@ -1399,39 +1406,25 @@ export default function JarvisInvestigator() {
     triggerHapticSelection();
 
     setSelectedOnset((prev) => (prev === onsetText ? null : onsetText));
-    setHistory((prev) => {
-      if (selectedOnset === onsetText) {
-        // Toggle off if already selected
-        return prev.replace(/^Onset:\s*[^.]*\.\s*/i, '').trim();
-      }
-      const prefix = `Onset: ${onsetText}. `;
-      if (!prev.trim()) return prefix;
-      if (prev.startsWith('Onset: ')) {
-        const rest = prev.replace(/^Onset:\s*[^.]*\.\s*/i, '');
-        return `${prefix}${rest}`.trim();
-      }
-      return `${prefix}${prev}`.trim();
-    });
+    setHistory((prev) =>
+      updateClinicalIntakeField(prev, 'Onset', selectedOnset === onsetText ? null : onsetText)
+    );
   };
 
   const handleSelectProgression = (progText: string) => {
     triggerHapticSelection();
     setSelectedProgression((prev) => (prev === progText ? null : progText));
-    setHistory((prev) => {
-      if (selectedProgression === progText) {
-        // Toggle off if already selected
-        return prev.replace(/Progression:\s*[^.]*\.\s*/i, '').trim();
-      }
-      const progLine = `Progression: ${progText}. `;
-      if (!prev.trim()) return progLine;
-      if (prev.includes('Progression: ')) {
-        return prev.replace(/Progression:\s*[^.]*\.\s*/i, progLine).trim();
-      }
-      return `${prev}\n${progLine}`.trim();
-    });
+    setHistory((prev) =>
+      updateClinicalIntakeField(
+        prev,
+        'Progression',
+        selectedProgression === progText ? null : progText
+      )
+    );
   };
 
   const availableCases = useCaseWorkspace();
+
   const reviewHydrationKey = availableCases
     .map((item) => `${item.id}:${item.reviews?.[0]?.id || ''}`)
     .join('|');
@@ -1441,11 +1434,24 @@ export default function JarvisInvestigator() {
     const scope = getUnifiedCaseScope();
     return scope.caseId || '';
   });
+  const hasReviewInput = Boolean(
+    history.trim() ||
+    files.length ||
+    availableCases.find((item) => item.id === selectedCaseId)?.medicalRecords.length
+  );
   const [isReadingFiles, setIsReadingFiles] = useState(false);
+  const [draftReady, setDraftReady] = useState(false);
+  const dailySourceFreshness = useClinicalDailySourceFreshness(
+    availableCases.find((item) => item.id === (createdCaseId || selectedCaseId))
+  );
+  const [draftStatus, setDraftStatus] = useState('Restoring any saved intake…');
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const initialDraftCaseId = useRef(selectedCaseId);
+  const draftKeys = useRef(new Set([clinicalDraftKey(selectedCaseId)]));
   const selectedCaseRef = useRef(selectedCaseId);
   selectedCaseRef.current = selectedCaseId;
   const [sourceModalData, setSourceModalData] = useState<SourcePassageModalProps | null>(null);
-  const [, setShowSovereigntyModal] = useState(false);
   const runningRef = useRef(false);
   const readingRef = useRef(false);
   const scopeRef = useRef(engineScope());
@@ -1453,6 +1459,7 @@ export default function JarvisInvestigator() {
     const changeScope = () => {
       if (scopeRef.current === engineScope()) return;
       scopeRef.current = engineScope();
+      draftKeys.current = new Set();
       setHistory('');
       setFiles([]);
       setReport(null);
@@ -1479,6 +1486,63 @@ export default function JarvisInvestigator() {
     }
   }, [history, selectedCaseId, phase]);
 
+  useEffect(() => {
+    let active = true;
+    const requestScope = engineScope();
+    loadClinicalIntakeDraft(clinicalDraftKey(initialDraftCaseId.current))
+      .then((draft) => {
+        if (!active || requestScope !== engineScope()) return;
+        if (draft && phaseRef.current === 'input') {
+          setHistory(
+            sessionStorage.getItem(engineDraftKey(initialDraftCaseId.current)) || draft.history
+          );
+          setFiles(draft.files);
+          setReviewFocus(draft.focus);
+          setIsIsolated(draft.isolated);
+          setIntakeStep(draft.step as 1 | 2 | 3 | 4 | 5 | 6);
+          setDraftStatus('Saved intake and staged documents restored on this device.');
+        } else setDraftStatus('Your intake will be saved on this device.');
+      })
+      .catch(() => {
+        if (active)
+          setDraftStatus(
+            'The saved intake could not be restored. Check the notes and reattach any missing documents.'
+          );
+      })
+      .finally(() => {
+        if (active) setDraftReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    const key = clinicalDraftKey(selectedCaseId);
+    draftKeys.current.add(key);
+    const requestScope = engineScope();
+    const timer = window.setTimeout(() => {
+      void saveClinicalIntakeDraft(
+        key,
+        phase === 'done'
+          ? null
+          : { history, step: intakeStep, focus: reviewFocus, isolated: isIsolated, files }
+      )
+        .then(() => {
+          if (requestScope === engineScope() && phase === 'input')
+            setDraftStatus('Intake and staged documents saved on this device.');
+        })
+        .catch(() => {
+          if (requestScope === engineScope())
+            setDraftStatus(
+              'Draft saving is unavailable. Keep this page open or save your notes and original documents before leaving.'
+            );
+        });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, history, intakeStep, reviewFocus, isIsolated, files, selectedCaseId, phase]);
+
   // Rehydrate existing case if caseId is passed in URL query or navigation state
   useEffect(() => {
     const caseId = searchParams.get('caseId') || (location.state as any)?.caseId;
@@ -1494,12 +1558,16 @@ export default function JarvisInvestigator() {
           );
           const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
           if (
-            jarvisReview && isCurrentClinicalReview(jarvisReview.report) &&
+            jarvisReview &&
+            dailySourceFreshness === 'current' &&
+            isCurrentClinicalReview(jarvisReview.report, existing) &&
             searchParams.get('review') !== 'new'
           ) {
             setReport(jarvisReview.report);
             setCreatedCaseId(existing.id);
-            setHistory(existing.intakeData?.chiefComplaint || '');
+            setHistory(
+              jarvisReview.report.reviewInput?.history || existing.intakeData?.chiefComplaint || ''
+            );
             setPhase('done');
           }
         }
@@ -1510,7 +1578,34 @@ export default function JarvisInvestigator() {
     } else {
       setMissingCaseId(null);
     }
-  }, [searchParams, location.state, reviewHydrationKey, phase]);
+  }, [searchParams, location.state, reviewHydrationKey, phase, dailySourceFreshness]);
+
+  useEffect(() => {
+    const parsed = readClinicalIntakeHistory(history);
+    setSelectedSymptoms((previous) =>
+      JSON.stringify(previous) === JSON.stringify(parsed.symptoms) ? previous : parsed.symptoms
+    );
+    setSelectedOnset(parsed.onset);
+    setSelectedProgression(parsed.progression);
+  }, [history]);
+
+  useEffect(() => {
+    const sourceCase = availableCases.find((item) => item.id === (createdCaseId || selectedCaseId));
+    if (
+      phase === 'done' &&
+      report &&
+      sourceCase &&
+      (dailySourceFreshness === 'changed' || !isCurrentClinicalReview(report, sourceCase))
+    ) {
+      setPhase('input');
+      setReport(null);
+      setSourceModalData(null);
+      toast.info(
+        'Records changed',
+        'Run a fresh review with the current records before relying on the earlier interpretation.'
+      );
+    }
+  }, [availableCases, createdCaseId, selectedCaseId, phase, report, toast, dailySourceFreshness]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -1523,9 +1618,26 @@ export default function JarvisInvestigator() {
   }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || readingRef.current) return;
+    if (!e.target.files || readingRef.current || !draftReady) return;
+    const requestScope = engineScope();
     const selected = Array.from(e.target.files);
     e.target.value = '';
+    const names = [
+      ...files.map((item) => item.file.name),
+      ...(availableCases.find((item) => item.id === selectedCaseId)?.medicalRecords || []).map(
+        (item) => item.filename
+      ),
+    ];
+    if (
+      selected.some((file) => names.includes(file.name)) ||
+      new Set(selected.map((file) => file.name)).size !== selected.length
+    ) {
+      toast.error(
+        'Duplicate document name',
+        'Use distinct filenames for each original so extracted passages can be traced to the correct document. Rename the new file before attaching it.'
+      );
+      return;
+    }
     if (
       selected.some(
         (file) =>
@@ -1552,74 +1664,23 @@ export default function JarvisInvestigator() {
 
     readingRef.current = true;
     setIsReadingFiles(true);
+    // Preserve document pixels and original MIME type; resizing scans can lose lab text.
     const processed = await Promise.all(
-      selected.map(async (f) => {
-        return new Promise<{ file: File; base64: string; size: number }>((resolve) => {
-          if (f.type.startsWith('image/')) {
-            const img = new Image();
-            const objectUrl = URL.createObjectURL(f);
-            img.onload = () => {
-              URL.revokeObjectURL(objectUrl);
-              const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 1200;
-              const MAX_HEIGHT = 1200;
-              let width = img.width;
-              let height = img.height;
-
-              if (width > height && width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-              } else if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-              }
-
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx?.drawImage(img, 0, 0, width, height);
-
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-              const base64 =
-                dataUrl && dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl || '';
-              const estimatedBytes = Math.round((base64.length * 3) / 4);
-              resolve({
-                file: new File([f], f.name, { type: 'image/jpeg' }),
-                base64,
-                size: estimatedBytes,
-              });
-            };
-            img.onerror = () => {
-              URL.revokeObjectURL(objectUrl);
-              const reader = new FileReader();
-              reader.onerror = () => {
-                resolve({ file: f, base64: '', size: 0 });
-              };
-              reader.onload = (ev) => {
-                const base64 = (ev.target?.result as string)?.split(',')[1] || '';
-                resolve({ file: f, base64, size: f.size });
-              };
-              reader.readAsDataURL(f);
-            };
-            img.src = objectUrl;
-          } else {
+      selected.map(
+        (file) =>
+          new Promise<{ file: File; base64: string; size: number }>((resolve) => {
             const reader = new FileReader();
-            reader.onload = (ev) => {
-              const base64 = (ev.target?.result as string).split(',')[1];
-              resolve({ file: f, base64, size: f.size });
-            };
-            reader.onerror = () => {
-              resolve({ file: f, base64: '', size: 0 });
-            };
-            reader.readAsDataURL(f);
-          }
-        });
-      })
+            reader.onload = () =>
+              resolve({ file, base64: String(reader.result).split(',')[1] || '', size: file.size });
+            reader.onerror = () => resolve({ file, base64: '', size: 0 });
+            reader.readAsDataURL(file);
+          })
+      )
     );
-
     readingRef.current = false;
     if (!isMounted.current) return;
     setIsReadingFiles(false);
+    if (requestScope !== engineScope()) return;
     if (processed.some((file) => !file.base64)) {
       toast.error(
         'Could not read a document',
@@ -1630,7 +1691,7 @@ export default function JarvisInvestigator() {
     if ([...files, ...processed].reduce((sum, file) => sum + file.base64.length, 0) > 3_500_000) {
       toast.error(
         'Upload too large',
-        'Use fewer documents or smaller scans. The combined upload must fit within 3.5 MB after processing.'
+        'Choose fewer documents. The combined upload limit is about 2.6 MB of original files; scans are kept at their original resolution.'
       );
       return;
     }
@@ -1660,6 +1721,33 @@ export default function JarvisInvestigator() {
     setCopiedSbar(false);
   };
 
+  const handleSaveAndExit = async () => {
+    triggerHapticLight();
+    if (!draftReady || readingRef.current) return;
+    const exitScope = engineScope();
+    try {
+      await saveClinicalIntakeDraft(clinicalDraftKey(selectedCaseId), {
+        history,
+        step: intakeStep,
+        focus: reviewFocus,
+        isolated: isIsolated,
+        files,
+      });
+    } catch {
+      toast.error(
+        'Draft not saved',
+        'Keep this page open. Saving notes and attachments to this device failed.'
+      );
+      return;
+    }
+    if (!isMounted.current || exitScope !== engineScope()) return;
+    toast.success(
+      'Draft Preserved',
+      'Your notes, current step, review options and staged documents are saved on this device.'
+    );
+    navigate('/app/cases');
+  };
+
   const handleCopySbar = async () => {
     if (!report) return;
     triggerHapticSuccess();
@@ -1676,7 +1764,9 @@ export default function JarvisInvestigator() {
 
     const text = `CLINICAL REVIEW • DOCTOR SBAR BRIEF
 AI consideration for clinician review: ${primary}
-Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
+Generated: ${report.structuredAnswer?.generatedAt || 'Review date unavailable'}
+${report.interpretationUpdatePending ? 'Clarification saved; AI interpretation has not been rerun.' : ''}
+${report.structuredAnswer?.interpretationsWithheld ? 'Unsupported interpretations were withheld. Verify the source observations.' : ''}
 
 [S] SITUATION:
 ${sbar.situation}
@@ -1715,23 +1805,35 @@ AI-generated preparation material. Verify against original records; this is not 
     if (!report || isUpdatingReasoning) return false;
     setIsUpdatingReasoning(true);
     try {
-      const updatedReport = normalizeClinicalReview(report, report.reasoningPipeline || null, {
-        questionId: report.reasoningPipeline?.stage7_focusedQuestion?.id || 'clarification_1',
-        answerText: answer,
-      });
       const targetCaseId = createdCaseId || selectedCaseId;
+      const currentCase = targetCaseId ? getCase(targetCaseId) : null;
+      if (
+        !currentCase ||
+        dailySourceFreshness !== 'current' ||
+        !isCurrentClinicalReview(report, currentCase)
+      )
+        throw new Error('Review the current source records before saving a clarification.');
+      const normalized = recordClinicalClarification(report, answer);
+      const updatedReport = {
+        ...normalized,
+        sourceFingerprint: report.sourceFingerprint,
+        reviewFocus: report.reviewFocus,
+        reviewInput: report.reviewInput,
+        interpretationUpdatePending: true,
+      };
       if (!targetCaseId || !getCase(targetCaseId))
         throw new Error('Select an available case before saving.');
       addCaseEvent(targetCaseId, answer.trim(), 'User clarification');
+      updatedReport.sourceFingerprint = clinicalSourceFingerprint(getCase(targetCaseId));
       if (targetCaseId) {
-        saveReviewSnapshot({
+        const savedCase = saveReviewSnapshot({
           caseId: targetCaseId,
           type: 'jarvis' as any,
           report: updatedReport,
           specialists: ['Clinical Review'],
         });
+        setReport(savedCase.reviews[0].report);
       }
-      setReport(updatedReport);
       toast.success(
         'Clarification saved',
         'Saved as your reported observation. Run a new review to assess how it changes the interpretation.'
@@ -1761,7 +1863,7 @@ AI-generated preparation material. Verify against original records; this is not 
       toast.error('Case unavailable', 'Select an available case or start a new case.');
       return;
     }
-    if (!history.trim() && files.length === 0) {
+    if (!history.trim() && files.length === 0 && !linkedCase?.medicalRecords?.length) {
       toast.error(
         'Input Required',
         'Please enter your symptoms, clinical timeline, or attach lab reports to run the engine.'
@@ -1823,7 +1925,13 @@ AI-generated preparation material. Verify against original records; this is not 
           return;
       }
 
-      const result = await runJarvisInvestigation(history, mappedFiles, contextProfile, linkedCase);
+      const result = await runJarvisInvestigation(
+        history,
+        mappedFiles,
+        contextProfile,
+        linkedCase,
+        reviewFocus
+      );
 
       if (
         !isMounted.current ||
@@ -1837,11 +1945,6 @@ AI-generated preparation material. Verify against original records; this is not 
 
         const primaryTitle =
           result.primaryHypothesis || result.topDiagnoses?.[0]?.condition || history.slice(0, 32);
-        if (linkedCase && linkedCase.intakeData) {
-          if (selectedSymptoms.length > 0) linkedCase.intakeData.symptoms = selectedSymptoms;
-          if (selectedOnset) linkedCase.intakeData.onset = selectedOnset;
-          if (selectedProgression) linkedCase.intakeData.progression = selectedProgression;
-        }
         const newCase =
           linkedCase ||
           createCaseDraft({
@@ -1894,12 +1997,22 @@ AI-generated preparation material. Verify against original records; this is not 
         if (records.length) appendCaseRecords(newCase.id, records);
         setCreatedCaseId(newCase.id);
 
-        saveReviewSnapshot({
+        const savedCase = saveReviewSnapshot({
           caseId: newCase.id,
           type: 'jarvis' as any,
-          report: result,
+          report: {
+            ...result,
+            reviewInput: {
+              history,
+              symptoms: selectedSymptoms,
+              onset: selectedOnset,
+              progression: selectedProgression,
+              profileIncluded: !isIsolated,
+            },
+          },
           specialists: ['Clinical Review'],
         });
+        setReport(savedCase.reviews[0].report);
 
         recordHealthMemory({
           kind: 'research',
@@ -1921,6 +2034,10 @@ AI-generated preparation material. Verify against original records; this is not 
         });
 
         awardPoints(25, 'Clinical Review Investigation', 'checkin');
+        await Promise.all(
+          [...draftKeys.current].map((key) => saveClinicalIntakeDraft(key, null))
+        ).catch(() => {});
+        if (!isMounted.current || requestScope !== engineScope()) return;
         setPhase('done');
       } else {
         if (!isMounted.current) return;
@@ -1928,14 +2045,14 @@ AI-generated preparation material. Verify against original records; this is not 
           'Analysis Disrupted',
           'Clinical Review encountered a network disruption. Please try again.'
         );
-        setIntakeStep(4);
+        setIntakeStep(6);
         setPhase('input');
       }
     } catch (e) {
       console.error(e);
       if (isMounted.current) {
         toast.error('Analysis Error', 'An error occurred during analysis. Please try again.');
-        setIntakeStep(4);
+        setIntakeStep(6);
         setPhase('input');
       }
     } finally {
@@ -1961,9 +2078,21 @@ AI-generated preparation material. Verify against original records; this is not 
   }
 
   if (phase === 'done' && report) {
+    const sourceCase = availableCases.find((item) => item.id === (createdCaseId || selectedCaseId));
+    if (
+      dailySourceFreshness !== 'current' ||
+      (sourceCase && !isCurrentClinicalReview(report, sourceCase))
+    )
+      return (
+        <section className="case-workspace" role="status">
+          <h2>Checking current source records</h2>
+          <p>
+            The earlier interpretation is withheld until its linked records are checked. Changed
+            records need a fresh review.
+          </p>
+        </section>
+      );
     const caseId = createdCaseId || selectedCaseId;
-    const primaryCondition =
-      report.primaryHypothesis || report.topDiagnoses?.[0]?.condition || 'Case review';
     const reasoningPayload = report.reasoningPipeline || runClinicalReasoningPipeline(report);
     const perspectives = report.meaningfulPerspectives || report.perspectives || [];
 
@@ -1985,6 +2114,44 @@ AI-generated preparation material. Verify against original records; this is not 
             </h2>
             <p style={{ margin: 0 }}>Check extracted details against the original records.</p>
           </header>
+
+          <details style={{ marginBottom: 20 }}>
+            <summary style={{ cursor: 'pointer', color: '#475569', fontSize: 13, fontWeight: 700 }}>
+              More actions
+            </summary>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 10 }}>
+              <button className="btn btn-outline btn-sm" onClick={handleCopySbar}>
+                {copiedSbar ? 'Copied' : 'Copy summary'}
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => {
+                  setPhase('input');
+                  setReport(null);
+                }}
+              >
+                Review updated information
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={resetInvestigation}>
+                Start another review
+              </button>
+            </div>
+          </details>
+
+          <StructuredAnswerView
+            answer={buildClinicalOutcome(report)}
+            showUrgency={false}
+            onOpenSourceModal={(src) => setSourceModalData(src)}
+          />
+
+          {reasoningPayload.stage7_focusedQuestion.question && (
+            <ClinicalClarificationForm
+              question={reasoningPayload.stage7_focusedQuestion.question}
+              why={reasoningPayload.stage7_focusedQuestion.whyThisQuestion}
+              busy={isUpdatingReasoning}
+              onSave={handleClarificationFeedback}
+            />
+          )}
 
           <div className="case-workspace-grid" style={{ marginBottom: 20 }}>
             <button className="btn btn-primary" onClick={() => navigate(`/app/cases/${caseId}`)}>
@@ -2011,55 +2178,12 @@ AI-generated preparation material. Verify against original records; this is not 
             </button>
           </div>
 
-          <details style={{ marginBottom: 20 }}>
-            <summary style={{ cursor: 'pointer', color: '#475569', fontSize: 13, fontWeight: 700 }}>
-              More actions
-            </summary>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 10 }}>
-              <button className="btn btn-outline btn-sm" onClick={handleCopySbar}>
-                {copiedSbar ? 'Copied' : 'Copy summary'}
-              </button>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={() => {
-                  setPhase('input');
-                  setReport(null);
-                }}
-              >
-                Review updated information
-              </button>
-              <button className="btn btn-outline btn-sm" onClick={resetInvestigation}>
-                Start another review
-              </button>
-            </div>
-          </details>
-
-          <StructuredAnswerView
-            answer={
-              report.structuredAnswer ||
-              buildStructuredClinicalAnswer({
-                primaryHypothesis: primaryCondition,
-                executiveSummary: report.executiveSummary,
-                documentedFacts: report.documentedFacts,
-                uncertainties: report.uncertainties,
-                missingLinks: report.missingLinks,
-                questionsForClinician: report.questionsForClinician,
-                contradictions: report.contradictions || report.contradictionQueue,
-                alternatives: report.alternatives,
-                perspectives,
-                boundedComparison: report.boundedComparison,
-              })
-            }
-            onOpenSourceModal={(src) => setSourceModalData(src)}
-          />
-
           <details style={{ marginTop: 18, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
             <summary style={{ cursor: 'pointer', color: '#BE123C', fontSize: 14, fontWeight: 800 }}>
               Review reasoning
             </summary>
             <ClinicalReasoningPipelineView
               payload={reasoningPayload}
-              onClarificationSubmit={handleClarificationFeedback}
               onChooseNextAction={(action) => {
                 if (!caseId) return;
                 const updated = {
@@ -2144,7 +2268,21 @@ AI-generated preparation material. Verify against original records; this is not 
       }}
     >
       <ClinicalUrgencyNotice text={history} />
-      {selectedCaseId && getCase(selectedCaseId)?.reviews?.some(review => review.type === 'jarvis' && !isCurrentClinicalReview(review.report)) && <p role="status">An earlier review predates the current evidence checks. Run a fresh review from your original records before relying on its interpretation.</p>}
+      {selectedCaseId &&
+        getCase(selectedCaseId)?.reviews?.some(
+          (review) =>
+            review.type === 'jarvis' &&
+            !isCurrentClinicalReview(review.report, getCase(selectedCaseId))
+        ) && (
+          <p role="status">
+            An earlier review predates the current evidence checks or its source records have
+            changed. Run a fresh review from your original records before relying on its
+            interpretation.
+          </p>
+        )}
+      <p role="status" style={{ color: '#475569', fontSize: 13 }}>
+        {draftStatus}
+      </p>
       {/* Workspace Header / Session Status matching Reference Layout */}
       <div
         style={{
@@ -2166,7 +2304,7 @@ AI-generated preparation material. Verify against original records; this is not 
               triggerHapticLight();
               setIntakeStep((prev) => (prev - 1) as any);
             } else {
-              navigate(-1);
+              void handleSaveAndExit();
             }
           }}
           style={{
@@ -2179,8 +2317,8 @@ AI-generated preparation material. Verify against original records; this is not 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '36px',
-            height: '36px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             transition: 'all 0.15s ease',
@@ -2196,8 +2334,11 @@ AI-generated preparation material. Verify against original records; this is not 
             e.currentTarget.style.borderColor = '#E4E4E7';
             e.currentTarget.style.background = '#FFFFFF';
           }}
-          title="Back to Workspace"
-          aria-label="Back to Workspace"
+          title={intakeStep > 1 ? 'Previous intake step' : 'Save intake and return to workspace'}
+          aria-label={
+            intakeStep > 1 ? 'Previous intake step' : 'Save intake and return to workspace'
+          }
+          disabled={!draftReady || isReadingFiles}
         >
           ←
         </button>
@@ -2256,15 +2397,10 @@ AI-generated preparation material. Verify against original records; this is not 
 
           <button
             type="button"
-            onClick={() => {
-              triggerHapticLight();
-              toast.success(
-                'Draft Preserved',
-                'Your clinical review progress is saved on this device.'
-              );
-              navigate('/app/cases');
-            }}
+            disabled={!draftReady || isReadingFiles}
+            onClick={handleSaveAndExit}
             style={{
+              minHeight: '44px',
               background: 'none',
               border: 'none',
               color: '#71717A',
@@ -2279,7 +2415,7 @@ AI-generated preparation material. Verify against original records; this is not 
             onMouseOver={(e) => (e.currentTarget.style.color = '#18181B')}
             onMouseOut={(e) => (e.currentTarget.style.color = '#71717A')}
           >
-            {isMobile ? 'Exit' : 'Save & Exit'}
+            Save &amp; Exit
           </button>
         </div>
       </div>
@@ -2296,50 +2432,6 @@ AI-generated preparation material. Verify against original records; this is not 
           position: 'relative',
         }}
       >
-        {/* Background Glowing Ambient Orbs in Raspberry/Rose & Warm Peach */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-40px',
-            right: '-40px',
-            width: '280px',
-            height: '280px',
-            background: '#E11D48',
-            filter: 'blur(90px)',
-            opacity: 0.09,
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: '35%',
-            left: '-50px',
-            width: '240px',
-            height: '240px',
-            background: '#FB7185',
-            filter: 'blur(100px)',
-            opacity: 0.07,
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-40px',
-            right: '15%',
-            width: '260px',
-            height: '260px',
-            background: '#FB923C',
-            filter: 'blur(90px)',
-            opacity: 0.08,
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          }}
-        />
-
         {/* Editorial Header Banner with Reference Typography */}
         <div
           style={{
@@ -2425,7 +2517,7 @@ AI-generated preparation material. Verify against original records; this is not 
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                setShowSovereigntyModal(true);
+                navigate('/privacy');
               }}
               style={{
                 display: 'inline-flex',
@@ -2446,7 +2538,7 @@ AI-generated preparation material. Verify against original records; this is not 
               title="Review how data is stored and processed"
             >
               <ShieldCheck size={isMobile ? 12 : 13} />
-              <span>{isMobile ? 'Private & Encrypted' : 'Zero-Knowledge Privacy'}</span>
+              <span>Privacy policy</span>
             </button>
           </div>
 
@@ -2493,10 +2585,8 @@ AI-generated preparation material. Verify against original records; this is not 
               {[1, 2, 3, 4, 5, 6].map((s) => (
                 <div
                   key={s}
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setIntakeStep(s as any);
-                  }}
+                  aria-label={STEP_META[s].label}
+                  aria-current={intakeStep === s ? 'step' : undefined}
                   style={{
                     flex: 1,
                     height: '6px',
@@ -2504,7 +2594,6 @@ AI-generated preparation material. Verify against original records; this is not 
                     background:
                       intakeStep >= s ? 'linear-gradient(90deg, #E11D48, #FB7185)' : '#E4E4E7',
                     boxShadow: intakeStep === s ? '0 0 8px rgba(225, 29, 72, 0.45)' : 'none',
-                    cursor: 'pointer',
                     transition: 'all 0.25s ease',
                   }}
                 />
@@ -2885,12 +2974,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     );
 
                     return (
-                      <motion.button
+                      <button
                         key={`custom-${cs}`}
                         type="button"
                         aria-label={cs}
-                        whileHover={{ scale: 1.02, y: -1 }}
-                        whileTap={{ scale: 0.96 }}
                         onClick={() => handleToggleSymptom(cs)}
                         style={{
                           display: 'inline-flex',
@@ -2964,7 +3051,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <Check size={11} strokeWidth={3.5} />
                           </div>
                         )}
-                      </motion.button>
+                      </button>
                     );
                   })}
 
@@ -2976,7 +3063,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     sym.name.toLowerCase().includes(q) ||
                     Boolean(sym.aliases?.some((a) => a.toLowerCase().includes(q)));
                   const matchesCat =
-                    symptomCategoryFilter === 'all'
+                    q || symptomCategoryFilter === 'all'
                       ? true
                       : symptomCategoryFilter === 'common'
                         ? Boolean(sym.isCommon)
@@ -2991,12 +3078,10 @@ AI-generated preparation material. Verify against original records; this is not 
 
                   const IconComp = sym.icon || Activity;
                   return (
-                    <motion.button
+                    <button
                       key={sym.id}
                       type="button"
                       aria-label={sym.name}
-                      whileHover={{ scale: 1.02, y: -1 }}
-                      whileTap={{ scale: 0.96 }}
                       onClick={() => handleToggleSymptom(sym.name)}
                       style={{
                         display: 'inline-flex',
@@ -3072,7 +3157,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <Check size={11} strokeWidth={3.5} />
                         </div>
                       )}
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
@@ -3142,9 +3227,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <div key="step2">
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  background: '#FFFFFF',
                   borderRadius: '20px',
                   padding: isMobile ? '20px 16px' : '28px 28px',
                   border: '1.5px solid #F4F4F5',
@@ -3255,12 +3338,10 @@ AI-generated preparation material. Verify against original records; this is not 
                     const isSelected =
                       selectedOnset === opt.name || history.includes(`Onset: ${opt.name}`);
                     return (
-                      <motion.button
+                      <button
                         key={opt.name}
                         type="button"
                         aria-label={opt.name}
-                        whileHover={{ scale: 1.015, y: -1 }}
-                        whileTap={{ scale: 0.98 }}
                         onClick={() => handleSelectOnset(opt.name)}
                         style={{
                           display: 'flex',
@@ -3345,7 +3426,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <Check size={11} strokeWidth={3.5} />
                           </div>
                         )}
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
@@ -3360,9 +3441,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <div key="step3">
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  background: '#FFFFFF',
                   borderRadius: '20px',
                   padding: isMobile ? '20px 16px' : '28px 28px',
                   border: '1.5px solid #F4F4F5',
@@ -3466,12 +3545,10 @@ AI-generated preparation material. Verify against original records; this is not 
                       selectedProgression === opt.name ||
                       history.includes(`Progression: ${opt.name}`);
                     return (
-                      <motion.button
+                      <button
                         key={opt.name}
                         type="button"
                         aria-label={opt.name}
-                        whileHover={{ scale: 1.015, y: -1 }}
-                        whileTap={{ scale: 0.98 }}
                         onClick={() => handleSelectProgression(opt.name)}
                         style={{
                           display: 'flex',
@@ -3556,7 +3633,7 @@ AI-generated preparation material. Verify against original records; this is not 
                             <Check size={11} strokeWidth={3.5} />
                           </div>
                         )}
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
@@ -3571,9 +3648,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <div key="step4">
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  background: '#FFFFFF',
                   borderRadius: '20px',
                   padding: isMobile ? '20px 16px' : '26px 28px',
                   border: '1.5px solid #F4F4F5',
@@ -3727,11 +3802,9 @@ AI-generated preparation material. Verify against original records; this is not 
                         text: 'What I most want help understanding from my clinician: ',
                       },
                     ].map((cluster, cIdx) => (
-                      <motion.button
+                      <button
                         key={cIdx}
                         type="button"
-                        whileHover={{ scale: 1.03, y: -1 }}
-                        whileTap={{ scale: 0.96 }}
                         onClick={() => {
                           triggerHapticSelection();
                           setHistory((prev) =>
@@ -3783,7 +3856,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           <cluster.icon size={11} strokeWidth={2.4} />
                         </div>
                         <span>{cluster.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3800,6 +3873,11 @@ AI-generated preparation material. Verify against original records; this is not 
                       .filter((w) => w.length > 0);
                     if (words.length <= 800 || text.length < history.length) {
                       setHistory(text);
+                    } else {
+                      toast.info(
+                        'Story limit reached',
+                        'Keep the notes within 800 words. You can shorten the text or attach relevant records on the next screen.'
+                      );
                     }
                   }}
                   placeholder="Describe when this started, how symptoms feel, what makes them better or worse, or prior doctor opinions (Max 800 words)..."
@@ -3839,9 +3917,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <div key="step5">
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  background: '#FFFFFF',
                   borderRadius: '20px',
                   padding: isMobile ? '18px 16px' : '24px 28px',
                   border: '1.5px solid #F4F4F5',
@@ -3888,6 +3964,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 <div style={{ marginBottom: '18px' }}>
                   <input
                     type="file"
+                    disabled={!draftReady || isReadingFiles}
                     ref={fileInputRef}
                     onChange={handleFileSelect}
                     multiple
@@ -3898,6 +3975,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
                   <button
                     type="button"
+                    disabled={!draftReady || isReadingFiles}
                     onClick={() => fileInputRef.current?.click()}
                     aria-label="Upload PDFs or photos of medical records"
                     style={{
@@ -3962,7 +4040,8 @@ AI-generated preparation material. Verify against original records; this is not 
                           display: 'block',
                         }}
                       >
-                        PDF, JPG, PNG or WebP · up to 10 files · 3 MB per file
+                        PDF, JPG, PNG or WebP · up to 10 files · 3 MB per file · about 2.6 MB
+                        combined
                       </span>
                     </div>
                     <div
@@ -4057,8 +4136,8 @@ AI-generated preparation material. Verify against original records; this is not 
                     >
                       <ShieldCheck size={16} color="#E11D48" />
                       <span>
-                        <strong>{files.length} document(s) staged.</strong> Original files are
-                        encrypted on your local device.
+                        <strong>{files.length} document(s) staged.</strong> Original files are saved
+                        in this browser’s device storage after the review.
                       </span>
                     </div>
                     {files.map((f, idx) => (
@@ -4317,11 +4396,61 @@ AI-generated preparation material. Verify against original records; this is not 
           {/* ========================================================================= */}
           {intakeStep === 6 && (
             <div key="step6">
+              <section
+                className="hc-outcome"
+                aria-label="Review input summary"
+                style={{ marginBottom: 20 }}
+              >
+                <div className="hc-outcome-section">
+                  <h3>What this review will use</h3>
+                  <p>
+                    <strong>Symptoms:</strong>{' '}
+                    {selectedSymptoms.join(', ') ||
+                      'No guided selection; use the story or records below.'}
+                  </p>
+                  <p>
+                    <strong>Onset:</strong> {selectedOnset || 'Not specified'} ·{' '}
+                    <strong>Pattern:</strong> {selectedProgression || 'Not specified'}
+                  </p>
+                  <h4>Your current notes</h4>
+                  <p>
+                    {history.trim() ||
+                      'No narrative added. Only the available record text will be reviewed.'}
+                  </p>
+                  <h4>New attachments ({files.length})</h4>
+                  {files.length ? (
+                    <ul>
+                      {files.map((attachment, index) => (
+                        <li key={index}>
+                          {attachment.file.name} · {Math.ceil(attachment.file.size / 1024)} KB
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No new attachments. This is optional.</p>
+                  )}
+                  <h4>Linked case records</h4>
+                  {selectedCaseId && getCase(selectedCaseId)?.medicalRecords.length ? (
+                    <ul>
+                      {getCase(selectedCaseId)!.medicalRecords.map((record) => (
+                        <li key={record.id}>{record.filename}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No linked case records selected.</p>
+                  )}
+                  <p className="hc-outcome-meta">
+                    Use Back to correct the notes or attachments. Unknown dates and absent reports
+                    stay unknown. When you run the review, these notes, document content and{' '}
+                    {isIsolated ? 'no background profile context' : 'background profile context'} go
+                    to HealthChain’s Gemini service. Saved case text and reviews can sync to your
+                    signed-in account; originals are stored on this device.
+                  </p>
+                </div>
+              </section>
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  background: '#FFFFFF',
                   borderRadius: '20px',
                   padding: isMobile ? '18px 16px' : '24px 28px',
                   border: '1.5px solid #F4F4F5',
@@ -4355,195 +4484,11 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                   <div>
                     <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#18181B', margin: 0 }}>
-                      Review Scope & Destination
+                      Choose where to save and what to focus on
                     </h2>
                     <p style={{ fontSize: '12.5px', color: '#64748B', margin: 0 }}>
-                      Confirm evidence readiness, case routing, and launch your multisystem clinical
-                      review.
+                      Choose a case and the kind of explanation that would help you most.
                     </p>
-                  </div>
-                </div>
-
-                {/* Evidence Readiness Checklist Card */}
-                <div
-                  style={{
-                    marginBottom: '18px',
-                    padding: '16px 18px',
-                    background: '#FAFAFA',
-                    border: '1px solid #E4E4E7',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      color: '#BE123C',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    Evidence Readiness Checklist
-                  </span>
-
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                      gap: '10px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '12px 14px',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '14px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          style={{
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '8px',
-                            background: '#F0F9FF',
-                            border: '1px solid #BAE6FD',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#0284C7',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Clock size={14} strokeWidth={2.2} />
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
-                          Clinical Timeline
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          color:
-                            selectedSymptoms.length > 0 || history.trim() ? '#1C1917' : '#78716C',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {selectedSymptoms.length > 0 || history.trim()
-                          ? `✓ ${
-                              selectedSymptoms.length > 0
-                                ? `${selectedSymptoms.length} symptom(s)`
-                                : `${
-                                    history
-                                      .trim()
-                                      .split(/\s+/)
-                                      .filter((w) => w.length > 0).length
-                                  } words`
-                            }`
-                          : '○ No notes (records only)'}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: '12px 14px',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '14px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          style={{
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '8px',
-                            background: '#FFF1F2',
-                            border: '1px solid #FECDD3',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#E11D48',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <UploadCloud size={14} strokeWidth={2.2} />
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
-                          Attached Evidence
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          color: files.length > 0 ? '#1C1917' : '#78716C',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {files.length > 0
-                          ? `✓ ${files.length} document(s) staged`
-                          : '○ No files (timeline only)'}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: '12px 14px',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '14px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          style={{
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '8px',
-                            background: '#FFF1F2',
-                            border: '1px solid #FECDD3',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#E11D48',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Folder size={14} strokeWidth={2.2} />
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
-                          Destination Case
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          color: selectedCaseId ? '#9F1239' : '#1C1917',
-                          marginTop: '2px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {selectedCaseId ? '✓ Existing Timeline' : '✓ New Case Draft'}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -4707,8 +4652,8 @@ AI-generated preparation material. Verify against original records; this is not 
                         activeBg: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
                         color: '#E11D48',
                         shadow: 'rgba(225, 29, 72, 0.28)',
-                        label: 'Differential Diagnosis',
-                        desc: 'Multisystem scan for primary & alternative hypotheses',
+                        label: 'Explore possible explanations',
+                        desc: 'Compare possibilities with the supplied evidence',
                       },
                       {
                         id: 'doctor_prep',
@@ -4731,17 +4676,16 @@ AI-generated preparation material. Verify against original records; this is not 
                         activeBg: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
                         color: '#0D9488',
                         shadow: 'rgba(13, 148, 136, 0.28)',
-                        label: 'Biomarker Synthesis',
-                        desc: 'Cross-reference lab ranges and contradictory findings',
+                        label: 'Review lab reports',
+                        desc: 'Check printed ranges, dates and conflicting entries',
                       },
                     ].map((opt) => {
                       const isSelected = reviewFocus === opt.id;
                       return (
-                        <motion.button
+                        <button
                           key={opt.id}
                           type="button"
-                          whileHover={{ scale: 1.015, y: -1 }}
-                          whileTap={{ scale: 0.98 }}
+                          aria-pressed={isSelected}
                           onClick={() => {
                             triggerHapticSelection();
                             setReviewFocus(opt.id as any);
@@ -4834,7 +4778,7 @@ AI-generated preparation material. Verify against original records; this is not 
                               {opt.desc}
                             </div>
                           </div>
-                        </motion.button>
+                        </button>
                       );
                     })}
                   </div>
@@ -4878,8 +4822,8 @@ AI-generated preparation material. Verify against original records; this is not 
                         }}
                       >
                         {isIsolated
-                          ? 'Analyzes strictly what you typed and uploaded above (ignores background profile conditions).'
-                          : 'Correlates your input with your known medical profile conditions.'}
+                          ? 'Uses your notes, staged files and linked case records. Excludes background profile context.'
+                          : 'Includes background profile context alongside your notes and case records. Profile context does not establish a diagnosis.'}
                       </div>
                     </div>
 
@@ -4944,9 +4888,7 @@ AI-generated preparation material. Verify against original records; this is not 
               left: 0,
               right: 0,
               zIndex: 9999,
-              background: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              background: '#FFFFFF',
               borderTop: '1px solid rgba(226, 232, 240, 0.85)',
               boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.07), 0 -1px 3px rgba(0, 0, 0, 0.04)',
               padding: isMobile
@@ -5294,33 +5236,24 @@ AI-generated preparation material. Verify against original records; this is not 
                   <button
                     type="button"
                     onClick={handleRunInvestigation}
-                    disabled={isReadingFiles || (!history.trim() && !files.length)}
+                    disabled={!draftReady || isReadingFiles || !hasReviewInput}
                     style={{
                       flex: isMobile ? '1 1 auto' : '0 1 340px',
                       height: isMobile ? '52px' : '50px',
                       padding: isMobile ? '0 20px' : '0 28px',
                       borderRadius: '12px',
                       border: 'none',
-                      background:
-                        isReadingFiles || (!history.trim() && !files.length)
-                          ? '#E4E4E7'
-                          : '#E84A6C',
-                      color:
-                        isReadingFiles || (!history.trim() && !files.length)
-                          ? '#A1A1AA'
-                          : '#FFFFFF',
+                      background: isReadingFiles || !hasReviewInput ? '#E4E4E7' : '#E84A6C',
+                      color: isReadingFiles || !hasReviewInput ? '#A1A1AA' : '#FFFFFF',
                       fontSize: isMobile ? '15px' : '15px',
                       fontWeight: 700,
-                      cursor:
-                        isReadingFiles || (!history.trim() && !files.length)
-                          ? 'not-allowed'
-                          : 'pointer',
+                      cursor: isReadingFiles || !hasReviewInput ? 'not-allowed' : 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '9px',
                       boxShadow:
-                        isReadingFiles || (!history.trim() && !files.length)
+                        isReadingFiles || !hasReviewInput
                           ? 'none'
                           : '0 4px 14px rgba(232, 74, 108, 0.22)',
                       transition: 'all 0.15s ease',

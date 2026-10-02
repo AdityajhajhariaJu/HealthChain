@@ -81,7 +81,8 @@ describe('Package 1: Clinical Grounding Audit (Exact 11 Grounding Failure Modes)
     expect(result.meaningfulPerspectives).toHaveLength(0);
     expect(result.alternatives).toHaveLength(0);
     expect(result.primaryHypothesis).toBe('Source review needed');
-    expect(result.executiveSummary).toContain('withheld');
+    expect(result.executiveSummary).toBe(rawReview.executiveSummary);
+    expect(result.structuredAnswer.interpretationsWithheld).toBe(true);
   });
 
   // Mode 3: Duplicate evidence identifiers

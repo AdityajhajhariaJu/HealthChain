@@ -1,4 +1,5 @@
 import { get as idbGet } from 'idb-keyval';
+import { clinicalSourceFingerprint } from './clinicalReviewSourceState';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
@@ -795,7 +796,13 @@ export function saveReviewSnapshot({
     basedOn: { evidenceIds: basedOnEvidenceIds, reviewIds: basedOnReviewIds },
     specialists,
     transcripts,
-    report,
+    report:
+      type === 'jarvis'
+        ? {
+            ...report,
+            sourceFingerprint: report.sourceFingerprint || clinicalSourceFingerprint(existing),
+          }
+        : report,
     readiness,
     status: 'complete',
     perspectives: rawPerspectives,

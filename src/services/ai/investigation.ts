@@ -6,7 +6,7 @@ import { parseModelJson } from '../modelJson';
 import type { AppointmentBrief } from '../CaseEngine';
 import { sha256Hash } from './transport';
 import { buildReviewEvidence } from '../clinicalReview';
-import { buildClinicalReviewPrompt } from '../clinicalReview';
+import { buildClinicalReviewPrompt, type ClinicalReviewFocus } from '../clinicalReview';
 import { normalizeClinicalReview } from '../clinicalReview';
 import { evaluateClinicalUrgency } from '../clinicalTriageEngine';
 import type { Message } from './gut';
@@ -640,17 +640,23 @@ export async function runJarvisInvestigation(
   history: string,
   files: { mimeType: string; data: string; name?: string }[],
   profile: any,
-  sourceCase?: any
+  sourceCase?: any,
+  reviewFocus: ClinicalReviewFocus = 'differential'
 ): Promise<any> {
   const urgency = evaluateClinicalUrgency(history);
   if (urgency.level === 'urgent_emergency_care') {
     const evidence = buildReviewEvidence(history, sourceCase);
-    return normalizeClinicalReview({
-      documentedFacts: evidence,
-      executiveSummary: `${urgency.action} ${urgency.reason}`,
-      primaryHypothesis: 'Urgent medical assessment needed',
-      questionsForClinician: [],
-    }, null, undefined, { evidence });
+    return normalizeClinicalReview(
+      {
+        documentedFacts: evidence,
+        executiveSummary: `${urgency.action} ${urgency.reason}`,
+        primaryHypothesis: 'Urgent medical assessment needed',
+        questionsForClinician: [],
+      },
+      null,
+      undefined,
+      { evidence }
+    );
   }
   const fileHashes = await Promise.all(
     files.map((file) => sha256Hash(file.mimeType + ':' + file.data))
@@ -658,7 +664,7 @@ export async function runJarvisInvestigation(
 
   const evidence = buildReviewEvidence(history, sourceCase);
   const prompt =
-    buildClinicalReviewPrompt(history, profile, evidence) +
+    buildClinicalReviewPrompt(history, profile, evidence, reviewFocus) +
     '\nATTACHMENT FILENAMES: ' +
     JSON.stringify(files.map((f) => f.name).filter(Boolean)) +
     '\nUSER REQUESTED SEPARATE RELATIONSHIPS (do not silently restore these as established connections): ' +
@@ -699,10 +705,11 @@ export async function runJarvisInvestigation(
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      return normalizeClinicalReview(parseModelJson(text), null, undefined, {
+      const review = normalizeClinicalReview(parseModelJson(text), null, undefined, {
         evidence,
         attachmentNames: files.map((f) => f.name).filter(Boolean),
       });
+      return { ...review, reviewFocus };
     }
   } catch (err) {
     console.error('Jarvis error:', err);
