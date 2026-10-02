@@ -366,7 +366,7 @@ describe('Synthetic Clinical Contract Gate: 10 Normalization & Grounding Benchma
           selectionReason: 'Discrepant biochemical thyroid markers.',
           evidenceConsidered: ['f_quest_tsh', 'f_labcorp_tsh'],
           interpretation:
-            'A 3-fold rise in 8 days may reflect transient thyroiditis, assay variation, or diurnal timing differences.',
+            'The rise may reflect transient thyroiditis, assay variation, or diurnal timing differences.',
           evidenceAgainst: [],
           missingInformation: [
             'Free T4 level',
@@ -641,7 +641,7 @@ describe('Synthetic Clinical Contract Gate: 10 Normalization & Grounding Benchma
       primaryHypothesis:
         'Longitudinal evaluation of new exertional dyspnea in setting of prior hypertension and elevated ferritin',
       executiveSummary:
-        'Patient has a 9-year medical history spanning appendectomy (2016), hypertension (2019), post-viral recovery (2021), and elevated ferritin (2024), presenting with new exertional dyspnea (2025).',
+        'Patient has a medical history spanning appendectomy (2016), hypertension (2019), post-viral recovery (2021), and elevated ferritin (2024), presenting with new exertional dyspnea (2025).',
       documentedFacts: evidence,
       perspectives: [
         {

@@ -31,6 +31,7 @@ test('current concerns get an AI answer without logs; refinement survives reload
   await gut.getByRole('button', { name: 'Connect my question', exact: true }).click();
   await gut.getByRole('button', { name: 'Explore my answer' }).click();
   await expect(gut.getByRole('heading', { name: 'Location and timing can help explain the pattern' })).toBeVisible();
+  await expect(gut.getByText('One recalled detail can clarify whether this is only happening after lunch.')).toBeVisible();
   await expect(gut.getByText(/Study search is unavailable/)).toBeVisible();
   await expect(gut.getByText(/Do not wait for an AI answer/)).toBeVisible();
   await gut.getByLabel('Does it happen before meals too?').fill('Yes, it happens before meals too.');
@@ -42,4 +43,15 @@ test('current concerns get an AI answer without logs; refinement survives reload
   await gut.getByText('Sources & what could change this').click();
   await expect(gut.getByText('Your added details')).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-refined-answer-mobile.png' });
+});
+
+test('urgent Gut guidance appears while entering a question with all network requests unavailable', async ({page}) => {
+  await setup(page);
+  await page.route('**/api/**', route => route.abort());
+  await page.goto('/app/today?gut=1&view=deep', {waitUntil:'domcontentloaded'});
+  const gut = page.getByRole('dialog', {name:'Gut Health'});
+  await gut.getByLabel('Your question or situation').fill('I have severe constant stomach pain right now.');
+  const alert = gut.locator('[data-urgency="urgent_emergency_care"]');
+  await expect(alert).toBeVisible();
+  await expect(alert).toContainText('Do not wait for an AI reply');
 });

@@ -1,4 +1,5 @@
 import { CategorizedInformationItem } from './ClinicalInformationClassifier';
+import { sourceMeasurements, explicitCollectionDate } from './clinicalEvidenceText';
 
 // ==========================================
 // 10 REASONING STAGES DATA CONTRACTS
@@ -19,6 +20,8 @@ export interface SourceLinkedEvidence {
   extractionStatus?: string;
   eventDate?: string;
   reportDate?: string;
+  rawEventDate?: string;
+  rawReportDate?: string;
   classifiedItem?: CategorizedInformationItem;
   [key: string]: any;
 }
@@ -29,8 +32,10 @@ export interface TemporalTimelineEntry {
   description: string;
   eventDate?: string;
   reportDate?: string;
+  rawEventDate?: string;
+  rawReportDate?: string;
   entryDate: string;
-  temporalConfidence: 'exact' | 'approximate' | 'relative' | 'undated';
+  temporalConfidence: 'exact' | 'approximate' | 'relative' | 'undated' | 'ambiguous';
   relatedFactIds: string[];
 }
 
@@ -51,10 +56,12 @@ export interface CoherentTimeline {
   overlaps: TemporalOverlap[];
   gaps: TemporalGap[];
   summaryChronology: string;
+  gapAssessment?: 'recorded_dates_only' | 'insufficient_dates';
 }
 
 /** Stage 3: Reconcile Records — A correction queue */
-export type DiscrepancyType = 'duplicate' | 'unit_change' | 'conflicting_values' | 'differing_accounts';
+export type DiscrepancyType =
+  'duplicate' | 'unit_change' | 'conflicting_values' | 'differing_accounts';
 
 export interface CorrectionQueueItem {
   id: string;
@@ -79,7 +86,8 @@ export interface JustifiedPerspective {
 }
 
 /** Stage 5: Generate Alternatives — Competing interpretations */
-export type AlternativeType = 'connected_explanation' | 'separate_explanations' | 'insufficient_evidence';
+export type AlternativeType =
+  'connected_explanation' | 'separate_explanations' | 'insufficient_evidence';
 
 export interface AlternativeInterpretation {
   id: string;
@@ -173,7 +181,6 @@ export interface ClinicalReasoningPayload {
 // PURE REASONING ALGORITHMS & HELPERS
 // ==========================================
 
-
 export function stableEvidenceId(text: string): string {
   let hash = 2166136261;
   for (const c of text) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
@@ -182,164 +189,419 @@ export function stableEvidenceId(text: string): string {
 export function extractDateString(text: string): string | null {
   const iso = text?.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
   const dmy = text?.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
-  const date = iso ? iso[0] : dmy ? dmy[3]+'-'+dmy[2]+'-'+dmy[1] : null;
+  const date = iso
+    ? iso[0]
+    : dmy && Number(dmy[1]) > 12
+      ? dmy[3] + '-' + dmy[2] + '-' + dmy[1]
+      : null;
   if (!date) return null;
   const parsed = new Date(date);
-  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0,10) === date ? date : null;
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date
+    ? date
+    : null;
 }
-export function alignChronology(facts: SourceLinkedEvidence[], entryDateOverride?: string): CoherentTimeline {
+export function alignChronology(
+  facts: SourceLinkedEvidence[],
+  entryDateOverride?: string
+): CoherentTimeline {
   const entries: TemporalTimelineEntry[] = facts.map((f: any) => {
-    const eventDate = extractDateString(f.eventDate || '') || undefined;
+    const eventDate =
+      extractDateString(f.eventDate || explicitCollectionDate(f.fact) || '') || undefined;
     const reportDate = extractDateString(f.reportDate || '') || undefined;
-    return {id:'time_'+f.id, description:f.fact, eventDate, reportDate,
-      entryDate:f.timestamp || entryDateOverride || '', temporalConfidence:eventDate || reportDate ? 'exact' : 'undated', relatedFactIds:[f.id]};
+    return {
+      id: 'time_' + f.id,
+      description: f.fact,
+      eventDate,
+      reportDate,
+      rawEventDate: !eventDate && f.eventDate ? f.eventDate : undefined,
+      rawReportDate: !reportDate && f.reportDate ? f.reportDate : undefined,
+      entryDate: f.timestamp || entryDateOverride || '',
+      temporalConfidence:
+        eventDate || reportDate ? 'exact' : f.eventDate || f.reportDate ? 'ambiguous' : 'undated',
+      relatedFactIds: [f.id],
+    };
   });
-  entries.sort((a,b)=>(a.eventDate || a.reportDate || '9999').localeCompare(b.eventDate || b.reportDate || '9999'));
+  entries.sort((a, b) =>
+    (a.eventDate || a.reportDate || '9999').localeCompare(b.eventDate || b.reportDate || '9999')
+  );
   const overlaps: TemporalOverlap[] = [];
-  for (const date of new Set(entries.map(e=>e.eventDate).filter(Boolean))) {
-    const same = entries.filter(e=>e.eventDate===date);
-    if(same.length>1) overlaps.push({phenomena:same.map(e=>e.description),timeframe:date!,
-      implication:'These events share a recorded date. This does not establish simultaneous occurrence or a shared cause.'});
+  for (const date of new Set(entries.map((e) => e.eventDate).filter(Boolean))) {
+    const same = entries.filter((e) => e.eventDate === date);
+    if (same.length > 1)
+      overlaps.push({
+        phenomena: same.map((e) => e.description),
+        timeframe: date!,
+        implication:
+          'These events share a recorded date. This does not establish simultaneous occurrence or a shared cause.',
+      });
   }
-  return {entries,overlaps,gaps:[],summaryChronology:entries.length+' observations. Only explicit event and report dates determine chronology.'};
+  const dates = [
+    ...new Set(
+      entries.map((e) => e.eventDate || e.reportDate).filter((date): date is string => !!date)
+    ),
+  ].sort();
+  const gaps: TemporalGap[] = dates.slice(1).flatMap((date, index) => {
+    const days = Math.round((Date.parse(date) - Date.parse(dates[index])) / 86400000);
+    return days > 90
+      ? [
+          {
+            period: `${dates[index]} to ${date}`,
+            durationDescription: `${days} days between supplied dated records`,
+            clinicalSignificance:
+              'This is an interval in the supplied records, not evidence that symptoms or medical care were absent.',
+          },
+        ]
+      : [];
+  });
+  return {
+    entries,
+    overlaps,
+    gaps,
+    gapAssessment: dates.length > 1 ? 'recorded_dates_only' : 'insufficient_dates',
+    summaryChronology:
+      entries.length +
+      ' observations. Only unambiguous event and report dates determine chronology; absent records are not negative findings.',
+  };
 }
-export function detectCorrectionQueue(facts: SourceLinkedEvidence[], previousQueue: CorrectionQueueItem[] = []): CorrectionQueueItem[] {
-  const queue: CorrectionQueueItem[] = [], seen = new Map<string, SourceLinkedEvidence>();
-  const prevMap = new Map<string, CorrectionQueueItem>(previousQueue.map(p => [p.id, p]));
-  for(const f of facts as any[]) {
-    const key=JSON.stringify([f.fact.trim().toLowerCase(), f.eventDate || null]);
-    const prior=seen.get(key);
-    if(prior && prior.id!==f.id) {
-      const id = 'duplicate_'+prior.id+'_'+f.id;
+export function detectCorrectionQueue(
+  facts: SourceLinkedEvidence[],
+  previousQueue: CorrectionQueueItem[] = []
+): CorrectionQueueItem[] {
+  const queue: CorrectionQueueItem[] = [],
+    seen = new Map<string, SourceLinkedEvidence>();
+  const prevMap = new Map<string, CorrectionQueueItem>(previousQueue.map((p) => [p.id, p]));
+  for (const f of facts as any[]) {
+    const key = JSON.stringify([
+      f.fact.trim().toLowerCase(),
+      f.eventDate || null,
+      f.reportDate || null,
+    ]);
+    const prior = seen.get(key);
+    if (prior && prior.id !== f.id) {
+      const id = 'duplicate_' + prior.id + '_' + f.id;
       const priorState = prevMap.get(id);
       queue.push({
         id,
-        type:'duplicate',
-        title:'Possible repeated entry',
-        itemsInvolved:[prior.id,f.id],
-        discrepancyDescription:'The same text appears more than once. Check dates and sources before consolidating.',
-        suggestedAction:'Review both original entries.',
+        type: 'duplicate',
+        title: 'Possible repeated entry',
+        itemsInvolved: [prior.id, f.id],
+        discrepancyDescription:
+          'The same text appears more than once. Check dates and sources before consolidating.',
+        suggestedAction: 'Review both original entries.',
         status: priorState?.status || 'pending',
         resolutionNote: priorState?.resolutionNote,
       });
-    } else seen.set(key,f);
+    } else seen.set(key, f);
   }
   // Same analyte and date required; shared units alone do not identify a measurement.
-  const groups=new Map<string,any[]>();
-  for(const f of facts as any[]) {
-    if(!f.analyte || !f.eventDate || f.value===undefined || !f.unit) continue;
-    const key=JSON.stringify([String(f.analyte).toLowerCase(),f.eventDate]);
-    groups.set(key,[...(groups.get(key)||[]),f]);
+  const groups = new Map<string, any[]>();
+  for (const f of facts as any[]) {
+    const date = extractDateString(
+      f.eventDate || explicitCollectionDate(f.fact) || f.reportDate || ''
+    );
+    if (!date) continue;
+    const measurements =
+      f.analyte && f.value !== undefined && f.unit
+        ? [{ analyte: f.analyte, value: f.value, unit: f.unit }]
+        : sourceMeasurements(f.fact);
+    for (const measurement of measurements) {
+      const key = JSON.stringify([String(measurement.analyte).toLowerCase(), date]);
+      groups.set(key, [...(groups.get(key) || []), { ...f, ...measurement, eventDate: date }]);
+    }
   }
-  for(const group of groups.values()) for(let i=1;i<group.length;i++) {
-    const a=group[0],b=group[i];
-    if(a.unit===b.unit && String(a.value)===String(b.value)) continue;
-    const id = 'measurement_'+a.id+'_'+b.id;
-    const priorState = prevMap.get(id);
-    queue.push({
-      id,
-      type:a.unit===b.unit?'conflicting_values':'unit_change',
-      title:'Review '+a.analyte+' entries',
-      itemsInvolved:[a.id,b.id],
-      discrepancyDescription:a.value+' '+a.unit+' and '+b.value+' '+b.unit+' are recorded for the same date. Sampling times and methods may differ.',
-      suggestedAction:'Check original values, sampling times and units; do not automatically overwrite.',
-      status: priorState?.status || 'pending',
-      resolutionNote: priorState?.resolutionNote,
-    });
-  }
+  for (const group of groups.values())
+    for (let i = 1; i < group.length; i++) {
+      const a = group[0],
+        b = group[i];
+      if (a.unit === b.unit && String(a.value) === String(b.value)) continue;
+      const id = 'measurement_' + a.id + '_' + b.id;
+      const priorState = prevMap.get(id);
+      queue.push({
+        id,
+        type: a.unit === b.unit ? 'conflicting_values' : 'unit_change',
+        title: 'Review ' + a.analyte + ' entries',
+        itemsInvolved: [a.id, b.id],
+        discrepancyDescription:
+          a.value +
+          ' ' +
+          a.unit +
+          ' and ' +
+          b.value +
+          ' ' +
+          b.unit +
+          ' are recorded for the same date. Sampling times and methods may differ.',
+        suggestedAction:
+          'Check original values, sampling times and units; do not automatically overwrite.',
+        status: priorState?.status || 'pending',
+        resolutionNote: priorState?.resolutionNote,
+      });
+    }
   return queue;
 }
-export function justifyPerspectives(questions:string[],raw:Partial<JustifiedPerspective>[]=[]):JustifiedPerspective[] {
-  return raw.filter(p=>p.specialty && (p.unansweredQuestionAddressed || (p as any).questionAddressed)).map((p,i)=>({
-    id:p.id || 'perspective_'+i,specialty:p.specialty!,doctorName:p.doctorName || 'AI perspective',
-    unansweredQuestionAddressed:p.unansweredQuestionAddressed || (p as any).questionAddressed,
-    justification:p.justification || (p as any).selectionReason || '',
-    uniqueContribution:p.uniqueContribution || (p as any).interpretation || '',
-    supportingEvidenceIds:p.supportingEvidenceIds || (p as any).evidenceConsidered || [],
+export function justifyPerspectives(
+  questions: string[],
+  raw: Partial<JustifiedPerspective>[] = []
+): JustifiedPerspective[] {
+  return raw
+    .filter((p) => p.specialty && (p.unansweredQuestionAddressed || (p as any).questionAddressed))
+    .map((p, i) => ({
+      id: p.id || 'perspective_' + i,
+      specialty: p.specialty!,
+      doctorName: p.doctorName || 'AI perspective',
+      unansweredQuestionAddressed: p.unansweredQuestionAddressed || (p as any).questionAddressed,
+      justification: p.justification || (p as any).selectionReason || '',
+      uniqueContribution: p.uniqueContribution || (p as any).interpretation || '',
+      supportingEvidenceIds: p.supportingEvidenceIds || (p as any).evidenceConsidered || [],
+    }));
+}
+export function buildTriProngChallenges(
+  alternatives: AlternativeInterpretation[],
+  facts: SourceLinkedEvidence[],
+  missing: string[],
+  corrections?: CorrectionQueueItem[]
+): BalancedAssessment[] {
+  const ids = new Set(
+    facts
+      .filter((f) => !(f as any).isUnverifiedSource && f.extractionStatus !== 'rejected')
+      .map((f) => f.id)
+  );
+  const valid = (items: any): any[] =>
+    Array.isArray(items)
+      ? items.filter(
+          (x) => ids.has(x.factId) && typeof x.description === 'string' && x.description.trim()
+        )
+      : [];
+  return alternatives.map((a: any) => ({
+    alternativeId: a.id,
+    alternativeTitle: a.title,
+    supportingEvidence: valid(a.supportingEvidence).map((x) => ({
+      ...x,
+      weight: 'circumstantial' as const,
+    })),
+    conflictingEvidence: valid(a.conflictingEvidence).map((x) => ({
+      ...x,
+      weight: 'direct_contradiction' as const,
+    })),
+    missingEvidenceWhatWouldChangeIt: Array.isArray(a.missingEvidenceWhatWouldChangeIt)
+      ? a.missingEvidenceWhatWouldChangeIt.filter(
+          (x: any) =>
+            typeof x.testOrObservation === 'string' && typeof x.potentialImpact === 'string'
+        )
+      : [],
   }));
 }
-export function buildTriProngChallenges(alternatives:AlternativeInterpretation[],facts:SourceLinkedEvidence[],missing:string[],corrections?:CorrectionQueueItem[]):BalancedAssessment[] {
-  const ids=new Set(facts.filter(f=>!(f as any).isUnverifiedSource && f.extractionStatus !== 'rejected').map(f=>f.id));
-  const valid=(items:any):any[]=>Array.isArray(items)?items.filter(x=>ids.has(x.factId) && typeof x.description==='string' && x.description.trim()):[];
-  return alternatives.map((a:any)=>({
-    alternativeId:a.id,alternativeTitle:a.title,
-    supportingEvidence:valid(a.supportingEvidence).map(x=>({...x,weight:'circumstantial' as const})),
-    conflictingEvidence:valid(a.conflictingEvidence).map(x=>({...x,weight:'direct_contradiction' as const})),
-    missingEvidenceWhatWouldChangeIt:Array.isArray(a.missingEvidenceWhatWouldChangeIt)?a.missingEvidenceWhatWouldChangeIt.filter((x:any)=>typeof x.testOrObservation==='string' && typeof x.potentialImpact==='string'):[],
-  }));
+export function selectFocusedClarification(
+  questions: string[],
+  missing: string[],
+  alternatives: AlternativeInterpretation[]
+): FocusedUserQuestion {
+  const question = questions.find((q) => q.trim()) || '';
+  return {
+    id: question ? 'question_' + stableEvidenceId(question) : 'no_open_question',
+    question,
+    whyThisQuestion: question
+      ? missing[0]
+        ? `Helps clarify this unresolved issue: ${missing[0]}`
+        : alternatives.length
+          ? `Helps distinguish the proposed explanations: ${alternatives
+              .slice(0, 2)
+              .map((a) => a.title)
+              .join(' or ')}.`
+          : 'Clarifies the reported concern before proposing an explanation.'
+      : 'No additional question was identified.',
+    decisionImpact: 'Your answer will be saved as a reported observation for the next review.',
+    targetAlternativeIds: alternatives.map((a) => a.id),
+    status: 'pending',
+  };
 }
-export function selectFocusedClarification(questions:string[],missing:string[],alternatives:AlternativeInterpretation[]):FocusedUserQuestion {
-  const question=questions.find(q=>q.trim()) || '';
-  return {id:question?'question_'+stableEvidenceId(question):'no_open_question',question,
-    whyThisQuestion:question?'An open question from this review. You can choose another priority.':'No additional question was identified.',
-    decisionImpact:'Your answer will be saved as a reported observation for the next review.',targetAlternativeIds:[],status:'pending'};
+export function synthesizeFindings(
+  facts: SourceLinkedEvidence[],
+  alternatives: AlternativeInterpretation[],
+  assessments: BalancedAssessment[],
+  uncertainties: string[],
+  corrections?: CorrectionQueueItem[],
+  summary?: string
+): ClinicalSynthesis {
+  return {
+    mainFinding: facts.length
+      ? summary || 'Review the documented observations and proposed interpretations below.'
+      : 'There is not enough case evidence to form an interpretation.',
+    empiricalBasis: facts.slice(0, 4).map((f) => f.fact + ' (' + f.source + ')'),
+    limitations: [...uncertainties, ...(corrections || []).map((c) => c.discrepancyDescription)],
+    practicalImplication: corrections?.length
+      ? 'Check flagged source entries before relying on an interpretation.'
+      : 'Choose a question or record to review next.',
+    urgencyLevel: 'not_assessed',
+  };
 }
-export function synthesizeFindings(facts:SourceLinkedEvidence[],alternatives:AlternativeInterpretation[],assessments:BalancedAssessment[],uncertainties:string[],corrections?:CorrectionQueueItem[]):ClinicalSynthesis {
-  return {mainFinding:facts.length?'Review the documented observations and proposed interpretations below.':'There is not enough case evidence to form an interpretation.',
-    empiricalBasis:facts.slice(0,4).map(f=>f.fact+' ('+f.source+')'),limitations:[...uncertainties,...(corrections||[]).map(c=>c.discrepancyDescription)],
-    practicalImplication:corrections?.length?'Check flagged source entries before relying on an interpretation.':'Choose a question or record to review next.',urgencyLevel:'not_assessed'};
+export function computeSelectiveUpdateDiff(
+  previous?: ClinicalReasoningPayload | null,
+  current?: ClinicalReasoningPayload | null,
+  newFact?: SourceLinkedEvidence
+): SelectiveUpdateDiff {
+  const before = previous?.stage5_alternatives || [],
+    after = current?.stage5_alternatives || [];
+  return {
+    previousRunDate: previous?.stage9_continuity.savedAt,
+    currentRunDate: new Date().toISOString(),
+    triggerEvent: newFact
+      ? 'New user-reported clarification saved'
+      : previous
+        ? 'Review compared with previous version'
+        : 'Initial evidence review',
+    whatChangedAndWhy: newFact
+      ? 'An observation was added. Interpretations have not been re-evaluated; run a new review to assess its impact.'
+      : 'Only explicit differences between saved versions are shown.',
+    affectedConclusions: [
+      ...after.map((a) => ({
+        hypothesis: a.title,
+        shift: (before.some((b) => b.id === a.id) ? 'unaffected' : 'new') as 'unaffected' | 'new',
+        rationale: newFact
+          ? 'Awaiting a new evidence review; no clinical weight inferred.'
+          : 'Present in this saved version.',
+      })),
+      ...before
+        .filter((b) => !after.some((a) => a.id === b.id))
+        .map((b) => ({
+          hypothesis: b.title,
+          shift: 'retired' as const,
+          rationale: 'Not present in this review; this is not a clinical exclusion.',
+        })),
+    ],
+    resolvedQuestions: [],
+    newQuestions: (current?.stage9_continuity.openQuestions || []).filter(
+      (q) => !previous?.stage9_continuity.openQuestions.includes(q)
+    ),
+  };
 }
-export function computeSelectiveUpdateDiff(previous?:ClinicalReasoningPayload|null,current?:ClinicalReasoningPayload|null,newFact?:SourceLinkedEvidence):SelectiveUpdateDiff {
-  const before=previous?.stage5_alternatives || [],after=current?.stage5_alternatives || [];
-  return {previousRunDate:previous?.stage9_continuity.savedAt,currentRunDate:new Date().toISOString(),
-    triggerEvent:newFact?'New user-reported clarification saved':previous?'Review compared with previous version':'Initial evidence review',
-    whatChangedAndWhy:newFact?'An observation was added. Interpretations have not been re-evaluated; run a new review to assess its impact.':'Only explicit differences between saved versions are shown.',
-    affectedConclusions:[...after.map(a=>({hypothesis:a.title,shift:(before.some(b=>b.id===a.id)?'unaffected':'new') as 'unaffected'|'new',
-      rationale:newFact?'Awaiting a new evidence review; no clinical weight inferred.':'Present in this saved version.'})),
-      ...before.filter(b=>!after.some(a=>a.id===b.id)).map(b=>({hypothesis:b.title,shift:'retired' as const,rationale:'Not present in this review; this is not a clinical exclusion.'}))],
-    resolvedQuestions:[],newQuestions:(current?.stage9_continuity.openQuestions || []).filter(q=>!previous?.stage9_continuity.openQuestions.includes(q))};
-}
-export function runClinicalReasoningPipeline(rawInput:{documentedFacts?:any[];primaryHypothesis?:string;executiveSummary?:string;uncertainties?:string[];missingLinks?:string[];questionsForClinician?:string[];perspectives?:any[];alternatives?:any[]},
-previousPayload?:ClinicalReasoningPayload|null,newFactAnswer?:{questionId:string;answerText:string}):ClinicalReasoningPayload {
+export function runClinicalReasoningPipeline(
+  rawInput: {
+    documentedFacts?: any[];
+    primaryHypothesis?: string;
+    executiveSummary?: string;
+    uncertainties?: string[];
+    missingLinks?: string[];
+    questionsForClinician?: string[];
+    perspectives?: any[];
+    alternatives?: any[];
+  },
+  previousPayload?: ClinicalReasoningPayload | null,
+  newFactAnswer?: { questionId: string; answerText: string }
+): ClinicalReasoningPayload {
   const seenFactIds = new Set<string>();
-  const facts:SourceLinkedEvidence[]=[];
+  const facts: SourceLinkedEvidence[] = [];
   for (const f of rawInput.documentedFacts || []) {
-    if (!f || typeof(f.fact || f.text) !== 'string') continue;
-    const id = f.id || 'fact_'+stableEvidenceId(JSON.stringify([f.source,f.fact || f.text,f.eventDate]));
+    if (!f || typeof (f.fact || f.text) !== 'string') continue;
+    const id =
+      f.id || 'fact_' + stableEvidenceId(JSON.stringify([f.source, f.fact || f.text, f.eventDate]));
     if (seenFactIds.has(id)) continue;
     seenFactIds.add(id);
     facts.push({
       ...f,
       id,
-      fact:f.fact || f.text,
-      source:f.source || 'User report',
-      category:f.category || 'user_report',
-      allowedRole:f.allowedRole || 'Evidence of the reported experience',
-      confidence:f.category==='user_report'?'self_reported':'provisional',
-      timestamp:f.timestamp,
+      fact: f.fact || f.text,
+      source: f.source || 'User report',
+      category: f.category || 'user_report',
+      allowedRole: f.allowedRole || 'Evidence of the reported experience',
+      confidence: f.category === 'user_report' ? 'self_reported' : 'provisional',
+      timestamp: f.timestamp,
     });
   }
-  for(const f of previousPayload?.stage1_facts || []) {
-    if(f.id.startsWith('feedback_') && !facts.some(x=>x.id===f.id) && !seenFactIds.has(f.id)) {
+  for (const f of previousPayload?.stage1_facts || []) {
+    if (
+      f.id.startsWith('feedback_') &&
+      !facts.some((x) => x.id === f.id) &&
+      !seenFactIds.has(f.id)
+    ) {
       seenFactIds.add(f.id);
       facts.push(f);
     }
   }
-  let injected:SourceLinkedEvidence|undefined;
-  if(newFactAnswer?.answerText?.trim()){
-    const question=previousPayload?.stage7_focusedQuestion;
-    if(!question?.question || question.id!==newFactAnswer.questionId) throw new Error('This question is no longer current. Reload the review before answering.');
-    injected={id:'feedback_'+stableEvidenceId(question.id+newFactAnswer.answerText.trim()),fact:newFactAnswer.answerText.trim(),
-      source:'User clarification response',category:'user_report',allowedRole:'Evidence of the reported experience',confidence:'self_reported',timestamp:new Date().toISOString()};
-    if(!facts.some(f=>f.id===injected!.id)) facts.push(injected);
+  let injected: SourceLinkedEvidence | undefined;
+  if (newFactAnswer?.answerText?.trim()) {
+    const question = previousPayload?.stage7_focusedQuestion;
+    if (!question?.question || question.id !== newFactAnswer.questionId)
+      throw new Error('This question is no longer current. Reload the review before answering.');
+    injected = {
+      id: 'feedback_' + stableEvidenceId(question.id + newFactAnswer.answerText.trim()),
+      fact: newFactAnswer.answerText.trim(),
+      source: 'User clarification response',
+      category: 'user_report',
+      allowedRole: 'Evidence of the reported experience',
+      confidence: 'self_reported',
+      timestamp: new Date().toISOString(),
+    };
+    if (!facts.some((f) => f.id === injected!.id)) facts.push(injected);
   }
-  const alternatives=facts.length?(rawInput.alternatives || []).filter(a=>a?.title && ['connected_explanation','separate_explanations','insufficient_evidence'].includes(a.type)).map(a=>({
-    ...a,id:a.id || 'alternative_'+stableEvidenceId(a.title),
-    likelihoodAssessment:['leading','competing','uncertain'].includes(a.likelihoodAssessment)?a.likelihoodAssessment:'uncertain',
-    mechanismSummary:a.mechanismSummary || '',rationale:a.rationale || '',
-  })):[];
-  const corrections=detectCorrectionQueue(facts, previousPayload?.stage3_correctionQueue);
-  const assessments=buildTriProngChallenges(alternatives,facts,rawInput.missingLinks || [],corrections);
-  const focused=selectFocusedClarification(rawInput.questionsForClinician || [],[],alternatives);
-  if(injected && previousPayload?.stage7_focusedQuestion.id===focused.id) Object.assign(focused,{status:'answered',userAnswer:injected.fact,answeredAt:injected.timestamp});
-  else if(previousPayload?.stage7_focusedQuestion.id===focused.id && previousPayload.stage7_focusedQuestion.status==='answered') Object.assign(focused,previousPayload.stage7_focusedQuestion);
-  const payload:ClinicalReasoningPayload={
-    stage1_facts:facts,stage2_timeline:alignChronology(facts),stage3_correctionQueue:corrections,
-    stage4_perspectives:facts.length?justifyPerspectives(rawInput.uncertainties || [],rawInput.perspectives):[],
-    stage5_alternatives:alternatives,stage6_balancedAssessments:assessments,stage7_focusedQuestion:focused,
-    stage8_synthesis:synthesizeFindings(facts,alternatives,assessments,rawInput.uncertainties || [],corrections),
-    stage9_continuity:{openQuestions:[...new Set(rawInput.questionsForClinician || [])],chosenNextAction:previousPayload?.stage9_continuity.chosenNextAction || '',preservedHypotheses:alternatives.map(a=>a.title),savedAt:new Date().toISOString()},
+  const alternatives = facts.length
+    ? (rawInput.alternatives || [])
+        .filter(
+          (a) =>
+            a?.title &&
+            ['connected_explanation', 'separate_explanations', 'insufficient_evidence'].includes(
+              a.type
+            )
+        )
+        .map((a) => ({
+          ...a,
+          id: a.id || 'alternative_' + stableEvidenceId(a.title),
+          likelihoodAssessment: ['leading', 'competing', 'uncertain'].includes(
+            a.likelihoodAssessment
+          )
+            ? a.likelihoodAssessment
+            : 'uncertain',
+          mechanismSummary: a.mechanismSummary || '',
+          rationale: a.rationale || '',
+        }))
+    : [];
+  const corrections = detectCorrectionQueue(facts, previousPayload?.stage3_correctionQueue);
+  const assessments = buildTriProngChallenges(
+    alternatives,
+    facts,
+    rawInput.missingLinks || [],
+    corrections
+  );
+  const focused = selectFocusedClarification(
+    rawInput.questionsForClinician || [],
+    [...(rawInput.missingLinks || []), ...(rawInput.uncertainties || [])],
+    alternatives
+  );
+  if (injected && previousPayload?.stage7_focusedQuestion.id === focused.id)
+    Object.assign(focused, {
+      status: 'answered',
+      userAnswer: injected.fact,
+      answeredAt: injected.timestamp,
+    });
+  else if (
+    previousPayload?.stage7_focusedQuestion.id === focused.id &&
+    previousPayload.stage7_focusedQuestion.status === 'answered'
+  )
+    Object.assign(focused, previousPayload.stage7_focusedQuestion);
+  const payload: ClinicalReasoningPayload = {
+    stage1_facts: facts,
+    stage2_timeline: alignChronology(facts),
+    stage3_correctionQueue: corrections,
+    stage4_perspectives: facts.length
+      ? justifyPerspectives(rawInput.uncertainties || [], rawInput.perspectives)
+      : [],
+    stage5_alternatives: alternatives,
+    stage6_balancedAssessments: assessments,
+    stage7_focusedQuestion: focused,
+    stage8_synthesis: synthesizeFindings(
+      facts,
+      alternatives,
+      assessments,
+      rawInput.uncertainties || [],
+      corrections,
+      rawInput.executiveSummary
+    ),
+    stage9_continuity: {
+      openQuestions: [...new Set(rawInput.questionsForClinician || [])],
+      chosenNextAction: previousPayload?.stage9_continuity.chosenNextAction || '',
+      preservedHypotheses: alternatives.map((a) => a.title),
+      savedAt: new Date().toISOString(),
+    },
   };
-  payload.stage10_selectiveUpdate=computeSelectiveUpdateDiff(previousPayload,payload,injected);
+  payload.stage10_selectiveUpdate = computeSelectiveUpdateDiff(previousPayload, payload, injected);
   return payload;
 }

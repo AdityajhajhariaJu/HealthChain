@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { ClinicalUrgencyNotice } from './ClinicalUrgencyNotice';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import {
@@ -89,6 +90,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
         fontFamily: 'inherit',
       }}
     >
+      <ClinicalUrgencyNotice urgency={answer.urgency} />
       <h3 style={{ margin: 0, fontSize: isMobile ? '18px' : '20px', color: '#0F172A' }}>
         Review summary
       </h3>

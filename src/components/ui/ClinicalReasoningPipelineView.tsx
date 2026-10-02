@@ -459,7 +459,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
                   ))
                 ) : (
                   <div style={{ fontSize: '13px', color: '#166534' }}>
-                    No concurrent symptom surge or drug start overlaps detected.
+                    No shared event date was identified in the supplied records. Undated events and symptom sequence remain unassessed.
                   </div>
                 )}
               </div>
@@ -476,7 +476,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
                   ))
                 ) : (
                   <div style={{ fontSize: '13px', color: '#92400E' }}>
-                    No prolonged gaps exceeding 90 days identified.
+                    {payload.stage2_timeline.gapAssessment === 'recorded_dates_only' ? 'No interval between the supplied dated records exceeds 90 days. Missing records are not evidence of absent symptoms or care.' : 'Not enough unambiguous dated records to assess intervals.'}
                   </div>
                 )}
               </div>
@@ -491,8 +491,8 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               </div>
               {payload.stage2_timeline.entries.map((entry, i) => (
                 <div key={entry.id || i} style={{ padding: '12px 18px', borderBottom: '1px solid #E2E8F0', display: 'grid', gridTemplateColumns: '120px 120px 1fr', fontSize: '13px', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 700, color: '#0F172A' }}>{entry.eventDate || '—'}</span>
-                  <span style={{ color: '#64748B' }}>{entry.reportDate || entry.entryDate}</span>
+                  <span style={{ fontWeight: 700, color: '#0F172A' }}>{entry.eventDate || (entry.rawEventDate ? `${entry.rawEventDate} (ambiguous)` : '—')}</span>
+                  <span style={{ color: '#64748B' }}>{entry.reportDate || (entry.rawReportDate ? `${entry.rawReportDate} (ambiguous)` : entry.entryDate)}</span>
                   <span style={{ color: '#1E293B', fontWeight: 500 }}>{entry.description}</span>
                 </div>
               ))}
@@ -520,9 +520,9 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
             {payload.stage3_correctionQueue.length === 0 ? (
               <div style={{ background: '#F0FDF4', border: '1.5px solid #BBF7D0', borderRadius: '14px', padding: '24px', textAlign: 'center', color: '#166534' }}>
                 <CheckCircle2 size={32} style={{ margin: '0 auto 8px auto', display: 'block' }} />
-                <div style={{ fontWeight: 800, fontSize: '16px' }}>All Records Reconciled</div>
+                <div style={{ fontWeight: 800, fontSize: '16px' }}>No discrepancies detected by these checks</div>
                 <p style={{ margin: '6px 0 0 0', fontSize: '13.5px', color: '#15803D' }}>
-                  No duplicates, incompatible measurement units, or conflicting patient-clinician reports were identified.
+                  No repeated text or same-date differences for the same measured marker were detected in the supplied facts. Other discrepancies may require review of the original sources.
                 </p>
               </div>
             ) : (

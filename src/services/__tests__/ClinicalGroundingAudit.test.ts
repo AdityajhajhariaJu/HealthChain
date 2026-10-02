@@ -165,9 +165,10 @@ describe('Package 1: Clinical Grounding Audit (Exact 11 Grounding Failure Modes)
       evidence: facts,
     });
 
-    // Distinct reasoning perspectives accepted
-    expect(result.meaningfulPerspectives.some((p) => p.specialty === 'Orthopedics')).toBe(true);
-    expect(result.meaningfulPerspectives.some((p) => p.specialty === 'Rheumatology')).toBe(true);
+    // A rejected claim withholds this review's interpretations in every view.
+    expect(result.meaningfulPerspectives).toEqual([]);
+    expect(result.reasoningPipeline.stage4_perspectives).toEqual([]);
+    expect(result.documentedFacts).toHaveLength(facts.length);
 
     // Duplicate reasoning perspective quarantined
     expect(

@@ -75,6 +75,7 @@ export interface GutSynthesis {
   followUpQuestion?: string;
   followUpWhy?: string;
   supportingQuotes?: Array<{ sourceId: string; quote: string }>;
+  researchFingerprint?: string;
 }
 
 export interface GutEvidenceOccasion {
@@ -83,6 +84,7 @@ export interface GutEvidenceOccasion {
   answerSource: Observation | null;
   answerOrigin: 'canonical' | 'meal_reaction' | 'both' | 'conflict' | 'none';
   mealReactionAnswer: Answer;
+  reportedAnswers?: Array<{ id: string; kind: 'gut_report' | 'diet_reaction'; answer: Answer; text: string; revision: number | null; occurredAt: string | null; timePrecision: TimePrecision }>;
   sameDay: GutDay | null;
   otherMeals: GutMeal[];
   alternativeContext: GutAlternativeContext[];
@@ -254,6 +256,7 @@ const cleanGutSynthesis = (value: unknown): GutSynthesis | null => {
     evidenceFingerprint: limit(source.evidenceFingerprint, 240),
     researchTopic: limit(source.researchTopic, 40),
     researchIds: Array.isArray(source.researchIds) ? [...new Set(source.researchIds.filter((id): id is string => typeof id === 'string' && /^\d+$/.test(id)))].slice(0, 8) : [],
+    researchFingerprint: limit(source.researchFingerprint, 80),
     headline: limit(source.headline, 180),
     personalReading: limit(source.personalReading, 900),
     personalSourceIds: cleanIds(source.personalSourceIds, 16),
@@ -429,6 +432,10 @@ export function deriveGutEvidence(thread: GutQuestionThread, snapshot: { meals: 
     ];
     return {
       meal, answer, answerSource: report, answerOrigin, mealReactionAnswer,
+      reportedAnswers: [
+        ...[checkin,linkedReport].filter((item,index,all): item is Observation => !!item && all.findIndex(other => other?.id === item.id) === index).map(item => ({id:item.id,kind:'gut_report' as const,answer:item.payload.kind === 'daily_checkin' ? item.payload.answers[thread.symptom] || 'unanswered' : 'yes' as Answer,text:item.payload.kind === 'daily_checkin' ? JSON.stringify({[thread.symptom]:item.payload.answers[thread.symptom] || 'unanswered',note:item.payload.note}) : item.payload.kind === 'symptom' ? [item.payload.symptom,item.payload.note].filter(Boolean).join(' — ') : '',revision:item.revision,occurredAt:item.occurredAt,timePrecision:item.timePrecision})),
+        ...(mealReactionAnswer !== 'unanswered' ? [{id:meal.id,kind:'diet_reaction' as const,answer:mealReactionAnswer,text:JSON.stringify({reactionType:meal.reactionType,reaction:meal.reaction}),revision:null,occurredAt:null,timePrecision:'date_only' as const}] : []),
+      ],
       sameDay: snapshot.days.find((day) => day.date === meal.date) || null,
       otherMeals,
       alternativeContext,

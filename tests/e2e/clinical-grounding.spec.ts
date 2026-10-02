@@ -80,3 +80,24 @@ test('mobile saved review stays within viewport',async({page},testInfo)=>{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('mobile-review.png'),fullPage:true});
 });
+
+test('current chest pressure and breathlessness shows emergency guidance before sign-in or a review call',async({page})=>{
+  await page.goto('/app/consult?review=new',{waitUntil:'domcontentloaded'});
+  await advanceToStep(page,4);
+  await page.getByRole('textbox',{name:'Clinical timeline and symptom notes'}).fill('I have chest pressure and breathlessness right now, starting 20 minutes ago. My ECG six months ago was normal.');
+  const alert = page.locator('[data-urgency="urgent_emergency_care"]');
+  await expect(alert).toBeVisible();
+  await expect(alert).toContainText('Do not wait for an AI reply');
+});
+
+test('an older saved interpretation requires refresh and cannot reopen as a current verdict',async({page})=>{
+  const id = await seed(page);
+  await page.evaluate(async id => {
+    const engine = await import('/src/services/CaseEngine.ts');
+    engine.saveReviewSnapshot({caseId:id,type:'jarvis',report:{groundingVersion:1,executiveSummary:'You have confirmed coeliac disease.',primaryHypothesis:'Confirmed coeliac disease'},specialists:[]});
+  },id);
+  await page.goto('/app/consult?caseId='+id);
+  await expect(page.getByText('An earlier review predates the current evidence checks. Run a fresh review from your original records before relying on its interpretation.')).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Your record review is ready'})).toHaveCount(0);
+  await expect(page.getByText('You have confirmed coeliac disease.',{exact:true})).toHaveCount(0);
+});

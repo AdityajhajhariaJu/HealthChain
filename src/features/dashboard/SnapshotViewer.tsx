@@ -35,6 +35,7 @@ import {
   generateMeaningfulPerspectives,
 } from '../../services/MultiPerspectiveReviewEngine';
 import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
+import { isCurrentClinicalReview } from '../../services/clinicalReview';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
 
@@ -52,7 +53,10 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toast = useToast();
-  const reviews = item.reviews || [];
+  const reviews = (item.reviews || []).map(review => review.type !== 'jarvis' || isCurrentClinicalReview(review.report) ? review : {
+    ...review,
+    report: {primaryHypothesis:'Saved review needs refreshing',executiveSummary:'This saved review predates the current evidence checks. Its interpretations are withheld. Run a fresh review from your original case records.'},
+  });
   const [activeReviewId, setActiveReviewId] = useState<string | null>(
     reviews.length > 0 ? reviews[0].id : null
   );
@@ -497,7 +501,7 @@ AI-generated preparation material. Verify against original records.`;
                        <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Executive Summary</h3>
                        <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>
                           {elifMode 
-                             ? (activeReview.report?.executiveSummary ? "Basically, the doctors looked at everything and think we have a clear idea of what's going on. Here are the main things you need to know in simple terms." : 'No summary available.') 
+                             ? (activeReview.report?.executiveSummary || 'No summary available.')
                              : (activeReview.report?.executiveSummary || 'No summary available.')}
                        </p>
                     </section>
@@ -526,7 +530,7 @@ AI-generated preparation material. Verify against original records.`;
                                <p
                                  style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
                                >
-                                 {elifMode ? `We think it might be ${condition}. The doctors discussed this and agree on the next steps.` : rationale}
+                                 {elifMode ? `AI-generated possibility: ${condition}. ${rationale}` : rationale}
                                </p>
                              </div>
                            );

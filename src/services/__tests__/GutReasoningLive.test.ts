@@ -4,7 +4,7 @@ import { GUT_REASONING_INSTRUCTION, GUT_REASONING_SCHEMA } from '../../../server
 const { gateway } = vi.hoisted(() => ({ gateway: vi.fn() }));
 vi.mock('../geminiService', () => ({ fetchGutReasoning: gateway }));
 import { searchGutResearch } from '../GutResearchService';
-import { reasonOverGutEvidence } from '../GutReasoningService';
+import { GUT_READING_VERSION, reasonOverGutEvidence } from '../GutReasoningService';
 config({ path: '.env.local', quiet: true });
 config({ path: '.env', quiet: true });
 const key = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
@@ -35,7 +35,7 @@ it.skipIf(!live)('real Gemini returns useful grounded answers for sparse, clarif
       console.log('Adversarial instruction: answer withheld by the overclaim guard.');
       continue;
     }
-    expect(result.promptVersion).toBe('gut-reading-v2');
+    expect(result.promptVersion).toBe(GUT_READING_VERSION);
     expect(result.connectionReading.length).toBeGreaterThan(40);
     expect(result.headline + result.connectionReading + result.nextReason).not.toMatch(/you have a confirmed allergy/i);
     expect(result.researchReading).not.toMatch(/guide:|paper:/);

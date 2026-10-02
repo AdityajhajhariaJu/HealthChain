@@ -77,8 +77,10 @@ import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { reviewedCaseWithCurrentSources } from '../../services/ClinicalDailyEvidence';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
-import { normalizeClinicalReview } from '../../services/clinicalReview';
+import { isCurrentClinicalReview, normalizeClinicalReview } from '../../services/clinicalReview';
 import { runJarvisInvestigation } from '../../services/geminiService';
+import { ClinicalUrgencyNotice } from '../../components/ui/ClinicalUrgencyNotice';
+import { evaluateClinicalUrgency } from '../../services/clinicalTriageEngine';
 import {
   triggerHapticLight,
   triggerHapticSelection,
@@ -1492,7 +1494,7 @@ export default function JarvisInvestigator() {
           );
           const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
           if (
-            jarvisReview?.report?.groundingVersion === 1 &&
+            jarvisReview && isCurrentClinicalReview(jarvisReview.report) &&
             searchParams.get('review') !== 'new'
           ) {
             setReport(jarvisReview.report);
@@ -1746,6 +1748,11 @@ AI-generated preparation material. Verify against original records; this is not 
 
   const handleRunInvestigation = async () => {
     if (runningRef.current || readingRef.current) return;
+    const urgency = evaluateClinicalUrgency(history);
+    if (urgency.level === 'urgent_emergency_care') {
+      toast.error('Seek emergency help now', urgency.action);
+      return;
+    }
     const requestScope = engineScope();
     const effectiveCaseId = selectedCaseId || missingCaseId;
     const requestCaseId = effectiveCaseId;
@@ -1947,6 +1954,7 @@ AI-generated preparation material. Verify against original records; this is not 
           justifyContent: 'center',
         }}
       >
+        <ClinicalUrgencyNotice text={history} />
         <CompilingAnimation isMobile={isMobile} />
       </div>
     );
@@ -1968,6 +1976,7 @@ AI-generated preparation material. Verify against original records; this is not 
           margin: '0 auto',
         }}
       >
+        <ClinicalUrgencyNotice text={history} urgency={report.structuredAnswer?.urgency} />
         <section className="case-workspace" aria-labelledby="review-ready-title">
           <header style={{ marginBottom: 18 }}>
             <span className="case-workspace-eyebrow">Saved to My Cases</span>
@@ -2134,6 +2143,8 @@ AI-generated preparation material. Verify against original records; this is not 
         fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
       }}
     >
+      <ClinicalUrgencyNotice text={history} />
+      {selectedCaseId && getCase(selectedCaseId)?.reviews?.some(review => review.type === 'jarvis' && !isCurrentClinicalReview(review.report)) && <p role="status">An earlier review predates the current evidence checks. Run a fresh review from your original records before relying on its interpretation.</p>}
       {/* Workspace Header / Session Status matching Reference Layout */}
       <div
         style={{

@@ -8,6 +8,7 @@ import { sha256Hash } from './transport';
 import { buildReviewEvidence } from '../clinicalReview';
 import { buildClinicalReviewPrompt } from '../clinicalReview';
 import { normalizeClinicalReview } from '../clinicalReview';
+import { evaluateClinicalUrgency } from '../clinicalTriageEngine';
 import type { Message } from './gut';
 
 export async function suggestSpecialists(
@@ -641,6 +642,16 @@ export async function runJarvisInvestigation(
   profile: any,
   sourceCase?: any
 ): Promise<any> {
+  const urgency = evaluateClinicalUrgency(history);
+  if (urgency.level === 'urgent_emergency_care') {
+    const evidence = buildReviewEvidence(history, sourceCase);
+    return normalizeClinicalReview({
+      documentedFacts: evidence,
+      executiveSummary: `${urgency.action} ${urgency.reason}`,
+      primaryHypothesis: 'Urgent medical assessment needed',
+      questionsForClinician: [],
+    }, null, undefined, { evidence });
+  }
   const fileHashes = await Promise.all(
     files.map((file) => sha256Hash(file.mimeType + ':' + file.data))
   );

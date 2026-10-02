@@ -39,9 +39,12 @@ import {
 } from '../../../services/GutPublicSourceGuide';
 import { frameGutQuestion, type GutQuestionFrame } from '../../../services/GutQuestionFrameService';
 import {
+  GUT_READING_VERSION,
+  gutResearchFingerprint,
   gutSynthesisFingerprint,
   reasonOverGutEvidence,
 } from '../../../services/GutReasoningService';
+import { ClinicalUrgencyNotice } from '../../../components/ui/ClinicalUrgencyNotice';
 import { makeGutResearchPassport } from '../../../services/GutResearchDossierService';
 import {
   compareGutPublicationStatus,
@@ -293,10 +296,10 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
     return classifyGutAnswerState(evidence, thread);
   }, [evidence, thread]);
   const synthesisStale = !!thread?.gutSynthesis && (
-    thread.gutSynthesis.promptVersion !== 'gut-reading-v2'
+    thread.gutSynthesis.promptVersion !== GUT_READING_VERSION
     || thread.gutSynthesis.evidenceFingerprint !== gutSynthesisFingerprint(thread, evidence, contextFingerprint, reasoningTopic)
     || Date.now() - Date.parse(thread.gutSynthesis.at) > 24 * 60 * 60 * 1000
-    || (researchStatus === 'ready' && researchTopic === reasoningTopic && research.map((paper) => paper.id).slice(0, 6).join(',') !== thread.gutSynthesis.researchIds.join(','))
+    || (researchStatus === 'ready' && researchTopic === reasoningTopic && gutResearchFingerprint(research) !== thread.gutSynthesis.researchFingerprint)
   );
 
   const openThreads = threads.filter((item) => item.status === 'open');
@@ -629,6 +632,7 @@ export const GutResolutionWorkspace: React.FC<Props> = ({ initialThreadId, onOpe
   </details>;
 
   return <div className={`gr-workspace${!thread ? ` gr-journey-step-${onboardingStep}` : ' gr-journey-brief'}`}>
+    <ClinicalUrgencyNotice text={thread ? [thread.question, ...(thread.clarifications || []).map(item => item.answer)].join('\n') : question} />
     {observationSyncNote && <p className="gr-sync-note" role="status"><ShieldCheck size={17} /> {observationSyncNote}</p>}
     {!thread ? <>
       {!startingNew && onboardingStep === 1 && openThreads.length > 0 && <section className="gx-saved-questions"><div><span className="gx-eyebrow">PICK UP WHERE YOU LEFT OFF</span><h3>Your open questions</h3><p className="gx-return-help">Follow a connection, add a detail, or pick up your next step.</p><button type="button" className="gx-primary" onClick={() => setStartingNew(true)}><Sparkles size={16} /> Ask something new</button></div>{openThreads.map(item => <button type="button" key={item.id} onClick={() => openThread(item)}><span className="gx-orb"><GitBranch size={17} /></span><span><strong>{item.question}</strong><small>{item.gutSynthesis ? 'Answer saved · continue exploring' : 'Question saved'}</small></span><span>Continue <ArrowRight size={15} /></span></button>)}</section>}
