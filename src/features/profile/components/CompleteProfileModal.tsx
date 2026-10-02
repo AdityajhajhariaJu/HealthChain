@@ -23,16 +23,19 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { normalizeFoodLocation } from '../../../shared/food-location';
-import { completeProfileOnboarding, getProfile } from '../../services/ProfileEngine';
-import { awardPoints } from '../../services/VitalityPointsEngine';
+import { normalizeFoodLocation } from '../../../../shared/food-location';
+import {
+  CalmApothecaryCapsule,
+  CalmCategoryKey,
+} from '../../../components/ui/CalmApothecaryCapsule';
+import { FoodLocationFields } from '../../../components/ui/FoodLocationFields';
+import { completeProfileOnboarding, getProfile } from '../../../services/ProfileEngine';
+import { awardPoints } from '../../../services/VitalityPointsEngine';
 import {
   triggerHapticLight,
   triggerHapticSelection,
   triggerHapticSuccess,
-} from '../../services/haptics';
-import { CalmApothecaryCapsule, CalmCategoryKey } from './CalmApothecaryCapsule';
-import { FoodLocationFields } from './FoodLocationFields';
+} from '../../../services/haptics';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';

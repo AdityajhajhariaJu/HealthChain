@@ -86,7 +86,7 @@ describe('P1 Finding 6: Payment Fulfillment Recovery & Error Safety', () => {
               maybeSingle: vi.fn(async () => ({ data: null })),
             })),
           })),
-          update: vi.fn((data: any) => ({
+          update: vi.fn((_data: any) => ({
             eq: vi.fn(() => {
               return { error: null, eq: vi.fn(async () => ({ error: null })) };
             }),

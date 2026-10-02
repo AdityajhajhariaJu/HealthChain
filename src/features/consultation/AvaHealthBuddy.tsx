@@ -38,6 +38,7 @@ import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal
 import type { Observation } from '../../domain/observations/types';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useMountedRef } from '../../hooks/useMountedRef';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { getActiveSession } from '../../services/authSession';
 import {
@@ -70,6 +71,7 @@ import { compilePatientContext } from '../../services/MemoryService';
 import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
 import { canUseTrial, openTrialModal, recordTrialUsage } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { TypewriterText } from './TypewriterText';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -189,55 +191,6 @@ function getSavedMessages() {
   }
   return loadAvaMessages(legacy);
 }
-
-const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
-  const [displayed, setDisplayed] = useState('');
-  const isMounted = useRef(true);
-
-  useEffect(() => {
-    isMounted.current = true;
-    let current = '';
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setDisplayed(content);
-      onComplete();
-      return;
-    }
-    const type = async () => {
-      const chunkSize = 3;
-      for (let i = 0; i < content.length; i += chunkSize) {
-        if (!isMounted.current) break;
-        current += content.substring(i, i + chunkSize);
-        setDisplayed(current);
-
-        // Auto-scroll logic if user is at the bottom
-        if (messagesEndRef?.current) {
-          const container = messagesEndRef.current.parentElement?.parentElement;
-          if (container) {
-            const { scrollTop, scrollHeight, clientHeight } = container;
-            if (scrollHeight - scrollTop - clientHeight < 150) {
-              requestAnimationFrame(() => {
-                if (messagesEndRef.current) {
-                  messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
-                }
-              });
-            }
-          }
-        }
-        await new Promise((r) => setTimeout(r, 10));
-      }
-      if (isMounted.current) {
-        setDisplayed(content);
-        onComplete();
-      }
-    };
-    type();
-    return () => {
-      isMounted.current = false;
-    };
-  }, [content, messagesEndRef]);
-
-  return <span style={{ whiteSpace: 'pre-wrap' }}>{displayed}</span>;
-};
 
 export function cleanChatMessageText(text: string): string {
   return typeof text === 'string' ? text.trim() : '';
@@ -1974,13 +1927,7 @@ export default function AvaHealthBuddy() {
     bg: '#F8FAFC', // Slate 50
   };
 
-  const isMounted = useRef(true);
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  const isMounted = useMountedRef();
 
   // Safe auto-scroll when user sends a new message or Ava starts typing
   useEffect(() => {
@@ -3991,9 +3938,6 @@ export default function AvaHealthBuddy() {
           setIsDetectiveOpen(false);
           setWholeHealthTab('detective');
           setIsWholeHealthOpen(true);
-        }}
-        onOpenConsult={() => {
-          setIsDetectiveOpen(false);
         }}
         onOpenCasePrep={() => {
           setIsDetectiveOpen(false);

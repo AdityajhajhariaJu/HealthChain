@@ -15,24 +15,12 @@ export type TrialStatus =
   | 'completed'
   | 'stopped';
 
-export type ChallengeStatus =
-  | 'planned'
-  | 'active'
-  | 'reaction_recorded'
-  | 'completed'
-  | 'stopped';
+export type ChallengeStatus = 'planned' | 'active' | 'reaction_recorded' | 'completed' | 'stopped';
 
 export type ChallengeOutcome =
-  | 'no_reaction'
-  | 'reaction_recorded'
-  | 'inconclusive'
-  | 'clinician_review_needed';
+  'no_reaction' | 'reaction_recorded' | 'inconclusive' | 'clinician_review_needed';
 
-export type AdherenceLevel =
-  | 'unknown'
-  | 'followed'
-  | 'partly_followed'
-  | 'not_followed';
+export type AdherenceLevel = 'unknown' | 'followed' | 'partly_followed' | 'not_followed';
 
 export interface TrialBaselineRequirement {
   requiredObservations: number;
@@ -122,25 +110,6 @@ export interface FoodChallenge {
     symptomNotes?: string;
     hasReaction: boolean;
   }>;
-}
-
-export interface TrialDailyObservation {
-  id: string;
-  trialId: string;
-  dateKey: string;
-  dayIndex: number;
-  severityScore: number | null;
-  adherence: AdherenceLevel;
-  note?: string;
-  recordedAt: string;
-}
-
-export interface TrialChecklistCompletion {
-  id: string;
-  trialId: string;
-  dateKey: string;
-  completedTaskIds: string[];
-  updatedAt: string;
 }
 
 export interface HealthEvent {

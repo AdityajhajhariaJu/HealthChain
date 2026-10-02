@@ -21,6 +21,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Confetti from 'react-confetti';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/ui/ToastProvider';
 import {
   DEEP_FOCUS_TRACKS,
   DEEP_SLEEP_TRACKS,
@@ -36,12 +37,8 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { flushHealthMemory, recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
 import { useActionIslandStore } from '../../stores/actionIslandStore';
-import { useToast } from './ToastProvider';
 
-import {
-  LivingAtmosphereCanvas,
-  type AtmosphereTheme,
-} from '../../features/calm/LivingAtmosphereCanvas';
+import { LivingAtmosphereCanvas, type AtmosphereTheme } from './LivingAtmosphereCanvas';
 
 // Dual-Layer Ambient Soundscape Mixer
 export type AmbientLayerKey = 'off' | 'rain' | 'forest' | 'frequency';

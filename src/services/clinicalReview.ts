@@ -1,12 +1,13 @@
 import { validateNarrativeGrounding } from './clinicalClaimGuard';
-export { validateNarrativeGrounding } from './clinicalClaimGuard';
-export type { NarrativeGroundingCheck } from './clinicalClaimGuard';
+import {
+  explicitCollectionDate,
+  sourceMeasurement,
+  sourceMeasurements,
+} from './clinicalEvidenceText';
 import {
   classifyClinicalInformation,
-  ExtractionStatus,
   GroundedClaimRecord,
   INFORMATION_CATEGORY_REGISTRY,
-  InformationAuditEntry,
   partitionBeforeReasoning,
 } from './ClinicalInformationClassifier';
 import {
@@ -14,6 +15,8 @@ import {
   CorrectionQueueItem,
   runClinicalReasoningPipeline,
 } from './ClinicalReasoningEngine';
+import { clinicalSourceFingerprint } from './clinicalReviewSourceState';
+import { evaluateClinicalUrgency } from './clinicalTriageEngine';
 import {
   BoundedComparisonSummary,
   buildVersionedEvidenceSet,
@@ -23,13 +26,8 @@ import {
   VersionedEvidenceSet,
 } from './MultiPerspectiveReviewEngine';
 import { buildStructuredClinicalAnswer, StructuredClinicalAnswer } from './StructuredAnswerEngine';
-import {
-  explicitCollectionDate,
-  sourceMeasurement,
-  sourceMeasurements,
-} from './clinicalEvidenceText';
-import { evaluateClinicalUrgency } from './clinicalTriageEngine';
-import { clinicalSourceFingerprint } from './clinicalReviewSourceState';
+export { validateNarrativeGrounding } from './clinicalClaimGuard';
+export type { NarrativeGroundingCheck } from './clinicalClaimGuard';
 export const CLINICAL_VERDICT_VERSION = 2;
 
 /** Record a reply without treating it as a new AI interpretation or approval. */
@@ -143,22 +141,6 @@ export interface NormalizedClinicalReview {
   };
   recoveryActions?: ReviewRecoveryAction[];
   validationErrors?: string[];
-}
-
-export interface ExtractedBiomarkerFinding {
-  id?: string;
-  factId: string;
-  biomarker: string;
-  value: string;
-  unit?: string;
-  standardRange?: string;
-  optimalRange?: string;
-  clinicalRisk?: string;
-  reportDate?: string;
-  page?: number;
-  originalText?: string;
-  extractionStatus?: ExtractionStatus;
-  auditTrail?: InformationAuditEntry[];
 }
 
 function escapeRegex(str: string): string {

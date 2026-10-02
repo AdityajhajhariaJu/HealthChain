@@ -39,7 +39,8 @@ test('built mobile Clinical intake preserves the six-screen draft and original a
   await page.getByRole('button', { name: 'Next: Scope & Run (Step 6)' }).click();
   await page.getByRole('button', { name: /Doctor Visit Prep/ }).click();
   await page.getByRole('button', { name: 'Save & Exit', exact: true }).click();
-  await expect(page).toHaveURL(/\/app\/(?:cases|my-cases)$/);
+  await expect(page).toHaveURL(/\/app\/my-cases$/);
+  await expect(page.getByRole('heading', { name: 'My Cases', exact: true })).toBeVisible();
   await page.goto('/app/consult?review=new');
   await expect(page.getByRole('region', { name: 'Review input summary' })).toContainText(story);
   await page.reload();

@@ -15,15 +15,15 @@ import {
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import {
   SourcePassageModal,
   type SourcePassageModalProps,
 } from '../../components/ui/SourcePassageModal';
-import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
 import { useToast } from '../../components/ui/ToastProvider';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { useClinicalDailySourceFreshness } from '../../hooks/useClinicalDailySourceFreshness';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { CaseItem } from '../../services/CaseEngine';
 
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
@@ -34,8 +34,8 @@ import {
   generateMeaningfulPerspectives,
 } from '../../services/MultiPerspectiveReviewEngine';
 
-import { buildClinicalOutcome } from '../../services/StructuredAnswerEngine';
 import { isCurrentClinicalReview } from '../../services/clinicalReview';
+import { buildClinicalOutcome } from '../../services/StructuredAnswerEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
 
@@ -188,7 +188,7 @@ AI-generated preparation material. Verify against original records.`;
           <h3 style={{ margin: 0, fontSize: 16 }}>Clinical Snapshots ({reviews.length})</h3>
         </div>
         <div>
-          {[...reviews].reverse().map((review, index) => {
+          {[...reviews].reverse().map((review, _index) => {
             const isParallel = review.type === 'parallel';
             const isJarvis = review.type === 'jarvis';
             const isLab = review.type === 'lab_report';

@@ -31,7 +31,7 @@ describe('optional analytics consent', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(window.gtag).toHaveBeenCalled();
-    expect(insert).toHaveBeenCalled();
+    await vi.waitFor(() => expect(insert).toHaveBeenCalled());
   });
   it.each([null, 'declined'])(
     'does not send purchase conversions with consent %s',

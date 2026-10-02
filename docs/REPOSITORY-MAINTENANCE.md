@@ -124,3 +124,48 @@ The current local Lighthouse 11.4 compressed-build audit scores **53 performance
 - After the guest 401 correction, the fresh build and complete unit suite pass again, followed by all 14 production journeys and **24 affected Ava/scanner browser checks**. Guest success, error, cancellation and account-change behavior remain covered.
 - The read-only Supabase smoke check passes for 18 required relations and confirms protected account tables reject anonymous access. This pass adds no migrations and deletes no database records.
 - The full application/development dependency audit reports **zero vulnerabilities**. Capacitor synchronization and refreshed Android/iOS web copies pass with the ten used native plugins; signed builds and physical-device acceptance are separate checks.
+
+## Whole-app source cleanup — 2 October 2026
+
+This pass starts from `fa3c77a5`, after the six-screen Clinical intake and visible Clinical/Gut outcome work. It audits the whole source tree, including server/shared code, tests, scripts, import paths and dynamic identifiers. The figures below describe this pass only.
+
+### Removals and ownership
+
+- Removed **91 unreferenced exported declarations**, covering **2,751 declaration lines** before formatting, plus their orphaned local helpers and unused argument/prop plumbing. These include unmounted illustrative biomarker/food catalogs, duplicate case/preparation adapters, dead profile operations and unused analytics/haptic/storage wrappers. They had no callers in source, tests, API/server code, scripts, configuration or documentation. Referenced health records, native source, provider handlers, assets and migrations remain.
+- Removed **121 unreachable landing CSS rules** (13,649 source bytes before formatting). The CSS module is used only by the landing page; selectors were checked against its static class accesses and its state classes, including print/reduced-motion rules.
+- Moved profile completion/banner components to `features/profile/components`, the meditation player to `features/calm`, and a test-only architecture fixture to `services/testFixtures`. Imports point to their owners without duplicate compatibility implementations.
+- Extracted Clinical symptom/theme/step data to `clinicalIntakeCatalog.ts` and the symptom badge to its own component. Alias lookup is indexed, normalized and reused; symptom search computes one filtered list per query/category change.
+- Extracted Ava's cancellable typewriter, shared the mounted-state lifecycle hook, and lifted the diet progress renderer out of its parent. Formatted changed modules and organized imports. TypeScript now rejects unused parameters as well as unused locals.
+
+### Runtime corrections
+
+- Strict Mode effect replay no longer leaves Diet, differential review or appointment-guide requests permanently unable to clear their busy state. Replacement Ava messages cancel the previous typing loop; toast timers are bounded, dismissed and cancelled on unmount.
+- The appointment discussion guide no longer reuses an unscoped session-storage answer. Its bounded model cache includes the full action, profile and account generation. The prompt reads the actual demographic/condition/medicine/allergy schema and treats empty lists as missing supplied entries.
+- Semantic evidence nodes open the exact original case/record/finding/page/passage through an accessible source action. Decoupling an edge affects the displayed case even if another case is active. Decorative cards no longer trigger state changes with no visible result.
+- Auth detection, analytics session lookup and native auth exchange load the auth singleton asynchronously. Public rendering and consent controls are usable while that chunk is delayed; cleanup prevents orphan subscriptions. Durable initial-session recovery and consent rechecks are retained.
+- Simple shell animations use CSS; the landing uses [Motion's slim elements and LazyMotion](https://motion.dev/docs/react-reduce-bundle-size), with the optional animation renderer loaded asynchronously. Content starts visible; consent and launch controls remain usable if animation features cannot load. Fifteen public-screen icons share one chunk, reducing tiny parallel requests while feature libraries remain deferred. This uses the installed Vite 6/Rollup output API; no dependency upgrade is part of this pass.
+
+### Emitted JavaScript measurements
+
+| Static import graph | Before | After | Reduction |
+|---|---:|---:|---:|
+| Startup, raw | 662,322 bytes | 301,976 bytes | 54.4% |
+| Startup, gzip | 196,294 bytes | 97,493 bytes | 50.3% |
+| Public landing including startup, raw | 734,786 bytes | 415,794 bytes | 43.4% |
+| Public landing including startup, gzip | 222,147 bytes | 137,117 bytes | 38.3% |
+
+Startup uses three assets and the complete static public graph nine, down from sixteen for the public graph before icon grouping. These are emitted JavaScript bytes, not all eventual downloads: session detection still loads auth after mount and optional animation features load separately. Budget gates cap startup at 350,000 raw/110,000 gzip and the public graph at 450,000 raw/149,000 gzip bytes, and reject an eager auth client, animation renderer or feature engine.
+
+Runtime import resolution reports no missing local imports. Seven modules outside the browser runtime are deliberately retained: three type/test-contract modules and four server-only shared validators. Browser graph exclusion alone is not grounds to delete server or test code.
+
+### Verification and limits
+
+- Production TypeScript/build, both tightened JavaScript budgets, ESLint, repository hygiene, recursive syntax and import resolution pass. The runtime graph contains 319 implementation candidates, with 312 browser-reachable modules and no missing local imports. All 42 migration files and 27 schema checks pass; this pass changes no migrations or database records.
+- The complete unit run passes **876 tests**, with two existing opt-in live-model tests skipped. After the final optional-animation loading change, all seven affected landing/account-runtime regressions pass again. Added cases exercise Strict Mode request completion, typing cancellation, bounded toast timers, exact source navigation, cross-case edge changes and profile/account-scoped appointment guides.
+- The complete source browser run finishes with **209 of 214 checks passing**. Five Windows WebKit scenarios exceed their original deadlines; their saved page states show the expected controls/results. Their deadlines were adjusted, and all **ten targeted Chromium/WebKit checks pass without retries**. Instrumented WebKit durations range from 4.7 to 42.5 seconds; assertions, controls and persistence checks remain intact. This is a full run plus a targeted follow-up, not a claim of one all-green 214-check run.
+- All **28 built-asset Chromium/WebKit journeys pass without retries**, including the six-screen intake with original-document/draft persistence, complete Gut answers, auth boundaries and consent. The first production run exposed an outdated manifest-key fixture and a premature navigation during the legacy Cases redirect; both fixtures now wait for the actual emitted dependency/destination. After strengthening the optional-animation check to await a real failed request, all **six affected production checks pass again without retries**. Controlled provider responses validate runtime behavior; live clinical quality remains a separate gate.
+- The full application/development dependency audit reports **zero vulnerabilities**. The latest built web assets copy successfully to both Android and iOS; copying assets does not verify a signed physical-device build.
+
+The same compressed-build Lighthouse 11.4 harness scores **57 performance, 100 accessibility, 100 best practices and 100 SEO**, compared with 53 performance at the start of this pass. Simulated mobile FCP changes from 7.73 to 6.84 seconds, LCP from 10.06 to **9.01 seconds**, and total blocking time from 206.5 to **26.5 ms**; cumulative layout shift is zero. The headline remains the largest contentful paint element. These local measurements show smaller downloads and less blocking, while mobile paint still falls short of the performance target. Large deferred PDF/3D chunks still produce the existing build warnings.
+
+Signed phones, real payment/provider flows, multi-device convergence and qualified clinical/nutrition validation retain their separate acceptance gates in the functional audit; source cleanup cannot establish universal correctness or universally satisfactory clinical answers.

@@ -24,21 +24,70 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
 }) => {
   // Displaying an existing record is never a command to create another record.
 
-  const getCategoryMeta = (cat = '', items: string[]) => {
+  const getCategoryMeta = (cat = '') => {
     const text = cat.toLowerCase();
-    if (text.includes('posture') || text.includes('sitting') || text.includes('chair') || text.includes('desk') || text.includes('lumbar')) {
-      return { icon: '🪑', label: 'Posture & Ergonomics', bg: '#F0FDFA', color: '#0F766E', border: '#CCFBF1' };
+    if (
+      text.includes('posture') ||
+      text.includes('sitting') ||
+      text.includes('chair') ||
+      text.includes('desk') ||
+      text.includes('lumbar')
+    ) {
+      return {
+        icon: '🪑',
+        label: 'Posture & Ergonomics',
+        bg: '#F0FDFA',
+        color: '#0F766E',
+        border: '#CCFBF1',
+      };
     }
-    if (text.includes('symptom') || text.includes('bloat') || text.includes('headache') || text.includes('pain') || text.includes('fog')) {
+    if (
+      text.includes('symptom') ||
+      text.includes('bloat') ||
+      text.includes('headache') ||
+      text.includes('pain') ||
+      text.includes('fog')
+    ) {
       return { icon: '⚡', label: 'Symptoms', bg: '#FFF1F2', color: '#E11D48', border: '#FECDD3' };
     }
-    if (text.includes('coffee') || text.includes('espresso') || text.includes('tea') || text.includes('caffeine') || text.includes('drink') || text.includes('wine')) {
-      return { icon: '☕', label: 'Vascular / Hydration', bg: '#FEF3C7', color: '#B45309', border: '#FDE68A' };
+    if (
+      text.includes('coffee') ||
+      text.includes('espresso') ||
+      text.includes('tea') ||
+      text.includes('caffeine') ||
+      text.includes('drink') ||
+      text.includes('wine')
+    ) {
+      return {
+        icon: '☕',
+        label: 'Vascular / Hydration',
+        bg: '#FEF3C7',
+        color: '#B45309',
+        border: '#FDE68A',
+      };
     }
-    if (text.includes('pill') || text.includes('med') || text.includes('metformin') || text.includes('supplement') || text.includes('vitamin')) {
-      return { icon: '💊', label: 'Medication', bg: '#ECFDF5', color: '#047857', border: '#A7F3D0' };
+    if (
+      text.includes('pill') ||
+      text.includes('med') ||
+      text.includes('metformin') ||
+      text.includes('supplement') ||
+      text.includes('vitamin')
+    ) {
+      return {
+        icon: '💊',
+        label: 'Medication',
+        bg: '#ECFDF5',
+        color: '#047857',
+        border: '#A7F3D0',
+      };
     }
-    return { icon: '🥗', label: cat || 'Nutrition', bg: '#FFFFFF', color: '#1E293B', border: '#E2E8F0' };
+    return {
+      icon: '🥗',
+      label: cat || 'Nutrition',
+      bg: '#FFFFFF',
+      color: '#1E293B',
+      border: '#E2E8F0',
+    };
   };
 
   return (
@@ -83,7 +132,9 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
           >
             <Edit3 size={15} />
           </div>
-          <span style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.2px' }}>
+          <span
+            style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.2px' }}
+          >
             {title}
           </span>
         </div>
@@ -113,13 +164,15 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
         </div>
 
         {entries.length === 0 ? (
-          <div style={{ padding: '16px 0', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
+          <div
+            style={{ padding: '16px 0', textAlign: 'center', fontSize: '13px', color: '#64748B' }}
+          >
             No journal entries recorded for this timeline yet.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {entries.map((entry, idx) => {
-              const meta = getCategoryMeta(entry.category, entry.items);
+              const meta = getCategoryMeta(entry.category);
               return (
                 <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -189,7 +242,16 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
             alignItems: 'center',
           }}
         >
-          <span style={{ fontSize: '11.5px', color: entries.length > 0 ? '#059669' : '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span
+            style={{
+              fontSize: '11.5px',
+              color: entries.length > 0 ? '#059669' : '#94A3B8',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
             {entries.length > 0 ? (
               <>
                 <CheckCircle2 size={13} /> From your saved diary

@@ -5,14 +5,7 @@
  * clinical records remain in Supabase and are never replaced by this cache.
  */
 export type RunWorkflow =
-  | 'mdt'
-  | 'quick-consult'
-  | 'parallel'
-  | 'conference'
-  | 'lab'
-  | 'profile'
-  | 'diet'
-  | 'trials';
+  'mdt' | 'quick-consult' | 'parallel' | 'conference' | 'lab' | 'profile' | 'diet' | 'trials';
 
 const safePart = (value: unknown, fallback: string) => {
   const text = String(value || fallback).trim();
@@ -50,40 +43,6 @@ export function getProfileScope(): string {
   }
 }
 
-export function makeRunId(): string {
-  try {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  } catch {}
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
 export function getRunScope(workflow: RunWorkflow, caseId = 'draft', runId = 'session'): string {
   return `hc_run_v2_${safePart(workflow, 'workflow')}_${getAccountScope()}_${getProfileScope()}_${safePart(caseId, 'draft')}_${safePart(runId, 'session')}`;
-}
-
-export function clearRunStorage(workflow?: RunWorkflow, caseId?: string) {
-  if (typeof sessionStorage === 'undefined') return;
-  const prefix = 'hc_run_v2_';
-  const casePart = caseId ? `_${safePart(caseId, 'draft')}_` : null;
-  try {
-    Object.keys(sessionStorage).forEach((key) => {
-      if (!key.startsWith(prefix)) return;
-      if (workflow && !key.includes(`_${workflow}_`)) return;
-      if (casePart && !key.includes(casePart)) return;
-      sessionStorage.removeItem(key);
-    });
-  } catch {}
-}
-
-export function readRunJson<T>(key: string): T | null {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? JSON.parse(raw) as T : null;
-  } catch {
-    return null;
-  }
-}
-
-export function writeRunJson(key: string, value: unknown) {
-  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
 }

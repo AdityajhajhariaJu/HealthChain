@@ -19,9 +19,9 @@
     "strictNullChecks": true,
     "noImplicitAny": false,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    
+
     /* Incremental Migration allowance */
     "allowJs": true,
     "checkJs": false

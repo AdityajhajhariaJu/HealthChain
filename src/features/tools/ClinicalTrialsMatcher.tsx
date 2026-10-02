@@ -194,20 +194,6 @@ export function evaluateTrialCriteria(
   };
 }
 
-export function scoreClinicalTrial(
-  trial: any,
-  conditions: string[],
-  differentials: string[] = [],
-  patientProfile?: { age?: string | number; gender?: string }
-): {
-  matchScore: number;
-  aiContext: string;
-  matchedTerms: string[];
-  criteriaBreakdown?: TrialCriteriaBreakdown;
-} {
-  return evaluateTrialCriteria(trial, conditions, differentials, patientProfile);
-}
-
 const MatchRing = ({ score }: { score: number }) => {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
@@ -1720,7 +1706,7 @@ export default function ClinicalTrialsMatcher() {
                 </div>
 
                 {researchItems.length > 0 ? (
-                  researchItems.map((item: any, idx: number) => (
+                  researchItems.map((item: any, _idx: number) => (
                     <ResearchCard
                       key={item.id}
                       item={item}

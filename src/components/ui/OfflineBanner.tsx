@@ -1,5 +1,4 @@
 import { Network } from '@capacitor/network';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -69,13 +68,10 @@ export default function OfflineBanner() {
   }, []);
 
   return (
-    <AnimatePresence>
+    <>
       {(isOffline || justReconnected) && (
-        <motion.div
-          initial={{ y: -60, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -60, opacity: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
+        <div
+          className="hc-banner-enter"
           role="status"
           aria-live="polite"
           style={{
@@ -115,8 +111,8 @@ export default function OfflineBanner() {
               <span>Connection restored • Syncing resumes</span>
             </>
           )}
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

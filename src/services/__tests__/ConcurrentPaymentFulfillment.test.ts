@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mocks for createClient
 const mockRpc = vi.fn();
@@ -41,8 +41,8 @@ vi.mock('razorpay', () => {
   };
 });
 
-import verifyPaymentHandler from '../../../api/verify-payment.js';
 import webhookHandler from '../../../api/razorpay-webhook.js';
+import verifyPaymentHandler from '../../../api/verify-payment.js';
 
 describe('P1 Finding 5: Concurrent Payment Entitlement & Single Quota Allocation', () => {
   const secret = 'test_secret_key_12345';
@@ -79,7 +79,7 @@ describe('P1 Finding 5: Concurrent Payment Entitlement & Single Quota Allocation
     // Simulate atomic database behavior:
     // First thread executes activate_and_provision_subscription and provisions quota
     // Second thread sees payment already fulfilled and returns already_processed
-    mockRpc.mockImplementation(async (fnName: string, args: any) => {
+    mockRpc.mockImplementation(async (fnName: string, _args: any) => {
       if (fnName === 'activate_and_provision_subscription') {
         paymentFulfillCount++;
         if (paymentFulfillCount === 1) {
@@ -157,9 +157,17 @@ describe('P1 Finding 5: Concurrent Payment Entitlement & Single Quota Allocation
     const browserRes: any = {
       statusCode: 200,
       headers: {},
-      setHeader: (k: string, v: string) => { browserRes.headers[k] = v; },
-      status: (code: number) => { browserRes.statusCode = code; return browserRes; },
-      json: vi.fn((data: any) => { browserRes.body = data; return browserRes; }),
+      setHeader: (k: string, v: string) => {
+        browserRes.headers[k] = v;
+      },
+      status: (code: number) => {
+        browserRes.statusCode = code;
+        return browserRes;
+      },
+      json: vi.fn((data: any) => {
+        browserRes.body = data;
+        return browserRes;
+      }),
       end: vi.fn(),
     };
 
@@ -198,8 +206,14 @@ describe('P1 Finding 5: Concurrent Payment Entitlement & Single Quota Allocation
 
     const webhookRes: any = {
       statusCode: 200,
-      status: (code: number) => { webhookRes.statusCode = code; return webhookRes; },
-      json: vi.fn((data: any) => { webhookRes.body = data; return webhookRes; }),
+      status: (code: number) => {
+        webhookRes.statusCode = code;
+        return webhookRes;
+      },
+      json: vi.fn((data: any) => {
+        webhookRes.body = data;
+        return webhookRes;
+      }),
       end: vi.fn(),
     };
 

@@ -20,9 +20,16 @@ export type ClinicalInformationCategory =
   | 'open_question'
   | 'outcome';
 
-export type ExtractionStatus = 'provisional' | 'source_matched' | 'user_corrected' | 'rejected' | 'checked';
+export type ExtractionStatus =
+  'provisional' | 'source_matched' | 'user_corrected' | 'rejected' | 'checked';
 export type InterpretationStatus = 'grounded' | 'unsupported_speculation' | 'quarantined';
-export type ClaimKind = 'direct_evidence' | 'ai_interpretation' | 'clinical_guidance' | 'patient_report' | 'quotation' | 'observation';
+export type ClaimKind =
+  | 'direct_evidence'
+  | 'ai_interpretation'
+  | 'clinical_guidance'
+  | 'patient_report'
+  | 'quotation'
+  | 'observation';
 
 export interface InformationAuditEntry {
   originalText: string;
@@ -274,76 +281,185 @@ export const INFORMATION_CATEGORY_REGISTRY: Record<ClinicalInformationCategory, 
   },
 };
 
-
-export function validateCategorizedItem(item: CategorizedInformationItem): {isValid:boolean;missingFields:string[]} {
-  const spec=item && INFORMATION_CATEGORY_REGISTRY[item.category];
-  if(!spec) return {isValid:false,missingFields:['category']};
-  const missingFields=['id','text',...spec.requiredFields].filter(field=>{
-    const v=(item as any)[field];
-    return v===undefined || v===null || (typeof v==='string' && !v.trim()) || (Array.isArray(v) && !v.length);
+export function validateCategorizedItem(item: CategorizedInformationItem): {
+  isValid: boolean;
+  missingFields: string[];
+} {
+  const spec = item && INFORMATION_CATEGORY_REGISTRY[item.category];
+  if (!spec) return { isValid: false, missingFields: ['category'] };
+  const missingFields = ['id', 'text', ...spec.requiredFields].filter((field) => {
+    const v = (item as any)[field];
+    return (
+      v === undefined ||
+      v === null ||
+      (typeof v === 'string' && !v.trim()) ||
+      (Array.isArray(v) && !v.length)
+    );
   });
-  if(item.category==='extracted_finding' && item.page!==undefined && (!Number.isInteger(item.page)||item.page<1)) missingFields.push('page');
-  return {isValid:!missingFields.length,missingFields};
-}
-export function validateGroundedClaim(
-  claim: Partial<GroundedClaimRecord>,
-  knownEvidenceIds: Set<string>
-): { isValid: boolean; reason?: string } {
-  if (!claim || typeof claim.text !== 'string' || !claim.text.trim()) {
-    return { isValid: false, reason: 'Claim text is empty or missing.' };
-  }
-  if (!claim.evidenceIds || !Array.isArray(claim.evidenceIds) || claim.evidenceIds.length === 0) {
-    return { isValid: false, reason: 'Claim cites no supporting evidence identifiers.' };
-  }
-  const invalidIds = claim.evidenceIds.filter(id => !knownEvidenceIds.has(id));
-  if (invalidIds.length > 0) {
-    return { isValid: false, reason: `Claim cites unknown or unverified evidence IDs: ${invalidIds.join(', ')}` };
-  }
-  return { isValid: true };
+  if (
+    item.category === 'extracted_finding' &&
+    item.page !== undefined &&
+    (!Number.isInteger(item.page) || item.page < 1)
+  )
+    missingFields.push('page');
+  return { isValid: !missingFields.length, missingFields };
 }
 
 export function classifyClinicalInformation(raw: {
-  id?:string;text:string;category?:ClinicalInformationCategory;source?:string;date?:string;author?:string;file?:string;page?:number;
-  value?:number|string;unit?:string;method?:string;extractionStatus?:ExtractionStatus;attribution?:string;
-  supportingEvidenceIds?:string[];limitations?:string[];modelVersion?:string;identifier?:string;studyType?:string;relevantPassage?:string;
-  reasonForAsking?:string;missingInformation?:string;decisionText?:string;originalText?:string;auditTrail?:InformationAuditEntry[];
-}):CategorizedInformationItem {
-  let hash=2166136261;for(const c of JSON.stringify([raw.text,raw.source,raw.date])) hash=Math.imul(hash^c.charCodeAt(0),16777619);
-  const base={id:raw.id || 'item_'+(hash>>>0).toString(16),text:(raw.text || '').trim(),createdAt:raw.date || '',originalText:raw.originalText,auditTrail:raw.auditTrail};
+  id?: string;
+  text: string;
+  category?: ClinicalInformationCategory;
+  source?: string;
+  date?: string;
+  author?: string;
+  file?: string;
+  page?: number;
+  value?: number | string;
+  unit?: string;
+  method?: string;
+  extractionStatus?: ExtractionStatus;
+  attribution?: string;
+  supportingEvidenceIds?: string[];
+  limitations?: string[];
+  modelVersion?: string;
+  identifier?: string;
+  studyType?: string;
+  relevantPassage?: string;
+  reasonForAsking?: string;
+  missingInformation?: string;
+  decisionText?: string;
+  originalText?: string;
+  auditTrail?: InformationAuditEntry[];
+}): CategorizedInformationItem {
+  let hash = 2166136261;
+  for (const c of JSON.stringify([raw.text, raw.source, raw.date]))
+    hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
+  const base = {
+    id: raw.id || 'item_' + (hash >>> 0).toString(16),
+    text: (raw.text || '').trim(),
+    createdAt: raw.date || '',
+    originalText: raw.originalText,
+    auditTrail: raw.auditTrail,
+  };
   // Provenance overrides words in the content. A number or "doctor" in prose
   // does not establish measurement or clinician provenance.
-  const source=(raw.source || '').toLowerCase();
-  const category:ClinicalInformationCategory=raw.category && INFORMATION_CATEGORY_REGISTRY[raw.category]?raw.category:
-    /\b(ai|engine|jarvis)\b/.test(source)?'ai_consideration':
-    raw.file?'extracted_finding':raw.attribution?'documented_clinician_assessment':
-    raw.identifier?'external_evidence':raw.value!==undefined && raw.unit && raw.method?'recorded_measurement':
-    raw.decisionText?'outcome':raw.reasonForAsking?'open_question':'user_report';
-  const allowedRole=INFORMATION_CATEGORY_REGISTRY[category].allowedRole;
-  return ({
-    ...base,category,allowedRole,
-    ...(category==='user_report'?{author:raw.author || 'User',entryTime:raw.date || ''}:{}),
-    ...(category==='recorded_measurement'?{value:raw.value,unit:raw.unit || '',time:raw.date || '',method:raw.method || ''}:{}),
-    ...(category==='extracted_finding'?{originalFile:raw.file || '',page:raw.page,units:raw.unit,extractionStatus:raw.extractionStatus || 'provisional'}:{}),
-    ...(category==='documented_clinician_assessment'?{source:raw.source || '',date:raw.date || '',attribution:raw.attribution || ''}:{}),
-    ...(category==='ai_consideration'?{supportingEvidenceIds:raw.supportingEvidenceIds || [],limitations:raw.limitations || [],modelVersion:raw.modelVersion || ''}:{}),
-    ...(category==='external_evidence'?{identifier:raw.identifier || '',date:raw.date || '',studyType:raw.studyType || '',relevantPassage:raw.relevantPassage || ''}:{}),
-    ...(category==='open_question'?{questionText:base.text,reasonForAsking:raw.reasonForAsking || '',missingInformation:raw.missingInformation || ''}:{}),
-    ...(category==='outcome'?{sourceDocumentOrUserReport:raw.source || '',date:raw.date || '',decisionText:raw.decisionText || ''}:{}),
-  }) as CategorizedInformationItem;
+  const source = (raw.source || '').toLowerCase();
+  const category: ClinicalInformationCategory =
+    raw.category && INFORMATION_CATEGORY_REGISTRY[raw.category]
+      ? raw.category
+      : /\b(ai|engine|jarvis)\b/.test(source)
+        ? 'ai_consideration'
+        : raw.file
+          ? 'extracted_finding'
+          : raw.attribution
+            ? 'documented_clinician_assessment'
+            : raw.identifier
+              ? 'external_evidence'
+              : raw.value !== undefined && raw.unit && raw.method
+                ? 'recorded_measurement'
+                : raw.decisionText
+                  ? 'outcome'
+                  : raw.reasonForAsking
+                    ? 'open_question'
+                    : 'user_report';
+  const allowedRole = INFORMATION_CATEGORY_REGISTRY[category].allowedRole;
+  return {
+    ...base,
+    category,
+    allowedRole,
+    ...(category === 'user_report'
+      ? { author: raw.author || 'User', entryTime: raw.date || '' }
+      : {}),
+    ...(category === 'recorded_measurement'
+      ? { value: raw.value, unit: raw.unit || '', time: raw.date || '', method: raw.method || '' }
+      : {}),
+    ...(category === 'extracted_finding'
+      ? {
+          originalFile: raw.file || '',
+          page: raw.page,
+          units: raw.unit,
+          extractionStatus: raw.extractionStatus || 'provisional',
+        }
+      : {}),
+    ...(category === 'documented_clinician_assessment'
+      ? { source: raw.source || '', date: raw.date || '', attribution: raw.attribution || '' }
+      : {}),
+    ...(category === 'ai_consideration'
+      ? {
+          supportingEvidenceIds: raw.supportingEvidenceIds || [],
+          limitations: raw.limitations || [],
+          modelVersion: raw.modelVersion || '',
+        }
+      : {}),
+    ...(category === 'external_evidence'
+      ? {
+          identifier: raw.identifier || '',
+          date: raw.date || '',
+          studyType: raw.studyType || '',
+          relevantPassage: raw.relevantPassage || '',
+        }
+      : {}),
+    ...(category === 'open_question'
+      ? {
+          questionText: base.text,
+          reasonForAsking: raw.reasonForAsking || '',
+          missingInformation: raw.missingInformation || '',
+        }
+      : {}),
+    ...(category === 'outcome'
+      ? {
+          sourceDocumentOrUserReport: raw.source || '',
+          date: raw.date || '',
+          decisionText: raw.decisionText || '',
+        }
+      : {}),
+  } as CategorizedInformationItem;
 }
-export function partitionBeforeReasoning(rawItems:any[]) {
-  const result={userReports:[] as UserReportItem[],measurements:[] as RecordedMeasurementItem[],extractedFindings:[] as ExtractedFindingItem[],
-    clinicianAssessments:[] as DocumentedClinicianAssessmentItem[],aiConsiderations:[] as AIConsiderationItem[],
-    externalEvidence:[] as ExternalEvidenceItem[],openQuestions:[] as OpenQuestionItem[],outcomes:[] as OutcomeItem[],
-    invalidItems:[] as CategorizedInformationItem[],allValid:true,
-    summary:Object.fromEntries(Object.keys(INFORMATION_CATEGORY_REGISTRY).map(k=>[k,0])) as Record<ClinicalInformationCategory,number>};
-  const buckets={user_report:'userReports',recorded_measurement:'measurements',extracted_finding:'extractedFindings',documented_clinician_assessment:'clinicianAssessments',
-    ai_consideration:'aiConsiderations',external_evidence:'externalEvidence',open_question:'openQuestions',outcome:'outcomes'};
-  for(const raw of rawItems || []){
-    if(raw==null) {result.allValid=false;continue;}
-    const item=raw.classifiedItem || (raw.category && raw.allowedRole && raw.text?raw:classifyClinicalInformation(typeof raw==='string'?{text:raw}:{...raw,text:raw.fact || raw.text || ''}));
-    if(!validateCategorizedItem(item).isValid){result.allValid=false;result.invalidItems.push(item);continue;}
-    (result as any)[buckets[item.category]].push(item);result.summary[item.category as ClinicalInformationCategory]++;
+export function partitionBeforeReasoning(rawItems: any[]) {
+  const result = {
+    userReports: [] as UserReportItem[],
+    measurements: [] as RecordedMeasurementItem[],
+    extractedFindings: [] as ExtractedFindingItem[],
+    clinicianAssessments: [] as DocumentedClinicianAssessmentItem[],
+    aiConsiderations: [] as AIConsiderationItem[],
+    externalEvidence: [] as ExternalEvidenceItem[],
+    openQuestions: [] as OpenQuestionItem[],
+    outcomes: [] as OutcomeItem[],
+    invalidItems: [] as CategorizedInformationItem[],
+    allValid: true,
+    summary: Object.fromEntries(
+      Object.keys(INFORMATION_CATEGORY_REGISTRY).map((k) => [k, 0])
+    ) as Record<ClinicalInformationCategory, number>,
+  };
+  const buckets = {
+    user_report: 'userReports',
+    recorded_measurement: 'measurements',
+    extracted_finding: 'extractedFindings',
+    documented_clinician_assessment: 'clinicianAssessments',
+    ai_consideration: 'aiConsiderations',
+    external_evidence: 'externalEvidence',
+    open_question: 'openQuestions',
+    outcome: 'outcomes',
+  };
+  for (const raw of rawItems || []) {
+    if (raw == null) {
+      result.allValid = false;
+      continue;
+    }
+    const item =
+      raw.classifiedItem ||
+      (raw.category && raw.allowedRole && raw.text
+        ? raw
+        : classifyClinicalInformation(
+            typeof raw === 'string' ? { text: raw } : { ...raw, text: raw.fact || raw.text || '' }
+          ));
+    if (!validateCategorizedItem(item).isValid) {
+      result.allValid = false;
+      result.invalidItems.push(item);
+      continue;
+    }
+    (result as any)[buckets[item.category]].push(item);
+    result.summary[item.category as ClinicalInformationCategory]++;
   }
   return result;
 }

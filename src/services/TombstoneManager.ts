@@ -34,7 +34,9 @@ export async function recordTombstone(tombstone: Tombstone): Promise<void> {
 
   const key = tombstoneKey(userId, profileId);
   const existing = await getTombstones(userId, profileId);
-  const idx = existing.findIndex(t => t.id === tombstone.id && t.entityType === tombstone.entityType);
+  const idx = existing.findIndex(
+    (t) => t.id === tombstone.id && t.entityType === tombstone.entityType
+  );
 
   const updated = [...existing];
   if (idx >= 0) {
@@ -59,19 +61,21 @@ export async function recordTombstone(tombstone: Tombstone): Promise<void> {
   }
 }
 
-export async function isTombstoned(entityId: string, userId: string, profileId: string): Promise<boolean> {
+export async function isTombstoned(
+  entityId: string,
+  userId: string,
+  profileId: string
+): Promise<boolean> {
   if (!entityId || !userId) return false;
   const tombstones = await getTombstones(userId, profileId);
-  return tombstones.some(t => t.id === entityId);
+  return tombstones.some((t) => t.id === entityId);
 }
 
-export async function getTombstone(entityId: string, userId: string, profileId: string): Promise<Tombstone | null> {
-  if (!entityId || !userId) return null;
-  const tombstones = await getTombstones(userId, profileId);
-  return tombstones.find(t => t.id === entityId) || null;
-}
-
-export async function mergeRemoteTombstones(userId: string, profileId: string, remoteTombstones: Tombstone[]): Promise<Tombstone[]> {
+export async function mergeRemoteTombstones(
+  userId: string,
+  profileId: string,
+  remoteTombstones: Tombstone[]
+): Promise<Tombstone[]> {
   if (!userId || !Array.isArray(remoteTombstones) || remoteTombstones.length === 0) {
     return getTombstones(userId, profileId);
   }
@@ -100,7 +104,10 @@ export async function mergeRemoteTombstones(userId: string, profileId: string, r
   return merged;
 }
 
-export async function fetchRemoteTombstones(userId: string, profileId: string): Promise<Tombstone[]> {
+export async function fetchRemoteTombstones(
+  userId: string,
+  profileId: string
+): Promise<Tombstone[]> {
   if (!userId) return [];
   try {
     const { data, error } = await supabase
@@ -126,8 +133,11 @@ export async function fetchRemoteTombstones(userId: string, profileId: string): 
 export async function clearTombstones(userId?: string, profileId?: string): Promise<void> {
   if (userId) {
     const key = tombstoneKey(userId, profileId || 'profile_1');
-    try { await del(key); } catch {}
-    try { window.localStorage.removeItem(key); } catch {}
+    try {
+      await del(key);
+    } catch {}
+    try {
+      window.localStorage.removeItem(key);
+    } catch {}
   }
 }
-

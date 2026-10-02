@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Activity,
   ArrowLeft,
   ArrowRight,
   Calendar,
@@ -45,98 +44,6 @@ export interface StationConfig {
   statusBadge: string;
 }
 
-// Minimalist Clean Empty State Icon
-export const SubtleAqueousLensIllustration: React.FC<{ size?: number; label?: string }> = ({
-  size = 48,
-}) => (
-  <div
-    style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      borderRadius: '50%',
-      background: '#F0F9FF',
-      border: '1px solid #BAE6FD',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: '0 auto',
-      color: '#0284C7',
-    }}
-  >
-    <Activity size={Math.round(size * 0.45)} />
-  </div>
-);
-
-/**
- * 2. SMALL VISUAL LINKING A FINDING TO ITS SOURCE
- * Translucent blue badge with soft depth, restrained micro-capsule detail,
- * and clear medical credibility attribution.
- */
-export const SourceEvidenceBadge: React.FC<{
-  source: string;
-  citation?: string;
-  onClick?: () => void;
-}> = ({ source, citation, onClick }) => (
-  <div
-    role={onClick ? 'button' : undefined}
-    tabIndex={onClick ? 0 : undefined}
-    onClick={(e) => {
-      if (onClick) {
-        e.stopPropagation();
-        triggerHapticLight();
-        onClick();
-      }
-    }}
-    onKeyDown={(e) => {
-      if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        e.stopPropagation();
-        triggerHapticLight();
-        onClick();
-      }
-    }}
-    title={onClick ? 'Click to inspect clinical source record passage' : undefined}
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '3px 9px',
-      borderRadius: '999px',
-      background:
-        'linear-gradient(135deg, rgba(240, 249, 255, 0.92) 0%, rgba(224, 242, 254, 0.7) 100%)',
-      border: '1px solid rgba(186, 230, 253, 0.85)',
-      boxShadow: '0 2px 6px rgba(14, 165, 233, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-      fontSize: '11px',
-      color: '#0369A1',
-      fontWeight: 600,
-      backdropFilter: 'blur(6px)',
-      WebkitBackdropFilter: 'blur(6px)',
-      whiteSpace: 'nowrap',
-      cursor: onClick ? 'pointer' : 'default',
-      transition: 'all 0.15s ease',
-    }}
-  >
-    {/* Restrained two-tone micro-capsule icon */}
-    <span
-      style={{
-        display: 'inline-block',
-        width: '11px',
-        height: '5.5px',
-        borderRadius: '3px',
-        background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.95) 50%)',
-        border: '0.8px solid rgba(2, 132, 199, 0.55)',
-        boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)',
-        flexShrink: 0,
-      }}
-    />
-    <span>{source}</span>
-    {citation && (
-      <span style={{ fontSize: '9.5px', color: '#0284C7', opacity: 0.85 }}>({citation})</span>
-    )}
-    {onClick && <span style={{ fontSize: '9px', opacity: 0.7, marginLeft: '2px' }}>↗</span>}
-  </div>
-);
-
 export const ALL_12_STATIONS: StationConfig[] = [
   // Pillar 1: Gut & Food (01 - 02)
   {
@@ -168,8 +75,6 @@ export const ALL_12_STATIONS: StationConfig[] = [
     statusBadge: 'Record review',
   },
 ];
-
-export const ALL_CLINICAL_STATIONS: StationConfig[] = ALL_12_STATIONS;
 
 export const resolveStationTab = (tab?: TabId): TabId => {
   if (!tab || tab === 'overview') return 'overview';
@@ -235,42 +140,12 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
   },
 ];
 
-export interface PillarFilterOption {
-  id: PillarId;
-  label: string;
-  shortLabel: string;
-  icon: string;
-  count: number;
-}
-
-export const PILLAR_FILTERS: PillarFilterOption[] = [
-  {
-    id: 'all',
-    label: 'All Domains',
-    shortLabel: 'All',
-    icon: '✨',
-    get count() {
-      return ALL_12_STATIONS.length;
-    },
-  },
-  {
-    id: 'gut',
-    label: 'Gut & Food',
-    shortLabel: '🥗 Gut',
-    icon: '🥗',
-    get count() {
-      return ALL_12_STATIONS.filter((s) => s.pillarId === 'gut').length;
-    },
-  },
-];
-
 interface ConnectionDetectiveViewProps {
   caseId?: string | null;
   initialTab?: TabId;
   openedPillarId?: PillarId | null;
   onOpenedPillarChange?: (id: PillarId | null) => void;
   onOpenFoodDetective?: () => void;
-  onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
 }
 
@@ -280,7 +155,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   openedPillarId: controlledOpenedPillarId,
   onOpenedPillarChange,
   onOpenFoodDetective,
-  onOpenConsult,
   onOpenCasePrep,
 }) => {
   const isMobile = useIsMobile();
@@ -563,7 +437,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                 {semanticGraph.nodes.length > 0 && (
                   <SemanticEvidenceGraphView
                     graph={semanticGraph}
-                    onOpenConsult={onOpenConsult}
                     onOpenCasePrep={onOpenCasePrep}
                     onOpenSourceModal={(d) => setSourcePassageModalData(d)}
                   />
@@ -773,7 +646,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                 <div style={{ marginTop: '14px' }}>
                   <SmartCorrelationInsightsView
                     onOpenElimination={() => openEliminationSuiteModal()}
-                    onOpenTimeline={() => scrollToStation('postmeal')}
                     onOpenHeatmap={() => {
                       setTimelineViewMode('heatmap');
                       scrollToStation('postmeal');

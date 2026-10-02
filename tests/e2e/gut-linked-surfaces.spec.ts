@@ -5,23 +5,51 @@ const seedGuest = () => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
   localStorage.setItem('hc_cookies_accepted', 'declined');
-  localStorage.setItem('hc_unified_profile_guest', JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: {
-    id: 'profile_1', profileName: 'My Profile', nutrition: { recentLogs: [
-      { id: 'chai-1', meal: 'Masala Chai', date: '2026-09-20', loggedAt: '2026-09-20T08:30:00Z', reaction: { label: 'Bloating', reactionType: 'bloat' } },
-    ] },
-  } } }));
+  localStorage.setItem(
+    'hc_unified_profile_guest',
+    JSON.stringify({
+      activeId: 'profile_1',
+      profiles: {
+        profile_1: {
+          id: 'profile_1',
+          profileName: 'My Profile',
+          nutrition: {
+            recentLogs: [
+              {
+                id: 'chai-1',
+                meal: 'Masala Chai',
+                date: '2026-09-20',
+                loggedAt: '2026-09-20T08:30:00Z',
+                reaction: { label: 'Bloating', reactionType: 'bloat' },
+              },
+            ],
+          },
+        },
+      },
+    })
+  );
 };
 
-test('records and visit notes show linked summaries and open the exact source', async ({ page }) => {
+test('records and visit notes show linked summaries and open the exact source', async ({
+  page,
+}) => {
+  // Two record inspections, visit-note rendering and screenshots form one journey.
+  test.setTimeout(60000);
   await page.addInitScript(seedGuest);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1&view=deep', { waitUntil: 'domcontentloaded' });
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'My records' }).click();
-  await expect(gut.getByRole('heading', { name: 'Your meals and digestion, together' })).toBeVisible();
+  await expect(
+    gut.getByRole('heading', { name: 'Your meals and digestion, together' })
+  ).toBeVisible();
   await expect(gut.getByLabel('From saved meals and digestion to a question')).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-records-linked-mobile.png' });
-  await gut.getByLabel('From saved meals and digestion to a question').getByRole('button').first().click();
+  await gut
+    .getByLabel('From saved meals and digestion to a question')
+    .getByRole('button')
+    .first()
+    .click();
   const meal = page.getByRole('dialog', { name: 'Record a meal' });
   await expect(meal.getByLabel('What did you eat or drink?')).toBeVisible();
   await expect(meal.getByText('CIRCADIAN MEAL INTAKE')).toHaveCount(0);
@@ -37,7 +65,10 @@ test('records and visit notes show linked summaries and open the exact source', 
   await gut.getByText('Inspect the records in this note').click();
   await gut.getByRole('button', { name: /2026-09-20 · Masala Chai/ }).click();
   await expect(gut.getByLabel('Exact source record')).toBeVisible();
-  await expect(gut.getByRole('button', { name: 'My records' })).toHaveAttribute('aria-current', 'page');
+  await expect(gut.getByRole('button', { name: 'My records' })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
   await expect(gut.getByText('Explore your dates')).toHaveCount(0);
 });
 
@@ -58,5 +89,9 @@ test('question sections keep the source chain compact on a phone', async ({ page
   await gut.getByRole('button', { name: 'Next step' }).click();
   await expect(gut.getByLabel('Your question, chosen step and later outcome')).toBeVisible();
   await gut.screenshot({ path: 'test-results/gut-next-linked-mobile.png' });
-  expect(await gut.locator('.gr-workspace').evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  expect(
+    await gut
+      .locator('.gr-workspace')
+      .evaluate((element) => element.scrollWidth <= element.clientWidth + 1)
+  ).toBe(true);
 });

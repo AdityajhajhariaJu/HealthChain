@@ -1,36 +1,32 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Clock, GitMerge, Info, MessageCircle, Sparkles, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/ui/ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useMountedRef } from '../../hooks/useMountedRef';
 import { simulatePathway } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { getProfile } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 
-export default function PathwaySimulator({ actionItem, onClose }: { actionItem: any, onClose: () => void }) {
+export default function PathwaySimulator({
+  actionItem,
+  onClose,
+}: {
+  actionItem: any;
+  onClose: () => void;
+}) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toast = useToast();
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulation, setSimulation] = useState<any>(null);
-  const isMounted = useRef(true);
-
-  useEffect(() => {
-    return () => { isMounted.current = false; };
-  }, []);
+  const isMounted = useMountedRef();
 
   const runSimulation = async () => {
     if (isSimulating || !actionItem) return;
-    // Check sessionStorage cache first
-    const cacheKey = `pathway_sim_${actionItem.id || actionItem.step || 'default'}`;
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) {
-      try { setSimulation(JSON.parse(cached)); } catch { /* ignore */ }
-      return;
-    }
     setIsSimulating(true);
     const profile = getProfile();
     try {
@@ -38,10 +34,21 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
       if (isMounted.current) {
         if (result) {
           setSimulation(result);
-          try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch(e) {}
-          awardPoints(10, `Created Discussion Guide: ${(actionItem.step || actionItem.title || 'Topic').slice(0, 24)}`, 'consult', `pathway_${actionItem.id || Date.now()}`);
+          awardPoints(
+            10,
+            `Created Discussion Guide: ${(actionItem.step || actionItem.title || 'Topic').slice(0, 24)}`,
+            'consult',
+            `pathway_${actionItem.id || Date.now()}`
+          );
           triggerHapticSuccess();
-          recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || actionItem.title || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step || 'guide'}` });
+          recordHealthMemory({
+            kind: 'discussion_guide',
+            source: 'pathway_guide',
+            title: `Discussion guide: ${actionItem.step || actionItem.title || 'Appointment topic'}`,
+            occurredAt: new Date().toISOString(),
+            payload: { actionItem, result },
+            dedupeKey: `discussion-guide:${actionItem.id || actionItem.step || 'guide'}`,
+          });
         }
       }
     } catch (err) {
@@ -73,14 +80,17 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
       onClick={onClose}
       style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         background: 'rgba(15,23,42,0.8)',
         backdropFilter: 'blur(8px)',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px'
+        padding: '24px',
       }}
     >
       <motion.div
@@ -96,24 +106,63 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
           overflowY: 'auto',
           boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
       >
-        <div style={{ padding: '24px 32px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '24px 24px 0 0' }}>
+        <div
+          style={{
+            padding: '24px 32px',
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'sticky',
+            top: 0,
+            background: '#fff',
+            zIndex: 10,
+            borderRadius: '24px 24px 0 0',
+          }}
+        >
           <div>
-            <h2 style={{ margin: 0, fontSize: 20, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 20,
+                color: '#0f172a',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <GitMerge color="#0D9488" />
               Appointment Discussion Guide
             </h2>
             <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>
-              Questions, cautions, and follow-up topics for: <strong>{actionItem?.step || actionItem?.title || 'Selected Topic'}</strong>
+              Questions, cautions, and follow-up topics for:{' '}
+              <strong>{actionItem?.step || actionItem?.title || 'Selected Topic'}</strong>
             </p>
           </div>
-          <button 
+          <button
             type="button"
             aria-label="Close pathway simulator"
-            onClick={onClose} 
-            style={{ background: '#f1f5f9', border: 'none', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', minWidth: 44, minHeight: 44, flexShrink: 0 }}
+            onClick={onClose}
+            style={{
+              background: '#f1f5f9',
+              border: 'none',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#64748b',
+              minWidth: 44,
+              minHeight: 44,
+              flexShrink: 0,
+            }}
           >
             <X size={18} />
           </button>
@@ -122,17 +171,54 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         <div style={{ padding: '20px', flex: 1 }}>
           {!simulation && !isSimulating && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ width: 80, height: 80, background: '#F0FDFA', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  background: '#F0FDFA',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                }}
+              >
                 <Sparkles size={40} color="#0D9488" />
               </div>
-              <h3 style={{ fontSize: 18, margin: '0 0 12px', color: '#0f172a' }}>Prepare this discussion</h3>
-              <p style={{ color: '#64748b', fontSize: 15, maxWidth: 400, margin: '0 auto 32px', lineHeight: 1.5 }}>
-                Use AI to organize questions, cautions, and possible follow-up topics for a qualified clinician. It does not predict your outcome, recovery, cost, or treatment success.
+              <h3 style={{ fontSize: 18, margin: '0 0 12px', color: '#0f172a' }}>
+                Prepare this discussion
+              </h3>
+              <p
+                style={{
+                  color: '#64748b',
+                  fontSize: 15,
+                  maxWidth: 400,
+                  margin: '0 auto 32px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Use AI to organize questions, cautions, and possible follow-up topics for a
+                qualified clinician. It does not predict your outcome, recovery, cost, or treatment
+                success.
               </p>
-              <button 
+              <button
                 onClick={runSimulation}
                 aria-label="Create clinician discussion guide"
-                style={{ background: '#0D9488', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)' }}
+                style={{
+                  background: '#0D9488',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: 12,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  margin: '0 auto',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+                }}
               >
                 <GitMerge size={18} />
                 Create discussion guide
@@ -144,8 +230,15 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                style={{ width: 48, height: 48, border: '3px solid #e2e8f0', borderTopColor: '#0D9488', borderRadius: '50%', margin: '0 auto 24px' }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+                style={{
+                  width: 48,
+                  height: 48,
+                  border: '3px solid #e2e8f0',
+                  borderTopColor: '#0D9488',
+                  borderRadius: '50%',
+                  margin: '0 auto 24px',
+                }}
               />
               <p style={{ color: '#64748b', fontSize: 15 }}>Organizing questions and cautions...</p>
             </div>
@@ -154,25 +247,124 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
           <AnimatePresence>
             {simulation && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 20 }}>
-                  <div style={{ background: '#f8fafc', padding: 16, borderRadius: 16, border: '1px solid #e2e8f0' }}><div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: 13, marginBottom: 8, fontWeight: 600 }}><Clock size={14} /> TIMING</div><div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{simulation.timelineDescription || 'Ask your clinician what timing is appropriate.'}</div></div>
-                  <div style={{ background: '#fef2f2', padding: 16, borderRadius: 16, border: '1px solid #fee2e2' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b91c1c', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                    gap: 16,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      padding: 16,
+                      borderRadius: 16,
+                      border: '1px solid #e2e8f0',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        color: '#64748b',
+                        fontSize: 13,
+                        marginBottom: 8,
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Clock size={14} /> TIMING
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>
+                      {simulation.timelineDescription ||
+                        'Ask your clinician what timing is appropriate.'}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: '#fef2f2',
+                      padding: 16,
+                      borderRadius: 16,
+                      border: '1px solid #fee2e2',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        color: '#b91c1c',
+                        fontSize: 13,
+                        marginBottom: 8,
+                        fontWeight: 600,
+                      }}
+                    >
                       <AlertTriangle size={14} /> RISKS
                     </div>
-                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#b91c1c' }}>{(simulation.risks || []).length}</div>
+                    <div
+                      style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#b91c1c' }}
+                    >
+                      {(simulation.risks || []).length}
+                    </div>
                   </div>
                 </div>
 
                 {/* Timeline Tree */}
-                <h4 style={{ margin: '0 0 16px', fontSize: 15, color: '#334155' }}>Topics to discuss</h4>
+                <h4 style={{ margin: '0 0 16px', fontSize: 15, color: '#334155' }}>
+                  Topics to discuss
+                </h4>
                 <div style={{ position: 'relative', paddingLeft: 24, marginBottom: 20 }}>
-                  <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: 2, background: '#e2e8f0', borderRadius: 2 }} />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 5,
+                      top: 8,
+                      bottom: 8,
+                      width: 2,
+                      background: '#e2e8f0',
+                      borderRadius: 2,
+                    }}
+                  />
                   {(simulation.milestones || []).map((ms: any, i: number) => (
-                    <div key={i} style={{ position: 'relative', marginBottom: i === (simulation.milestones || []).length - 1 ? 0 : 24 }}>
-                      <div style={{ position: 'absolute', left: -24, top: 4, width: 12, height: 12, background: '#0D9488', borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 0 0 1px #e2e8f0' }} />
-                      <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: 16, borderRadius: 12 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#0F766E', marginBottom: 4 }}>DAY {ms.day || i + 1}</div>
+                    <div
+                      key={i}
+                      style={{
+                        position: 'relative',
+                        marginBottom: i === (simulation.milestones || []).length - 1 ? 0 : 24,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: -24,
+                          top: 4,
+                          width: 12,
+                          height: 12,
+                          background: '#0D9488',
+                          borderRadius: '50%',
+                          border: '3px solid #fff',
+                          boxShadow: '0 0 0 1px #e2e8f0',
+                        }}
+                      />
+                      <div
+                        style={{
+                          background: '#fff',
+                          border: '1px solid #e2e8f0',
+                          padding: 16,
+                          borderRadius: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: '#0F766E',
+                            marginBottom: 4,
+                          }}
+                        >
+                          DAY {ms.day || i + 1}
+                        </div>
                         <div style={{ color: '#0f172a', fontSize: 14 }}>{ms.description}</div>
                       </div>
                     </div>
@@ -180,29 +372,93 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                 </div>
 
                 {/* Details */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                    gap: 16,
+                  }}
+                >
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>
-                    <h4 style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> IDENTIFIED RISKS</h4>
-                    <ul style={{ margin: 0, paddingLeft: 16, color: '#334155', fontSize: 14, lineHeight: 1.6 }}>
-                      {(simulation.risks || []).map((r: any, i: number) => <li key={i}>{typeof r === 'string' ? r : r?.risk || JSON.stringify(r)}</li>)}
+                    <h4
+                      style={{
+                        margin: '0 0 12px',
+                        fontSize: 13,
+                        color: '#64748b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <AlertTriangle size={14} /> IDENTIFIED RISKS
+                    </h4>
+                    <ul
+                      style={{
+                        margin: 0,
+                        paddingLeft: 16,
+                        color: '#334155',
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {(simulation.risks || []).map((r: any, i: number) => (
+                        <li key={i}>{typeof r === 'string' ? r : r?.risk || JSON.stringify(r)}</li>
+                      ))}
                     </ul>
                   </div>
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>
-                    <h4 style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}><Info size={14} /> QUESTION IF THIS ISN'T APPROPRIATE</h4>
-                    <p style={{ margin: 0, color: '#334155', fontSize: 14, lineHeight: 1.6 }}>{simulation.alternative}</p>
-                    
-                    <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.6 }}>This guide does not estimate outcomes, success rates, recovery, or cost. Confirm decisions with a qualified clinician.</p>
+                    <h4
+                      style={{
+                        margin: '0 0 12px',
+                        fontSize: 13,
+                        color: '#64748b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <Info size={14} /> QUESTION IF THIS ISN'T APPROPRIATE
+                    </h4>
+                    <p style={{ margin: 0, color: '#334155', fontSize: 14, lineHeight: 1.6 }}>
+                      {simulation.alternative}
+                    </p>
+
+                    <p
+                      style={{
+                        margin: '16px 0 0',
+                        color: '#64748b',
+                        fontSize: 12,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      This guide does not estimate outcomes, success rates, recovery, or cost.
+                      Confirm decisions with a qualified clinician.
+                    </p>
                   </div>
                 </div>
 
-                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <div
+                  style={{
+                    marginTop: '20px',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: '12px',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
                       onClose();
-                      const topicName = actionItem?.step || actionItem?.title || 'clinical discussion guide';
-                      const prompt = `I generated a doctor discussion guide for: "${topicName}". Recommended timing: ${simulation.timelineDescription || 'Standard appointment'}. Key cautions: ${(simulation.risks || []).slice(0, 2).map((r: any) => typeof r === 'string' ? r : r?.risk).filter(Boolean).join('; ') || 'Standard clinical review'}. Can you help me practice asking my doctor about this?`;
+                      const topicName =
+                        actionItem?.step || actionItem?.title || 'clinical discussion guide';
+                      const prompt = `I generated a doctor discussion guide for: "${topicName}". Recommended timing: ${simulation.timelineDescription || 'Standard appointment'}. Key cautions: ${
+                        (simulation.risks || [])
+                          .slice(0, 2)
+                          .map((r: any) => (typeof r === 'string' ? r : r?.risk))
+                          .filter(Boolean)
+                          .join('; ') || 'Standard clinical review'
+                      }. Can you help me practice asking my doctor about this?`;
                       navigate('/app/ava', { state: { initialPrompt: prompt } });
                     }}
                     style={{
@@ -217,7 +473,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '8px',
-                      boxShadow: '0 2px 6px rgba(79, 70, 229, 0.12)'
+                      boxShadow: '0 2px 6px rgba(79, 70, 229, 0.12)',
                     }}
                   >
                     <MessageCircle size={16} /> Discuss Guide with Ava

@@ -30,7 +30,9 @@ export const TRIAL_LIMITS = {
 const VIP_SIG_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
 
 export function getTrialStatus(): TrialStatus {
-  const isPro = isProUser() || (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH));
+  const isPro =
+    isProUser() ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH);
 
   if (isPro) {
     return {
@@ -121,25 +123,3 @@ export function openTrialModal(lockedFeatureName?: string): void {
     );
   }
 }
-
-import { saveInterruptedTask } from './razorpay';
-
-export function recordInterruptedFeatureTask(
-  featureId: string,
-  returnPath: string,
-  draftState?: any,
-  title?: string,
-  userId?: string
-): void {
-  saveInterruptedTask(
-    {
-      featureId,
-      returnPath,
-      draftState,
-      timestamp: Date.now(),
-      title: title || featureId,
-    },
-    userId
-  );
-}
-

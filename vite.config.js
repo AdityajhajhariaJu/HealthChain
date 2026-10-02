@@ -4,6 +4,26 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import adminContentHandler from './api/admin-content.js';
 import foodProductHandler from './api/food-product.js';
 
+// These small icons are shared by public screens and lazy workspaces. Keep
+// them in one request instead of a dozen tiny shared chunks on a cold visit.
+const publicIcons = new Set([
+  'activity',
+  'arrow-right',
+  'brain',
+  'chevron-down',
+  'chevron-up',
+  'eye',
+  'file-text',
+  'layers',
+  'microscope',
+  'play',
+  'search',
+  'shield',
+  'shield-alert',
+  'shield-check',
+  'sparkles',
+]);
+
 // Use the same public catalog endpoint during development and in production.
 const foodProductPlugin = () => ({
   name: 'food-product-api',
@@ -80,6 +100,17 @@ export default defineConfig({
   build: {
     target: ['es2015', 'safari11', 'chrome87'],
     manifest: true,
+    rollupOptions: {
+      output: {
+        onlyExplicitManualChunks: true,
+        manualChunks(id) {
+          const icon = id
+            .replace(/\\/g, '/')
+            .match(/\/lucide-react\/dist\/esm\/icons\/([^/]+)\.js$/);
+          if (icon && publicIcons.has(icon[1])) return 'public-icons';
+        },
+      },
+    },
   },
   esbuild: {
     drop: ['console', 'debugger'],

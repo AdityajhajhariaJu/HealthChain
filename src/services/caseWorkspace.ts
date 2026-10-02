@@ -36,7 +36,7 @@ export function validateCaseIdentifier(caseId: string | null | undefined): CaseV
 
   const cleanId = caseId.trim();
   const allCases = typeof getCases === 'function' ? getCases() : [];
-  const foundCase = allCases.find(c => c.id === cleanId) || null;
+  const foundCase = allCases.find((c) => c.id === cleanId) || null;
 
   if (!foundCase) {
     return {
@@ -72,13 +72,16 @@ export function getUnifiedCaseScope(preferredCaseId?: string | null): UnifiedCas
 
   if (preferredCaseId !== undefined && preferredCaseId !== null && preferredCaseId.trim() !== '') {
     const trimmedId = preferredCaseId.trim();
-    resolvedCase = allCases.find(c => c.id === trimmedId) || null;
+    resolvedCase = allCases.find((c) => c.id === trimmedId) || null;
     if (!resolvedCase) {
       isRequestedCaseMissing = true;
       validationError = `Case '${trimmedId}' was not found in local records.`;
     }
   } else {
-    resolvedCase = (typeof getActiveCase === 'function' ? getActiveCase() : null) || allCases.find(c => !c.intakeData?.scenarioId) || null;
+    resolvedCase =
+      (typeof getActiveCase === 'function' ? getActiveCase() : null) ||
+      allCases.find((c) => !c.intakeData?.scenarioId) ||
+      null;
   }
   if (resolvedCase?.intakeData?.scenarioId) resolvedCase = null;
   const profileKey = getProfileKey();
@@ -125,7 +128,9 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
 
   const meds = item.intakeData?.currentMedications || item.intakeData?.medications;
   if (meds) {
-    const medList = Array.isArray(meds) ? meds.map(m => typeof m === 'string' ? m : m.name).join(', ') : String(meds);
+    const medList = Array.isArray(meds)
+      ? meds.map((m) => (typeof m === 'string' ? m : m.name)).join(', ')
+      : String(meds);
     if (medList.trim()) {
       answers.push({
         topic: 'Current Medications',
@@ -138,7 +143,9 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
 
   const allergies = item.intakeData?.allergies;
   if (allergies) {
-    const allergyList = Array.isArray(allergies) ? allergies.map(a => typeof a === 'string' ? a : a.name).join(', ') : String(allergies);
+    const allergyList = Array.isArray(allergies)
+      ? allergies.map((a) => (typeof a === 'string' ? a : a.name)).join(', ')
+      : String(allergies);
     if (allergyList.trim()) {
       answers.push({
         topic: 'Known Allergies',
@@ -150,16 +157,23 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
   }
 
   if (Array.isArray(item.events)) {
-    item.events.filter(ev => /^(User clarification|User observation|Patient observation|Observation|Measurement|Appointment outcome|Personal update)/i.test(ev.label || '')).slice(0, 5).forEach(ev => {
-      if (ev.note) {
-        answers.push({
-          topic: ev.label || 'Case Update',
-          value: ev.note,
-          source: ev.date || 'Case Timeline',
-          category: 'symptom',
-        });
-      }
-    });
+    item.events
+      .filter((ev) =>
+        /^(User clarification|User observation|Patient observation|Observation|Measurement|Appointment outcome|Personal update)/i.test(
+          ev.label || ''
+        )
+      )
+      .slice(0, 5)
+      .forEach((ev) => {
+        if (ev.note) {
+          answers.push({
+            topic: ev.label || 'Case Update',
+            value: ev.note,
+            source: ev.date || 'Case Timeline',
+            category: 'symptom',
+          });
+        }
+      });
   }
 
   return answers;
@@ -167,7 +181,8 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
 
 /** Keep reported evidence separate from machine-generated interpretations. */
 export function buildCaseContext(item: CaseItem): string {
-  if (item.intakeData?.scenarioId) return JSON.stringify({ notice: 'Illustrative example. Not patient evidence.' });
+  if (item.intakeData?.scenarioId)
+    return JSON.stringify({ notice: 'Illustrative example. Not patient evidence.' });
   const documentedAnswers = getCaseDocumentedAnswers(item);
 
   return JSON.stringify({
@@ -176,8 +191,10 @@ export function buildCaseContext(item: CaseItem): string {
     updatedAt: item.updatedAt,
     reportedConcern: text(item.intakeData?.chiefComplaint || item.intakeData?.concern),
     reportedTimeline: text(item.intakeData?.timeline),
-    alreadyDocumentedInRecords: documentedAnswers.map(a => `${a.topic}: ${a.value} (${a.source})`),
-    records: (item.medicalRecords || []).slice(0, 12).map(record => ({
+    alreadyDocumentedInRecords: documentedAnswers.map(
+      (a) => `${a.topic}: ${a.value} (${a.source})`
+    ),
+    records: (item.medicalRecords || []).slice(0, 12).map((record) => ({
       id: record.id,
       name: record.filename,
       source: record.source,
@@ -185,10 +202,15 @@ export function buildCaseContext(item: CaseItem): string {
       extractionStatus: record.extractionStatus || 'provisional',
       role: record.evidenceManifest ? 'user_report' : 'extracted_finding',
       sourceManifest: record.evidenceManifest || undefined,
-      passages: (record.passages || []).map(passage => ({ id: passage.id, page: passage.page, section: passage.section, extractionStatus: passage.extractionStatus || record.extractionStatus || 'provisional' })),
+      passages: (record.passages || []).map((passage) => ({
+        id: passage.id,
+        page: passage.page,
+        section: passage.section,
+        extractionStatus: passage.extractionStatus || record.extractionStatus || 'provisional',
+      })),
       findings: text(record.findings, 1500),
     })),
-    recentUpdates: (item.events || []).slice(0, 8).map(event => ({
+    recentUpdates: (item.events || []).slice(0, 8).map((event) => ({
       date: event.date,
       label: event.label,
       note: text(event.note, 1000),
@@ -196,7 +218,9 @@ export function buildCaseContext(item: CaseItem): string {
     priorAIInterpretation: {
       notice: 'Unverified AI output, not a confirmed diagnosis or a patient-reported fact.',
       summary: text(item.currentSummary?.executiveSummary),
-      possibilities: (item.currentSummary?.topDiagnoses || []).slice(0, 5).map((entry: { condition?: string }) => text(entry?.condition, 200)),
+      possibilities: (item.currentSummary?.topDiagnoses || [])
+        .slice(0, 5)
+        .map((entry: { condition?: string }) => text(entry?.condition, 200)),
     },
   });
 }
@@ -208,15 +232,18 @@ export function caseMatchesSearch(item: CaseItem, query: string): boolean {
     item.intakeData?.chiefComplaint,
     item.intakeData?.concern,
     ...(item.currentSummary?.topDiagnoses || []).map((d: { condition?: string }) => d?.condition),
-    ...(item.medicalRecords || []).map(r => r.filename),
-  ].filter(Boolean).join(' ').toLocaleLowerCase();
-  return terms.every(term => searchable.includes(term));
+    ...(item.medicalRecords || []).map((r) => r.filename),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase();
+  return terms.every((term) => searchable.includes(term));
 }
 
-export function caseActionLabel(action: { step?: string; title?: string; description?: string }): string {
+export function caseActionLabel(action: {
+  step?: string;
+  title?: string;
+  description?: string;
+}): string {
   return action.step || action.title || action.description || 'Review this next step';
-}
-
-export function localDayKey(date = new Date()): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }

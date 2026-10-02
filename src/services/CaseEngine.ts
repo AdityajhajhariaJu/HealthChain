@@ -1,5 +1,4 @@
 import { get as idbGet } from 'idb-keyval';
-import { clinicalSourceFingerprint } from './clinicalReviewSourceState';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
@@ -7,6 +6,7 @@ import {
 import { mergeCaseItems } from './CaseMergeEngine';
 import { cleanupCaseOriginalFiles, deleteOriginalCaseFile } from './caseRecordFiles';
 import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
+import { clinicalSourceFingerprint } from './clinicalReviewSourceState';
 import { recordHealthMemory } from './HealthMemory';
 import { setOwned as idbSet } from './OwnedIdb';
 import { getItemSync, removeItemSync, setItemSync } from './storage';
@@ -151,17 +151,6 @@ export interface CaseItem {
   conflicts?: ConflictRecord[];
 }
 
-export interface CasePrepDraft {
-  concern: string;
-  timeline: string;
-  records: string;
-  appointment: string;
-  goal?: string;
-  careSoFar?: string;
-  caseId?: string;
-  savedAt: string;
-}
-
 import { getProfileKey } from './ProfileEngine';
 
 export interface BriefTimelineItem {
@@ -249,29 +238,6 @@ const getActiveCaseKey = () => {
   const base = getProfileKey().replace('hc_unified_profile', 'hc_active_case');
   return `${base}_${getActiveProfileId()}`;
 };
-
-const getCasePrepDraftKey = () =>
-  `${getProfileKey().replace('hc_unified_profile', 'hc_case_prep_draft')}_${getActiveProfileId()}`;
-
-export function getCasePrepDraft(): CasePrepDraft | null {
-  try {
-    const saved = getItemSync(getCasePrepDraftKey());
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveCasePrepDraft(draft: CasePrepDraft) {
-  setItemSync(
-    getCasePrepDraftKey(),
-    JSON.stringify({ ...draft, savedAt: new Date().toISOString() })
-  );
-}
-
-export function clearCasePrepDraft() {
-  removeItemSync(getCasePrepDraftKey());
-}
 
 // Listen for logout to clear in-memory caches
 if (typeof window !== 'undefined') {
@@ -595,21 +561,10 @@ export function updateExtractedFindingCorrection(
   return updatedCase;
 }
 
-export function resolveCase(caseId: string) {
-  const cases = getCases();
-  const updatedCases = cases.map((c) =>
-    c.id === caseId ? { ...c, status: 'archived' as const, updatedAt: new Date().toISOString() } : c
-  );
-  save(updatedCases);
-  if (getActiveCaseId() === caseId) {
-    setActiveCase(null);
-  }
-}
-
 export function createCaseDraft({
   title,
   intakeData = {},
-  specialists = [],
+  specialists: _specialists = [],
   mode,
   medicalRecords = [],
 }: {
@@ -646,99 +601,6 @@ export function createCaseDraft({
   save([item, ...getCases()]);
   setActiveCase(item.id);
   return item;
-}
-
-export function saveCasePrepCase({
-  caseId,
-  concern,
-  timeline,
-  records,
-  appointment,
-  goal,
-  careSoFar,
-}: Omit<CasePrepDraft, 'savedAt'>): CaseItem {
-  const now = new Date().toISOString();
-  const intakeData = {
-    chiefComplaint: concern.trim(),
-    history: timeline.trim(),
-    appointmentDate: appointment || null,
-    appointmentGoal: goal?.trim() || '',
-    careSoFar: careSoFar?.trim() || '',
-  };
-  const notes = records
-    .split('\n')
-    .map((note) => note.trim())
-    .filter(Boolean)
-    .map((findings, index) => ({
-      id: id(),
-      filename: `Case note ${index + 1}`,
-      findings,
-      source: 'case_prep',
-      type: 'patient_note',
-      addedAt: now,
-    }));
-  const existing = caseId ? getCase(caseId) : undefined;
-  if (!existing) {
-    const created = createCaseDraft({ title: concern.trim().slice(0, 58), intakeData });
-    const updated = {
-      ...created,
-      medicalRecords: notes,
-      updatedAt: now,
-      currentStage: 'case_prep_ready',
-      events: [
-        {
-          id: id(),
-          date: now,
-          label: 'Case brief prepared',
-          note: 'Your appointment-prep brief was saved.',
-        },
-        ...created.events,
-      ],
-    } as CaseItem;
-    save(getCases().map((item) => (item.id === created.id ? updated : item)));
-    recordHealthMemory({
-      kind: 'case_prep',
-      source: 'case_prep',
-      title: `Case Prep: ${updated.title}`,
-      occurredAt: now,
-      caseId: updated.id,
-      payload: intakeData,
-      dedupeKey: `case-prep:${updated.id}`,
-    });
-    return updated;
-  }
-  const updated: CaseItem = {
-    ...existing,
-    title: concern.trim().slice(0, 58) || existing.title,
-    intakeData,
-    medicalRecords: [
-      ...(existing.medicalRecords || []).filter((record) => record.source !== 'case_prep'),
-      ...notes,
-    ],
-    updatedAt: now,
-    currentStage: 'case_prep_ready',
-    events: [
-      {
-        id: id(),
-        date: now,
-        label: 'Case brief updated',
-        note: 'Your appointment-prep brief was updated.',
-      },
-      ...(existing.events || []),
-    ].slice(0, 100),
-  };
-  save(getCases().map((item) => (item.id === existing.id ? updated : item)));
-  setActiveCase(existing.id);
-  recordHealthMemory({
-    kind: 'case_prep',
-    source: 'case_prep',
-    title: `Case Prep: ${updated.title}`,
-    occurredAt: now,
-    caseId: updated.id,
-    payload: intakeData,
-    dedupeKey: `case-prep:${updated.id}`,
-  });
-  return updated;
 }
 
 export function saveReviewSnapshot({
@@ -999,134 +861,8 @@ export function addCaseEvent(
   save(cases);
 }
 
-export function toggleCaseAction(caseId: string, actionId: string) {
-  const cases = getCases().map((item) =>
-    item.id !== caseId
-      ? item
-      : {
-          ...item,
-          updatedAt: new Date().toISOString(),
-          actions: item.actions.map((action) =>
-            action.id === actionId
-              ? {
-                  ...action,
-                  status: (action.status === 'completed' ? 'pending' : 'completed') as
-                    'pending' | 'completed',
-                }
-              : action
-          ),
-        }
-  );
-  save(cases);
-}
-
 export function getCase(caseId: string): CaseItem | undefined {
   return getCases().find((item) => item.id === caseId);
-}
-
-export function addEvidenceToActiveCase({
-  filename,
-  findings,
-  source = 'healthchain',
-  type = 'report',
-}: {
-  filename: string;
-  findings: string;
-  source?: string;
-  type?: string;
-}): MedicalRecord | null {
-  const activeCaseId = getActiveCaseId();
-  if (!activeCaseId) return null;
-  return addEvidenceToCase(activeCaseId, { filename, findings, source, type });
-}
-
-export function addEvidenceToCase(
-  caseId: string,
-  {
-    filename,
-    findings,
-    source = 'healthchain',
-    type = 'report',
-  }: {
-    filename: string;
-    findings: string;
-    source?: string;
-    type?: string;
-  }
-): MedicalRecord | null {
-  if (!getCase(caseId)) return null;
-  const evidence: MedicalRecord = ensureRecordPassages({
-    id: id(),
-    filename,
-    findings,
-    source,
-    type,
-    addedAt: new Date().toISOString(),
-  });
-  const cases = getCases().map((item) =>
-    item.id !== caseId
-      ? item
-      : {
-          ...item,
-          updatedAt: new Date().toISOString(),
-          medicalRecords: [evidence, ...(item.medicalRecords || [])].slice(0, 50),
-          events: [
-            {
-              id: id(),
-              date: new Date().toISOString(),
-              label: 'New evidence added',
-              note: `${filename} was added to this case.`,
-            },
-            ...(item.events || []),
-          ].slice(0, 100),
-        }
-  );
-  save(cases);
-  safeDispatchEvent(new Event('hc_active_case_updated'));
-  return evidence;
-}
-
-export function updateCaseDifferentials(caseId: string, differentials: Differential[]) {
-  const cases = getCases().map((item) => {
-    if (item.id !== caseId) return item;
-
-    const prevDifferentials = item.differentials || [];
-    const historyEntry = { date: new Date().toISOString(), differentials: prevDifferentials };
-    const newHistory = [historyEntry, ...(item.differentialHistory || [])].slice(0, 20);
-
-    // Mathematically calculate trend based on previous probabilities
-    const updatedDifferentials = differentials.map((ddx) => {
-      const prev = prevDifferentials.find(
-        (p) => p.condition.toLowerCase() === ddx.condition.toLowerCase()
-      );
-      let trend: 'up' | 'down' | 'stable' = 'stable';
-      if (prev) {
-        if (ddx.probability > prev.probability) trend = 'up';
-        else if (ddx.probability < prev.probability) trend = 'down';
-      }
-      return { ...ddx, trend };
-    });
-
-    return {
-      ...item,
-      updatedAt: new Date().toISOString(),
-      differentials: updatedDifferentials,
-      differentialHistory: newHistory,
-      events: [
-        {
-          id: id(),
-          date: new Date().toISOString(),
-          label: 'DDx Updated',
-          note: `The AI generated ${updatedDifferentials.length} active differential hypotheses.`,
-        },
-        ...(item.events || []),
-      ].slice(0, 100),
-    };
-  });
-  save(cases);
-  if (getActiveCaseId() === caseId) {
-    safeDispatchEvent(new Event('hc_active_case_updated'));
-  }
 }
 
 export async function initCaseEngine() {
@@ -1288,21 +1024,6 @@ export async function initCaseEngine() {
   }
 
   safeDispatchEvent(new Event('hc_cases_updated'));
-}
-
-export async function fetchCaseFromCloud(caseId: string): Promise<CaseItem | null> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) return null;
-  const { data, error } = await supabase
-    .from('cases')
-    .select('data')
-    .eq('id', caseId)
-    .eq('user_id', session.user.id)
-    .single();
-  if (error || !data) return null;
-  return data.data as CaseItem;
 }
 
 export function updateCaseConnectionMap(caseId: string, connectionMap: any) {

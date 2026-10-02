@@ -13,7 +13,6 @@ import React, { useState } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   SemanticDetectiveEdge,
-  SemanticDetectiveNode,
   SemanticEvidenceGraph,
   toggleDecoupleEdge,
 } from '../../services/ConnectionDetectiveEngine';
@@ -25,7 +24,6 @@ import {
 
 interface SemanticEvidenceGraphViewProps {
   graph: SemanticEvidenceGraph;
-  onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
   onOpenSourceModal?: (data: any) => void;
   className?: string;
@@ -33,14 +31,12 @@ interface SemanticEvidenceGraphViewProps {
 
 export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps> = ({
   graph,
-  onOpenConsult,
   onOpenCasePrep,
   onOpenSourceModal,
   className = '',
 }) => {
   const isMobile = useIsMobile();
   const [selectedEdge, setSelectedEdge] = useState<SemanticDetectiveEdge | null>(null);
-  const [, setSelectedNode] = useState<SemanticDetectiveNode | null>(null);
   const [copiedBrief, setCopiedBrief] = useState(false);
 
   // Group nodes by role in the canonical flow
@@ -54,7 +50,7 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
 
   const handleToggleDecouple = (edgeId: string) => {
     triggerHapticSelection();
-    toggleDecoupleEdge(edgeId);
+    toggleDecoupleEdge(edgeId, graph.caseId);
     setSelectedEdge(null);
   };
 
@@ -243,7 +239,6 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
               return (
                 <div
                   key={node.id}
-                  onClick={() => setSelectedNode(node)}
                   style={{
                     background:
                       node.category === 'extracted_finding' && node.status === 'contradicted'
@@ -259,7 +254,6 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '8px',
-                    cursor: 'pointer',
                   }}
                 >
                   <div
@@ -329,7 +323,33 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                         border: isDecoupled ? '1px dashed #CBD5E1' : '1px solid #BAE6FD',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <button
+                        type="button"
+                        disabled={!onOpenSourceModal}
+                        onClick={() =>
+                          onOpenSourceModal?.({
+                            caseId: node.caseId,
+                            recordId: node.recordId,
+                            findingId: node.id,
+                            recordTitle: node.sourceDocName,
+                            pageNumber: node.pageNumber,
+                            passageText: node.passageText || '',
+                            findingClaim: node.label,
+                          })
+                        }
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          minHeight: 44,
+                          background: 'transparent',
+                          border: 0,
+                          padding: '4px 0',
+                          textAlign: 'left',
+                          cursor: onOpenSourceModal ? 'pointer' : 'default',
+                        }}
+                        aria-label={`Inspect source for ${node.label}`}
+                      >
                         <FileText size={12} color={isDecoupled ? '#94A3B8' : '#0284C7'} />
                         <span
                           style={{
@@ -340,7 +360,7 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
                         >
                           recorded in: {node.sourceDocName}
                         </span>
-                      </div>
+                      </button>
                       {recEdge && (
                         <button
                           type="button"
@@ -397,14 +417,12 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
             </div>
 
             <div
-              onClick={() => setSelectedNode(considerationNode)}
               style={{
                 background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 100%)',
                 borderRadius: '16px',
                 border: '2px solid #FDBA74',
                 padding: isMobile ? '16px' : '20px',
                 boxShadow: '0 6px 18px rgba(234, 88, 12, 0.08)',
-                cursor: 'pointer',
               }}
             >
               <div
@@ -526,14 +544,12 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
           {/* Node 1: Question Still Open */}
           {questionNode && (
             <div
-              onClick={() => setSelectedNode(questionNode)}
               style={{
                 background: '#FFFFFF',
                 borderRadius: '14px',
                 border: '1.5px solid #FDE68A',
                 padding: '16px',
                 boxShadow: '0 2px 10px rgba(217, 119, 6, 0.05)',
-                cursor: 'pointer',
               }}
             >
               <div

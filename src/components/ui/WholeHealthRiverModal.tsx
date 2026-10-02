@@ -30,17 +30,57 @@ interface WholeHealthRiverModalProps {
 }
 
 export const getInitialRiverMoments = (records?: Observation[]): RiverMoment[] => {
- if(records)return records.filter(record=>!record.deletedAt).map(record=>{
-  const payload=record.payload;
-  const time=record.occurredAt && ['exact','approximate'].includes(record.timePrecision)
-   ?new Date(record.occurredAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
-   :record.localDate?record.localDate+' · time not recorded':'Time not recorded';
-  const title=payload.kind==='meal'?payload.description:payload.kind==='symptom'?payload.symptom:payload.kind==='context'?payload.description:payload.kind==='daily_checkin'?'Daily check-in':'Bowel observation';
-  const type:RiverMoment['type']=payload.kind==='meal'?'nutrition':payload.kind==='context' && payload.contextType==='medication'?'medication':'symptom';
-  const items=payload.kind==='symptom'?[payload.severity?'Severity: '+payload.severity.value+'/'+payload.severity.max:'Severity not recorded']
-   :payload.kind==='daily_checkin'?Object.entries(payload.answers).map(([key,value])=>key+': '+value):[];
-  return {id:record.id,time,type,title,items,notes:'Canonical observation · '+record.source};
- });
+  if (records)
+    return records
+      .filter((record) => !record.deletedAt)
+      .map((record) => {
+        const payload = record.payload;
+        const time =
+          record.occurredAt && ['exact', 'approximate'].includes(record.timePrecision)
+            ? new Date(record.occurredAt).toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : record.localDate
+              ? record.localDate + ' · time not recorded'
+              : 'Time not recorded';
+        const title =
+          payload.kind === 'meal'
+            ? payload.description
+            : payload.kind === 'symptom'
+              ? payload.symptom
+              : payload.kind === 'context'
+                ? payload.description
+                : payload.kind === 'daily_checkin'
+                  ? 'Daily check-in'
+                  : 'Bowel observation';
+        const type: RiverMoment['type'] =
+          payload.kind === 'meal'
+            ? 'nutrition'
+            : payload.kind === 'context' && payload.contextType === 'medication'
+              ? 'medication'
+              : 'symptom';
+        const items =
+          payload.kind === 'symptom'
+            ? [
+                payload.severity
+                  ? 'Severity: ' + payload.severity.value + '/' + payload.severity.max
+                  : 'Severity not recorded',
+              ]
+            : payload.kind === 'daily_checkin'
+              ? Object.entries(payload.answers).map(([key, value]) => key + ': ' + value)
+              : [];
+        return {
+          id: record.id,
+          time,
+          type,
+          title,
+          items,
+          notes: 'Canonical observation · ' + record.source,
+        };
+      });
   const profile = getProfile();
   const list: RiverMoment[] = [];
 
@@ -70,7 +110,10 @@ export const getInitialRiverMoments = (records?: Observation[]): RiverMoment[] =
         time,
         type: 'symptom',
         title: chk.symptom,
-        items: [`Severity: ${chk.severity ?? 'Not recorded'}`, `Score: ${chk.score ?? 'Not recorded'}/10`],
+        items: [
+          `Severity: ${chk.severity ?? 'Not recorded'}`,
+          `Score: ${chk.score ?? 'Not recorded'}/10`,
+        ],
         notes: chk.notes || 'Recorded via Daily Check-in',
       });
     }
@@ -85,7 +128,7 @@ export const getInitialRiverMoments = (records?: Observation[]): RiverMoment[] =
 export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
   isOpen,
   onClose,
-  onAskAvaAboutConnection
+  onAskAvaAboutConnection,
 }) => {
   const [moments, setMoments] = useState<RiverMoment[]>(() => getInitialRiverMoments());
   const [activeFilter, setActiveFilter] = useState<'all' | 'causal' | 'symptoms'>('all');
@@ -94,47 +137,93 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
   const [newTitle, setNewTitle] = useState('');
   const [newItemText, setNewItemText] = useState('');
 
-  const [saveError,setSaveError]=useState('');
-  const [saving,setSaving]=useState(false);
-  useEffect(()=>{
-   if(!isOpen)return;
-   const scope=captureHealthMemoryScope();let active=true;
-   const refresh=()=>{void listObservations().then(records=>{if(active && isHealthMemoryScopeCurrent(scope))setMoments(getInitialRiverMoments(records));});};
-   refresh();window.addEventListener('hc_observations_updated',refresh);
-   return()=>{active=false;window.removeEventListener('hc_observations_updated',refresh);};
-  },[isOpen]);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!isOpen) return;
+    const scope = captureHealthMemoryScope();
+    let active = true;
+    const refresh = () => {
+      void listObservations().then((records) => {
+        if (active && isHealthMemoryScopeCurrent(scope))
+          setMoments(getInitialRiverMoments(records));
+      });
+    };
+    refresh();
+    window.addEventListener('hc_observations_updated', refresh);
+    return () => {
+      active = false;
+      window.removeEventListener('hc_observations_updated', refresh);
+    };
+  }, [isOpen]);
   if (!isOpen) return null;
 
-  const filteredMoments = moments.filter(m => {
+  const filteredMoments = moments.filter((m) => {
     if (activeFilter === 'causal') return m.isCausalTrigger || m.isCausalReaction;
     if (activeFilter === 'symptoms') return m.type === 'symptom';
     return true;
   });
 
-  const handleAddMoment=async()=>{
-   if(saving || !newTitle.trim())return;
-   setSaving(true);setSaveError('');
-   const owner=captureHealthMemoryScope();
-   try{
-    const scope=await captureObservationScope();
-    if(!scope || !isHealthMemoryScopeCurrent(owner))throw new Error('Account changed. Please retry.');
-    const payload:any=newType==='nutrition'?{kind:'meal',description:newTitle.trim(),note:newItemText.trim() || undefined}
-     :newType==='symptom'?{kind:'symptom',symptom:newTitle.trim(),note:newItemText.trim() || undefined}
-     :{kind:'context',contextType:newType==='medication'?'medication':'other',description:[newTitle.trim(),newItemText.trim()].filter(Boolean).join(': ')};
-    const now=new Date();
-    const localDate=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
-    const result=await createObservation({...scope,payload,occurredAt:null,localDate,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,timePrecision:'date_only',source:'ava',evidenceType:'user_report',idempotencyKey:crypto.randomUUID()});
-    if(!isHealthMemoryScopeCurrent(owner))return;
-    if(!result.ok)throw new Error(result.details?.join(' ') || 'Could not save.');
-    setMoments(getInitialRiverMoments(await listObservations()));setNewTitle('');setNewItemText('');setShowAddSheet(false);
-    if(result.sync==='queue_failed')setSaveError('Saved on this device; account sync needs retry.');
-   }catch(error:any){setSaveError(error.message);}finally{setSaving(false);}
+  const handleAddMoment = async () => {
+    if (saving || !newTitle.trim()) return;
+    setSaving(true);
+    setSaveError('');
+    const owner = captureHealthMemoryScope();
+    try {
+      const scope = await captureObservationScope();
+      if (!scope || !isHealthMemoryScopeCurrent(owner))
+        throw new Error('Account changed. Please retry.');
+      const payload: any =
+        newType === 'nutrition'
+          ? { kind: 'meal', description: newTitle.trim(), note: newItemText.trim() || undefined }
+          : newType === 'symptom'
+            ? { kind: 'symptom', symptom: newTitle.trim(), note: newItemText.trim() || undefined }
+            : {
+                kind: 'context',
+                contextType: newType === 'medication' ? 'medication' : 'other',
+                description: [newTitle.trim(), newItemText.trim()].filter(Boolean).join(': '),
+              };
+      const now = new Date();
+      const localDate = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0'),
+      ].join('-');
+      const result = await createObservation({
+        ...scope,
+        payload,
+        occurredAt: null,
+        localDate,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timePrecision: 'date_only',
+        source: 'ava',
+        evidenceType: 'user_report',
+        idempotencyKey: crypto.randomUUID(),
+      });
+      if (!isHealthMemoryScopeCurrent(owner)) return;
+      if (!result.ok) throw new Error(result.details?.join(' ') || 'Could not save.');
+      setMoments(getInitialRiverMoments(await listObservations()));
+      setNewTitle('');
+      setNewItemText('');
+      setShowAddSheet(false);
+      if (result.sync === 'queue_failed')
+        setSaveError('Saved on this device; account sync needs retry.');
+    } catch (error: any) {
+      setSaveError(error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getMomentStyle = (type: RiverMoment['type']) => {
     switch (type) {
       case 'posture':
-        return { badgeBg: '#F0FDFA', badgeColor: '#0F766E', icon: '🪑', label: 'Posture & Ergonomics' };
+        return {
+          badgeBg: '#F0FDFA',
+          badgeColor: '#0F766E',
+          icon: '🪑',
+          label: 'Posture & Ergonomics',
+        };
       case 'symptom':
         return { badgeBg: '#FFF1F2', badgeColor: '#E11D48', icon: '⚡', label: 'Symptom Reported' };
       case 'vascular':
@@ -178,9 +267,13 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
           flexDirection: 'column',
           boxShadow: '0 -16px 40px rgba(0,0,0,0.15)',
         }}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        {saveError && <p role="alert" style={{padding:12}}>{saveError}</p>}
+        {saveError && (
+          <p role="alert" style={{ padding: 12 }}>
+            {saveError}
+          </p>
+        )}
         {/* Top Handle & Header */}
         <div
           style={{
@@ -207,10 +300,27 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
               <Waves size={20} color="#FFFFFF" />
             </div>
             <div>
-              <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#CCFBF1', display: 'block' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: '#CCFBF1',
+                  display: 'block',
+                }}
+              >
                 TriggerBites Daily Stream
               </span>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.3px' }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.3px',
+                }}
+              >
                 Whole Health River
               </h3>
             </div>
@@ -237,13 +347,22 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
         </div>
 
         {/* Filter Pills & Causality Banner */}
-        <div style={{ padding: '12px 20px', background: '#F0FDFA', borderBottom: '1px solid #CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            padding: '12px 20px',
+            background: '#F0FDFA',
+            borderBottom: '1px solid #CCFBF1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <div style={{ display: 'flex', gap: '6px' }}>
             {[
               { key: 'all', label: 'All Moments' },
               { key: 'causal', label: '🔗 Recorded links' },
               { key: 'symptoms', label: '⚡ Symptoms Only' },
-            ].map(tab => (
+            ].map((tab) => (
               <button
                 key={tab.key}
                 type="button"
@@ -272,7 +391,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
             type="button"
             onClick={() => {
               triggerHapticLight();
-              setShowAddSheet(prev => !prev);
+              setShowAddSheet((prev) => !prev);
             }}
             style={{
               padding: '6px 12px',
@@ -310,7 +429,15 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
               }}
             >
               <div style={{ display: 'flex', gap: '6px' }}>
-                {(['symptom', 'posture', 'nutrition', 'vascular', 'medication'] as RiverMoment['type'][]).map(type => (
+                {(
+                  [
+                    'symptom',
+                    'posture',
+                    'nutrition',
+                    'vascular',
+                    'medication',
+                  ] as RiverMoment['type'][]
+                ).map((type) => (
                   <button
                     key={type}
                     type="button"
@@ -337,7 +464,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                 type="text"
                 placeholder="Title (e.g. 4h Desk Slouch, Greek Yogurt)..."
                 value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
+                onChange={(e) => setNewTitle(e.target.value)}
                 style={{
                   padding: '9px 12px',
                   borderRadius: '10px',
@@ -351,7 +478,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                 type="text"
                 placeholder="Items separated by commas (e.g. Lower Back Ache, Ocular Pain)..."
                 value={newItemText}
-                onChange={e => setNewItemText(e.target.value)}
+                onChange={(e) => setNewItemText(e.target.value)}
                 style={{
                   padding: '9px 12px',
                   borderRadius: '10px',
@@ -439,11 +566,27 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                 <Waves size={26} />
               </div>
               <div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
+                <div
+                  style={{
+                    fontSize: '1rem',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    marginBottom: '6px',
+                  }}
+                >
                   No River Moments Logged Today
                 </div>
-                <p style={{ fontSize: '0.82rem', color: '#64748B', maxWidth: '360px', margin: '0 auto', lineHeight: 1.5 }}>
-                  The Whole Health River chronologically maps nutrition, posture, physical stress, and symptoms to review recorded timing. Timing alone does not establish a cause.
+                <p
+                  style={{
+                    fontSize: '0.82rem',
+                    color: '#64748B',
+                    maxWidth: '360px',
+                    margin: '0 auto',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  The Whole Health River chronologically maps nutrition, posture, physical stress,
+                  and symptoms to review recorded timing. Timing alone does not establish a cause.
                 </p>
               </div>
               <button
@@ -470,7 +613,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
               </button>
             </div>
           ) : (
-            filteredMoments.map((moment, idx) => {
+            filteredMoments.map((moment, _idx) => {
               const style = getMomentStyle(moment.type);
               const isHighlightedCausal = moment.isCausalTrigger || moment.isCausalReaction;
 
@@ -520,7 +663,13 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                       gap: '6px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
                           {moment.time}
@@ -563,7 +712,9 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                     </div>
 
                     {/* Chips */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '2px' }}>
+                    <div
+                      style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '2px' }}
+                    >
                       {moment.items.map((item, i) => (
                         <span
                           key={i}
@@ -583,60 +734,80 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
                     </div>
 
                     {moment.notes && (
-                      <div style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic', marginTop: '2px' }}>
+                      <div
+                        style={{
+                          fontSize: '11.5px',
+                          color: '#64748B',
+                          fontStyle: 'italic',
+                          marginTop: '2px',
+                        }}
+                      >
                         “{moment.notes}”
                       </div>
                     )}
 
                     {/* Special Link Prompt if Causal Reaction */}
-                    {moment.isCausalReaction && (() => {
-                      const linkedTrigger = moments.find(
-                        m => m.causalConnectionId === moment.causalConnectionId && m.isCausalTrigger
-                      );
-                      const triggerLabel = linkedTrigger ? `${linkedTrigger.time} ${linkedTrigger.title}` : 'Upstream trigger';
-                      const reactionLabel = `${moment.time} ${moment.title}`;
-                      return (
-                        <div
-                          style={{
-                            marginTop: '6px',
-                            padding: '8px 10px',
-                            borderRadius: '12px',
-                            background: '#FFFFFF',
-                            border: '1px dashed #0D9488',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div style={{ fontSize: '11px', color: '#0F766E', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <Sparkles size={12} /> Causal link: {triggerLabel} ➔ {reactionLabel}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              triggerHapticLight();
-                              onClose();
-                              if (onAskAvaAboutConnection) {
-                                onAskAvaAboutConnection(triggerLabel, reactionLabel);
-                              }
-                            }}
+                    {moment.isCausalReaction &&
+                      (() => {
+                        const linkedTrigger = moments.find(
+                          (m) =>
+                            m.causalConnectionId === moment.causalConnectionId && m.isCausalTrigger
+                        );
+                        const triggerLabel = linkedTrigger
+                          ? `${linkedTrigger.time} ${linkedTrigger.title}`
+                          : 'Upstream trigger';
+                        const reactionLabel = `${moment.time} ${moment.title}`;
+                        return (
+                          <div
                             style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#0D9488',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              cursor: 'pointer',
+                              marginTop: '6px',
+                              padding: '8px 10px',
+                              borderRadius: '12px',
+                              background: '#FFFFFF',
+                              border: '1px dashed #0D9488',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '2px',
+                              justifyContent: 'space-between',
                             }}
                           >
-                            Ask Ava <ChevronRight size={12} />
-                          </button>
-                        </div>
-                      );
-                    })()}
+                            <div
+                              style={{
+                                fontSize: '11px',
+                                color: '#0F766E',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                              }}
+                            >
+                              <Sparkles size={12} /> Causal link: {triggerLabel} ➔ {reactionLabel}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                triggerHapticLight();
+                                onClose();
+                                if (onAskAvaAboutConnection) {
+                                  onAskAvaAboutConnection(triggerLabel, reactionLabel);
+                                }
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#0D9488',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px',
+                              }}
+                            >
+                              Ask Ava <ChevronRight size={12} />
+                            </button>
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
               );
@@ -657,7 +828,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
         >
           <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
             {filteredMoments.length} moment{filteredMoments.length === 1 ? '' : 's'} tracked today
-            {moments.some(m => m.isCausalReaction) ? ' · recorded link' : ''}
+            {moments.some((m) => m.isCausalReaction) ? ' · recorded link' : ''}
           </div>
           <button
             type="button"

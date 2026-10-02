@@ -5,53 +5,68 @@ import { useNavigate } from 'react-router-dom';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useToast } from '../../components/ui/ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useMountedRef } from '../../hooks/useMountedRef';
 import { CaseItem, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { generateCaseConnectionMap } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getRunScope } from '../../services/RunContext';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 
-export default function DDxBoard({ item, profile }: { item: CaseItem; profile: any }) {
+export default function DDxBoard({ item }: { item: CaseItem }) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const toast = useToast();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const isMounted = useRef(true);
+  const isMounted = useMountedRef();
   const hasAutoRun = useRef(false);
-
-  useEffect(() => {
-    return () => { isMounted.current = false; };
-  }, []);
 
   // Auto-generate on mount if we have pathways but no connection map
   useEffect(() => {
     if (hasAutoRun.current) return;
-    const topDiagnoses = item.currentSummary?.topDiagnoses || item.reviews?.[0]?.report?.topDiagnoses || [];
+    const topDiagnoses =
+      item.currentSummary?.topDiagnoses || item.reviews?.[0]?.report?.topDiagnoses || [];
     const requestKey = getRunScope('mdt', item.id, 'connection-map');
     let alreadyRequested = false;
-    try { alreadyRequested = sessionStorage.getItem(requestKey) === 'done'; } catch {}
+    try {
+      alreadyRequested = sessionStorage.getItem(requestKey) === 'done';
+    } catch {}
     if (topDiagnoses.length > 0 && !item.connectionMap && !alreadyRequested) {
       hasAutoRun.current = true;
-      try { sessionStorage.setItem(requestKey, 'pending'); } catch {}
+      try {
+        sessionStorage.setItem(requestKey, 'pending');
+      } catch {}
       setIsAnalyzing(true);
-      generateCaseConnectionMap(topDiagnoses).then(mapData => {
-        if (mapData) {
-          updateCaseConnectionMap(item.id, mapData);
-          awardPoints(15, 'Generated Case Connection Map', 'consult', 'ddx_map_' + item.id);
-          try { sessionStorage.setItem(requestKey, 'done'); } catch {}
-        }
-      }).catch(console.error).finally(() => {
-        try { if (sessionStorage.getItem(requestKey) !== 'done') sessionStorage.removeItem(requestKey); } catch {}
-        if (isMounted.current) setIsAnalyzing(false);
-      });
+      generateCaseConnectionMap(topDiagnoses)
+        .then((mapData) => {
+          if (mapData) {
+            updateCaseConnectionMap(item.id, mapData);
+            awardPoints(15, 'Generated Case Connection Map', 'consult', 'ddx_map_' + item.id);
+            try {
+              sessionStorage.setItem(requestKey, 'done');
+            } catch {}
+          }
+        })
+        .catch(console.error)
+        .finally(() => {
+          try {
+            if (sessionStorage.getItem(requestKey) !== 'done')
+              sessionStorage.removeItem(requestKey);
+          } catch {}
+          if (isMounted.current) setIsAnalyzing(false);
+        });
     }
   }, [item.id, item.currentSummary, item.connectionMap]);
 
   const handleManualGenerate = async () => {
     triggerHapticLight();
-    const topDiagnoses = item.currentSummary?.topDiagnoses || item.reviews?.[0]?.report?.topDiagnoses || [
-      { condition: item.title || 'Clinical Synthesis', specialty: 'General Medicine', rationale: 'Active clinical assessment' }
-    ];
+    const topDiagnoses = item.currentSummary?.topDiagnoses ||
+      item.reviews?.[0]?.report?.topDiagnoses || [
+        {
+          condition: item.title || 'Clinical Synthesis',
+          specialty: 'General Medicine',
+          rationale: 'Active clinical assessment',
+        },
+      ];
     setIsAnalyzing(true);
     try {
       const mapData = await generateCaseConnectionMap(topDiagnoses);
@@ -59,7 +74,10 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         updateCaseConnectionMap(item.id, mapData);
         awardPoints(15, 'Generated Case Connection Map', 'consult', 'ddx_map_' + item.id);
         triggerHapticSuccess();
-        toast.success('Connections Mapped (+15 pts)', 'Multi-component case connection map generated.');
+        toast.success(
+          'Connections Mapped (+15 pts)',
+          'Multi-component case connection map generated.'
+        );
       } else {
         toast.error('Mapping Inconclusive', 'Could not generate connections. Please try again.');
       }
@@ -74,12 +92,15 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
   return (
     <div className="card" style={{ padding: isMobile ? 16 : 24 }}>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 22, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h2
+          style={{ fontSize: 22, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}
+        >
           <Brain color="#6366F1" size={24} />
           Case Component Connections
         </h2>
         <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
-          AI-organized overlaps between reported symptoms, records, and possibilities. Connections are questions to review, not conclusions.
+          AI-organized overlaps between reported symptoms, records, and possibilities. Connections
+          are questions to review, not conclusions.
         </p>
       </div>
 
@@ -87,7 +108,12 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{ textAlign: 'center', padding: 60, border: '2px dashed #E2E8F0', borderRadius: 16 }}
+          style={{
+            textAlign: 'center',
+            padding: 60,
+            border: '2px dashed #E2E8F0',
+            borderRadius: 16,
+          }}
         >
           <motion.div
             animate={{ rotate: 360 }}
@@ -109,16 +135,45 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{ textAlign: 'center', padding: 48, border: '2px dashed #E2E8F0', borderRadius: 16, background: '#F8FAFC' }}
+          style={{
+            textAlign: 'center',
+            padding: 48,
+            border: '2px dashed #E2E8F0',
+            borderRadius: 16,
+            background: '#F8FAFC',
+          }}
         >
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#6366F1' }}>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: '#EEF2FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              color: '#6366F1',
+            }}
+          >
             <Brain size={28} />
           </div>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: '0 0 8px' }}>
             Component connections not yet mapped
           </h3>
-          <p style={{ margin: '0 0 20px', color: '#64748B', fontSize: 14, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
-            Organize possible overlaps between reported symptoms, recorded measurements, and discussion pathways.
+          <p
+            style={{
+              margin: '0 0 20px',
+              color: '#64748B',
+              fontSize: 14,
+              maxWidth: 420,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: 1.5,
+            }}
+          >
+            Organize possible overlaps between reported symptoms, recorded measurements, and
+            discussion pathways.
           </p>
           <button
             type="button"
@@ -136,10 +191,10 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
               gap: 8,
               cursor: 'pointer',
               boxShadow: '0 4px 14px rgba(99, 102, 241, 0.25)',
-              transition: 'transform 0.15s ease'
+              transition: 'transform 0.15s ease',
             }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.97)')}
+            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           >
             <Sparkles size={16} /> ⚡ Generate Connection Map
           </button>
@@ -149,7 +204,16 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
       {item.connectionMap && (
         <>
           <CaseConnectionMap data={item.connectionMap} isMobile={isMobile} />
-          <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <div
+            style={{
+              marginTop: '16px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '10px',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}
+          >
             <button
               type="button"
               onClick={handleManualGenerate}
@@ -165,7 +229,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                cursor: isAnalyzing ? 'not-allowed' : 'pointer'
+                cursor: isAnalyzing ? 'not-allowed' : 'pointer',
               }}
             >
               {isAnalyzing ? <Loader2 size={14} className="spin" /> : <RotateCcw size={14} />}
@@ -177,8 +241,8 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                 triggerHapticLight();
                 navigate('/app/ava', {
                   state: {
-                    initialPrompt: `I am reviewing the connection map for "${item.title || 'my case'}". Please separate documented overlaps from uncertain possibilities and help me prepare questions for my clinician. Do not assume any connection is causal.`
-                  }
+                    initialPrompt: `I am reviewing the connection map for "${item.title || 'my case'}". Please separate documented overlaps from uncertain possibilities and help me prepare questions for my clinician. Do not assume any connection is causal.`,
+                  },
                 });
               }}
               style={{
@@ -192,7 +256,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               <MessageCircle size={15} /> Discuss Connections with Ava

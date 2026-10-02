@@ -21,7 +21,6 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { CaseItem, getActiveCaseId, getCase, setActiveCase } from '../../services/CaseEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
-import { getProfile } from '../../services/ProfileEngine';
 import DDxBoard from './DDxBoard';
 import SnapshotViewer from './SnapshotViewer';
 
@@ -31,7 +30,7 @@ const formatDate = (value?: string) => {
     return new Date(value).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   } catch {
     return 'N/A';
@@ -46,7 +45,7 @@ export default function CaseDetail() {
   const toast = useToast();
 
   const tabParam = searchParams.get('tab');
-  const initialTab: 'reviews' | 'map' | 'records' = 
+  const initialTab: 'reviews' | 'map' | 'records' =
     tabParam === 'map' ? 'map' : tabParam === 'records' ? 'records' : 'reviews';
   const [activeTab, setActiveTabState] = useState<'reviews' | 'map' | 'records'>(initialTab);
 
@@ -69,25 +68,36 @@ export default function CaseDetail() {
   const caseAnalysis = React.useMemo(() => {
     if (!caseItem) return null;
     if (caseItem.currentSummary?.flowchart) return caseItem.currentSummary;
-    const reviewWithFlowchart = caseItem.reviews?.find(r => r.report?.flowchart);
+    const reviewWithFlowchart = caseItem.reviews?.find((r) => r.report?.flowchart);
     if (reviewWithFlowchart) return reviewWithFlowchart.report;
 
-    const topDiagnoses = caseItem.currentSummary?.topDiagnoses || caseItem.reviews?.[0]?.report?.topDiagnoses;
+    const topDiagnoses =
+      caseItem.currentSummary?.topDiagnoses || caseItem.reviews?.[0]?.report?.topDiagnoses;
     if (topDiagnoses && topDiagnoses.length > 0) {
       const primary = topDiagnoses[0];
-      const conditionName = typeof primary === 'string' ? primary : primary.condition || caseItem.title;
-      const specialtyName = typeof primary === 'string' ? 'Specialist Review' : primary.specialty || 'Leading Pathway';
-      const rationaleText = typeof primary === 'string' ? 'Cross-system physiological interaction' : primary.rationale || 'Interconnected symptom mechanisms';
+      const conditionName =
+        typeof primary === 'string' ? primary : primary.condition || caseItem.title;
+      const specialtyName =
+        typeof primary === 'string' ? 'Specialist Review' : primary.specialty || 'Leading Pathway';
+      const rationaleText =
+        typeof primary === 'string'
+          ? 'Cross-system physiological interaction'
+          : primary.rationale || 'Interconnected symptom mechanisms';
       return {
         chain_name: conditionName,
-        normal_terms_explanation: caseItem.currentSummary?.executiveSummary || caseItem.reviews?.[0]?.report?.executiveSummary || 'Clinical review findings and potential pathways to evaluate with your physician.',
+        normal_terms_explanation:
+          caseItem.currentSummary?.executiveSummary ||
+          caseItem.reviews?.[0]?.report?.executiveSummary ||
+          'Clinical review findings and potential pathways to evaluate with your physician.',
         flowchart: {
           root: conditionName,
           root_sub: specialtyName,
           mechanism: rationaleText,
           mechanism_sub: 'Targeted clinical area to evaluate',
-          symptoms: (caseItem.intakeData?.symptoms || ['Reported clinical indications']).map((s: string) => ({ name: s, sub: 'Reported sign' }))
-        }
+          symptoms: (caseItem.intakeData?.symptoms || ['Reported clinical indications']).map(
+            (s: string) => ({ name: s, sub: 'Reported sign' })
+          ),
+        },
       };
     }
     return null;
@@ -125,23 +135,52 @@ export default function CaseDetail() {
     triggerHapticSuccess();
     setActiveCase(caseItem.id);
     setActiveCaseIdState(caseItem.id);
-    toast.success('Workspace Set to Active', `"${caseItem.title}" is now the active clinical context across HealthChain.`);
+    toast.success(
+      'Workspace Set to Active',
+      `"${caseItem.title}" is now the active clinical context across HealthChain.`
+    );
   };
 
   if (!caseItem) {
     return (
       <div style={{ maxWidth: 1000, margin: '40px auto', padding: '0 20px', textAlign: 'center' }}>
         <div className="card" style={{ padding: '48px 24px', borderRadius: 24 }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FEF2F2', color: '#EF4444', display: 'grid', placeItems: 'center', margin: '0 auto 20px' }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: '#FEF2F2',
+              color: '#EF4444',
+              display: 'grid',
+              placeItems: 'center',
+              margin: '0 auto 20px',
+            }}
+          >
             <AlertCircle size={32} />
           </div>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>Case Not Found</h2>
-          <p style={{ color: '#64748B', maxWidth: 440, margin: '0 auto 24px', fontSize: 15, lineHeight: 1.5 }}>
-            We could not locate the clinical record or consultation for ID <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: 6 }}>{id}</code>. It may have been archived or removed.
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+            Case Not Found
+          </h2>
+          <p
+            style={{
+              color: '#64748B',
+              maxWidth: 440,
+              margin: '0 auto 24px',
+              fontSize: 15,
+              lineHeight: 1.5,
+            }}
+          >
+            We could not locate the clinical record or consultation for ID{' '}
+            <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: 6 }}>{id}</code>
+            . It may have been archived or removed.
           </p>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => { triggerHapticLight(); safeNavigateBack(navigate, '/app/my-cases'); }}
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              triggerHapticLight();
+              safeNavigateBack(navigate, '/app/my-cases');
+            }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '0 auto' }}
           >
             <ArrowLeft size={16} /> Return to Cases
@@ -151,22 +190,26 @@ export default function CaseDetail() {
     );
   }
 
-  const profile = getProfile();
   const reviewsCount = caseItem.reviews?.length || 0;
   const recordsCount = caseItem.medicalRecords?.length || 0;
   const isCurrentActive = activeCaseId === caseItem.id;
 
   return (
-    <div style={{ 
-      maxWidth: 1180, 
-      margin: '0 auto', 
-      padding: isMobile ? '16px 12px 60px' : '24px 20px 60px',
-      minHeight: '100vh' 
-    }}>
+    <div
+      style={{
+        maxWidth: 1180,
+        margin: '0 auto',
+        padding: isMobile ? '16px 12px 60px' : '24px 20px 60px',
+        minHeight: '100vh',
+      }}
+    >
       {/* Back to Cases Link */}
       <div style={{ marginBottom: 16 }}>
         <button
-          onClick={() => { triggerHapticLight(); safeNavigateBack(navigate, '/app/my-cases'); }}
+          onClick={() => {
+            triggerHapticLight();
+            safeNavigateBack(navigate, '/app/my-cases');
+          }}
           style={{
             background: 'none',
             border: 'none',
@@ -177,64 +220,93 @@ export default function CaseDetail() {
             alignItems: 'center',
             gap: 6,
             cursor: 'pointer',
-            padding: '6px 0'
+            padding: '6px 0',
           }}
         >
           <ArrowLeft size={16} /> Back
         </button>
       </div>
 
-      
-
       {/* Case Header Hero — Polished Case Summary Cover with Translucent Blue Depth */}
-      <div className="card" style={{ 
-        padding: isMobile ? '20px 16px' : '28px 32px', 
-        borderRadius: 24, 
-        marginBottom: 24,
-        background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.75) 45%, #FFFFFF 100%)',
-        border: '1.5px solid rgba(186, 230, 253, 0.85)',
-        boxShadow: '0 10px 30px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row', 
-          justifyContent: 'space-between', 
-          alignItems: isMobile ? 'flex-start' : 'center',
-          gap: 20 
-        }}>
+      <div
+        className="card"
+        style={{
+          padding: isMobile ? '20px 16px' : '28px 32px',
+          borderRadius: 24,
+          marginBottom: 24,
+          background:
+            'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.75) 45%, #FFFFFF 100%)',
+          border: '1.5px solid rgba(186, 230, 253, 0.85)',
+          boxShadow: '0 10px 30px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: 20,
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-              {/* Restrained two-tone blue micro-capsule detail */}
-              <span style={{ 
-                fontSize: 12, 
-                fontWeight: 700, 
-                padding: '4px 10px', 
-                borderRadius: 999, 
-                background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.85) 100%)',
-                color: '#0369A1',
-                border: '1px solid rgba(186, 230, 253, 0.85)',
-                boxShadow: '0 2px 6px rgba(14, 165, 233, 0.08)',
-                display: 'inline-flex',
+            <div
+              style={{
+                display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-              }}>
-                <span style={{
-                  width: 10,
-                  height: 5,
-                  borderRadius: 2.5,
-                  background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.95) 50%)',
-                  border: '0.8px solid #0284C7',
-                  display: 'inline-block',
-                }} />
-                {(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? 'Clinical Review' : 'Clinical Consultation'}
+                gap: 10,
+                flexWrap: 'wrap',
+                marginBottom: 8,
+              }}
+            >
+              {/* Restrained two-tone blue micro-capsule detail */}
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  background:
+                    'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.85) 100%)',
+                  color: '#0369A1',
+                  border: '1px solid rgba(186, 230, 253, 0.85)',
+                  boxShadow: '0 2px 6px rgba(14, 165, 233, 0.08)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <span
+                  style={{
+                    width: 10,
+                    height: 5,
+                    borderRadius: 2.5,
+                    background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.95) 50%)',
+                    border: '0.8px solid #0284C7',
+                    display: 'inline-block',
+                  }}
+                />
+                {caseItem.mode === 'jarvis' || caseItem.mode === 'mdt'
+                  ? 'Clinical Review'
+                  : 'Clinical Consultation'}
               </span>
               <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
                 Stage: {caseItem.currentStage.replace(/_/g, ' ')}
               </span>
               {isCurrentActive ? (
-                <span style={{ fontSize: 12, fontWeight: 700, background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A', padding: '3px 10px', borderRadius: 999 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    background: '#FEF3C7',
+                    color: '#92400E',
+                    border: '1px solid #FDE68A',
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                  }}
+                >
                   🎯 Active Workspace
                 </span>
               ) : (
@@ -252,7 +324,7 @@ export default function CaseDetail() {
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 4
+                    gap: 4,
                   }}
                 >
                   Set as Active
@@ -260,11 +332,28 @@ export default function CaseDetail() {
               )}
             </div>
 
-            <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: '#0F172A', margin: '0 0 10px', letterSpacing: '-0.5px' }}>
+            <h1
+              style={{
+                fontSize: isMobile ? 22 : 28,
+                fontWeight: 800,
+                color: '#0F172A',
+                margin: '0 0 10px',
+                letterSpacing: '-0.5px',
+              }}
+            >
               {caseItem.title}
             </h1>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: '#64748B', fontSize: 13, flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                color: '#64748B',
+                fontSize: 13,
+                flexWrap: 'wrap',
+              }}
+            >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Clock size={14} /> Created {formatDate(caseItem.createdAt)}
               </span>
@@ -273,12 +362,21 @@ export default function CaseDetail() {
                 <CalendarClock size={14} /> Last Update {formatDate(caseItem.updatedAt)}
               </span>
               <span>•</span>
-              <span>ID: <code style={{ color: '#0284C7' }}>{caseItem.id}</code></span>
+              <span>
+                ID: <code style={{ color: '#0284C7' }}>{caseItem.id}</code>
+              </span>
             </div>
           </div>
 
           {/* Quick Doctor Prep & Ava Action Buttons */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              flexWrap: 'wrap',
+              width: isMobile ? '100%' : 'auto',
+            }}
+          >
             <button
               onClick={() => {
                 triggerHapticLight();
@@ -294,7 +392,7 @@ export default function CaseDetail() {
                 padding: '10px 16px',
                 fontSize: 14,
                 fontWeight: 700,
-                borderRadius: 12
+                borderRadius: 12,
               }}
             >
               <Stethoscope size={16} /> Prepare for Doctor
@@ -304,8 +402,8 @@ export default function CaseDetail() {
                 triggerHapticLight();
                 navigate(`/app/ava?caseId=${encodeURIComponent(caseItem.id)}`, {
                   state: {
-                    initialPrompt: `I would like to discuss my case: "${caseItem.title}". What are the key findings and next steps to keep in mind?`
-                  }
+                    initialPrompt: `I would like to discuss my case: "${caseItem.title}". What are the key findings and next steps to keep in mind?`,
+                  },
                 });
               }}
               className="btn btn-outline"
@@ -321,7 +419,7 @@ export default function CaseDetail() {
                 borderRadius: 12,
                 borderColor: '#CBD5E1',
                 color: '#0F172A',
-                background: '#F8FAFC'
+                background: '#F8FAFC',
               }}
             >
               <MessageSquare size={16} color="#0284C7" /> Discuss with Ava
@@ -330,22 +428,25 @@ export default function CaseDetail() {
         </div>
 
         {/* Tab Switcher */}
-        <div 
+        <div
           role="tablist"
           aria-label="Clinical Case Views"
-          style={{ 
-            display: 'flex', 
-            borderBottom: '1px solid #E2E8F0', 
-            marginTop: 24, 
+          style={{
+            display: 'flex',
+            borderBottom: '1px solid #E2E8F0',
+            marginTop: 24,
             gap: isMobile ? 12 : 24,
             overflowX: 'auto',
-            paddingBottom: 2
+            paddingBottom: 2,
           }}
         >
           <button
             role="tab"
             aria-selected={activeTab === 'reviews'}
-            onClick={() => { triggerHapticLight(); handleSelectTab('reviews'); }}
+            onClick={() => {
+              triggerHapticLight();
+              handleSelectTab('reviews');
+            }}
             style={{
               background: 'none',
               border: 'none',
@@ -358,18 +459,20 @@ export default function CaseDetail() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
             }}
           >
             <GitMerge size={16} /> Reviews & Timeline
-            <span style={{ 
-              fontSize: 11, 
-              padding: '2px 6px', 
-              borderRadius: 999, 
-              background: activeTab === 'reviews' ? '#CCFBF1' : '#F1F5F9',
-              color: activeTab === 'reviews' ? '#0F766E' : '#64748B',
-              fontWeight: 700
-            }}>
+            <span
+              style={{
+                fontSize: 11,
+                padding: '2px 6px',
+                borderRadius: 999,
+                background: activeTab === 'reviews' ? '#CCFBF1' : '#F1F5F9',
+                color: activeTab === 'reviews' ? '#0F766E' : '#64748B',
+                fontWeight: 700,
+              }}
+            >
               {reviewsCount}
             </span>
           </button>
@@ -377,7 +480,10 @@ export default function CaseDetail() {
           <button
             role="tab"
             aria-selected={activeTab === 'map'}
-            onClick={() => { triggerHapticLight(); handleSelectTab('map'); }}
+            onClick={() => {
+              triggerHapticLight();
+              handleSelectTab('map');
+            }}
             style={{
               background: 'none',
               border: 'none',
@@ -390,7 +496,7 @@ export default function CaseDetail() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
             }}
           >
             <Brain size={16} /> AI Connection Map
@@ -399,7 +505,10 @@ export default function CaseDetail() {
           <button
             role="tab"
             aria-selected={activeTab === 'records'}
-            onClick={() => { triggerHapticLight(); handleSelectTab('records'); }}
+            onClick={() => {
+              triggerHapticLight();
+              handleSelectTab('records');
+            }}
             style={{
               background: 'none',
               border: 'none',
@@ -412,18 +521,20 @@ export default function CaseDetail() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
             }}
           >
             <FolderOpen size={16} /> Evidence & Records
-            <span style={{ 
-              fontSize: 11, 
-              padding: '2px 6px', 
-              borderRadius: 999, 
-              background: activeTab === 'records' ? '#CCFBF1' : '#F1F5F9',
-              color: activeTab === 'records' ? '#0F766E' : '#64748B',
-              fontWeight: 700
-            }}>
+            <span
+              style={{
+                fontSize: 11,
+                padding: '2px 6px',
+                borderRadius: 999,
+                background: activeTab === 'records' ? '#CCFBF1' : '#F1F5F9',
+                color: activeTab === 'records' ? '#0F766E' : '#64748B',
+                fontWeight: 700,
+              }}
+            >
               {recordsCount}
             </span>
           </button>
@@ -432,15 +543,23 @@ export default function CaseDetail() {
 
       {/* Tab 1: Reviews & Timeline */}
       {activeTab === 'reviews' && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <SnapshotViewer item={caseItem} />
         </motion.div>
       )}
 
       {/* Tab 2: AI Connection Map */}
       {activeTab === 'map' && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-          <DDxBoard item={caseItem} profile={profile} />
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <DDxBoard item={caseItem} />
           {caseAnalysis && (
             <div style={{ marginTop: 24 }}>
               <InvestigationBoard analysis={caseAnalysis} />
@@ -451,21 +570,60 @@ export default function CaseDetail() {
 
       {/* Tab 3: Evidence & Medical Records */}
       {activeTab === 'records' && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <div className="card" style={{ padding: isMobile ? 16 : 28, borderRadius: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 20,
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Attached Case Records</h2>
-                <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>Clinical lab tests, imaging, and external documents attached to this case.</p>
+                <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>
+                  Attached Case Records
+                </h2>
+                <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>
+                  Clinical lab tests, imaging, and external documents attached to this case.
+                </p>
               </div>
             </div>
 
-            <ClinicalDailyEvidencePicker caseId={caseItem.id} onSaved={() => setCaseItem(getCase(caseItem.id))} />
+            <ClinicalDailyEvidencePicker
+              caseId={caseItem.id}
+              onSaved={() => setCaseItem(getCase(caseItem.id))}
+            />
             {recordsCount === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 16px', background: '#F8FAFC', borderRadius: 16, border: '1px dashed #CBD5E1' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '48px 16px',
+                  background: '#F8FAFC',
+                  borderRadius: 16,
+                  border: '1px dashed #CBD5E1',
+                }}
+              >
                 <FolderOpen size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#334155', margin: '0 0 6px' }}>No case records attached yet</h3>
-                <p style={{ color: '#64748B', fontSize: 14, margin: '0 0 16px', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#334155', margin: '0 0 6px' }}>
+                  No case records attached yet
+                </h3>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: 14,
+                    margin: '0 0 16px',
+                    maxWidth: 420,
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                  }}
+                >
                   Records from your clinical reviews will appear here when linked to this case.
                 </p>
               </div>
@@ -483,27 +641,59 @@ export default function CaseDetail() {
                       padding: '16px 20px',
                       background: '#F8FAFC',
                       borderRadius: 12,
-                      border: '1px solid #E2E8F0'
+                      border: '1px solid #E2E8F0',
                     }}
                   >
                     <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#EFF6FF', color: '#2563EB', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 10,
+                          background: '#EFF6FF',
+                          color: '#2563EB',
+                          display: 'grid',
+                          placeItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
                         <FileText size={20} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 15 }}>{record.filename}</div>
+                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 15 }}>
+                          {record.filename}
+                        </div>
                         <div style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>
                           {record.findings || 'No extracted findings recorded.'}
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, alignSelf: isMobile ? 'flex-end' : 'center', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        alignSelf: isMobile ? 'flex-end' : 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <InformationCategoryBadge
                         category={record.evidenceManifest ? 'user_report' : 'extracted_finding'}
-                        item={{ extractionStatus: record.extractionStatus || 'provisional', originalFile: record.filename, page: record.passages?.[0]?.page }}
+                        item={{
+                          extractionStatus: record.extractionStatus || 'provisional',
+                          originalFile: record.filename,
+                          page: record.passages?.[0]?.page,
+                        }}
                         size="sm"
                       />
-                      <span className="badge" style={{ background: '#E2E8F0', color: '#334155', textTransform: 'capitalize' }}>
+                      <span
+                        className="badge"
+                        style={{
+                          background: '#E2E8F0',
+                          color: '#334155',
+                          textTransform: 'capitalize',
+                        }}
+                      >
                         {record.type || 'Report'}
                       </span>
                       <small style={{ color: '#94A3B8' }}>{formatDate(record.addedAt)}</small>

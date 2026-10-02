@@ -10,8 +10,12 @@ const { getSession, from, rpc } = vi.hoisted(() => ({
 
 vi.mock('idb-keyval', () => ({
   get: vi.fn(async (key: string) => idbStore.get(key)),
-  set: vi.fn(async (key: string, value: unknown) => { idbStore.set(key, value); }),
-  del: vi.fn(async (key: string) => { idbStore.delete(key); }),
+  set: vi.fn(async (key: string, value: unknown) => {
+    idbStore.set(key, value);
+  }),
+  del: vi.fn(async (key: string) => {
+    idbStore.delete(key);
+  }),
 }));
 
 vi.mock('../supabaseClient', () => ({
@@ -32,9 +36,9 @@ vi.mock('../ProfileEngine', () => ({
   getProfileEngineState: vi.fn(() => ({ activeId: profileScopeState.profile })),
 }));
 
+import type { CaseItem } from '../CaseEngine';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from '../SyncOutbox';
 import { clearTombstones } from '../TombstoneManager';
-import type { CaseItem } from '../CaseEngine';
 
 describe('P1 Finding 2: Concurrent Case Sync Interleaved Writes & Overwrite Prevention', () => {
   const userId = 'user_sync_concurrent';
@@ -61,7 +65,12 @@ describe('P1 Finding 2: Concurrent Case Sync Interleaved Writes & Overwrite Prev
       updatedAt: '2026-09-11T10:00:00Z',
       events: [
         { id: 'ev_base', label: 'Base event', date: '2026-09-11T09:00:00Z', note: 'Base note' },
-        { id: 'ev_device_a', label: 'Device A addition', date: '2026-09-11T09:30:00Z', note: 'Device A note' },
+        {
+          id: 'ev_device_a',
+          label: 'Device A addition',
+          date: '2026-09-11T09:30:00Z',
+          note: 'Device A note',
+        },
       ],
       questions: [],
       medicalRecords: [],
@@ -151,7 +160,7 @@ describe('P1 Finding 2: Concurrent Case Sync Interleaved Writes & Overwrite Prev
               })),
             })),
           })),
-          upsert: vi.fn(async (payload: any) => {
+          upsert: vi.fn(async (_payload: any) => {
             // Unconditional upsert would blindly overwrite!
             return { error: null };
           }),

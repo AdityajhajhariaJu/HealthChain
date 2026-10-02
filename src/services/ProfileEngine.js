@@ -22,7 +22,9 @@ export function getProfileKey() {
         const account = JSON.parse(accountStr);
         if (account.id) return `hc_unified_profile_${account.id}`;
       }
-    } catch { /* malformed account data; use the default profile key */ }
+    } catch {
+      /* malformed account data; use the default profile key */
+    }
     return 'hc_unified_profile';
   } catch {
     return 'hc_unified_profile_guest';
@@ -71,26 +73,10 @@ export function undoProfileEdit() {
   }
 }
 
-export function redoProfileEdit() {
-  ensureHistoryScope();
-  if (historyIndex < historyStack.length - 1) {
-    historyIndex++;
-    const nextState = historyStack[historyIndex];
-    setItemSync(getProfileKey(), nextState);
-    window.dispatchEvent(new Event('hc_profile_updated'));
-  }
-}
-
 export function canUndo() {
   ensureHistoryScope();
   return historyIndex > 0;
 }
-
-export function canRedo() {
-  ensureHistoryScope();
-  return historyIndex < historyStack.length - 1;
-}
-
 
 const DEFAULT_PROFILE = {
   id: 'profile_1',
@@ -148,18 +134,22 @@ export function getProfileEngineState() {
   try {
     const data = getItemSync(getProfileKey());
     const parsed = data ? JSON.parse(data) : null;
-    
+
     // Legacy migration: If existing format is a flat profile
     if (parsed && !parsed.profiles && (parsed.demographics || parsed.conditions)) {
       const defaultId = parsed.id || 'profile_1';
       return {
         activeId: defaultId,
         profiles: {
-          [defaultId]: { ...parsed, id: defaultId, profileName: parsed.profileName || 'My Profile' }
-        }
+          [defaultId]: {
+            ...parsed,
+            id: defaultId,
+            profileName: parsed.profileName || 'My Profile',
+          },
+        },
       };
     }
-    
+
     if (!parsed || !parsed.profiles) {
       // Check if we have a rolling backup before falling back to empty profile
       try {
@@ -179,14 +169,14 @@ export function getProfileEngineState() {
       return {
         activeId: defaultId,
         profiles: {
-          [defaultId]: JSON.parse(JSON.stringify(DEFAULT_PROFILE))
-        }
+          [defaultId]: JSON.parse(JSON.stringify(DEFAULT_PROFILE)),
+        },
       };
     }
-    
+
     // Self-healing: Ensure every profile has its id explicitly set
     if (parsed && parsed.profiles) {
-      Object.keys(parsed.profiles).forEach(key => {
+      Object.keys(parsed.profiles).forEach((key) => {
         if (!parsed.profiles[key].id) {
           parsed.profiles[key].id = key;
         }
@@ -202,7 +192,7 @@ export function getProfileEngineState() {
     }
 
     return parsed;
-  } catch(e) {
+  } catch (e) {
     console.error('Failed to parse ProfileEngine state', e);
     // PERSIST-001: Quarantine corrupted string to prevent permanent data loss
     try {
@@ -219,7 +209,7 @@ export function getProfileEngineState() {
           return parsedBackup;
         }
       }
-    } catch(recoverErr) {
+    } catch (recoverErr) {
       console.error('Failed to recover from backup', recoverErr);
     }
 
@@ -227,8 +217,8 @@ export function getProfileEngineState() {
     return {
       activeId: defaultId,
       profiles: {
-        [defaultId]: JSON.parse(JSON.stringify(DEFAULT_PROFILE))
-      }
+        [defaultId]: JSON.parse(JSON.stringify(DEFAULT_PROFILE)),
+      },
     };
   }
 }
@@ -237,44 +227,12 @@ export function getAllProfiles() {
   return Object.values(getProfileEngineState().profiles);
 }
 
-export function switchActiveProfile(id) {
-  if (!CAREGIVER_MODE_ENABLED && id !== 'profile_1') return false;
-  const state = getProfileEngineState();
-  if (state.profiles[id]) {
-    state.activeId = id;
-    setItemSync(getProfileKey(), JSON.stringify(state));
-    window.dispatchEvent(new Event('hc_profile_updated'));
-    window.dispatchEvent(new Event('hc_cases_updated'));
-    window.dispatchEvent(new Event('hc_active_case_updated'));
-  }
-}
-
-export function createNewProfile(name) {
-  if (!CAREGIVER_MODE_ENABLED) {
-    window.dispatchEvent(new CustomEvent('hc_toast', { detail: { type: 'error', title: 'Caregiver Mode', message: 'Caregiver Mode is temporarily unavailable.' } }));
-    return false;
-  }
-  const state = getProfileEngineState();
-  if (Object.keys(state.profiles).length >= 3) {
-    window.dispatchEvent(new CustomEvent('hc_toast', { detail: { type: 'error', title: 'Profile Limit', message: 'Maximum of 3 profiles allowed (Caregiver Mode Limit).' } }));
-    return false;
-  }
-  const newId = generateId();
-  state.profiles[newId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: newId, profileName: name };
-  state.activeId = newId;
-  setItemSync(getProfileKey(), JSON.stringify(state));
-  window.dispatchEvent(new Event('hc_profile_updated'));
-  window.dispatchEvent(new Event('hc_cases_updated'));
-  window.dispatchEvent(new Event('hc_active_case_updated'));
-  return true;
-}
-
 export function getProfile() {
   try {
     const state = getProfileEngineState();
     const parsed = state.profiles[state.activeId];
     const base = JSON.parse(JSON.stringify(DEFAULT_PROFILE));
-    
+
     let profile = base;
     if (parsed) {
       const rawConditions = parsed.conditions || base.conditions;
@@ -296,13 +254,16 @@ export function getProfile() {
         timeline: parsed.timeline || base.timeline,
         actionItems: Array.isArray(parsed.actionItems)
           ? parsed.actionItems.map((item, index) => ({
-            ...(item || {}),
-            id: item?.id || `action-${index}`,
-            task: typeof item?.task === 'string' && item.task.trim()
-              ? item.task
-              : (typeof item?.title === 'string' && item.title.trim() ? item.title : 'Review this health item'),
-            status: item?.status === 'completed' ? 'completed' : 'pending',
-          }))
+              ...(item || {}),
+              id: item?.id || `action-${index}`,
+              task:
+                typeof item?.task === 'string' && item.task.trim()
+                  ? item.task
+                  : typeof item?.title === 'string' && item.title.trim()
+                    ? item.title
+                    : 'Review this health item',
+              status: item?.status === 'completed' ? 'completed' : 'pending',
+            }))
           : base.actionItems,
         profileName: parsed.profileName || base.profileName,
         id: parsed.id || base.id,
@@ -311,16 +272,26 @@ export function getProfile() {
 
     // Read the old local schedule until the next profile save commits the shared inventory.
     let legacySchedule = [];
-    if (!profile.medicationScheduleLinked && getItemSync(`hc_medication_schedule_linked:${getProfileKey()}:${state.activeId}`) !== 'true') {
+    if (
+      !profile.medicationScheduleLinked &&
+      getItemSync(`hc_medication_schedule_linked:${getProfileKey()}:${state.activeId}`) !== 'true'
+    ) {
       try {
-        legacySchedule = JSON.parse(getItemSync(`healthchain_vitamins_schedule_v2:${getProfileKey()}:${state.activeId}`) || '[]');
-      } catch { /* Keep the profile usable when legacy storage is malformed. */ }
+        legacySchedule = JSON.parse(
+          getItemSync(`healthchain_vitamins_schedule_v2:${getProfileKey()}:${state.activeId}`) ||
+            '[]'
+        );
+      } catch {
+        /* Keep the profile usable when legacy storage is malformed. */
+      }
     }
     profile.medications = mergeLegacyMedicationSchedule(profile.medications, legacySchedule);
 
     // Auto-sync from Diet profile if available
     try {
-      const dietData = getItemSync(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
+      const dietData = getItemSync(
+        getProfileKey().replace('hc_unified_profile', 'hc_diet_profile')
+      );
       if (dietData) {
         const parsedDiet = JSON.parse(dietData);
         if (parsedDiet.metrics) {
@@ -353,10 +324,21 @@ export async function saveProfile(profile) {
   const profileKey = getProfileKey();
   try {
     const state = getProfileEngineState();
-    const stillCurrent = () => isAccountScopeCurrent(accountScope) && getProfileKey() === profileKey && getProfileEngineState().activeId === state.activeId && getItemSync(profileKey) === stateStr;
-    
-    if (accountScope.accountId !== 'guest' && readProfileBaseline(accountScope.accountId, state.activeId) === undefined)
-      rememberProfileBaseline(accountScope.accountId, state.activeId, state.profiles[state.activeId] || {});
+    const stillCurrent = () =>
+      isAccountScopeCurrent(accountScope) &&
+      getProfileKey() === profileKey &&
+      getProfileEngineState().activeId === state.activeId &&
+      getItemSync(profileKey) === stateStr;
+
+    if (
+      accountScope.accountId !== 'guest' &&
+      readProfileBaseline(accountScope.accountId, state.activeId) === undefined
+    )
+      rememberProfileBaseline(
+        accountScope.accountId,
+        state.activeId,
+        state.profiles[state.activeId] || {}
+      );
     const nowIso = new Date().toISOString();
     if (!profile.demographics) {
       profile.demographics = {};
@@ -368,7 +350,7 @@ export async function saveProfile(profile) {
     profile.medicationScheduleLinked = true;
     state.profiles[state.activeId] = profile;
     const stateStr = JSON.stringify(state);
-    
+
     pushToHistory(stateStr);
 
     // Maintain rolling backup before overwrite
@@ -383,7 +365,7 @@ export async function saveProfile(profile) {
 
     setItemSync(getProfileKey(), stateStr);
     setItemSync(`hc_medication_schedule_linked:${getProfileKey()}:${state.activeId}`, 'true');
-    
+
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
 
@@ -413,7 +395,9 @@ export async function saveProfile(profile) {
     // losing an important profile update.
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
       if (accountScope.accountId === 'guest') return;
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user?.id === accountScope.accountId && stillCurrent()) {
         const snapshotUpdatedAt = new Date().toISOString();
         await enqueueSync('caregiver_profile_upsert', session.user.id, {
@@ -421,7 +405,7 @@ export async function saveProfile(profile) {
           profile_id: state.activeId,
           profile_name: profile.profileName || 'My Profile',
           data: { ...profile, id: state.activeId, updatedAt: snapshotUpdatedAt },
-          updated_at: snapshotUpdatedAt
+          updated_at: snapshotUpdatedAt,
         });
         // The atomic snapshot RPC mirrors the primary legacy row in the same transaction.
         if (stillCurrent()) await flushSyncOutbox(session.user.id);
@@ -465,7 +449,10 @@ export function completeProfileOnboarding({
   healthFocus = '',
 }) {
   const profile = getProfile();
-  const normalise = (values) => (Array.isArray(values) ? values : []).map((value) => (typeof value === 'string' ? value.trim() : value)).filter(Boolean);
+  const normalise = (values) =>
+    (Array.isArray(values) ? values : [])
+      .map((value) => (typeof value === 'string' ? value.trim() : value))
+      .filter(Boolean);
 
   // Compute BMI & Metabolic classification if height & weight exist
   const heightNum = parseFloat(demographics.height);
@@ -478,7 +465,7 @@ export function completeProfileOnboarding({
     const heightM = heightNum / 100;
     const computedBmi = weightNum / (heightM * heightM);
     bmi = Math.round(computedBmi * 10) / 10;
-    
+
     if (bmi < 18.5) {
       bmiCategory = 'Underweight';
     } else if (bmi <= 24.9) {
@@ -503,7 +490,9 @@ export function completeProfileOnboarding({
     updatedAt: new Date().toISOString(),
   };
 
-  const normConditions = normalise(conditions).map(c => (typeof c === 'string' ? c : c.name)).filter(Boolean);
+  const normConditions = normalise(conditions)
+    .map((c) => (typeof c === 'string' ? c : c.name))
+    .filter(Boolean);
   profile.conditions = [...new Set([...(profile.conditions || []), ...normConditions])];
 
   // Allergies: support strings or { name, severity }
@@ -511,10 +500,12 @@ export function completeProfileOnboarding({
   const incomingAllergies = normalise(allergies);
   const mergedAllergies = [...existingAllergies];
 
-  incomingAllergies.forEach(incoming => {
+  incomingAllergies.forEach((incoming) => {
     const name = typeof incoming === 'string' ? incoming : incoming.name;
-    const severity = typeof incoming === 'object' ? (incoming.severity || 'moderate') : 'moderate';
-    const idx = mergedAllergies.findIndex(a => (typeof a === 'string' ? a : a.name).toLowerCase() === name.toLowerCase());
+    const severity = typeof incoming === 'object' ? incoming.severity || 'moderate' : 'moderate';
+    const idx = mergedAllergies.findIndex(
+      (a) => (typeof a === 'string' ? a : a.name).toLowerCase() === name.toLowerCase()
+    );
     if (idx >= 0) {
       mergedAllergies[idx] = typeof incoming === 'object' ? incoming : { name, severity };
     } else {
@@ -523,7 +514,9 @@ export function completeProfileOnboarding({
   });
   profile.allergies = mergedAllergies;
 
-  profile.familyHistory = [...new Set([...(profile.familyHistory || []), ...normalise(familyHistory)])];
+  profile.familyHistory = [
+    ...new Set([...(profile.familyHistory || []), ...normalise(familyHistory)]),
+  ];
 
   // Medications: support strings or { name, dosage, time, circadianSlot }
   const existingMedicationNames = new Set(
@@ -533,7 +526,11 @@ export function completeProfileOnboarding({
   normalise(medications).forEach((item) => {
     if (typeof item === 'string') {
       if (!existingMedicationNames.has(item.toLowerCase())) {
-        profile.medications.push({ name: item, addedAt: new Date().toISOString(), source: 'onboarding' });
+        profile.medications.push({
+          name: item,
+          addedAt: new Date().toISOString(),
+          source: 'onboarding',
+        });
       }
     } else if (item && typeof item === 'object' && item.name) {
       if (!existingMedicationNames.has(item.name.toLowerCase())) {
@@ -543,7 +540,7 @@ export function completeProfileOnboarding({
           time: item.time || '09:00',
           circadianSlot: item.circadianSlot || 'morning',
           addedAt: new Date().toISOString(),
-          source: 'onboarding'
+          source: 'onboarding',
         });
       }
     }
@@ -589,15 +586,17 @@ export function removeCondition(condition) {
 
 export function addMedication(med, source = 'manual') {
   const profile = getProfile();
-  const exists = profile.medications.find((m) => m.name.toLowerCase() === med.name.trim().toLowerCase());
+  const exists = profile.medications.find(
+    (m) => m.name.toLowerCase() === med.name.trim().toLowerCase()
+  );
   if (!exists) {
-    profile.medications.push({ 
-      ...med, 
-      addedAt: new Date().toISOString(), 
+    profile.medications.push({
+      ...med,
+      addedAt: new Date().toISOString(),
       source,
     });
-      addEvent('system', source, `Medication Added: ${med.name}`, { med }, false, profile);
-      saveProfile(profile);
+    addEvent('system', source, `Medication Added: ${med.name}`, { med }, false, profile);
+    saveProfile(profile);
   }
 }
 
@@ -617,7 +616,9 @@ export function addAllergy(allergy) {
 
 export function removeAllergy(allergy) {
   const profile = getProfile();
-  profile.allergies = profile.allergies.filter((a) => (typeof a === 'string' ? a : a.name) !== allergy);
+  profile.allergies = profile.allergies.filter(
+    (a) => (typeof a === 'string' ? a : a.name) !== allergy
+  );
   saveProfile(profile);
 }
 
@@ -635,16 +636,24 @@ export function removeFamilyHistory(history) {
   saveProfile(profile);
 }
 
-export function addEvent(type, source, title, data = {}, significant = true, existingProfile = null, eventId = null) {
+export function addEvent(
+  type,
+  source,
+  title,
+  data = {},
+  significant = true,
+  existingProfile = null,
+  eventId = null
+) {
   const profile = existingProfile || getProfile();
 
   let safeData = data;
   if (data) {
     const dataStr = JSON.stringify(data);
     if (dataStr.length > 5000) {
-      safeData = { 
-        notice: 'Payload truncated to preserve local storage quota', 
-        preview: dataStr.substring(0, 1000) + '...' 
+      safeData = {
+        notice: 'Payload truncated to preserve local storage quota',
+        preview: dataStr.substring(0, 1000) + '...',
       };
     }
   }
@@ -691,47 +700,25 @@ export function addEvent(type, source, title, data = {}, significant = true, exi
 
 export function backfillHealthMemoryFromProfile() {
   const profile = getProfile();
-  const kinds = { report_analyzer: 'lab_report', dietician: 'diet', health_buddy: 'health_buddy', case_prep: 'case_prep', quick_consult: 'quick_consult', mdt_hub: 'deep_collab' };
-  (profile.timeline || []).forEach((event) => recordHealthMemory({
-    id: event.id,
-    kind: kinds[event.source] || 'profile_event',
-    source: event.source || 'profile',
-    title: event.title || event.type || 'Health profile update',
-    occurredAt: event.date || new Date().toISOString(),
-    payload: event.data || {},
-    dedupeKey: `timeline:${event.id}`,
-  }));
-}
-
-export function updateVitals(labData, source = 'manual') {
-  const profile = getProfile();
-  
-  if (!profile.vitals.historicalLabs) {
-    profile.vitals.historicalLabs = [];
-  }
-  
-  profile.vitals.latestLabValues = { ...profile.vitals.latestLabValues, ...labData };
-  
-  profile.vitals.historicalLabs.push({
-    date: new Date().toISOString(),
-    biomarkers: labData
-  });
-
-  addEvent('lab_report', source, 'Lab Vitals Updated', { labData }, true, profile);
-  saveProfile(profile);
-}
-
-export function addActionItems(items, source) {
-  const profile = getProfile();
-  const newItems = items.map((i) => ({
-    id: generateId(),
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-    source,
-    ...i,
-  }));
-  profile.actionItems = [...newItems, ...profile.actionItems];
-  saveProfile(profile);
+  const kinds = {
+    report_analyzer: 'lab_report',
+    dietician: 'diet',
+    health_buddy: 'health_buddy',
+    case_prep: 'case_prep',
+    quick_consult: 'quick_consult',
+    mdt_hub: 'deep_collab',
+  };
+  (profile.timeline || []).forEach((event) =>
+    recordHealthMemory({
+      id: event.id,
+      kind: kinds[event.source] || 'profile_event',
+      source: event.source || 'profile',
+      title: event.title || event.type || 'Health profile update',
+      occurredAt: event.date || new Date().toISOString(),
+      payload: event.data || {},
+      dedupeKey: `timeline:${event.id}`,
+    })
+  );
 }
 
 export function addNutritionLog(log) {
@@ -751,7 +738,9 @@ export function addNutritionLog(log) {
   saveProfile(profile);
   const persisted = getProfile()?.nutrition?.recentLogs?.find((item) => item.id === entry.id);
   if (!persisted || JSON.stringify(persisted) !== JSON.stringify(entry)) {
-    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: new Error('Meal record was not saved locally') }));
+    window.dispatchEvent(
+      new CustomEvent('hc_sync_error', { detail: new Error('Meal record was not saved locally') })
+    );
     return null;
   }
   return entry.id;
@@ -761,7 +750,10 @@ export function removeNutritionLog(logIdentifier) {
   const profile = getProfile();
   if (profile && profile.nutrition && profile.nutrition.recentLogs) {
     profile.nutrition.recentLogs = profile.nutrition.recentLogs.filter(
-      (l, i) => l.id !== logIdentifier && l.loggedAt !== logIdentifier && String(i) !== String(logIdentifier)
+      (l, i) =>
+        l.id !== logIdentifier &&
+        l.loggedAt !== logIdentifier &&
+        String(i) !== String(logIdentifier)
     );
     saveProfile(profile);
     window.dispatchEvent(new Event('hc_profile_updated'));
@@ -777,7 +769,8 @@ export function updateNutritionLogReaction(logIdentifier, reaction) {
     profile.nutrition.recentLogs = [];
   }
   const idx = profile.nutrition.recentLogs.findIndex(
-    (l, i) => l.id === logIdentifier || l.loggedAt === logIdentifier || String(i) === String(logIdentifier)
+    (l, i) =>
+      l.id === logIdentifier || l.loggedAt === logIdentifier || String(i) === String(logIdentifier)
   );
   if (idx !== -1) {
     profile.nutrition.recentLogs[idx] = {
@@ -785,11 +778,15 @@ export function updateNutritionLogReaction(logIdentifier, reaction) {
       reaction,
     };
     saveProfile(profile);
-    window.dispatchEvent(new CustomEvent('hc_nutrition_reaction_updated', { detail: { logIdentifier, reaction } }));
+    window.dispatchEvent(
+      new CustomEvent('hc_nutrition_reaction_updated', { detail: { logIdentifier, reaction } })
+    );
     window.dispatchEvent(new Event('hc_profile_updated'));
     return { success: true, updatedMealId: profile.nutrition.recentLogs[idx].id || logIdentifier };
   } else {
-    console.warn(`updateNutritionLogReaction: Meal not found for identifier "${logIdentifier}". Write rejected to prevent meal corruption.`);
+    console.warn(
+      `updateNutritionLogReaction: Meal not found for identifier "${logIdentifier}". Write rejected to prevent meal corruption.`
+    );
     return { success: false, error: 'MEAL_NOT_FOUND', logIdentifier };
   }
 }
@@ -810,7 +807,7 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
   const d = new Date();
   const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   // Remove existing checkin for today if any, so we update it smoothly
-  profile.dailyCheckins = profile.dailyCheckins.filter(c => checkinLocalDate(c) !== todayLocal);
+  profile.dailyCheckins = profile.dailyCheckins.filter((c) => checkinLocalDate(c) !== todayLocal);
 
   const checkinEntry = {
     id: generateId(),
@@ -849,7 +846,9 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
       payload: { symptom, severity, score, note, lifestyle },
       dedupeKey: `daily_checkin:${todayLocal}`,
     });
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error(e);
+  }
 
   window.dispatchEvent(new CustomEvent('hc_daily_checkin_completed', { detail: checkinEntry }));
   return checkinEntry;
@@ -859,7 +858,7 @@ export function getTodayCheckin() {
   const profile = getProfile();
   const d = new Date();
   const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  return (profile.dailyCheckins || []).find(c => checkinLocalDate(c) === todayLocal);
+  return (profile.dailyCheckins || []).find((c) => checkinLocalDate(c) === todayLocal);
 }
 
 export function getRecentCheckins(days = 7) {
@@ -903,54 +902,18 @@ export function saveDigestionLog(dateKey, logData) {
   saveProfile(profile);
   const persisted = getDigestionLogs()[dateKey];
   if (!persisted || JSON.stringify(persisted) !== JSON.stringify(updatedEntry)) {
-    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: new Error('Digestion observation was not saved locally') }));
+    window.dispatchEvent(
+      new CustomEvent('hc_sync_error', {
+        detail: new Error('Digestion observation was not saved locally'),
+      })
+    );
     return null;
   }
-  window.dispatchEvent(new CustomEvent('hc_digestion_updated', { detail: { dateKey, logData: updatedEntry } }));
+  window.dispatchEvent(
+    new CustomEvent('hc_digestion_updated', { detail: { dateKey, logData: updatedEntry } })
+  );
   window.dispatchEvent(new Event('hc_profile_updated'));
   return updatedEntry;
-}
-
-export function getEliminationProtocolState() {
-  const profile = getProfile();
-  if (profile.eliminationProtocols && profile.eliminationProtocols.activeProtocolId) {
-    // Self-healing: clear legacy mock seed (currentDay: 12, adherenceScore: 94)
-    const proto = profile.eliminationProtocols.protocols?.[profile.eliminationProtocols.activeProtocolId];
-    if (proto && (proto.currentDay === 12 && proto.adherenceScore === 94)) {
-      delete profile.eliminationProtocols;
-      saveProfile(profile);
-      return {
-        activeProtocolId: null,
-        protocols: {},
-      };
-    }
-    return profile.eliminationProtocols;
-  }
-  return {
-    activeProtocolId: null,
-    protocols: {},
-  };
-}
-
-export function saveEliminationProtocolState(protocolId, protocolData) {
-  const profile = getProfile();
-  if (!profile.eliminationProtocols) {
-    profile.eliminationProtocols = {
-      activeProtocolId: protocolId,
-      protocols: {},
-    };
-  }
-  profile.eliminationProtocols.activeProtocolId = protocolId;
-  profile.eliminationProtocols.protocols[protocolId] = {
-    ...(profile.eliminationProtocols.protocols[protocolId] || {}),
-    ...protocolData,
-    updatedAt: new Date().toISOString(),
-  };
-
-  saveProfile(profile);
-  window.dispatchEvent(new CustomEvent('hc_elimination_updated', { detail: { protocolId, protocolData } }));
-  window.dispatchEvent(new Event('hc_profile_updated'));
-  return profile.eliminationProtocols.protocols[protocolId];
 }
 
 export function toggleActionItem(id) {
@@ -971,7 +934,11 @@ export function removeActionItem(id) {
 export function clearProfile() {
   const state = getProfileEngineState();
   if (state.profiles[state.activeId]) {
-    state.profiles[state.activeId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: state.activeId, profileName: state.profiles[state.activeId].profileName };
+    state.profiles[state.activeId] = {
+      ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)),
+      id: state.activeId,
+      profileName: state.profiles[state.activeId].profileName,
+    };
     setItemSync(getProfileKey(), JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
     void saveProfile(state.profiles[state.activeId]);
@@ -996,11 +963,11 @@ export function calculateHealthScore(profile) {
   else missing.push('Add any allergies or current medications (or mark None)');
 
   // Action Items (20%)
-  if (profile.actionItems?.some(a => a.status === 'completed')) score += 20;
+  if (profile.actionItems?.some((a) => a.status === 'completed')) score += 20;
   else missing.push('Complete at least one health action item');
 
   // Recent Activity (20%) - active in the last 7 days
-  const hasRecentActivity = profile.timeline?.some(event => {
+  const hasRecentActivity = profile.timeline?.some((event) => {
     const diff = new Date().getTime() - new Date(event.date).getTime();
     return diff < 7 * 24 * 60 * 60 * 1000;
   });
@@ -1014,37 +981,61 @@ export function calculateHealthScore(profile) {
  * @param {string | null} overrideUserId
  */
 export async function syncProfileFromSupabase(userId) {
-  const scope = captureAccountScope(), profileKey = getProfileKey();
+  const scope = captureAccountScope(),
+    profileKey = getProfileKey();
   const initialRaw = getItemSync(profileKey);
   const current = () => isAccountScopeCurrent(scope) && getProfileKey() === profileKey;
   try {
     if (!userId) {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       userId = session?.user?.id;
     }
     if (!userId || userId !== scope.accountId || !current()) return;
     const [legacy, snapshots] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('healthchain_profiles').select('profile_id,profile_name,data,updated_at').eq('user_id', userId).order('updated_at', { ascending: false })
+      supabase
+        .from('healthchain_profiles')
+        .select('profile_id,profile_name,data,updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false }),
     ]);
     if (!current() || getItemSync(profileKey) !== initialRaw) return;
     if (legacy.error || snapshots.error) throw legacy.error || snapshots.error;
     const rows = [...(snapshots.data || [])];
-    const primary = rows.find(row => row.profile_id === 'profile_1');
-    if (legacy.data && !primary) rows.push({ profile_id: 'profile_1', profile_name: legacy.data.full_name, data: legacyProfileData(legacy.data) });
-    else if (primary && Date.parse(legacy.data?.updated_at || '') > Date.parse(primary.updated_at || '')) primary.data = { ...primary.data, ...legacyProfileData(legacy.data) };
-    const state = getProfileEngineState(), pending = [];
+    const primary = rows.find((row) => row.profile_id === 'profile_1');
+    if (legacy.data && !primary)
+      rows.push({
+        profile_id: 'profile_1',
+        profile_name: legacy.data.full_name,
+        data: legacyProfileData(legacy.data),
+      });
+    else if (
+      primary &&
+      Date.parse(legacy.data?.updated_at || '') > Date.parse(primary.updated_at || '')
+    )
+      primary.data = { ...primary.data, ...legacyProfileData(legacy.data) };
+    const state = getProfileEngineState(),
+      pending = [];
     for (const row of rows) {
-      if (!/^profile_\d+$/.test(row.profile_id) || !row.data || typeof row.data !== 'object') continue;
-      const local = state.profiles[row.profile_id], remote = cleanProfile({ ...row.data, id: row.profile_id });
+      if (!/^profile_\d+$/.test(row.profile_id) || !row.data || typeof row.data !== 'object')
+        continue;
+      const local = state.profiles[row.profile_id],
+        remote = cleanProfile({ ...row.data, id: row.profile_id });
       const baseline = readProfileBaseline(userId, row.profile_id);
-      const result = local?.updatedAt || baseline !== undefined
-        ? mergeConnectedProfiles(baseline, local, remote, userId, row.profile_id)
-        : { merged: remote, conflicts: [] };
+      const result =
+        local?.updatedAt || baseline !== undefined
+          ? mergeConnectedProfiles(baseline, local, remote, userId, row.profile_id)
+          : { merged: remote, conflicts: [] };
       // Conflicting facts remain on this device until the outbox review is resolved.
       let merged = result.merged;
       for (const field of result.conflicts) merged = applyProfileChoice(merged, field, 'local');
-      state.profiles[row.profile_id] = { ...(local || DEFAULT_PROFILE), ...merged, id: row.profile_id };
+      state.profiles[row.profile_id] = {
+        ...(local || DEFAULT_PROFILE),
+        ...merged,
+        id: row.profile_id,
+      };
       if (Array.isArray(remote.medications)) {
         state.profiles[row.profile_id].medicationScheduleLinked = true;
         setItemSync(`hc_medication_schedule_linked:${profileKey}:${row.profile_id}`, 'true');
@@ -1053,16 +1044,27 @@ export async function syncProfileFromSupabase(userId) {
         state.profiles[row.profile_id].isPro = legacy.data.is_pro;
         state.profiles[row.profile_id].proExpiresAt = legacy.data.pro_expires_at;
       }
-      if (result.conflicts.length || !sameProfileValue(cleanProfile(state.profiles[row.profile_id]), remote)) pending.push({
-        user_id: userId, profile_id: row.profile_id, profile_name: state.profiles[row.profile_id].profileName || 'My Profile',
-        data: state.profiles[row.profile_id], _sync_base: baseline ?? {}, updated_at: new Date().toISOString()
-      });
+      if (
+        result.conflicts.length ||
+        !sameProfileValue(cleanProfile(state.profiles[row.profile_id]), remote)
+      )
+        pending.push({
+          user_id: userId,
+          profile_id: row.profile_id,
+          profile_name: state.profiles[row.profile_id].profileName || 'My Profile',
+          data: state.profiles[row.profile_id],
+          _sync_base: baseline ?? {},
+          updated_at: new Date().toISOString(),
+        });
       else rememberProfileBaseline(userId, row.profile_id, remote);
     }
     if (!current()) return;
     setItemSync(profileKey, JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
-    for (const payload of pending) { if (!current()) return; await enqueueSync('caregiver_profile_upsert', userId, payload); }
+    for (const payload of pending) {
+      if (!current()) return;
+      await enqueueSync('caregiver_profile_upsert', userId, payload);
+    }
     if (current()) await flushSyncOutbox(userId);
   } catch (error) {
     console.warn('Profile sync needs retry:', error);
@@ -1072,28 +1074,34 @@ export async function syncProfileFromSupabase(userId) {
 
 const VIP_SIG_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
 
-export function isProUser() { 
-  if (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH)) {
+export function isProUser() {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH) {
     return true;
   }
-  const state = getProfileEngineState(); 
-  const profile = state.profiles[state.activeId]; 
-  if (!profile || !profile.isPro) return false; 
-  if (!profile.proExpiresAt) return true; 
-  return new Date(profile.proExpiresAt) > new Date(); 
+  const state = getProfileEngineState();
+  const profile = state.profiles[state.activeId];
+  if (!profile || !profile.isPro) return false;
+  if (!profile.proExpiresAt) return true;
+  return new Date(profile.proExpiresAt) > new Date();
 }
 
 export async function verifyProStatus() {
-  if (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH)) {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH) {
     return true;
   }
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session?.user) return isProUser();
-    
+
     // Explicitly grab error so we can handle PGRST errors
-    const { data, error } = await supabase.from('profiles').select('is_pro, pro_expires_at').eq('id', session.user.id).single();
-    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_pro, pro_expires_at')
+      .eq('id', session.user.id)
+      .single();
+
     // If network fails or database errors, trust the local cache to prevent UI flashing
     if (error) {
       console.warn('verifyProStatus DB error, falling back to cache:', error);
@@ -1133,7 +1141,3 @@ if (typeof window !== 'undefined') {
     historyIndex = -1;
   });
 }
-
-
-
-

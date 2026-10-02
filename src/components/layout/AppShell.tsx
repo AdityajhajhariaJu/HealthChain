@@ -1017,7 +1017,7 @@ export default function AppShell() {
                   drag="y"
                   dragConstraints={{ top: 0, bottom: 0 }}
                   dragElastic={{ top: 0, bottom: 0.8 }}
-                  onDragEnd={(e, { offset, velocity }) => {
+                  onDragEnd={(_e, { offset, velocity }) => {
                     if (offset.y > 100 || velocity.y > 500) {
                       setShowMoreMenu(false);
                     }

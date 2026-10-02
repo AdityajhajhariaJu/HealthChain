@@ -24,16 +24,82 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
 import { getHydrationData } from '../../services/HydrationService';
 
-export function DieticianDashboardTracker({ 
-  profile, 
-  foodLogs, 
-  currentDate, 
-  waterGlasses = 0,
-  onLogMeal, 
+const CircularProgress = ({ value, max, color, title, subtitle }: any) => {
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const percent = Math.min(value / (max || 1), 1);
+  const offset = circumference - percent * circumference;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
+      <div
+        style={{
+          position: 'relative',
+          width: '80px',
+          height: '80px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="6"
+            strokeOpacity="0.2"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="6"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        <div
+          style={{
+            position: 'absolute',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>
+            {Math.round(value)}
+          </span>
+          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>{subtitle}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export function DieticianDashboardTracker({
+  profile,
+  foodLogs,
+  currentDate,
+  onLogMeal,
   onDeleteMeal,
   onEditMeal,
   onUpdateHydration,
-  onSnap, 
   onOpenSettings,
   onOpenGallery,
   onOpenSavedMeals,
@@ -42,76 +108,62 @@ export function DieticianDashboardTracker({
 }: any) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
+
   const showNumbers = normalizeDietPreferences(profile?.practical).showNumbers;
-  const hasTarget = showNumbers && Number.isFinite(profile?.targetCalories) && profile.targetCalories > 0;
+  const hasTarget =
+    showNumbers && Number.isFinite(profile?.targetCalories) && profile.targetCalories > 0;
   const targetCalories = hasTarget ? profile.targetCalories : 0;
   const hydrationToday = getHydrationData(currentDate);
   const dailyMeals: any[] = Array.isArray(foodLogs[currentDate]) ? foodLogs[currentDate] : [];
   const hasUnknownNutrition = dailyMeals.some((meal) =>
-    ['calories', 'protein', 'carbs', 'fat'].some((key) => !Number.isFinite(meal[key])));
+    ['calories', 'protein', 'carbs', 'fat'].some((key) => !Number.isFinite(meal[key]))
+  );
   const displayNutrient = (value: unknown, unit = '') =>
-    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? `${value}${unit}` : 'Unknown';
-  
-    const consumed = Array.isArray(foodLogs[currentDate]) 
+    typeof value === 'number' && Number.isFinite(value) && value >= 0
+      ? `${value}${unit}`
+      : 'Unknown';
+
+  const consumed = Array.isArray(foodLogs[currentDate])
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.calories || 0), 0)
     : 0;
-    
-  const consumedProtein = Array.isArray(foodLogs[currentDate]) 
+
+  const consumedProtein = Array.isArray(foodLogs[currentDate])
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.protein || 0), 0)
     : 0;
-    
-  const consumedCarbs = Array.isArray(foodLogs[currentDate]) 
+
+  const consumedCarbs = Array.isArray(foodLogs[currentDate])
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.carbs || 0), 0)
     : 0;
-    
-  const consumedFats = Array.isArray(foodLogs[currentDate]) 
+
+  const consumedFats = Array.isArray(foodLogs[currentDate])
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.fat || log.fats || 0), 0)
     : 0;
-    
+
   const targetProtein = profile?.targetProtein || 0;
   const targetCarbs = profile?.targetCarbs || 0;
   const targetFats = profile?.targetFat || 0;
   const targetSugar = profile?.targetSugar || 0;
   const targetFibre = profile?.targetFibre || 0;
-  
-  const consumedSugar = Array.isArray(foodLogs[currentDate]) 
+
+  const consumedSugar = Array.isArray(foodLogs[currentDate])
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.sugar || 0), 0)
     : 0;
-    
-  const consumedFibre = Array.isArray(foodLogs[currentDate]) 
-    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.fibre || log.fiber || 0), 0)
+
+  const consumedFibre = Array.isArray(foodLogs[currentDate])
+    ? foodLogs[currentDate].reduce(
+        (acc: number, log: any) => acc + (log.fibre || log.fiber || 0),
+        0
+      )
     : 0;
-  
-  const CircularProgress = ({ value, max, color, title, subtitle }: any) => {
-    const radius = 28;
-    const circumference = 2 * Math.PI * radius;
-    const percent = Math.min(value / (max || 1), 1);
-    const offset = circumference - percent * circumference;
-    
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-        <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
-        <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" strokeOpacity="0.2" />
-            <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" 
-              strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" 
-              style={{ transition: 'stroke-dashoffset 0.5s ease' }} 
-            />
-          </svg>
-          <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>{Math.round(value)}</span>
-            <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>{subtitle}</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
-
-  const mealConfig = [...dietMealSlots(profile?.mealSchedule), ...(dailyMeals.some(entry => mealSlotFor(entry.type, profile?.mealSchedule) === 'Other meals') ? [{ name: 'Other meals', percent: 0 }] : [])];
-  const isLogForMeal = (entry: any, name: string) => mealSlotFor(entry.type, profile?.mealSchedule) === name;
+  const mealConfig = [
+    ...dietMealSlots(profile?.mealSchedule),
+    ...(dailyMeals.some((entry) => mealSlotFor(entry.type, profile?.mealSchedule) === 'Other meals')
+      ? [{ name: 'Other meals', percent: 0 }]
+      : []),
+  ];
+  const isLogForMeal = (entry: any, name: string) =>
+    mealSlotFor(entry.type, profile?.mealSchedule) === name;
 
   const getConsumedForMeal = (mealName: string) => {
     if (!Array.isArray(foodLogs[currentDate])) return 0;
@@ -121,41 +173,119 @@ export function DieticianDashboardTracker({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '100px', position: 'relative' }}>
-      
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        paddingBottom: '100px',
+        position: 'relative',
+      }}
+    >
       {/* 1. Diet Goals & Hydration Widgets */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}
+      >
         {/* Diet & Goals Card */}
-        <div style={{
-          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7'
-        }}>
+        <div
+          style={{
+            background: '#FFF',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+            border: '1px solid #F1E5E7',
+          }}
+        >
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-            <div style={{ background: '#ECFDF5', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              style={{
+                background: '#ECFDF5',
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Activity size={20} color="#059669" />
             </div>
             <div>
-              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>{showNumbers ? 'Diet & Goals' : 'Food preferences'}</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{showNumbers ? hasTarget ? `Estimated target: ${targetCalories} kcal` : 'No calorie target set' : 'Qualitative food records'}</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{showNumbers ? profile?.goal || 'Maintain Weight' : 'Meals at your own pace'}</div>
+              <div
+                style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}
+              >
+                {showNumbers ? 'Diet & Goals' : 'Food preferences'}
+              </div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                {showNumbers
+                  ? hasTarget
+                    ? `Estimated target: ${targetCalories} kcal`
+                    : 'No calorie target set'
+                  : 'Qualitative food records'}
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                {showNumbers ? profile?.goal || 'Maintain Weight' : 'Meals at your own pace'}
+              </div>
             </div>
           </div>
-          <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={onOpenSettings}
+            style={{
+              background: '#0F172A',
+              color: '#FFF',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
             Configure
           </button>
         </div>
 
         {/* Daily Hydration Card */}
-        <div style={{
-          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7'
-        }}>
+        <div
+          style={{
+            background: '#FFF',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+            border: '1px solid #F1E5E7',
+          }}
+        >
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-            <div style={{ background: '#EFF6FF', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              style={{
+                background: '#EFF6FF',
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Droplet size={20} color="#0284C7" />
             </div>
             <div>
-              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Hydration</div>
+              <div
+                style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}
+              >
+                Hydration
+              </div>
               <div style={{ fontSize: '11px', color: '#94A3B8' }}>Shared Today hydration goal</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>{hydrationToday.currentMl.toLocaleString()} / {hydrationToday.targetMl.toLocaleString()} ml</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>
+                {hydrationToday.currentMl.toLocaleString()} /{' '}
+                {hydrationToday.targetMl.toLocaleString()} ml
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -193,7 +323,7 @@ export function DieticianDashboardTracker({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)',
               }}
               title="Add 1 glass (250ml)"
               aria-label="Add 1 glass of water (250ml)"
@@ -205,13 +335,59 @@ export function DieticianDashboardTracker({
       </div>
 
       {/* 2. Main Budget Card */}
-        <div style={{ position: 'relative', display: showNumbers ? undefined : 'none' }}>
-          {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
-          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-          
-          <div className="hide-scrollbar scrollable-row" style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
+      <div style={{ position: 'relative', display: showNumbers ? undefined : 'none' }}>
+        {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '10%',
+            left: '10%',
+            width: '120px',
+            height: '120px',
+            background: '#A7F3D0',
+            borderRadius: '50%',
+            filter: 'blur(40px)',
+            zIndex: 0,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10%',
+            right: '10%',
+            width: '150px',
+            height: '150px',
+            background: '#DBEAFE',
+            borderRadius: '50%',
+            filter: 'blur(50px)',
+            zIndex: 0,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '40%',
+            right: '30%',
+            width: '100px',
+            height: '100px',
+            background: '#FDE68A',
+            borderRadius: '50%',
+            filter: 'blur(40px)',
+            zIndex: 0,
+          }}
+        />
+
+        <div
+          className="hide-scrollbar scrollable-row"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
+            boxShadow:
+              '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+            borderRadius: '32px',
             padding: '24px 16px',
             display: 'flex',
             flexWrap: 'nowrap',
@@ -221,27 +397,145 @@ export function DieticianDashboardTracker({
             gap: '16px',
             paddingBottom: '16px',
             scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch'}}>
-          {hasTarget ? <><CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
-          <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
-          {targetSugar > 0 && <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />}
-          {targetFibre > 0 && <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />}
-          <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" trackColor="#FEF3C7" title="Fats" subtitle={`${targetFats}g`} />
-          <CircularProgress value={consumed} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} /></> : <div style={{ color: '#334155', fontSize: '13px', padding: '10px' }}>No nutrition targets set. You can still record what you ate.</div>}
-          </div>
-          {hasUnknownNutrition && <div role="status" style={{ color: '#475569', fontSize: '12px', padding: '0 8px' }}>Some meals have unknown nutrition. Totals and progress include only recorded estimates.</div>}
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {hasTarget ? (
+            <>
+              <CircularProgress
+                value={consumedProtein}
+                max={targetProtein}
+                color="#10B981"
+                trackColor="#D1FAE5"
+                title="Protein"
+                subtitle={`${targetProtein}g`}
+              />
+              <CircularProgress
+                value={consumedCarbs}
+                max={targetCarbs}
+                color="#3B82F6"
+                trackColor="#DBEAFE"
+                title="Carbs"
+                subtitle={`${targetCarbs}g`}
+              />
+              {targetSugar > 0 && (
+                <CircularProgress
+                  value={consumedSugar}
+                  max={targetSugar}
+                  color="#E879F9"
+                  trackColor="#FAE8FF"
+                  title="Sugar"
+                  subtitle={`${targetSugar}g`}
+                />
+              )}
+              {targetFibre > 0 && (
+                <CircularProgress
+                  value={consumedFibre}
+                  max={targetFibre}
+                  color="#8B5CF6"
+                  trackColor="#EDE9FE"
+                  title="Fibre"
+                  subtitle={`${targetFibre}g`}
+                />
+              )}
+              <CircularProgress
+                value={consumedFats}
+                max={targetFats}
+                color="#F59E0B"
+                trackColor="#FEF3C7"
+                title="Fats"
+                subtitle={`${targetFats}g`}
+              />
+              <CircularProgress
+                value={consumed}
+                max={targetCalories}
+                color="#EF4444"
+                trackColor="#FEE2E2"
+                title="Calories"
+                subtitle={`${targetCalories} kcal`}
+              />
+            </>
+          ) : (
+            <div style={{ color: '#334155', fontSize: '13px', padding: '10px' }}>
+              No nutrition targets set. You can still record what you ate.
+            </div>
+          )}
         </div>
+        {hasUnknownNutrition && (
+          <div role="status" style={{ color: '#475569', fontSize: '12px', padding: '0 8px' }}>
+            Some meals have unknown nutrition. Totals and progress include only recorded estimates.
+          </div>
+        )}
+      </div>
 
       {/* 3. Quick Actions */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-        <button onClick={onOpenGallery} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-          <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button
+          onClick={onOpenGallery}
+          style={{
+            background: '#FFF',
+            padding: '16px',
+            borderRadius: '16px',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+            cursor: 'pointer',
+            fontWeight: 700,
+            color: '#0F172A',
+            fontSize: '14px',
+            transition: 'transform 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+          onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <div
+            style={{
+              background: '#0F172A',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Camera size={16} color="#FFF" />
           </div>
           Food Scanner
         </button>
-        <button onClick={onOpenSavedMeals} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-          <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button
+          onClick={onOpenSavedMeals}
+          style={{
+            background: '#FFF',
+            padding: '16px',
+            borderRadius: '16px',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+            cursor: 'pointer',
+            fontWeight: 700,
+            color: '#0F172A',
+            fontSize: '14px',
+            transition: 'transform 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+          onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <div
+            style={{
+              background: '#0F172A',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <BookOpen size={16} color="#FFF" />
           </div>
           Saved Meals
@@ -249,28 +543,46 @@ export function DieticianDashboardTracker({
       </div>
 
       {/* Ava source-linked discussion bridge */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-        borderRadius: '20px',
-        padding: '16px 20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        color: '#FFFFFF',
-        boxShadow: '0 4px 15px rgba(15, 23, 42, 0.15)',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: '12px'
-      }}>
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          borderRadius: '20px',
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: '#FFFFFF',
+          boxShadow: '0 4px 15px rgba(15, 23, 42, 0.15)',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '12px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'rgba(56, 189, 248, 0.15)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
             <Sparkles size={20} color="#38BDF8" />
           </div>
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>Discuss your food records with Ava</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>
+              Discuss your food records with Ava
+            </div>
             <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-              {!showNumbers ? `${dailyMeals.length} recorded meal(s); discuss ingredients and practical choices` : dailyMeals.length === 0
-                ? 'Ask what information is missing from your food records'
-                : `${consumed} kcal in recorded estimates${hasTarget ? ` of ${targetCalories} kcal planning target` : ''}${hasUnknownNutrition ? ' • Some values unknown' : ''}`}
+              {!showNumbers
+                ? `${dailyMeals.length} recorded meal(s); discuss ingredients and practical choices`
+                : dailyMeals.length === 0
+                  ? 'Ask what information is missing from your food records'
+                  : `${consumed} kcal in recorded estimates${hasTarget ? ` of ${targetCalories} kcal planning target` : ''}${hasUnknownNutrition ? ' • Some values unknown' : ''}`}
             </div>
           </div>
         </div>
@@ -281,8 +593,10 @@ export function DieticianDashboardTracker({
               state: {
                 returnTo: '/app/dietician?tab=dashboard',
                 returnLabel: 'Back to Diet Dashboard',
-                initialPrompt: showNumbers ? `Help me review today's user-entered food records and their missing or estimated values. The screen shows ${consumed} kcal, ${Math.round(consumedProtein)}g protein, ${Math.round(consumedCarbs)}g carbs, and ${Math.round(consumedFats)}g fat from available estimates only${hasUnknownNutrition ? '; at least one meal has unknown nutrition, so these are incomplete subtotals' : ''}${hasTarget ? ` against an optional ${targetCalories} kcal planning estimate` : ' with no calorie target set'}. Shared hydration is ${hydrationToday.currentMl} of ${hydrationToday.targetMl} ml. Do not treat these numbers as verified or give condition-specific treatment advice.` : `Help me review these user-entered meals qualitatively: ${dailyMeals.map(meal=>meal.name).join('; ')}. Do not show calories, weight targets or nutrient totals. Discuss practical choices and missing ingredient details without grading food.`,
-              }
+                initialPrompt: showNumbers
+                  ? `Help me review today's user-entered food records and their missing or estimated values. The screen shows ${consumed} kcal, ${Math.round(consumedProtein)}g protein, ${Math.round(consumedCarbs)}g carbs, and ${Math.round(consumedFats)}g fat from available estimates only${hasUnknownNutrition ? '; at least one meal has unknown nutrition, so these are incomplete subtotals' : ''}${hasTarget ? ` against an optional ${targetCalories} kcal planning estimate` : ' with no calorie target set'}. Shared hydration is ${hydrationToday.currentMl} of ${hydrationToday.targetMl} ml. Do not treat these numbers as verified or give condition-specific treatment advice.`
+                  : `Help me review these user-entered meals qualitatively: ${dailyMeals.map((meal) => meal.name).join('; ')}. Do not show calories, weight targets or nutrient totals. Discuss practical choices and missing ingredient details without grading food.`,
+              },
             });
           }}
           style={{
@@ -300,7 +614,7 @@ export function DieticianDashboardTracker({
             boxShadow: '0 2px 10px rgba(56, 189, 248, 0.3)',
             whiteSpace: 'nowrap',
             alignSelf: isMobile ? 'stretch' : 'auto',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           Discuss Nutrition with Ava <ArrowRight size={14} />
@@ -343,7 +657,18 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F3E8FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: '#F3E8FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
             <Lightbulb size={18} color="#9333EA" />
           </div>
           <div>
@@ -380,7 +705,18 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: '#EFF6FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
             <Calendar size={18} color="#0284C7" />
           </div>
           <div>
@@ -417,7 +753,18 @@ export function DieticianDashboardTracker({
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: '#ECFDF5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
             <Clock size={18} color="#059669" />
           </div>
           <div>
@@ -433,26 +780,61 @@ export function DieticianDashboardTracker({
           const mealBudget = Math.round(targetCalories * meal.percent);
           const mealConsumed = getConsumedForMeal(meal.name);
           const loggedMeals = dailyMeals.filter((entry) => isLogForMeal(entry, meal.name));
-          
+
           return (
             <div key={idx}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>{meal.name}</h3>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                }}
+              >
+                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                  {meal.name}
+                </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ display: showNumbers ? undefined : 'none', fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{hasTarget ? `${mealConsumed} known of ${mealBudget} estimated kcal` : `${mealConsumed} known kcal`}{loggedMeals.some((entry) => !Number.isFinite(entry.calories)) ? ' + unknown' : ''}</span>
-                  <button 
+                  <span
+                    style={{
+                      display: showNumbers ? undefined : 'none',
+                      fontSize: '14px',
+                      color: '#64748B',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {hasTarget
+                      ? `${mealConsumed} known of ${mealBudget} estimated kcal`
+                      : `${mealConsumed} known kcal`}
+                    {loggedMeals.some((entry) => !Number.isFinite(entry.calories))
+                      ? ' + unknown'
+                      : ''}
+                  </span>
+                  <button
                     type="button"
                     aria-label={`Log meal for ${meal.name}`}
-                    onClick={() => onLogMeal(meal.name)} 
-                    style={{ background: '#0D9488', color: '#FFF', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 4px 10px rgba(13, 148, 136, 0.3)' }}
+                    onClick={() => onLogMeal(meal.name)}
+                    style={{
+                      background: '#0D9488',
+                      color: '#FFF',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 10px rgba(13, 148, 136, 0.3)',
+                    }}
                   >
                     <Plus size={16} />
                   </button>
                 </div>
               </div>
-              
+
               {loggedMeals.length === 0 && (
-                <div 
+                <div
                   onClick={() => onOpenIdeas?.(meal.name)}
                   role="button"
                   tabIndex={0}
@@ -463,105 +845,181 @@ export function DieticianDashboardTracker({
                       onOpenIdeas?.(meal.name);
                     }
                   }}
-                  style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #F1E5E7', color: '#94A3B8', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s, transform 0.1s' }} 
-                  onMouseOver={(e) => e.currentTarget.style.background = '#FFFAFA'} 
-                  onMouseOut={(e) => e.currentTarget.style.background = '#FFF'} 
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'} 
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  style={{
+                    background: '#FFF',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    border: '1px dashed #F1E5E7',
+                    color: '#94A3B8',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, transform 0.1s',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = '#FFFAFA')}
+                  onMouseOut={(e) => (e.currentTarget.style.background = '#FFF')}
+                  onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+                  onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                 >
                   No meal recorded. Explore ideas, or use + to log what you ate.
                 </div>
               )}
 
               {loggedMeals.map((log: any, idx2: number) => (
-                  <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1E5E7', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
-                    <div style={{ flex: 1, minWidth: '160px' }}>
-                      <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: showNumbers ? 'flex' : 'none', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, color: '#EF4444' }}>🔥 {displayNutrient(log.calories, ' kcal')}</span>
-                        <span style={{ fontWeight: 600, color: '#10B981' }}>🥩 {displayNutrient(log.protein, 'g')} P</span>
-                        <span style={{ fontWeight: 600, color: '#3B82F6' }}>🍚 {displayNutrient(log.carbs, 'g')} C</span>
-                        <span style={{ fontWeight: 600, color: '#F59E0B' }}>🥑 {displayNutrient(log.fat ?? log.fats, 'g')} F</span>
-                        {(log.fibre || log.fiber) ? <span style={{ fontWeight: 600, color: '#8B5CF6' }}>🌾 {log.fibre || log.fiber}g Fibre</span> : null}
-                      </div>
-                      {showNumbers && ['package_label','food_catalog'].includes(log.nutritionSource) && log.per100Nutrients && (
+                <div
+                  key={idx2}
+                  style={{
+                    background: '#FFF',
+                    borderRadius: '14px',
+                    padding: '14px 16px',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    border: '1px solid #F1E5E7',
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: '160px' }}>
+                    <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>
+                      {log.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: '#64748B',
+                        marginTop: '4px',
+                        display: showNumbers ? 'flex' : 'none',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, color: '#EF4444' }}>
+                        🔥 {displayNutrient(log.calories, ' kcal')}
+                      </span>
+                      <span style={{ fontWeight: 600, color: '#10B981' }}>
+                        🥩 {displayNutrient(log.protein, 'g')} P
+                      </span>
+                      <span style={{ fontWeight: 600, color: '#3B82F6' }}>
+                        🍚 {displayNutrient(log.carbs, 'g')} C
+                      </span>
+                      <span style={{ fontWeight: 600, color: '#F59E0B' }}>
+                        🥑 {displayNutrient(log.fat ?? log.fats, 'g')} F
+                      </span>
+                      {log.fibre || log.fiber ? (
+                        <span style={{ fontWeight: 600, color: '#8B5CF6' }}>
+                          🌾 {log.fibre || log.fiber}g Fibre
+                        </span>
+                      ) : null}
+                    </div>
+                    {showNumbers &&
+                      ['package_label', 'food_catalog'].includes(log.nutritionSource) &&
+                      log.per100Nutrients && (
                         <div style={{ fontSize: '11px', color: '#475569', marginTop: '5px' }}>
-                          {log.nutritionSource === 'food_catalog' ? 'Food catalog' : 'Label photo'} · per 100 {log.originalNutritionBasis === 'per_100ml' ? 'ml' : 'g'}: {displayNutrient(log.per100Nutrients.calories, ' kcal')} ·
-                          {' '}{displayNutrient(log.per100Nutrients.protein, ' g')} protein ·
-                          {' '}{displayNutrient(log.per100Nutrients.carbs, ' g')} carbs ·
-                          {' '}{displayNutrient(log.per100Nutrients.fat, ' g')} fat.
-                          {' '}Source unverified; check the package.
-                          {log.originalNutritionBasis === 'per_serving' && log.originalServingGrams ? ` Printed basis: per ${log.originalServingGrams} g serving.` : ''}
+                          {log.nutritionSource === 'food_catalog' ? 'Food catalog' : 'Label photo'}{' '}
+                          · per 100 {log.originalNutritionBasis === 'per_100ml' ? 'ml' : 'g'}:{' '}
+                          {displayNutrient(log.per100Nutrients.calories, ' kcal')} ·{' '}
+                          {displayNutrient(log.per100Nutrients.protein, ' g')} protein ·{' '}
+                          {displayNutrient(log.per100Nutrients.carbs, ' g')} carbs ·{' '}
+                          {displayNutrient(log.per100Nutrients.fat, ' g')} fat. Source unverified;
+                          check the package.
+                          {log.originalNutritionBasis === 'per_serving' && log.originalServingGrams
+                            ? ` Printed basis: per ${log.originalServingGrams} g serving.`
+                            : ''}
                         </div>
                       )}
-                      {log.nutritionStatus === 'estimated' && (
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>Estimate; confirm the portion and ingredients.</div>
-                      )}
-                      {log.nutritionStatus === 'unknown' && (
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>Nutrition unknown; this meal is still recorded.</div>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {log.nutritionStatus === 'estimated' && (
+                      <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>
+                        Estimate; confirm the portion and ingredients.
+                      </div>
+                    )}
+                    {log.nutritionStatus === 'unknown' && (
+                      <div style={{ fontSize: '11px', color: '#64748B', marginTop: '5px' }}>
+                        Nutrition unknown; this meal is still recorded.
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => {
+                        triggerHapticLight();
+                        navigate('/app/ava', {
+                          state: {
+                            returnTo: '/app/dietician?tab=dashboard',
+                            returnLabel: 'Back to Diet Dashboard',
+                            initialPrompt: showNumbers
+                              ? `I logged "${log.name}" with an estimated ${log.calories ?? 'unknown'} kcal. Explain what is recorded, what is uncertain about the portion or ingredients, and what source or label detail I could check. Do not infer a glycemic response or clinical benefit.`
+                              : `I logged "${log.name}". Review this meal qualitatively without calories, weight targets or nutrient totals. Explain ingredient and portion uncertainties without grading food.`,
+                          },
+                        });
+                      }}
+                      style={{
+                        background: '#EEF2FF',
+                        color: '#4F46E5',
+                        border: '1px solid #C7D2FE',
+                        borderRadius: '10px',
+                        padding: '6px 12px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        transition: 'all 0.15s',
+                      }}
+                      title="Discuss this meal with Ava"
+                      aria-label={`Discuss ${log.name} with Ava`}
+                    >
+                      <Sparkles size={13} /> Ava Review
+                    </button>
+                    {onDeleteMeal && (
                       <button
-                        onClick={() => {
-                          triggerHapticLight();
-                          navigate('/app/ava', {
-                            state: {
-                              returnTo: '/app/dietician?tab=dashboard',
-                              returnLabel: 'Back to Diet Dashboard',
-                              initialPrompt: showNumbers ? `I logged "${log.name}" with an estimated ${log.calories ?? 'unknown'} kcal. Explain what is recorded, what is uncertain about the portion or ingredients, and what source or label detail I could check. Do not infer a glycemic response or clinical benefit.` : `I logged "${log.name}". Review this meal qualitatively without calories, weight targets or nutrient totals. Explain ingredient and portion uncertainties without grading food.`
-                            }
-                          });
-                        }}
+                        type="button"
+                        onClick={() => onEditMeal?.(log)}
+                        aria-label={`Correct ${log.name}`}
+                        title="Correct meal details"
                         style={{
-                          background: '#EEF2FF',
-                          color: '#4F46E5',
-                          border: '1px solid #C7D2FE',
+                          background: '#F0FDFA',
+                          color: '#0F766E',
+                          border: '1px solid #99F6E4',
                           borderRadius: '10px',
-                          padding: '6px 12px',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                    )}
+                    {onDeleteMeal && (
+                      <button
+                        onClick={() => onDeleteMeal(log.id)}
+                        style={{
+                          background: '#FEF2F2',
+                          color: '#EF4444',
+                          border: '1px solid #FEE2E2',
+                          borderRadius: '10px',
+                          padding: '6px 10px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          transition: 'all 0.15s'
+                          justifyContent: 'center',
+                          transition: 'all 0.15s',
                         }}
-                        title="Discuss this meal with Ava"
-                        aria-label={`Discuss ${log.name} with Ava`}
+                        title="Delete meal log"
+                        aria-label={`Delete ${log.name}`}
                       >
-                        <Sparkles size={13} /> Ava Review
+                        <Trash2 size={13} />
                       </button>
-                      {onDeleteMeal && (
-                        <button type="button" onClick={() => onEditMeal?.(log)}
-                          aria-label={`Correct ${log.name}`} title="Correct meal details"
-                          style={{ background: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4', borderRadius: '10px', padding: '6px 10px', cursor: 'pointer' }}>
-                          <Edit2 size={13} />
-                        </button>
-                      )}
-                      {onDeleteMeal && (
-                        <button
-                          onClick={() => onDeleteMeal(log.id)}
-                          style={{
-                            background: '#FEF2F2',
-                            color: '#EF4444',
-                            border: '1px solid #FEE2E2',
-                            borderRadius: '10px',
-                            padding: '6px 10px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.15s'
-                          }}
-                          title="Delete meal log"
-                          aria-label={`Delete ${log.name}`}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
+                </div>
               ))}
             </div>
           );
@@ -586,7 +1044,10 @@ export function DieticianDashboardTracker({
       >
         <Info size={16} color="#94A3B8" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div>
-          <strong style={{ color: '#0F172A' }}>Nutritional estimates:</strong> Totals use the nutrients and portions recorded with each meal. Check food labels and ingredient quantities when confirming estimates. Meals with unknown nutrition are excluded from nutrient totals.
+          <strong style={{ color: '#0F172A' }}>Nutritional estimates:</strong> Totals use the
+          nutrients and portions recorded with each meal. Check food labels and ingredient
+          quantities when confirming estimates. Meals with unknown nutrition are excluded from
+          nutrient totals.
         </div>
       </div>
     </div>

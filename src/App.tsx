@@ -1,18 +1,18 @@
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import React, { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import ProtectedRoute from './components/layout/ProtectedRoute';
+import AccountRuntime from './components/layout/AccountRuntime';
 import ConsentManager from './components/ui/ConsentManager';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
 import OfflineBanner from './components/ui/OfflineBanner';
 import { useToast } from './components/ui/ToastProvider';
-import AccountRuntime from './components/layout/AccountRuntime';
 import { trackButtonClick, trackEvent } from './services/analytics';
 import { initGlobalHaptics } from './services/haptics';
 import { installNativeAuthCallbacks } from './services/NativeAuth';
+
+const ProtectedRoute = React.lazy(() => import('./components/layout/ProtectedRoute'));
 
 const WarRoomRedirect = React.lazy(() => import('./features/dashboard/LegacyCaseRedirect'));
 const TopUpModal = React.lazy(() => import('./features/brand/TopUpModal'));
@@ -58,15 +58,9 @@ const NutritionInterceptor = React.lazy(() =>
 const CaseDetail = React.lazy(() => import('./features/dashboard/CaseDetail'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.2 }}
-    style={{ height: '100%' }}
-  >
+  <div className="hc-page-enter" style={{ height: '100%' }}>
     {children}
-  </motion.div>
+  </div>
 );
 
 const FallbackLoader = () => (

@@ -3,7 +3,6 @@
  * Handles dispatching events to Meta Pixel, AppsFlyer, and Supabase Analytics.
  */
 import { Capacitor } from '@capacitor/core';
-import { supabase } from './supabaseClient';
 
 declare global {
   interface Window {
@@ -82,9 +81,11 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
       platform = 'web';
     }
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
+    void import('./supabaseClient')
+      .then(async ({ supabase }) => {
+        if (!hasAnalyticsConsent()) return;
+        const { data } = await supabase.auth.getSession();
+        if (!hasAnalyticsConsent()) return;
         return supabase.from('analytics_events').insert({
           event_name: eventName,
           event_params: { ...payload, anonymous_id: getAnonymousId() },
@@ -116,8 +117,6 @@ export const trackFeatureUsed = (featureName: string, metadata: any = {}) =>
   trackEvent('feature_used', { feature: featureName, ...metadata });
 export const trackButtonClick = (buttonName: string, context: string = '') =>
   trackEvent('button_click', { button: buttonName, context });
-export const trackSignup = () => trackEvent('sign_up');
-export const trackLabUpload = () => trackEvent('LabReportUploaded', { status: 'success' });
 export const trackCheckoutInitiated = (value: number, planId?: string) =>
   trackEvent('begin_checkout', { value, currency: 'INR', planId });
 export const trackPurchase = (value: number, planId?: string) => {
@@ -143,9 +142,3 @@ export const trackPurchase = (value: number, planId?: string) => {
     }
   }
 };
-export const trackConsultationStarted = (
-  mode: 'quick' | 'mdt' | 'jarvis' | 'ava',
-  details: any = {}
-) => trackEvent('consultation_started', { mode, ...details });
-export const trackCaseAction = (action: string, metadata: any = {}) =>
-  trackEvent('case_action', { action, ...metadata });

@@ -18,7 +18,6 @@ interface ConnectionDetectiveModalProps {
   onClose: () => void;
   initialTab?: string;
   onOpenFoodDetective?: () => void;
-  onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
   onOpenGutHealth?: () => void;
 }
@@ -29,7 +28,6 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   initialTab,
   caseId,
   onOpenFoodDetective,
-  onOpenConsult,
   onOpenCasePrep,
   onOpenGutHealth,
 }) => {
@@ -82,48 +80,62 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           role="dialog"
           aria-modal="true"
           aria-label="Clinical Connections"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: isMobile ? 'flex-end' : 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            padding: isMobile ? '0' : '20px',
+          }}
+          onClick={onClose}
+        >
+          <motion.div
+            id="connection-detective-modal-sheet"
+            tabIndex={-1}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
             style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 99999,
+              width: '100%',
+              maxWidth: isMobile ? '100%' : '680px',
+              height: 'auto',
+              maxHeight: isMobile ? '88vh' : '82vh',
+              background: '#FFFFFF',
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              borderBottomLeftRadius: isMobile ? '0' : '28px',
+              borderBottomRightRadius: isMobile ? '0' : '28px',
               display: 'flex',
-              alignItems: isMobile ? 'flex-end' : 'center',
-              justifyContent: 'center',
-              background: 'rgba(15, 23, 42, 0.45)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              padding: isMobile ? '0' : '20px',
+              flexDirection: 'column',
+              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              overflow: 'hidden',
             }}
-            onClick={onClose}
           >
-            <motion.div
-              id="connection-detective-modal-sheet"
-              tabIndex={-1}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
+            {/* Grab Handle */}
+            <div
               style={{
                 width: '100%',
-                maxWidth: isMobile ? '100%' : '680px',
-                height: 'auto',
-                maxHeight: isMobile ? '88vh' : '82vh',
-                background: '#FFFFFF',
-                borderTopLeftRadius: '28px',
-                borderTopRightRadius: '28px',
-                borderBottomLeftRadius: isMobile ? '0' : '28px',
-                borderBottomRightRadius: isMobile ? '0' : '28px',
                 display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
-                border: '1px solid rgba(226, 232, 240, 0.8)',
-                overflow: 'hidden',
+                justifyContent: 'center',
+                paddingTop: '12px',
               }}
             >
-            {/* Grab Handle */}
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
-              <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#CBD5E1' }} />
+              <div
+                style={{
+                  width: '42px',
+                  height: '5px',
+                  borderRadius: '999px',
+                  background: '#CBD5E1',
+                }}
+              />
             </div>
 
             {/* Header */}
@@ -134,10 +146,12 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
-                gap: '8px'
+                gap: '8px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}
+              >
                 {openedPillarId && (
                   <button
                     type="button"
@@ -160,18 +174,50 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                       color: '#1E293B',
                       cursor: 'pointer',
                       flexShrink: 0,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                     }}
                   >
                     <ArrowLeft size={18} />
                   </button>
                 )}
 
-                <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px' }}>
-                  <h2 style={{ margin: 0, fontSize: isMobile ? '16px' : '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Gut Health {!isMobile && <span style={{ color: '#0D9488' }}>& Connections</span>}
+                <div
+                  style={{
+                    minWidth: 0,
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: isMobile ? '6px' : '8px',
+                  }}
+                >
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: isMobile ? '16px' : '17px',
+                      fontWeight: 900,
+                      color: '#1C1917',
+                      letterSpacing: '-0.4px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    Gut Health{' '}
+                    {!isMobile && <span style={{ color: '#0D9488' }}>& Connections</span>}
                   </h2>
-                  <span style={{ fontSize: isMobile ? '9.5px' : '10px', fontWeight: 800, color: '#0F766E', background: '#CCFBF1', border: '1px solid #99F6E4', padding: isMobile ? '2px 6px' : '2px 7px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <span
+                    style={{
+                      fontSize: isMobile ? '9.5px' : '10px',
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      background: '#CCFBF1',
+                      border: '1px solid #99F6E4',
+                      padding: isMobile ? '2px 6px' : '2px 7px',
+                      borderRadius: '999px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
                     Systems Detective
                   </span>
                 </div>
@@ -198,7 +244,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                   color: '#64748B',
                   cursor: 'pointer',
                   flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                 }}
               >
                 <X size={18} />
@@ -211,25 +257,77 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 flex: '0 1 auto',
                 overflowY: 'auto',
                 maxHeight: isMobile ? 'calc(88vh - 75px)' : 'calc(82vh - 75px)',
-                padding: isMobile ? '8px 14px calc(20px + env(safe-area-inset-bottom, 0px)) 14px' : '10px 18px 24px 18px',
+                padding: isMobile
+                  ? '8px 14px calc(20px + env(safe-area-inset-bottom, 0px)) 14px'
+                  : '10px 18px 24px 18px',
               }}
             >
-              {onOpenGutHealth && <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '5px 0 14px', padding: '13px 15px', border: '1px solid #F2CBD4', borderRadius: 16, background: 'linear-gradient(110deg,#FFF2F4,#FFFFFF)' }}>
-                <div style={{ minWidth: 0 }}><strong style={{ display: 'block', color: '#263147', fontSize: 13 }}>Have a personal gut question?</strong><span style={{ display: 'block', marginTop: 3, color: '#68768C', fontSize: 12, lineHeight: 1.4 }}>Open your saved meals, symptom reports and research together.</span></div>
-                <button type="button" onClick={onOpenGutHealth} style={{ minHeight: 38, flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 11px', border: '1px solid #E78CA2', borderRadius: 11, background: '#FFF', color: '#B51E49', fontWeight: 750, cursor: 'pointer' }}>My Gut Health <ArrowRight size={15} /></button>
-              </section>}
-              <ConnectionDetectiveView caseId={caseId}
+              {onOpenGutHealth && (
+                <section
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    margin: '5px 0 14px',
+                    padding: '13px 15px',
+                    border: '1px solid #F2CBD4',
+                    borderRadius: 16,
+                    background: 'linear-gradient(110deg,#FFF2F4,#FFFFFF)',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: 'block', color: '#263147', fontSize: 13 }}>
+                      Have a personal gut question?
+                    </strong>
+                    <span
+                      style={{
+                        display: 'block',
+                        marginTop: 3,
+                        color: '#68768C',
+                        fontSize: 12,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Open your saved meals, symptom reports and research together.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenGutHealth}
+                    style={{
+                      minHeight: 38,
+                      flex: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 11px',
+                      border: '1px solid #E78CA2',
+                      borderRadius: 11,
+                      background: '#FFF',
+                      color: '#B51E49',
+                      fontWeight: 750,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    My Gut Health <ArrowRight size={15} />
+                  </button>
+                </section>
+              )}
+              <ConnectionDetectiveView
+                caseId={caseId}
                 initialTab={initialTab as any}
                 openedPillarId={openedPillarId as any}
                 onOpenedPillarChange={(id) => setOpenedPillarId(id)}
                 onOpenFoodDetective={() => {
                   onClose();
                   if (onOpenFoodDetective) onOpenFoodDetective();
-                  else window.dispatchEvent(new CustomEvent('hc_open_whole_health_modal', { detail: { tab: 'detective' } }));
-                }}
-                onOpenConsult={() => {
-                  onClose();
-                  if (onOpenConsult) onOpenConsult();
+                  else
+                    window.dispatchEvent(
+                      new CustomEvent('hc_open_whole_health_modal', {
+                        detail: { tab: 'detective' },
+                      })
+                    );
                 }}
                 onOpenCasePrep={() => {
                   onClose();

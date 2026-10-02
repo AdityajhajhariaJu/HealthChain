@@ -19,7 +19,7 @@ export function DietMealReminders({ schedule }: { schedule: string }) {
   );
   const [rows, setRows] = useState<MealReminder[]>(
     stored.reminders ||
-      dietMealSlots(schedule).map((slot, index) => ({
+      dietMealSlots(schedule).map((slot, _index) => ({
         id: crypto.randomUUID(),
         label: slot.name,
         time:

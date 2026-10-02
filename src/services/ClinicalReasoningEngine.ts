@@ -1,5 +1,5 @@
 import { CategorizedInformationItem } from './ClinicalInformationClassifier';
-import { sourceMeasurements, explicitCollectionDate } from './clinicalEvidenceText';
+import { explicitCollectionDate, sourceMeasurements } from './clinicalEvidenceText';
 
 // ==========================================
 // 10 REASONING STAGES DATA CONTRACTS
@@ -339,7 +339,7 @@ export function detectCorrectionQueue(
   return queue;
 }
 export function justifyPerspectives(
-  questions: string[],
+  _questions: string[],
   raw: Partial<JustifiedPerspective>[] = []
 ): JustifiedPerspective[] {
   return raw
@@ -357,8 +357,8 @@ export function justifyPerspectives(
 export function buildTriProngChallenges(
   alternatives: AlternativeInterpretation[],
   facts: SourceLinkedEvidence[],
-  missing: string[],
-  corrections?: CorrectionQueueItem[]
+  _missing: string[],
+  _corrections?: CorrectionQueueItem[]
 ): BalancedAssessment[] {
   const ids = new Set(
     facts
@@ -416,8 +416,8 @@ export function selectFocusedClarification(
 }
 export function synthesizeFindings(
   facts: SourceLinkedEvidence[],
-  alternatives: AlternativeInterpretation[],
-  assessments: BalancedAssessment[],
+  _alternatives: AlternativeInterpretation[],
+  _assessments: BalancedAssessment[],
   uncertainties: string[],
   corrections?: CorrectionQueueItem[],
   summary?: string

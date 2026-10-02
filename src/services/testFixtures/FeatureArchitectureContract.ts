@@ -88,7 +88,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'A separate competing clinical report',
     pipelineStage: 'intake',
     route: '/app/ava',
-    plainDescription: 'Your conversational companion for describing symptoms, clarifying everyday health questions, and finding your next step without medical jargon.',
+    plainDescription:
+      'Your conversational companion for describing symptoms, clarifying everyday health questions, and finding your next step without medical jargon.',
     plainPurpose: 'Symptom description & everyday health guidance',
     badgeColor: {
       bg: '#F0FDF4',
@@ -106,7 +107,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'engine',
         label: 'Review in Clinical Data Engine',
-        actionDescription: 'Transfer structured facts for deep clinical review and contradiction checks',
+        actionDescription:
+          'Transfer structured facts for deep clinical review and contradiction checks',
         route: '/app/consult',
       },
       {
@@ -135,7 +137,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Day-to-day logging or a decorative specialist chat',
     pipelineStage: 'synthesis',
     route: '/app/consult',
-    plainDescription: 'Synthesizing your full medical history, lab values, and symptom timeline into structured insights to discuss with your doctor.',
+    plainDescription:
+      'Synthesizing your full medical history, lab values, and symptom timeline into structured insights to discuss with your doctor.',
     plainPurpose: 'Multisystem evidence synthesis',
     badgeColor: {
       bg: '#FFFBEB',
@@ -153,7 +156,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'case-prep',
         label: 'Prepare for Doctor in Case Prep',
-        actionDescription: 'Export contradictions, questions, and red flags directly to your visit brief',
+        actionDescription:
+          'Export contradictions, questions, and red flags directly to your visit brief',
         route: '/app/case-prep',
       },
     ],
@@ -177,11 +181,14 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     shortLabel: 'Gut Health',
     uniqueQuestion: 'What can my records say about this question—and what remains uncertain?',
     owns: 'Question-led review of digestive records, separate general research sources, and optional follow-through',
-    produces: 'Source-linked personal report counts, explicit unknowns and conflicts, source context, and a visit or decision handoff',
-    mustNotDuplicate: 'A diagnosis, personal food-cause verdict, unreviewed research synthesis, or self-directed treatment/challenge plan',
+    produces:
+      'Source-linked personal report counts, explicit unknowns and conflicts, source context, and a visit or decision handoff',
+    mustNotDuplicate:
+      'A diagnosis, personal food-cause verdict, unreviewed research synthesis, or self-directed treatment/challenge plan',
     pipelineStage: 'exploration',
     route: '/app/today?gut=1',
-    plainDescription: 'Bring one digestive question together with the records you actually saved, inspect the original sources, and choose a useful next step.',
+    plainDescription:
+      'Bring one digestive question together with the records you actually saved, inspect the original sources, and choose a useful next step.',
     plainPurpose: 'Question-led digestive record and research review',
     badgeColor: {
       bg: '#F0F9FF',
@@ -193,7 +200,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'case-prep',
         label: 'Prepare this question for a visit',
-        actionDescription: 'Copy the patient question into a selected case while keeping personal reports separate from clinician findings',
+        actionDescription:
+          'Copy the patient question into a selected case while keeping personal reports separate from clinician findings',
         route: '/app/case-prep',
       },
     ],
@@ -226,7 +234,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Simulated specialist discussion after every post',
     pipelineStage: 'outcome',
     route: '/app/cases',
-    plainDescription: 'Tracking ongoing case progress, unresolved questions, doctor guidance, and resolution timelines.',
+    plainDescription:
+      'Tracking ongoing case progress, unresolved questions, doctor guidance, and resolution timelines.',
     plainPurpose: 'Ongoing case work & visit outcomes',
     badgeColor: {
       bg: '#F8FAFC',
@@ -238,7 +247,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'cases',
         label: 'Sync Closed Loops to My Cases',
-        actionDescription: 'Commit updated status, visit outcomes, and resolved questions into case history',
+        actionDescription:
+          'Commit updated status, visit outcomes, and resolved questions into case history',
         route: '/app/my-cases',
       },
     ],
@@ -261,7 +271,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Another interpretation engine',
     pipelineStage: 'storage',
     route: '/app/my-cases',
-    plainDescription: 'Your complete archive of medical case records, organized and accessible in one place.',
+    plainDescription:
+      'Your complete archive of medical case records, organized and accessible in one place.',
     plainPurpose: 'Case records & longitudinal timeline',
     badgeColor: {
       bg: '#F0FDFA',
@@ -273,7 +284,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'engine',
         label: 'Review Case Evidence in Engine',
-        actionDescription: 'Feed the canonical case history into the Clinical Data Engine for synthesis',
+        actionDescription:
+          'Feed the canonical case history into the Clinical Data Engine for synthesis',
         route: '/app/consult',
       },
     ],
@@ -301,7 +313,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'An entirely new assessment',
     pipelineStage: 'prep',
     route: '/app/case-prep',
-    plainDescription: 'Creating a concise appointment brief, question checklist, and key discussion points for your doctor visit.',
+    plainDescription:
+      'Creating a concise appointment brief, question checklist, and key discussion points for your doctor visit.',
     plainPurpose: 'Doctor visit preparation & checklist',
     badgeColor: {
       bg: '#FAF5FF',
@@ -313,7 +326,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'canvas',
         label: 'Record Doctor Decisions in Health Canvas',
-        actionDescription: 'Log clinician feedback and outcomes directly into your ongoing case timeline',
+        actionDescription:
+          'Log clinician feedback and outcomes directly into your ongoing case timeline',
         route: '/app/cases',
       },
     ],
@@ -341,7 +355,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Food-trigger investigation',
     pipelineStage: 'wellness',
     route: '/app/dietician',
-    plainDescription: 'Personalized meal planning, practical swaps, and daily nutrition tailored to your health profile.',
+    plainDescription:
+      'Personalized meal planning, practical swaps, and daily nutrition tailored to your health profile.',
     plainPurpose: 'Practical meal planning & nutrition',
     badgeColor: {
       bg: '#ECFDF5',
@@ -377,7 +392,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Broad cross-system reasoning',
     pipelineStage: 'exploration',
     route: '/app/dietician',
-    plainDescription: 'Reviewing dated food and symptom observations, including missing timing and other possible explanations.',
+    plainDescription:
+      'Reviewing dated food and symptom observations, including missing timing and other possible explanations.',
     plainPurpose: 'Food pattern & digestive tracking',
     badgeColor: {
       bg: '#FEF3C7',
@@ -389,7 +405,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'elimination-suite',
         label: 'Review Existing Elimination Records',
-        actionDescription: 'Review recorded food challenges and notes; new guided protocols are paused for clinical review',
+        actionDescription:
+          'Review recorded food challenges and notes; new guided protocols are paused for clinical review',
         route: '/app/today',
       },
       {
@@ -418,7 +435,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Automatically deciding what caused symptoms',
     pipelineStage: 'action',
     route: '/app/today',
-    plainDescription: 'Review existing elimination and reintroduction records. New guided challenges are paused for clinical review.',
+    plainDescription:
+      'Review existing elimination and reintroduction records. New guided challenges are paused for clinical review.',
     plainPurpose: 'Food challenge records',
     badgeColor: {
       bg: '#FFF7ED',
@@ -436,7 +454,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'canvas',
         label: 'Record Protocol in Case Canvas',
-        actionDescription: 'Commit completed elimination phase outcomes into your longitudinal timeline',
+        actionDescription:
+          'Commit completed elimination phase outcomes into your longitudinal timeline',
         route: '/app/cases',
       },
     ],
@@ -459,7 +478,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Eligibility determination',
     pipelineStage: 'discovery',
     route: '/app/trials',
-    plainDescription: 'Exploring relevant clinical trials and peer-reviewed scientific studies matching your health profile.',
+    plainDescription:
+      'Exploring relevant clinical trials and peer-reviewed scientific studies matching your health profile.',
     plainPurpose: 'Evidence & research discovery',
     badgeColor: {
       bg: '#F5F3FF',
@@ -471,13 +491,15 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
       {
         targetFeatureId: 'engine',
         label: 'Attach Studies to Clinical Data Engine',
-        actionDescription: 'Enrich engine synthesis with peer-reviewed trials and clinical evidence',
+        actionDescription:
+          'Enrich engine synthesis with peer-reviewed trials and clinical evidence',
         route: '/app/consult',
       },
       {
         targetFeatureId: 'case-prep',
         label: 'Include Research in Doctor Brief',
-        actionDescription: 'Bring clinical trial identifiers and mechanisms to discuss with your specialist',
+        actionDescription:
+          'Bring clinical trial identifiers and mechanisms to discuss with your specialist',
         route: '/app/case-prep',
       },
     ],
@@ -500,7 +522,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Clinical interpretation',
     pipelineStage: 'wellness',
     route: '/app/today',
-    plainDescription: 'A living garden that grows with supportive routines, clean-meal logs, breathwork, and calm days.',
+    plainDescription:
+      'A living garden that grows with supportive routines, clean-meal logs, breathwork, and calm days.',
     plainPurpose: 'Reflect routine consistency through an interactive garden',
     badgeColor: {
       bg: '#FDF2F8',
@@ -552,38 +575,10 @@ export function getDownstreamHandoffs(id: FeatureId): HandoffRoute[] {
 }
 
 /**
- * Retrieves declared upstream feeds for a feature.
- */
-export function getUpstreamFeeds(id: FeatureId): UpstreamFeed[] {
-  return FEATURE_CONTRACTS[id]?.upstreamFeeds || [];
-}
-
-/**
  * Validates whether a direct pipeline transition between two features is architecturally permissible.
  */
 export function isPermissiblePipelineHandoff(fromId: FeatureId, toId: FeatureId): boolean {
   const contract = FEATURE_CONTRACTS[fromId];
   if (!contract) return false;
   return contract.downstreamHandoffs.some((handoff) => handoff.targetFeatureId === toId);
-}
-
-/**
- * Canonical Feature Registry prompt for Ava and AI reasoning engines.
- * References all 11 current features by their actual names and boundaries.
- */
-export function getCanonicalFeatureRegistryPrompt(): string {
-  const contracts = getAllFeatureContracts();
-  const lines = [
-    'CANONICAL 12-FEATURE ARCHITECTURE CONTRACT (Strictly respect each feature’s sole responsibility):'
-  ];
-  contracts.forEach((c, idx) => {
-    lines.push(
-      `${idx + 1}. ${c.name} (${c.shortLabel}) [Stage: ${c.pipelineStage}]`
-      + `\n   - Question it answers: "${c.uniqueQuestion}"`
-      + `\n   - Owns: ${c.owns}`
-      + `\n   - Produces: ${c.produces}`
-      + `\n   - Must NEVER duplicate: ${c.mustNotDuplicate}`
-    );
-  });
-  return lines.join('\n');
 }

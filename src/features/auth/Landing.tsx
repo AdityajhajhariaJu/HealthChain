@@ -1,4 +1,5 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, useReducedMotion } from 'framer-motion';
+import * as motion from 'framer-motion/m';
 import {
   Activity,
   ArrowRight,
@@ -20,21 +21,29 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HCLogo } from '../../components/ui/HCLogo';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useMountedRef } from '../../hooks/useMountedRef';
 const LandingWorkflowReasoningModal = React.lazy(() =>
   import('../../components/ui/LandingWorkflowReasoningModal').then((module) => ({
     default: module.LandingWorkflowReasoningModal,
   }))
 );
 
-import { trackButtonClick, trackPageView } from '../../services/analytics';
-import { getActiveSession } from '../../services/authSession';
-import { triggerHapticLight } from '../../services/haptics';
 import {
   getLandingWorkflowScenarios,
   LandingWorkflowScenario,
 } from '../../data/LandingWorkflowScenarios';
-import { supabase } from '../../services/supabaseClient';
+import { trackButtonClick, trackPageView } from '../../services/analytics';
+import { getActiveSession } from '../../services/authSession';
+import { triggerHapticLight } from '../../services/haptics';
 import styles from './Landing.module.css';
+
+// Content and controls render before optional animation/gesture support.
+const loadMotionFeatures = () =>
+  import('./landingMotionFeatures')
+    .then((module) => module.default)
+    // Keep optional animation support pending if its bundle is unavailable.
+    // Static content and native controls remain usable without a renderer.
+    .catch(() => new Promise<never>(() => {}));
 
 const SYMPTOM_PRESETS = [
   {
@@ -299,7 +308,7 @@ export default function Landing() {
 
   const { error: showError } = useToast();
   const navigationLocked = useRef(false);
-  const mounted = useRef(true);
+  const mounted = useMountedRef();
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
@@ -310,20 +319,13 @@ export default function Landing() {
     trackPageView('/');
   }, []);
 
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
   // Redirect authenticated users away from landing page
   useEffect(() => {
     let cancelled = false;
     getActiveSession().then((session) => {
       if (!cancelled && session) {
         setHasSession(true);
-        navigate('/app', { replace: true });
+        if (!navigationLocked.current) navigate('/app', { replace: true });
         return;
       }
       if (!cancelled) {
@@ -336,26 +338,52 @@ export default function Landing() {
       }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (cancelled) return;
-      if (
-        (event === 'SIGNED_IN' ||
-          event === 'TOKEN_REFRESHED' ||
-          (event === 'INITIAL_SESSION' && session)) &&
-        session
-      ) {
-        setHasSession(true);
-        navigate('/app', { replace: true });
-      }
-    });
+    let unsubscribe: (() => void) | undefined;
+    void import('../../services/supabaseClient')
+      .then(({ supabase }) => {
+        if (cancelled) return;
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((event, session) => {
+          if (cancelled) return;
+          if (
+            (event === 'SIGNED_IN' ||
+              event === 'TOKEN_REFRESHED' ||
+              (event === 'INITIAL_SESSION' && session)) &&
+            session
+          ) {
+            setHasSession(true);
+            if (!navigationLocked.current) navigate('/app', { replace: true });
+          }
+        });
+        unsubscribe = () => subscription.unsubscribe();
+      })
+      .catch(() => {
+        // Public content stays usable; protected routes verify session access.
+      });
 
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, [navigate]);
+
+  const prepareWorkspaceLaunch = async () => {
+    if (guestMode && !hasSession) return true;
+    const session = await getActiveSession();
+    if (!mounted.current) return false;
+    if (session) {
+      navigate('/app', { replace: true });
+      return false;
+    }
+    try {
+      localStorage.setItem('hc_guest_mode', 'true');
+      setGuestMode(true);
+    } catch {
+      // The workspace will expose a storage error if device storage is blocked.
+    }
+    return true;
+  };
 
   const handleStartInvestigation = async (
     context: string = 'landing_hero',
@@ -368,24 +396,19 @@ export default function Landing() {
     trackButtonClick('Get Started', context);
     setIsNavigating(true);
 
-    if (!hasSession && !guestMode) {
-      try {
-        localStorage.setItem('hc_guest_mode', 'true');
-      } catch (e) {}
-    }
-
-    if (presetSymptom) {
-      try {
-        sessionStorage.setItem('hc_preset_symptom', presetSymptom);
-      } catch (e) {}
-    }
-    if (presetSpecialist) {
-      try {
-        sessionStorage.setItem('hc_preset_specialist', presetSpecialist);
-      } catch (e) {}
-    }
-
     try {
+      if (!(await prepareWorkspaceLaunch())) return;
+      if (presetSymptom) {
+        try {
+          sessionStorage.setItem('hc_preset_symptom', presetSymptom);
+        } catch (e) {}
+      }
+      if (presetSpecialist) {
+        try {
+          sessionStorage.setItem('hc_preset_specialist', presetSpecialist);
+        } catch (e) {}
+      }
+
       const [{ setActiveCase }, { useMDTStore }] = await Promise.all([
         import('../../services/CaseEngine'),
         import('../../stores/useMDTStore'),
@@ -414,13 +437,8 @@ export default function Landing() {
     trackButtonClick('Launch Workflow Case', scenarioId);
     setIsNavigating(true);
 
-    if (!hasSession && !guestMode) {
-      try {
-        localStorage.setItem('hc_guest_mode', 'true');
-      } catch (e) {}
-    }
-
     try {
+      if (!(await prepareWorkspaceLaunch())) return;
       const { instantiateWorkflowCase } = await import('../../services/LandingCaseWorkflowEngine');
       if (!mounted.current) return;
       const newCase = instantiateWorkflowCase(scenarioId);
@@ -445,1035 +463,1048 @@ export default function Landing() {
   const workflowScenarios = getLandingWorkflowScenarios();
 
   return (
-    <div className={styles.container}>
-      {/* Loading Overlay */}
-      <AnimatePresence>
-        {isNavigating && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: '#FBF9F6',
-              zIndex: 9999,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '24px',
-            }}
-          >
+    <LazyMotion features={loadMotionFeatures}>
+      <div className={styles.container}>
+        {/* Loading Overlay */}
+        <AnimatePresence>
+          {isNavigating && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               style={{
-                width: '68px',
-                height: '68px',
-                borderRadius: '50%',
-                background: '#ECFDF5',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: '#FBF9F6',
+                zIndex: 9999,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)',
-              }}
-            >
-              <Activity size={32} color="#059669" />
-            </motion.div>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              style={{
-                fontSize: '28px',
-                fontWeight: 900,
-                color: '#0F172A',
-                margin: 0,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Convening AI Medical Specialists...
-            </motion.h2>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{
-                width: '140px',
-                height: '4px',
-                background: '#E2E8F0',
-                marginTop: '12px',
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: '4px',
+                gap: '24px',
               }}
             >
               <motion.div
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                initial={false}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1 }}
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: '50%',
-                  background: '#059669',
+                  width: '68px',
+                  height: '68px',
+                  borderRadius: '50%',
+                  background: '#ECFDF5',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)',
+                }}
+              >
+                <Activity size={32} color="#059669" />
+              </motion.div>
+
+              <motion.h2
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                style={{
+                  fontSize: '28px',
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  margin: 0,
+                  letterSpacing: '-0.5px',
+                }}
+              >
+                Convening AI Medical Specialists...
+              </motion.h2>
+
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                style={{
+                  width: '140px',
+                  height: '4px',
+                  background: '#E2E8F0',
+                  marginTop: '12px',
+                  position: 'relative',
+                  overflow: 'hidden',
                   borderRadius: '4px',
                 }}
-              />
+              >
+                <motion.div
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    width: '50%',
+                    background: '#059669',
+                    borderRadius: '4px',
+                  }}
+                />
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 1. Floating Neutral Glass Navbar */}
-      <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
-        <div className={styles.logoContainer}>
-          <HCLogo size={32} />
-          <span className={styles.logoText}>HealthChain360.ai</span>
-        </div>
-        <div className={styles.navActions}>
-          {isLoggedOut ? (
-            <>
-              <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
-                Log In
-              </button>
-              <button
-                className={styles.navButton}
-                onClick={() => handleStartInvestigation('landing_nav')}
-              >
-                Get Started
-              </button>
-            </>
-          ) : (
-            <button className={styles.navButton} onClick={() => navigate('/app/today')}>
-              Health Today →
-            </button>
           )}
-        </div>
-      </nav>
+        </AnimatePresence>
 
-      <main>
-        {/* 2. Hero Section */}
-        <div className={styles.heroWrapper}>
-          <div className={styles.heroGradientBg}></div>
+        {/* 1. Floating Neutral Glass Navbar */}
+        <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
+          <div className={styles.logoContainer}>
+            <HCLogo size={32} />
+            <span className={styles.logoText}>HealthChain360.ai</span>
+          </div>
+          <div className={styles.navActions}>
+            {isLoggedOut ? (
+              <>
+                <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
+                  Log In
+                </button>
+                <button
+                  className={styles.navButton}
+                  onClick={() => handleStartInvestigation('landing_nav')}
+                >
+                  Get Started
+                </button>
+              </>
+            ) : (
+              <button className={styles.navButton} onClick={() => navigate('/app/today')}>
+                Health Today →
+              </button>
+            )}
+          </div>
+        </nav>
 
-          <div className={styles.heroContent}>
-            <motion.div>
-              {/* High-Tech Black Look Window Card with Continuous Specialist Ticker */}
-              <motion.div
-                role="button"
-                tabIndex={0}
-                className={styles.darkTickerWindowCard}
-                onClick={() => handleStartInvestigation('landing_ticker_window')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleStartInvestigation('landing_ticker_window');
-                  }
-                }}
-              >
-                <div className={styles.darkTickerPrefix}>
-                  <div className={styles.darkTickerLiveDot} />
-                  <span
-                    id="landing-perspective-board-label"
-                    className={styles.darkTickerPrefixLabel}
+        <main>
+          {/* 2. Hero Section */}
+          <div className={styles.heroWrapper}>
+            <div className={styles.heroGradientBg}></div>
+
+            <div className={styles.heroContent}>
+              <motion.div>
+                {/* High-Tech Black Look Window Card with Continuous Specialist Ticker */}
+                <motion.div
+                  role="button"
+                  tabIndex={0}
+                  className={styles.darkTickerWindowCard}
+                  onClick={() => handleStartInvestigation('landing_ticker_window')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleStartInvestigation('landing_ticker_window');
+                    }
+                  }}
+                >
+                  <div className={styles.darkTickerPrefix}>
+                    <div className={styles.darkTickerLiveDot} />
+                    <span
+                      id="landing-perspective-board-label"
+                      className={styles.darkTickerPrefixLabel}
+                    >
+                      AI PERSPECTIVE BOARD
+                    </span>
+                  </div>
+                  <div className={styles.darkTickerDivider} />
+                  <div className={styles.darkTickerViewport} aria-hidden="true">
+                    <div className={styles.stockTickerTrack}>
+                      {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
+                        <div
+                          key={i}
+                          className={styles.darkTickerItem}
+                          aria-hidden={i >= SPECIALIST_TICKER.length}
+                        >
+                          <span className={styles.darkTickerIcon}>{spec.icon}</span>
+                          <span className={styles.darkTickerName}>{spec.name}</span>
+                          <span className={styles.darkTickerTag}>{spec.tag}</span>
+                          <span className={styles.darkTickerDot}>•</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.h1 className={styles.heroTitle}>
+                  Your Health Story. <br />
+                  <span className={styles.heroHighlight}>Finally Connected.</span>
+                </motion.h1>
+
+                <motion.p className={styles.heroDescription}>
+                  Bring scattered symptoms, records, and questions into one evolving case.
+                  HealthChain360.ai helps you understand what is documented, what remains uncertain,
+                  and what to discuss at your next appointment.
+                </motion.p>
+
+                {/* Instant Symptom Input Box */}
+                <motion.div className={styles.heroInputContainer}>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (customInput.trim()) {
+                        handleStartInvestigation('landing_hero_input', customInput.trim());
+                      } else {
+                        handleStartInvestigation('landing_hero_input');
+                      }
+                    }}
+                    className={styles.heroInputBox}
                   >
-                    AI PERSPECTIVE BOARD
-                  </span>
-                </div>
-                <div className={styles.darkTickerDivider} />
-                <div className={styles.darkTickerViewport} aria-hidden="true">
-                  <div className={styles.stockTickerTrack}>
-                    {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
-                      <div
-                        key={i}
-                        className={styles.darkTickerItem}
-                        aria-hidden={i >= SPECIALIST_TICKER.length}
+                    <Search size={18} className={styles.heroInputIcon} />
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      aria-label="Describe your symptoms or paste blood test results"
+                      placeholder="Type your symptoms or paste blood test results (e.g. chronic fatigue, morning headaches)..."
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      className={styles.heroInputField}
+                      style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                    />
+                    <button type="submit" className={styles.heroInputBtn}>
+                      <span>Analyze →</span>
+                    </button>
+                  </form>
+                </motion.div>
+
+                {/* 1-Tap Symptom Presets Bar */}
+                <motion.div className={styles.symptomChipsSection}>
+                  <div className={styles.symptomChipsHeader}>
+                    OR TAP A FREQUENT SYMPTOM TO BEGIN:
+                  </div>
+                  <div className={styles.symptomChipsGrid}>
+                    {SYMPTOM_PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        className={styles.symptomChip}
+                        onClick={() =>
+                          handleStartInvestigation(
+                            `landing_chip_${idx}`,
+                            preset.symptom,
+                            preset.specialist
+                          )
+                        }
                       >
-                        <span className={styles.darkTickerIcon}>{spec.icon}</span>
-                        <span className={styles.darkTickerName}>{spec.name}</span>
-                        <span className={styles.darkTickerTag}>{spec.tag}</span>
-                        <span className={styles.darkTickerDot}>•</span>
+                        <span>{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Interactive Live Consensus Simulation Card */}
+                <motion.div className={styles.consensusDemoCard}>
+                  <div className={styles.demoHeader}>
+                    <div className={styles.demoBadge}>
+                      <div className={styles.demoLiveDot} />
+                      <span>ILLUSTRATIVE MULTI-PERSPECTIVE REVIEW</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#71717A', fontWeight: 600 }}>
+                      Case #4120 • 35-yo Female (Post-Viral Fatigue)
+                    </div>
+                  </div>
+
+                  <div className={styles.demoChatArea}>
+                    {CONSENSUS_DIALOGUE.map((dialogue, dIdx) => (
+                      <div key={dIdx} className={styles.demoMessage}>
+                        <div
+                          className={styles.demoSpecialistIcon}
+                          style={{ background: dialogue.bg, color: dialogue.color }}
+                        >
+                          {dialogue.icon}
+                        </div>
+                        <div className={styles.demoMessageContent}>
+                          <div className={styles.demoSpecialistName}>
+                            <span>{dialogue.role}</span>
+                            <span className={styles.demoSpecialistField}>
+                              Specialist perspective
+                            </span>
+                          </div>
+                          <p className={styles.demoText}>"{dialogue.finding}"</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              </motion.div>
 
-              <motion.h1 className={styles.heroTitle}>
-                Your Health Story. <br />
-                <span className={styles.heroHighlight}>Finally Connected.</span>
-              </motion.h1>
-
-              <motion.p className={styles.heroDescription}>
-                Bring scattered symptoms, records, and questions into one evolving case.
-                HealthChain360.ai helps you understand what is documented, what remains uncertain,
-                and what to discuss at your next appointment.
-              </motion.p>
-
-              {/* Instant Symptom Input Box */}
-              <motion.div className={styles.heroInputContainer}>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (customInput.trim()) {
-                      handleStartInvestigation('landing_hero_input', customInput.trim());
-                    } else {
-                      handleStartInvestigation('landing_hero_input');
-                    }
-                  }}
-                  className={styles.heroInputBox}
-                >
-                  <Search size={18} className={styles.heroInputIcon} />
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    aria-label="Describe your symptoms or paste blood test results"
-                    placeholder="Type your symptoms or paste blood test results (e.g. chronic fatigue, morning headaches)..."
-                    value={customInput}
-                    onChange={(e) => setCustomInput(e.target.value)}
-                    className={styles.heroInputField}
-                    style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
-                  />
-                  <button type="submit" className={styles.heroInputBtn}>
-                    <span>Analyze →</span>
-                  </button>
-                </form>
-              </motion.div>
-
-              {/* 1-Tap Symptom Presets Bar */}
-              <motion.div className={styles.symptomChipsSection}>
-                <div className={styles.symptomChipsHeader}>OR TAP A FREQUENT SYMPTOM TO BEGIN:</div>
-                <div className={styles.symptomChipsGrid}>
-                  {SYMPTOM_PRESETS.map((preset, idx) => (
+                  <div className={styles.demoFooter}>
+                    <div className={styles.demoConfidenceText}>
+                      <Sparkles size={14} />
+                      <span>
+                        Organizing documented facts, uncertainties, and clinician questions...
+                      </span>
+                    </div>
                     <button
-                      key={idx}
-                      className={styles.symptomChip}
+                      className={styles.demoCtaMini}
                       onClick={() =>
                         handleStartInvestigation(
-                          `landing_chip_${idx}`,
-                          preset.symptom,
-                          preset.specialist
+                          'landing_consensus_demo',
+                          'Post-viral chronic fatigue with normal labs'
                         )
                       }
                     >
-                      <span>{preset.label}</span>
+                      <span>Explore Sample Scenario →</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* 2.5 Product Video Demos */}
+          <section className={styles.videoShowcaseSection}>
+            <div className={styles.sectionHeader}>
+              <div
+                className={styles.categoryBadge}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <Play size={12} fill="#059669" color="#059669" />
+                <span>MULTI-SPECIALIST AI DEMO</span>
+              </div>
+              <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
+              <p className={styles.sectionSubtitle}>
+                Watch how several AI perspectives organize symptoms, printed lab values, and medical
+                history for clinician review.
+              </p>
+            </div>
+
+            <div className={styles.videoGrid}>
+              {/* Video 1 */}
+              <motion.div
+                className={styles.videoCard}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <DemoVideoPlayer
+                  src="/videos/healthchain-overview.mp4"
+                  poster="/videos/healthchain-overview-poster.jpg"
+                  alt="AI perspective review demonstration"
+                />
+                <div className={styles.videoMeta}>
+                  <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
+                  <h3 className={styles.videoTitle}>AI Perspective Review</h3>
+                  <p className={styles.videoDesc}>
+                    Watch how several specialty perspectives can organize the same evidence, expose
+                    disagreements, and identify questions that need clinician review.
+                  </p>
+                  <button
+                    className={styles.videoCta}
+                    onClick={() =>
+                      handleStartInvestigation('landing_video_1', 'AI Perspective Review')
+                    }
+                  >
+                    <span>Try this scenario</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* Video 2 */}
+              <motion.div
+                className={styles.videoCard}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+              >
+                <DemoVideoPlayer
+                  src="/videos/specialist-board-demo.mp4"
+                  poster="/videos/specialist-board-demo-poster.jpg"
+                  alt="From Symptoms to Doctor-Ready Dossier Demo"
+                />
+                <div className={styles.videoMeta}>
+                  <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
+                  <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
+                  <p className={styles.videoDesc}>
+                    See how blood panels and symptoms become a structured possibility list and
+                    doctor-ready discussion points.
+                  </p>
+                  <button
+                    className={styles.videoCta}
+                    onClick={() =>
+                      handleStartInvestigation('landing_video_2', 'Full Lab & Symptom Dossier')
+                    }
+                  >
+                    <span>Generate clinical brief</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* 3. Illustrated Clinical Results (FameHero Style) */}
+          <section className={styles.statsSection}>
+            <div className={styles.sectionHeader} style={{ marginBottom: '24px' }}>
+              <h2 className={styles.statsMainTitle}>
+                Results You Can Measure <br />
+                <span className={styles.heroHighlight}>Clinical Clarity That Delivers</span>
+              </h2>
+              <p className={styles.statsMainSubtitle}>
+                Move from scattered information to a case you can revisit. Each review keeps source
+                details, uncertainties, and appointment questions visible.
+              </p>
+            </div>
+
+            <div className={styles.statsGrid}>
+              {/* Metric Card 1: Speedometer Gauge */}
+              <motion.div
+                className={styles.statItem}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -8, scale: 1.015 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className={styles.statGraphicWrapper}>
+                  <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                    <path
+                      d="M 30 105 A 68 68 0 0 1 170 105"
+                      stroke="rgba(16, 185, 129, 0.15)"
+                      strokeWidth="12"
+                      strokeLinecap="round"
+                    />
+                    <motion.path
+                      d="M 30 105 A 68 68 0 0 1 155 48"
+                      stroke="#059669"
+                      strokeWidth="12"
+                      strokeLinecap="round"
+                      initial={false}
+                      whileInView={{ pathLength: 1 }}
+                      viewport={{ once: false }}
+                      transition={{ duration: 1.2, ease: 'easeOut' }}
+                    />
+                    <motion.g
+                      initial={false}
+                      whileInView={{ rotate: [-40, 6, -3, 0], originX: '100px', originY: '100px' }}
+                      viewport={{ once: false }}
+                      transition={{ duration: 1.5, ease: 'easeOut', times: [0, 0.6, 0.85, 1] }}
+                    >
+                      <line
+                        x1="100"
+                        y1="100"
+                        x2="146"
+                        y2="46"
+                        stroke="#334155"
+                        strokeWidth="2.8"
+                        strokeLinecap="round"
+                      />
+                    </motion.g>
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="5"
+                      fill="#FFFFFF"
+                      stroke="#059669"
+                      strokeWidth="3"
+                    />
+                  </svg>
+                </div>
+                <div className={styles.statValueRow}>
+                  <span className={styles.statNumber}>Clear</span>
+                  <span className={styles.statTrend}>↗</span>
+                </div>
+                <h3 className={styles.statTitle}>Evidence Boundaries</h3>
+                <p className={styles.statDesc}>
+                  Reported information, record findings, AI considerations, and unknowns stay
+                  visibly distinct.
+                </p>
+                <button
+                  className={styles.statCtaLink}
+                  onClick={() => handleStartInvestigation('stats_card_1')}
+                >
+                  Start Free Review →
+                </button>
+              </motion.div>
+
+              {/* Metric Card 2: Ascending Bar Chart */}
+              <motion.div
+                className={styles.statItem}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -8, scale: 1.015 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+              >
+                <div className={styles.statGraphicWrapper}>
+                  <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                    {[
+                      { x: 25, y: 75, h: 35, bg: 'rgba(16, 185, 129, 0.2)', delay: 0 },
+                      { x: 52, y: 60, h: 50, bg: 'rgba(16, 185, 129, 0.3)', delay: 0.1 },
+                      { x: 79, y: 48, h: 62, bg: 'rgba(16, 185, 129, 0.45)', delay: 0.2 },
+                      { x: 106, y: 38, h: 72, bg: 'rgba(16, 185, 129, 0.6)', delay: 0.3 },
+                      { x: 133, y: 24, h: 86, bg: 'rgba(16, 185, 129, 0.75)', delay: 0.4 },
+                      { x: 160, y: 10, h: 100, bg: '#059669', delay: 0.5 },
+                    ].map((bar, bIdx) => (
+                      <motion.rect
+                        key={bIdx}
+                        x={bar.x}
+                        y={bar.y}
+                        width="16"
+                        height={bar.h}
+                        rx="8"
+                        fill={bar.bg}
+                        initial={false}
+                        whileInView={{ scaleY: 1, originY: '110px' }}
+                        viewport={{ once: false }}
+                        transition={{
+                          duration: 0.55,
+                          delay: bar.delay,
+                          type: 'spring',
+                          stiffness: 200,
+                          damping: 16,
+                        }}
+                      />
+                    ))}
+                  </svg>
+                </div>
+                <div className={styles.statValueRow}>
+                  <span className={styles.statNumber}>One</span>
+                  <span className={styles.statTrend}>↗</span>
+                </div>
+                <h3 className={styles.statTitle}>Evidence Breadth</h3>
+                <p className={styles.statDesc}>
+                  Keeps your timeline, documents, daily updates, and appointment preparation in one
+                  connected case.
+                </p>
+                <button
+                  className={styles.statCtaLink}
+                  onClick={() => handleStartInvestigation('stats_card_2')}
+                >
+                  Start Free Review →
+                </button>
+              </motion.div>
+
+              {/* Metric Card 3: Smooth Spline Trend Line */}
+              <motion.div
+                className={styles.statItem}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -8, scale: 1.015 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
+                <div className={styles.statGraphicWrapper}>
+                  <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                    <motion.path
+                      d="M 20 85 Q 50 82 70 58 T 120 65 T 180 18"
+                      stroke="#10B981"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      initial={false}
+                      whileInView={{ pathLength: 1 }}
+                      viewport={{ once: false }}
+                      transition={{ duration: 1.4, ease: 'easeInOut' }}
+                    />
+                    <motion.circle
+                      cx="180"
+                      cy="18"
+                      r="10"
+                      fill="rgba(16, 185, 129, 0.25)"
+                      initial={false}
+                      whileInView={{ scale: [1, 1.9, 1], opacity: [0.7, 0, 0.7] }}
+                      transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+                    />
+                    <motion.circle
+                      cx="180"
+                      cy="18"
+                      r="6"
+                      fill="#FFFFFF"
+                      stroke="#059669"
+                      strokeWidth="3"
+                      initial={false}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: false }}
+                      transition={{ delay: 1.1, duration: 0.3, type: 'spring' }}
+                    />
+                  </svg>
+                </div>
+                <div className={styles.statValueRow}>
+                  <span className={styles.statNumber}>&lt; 60s</span>
+                  <span className={styles.statTrend}>↗</span>
+                </div>
+                <h3 className={styles.statTitle}>Synthesized Dossier</h3>
+                <p className={styles.statDesc}>
+                  Organizes fragmented blood tests and symptoms into a reusable clinician brief
+                  while keeping source details visible.
+                </p>
+                <button
+                  className={styles.statCtaLink}
+                  onClick={() => handleStartInvestigation('stats_card_3')}
+                >
+                  Start Free Review →
+                </button>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* 3.5 FameHero-Style Bento Clinical Intelligence Showcase */}
+          <section className={styles.bentoShowcaseSection}>
+            <div className={styles.bentoContainerCard}>
+              <div className={styles.bentoTopBadgeRow}>
+                <span className={styles.bentoTopBadge}>CONNECTED CASE WORKFLOW</span>
+              </div>
+
+              <div className={styles.bentoHeaderRow}>
+                <div className={styles.bentoHeaderTitleArea}>
+                  <div className={styles.bentoHeaderIcon}>
+                    <Eye size={20} color="#059669" />
+                  </div>
+                  <h2 className={styles.bentoHeaderTitle}>From scattered records to one case</h2>
+                </div>
+                <p className={styles.bentoHeaderSubtitle}>
+                  <strong style={{ color: '#047857' }}>One continuous workflow.</strong> See how
+                  HealthChain360.ai keeps records, personal notes, AI considerations, uncertainties,
+                  and appointment questions connected without presenting examples as your data.
+                </p>
+              </div>
+
+              {/* 2-Column Continuous Vertical Auto-Scroller Window */}
+              <div
+                className={styles.bentoScrollWindow}
+                role="region"
+                aria-label="Connected case workflow examples"
+                tabIndex={reduceMotion ? 0 : undefined}
+              >
+                <div className={styles.bentoMasonryLayout}>
+                  {/* Column 1 Track (Left Infinite Loop) */}
+                  <div className={styles.bentoColumnScroll}>
+                    <div className={styles.bentoColumnTrackLeft}>
+                      {[...BENTO_COL_LEFT, ...BENTO_COL_LEFT].map((card, idx) => (
+                        <div
+                          key={`left_${idx}`}
+                          className={styles.bentoCard}
+                          aria-hidden={idx >= BENTO_COL_LEFT.length}
+                        >
+                          {card.type === 'img' && card.img && (
+                            <div className={styles.bentoImgWrapper}>
+                              <img
+                                src={card.img}
+                                alt={card.title}
+                                className={styles.bentoImg}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/images/immersive/doctor-biomarker.png';
+                                }}
+                              />
+                              <div className={styles.bentoImgOverlay} />
+                            </div>
+                          )}
+                          <div className={styles.bentoCardBody}>
+                            <div className={styles.bentoCardTags}>
+                              <span className={styles.bentoCategoryTag}>{card.tag}</span>
+                              <span className={styles.bentoStatusTag}>{card.status}</span>
+                            </div>
+                            <h3 className={styles.bentoCardTitle}>{card.title}</h3>
+                            <p className={styles.bentoCardDesc}>{card.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 2 Track (Right Infinite Loop) */}
+                  <div className={styles.bentoColumnScroll}>
+                    <div className={styles.bentoColumnTrackRight}>
+                      {[...BENTO_COL_RIGHT, ...BENTO_COL_RIGHT].map((card, idx) => (
+                        <div
+                          key={`right_${idx}`}
+                          className={`${styles.bentoCard} ${card.type === 'privacy' ? styles.bentoCardPrivacy : ''}`}
+                          aria-hidden={idx >= BENTO_COL_RIGHT.length}
+                        >
+                          {card.type === 'img' && card.img && (
+                            <div className={styles.bentoImgWrapper}>
+                              <img
+                                src={card.img}
+                                alt={card.title}
+                                className={styles.bentoImg}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/images/immersive/doctor-biomarker.png';
+                                }}
+                              />
+                              <div className={styles.bentoImgOverlay} />
+                            </div>
+                          )}
+                          {card.type === 'privacy' && (
+                            <div className={styles.bentoPrivacyIconBg}>
+                              <ShieldCheck size={28} color="#059669" />
+                            </div>
+                          )}
+                          <div
+                            className={styles.bentoCardBody}
+                            style={card.type === 'privacy' ? { padding: 0 } : undefined}
+                          >
+                            <div className={styles.bentoCardTags}>
+                              <span className={styles.bentoCategoryTag}>{card.tag}</span>
+                              <span className={styles.bentoStatusTag}>{card.status}</span>
+                            </div>
+                            <h3 className={styles.bentoCardTitle}>{card.title}</h3>
+                            <p className={styles.bentoCardDesc}>{card.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Primary Action Button */}
+              <div className={styles.bentoBottomCta}>
+                <button
+                  className={styles.bentoCtaButton}
+                  onClick={() => handleStartInvestigation('bento_bottom_cta')}
+                >
+                  <span>Start Free Case Dossier</span>
+                  <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. Illustrative case workflows - Step 6 Useful Reasoning */}
+          <section className={styles.casesSection}>
+            <div className={styles.workflowSectionHeader}>
+              <div className={styles.workflowBadgeBanner}>
+                <Brain size={14} /> USEFUL REASONING • WORKFLOW DESIGNS
+              </div>
+              <h2 className={styles.sectionTitle}>
+                When the story is complex, organize the questions
+              </h2>
+              <p className={styles.sectionSubtitle} style={{ marginBottom: 6 }}>
+                Explore clearly labeled examples of turning symptoms, dates, measurements, and
+                records into a reviewable case for a clinician visit.
+              </p>
+              <div className={styles.workflowMandatoryDisclaimer}>
+                "These are workflow designs using the illustrated scenarios, not conclusions about a
+                patient."
+              </div>
+            </div>
+
+            {/* Case Cards Grid / Feed */}
+            <div className={styles.casesFeed}>
+              {workflowScenarios.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  className={`${styles.caseCard} ${idx === 0 ? styles.caseCardTop1 : idx === 1 ? styles.caseCardTop2 : idx === 2 ? styles.caseCardTop3 : ''}`}
+                  whileHover={{ y: -2 }}
+                >
+                  <div
+                    className={`${styles.caseRankBadge} ${idx === 0 ? styles.caseRank1 : idx === 1 ? styles.caseRank2 : idx === 2 ? styles.caseRank3 : ''}`}
+                  >
+                    {item.rank}
+                  </div>
+                  <div className={styles.caseCardBody}>
+                    <div className={styles.caseCardHeader}>
+                      <div className={styles.caseTitleRow}>
+                        <span className={styles.caseIcon}>{item.icon}</span>
+                        <h3 className={styles.caseTitle}>{item.title}</h3>
+                      </div>
+                      <span className={styles.caseMatchScore}>Workflow Design</span>
+                    </div>
+
+                    <div className={styles.workflowCardColumns}>
+                      {/* Pillar 1: What to Connect */}
+                      <div className={styles.workflowConnectSection}>
+                        <div className={styles.workflowConnectTitle}>
+                          <Layers size={13} color="#059669" />
+                          <span>What to connect (Multi-Modal Inputs)</span>
+                        </div>
+                        <div className={styles.workflowConnectPills}>
+                          {item.whatToConnect.map((conn, cIdx) => (
+                            <span key={cIdx} className={styles.workflowConnectPill}>
+                              <span>{conn.icon}</span>
+                              <span>{conn.tag}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Pillar 2: What to Keep Separate */}
+                      <div className={styles.workflowBoundaryBox}>
+                        <div className={styles.workflowBoundaryTitle}>
+                          <ShieldAlert size={14} color="#D97706" />
+                          <span>What to keep separate (Epistemic Boundary)</span>
+                        </div>
+                        <div className={styles.workflowBoundaryContent}>
+                          <strong>{item.epistemicBoundary.boundaryTitle}:</strong>{' '}
+                          {item.epistemicBoundary.whatToKeepSeparate}
+                        </div>
+                      </div>
+
+                      {/* Pillar 3: Valuable Final Output */}
+                      <div className={styles.workflowOutputBox}>
+                        <div className={styles.workflowOutputTitle}>
+                          <Sparkles size={13} color="#166534" />
+                          <span>Valuable final output (Doctor-Ready Preparation)</span>
+                        </div>
+                        <div className={styles.workflowOutputQuote}>
+                          "{item.valuableOutput.clinicianQuote}"
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.caseCardFooter}>
+                      <div className={styles.caseSpecialistMeta}>
+                        <span
+                          className={styles.caseSpecialistLabel}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <Microscope size={13} color="#059669" />
+                          <span>{item.specialistTag}</span>
+                        </span>
+                        <span>•</span>
+                        <span>Case Simulation</span>
+                      </div>
+                      <div className={styles.workflowCardButtons}>
+                        <button
+                          type="button"
+                          className={styles.workflowInspectBtn}
+                          onClick={() => {
+                            triggerHapticLight();
+                            setInspectingScenario(item);
+                          }}
+                        >
+                          <Eye size={13} />
+                          <span>Inspect Reasoning Design</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.workflowLaunchBtn}
+                          onClick={() => handleLaunchWorkflowScenario(item.id)}
+                        >
+                          <span>Try with this scenario</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Latest Clinical Consensus Activity Bar */}
+              <div className={styles.latestConsensusBar}>
+                <div className={styles.consensusBarTitle}>
+                  <span className={styles.liveActivityPulse}>●</span>
+                  <span>USEFUL STARTING TEMPLATES</span>
+                </div>
+                <div className={styles.consensusPills}>
+                  {LATEST_ACTIVITIES.map((act, aIdx) => (
+                    <button
+                      type="button"
+                      key={aIdx}
+                      className={styles.consensusPill}
+                      onClick={() =>
+                        handleStartInvestigation(`activity_pill_${aIdx}`, act.symptom, act.specId)
+                      }
+                    >
+                      <span>{act.icon}</span>
+                      <span>{act.text}</span>
+                      <span className={styles.consensusPillTime}>· {act.time}</span>
                     </button>
                   ))}
                 </div>
-              </motion.div>
-
-              {/* Interactive Live Consensus Simulation Card */}
-              <motion.div className={styles.consensusDemoCard}>
-                <div className={styles.demoHeader}>
-                  <div className={styles.demoBadge}>
-                    <div className={styles.demoLiveDot} />
-                    <span>ILLUSTRATIVE MULTI-PERSPECTIVE REVIEW</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#71717A', fontWeight: 600 }}>
-                    Case #4120 • 35-yo Female (Post-Viral Fatigue)
-                  </div>
-                </div>
-
-                <div className={styles.demoChatArea}>
-                  {CONSENSUS_DIALOGUE.map((dialogue, dIdx) => (
-                    <div key={dIdx} className={styles.demoMessage}>
-                      <div
-                        className={styles.demoSpecialistIcon}
-                        style={{ background: dialogue.bg, color: dialogue.color }}
-                      >
-                        {dialogue.icon}
-                      </div>
-                      <div className={styles.demoMessageContent}>
-                        <div className={styles.demoSpecialistName}>
-                          <span>{dialogue.role}</span>
-                          <span className={styles.demoSpecialistField}>Specialist perspective</span>
-                        </div>
-                        <p className={styles.demoText}>"{dialogue.finding}"</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.demoFooter}>
-                  <div className={styles.demoConfidenceText}>
-                    <Sparkles size={14} />
-                    <span>
-                      Organizing documented facts, uncertainties, and clinician questions...
-                    </span>
-                  </div>
-                  <button
-                    className={styles.demoCtaMini}
-                    onClick={() =>
-                      handleStartInvestigation(
-                        'landing_consensus_demo',
-                        'Post-viral chronic fatigue with normal labs'
-                      )
-                    }
-                  >
-                    <span>Explore Sample Scenario →</span>
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* 2.5 Product Video Demos */}
-        <section className={styles.videoShowcaseSection}>
-          <div className={styles.sectionHeader}>
-            <div
-              className={styles.categoryBadge}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <Play size={12} fill="#059669" color="#059669" />
-              <span>MULTI-SPECIALIST AI DEMO</span>
+              </div>
             </div>
-            <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
-            <p className={styles.sectionSubtitle}>
-              Watch how several AI perspectives organize symptoms, printed lab values, and medical
-              history for clinician review.
-            </p>
-          </div>
+          </section>
 
-          <div className={styles.videoGrid}>
-            {/* Video 1 */}
+          {/* 5. The Problem (The Diagnostic Odyssey) */}
+          <section className={styles.problemSection}>
             <motion.div
-              className={styles.videoCard}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              viewport={{ once: true, margin: '-100px' }}
+              transition={{ duration: 0.6 }}
+              className={styles.problemContent}
             >
-              <DemoVideoPlayer
-                src="/videos/healthchain-overview.mp4"
-                poster="/videos/healthchain-overview-poster.jpg"
-                alt="AI perspective review demonstration"
-              />
-              <div className={styles.videoMeta}>
-                <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
-                <h3 className={styles.videoTitle}>AI Perspective Review</h3>
-                <p className={styles.videoDesc}>
-                  Watch how several specialty perspectives can organize the same evidence, expose
-                  disagreements, and identify questions that need clinician review.
-                </p>
-                <button
-                  className={styles.videoCta}
-                  onClick={() =>
-                    handleStartInvestigation('landing_video_1', 'AI Perspective Review')
-                  }
-                >
-                  <span>Try this scenario</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Video 2 */}
-            <motion.div
-              className={styles.videoCard}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <DemoVideoPlayer
-                src="/videos/specialist-board-demo.mp4"
-                poster="/videos/specialist-board-demo-poster.jpg"
-                alt="From Symptoms to Doctor-Ready Dossier Demo"
-              />
-              <div className={styles.videoMeta}>
-                <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
-                <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
-                <p className={styles.videoDesc}>
-                  See how blood panels and symptoms become a structured possibility list and
-                  doctor-ready discussion points.
-                </p>
-                <button
-                  className={styles.videoCta}
-                  onClick={() =>
-                    handleStartInvestigation('landing_video_2', 'Full Lab & Symptom Dossier')
-                  }
-                >
-                  <span>Generate clinical brief</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* 3. Illustrated Clinical Results (FameHero Style) */}
-        <section className={styles.statsSection}>
-          <div className={styles.sectionHeader} style={{ marginBottom: '24px' }}>
-            <h2 className={styles.statsMainTitle}>
-              Results You Can Measure <br />
-              <span className={styles.heroHighlight}>Clinical Clarity That Delivers</span>
-            </h2>
-            <p className={styles.statsMainSubtitle}>
-              Move from scattered information to a case you can revisit. Each review keeps source
-              details, uncertainties, and appointment questions visible.
-            </p>
-          </div>
-
-          <div className={styles.statsGrid}>
-            {/* Metric Card 1: Speedometer Gauge */}
-            <motion.div
-              className={styles.statItem}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -8, scale: 1.015 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className={styles.statGraphicWrapper}>
-                <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
-                  <path
-                    d="M 30 105 A 68 68 0 0 1 170 105"
-                    stroke="rgba(16, 185, 129, 0.15)"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                  />
-                  <motion.path
-                    d="M 30 105 A 68 68 0 0 1 155 48"
-                    stroke="#059669"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0 }}
-                    whileInView={{ pathLength: 1 }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 1.2, ease: 'easeOut' }}
-                  />
-                  <motion.g
-                    initial={{ rotate: -40, originX: '100px', originY: '100px' }}
-                    whileInView={{ rotate: [-40, 6, -3, 0], originX: '100px', originY: '100px' }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 1.5, ease: 'easeOut', times: [0, 0.6, 0.85, 1] }}
-                  >
-                    <line
-                      x1="100"
-                      y1="100"
-                      x2="146"
-                      y2="46"
-                      stroke="#334155"
-                      strokeWidth="2.8"
-                      strokeLinecap="round"
-                    />
-                  </motion.g>
-                  <circle cx="100" cy="100" r="5" fill="#FFFFFF" stroke="#059669" strokeWidth="3" />
-                </svg>
-              </div>
-              <div className={styles.statValueRow}>
-                <span className={styles.statNumber}>Clear</span>
-                <span className={styles.statTrend}>↗</span>
-              </div>
-              <h3 className={styles.statTitle}>Evidence Boundaries</h3>
-              <p className={styles.statDesc}>
-                Reported information, record findings, AI considerations, and unknowns stay visibly
-                distinct.
+              <h2 className={styles.problemTitle}>
+                Tired of hearing "All your tests are normal" while you still feel sick?
+              </h2>
+              <p className={styles.problemText}>
+                Complex symptoms can span many appointments, records, and specialties. Repeating the
+                story from memory makes it harder to preserve dates, exact findings, changes, and
+                unanswered questions.
               </p>
-              <button
-                className={styles.statCtaLink}
-                onClick={() => handleStartInvestigation('stats_card_1')}
+              <p
+                className={styles.problemText}
+                style={{ marginTop: '10px', color: '#0F172A', fontWeight: 700 }}
               >
-                Start Free Review →
-              </button>
-            </motion.div>
-
-            {/* Metric Card 2: Ascending Bar Chart */}
-            <motion.div
-              className={styles.statItem}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -8, scale: 1.015 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <div className={styles.statGraphicWrapper}>
-                <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
-                  {[
-                    { x: 25, y: 75, h: 35, bg: 'rgba(16, 185, 129, 0.2)', delay: 0 },
-                    { x: 52, y: 60, h: 50, bg: 'rgba(16, 185, 129, 0.3)', delay: 0.1 },
-                    { x: 79, y: 48, h: 62, bg: 'rgba(16, 185, 129, 0.45)', delay: 0.2 },
-                    { x: 106, y: 38, h: 72, bg: 'rgba(16, 185, 129, 0.6)', delay: 0.3 },
-                    { x: 133, y: 24, h: 86, bg: 'rgba(16, 185, 129, 0.75)', delay: 0.4 },
-                    { x: 160, y: 10, h: 100, bg: '#059669', delay: 0.5 },
-                  ].map((bar, bIdx) => (
-                    <motion.rect
-                      key={bIdx}
-                      x={bar.x}
-                      y={bar.y}
-                      width="16"
-                      height={bar.h}
-                      rx="8"
-                      fill={bar.bg}
-                      initial={{ scaleY: 0, originY: '110px' }}
-                      whileInView={{ scaleY: 1, originY: '110px' }}
-                      viewport={{ once: false }}
-                      transition={{
-                        duration: 0.55,
-                        delay: bar.delay,
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 16,
-                      }}
-                    />
-                  ))}
-                </svg>
-              </div>
-              <div className={styles.statValueRow}>
-                <span className={styles.statNumber}>One</span>
-                <span className={styles.statTrend}>↗</span>
-              </div>
-              <h3 className={styles.statTitle}>Evidence Breadth</h3>
-              <p className={styles.statDesc}>
-                Keeps your timeline, documents, daily updates, and appointment preparation in one
-                connected case.
+                HealthChain360.ai keeps your own report, source documents, AI-generated
+                considerations, uncertainties, and clinician questions in one evolving case—so every
+                return visit starts with context instead of a blank page.
               </p>
-              <button
-                className={styles.statCtaLink}
-                onClick={() => handleStartInvestigation('stats_card_2')}
-              >
-                Start Free Review →
-              </button>
             </motion.div>
+          </section>
 
-            {/* Metric Card 3: Smooth Spline Trend Line */}
-            <motion.div
-              className={styles.statItem}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -8, scale: 1.015 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <div className={styles.statGraphicWrapper}>
-                <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
-                  <motion.path
-                    d="M 20 85 Q 50 82 70 58 T 120 65 T 180 18"
-                    stroke="#10B981"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0 }}
-                    whileInView={{ pathLength: 1 }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 1.4, ease: 'easeInOut' }}
-                  />
-                  <motion.circle
-                    cx="180"
-                    cy="18"
-                    r="10"
-                    fill="rgba(16, 185, 129, 0.25)"
-                    initial={{ scale: 1, opacity: 0.7 }}
-                    whileInView={{ scale: [1, 1.9, 1], opacity: [0.7, 0, 0.7] }}
-                    transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-                  />
-                  <motion.circle
-                    cx="180"
-                    cy="18"
-                    r="6"
-                    fill="#FFFFFF"
-                    stroke="#059669"
-                    strokeWidth="3"
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: false }}
-                    transition={{ delay: 1.1, duration: 0.3, type: 'spring' }}
-                  />
-                </svg>
-              </div>
-              <div className={styles.statValueRow}>
-                <span className={styles.statNumber}>&lt; 60s</span>
-                <span className={styles.statTrend}>↗</span>
-              </div>
-              <h3 className={styles.statTitle}>Synthesized Dossier</h3>
-              <p className={styles.statDesc}>
-                Organizes fragmented blood tests and symptoms into a reusable clinician brief while
-                keeping source details visible.
-              </p>
-              <button
-                className={styles.statCtaLink}
-                onClick={() => handleStartInvestigation('stats_card_3')}
-              >
-                Start Free Review →
-              </button>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* 3.5 FameHero-Style Bento Clinical Intelligence Showcase */}
-        <section className={styles.bentoShowcaseSection}>
-          <div className={styles.bentoContainerCard}>
-            <div className={styles.bentoTopBadgeRow}>
-              <span className={styles.bentoTopBadge}>CONNECTED CASE WORKFLOW</span>
-            </div>
-
-            <div className={styles.bentoHeaderRow}>
-              <div className={styles.bentoHeaderTitleArea}>
-                <div className={styles.bentoHeaderIcon}>
-                  <Eye size={20} color="#059669" />
-                </div>
-                <h2 className={styles.bentoHeaderTitle}>From scattered records to one case</h2>
-              </div>
-              <p className={styles.bentoHeaderSubtitle}>
-                <strong style={{ color: '#047857' }}>One continuous workflow.</strong> See how
-                HealthChain360.ai keeps records, personal notes, AI considerations, uncertainties,
-                and appointment questions connected without presenting examples as your data.
+          {/* 6. Bento Grid Features */}
+          <section className={styles.bentoSection}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.categoryBadge}>CLINICAL ARCHITECTURE</div>
+              <h2 className={styles.sectionTitle}>Engineered for Complex Cases</h2>
+              <p className={styles.sectionSubtitle}>
+                A connected workflow for understanding records, preserving uncertainty, and
+                preparing a focused appointment.
               </p>
             </div>
 
-            {/* 2-Column Continuous Vertical Auto-Scroller Window */}
-            <div
-              className={styles.bentoScrollWindow}
-              role="region"
-              aria-label="Connected case workflow examples"
-              tabIndex={reduceMotion ? 0 : undefined}
-            >
-              <div className={styles.bentoMasonryLayout}>
-                {/* Column 1 Track (Left Infinite Loop) */}
-                <div className={styles.bentoColumnScroll}>
-                  <div className={styles.bentoColumnTrackLeft}>
-                    {[...BENTO_COL_LEFT, ...BENTO_COL_LEFT].map((card, idx) => (
-                      <div
-                        key={`left_${idx}`}
-                        className={styles.bentoCard}
-                        aria-hidden={idx >= BENTO_COL_LEFT.length}
-                      >
-                        {card.type === 'img' && card.img && (
-                          <div className={styles.bentoImgWrapper}>
-                            <img
-                              src={card.img}
-                              alt={card.title}
-                              className={styles.bentoImg}
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.src = '/images/immersive/doctor-biomarker.png';
-                              }}
-                            />
-                            <div className={styles.bentoImgOverlay} />
-                          </div>
-                        )}
-                        <div className={styles.bentoCardBody}>
-                          <div className={styles.bentoCardTags}>
-                            <span className={styles.bentoCategoryTag}>{card.tag}</span>
-                            <span className={styles.bentoStatusTag}>{card.status}</span>
-                          </div>
-                          <h3 className={styles.bentoCardTitle}>{card.title}</h3>
-                          <p className={styles.bentoCardDesc}>{card.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Column 2 Track (Right Infinite Loop) */}
-                <div className={styles.bentoColumnScroll}>
-                  <div className={styles.bentoColumnTrackRight}>
-                    {[...BENTO_COL_RIGHT, ...BENTO_COL_RIGHT].map((card, idx) => (
-                      <div
-                        key={`right_${idx}`}
-                        className={`${styles.bentoCard} ${card.type === 'privacy' ? styles.bentoCardPrivacy : ''}`}
-                        aria-hidden={idx >= BENTO_COL_RIGHT.length}
-                      >
-                        {card.type === 'img' && card.img && (
-                          <div className={styles.bentoImgWrapper}>
-                            <img
-                              src={card.img}
-                              alt={card.title}
-                              className={styles.bentoImg}
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.src = '/images/immersive/doctor-biomarker.png';
-                              }}
-                            />
-                            <div className={styles.bentoImgOverlay} />
-                          </div>
-                        )}
-                        {card.type === 'privacy' && (
-                          <div className={styles.bentoPrivacyIconBg}>
-                            <ShieldCheck size={28} color="#059669" />
-                          </div>
-                        )}
-                        <div
-                          className={styles.bentoCardBody}
-                          style={card.type === 'privacy' ? { padding: 0 } : undefined}
-                        >
-                          <div className={styles.bentoCardTags}>
-                            <span className={styles.bentoCategoryTag}>{card.tag}</span>
-                            <span className={styles.bentoStatusTag}>{card.status}</span>
-                          </div>
-                          <h3 className={styles.bentoCardTitle}>{card.title}</h3>
-                          <p className={styles.bentoCardDesc}>{card.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Primary Action Button */}
-            <div className={styles.bentoBottomCta}>
-              <button
-                className={styles.bentoCtaButton}
-                onClick={() => handleStartInvestigation('bento_bottom_cta')}
-              >
-                <span>Start Free Case Dossier</span>
-                <ArrowRight size={18} />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Illustrative case workflows - Step 6 Useful Reasoning */}
-        <section className={styles.casesSection}>
-          <div className={styles.workflowSectionHeader}>
-            <div className={styles.workflowBadgeBanner}>
-              <Brain size={14} /> USEFUL REASONING • WORKFLOW DESIGNS
-            </div>
-            <h2 className={styles.sectionTitle}>
-              When the story is complex, organize the questions
-            </h2>
-            <p className={styles.sectionSubtitle} style={{ marginBottom: 6 }}>
-              Explore clearly labeled examples of turning symptoms, dates, measurements, and records
-              into a reviewable case for a clinician visit.
-            </p>
-            <div className={styles.workflowMandatoryDisclaimer}>
-              "These are workflow designs using the illustrated scenarios, not conclusions about a
-              patient."
-            </div>
-          </div>
-
-          {/* Case Cards Grid / Feed */}
-          <div className={styles.casesFeed}>
-            {workflowScenarios.map((item, idx) => (
+            <div className={styles.bentoGrid}>
               <motion.div
-                key={item.id}
-                className={`${styles.caseCard} ${idx === 0 ? styles.caseCardTop1 : idx === 1 ? styles.caseCardTop2 : idx === 2 ? styles.caseCardTop3 : ''}`}
-                whileHover={{ y: -2 }}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className={`${styles.bentoCard} ${styles.bentoLarge}`}
               >
                 <div
-                  className={`${styles.caseRankBadge} ${idx === 0 ? styles.caseRank1 : idx === 1 ? styles.caseRank2 : idx === 2 ? styles.caseRank3 : ''}`}
+                  className={styles.bentoIconBg}
+                  style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#0284C7' }}
                 >
-                  {item.rank}
+                  <Brain size={24} />
                 </div>
-                <div className={styles.caseCardBody}>
-                  <div className={styles.caseCardHeader}>
-                    <div className={styles.caseTitleRow}>
-                      <span className={styles.caseIcon}>{item.icon}</span>
-                      <h3 className={styles.caseTitle}>{item.title}</h3>
-                    </div>
-                    <span className={styles.caseMatchScore}>Workflow Design</span>
-                  </div>
-
-                  <div className={styles.workflowCardColumns}>
-                    {/* Pillar 1: What to Connect */}
-                    <div className={styles.workflowConnectSection}>
-                      <div className={styles.workflowConnectTitle}>
-                        <Layers size={13} color="#059669" />
-                        <span>What to connect (Multi-Modal Inputs)</span>
-                      </div>
-                      <div className={styles.workflowConnectPills}>
-                        {item.whatToConnect.map((conn, cIdx) => (
-                          <span key={cIdx} className={styles.workflowConnectPill}>
-                            <span>{conn.icon}</span>
-                            <span>{conn.tag}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Pillar 2: What to Keep Separate */}
-                    <div className={styles.workflowBoundaryBox}>
-                      <div className={styles.workflowBoundaryTitle}>
-                        <ShieldAlert size={14} color="#D97706" />
-                        <span>What to keep separate (Epistemic Boundary)</span>
-                      </div>
-                      <div className={styles.workflowBoundaryContent}>
-                        <strong>{item.epistemicBoundary.boundaryTitle}:</strong>{' '}
-                        {item.epistemicBoundary.whatToKeepSeparate}
-                      </div>
-                    </div>
-
-                    {/* Pillar 3: Valuable Final Output */}
-                    <div className={styles.workflowOutputBox}>
-                      <div className={styles.workflowOutputTitle}>
-                        <Sparkles size={13} color="#166534" />
-                        <span>Valuable final output (Doctor-Ready Preparation)</span>
-                      </div>
-                      <div className={styles.workflowOutputQuote}>
-                        "{item.valuableOutput.clinicianQuote}"
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.caseCardFooter}>
-                    <div className={styles.caseSpecialistMeta}>
-                      <span
-                        className={styles.caseSpecialistLabel}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                      >
-                        <Microscope size={13} color="#059669" />
-                        <span>{item.specialistTag}</span>
-                      </span>
-                      <span>•</span>
-                      <span>Case Simulation</span>
-                    </div>
-                    <div className={styles.workflowCardButtons}>
-                      <button
-                        type="button"
-                        className={styles.workflowInspectBtn}
-                        onClick={() => {
-                          triggerHapticLight();
-                          setInspectingScenario(item);
-                        }}
-                      >
-                        <Eye size={13} />
-                        <span>Inspect Reasoning Design</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.workflowLaunchBtn}
-                        onClick={() => handleLaunchWorkflowScenario(item.id)}
-                      >
-                        <span>Try with this scenario</span>
-                        <ArrowRight size={13} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <h3 className={styles.bentoTitle}>Multi-Specialist AI Perspectives</h3>
+                <p className={styles.bentoDesc}>
+                  AI perspective modules examine the same selected evidence through different
+                  specialty lenses, then organize overlaps, disagreements, and missing information
+                  for clinician review.
+                </p>
               </motion.div>
-            ))}
 
-            {/* Latest Clinical Consensus Activity Bar */}
-            <div className={styles.latestConsensusBar}>
-              <div className={styles.consensusBarTitle}>
-                <span className={styles.liveActivityPulse}>●</span>
-                <span>USEFUL STARTING TEMPLATES</span>
-              </div>
-              <div className={styles.consensusPills}>
-                {LATEST_ACTIVITIES.map((act, aIdx) => (
-                  <button
-                    type="button"
-                    key={aIdx}
-                    className={styles.consensusPill}
-                    onClick={() =>
-                      handleStartInvestigation(`activity_pill_${aIdx}`, act.symptom, act.specId)
-                    }
-                  >
-                    <span>{act.icon}</span>
-                    <span>{act.text}</span>
-                    <span className={styles.consensusPillTime}>· {act.time}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. The Problem (The Diagnostic Odyssey) */}
-        <section className={styles.problemSection}>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6 }}
-            className={styles.problemContent}
-          >
-            <h2 className={styles.problemTitle}>
-              Tired of hearing "All your tests are normal" while you still feel sick?
-            </h2>
-            <p className={styles.problemText}>
-              Complex symptoms can span many appointments, records, and specialties. Repeating the
-              story from memory makes it harder to preserve dates, exact findings, changes, and
-              unanswered questions.
-            </p>
-            <p
-              className={styles.problemText}
-              style={{ marginTop: '10px', color: '#0F172A', fontWeight: 700 }}
-            >
-              HealthChain360.ai keeps your own report, source documents, AI-generated
-              considerations, uncertainties, and clinician questions in one evolving case—so every
-              return visit starts with context instead of a blank page.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* 6. Bento Grid Features */}
-        <section className={styles.bentoSection}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.categoryBadge}>CLINICAL ARCHITECTURE</div>
-            <h2 className={styles.sectionTitle}>Engineered for Complex Cases</h2>
-            <p className={styles.sectionSubtitle}>
-              A connected workflow for understanding records, preserving uncertainty, and preparing
-              a focused appointment.
-            </p>
-          </div>
-
-          <div className={styles.bentoGrid}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`${styles.bentoCard} ${styles.bentoLarge}`}
-            >
-              <div
-                className={styles.bentoIconBg}
-                style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#0284C7' }}
+              <motion.div
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className={styles.bentoCard}
               >
-                <Brain size={24} />
-              </div>
-              <h3 className={styles.bentoTitle}>Multi-Specialist AI Perspectives</h3>
-              <p className={styles.bentoDesc}>
-                AI perspective modules examine the same selected evidence through different
-                specialty lenses, then organize overlaps, disagreements, and missing information for
-                clinician review.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={styles.bentoCard}
-            >
-              <div
-                className={styles.bentoIconBg}
-                style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
-              >
-                <Microscope size={24} />
-              </div>
-              <h3 className={styles.bentoTitle}>Biomarker Synthesis</h3>
-              <p className={styles.bentoDesc}>
-                Upload blood-test PDFs or photos. The engine extracts visible values, units, dates,
-                and printed ranges, then flags items that need verification or context.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={styles.bentoCard}
-            >
-              <div
-                className={styles.bentoIconBg}
-                style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B' }}
-              >
-                <Shield size={24} />
-              </div>
-              <h3 className={styles.bentoTitle}>Grounded Evidence</h3>
-              <p className={styles.bentoDesc}>
-                When literature or trial records are retrieved, source links stay attached.
-                Unsupported statements are marked as AI considerations rather than established
-                facts.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`${styles.bentoCard} ${styles.bentoLarge}`}
-            >
-              <div
-                className={styles.bentoIconBg}
-                style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' }}
-              >
-                <FileText size={24} />
-              </div>
-              <h3 className={styles.bentoTitle}>Doctor-Ready Consultation Dossier</h3>
-              <p className={styles.bentoDesc}>
-                Export an organized visit summary with your main concern, timeline, documented
-                facts, missing information, and prioritized questions.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* 7. FAQ Section */}
-        <section className={styles.faqSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
-            <p className={styles.sectionSubtitle}>
-              Everything you need to know about the platform and your privacy.
-            </p>
-          </div>
-          <div className={styles.faqList}>
-            {landingFaqs.map((faq, i) => (
-              <div
-                key={i}
-                className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ''}`}
-              >
-                <button
-                  aria-expanded={openFaq === i}
-                  className={styles.faqButton}
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                <div
+                  className={styles.bentoIconBg}
+                  style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
                 >
-                  <span className={styles.faqQuestion}>{faq.question}</span>
-                  {openFaq === i ? (
-                    <ChevronUp size={18} className={styles.faqIcon} />
-                  ) : (
-                    <ChevronDown size={18} className={styles.faqIcon} />
-                  )}
-                </button>
-                {openFaq === i && <div className={styles.faqAnswer}>{faq.answer}</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
+                  <Microscope size={24} />
+                </div>
+                <h3 className={styles.bentoTitle}>Biomarker Synthesis</h3>
+                <p className={styles.bentoDesc}>
+                  Upload blood-test PDFs or photos. The engine extracts visible values, units,
+                  dates, and printed ranges, then flags items that need verification or context.
+                </p>
+              </motion.div>
 
-      {/* 9. Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerGrid}>
-          <div className={styles.footerBrand}>
-            <div className={styles.footerLogo}>
-              <HCLogo size={26} />
-              <span>HealthChain360.ai</span>
+              <motion.div
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className={styles.bentoCard}
+              >
+                <div
+                  className={styles.bentoIconBg}
+                  style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B' }}
+                >
+                  <Shield size={24} />
+                </div>
+                <h3 className={styles.bentoTitle}>Grounded Evidence</h3>
+                <p className={styles.bentoDesc}>
+                  When literature or trial records are retrieved, source links stay attached.
+                  Unsupported statements are marked as AI considerations rather than established
+                  facts.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className={`${styles.bentoCard} ${styles.bentoLarge}`}
+              >
+                <div
+                  className={styles.bentoIconBg}
+                  style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' }}
+                >
+                  <FileText size={24} />
+                </div>
+                <h3 className={styles.bentoTitle}>Doctor-Ready Consultation Dossier</h3>
+                <p className={styles.bentoDesc}>
+                  Export an organized visit summary with your main concern, timeline, documented
+                  facts, missing information, and prioritized questions.
+                </p>
+              </motion.div>
             </div>
-            <p className={styles.footerBrandText}>
-              AI-assisted record organization and clinician-visit preparation, built for clarity and
-              user control.
-            </p>
-          </div>
-          <div className={styles.footerLinks}>
-            <h3>Product</h3>
-            <Link to="/app/today">Health Today</Link>
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/changelog">Changelog</Link>
-          </div>
-          <div className={styles.footerLinks}>
-            <h3>Company</h3>
-            <Link to="/terms">Terms of Service</Link>
-            <Link to="/privacy">Privacy Policy</Link>
-            <a href="mailto:healthchain360@gmail.com">Contact Us</a>
-          </div>
-        </div>
-        <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} HealthChain360.ai. All rights reserved.</p>
-        </div>
-      </footer>
+          </section>
 
-      {/* Step 6: Workflow Reasoning Design Modal */}
-      {inspectingScenario && (
-        <React.Suspense fallback={null}>
-          <LandingWorkflowReasoningModal
-            scenario={inspectingScenario}
-            onClose={() => setInspectingScenario(null)}
-            onLaunchCase={handleLaunchWorkflowScenario}
-          />
-        </React.Suspense>
-      )}
-    </div>
+          {/* 7. FAQ Section */}
+          <section className={styles.faqSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+              <p className={styles.sectionSubtitle}>
+                Everything you need to know about the platform and your privacy.
+              </p>
+            </div>
+            <div className={styles.faqList}>
+              {landingFaqs.map((faq, i) => (
+                <div
+                  key={i}
+                  className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ''}`}
+                >
+                  <button
+                    aria-expanded={openFaq === i}
+                    className={styles.faqButton}
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  >
+                    <span className={styles.faqQuestion}>{faq.question}</span>
+                    {openFaq === i ? (
+                      <ChevronUp size={18} className={styles.faqIcon} />
+                    ) : (
+                      <ChevronDown size={18} className={styles.faqIcon} />
+                    )}
+                  </button>
+                  {openFaq === i && <div className={styles.faqAnswer}>{faq.answer}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+
+        {/* 9. Footer */}
+        <footer className={styles.footer}>
+          <div className={styles.footerGrid}>
+            <div className={styles.footerBrand}>
+              <div className={styles.footerLogo}>
+                <HCLogo size={26} />
+                <span>HealthChain360.ai</span>
+              </div>
+              <p className={styles.footerBrandText}>
+                AI-assisted record organization and clinician-visit preparation, built for clarity
+                and user control.
+              </p>
+            </div>
+            <div className={styles.footerLinks}>
+              <h3>Product</h3>
+              <Link to="/app/today">Health Today</Link>
+              <Link to="/pricing">Pricing</Link>
+              <Link to="/changelog">Changelog</Link>
+            </div>
+            <div className={styles.footerLinks}>
+              <h3>Company</h3>
+              <Link to="/terms">Terms of Service</Link>
+              <Link to="/privacy">Privacy Policy</Link>
+              <a href="mailto:healthchain360@gmail.com">Contact Us</a>
+            </div>
+          </div>
+          <div className={styles.footerBottom}>
+            <p>© {new Date().getFullYear()} HealthChain360.ai. All rights reserved.</p>
+          </div>
+        </footer>
+
+        {/* Step 6: Workflow Reasoning Design Modal */}
+        {inspectingScenario && (
+          <React.Suspense fallback={null}>
+            <LandingWorkflowReasoningModal
+              scenario={inspectingScenario}
+              onClose={() => setInspectingScenario(null)}
+              onLaunchCase={handleLaunchWorkflowScenario}
+            />
+          </React.Suspense>
+        )}
+      </div>
+    </LazyMotion>
   );
 }

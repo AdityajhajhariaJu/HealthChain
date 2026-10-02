@@ -30,21 +30,75 @@ import { GutLinkStrip } from './GutLinkStrip';
 import { GutResolutionWorkspace } from './GutResolutionWorkspace';
 import { GutSourceRecord, type GutSourceReference } from './GutSourceRecord';
 
-interface Props { isOpen: boolean; initialThreadId?: string | null; onClose: () => void; onOpenConsult?: () => void; onOpenElimination?: () => void; onOpenDiet?: () => void; onOpenCasePrep?: (caseId: string) => void; onOpenCases?: () => void }
+interface Props {
+  isOpen: boolean;
+  initialThreadId?: string | null;
+  onClose: () => void;
+  onOpenConsult?: () => void;
+  onOpenElimination?: () => void;
+  onOpenDiet?: () => void;
+  onOpenCasePrep?: (caseId: string) => void;
+  onOpenCases?: () => void;
+}
 type Tab = 'daily' | 'research' | 'studio' | 'records' | 'visit';
-const surface: React.CSSProperties = { background: '#FFFFFF', border: '1px solid #bfd3e2', borderRadius: 18, boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)' };
-const button: React.CSSProperties = { minHeight: 38, border: '1px solid #bfd3e2', borderRadius: 11, background: '#fffefa', color: '#15375c', padding: '8px 13px', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 };
-const icon: React.CSSProperties = { width: 46, height: 46, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#f72c5e,#c50e40)', color: '#FFFFFF', boxShadow: 'inset 0 1px 1px rgba(255,255,255,.45),0 7px 17px rgba(183,25,69,.25)', flexShrink: 0 };
+const surface: React.CSSProperties = {
+  background: '#FFFFFF',
+  border: '1px solid #bfd3e2',
+  borderRadius: 18,
+  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+};
+const button: React.CSSProperties = {
+  minHeight: 38,
+  border: '1px solid #bfd3e2',
+  borderRadius: 11,
+  background: '#fffefa',
+  color: '#15375c',
+  padding: '8px 13px',
+  fontWeight: 700,
+  fontSize: 13,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+};
+const icon: React.CSSProperties = {
+  width: 46,
+  height: 46,
+  borderRadius: 15,
+  display: 'grid',
+  placeItems: 'center',
+  background: 'linear-gradient(145deg,#f72c5e,#c50e40)',
+  color: '#FFFFFF',
+  boxShadow: 'inset 0 1px 1px rgba(255,255,255,.45),0 7px 17px rgba(183,25,69,.25)',
+  flexShrink: 0,
+};
 
-export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClose, onOpenConsult, onOpenElimination, onOpenDiet, onOpenCasePrep, onOpenCases }) => {
-  const [tab, setTab] = useState<Tab>(() => initialThreadId || new URLSearchParams(window.location.search).get('view') === 'deep' ? 'studio' : 'daily');
+export const GutHealthModal: React.FC<Props> = ({
+  isOpen,
+  initialThreadId,
+  onClose,
+  onOpenConsult,
+  onOpenElimination,
+  onOpenDiet,
+  onOpenCasePrep,
+  onOpenCases,
+}) => {
+  const [tab, setTab] = useState<Tab>(() =>
+    initialThreadId || new URLSearchParams(window.location.search).get('view') === 'deep'
+      ? 'studio'
+      : 'daily'
+  );
   const [openThreadId, setOpenThreadId] = useState<string | null>(initialThreadId || null);
   const [historyInitialDate, setHistoryInitialDate] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<GutSourceReference | null>(null);
   const [quickMealOpen, setQuickMealOpen] = useState(false);
   const [baseSnapshot, setBaseSnapshot] = useState(() => getGutSnapshot());
   const [observations, setObservations] = useState<Observation[]>([]);
-  const snapshot = useMemo(() => mergeGutSnapshotWithObservations(baseSnapshot, observations), [baseSnapshot, observations]);
+  const snapshot = useMemo(
+    () => mergeGutSnapshotWithObservations(baseSnapshot, observations),
+    [baseSnapshot, observations]
+  );
   const [message, setMessage] = useState('');
   const mainRef = useRef<HTMLElement>(null);
   const refreshSequence = useRef(0);
@@ -55,87 +109,708 @@ export const GutHealthModal: React.FC<Props> = ({ isOpen, initialThreadId, onClo
     const ownerKey = `${scope.key}:${scope.epoch}`;
     const request = ++refreshSequence.current;
     if (snapshotOwner.current && snapshotOwner.current !== ownerKey) {
-      setObservations([]); setSelectedSource(null); setOpenThreadId(null);
-      setHistoryInitialDate(null); setMessage(''); setTab('daily');
+      setObservations([]);
+      setSelectedSource(null);
+      setOpenThreadId(null);
+      setHistoryInitialDate(null);
+      setMessage('');
+      setTab('daily');
     }
     snapshotOwner.current = ownerKey;
     setBaseSnapshot(getGutSnapshot());
     const current = () => request === refreshSequence.current && isAccountScopeCurrent(scope);
-    try { const records = await listObservationHistory(); if (current()) setObservations(records); }
-    catch { if (current()) setObservations([]); }
+    try {
+      const records = await listObservationHistory();
+      if (current()) setObservations(records);
+    } catch {
+      if (current()) setObservations([]);
+    }
   };
 
   useEffect(() => {
     if (!isOpen) return;
-    const refresh = () => { void refreshData(); };
+    const refresh = () => {
+      void refreshData();
+    };
     void refresh();
-    const events = ['hc_profile_updated', 'hc_digestion_updated', 'hc_nutrition_reaction_updated', 'hc_observations_updated'];
+    const events = [
+      'hc_profile_updated',
+      'hc_digestion_updated',
+      'hc_nutrition_reaction_updated',
+      'hc_observations_updated',
+    ];
     for (const event of events) window.addEventListener(event, refresh);
-    return () => { refreshSequence.current++; for (const event of events) window.removeEventListener(event, refresh); };
+    return () => {
+      refreshSequence.current++;
+      for (const event of events) window.removeEventListener(event, refresh);
+    };
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || quickMealOpen) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, quickMealOpen, onClose]);
 
-  const openHistory = (date?: string) => { setSelectedSource(null); setHistoryInitialDate(date || null); setTab('records'); mainRef.current?.scrollTo(0, 0); };
-  const openThread = (id: string) => { setOpenThreadId(id); setTab('studio'); mainRef.current?.scrollTo(0, 0); };
+  const openHistory = (date?: string) => {
+    setSelectedSource(null);
+    setHistoryInitialDate(date || null);
+    setTab('records');
+    mainRef.current?.scrollTo(0, 0);
+  };
   const openSource = (source: GutSourceReference) => {
     void refreshData();
-    setSelectedSource(source); setHistoryInitialDate(null); setTab('records'); mainRef.current?.scrollTo(0, 0);
+    setSelectedSource(source);
+    setHistoryInitialDate(null);
+    setTab('records');
+    mainRef.current?.scrollTo(0, 0);
   };
   const copyVisitNote = async () => {
-    try { await navigator.clipboard.writeText(formatGutVisitNote(snapshot)); setMessage('Recorded history copied.'); }
-    catch { setMessage('Could not copy. Please try again.'); }
+    try {
+      await navigator.clipboard.writeText(formatGutVisitNote(snapshot));
+      setMessage('Recorded history copied.');
+    } catch {
+      setMessage('Could not copy. Please try again.');
+    }
   };
   const trend = summarizeRecordedBloating(snapshot);
 
-  useEffect(() => { if (selectedSource && tab === 'visit') setTab('records'); }, [selectedSource, tab]);
+  useEffect(() => {
+    if (selectedSource && tab === 'visit') setTab('records');
+  }, [selectedSource, tab]);
 
   if (!isOpen) return null;
-  return createPortal(<>
-    <FocusTrap isActive={!quickMealOpen}>
-      <div role="dialog" aria-modal="true" aria-label="Gut Health" className="gr-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 'clamp(0px, 1vw, 10px)' }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-        <div className="gr-modal-dialog" style={{ width: 'min(100%,1160px)', height: 'min(94vh,980px)', background: '#fffefa', borderRadius: 24, border: '1.5px solid #17375a', boxShadow: '0 24px 80px rgba(21, 55, 92, 0.24)', display: 'flex', flexDirection: 'column', overflow: 'hidden', color: '#102c4c' }}>
-          <header className="gr-modal-header" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px clamp(16px,3.5vw,38px)', borderBottom: '1.5px solid #adc5d8', background: '#fffefa' }}>
-            <span aria-hidden="true" style={icon}><Activity size={22} /></span>
-            <div style={{ flex: 1, minWidth: 0 }}><div className="gr-modal-eyebrow" style={{ fontSize: 10, letterSpacing: '.09em', color: '#e54d57', fontWeight: 850, marginBottom: 2 }}>YOUR GUT HEALTH</div><h1 style={{ margin: 0, fontSize: 'clamp(20px,2.7vw,28px)', color: '#102c4c', letterSpacing: '-.04em' }}>Gut Health</h1></div>
-            {tab !== 'daily' && tab !== 'research' && <button type="button" onClick={() => { setSelectedSource(null); setTab('research'); }} style={{ ...button, borderColor: '#adc5d8', background: '#fffefa', color: '#15375c', whiteSpace: 'nowrap' }}><Sparkles size={15} />My research</button>}
-            <button type="button" aria-label="Close Gut Health" onClick={onClose} style={{ ...button, padding: 8, width: 40, minHeight: 40, borderRadius: '50%', color: '#8D7167' }}><X size={18} /></button>
-          </header>
-          {(tab !== 'daily' && tab !== 'research') && <nav aria-label="Gut Health sections" style={{ display: 'flex', padding: '8px clamp(12px,3.5vw,38px)', gap: 7, borderBottom: '1px solid #c5d9e6', overflowX: 'auto', background: '#f7fbfd' }}>
-            {([['daily','Quick log',Activity],['research','My research',Sparkles],['studio','Deep dive',Sparkles],['records','My records',CalendarDays],['visit','Visit notes',Clipboard]] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => { setSelectedSource(null); setTab(id); setMessage(''); }} style={{ ...button, minHeight: 35, background: tab === id ? '#15375c' : '#FFFFFF', borderColor: tab === id ? '#15375c' : '#b8d0e1', color: tab === id ? '#fff' : '#15375c', fontSize: 12, whiteSpace: 'nowrap', boxShadow: 'none' }}><Icon size={15} />{label}</button>)}
-          </nav>}
-          <main ref={mainRef} style={{ overflowY: 'auto', padding: '17px clamp(14px,3.5vw,38px)', flex: 1, background: '#fffefa' }}>
-            {(tab === 'daily' || tab === 'research') && <GutDailyHome key={tab} snapshot={snapshot} observations={observations} initialThreadId={initialThreadId} initialPage={tab === 'research' ? 'research' : 'log'} onOpenThread={openThread} onOpenSource={openSource} onOpenRecords={openHistory} onOpenVisit={() => setTab('visit')} onRefresh={refreshData} />}
-            <div style={{ display: tab === 'studio' ? 'block' : 'none' }}><GutResolutionWorkspace key={openThreadId || 'new'} initialThreadId={openThreadId} onOpenHistory={openHistory} onOpenSource={openSource} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} onOpenElimination={onOpenElimination} onOpenDiet={onOpenDiet} onOpenCasePrep={onOpenCasePrep} onOpenCases={onOpenCases} /></div>
-            {tab === 'records' && <div className="gr-support-page" style={{ maxWidth: 850, margin: '0 auto' }}>
-            {selectedSource ? <GutSourceRecord source={selectedSource} meals={snapshot.meals} days={snapshot.days} onBack={() => setSelectedSource(null)} onOpenDate={openHistory} /> : <>
-              <div style={{ marginBottom: 12 }}><div style={{ color: '#15375c', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em' }}>YOUR SOURCE RECORDS</div><h2 className="gr-support-heading" style={{ fontSize: 24, margin: '6px 0 2px', color: '#102c4c' }}>Your meals and digestion, together</h2><p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>Explore the dates you saved. Blank days stay unknown.</p></div>
-              <GutLinkStrip label="From saved meals and digestion to a question" items={[{ label: 'Meals', value: `${snapshot.mealRecordCount} saved`, detail: 'Add a meal when it matters', icon: Utensils, tone: 'rose', onClick: () => setQuickMealOpen(true) }, { label: 'Digestion', value: `${snapshot.digestionDateCount} dated record${snapshot.digestionDateCount === 1 ? '' : 's'}`, detail: 'See the original dates below', icon: Activity, tone: 'violet' }, { label: 'Your questions', value: 'See what connects', detail: 'Use only what you actually reported', icon: Sparkles, tone: 'amber', onClick: () => setTab('research') }]} />
-              <h3 className="gr-records-calendar-title">Explore your dates</h3>
-              <DigestionCalendarHeatmap hideHeader initialDate={historyInitialDate} onOpenQuickMeal={() => setQuickMealOpen(true)} onOpenConsult={onOpenConsult} />
-              {(trend.current.count > 0 || trend.previous.count > 0) && <details className="gr-recorded-trend"><summary>See recorded bloating ratings</summary><section style={{ ...surface, padding: '12px 16px', marginTop: 9 }}>{trend.comparable ? <p style={{ margin: 0, color: '#475569', fontSize: 12.5, lineHeight: 1.45 }}>Last 7 days: <strong>{trend.current.average}/10</strong> across {trend.current.count} rated dates. Previous 7 days: <strong>{trend.previous.average}/10</strong> across {trend.previous.count} rated dates.</p> : <p style={{ margin: 0, color: '#475569', fontSize: 12.5, lineHeight: 1.45 }}>Last 7 days: {trend.current.count} rated dates. Previous 7 days: {trend.previous.count}. A comparison appears when each week has at least 3 ratings.</p>}<p style={{ margin: '4px 0 0', fontSize: 11.5, color: '#94A3B8', lineHeight: 1.4 }}>Only rated dates are included. This does not identify a cause or account for unrecorded days.</p></section></details>}
-              </>}
-            </div>}
-            {tab === 'visit' && <div className="gr-support-page" style={{ maxWidth: 800, margin: '0 auto', display: 'grid', gap: 14 }}>
-              <div><div style={{ color: '#15375c', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em' }}>PREPARE FOR A VISIT</div><h2 className="gr-support-heading" style={{ margin: '8px 0 2px', color: '#102c4c', fontSize: 26 }}>Bring a clearer story</h2><p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>Bring your question and the records you actually saved.</p></div>
-              <GutLinkStrip label="From your question and records to a visit note" items={[{ label: 'Your question', value: 'Open your Gut brief', detail: 'Use your own words', icon: Sparkles, tone: 'rose', onClick: () => setTab('research') }, { label: 'Saved history', value: `${snapshot.mealRecordCount} meal${snapshot.mealRecordCount === 1 ? '' : 's'} · ${snapshot.digestionDateCount} digestion date${snapshot.digestionDateCount === 1 ? '' : 's'}`, detail: 'Only recorded details are included', icon: Utensils, tone: 'violet', onClick: () => setTab('records') }, { label: 'For your visit', value: snapshot.days.length || snapshot.mealRecordCount || snapshot.observations.length ? 'History ready to share' : 'No history saved yet', detail: 'A source-labeled note to discuss', icon: FileText, tone: 'blue' }]} />
-              <div className="gr-visit-actions"><button type="button" onClick={() => void copyVisitNote()} className="gr-visit-primary" disabled={snapshot.days.length === 0 && snapshot.mealRecordCount === 0 && snapshot.observations.length === 0}><Clipboard size={16} /> Copy recorded history <ArrowRight size={16} /></button>{onOpenConsult && <button type="button" onClick={onOpenConsult} style={button}>Open consultation</button>}</div>
-              {message && <p role="status" style={{ color: '#15375c', fontSize: 12.5, margin: 0 }}>{message}</p>}
-              <details className="gr-visit-detail"><summary>Inspect the records in this note</summary><section style={{ ...surface, padding: 18 }}>
-                {snapshot.days.length === 0 && snapshot.meals.length === 0 && snapshot.observations.length === 0 ? <p style={{ color: '#64748B', fontSize: 13 }}>No observations have been recorded. You can still save a question in My research.</p> : <>{snapshot.days.length > 0 && <><h4 style={{ margin: '14px 0 6px', fontSize: 14, color: '#102c4c' }}>Recent digestion</h4>{snapshot.days.slice(0, 5).map((day) => <button type="button" key={day.date} onClick={() => setSelectedSource({ sourceKind: 'daily_digest', sourceId: `day-${day.date}`, localDate: day.date })} style={{ ...button, width: '100%', justifyContent: 'flex-start', minHeight: 34, margin: '3px 0', color: '#475569', fontWeight: 600 }}>{day.date} · bloating {day.bloating === null ? 'not rated' : `${day.bloating}/10`} · discomfort {day.discomfort === null ? 'not rated' : `${day.discomfort}/10`}</button>)}</>}{snapshot.observations.filter((item) => item.payload.kind !== 'meal' && item.payload.kind !== 'context').slice(0, 5).map((item) => <button type="button" key={item.id} onClick={() => setSelectedSource({ sourceKind: 'observation', sourceId: item.id, localDate: item.localDate || undefined })} style={{ ...button, width: '100%', justifyContent: 'flex-start', minHeight: 34, margin: '3px 0', color: '#475569', fontWeight: 600 }}>{item.localDate || 'Date unknown'} · {item.payload.kind === 'symptom' ? `Reported ${item.payload.symptom}` : item.payload.kind === 'bowel' ? 'Bowel report' : 'Digestion check-in'} · Inspect source</button>)}{snapshot.observations.some((item) => item.payload.kind === 'context') && <h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>Context notes</h4>}{snapshot.observations.filter((item) => item.payload.kind === 'context').slice(0, 5).map((item) => item.payload.kind === 'context' ? <button type="button" key={item.id} onClick={() => setSelectedSource({ sourceKind: 'observation', sourceId: item.id, localDate: item.localDate || undefined })} style={{ ...button, width: '100%', justifyContent: 'flex-start', minHeight: 34, margin: '3px 0', color: '#475569', fontWeight: 600 }}>{item.localDate || 'Date unknown'} · {item.payload.contextType === 'medication' ? 'Medication note (dose not confirmed)' : `${item.payload.contextType} note`} · {item.payload.description} · Inspect source</button> : null)}{snapshot.meals.length > 0 && <h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>Recent meals</h4>}{snapshot.meals.slice(0, 5).map((meal) => <button type="button" key={meal.id} onClick={() => setSelectedSource({ sourceKind: meal.sourceKind || 'diet_meal', sourceId: meal.id, localDate: meal.date })} style={{ ...button, width: '100%', justifyContent: 'flex-start', minHeight: 34, margin: '3px 0', color: '#475569', fontWeight: 600 }}>{meal.date} · {meal.name} · {meal.sourceKind === 'observation' ? 'health observation' : 'Diet record'} <ArrowRight size={13} /></button>)}{snapshot.undatedMealObservations.length > 0 && <><h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>Meals without a date</h4>{snapshot.undatedMealObservations.map((item) => item.payload.kind === 'meal' ? <button type="button" key={item.id} onClick={() => setSelectedSource({ sourceKind: 'observation', sourceId: item.id, localDate: item.localDate || undefined })} style={{ ...button, width: '100%', justifyContent: 'flex-start', minHeight: 34, margin: '3px 0', color: '#475569', fontWeight: 600 }}>Date not recorded · {item.payload.description} · excluded from dated comparisons · Inspect source</button> : null)}</>}</>}
-                <p style={{ fontSize: 11.5, color: '#7B8595', lineHeight: 1.5, margin: '12px 0 0' }}>Missing days remain unknown. These records do not establish a diagnosis or food cause.</p>
-              </section></details>
-            </div>}
-          </main>
-          <footer className="gr-modal-footer" style={{ borderTop: '1px solid #c5d9e6', padding: '8px 18px', color: '#68849b', fontSize: 10, display: 'flex', alignItems: 'center', gap: 6, background: '#fffefa' }}><ShieldCheck size={14} /> Personal observations and general research have different meanings. Open a source to check it.</footer>
+  return createPortal(
+    <>
+      <FocusTrap isActive={!quickMealOpen}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Gut Health"
+          className="gr-modal-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: 'clamp(0px, 1vw, 10px)',
+          }}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) onClose();
+          }}
+        >
+          <div
+            className="gr-modal-dialog"
+            style={{
+              width: 'min(100%,1160px)',
+              height: 'min(94vh,980px)',
+              background: '#fffefa',
+              borderRadius: 24,
+              border: '1.5px solid #17375a',
+              boxShadow: '0 24px 80px rgba(21, 55, 92, 0.24)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              color: '#102c4c',
+            }}
+          >
+            <header
+              className="gr-modal-header"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '14px clamp(16px,3.5vw,38px)',
+                borderBottom: '1.5px solid #adc5d8',
+                background: '#fffefa',
+              }}
+            >
+              <span aria-hidden="true" style={icon}>
+                <Activity size={22} />
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  className="gr-modal-eyebrow"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: '.09em',
+                    color: '#e54d57',
+                    fontWeight: 850,
+                    marginBottom: 2,
+                  }}
+                >
+                  YOUR GUT HEALTH
+                </div>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(20px,2.7vw,28px)',
+                    color: '#102c4c',
+                    letterSpacing: '-.04em',
+                  }}
+                >
+                  Gut Health
+                </h1>
+              </div>
+              {tab !== 'daily' && tab !== 'research' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSource(null);
+                    setTab('research');
+                  }}
+                  style={{
+                    ...button,
+                    borderColor: '#adc5d8',
+                    background: '#fffefa',
+                    color: '#15375c',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Sparkles size={15} />
+                  My research
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="Close Gut Health"
+                onClick={onClose}
+                style={{
+                  ...button,
+                  padding: 8,
+                  width: 40,
+                  minHeight: 40,
+                  borderRadius: '50%',
+                  color: '#8D7167',
+                }}
+              >
+                <X size={18} />
+              </button>
+            </header>
+            {tab !== 'daily' && tab !== 'research' && (
+              <nav
+                aria-label="Gut Health sections"
+                style={{
+                  display: 'flex',
+                  padding: '8px clamp(12px,3.5vw,38px)',
+                  gap: 7,
+                  borderBottom: '1px solid #c5d9e6',
+                  overflowX: 'auto',
+                  background: '#f7fbfd',
+                }}
+              >
+                {(
+                  [
+                    ['daily', 'Quick log', Activity],
+                    ['research', 'My research', Sparkles],
+                    ['studio', 'Deep dive', Sparkles],
+                    ['records', 'My records', CalendarDays],
+                    ['visit', 'Visit notes', Clipboard],
+                  ] as const
+                ).map(([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-current={tab === id ? 'page' : undefined}
+                    onClick={() => {
+                      setSelectedSource(null);
+                      setTab(id);
+                      setMessage('');
+                    }}
+                    style={{
+                      ...button,
+                      minHeight: 35,
+                      background: tab === id ? '#15375c' : '#FFFFFF',
+                      borderColor: tab === id ? '#15375c' : '#b8d0e1',
+                      color: tab === id ? '#fff' : '#15375c',
+                      fontSize: 12,
+                      whiteSpace: 'nowrap',
+                      boxShadow: 'none',
+                    }}
+                  >
+                    <Icon size={15} />
+                    {label}
+                  </button>
+                ))}
+              </nav>
+            )}
+            <main
+              ref={mainRef}
+              style={{
+                overflowY: 'auto',
+                padding: '17px clamp(14px,3.5vw,38px)',
+                flex: 1,
+                background: '#fffefa',
+              }}
+            >
+              {(tab === 'daily' || tab === 'research') && (
+                <GutDailyHome
+                  key={tab}
+                  snapshot={snapshot}
+                  observations={observations}
+                  initialThreadId={initialThreadId}
+                  initialPage={tab === 'research' ? 'research' : 'log'}
+                  onOpenRecords={openHistory}
+                  onOpenVisit={() => setTab('visit')}
+                  onRefresh={refreshData}
+                />
+              )}
+              <div style={{ display: tab === 'studio' ? 'block' : 'none' }}>
+                <GutResolutionWorkspace
+                  key={openThreadId || 'new'}
+                  initialThreadId={openThreadId}
+                  onOpenHistory={openHistory}
+                  onOpenSource={openSource}
+                  onOpenQuickMeal={() => setQuickMealOpen(true)}
+                  onOpenConsult={onOpenConsult}
+                  onOpenElimination={onOpenElimination}
+                  onOpenDiet={onOpenDiet}
+                  onOpenCasePrep={onOpenCasePrep}
+                  onOpenCases={onOpenCases}
+                />
+              </div>
+              {tab === 'records' && (
+                <div className="gr-support-page" style={{ maxWidth: 850, margin: '0 auto' }}>
+                  {selectedSource ? (
+                    <GutSourceRecord
+                      source={selectedSource}
+                      meals={snapshot.meals}
+                      days={snapshot.days}
+                      onBack={() => setSelectedSource(null)}
+                      onOpenDate={openHistory}
+                    />
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 12 }}>
+                        <div
+                          style={{
+                            color: '#15375c',
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            letterSpacing: '.09em',
+                          }}
+                        >
+                          YOUR SOURCE RECORDS
+                        </div>
+                        <h2
+                          className="gr-support-heading"
+                          style={{ fontSize: 24, margin: '6px 0 2px', color: '#102c4c' }}
+                        >
+                          Your meals and digestion, together
+                        </h2>
+                        <p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>
+                          Explore the dates you saved. Blank days stay unknown.
+                        </p>
+                      </div>
+                      <GutLinkStrip
+                        label="From saved meals and digestion to a question"
+                        items={[
+                          {
+                            label: 'Meals',
+                            value: `${snapshot.mealRecordCount} saved`,
+                            detail: 'Add a meal when it matters',
+                            icon: Utensils,
+                            tone: 'rose',
+                            onClick: () => setQuickMealOpen(true),
+                          },
+                          {
+                            label: 'Digestion',
+                            value: `${snapshot.digestionDateCount} dated record${snapshot.digestionDateCount === 1 ? '' : 's'}`,
+                            detail: 'See the original dates below',
+                            icon: Activity,
+                            tone: 'violet',
+                          },
+                          {
+                            label: 'Your questions',
+                            value: 'See what connects',
+                            detail: 'Use only what you actually reported',
+                            icon: Sparkles,
+                            tone: 'amber',
+                            onClick: () => setTab('research'),
+                          },
+                        ]}
+                      />
+                      <h3 className="gr-records-calendar-title">Explore your dates</h3>
+                      <DigestionCalendarHeatmap
+                        hideHeader
+                        initialDate={historyInitialDate}
+                        onOpenQuickMeal={() => setQuickMealOpen(true)}
+                        onOpenConsult={onOpenConsult}
+                      />
+                      {(trend.current.count > 0 || trend.previous.count > 0) && (
+                        <details className="gr-recorded-trend">
+                          <summary>See recorded bloating ratings</summary>
+                          <section style={{ ...surface, padding: '12px 16px', marginTop: 9 }}>
+                            {trend.comparable ? (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  color: '#475569',
+                                  fontSize: 12.5,
+                                  lineHeight: 1.45,
+                                }}
+                              >
+                                Last 7 days: <strong>{trend.current.average}/10</strong> across{' '}
+                                {trend.current.count} rated dates. Previous 7 days:{' '}
+                                <strong>{trend.previous.average}/10</strong> across{' '}
+                                {trend.previous.count} rated dates.
+                              </p>
+                            ) : (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  color: '#475569',
+                                  fontSize: 12.5,
+                                  lineHeight: 1.45,
+                                }}
+                              >
+                                Last 7 days: {trend.current.count} rated dates. Previous 7 days:{' '}
+                                {trend.previous.count}. A comparison appears when each week has at
+                                least 3 ratings.
+                              </p>
+                            )}
+                            <p
+                              style={{
+                                margin: '4px 0 0',
+                                fontSize: 11.5,
+                                color: '#94A3B8',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              Only rated dates are included. This does not identify a cause or
+                              account for unrecorded days.
+                            </p>
+                          </section>
+                        </details>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+              {tab === 'visit' && (
+                <div
+                  className="gr-support-page"
+                  style={{ maxWidth: 800, margin: '0 auto', display: 'grid', gap: 14 }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        color: '#15375c',
+                        fontSize: 10.5,
+                        fontWeight: 800,
+                        letterSpacing: '.09em',
+                      }}
+                    >
+                      PREPARE FOR A VISIT
+                    </div>
+                    <h2
+                      className="gr-support-heading"
+                      style={{ margin: '8px 0 2px', color: '#102c4c', fontSize: 26 }}
+                    >
+                      Bring a clearer story
+                    </h2>
+                    <p style={{ color: '#64748B', fontSize: 13, margin: 0 }}>
+                      Bring your question and the records you actually saved.
+                    </p>
+                  </div>
+                  <GutLinkStrip
+                    label="From your question and records to a visit note"
+                    items={[
+                      {
+                        label: 'Your question',
+                        value: 'Open your Gut brief',
+                        detail: 'Use your own words',
+                        icon: Sparkles,
+                        tone: 'rose',
+                        onClick: () => setTab('research'),
+                      },
+                      {
+                        label: 'Saved history',
+                        value: `${snapshot.mealRecordCount} meal${snapshot.mealRecordCount === 1 ? '' : 's'} · ${snapshot.digestionDateCount} digestion date${snapshot.digestionDateCount === 1 ? '' : 's'}`,
+                        detail: 'Only recorded details are included',
+                        icon: Utensils,
+                        tone: 'violet',
+                        onClick: () => setTab('records'),
+                      },
+                      {
+                        label: 'For your visit',
+                        value:
+                          snapshot.days.length ||
+                          snapshot.mealRecordCount ||
+                          snapshot.observations.length
+                            ? 'History ready to share'
+                            : 'No history saved yet',
+                        detail: 'A source-labeled note to discuss',
+                        icon: FileText,
+                        tone: 'blue',
+                      },
+                    ]}
+                  />
+                  <div className="gr-visit-actions">
+                    <button
+                      type="button"
+                      onClick={() => void copyVisitNote()}
+                      className="gr-visit-primary"
+                      disabled={
+                        snapshot.days.length === 0 &&
+                        snapshot.mealRecordCount === 0 &&
+                        snapshot.observations.length === 0
+                      }
+                    >
+                      <Clipboard size={16} /> Copy recorded history <ArrowRight size={16} />
+                    </button>
+                    {onOpenConsult && (
+                      <button type="button" onClick={onOpenConsult} style={button}>
+                        Open consultation
+                      </button>
+                    )}
+                  </div>
+                  {message && (
+                    <p role="status" style={{ color: '#15375c', fontSize: 12.5, margin: 0 }}>
+                      {message}
+                    </p>
+                  )}
+                  <details className="gr-visit-detail">
+                    <summary>Inspect the records in this note</summary>
+                    <section style={{ ...surface, padding: 18 }}>
+                      {snapshot.days.length === 0 &&
+                      snapshot.meals.length === 0 &&
+                      snapshot.observations.length === 0 ? (
+                        <p style={{ color: '#64748B', fontSize: 13 }}>
+                          No observations have been recorded. You can still save a question in My
+                          research.
+                        </p>
+                      ) : (
+                        <>
+                          {snapshot.days.length > 0 && (
+                            <>
+                              <h4 style={{ margin: '14px 0 6px', fontSize: 14, color: '#102c4c' }}>
+                                Recent digestion
+                              </h4>
+                              {snapshot.days.slice(0, 5).map((day) => (
+                                <button
+                                  type="button"
+                                  key={day.date}
+                                  onClick={() =>
+                                    setSelectedSource({
+                                      sourceKind: 'daily_digest',
+                                      sourceId: `day-${day.date}`,
+                                      localDate: day.date,
+                                    })
+                                  }
+                                  style={{
+                                    ...button,
+                                    width: '100%',
+                                    justifyContent: 'flex-start',
+                                    minHeight: 34,
+                                    margin: '3px 0',
+                                    color: '#475569',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {day.date} · bloating{' '}
+                                  {day.bloating === null ? 'not rated' : `${day.bloating}/10`} ·
+                                  discomfort{' '}
+                                  {day.discomfort === null ? 'not rated' : `${day.discomfort}/10`}
+                                </button>
+                              ))}
+                            </>
+                          )}
+                          {snapshot.observations
+                            .filter(
+                              (item) =>
+                                item.payload.kind !== 'meal' && item.payload.kind !== 'context'
+                            )
+                            .slice(0, 5)
+                            .map((item) => (
+                              <button
+                                type="button"
+                                key={item.id}
+                                onClick={() =>
+                                  setSelectedSource({
+                                    sourceKind: 'observation',
+                                    sourceId: item.id,
+                                    localDate: item.localDate || undefined,
+                                  })
+                                }
+                                style={{
+                                  ...button,
+                                  width: '100%',
+                                  justifyContent: 'flex-start',
+                                  minHeight: 34,
+                                  margin: '3px 0',
+                                  color: '#475569',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {item.localDate || 'Date unknown'} ·{' '}
+                                {item.payload.kind === 'symptom'
+                                  ? `Reported ${item.payload.symptom}`
+                                  : item.payload.kind === 'bowel'
+                                    ? 'Bowel report'
+                                    : 'Digestion check-in'}{' '}
+                                · Inspect source
+                              </button>
+                            ))}
+                          {snapshot.observations.some(
+                            (item) => item.payload.kind === 'context'
+                          ) && (
+                            <h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>
+                              Context notes
+                            </h4>
+                          )}
+                          {snapshot.observations
+                            .filter((item) => item.payload.kind === 'context')
+                            .slice(0, 5)
+                            .map((item) =>
+                              item.payload.kind === 'context' ? (
+                                <button
+                                  type="button"
+                                  key={item.id}
+                                  onClick={() =>
+                                    setSelectedSource({
+                                      sourceKind: 'observation',
+                                      sourceId: item.id,
+                                      localDate: item.localDate || undefined,
+                                    })
+                                  }
+                                  style={{
+                                    ...button,
+                                    width: '100%',
+                                    justifyContent: 'flex-start',
+                                    minHeight: 34,
+                                    margin: '3px 0',
+                                    color: '#475569',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {item.localDate || 'Date unknown'} ·{' '}
+                                  {item.payload.contextType === 'medication'
+                                    ? 'Medication note (dose not confirmed)'
+                                    : `${item.payload.contextType} note`}{' '}
+                                  · {item.payload.description} · Inspect source
+                                </button>
+                              ) : null
+                            )}
+                          {snapshot.meals.length > 0 && (
+                            <h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>
+                              Recent meals
+                            </h4>
+                          )}
+                          {snapshot.meals.slice(0, 5).map((meal) => (
+                            <button
+                              type="button"
+                              key={meal.id}
+                              onClick={() =>
+                                setSelectedSource({
+                                  sourceKind: meal.sourceKind || 'diet_meal',
+                                  sourceId: meal.id,
+                                  localDate: meal.date,
+                                })
+                              }
+                              style={{
+                                ...button,
+                                width: '100%',
+                                justifyContent: 'flex-start',
+                                minHeight: 34,
+                                margin: '3px 0',
+                                color: '#475569',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {meal.date} · {meal.name} ·{' '}
+                              {meal.sourceKind === 'observation'
+                                ? 'health observation'
+                                : 'Diet record'}{' '}
+                              <ArrowRight size={13} />
+                            </button>
+                          ))}
+                          {snapshot.undatedMealObservations.length > 0 && (
+                            <>
+                              <h4 style={{ margin: '12px 0 6px', fontSize: 14, color: '#102c4c' }}>
+                                Meals without a date
+                              </h4>
+                              {snapshot.undatedMealObservations.map((item) =>
+                                item.payload.kind === 'meal' ? (
+                                  <button
+                                    type="button"
+                                    key={item.id}
+                                    onClick={() =>
+                                      setSelectedSource({
+                                        sourceKind: 'observation',
+                                        sourceId: item.id,
+                                        localDate: item.localDate || undefined,
+                                      })
+                                    }
+                                    style={{
+                                      ...button,
+                                      width: '100%',
+                                      justifyContent: 'flex-start',
+                                      minHeight: 34,
+                                      margin: '3px 0',
+                                      color: '#475569',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Date not recorded · {item.payload.description} · excluded from
+                                    dated comparisons · Inspect source
+                                  </button>
+                                ) : null
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
+                      <p
+                        style={{
+                          fontSize: 11.5,
+                          color: '#7B8595',
+                          lineHeight: 1.5,
+                          margin: '12px 0 0',
+                        }}
+                      >
+                        Missing days remain unknown. These records do not establish a diagnosis or
+                        food cause.
+                      </p>
+                    </section>
+                  </details>
+                </div>
+              )}
+            </main>
+            <footer
+              className="gr-modal-footer"
+              style={{
+                borderTop: '1px solid #c5d9e6',
+                padding: '8px 18px',
+                color: '#68849b',
+                fontSize: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#fffefa',
+              }}
+            >
+              <ShieldCheck size={14} /> Personal observations and general research have different
+              meanings. Open a source to check it.
+            </footer>
+          </div>
         </div>
-      </div>
-    </FocusTrap>
-    <QuickMealIntakeSheet simple isOpen={quickMealOpen} onClose={() => setQuickMealOpen(false)} onMealLogged={() => { void refreshData(); }} />
-  </>, document.body);
+      </FocusTrap>
+      <QuickMealIntakeSheet
+        simple
+        isOpen={quickMealOpen}
+        onClose={() => setQuickMealOpen(false)}
+        onMealLogged={() => {
+          void refreshData();
+        }}
+      />
+    </>,
+    document.body
+  );
 };

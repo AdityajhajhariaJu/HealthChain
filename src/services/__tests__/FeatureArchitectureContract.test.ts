@@ -4,7 +4,7 @@ import {
   getAllFeatureContracts,
   getFeatureContract,
   isPermissiblePipelineHandoff,
-} from '../FeatureArchitectureContract';
+} from '../testFixtures/FeatureArchitectureContract';
 
 describe('FeatureArchitectureContract (Step 2: Distinct Purposes)', () => {
   const EXPECTED_FEATURE_IDS: FeatureId[] = [

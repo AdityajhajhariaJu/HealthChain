@@ -18,7 +18,6 @@ export type StomachComfortLevel =
   'calm' | 'mild_acid' | 'moderate_reflux' | 'severe_burning' | 'nausea';
 export type DistensionPattern =
   'flat_all_day' | 'flat_am_bloated_pm' | 'post_meal_distension' | 'persistent_distension';
-export type DigestionSubTab = 'summary' | 'stomach' | 'bloating' | 'bowel';
 
 export interface DigestionDayEntry {
   date: string;
@@ -105,13 +104,6 @@ export const STOMACH_COMFORT_INFO = {
   moderate_reflux: { label: 'Reflux', icon: '○', color: '#BD835F' },
   severe_burning: { label: 'Severe burning', icon: '○', color: '#B45E5B' },
   nausea: { label: 'Nausea', icon: '○', color: '#8C789E' },
-} as const;
-
-export const DISTENSION_PATTERN_INFO = {
-  flat_all_day: { label: 'No noticeable distension' },
-  flat_am_bloated_pm: { label: 'More bloated by evening' },
-  post_meal_distension: { label: 'Bloating after a meal' },
-  persistent_distension: { label: 'Bloating throughout the day' },
 } as const;
 
 const field: React.CSSProperties = {

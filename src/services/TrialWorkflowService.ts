@@ -1,7 +1,5 @@
 import {
   AdherenceLevel,
-  ChallengeOutcome,
-  ClinicalVerdictData,
   FoodChallenge,
   HealthEvent,
   TrialIntakeAssessment,
@@ -10,7 +8,7 @@ import {
 } from '../domain/trials/types';
 import { getProfileEngineState, getProfileKey } from './ProfileEngine';
 import { getItemSync, setItemSync } from './storage';
-import { getActiveTrial, stopActiveTrial } from './TriggerEngine';
+import { getActiveTrial } from './TriggerEngine';
 
 // No protocol in the legacy catalogue has a verified, versioned clinical approval
 // record. Keep new dietary challenges closed until that governance exists.
@@ -48,7 +46,8 @@ export function checklistStorageKey(trialId: string, dateKey: string): string {
  */
 export function migrateLegacyTrialToV2(legacy: any, profileId?: string): TrialV2 {
   const pid = profileId || getActiveProfileId();
-  if (!legacy.startDate || Number.isNaN(new Date(legacy.startDate).getTime())) throw new Error('Legacy trial start time is not evidenced. Preserve it for manual recovery.');
+  if (!legacy.startDate || Number.isNaN(new Date(legacy.startDate).getTime()))
+    throw new Error('Legacy trial start time is not evidenced. Preserve it for manual recovery.');
   const startedAt = legacy.startDate;
   const totalDays = Number(legacy.totalDays) || 28;
   const currentDay = Math.max(1, Math.min(totalDays, Number(legacy.currentDay) || 1));
@@ -69,12 +68,13 @@ export function migrateLegacyTrialToV2(legacy: any, profileId?: string): TrialV2
     baseline: {
       requiredObservations: 5,
       completedObservations: 0,
-      baselineSeverity: typeof legacy.baselineSeverity === 'number' ? legacy.baselineSeverity : null,
+      baselineSeverity:
+        typeof legacy.baselineSeverity === 'number' ? legacy.baselineSeverity : null,
     },
     activeFilters: [],
     consent: {
       acknowledgedLimitations: false,
-    }
+    },
   };
 }
 
@@ -92,15 +92,28 @@ export function getActiveTrialV2(profileId?: string): TrialV2 | null {
     const unscopedRaw = legacy && getItemSync(`hc_trial_v2_${pid}`);
     if (unscopedRaw) {
       const candidate: TrialV2 = JSON.parse(unscopedRaw);
-      if (candidate.profileId === pid && candidate.protocolId === legacy.trialId &&
-          Math.abs(new Date(candidate.startedAt).getTime() - new Date(legacy.startDate).getTime()) < 60_000 && candidate.id) {
+      if (
+        candidate.profileId === pid &&
+        candidate.protocolId === legacy.trialId &&
+        Math.abs(new Date(candidate.startedAt).getTime() - new Date(legacy.startDate).getTime()) <
+          60_000 &&
+        candidate.id
+      ) {
         try {
           const oldEvents = JSON.parse(getItemSync(`hc_health_events_${pid}`) || '[]');
-          const trialEvents = Array.isArray(oldEvents) ? oldEvents.filter((event: HealthEvent) => event.profileId === pid && event.trialId === candidate.id) : [];
-          if (trialEvents.length && !getItemSync(healthEventsStorageKey(pid))) setItemSync(healthEventsStorageKey(pid), JSON.stringify(trialEvents));
+          const trialEvents = Array.isArray(oldEvents)
+            ? oldEvents.filter(
+                (event: HealthEvent) => event.profileId === pid && event.trialId === candidate.id
+              )
+            : [];
+          if (trialEvents.length && !getItemSync(healthEventsStorageKey(pid)))
+            setItemSync(healthEventsStorageKey(pid), JSON.stringify(trialEvents));
           const oldChallenges = getItemSync(`hc_challenges_${candidate.id}`);
-          if (oldChallenges && !getItemSync(challengesStorageKey(candidate.id))) setItemSync(challengesStorageKey(candidate.id), oldChallenges);
-        } catch { /* Keep the source untouched for manual recovery. */ }
+          if (oldChallenges && !getItemSync(challengesStorageKey(candidate.id)))
+            setItemSync(challengesStorageKey(candidate.id), oldChallenges);
+        } catch {
+          /* Keep the source untouched for manual recovery. */
+        }
         saveActiveTrialV2(candidate);
         return candidate;
       }
@@ -128,9 +141,7 @@ export function saveActiveTrialV2(trial: TrialV2): void {
 /**
  * Append-only Event Sourcing Pipeline
  */
-export function appendHealthEvent(
-  eventData: Omit<HealthEvent, 'id' | 'recordedAt'>
-): HealthEvent {
+export function appendHealthEvent(eventData: Omit<HealthEvent, 'id' | 'recordedAt'>): HealthEvent {
   const pid = getActiveProfileId();
   if (eventData.profileId !== pid) throw new Error('Event profile is not active.');
   const event: HealthEvent = {
@@ -201,10 +212,17 @@ export function evaluateChallengeReadiness(trial: TrialV2): {
   observedCount: number;
   requiredCount: number;
 } {
-  const events = getHealthEvents({ profileId: trial.profileId, trialId: trial.id, type: 'daily_checkin' });
-  const observedCount = new Set(events.filter((event) => event.payload?.action !== 'trial_started')
-    .map((event) => String(event.payload?.date || event.occurredAt).slice(0, 10))
-    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))).size;
+  const events = getHealthEvents({
+    profileId: trial.profileId,
+    trialId: trial.id,
+    type: 'daily_checkin',
+  });
+  const observedCount = new Set(
+    events
+      .filter((event) => event.payload?.action !== 'trial_started')
+      .map((event) => String(event.payload?.date || event.occurredAt).slice(0, 10))
+      .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))
+  ).size;
   const requiredCount = trial.baseline.requiredObservations || 5;
 
   if (trial.status === 'paused') {
@@ -213,8 +231,18 @@ export function evaluateChallengeReadiness(trial: TrialV2): {
   if (trial.status === 'stopped') {
     return { ready: false, reason: 'Trial has been stopped.', observedCount, requiredCount };
   }
-  if (trial.status === 'completed' || trial.status === 'challenge_active' || trial.status === 'recovery') {
-    return { ready: false, reason: 'Finish the current challenge and review the recovery period before starting another.', observedCount, requiredCount };
+  if (
+    trial.status === 'completed' ||
+    trial.status === 'challenge_active' ||
+    trial.status === 'recovery'
+  ) {
+    return {
+      ready: false,
+      reason:
+        'Finish the current challenge and review the recovery period before starting another.',
+      observedCount,
+      requiredCount,
+    };
   }
 
   if (observedCount < requiredCount) {
@@ -228,11 +256,23 @@ export function evaluateChallengeReadiness(trial: TrialV2): {
   }
 
   if (!trial.consent.acknowledgedLimitations || !trial.consent.acceptedAt) {
-    return { ready: false, reason: 'This legacy or draft plan has no verified consent record. Review it before any dietary challenge.', observedCount, requiredCount };
+    return {
+      ready: false,
+      reason:
+        'This legacy or draft plan has no verified consent record. Review it before any dietary challenge.',
+      observedCount,
+      requiredCount,
+    };
   }
 
   if (!isChallengeProtocolApproved(trial)) {
-    return { ready: false, reason: 'New food challenges are unavailable until this plan and its safety rules receive verified clinical review.', observedCount, requiredCount };
+    return {
+      ready: false,
+      reason:
+        'New food challenges are unavailable until this plan and its safety rules receive verified clinical review.',
+      observedCount,
+      requiredCount,
+    };
   }
 
   return {
@@ -259,10 +299,20 @@ export function recordDailyObservation(
   const trial = findTrialById(trialId, profileId);
   if (!trial) return null;
 
-  if (trial.status === 'paused' || trial.status === 'stopped' || trial.status === 'completed') return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(observation.date) || !Number.isFinite(observation.severityScore) || observation.severityScore < 0 || observation.severityScore > 10) return null;
-  const existing = getHealthEvents({ profileId: trial.profileId, trialId: trial.id, type: 'daily_checkin' })
-    .find((event) => event.payload?.date === observation.date);
+  if (trial.status === 'paused' || trial.status === 'stopped' || trial.status === 'completed')
+    return null;
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(observation.date) ||
+    !Number.isFinite(observation.severityScore) ||
+    observation.severityScore < 0 ||
+    observation.severityScore > 10
+  )
+    return null;
+  const existing = getHealthEvents({
+    profileId: trial.profileId,
+    trialId: trial.id,
+    type: 'daily_checkin',
+  }).find((event) => event.payload?.date === observation.date);
   if (existing && JSON.stringify(existing.payload) === JSON.stringify(observation)) return trial;
   appendHealthEvent({
     profileId: trial.profileId,
@@ -305,11 +355,24 @@ export function startFoodChallenge(
   }
 ): FoodChallenge | null {
   const trial = findTrialById(trialId);
-  if (!trial || !isChallengeProtocolApproved(trial) || !trial.consent.acknowledgedLimitations || !trial.consent.acceptedAt ||
-      !evaluateChallengeReadiness(trial).ready || trial.status === 'challenge_active') return null;
-  if (!params.itemId.trim() || !params.displayName.trim() || !params.doseDescription?.trim()) return null;
+  if (
+    !trial ||
+    !isChallengeProtocolApproved(trial) ||
+    !trial.consent.acknowledgedLimitations ||
+    !trial.consent.acceptedAt ||
+    !evaluateChallengeReadiness(trial).ready ||
+    trial.status === 'challenge_active'
+  )
+    return null;
+  if (!params.itemId.trim() || !params.displayName.trim() || !params.doseDescription?.trim())
+    return null;
   const challenges = getFoodChallenges(trialId);
-  if (challenges.some((challenge) => challenge.status === 'active' || challenge.status === 'reaction_recorded')) return null;
+  if (
+    challenges.some(
+      (challenge) => challenge.status === 'active' || challenge.status === 'reaction_recorded'
+    )
+  )
+    return null;
   const newChallenge: FoodChallenge = {
     id: `chal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     trialId,
@@ -357,10 +420,12 @@ export function recordChallengeObservation(
   symptomNotes?: string
 ): FoodChallenge | null {
   const trial = findTrialById(trialId);
-  if (!trial || trial.status !== 'challenge_active' || trial.currentChallengeId !== challengeId) return null;
+  if (!trial || trial.status !== 'challenge_active' || trial.currentChallengeId !== challengeId)
+    return null;
   const challenges = getFoodChallenges(trialId);
   const challenge = challenges.find((c) => c.id === challengeId);
-  if (!challenge || (challenge.status !== 'active' && challenge.status !== 'reaction_recorded')) return null;
+  if (!challenge || (challenge.status !== 'active' && challenge.status !== 'reaction_recorded'))
+    return null;
 
   const now = new Date();
   const startTime = new Date(challenge.startedAt).getTime();
@@ -389,44 +454,6 @@ export function recordChallengeObservation(
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     source: 'trial',
     payload: { challengeId, severityScore, hasReaction, hoursSince },
-  });
-
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('hc_challenge_updated', { detail: challenge }));
-  }
-
-  return challenge;
-}
-
-export function completeFoodChallenge(
-  trialId: string,
-  challengeId: string,
-  outcome: ChallengeOutcome
-): FoodChallenge | null {
-  const trial = findTrialById(trialId);
-  if (!trial || trial.status !== 'challenge_active' || trial.currentChallengeId !== challengeId) return null;
-  const challenges = getFoodChallenges(trialId);
-  const challenge = challenges.find((c) => c.id === challengeId);
-  if (!challenge || (challenge.status !== 'active' && challenge.status !== 'reaction_recorded')) return null;
-
-  challenge.status = 'completed';
-  challenge.outcome = outcome;
-  challenge.endedAt = new Date().toISOString();
-
-  setItemSync(challengesStorageKey(trialId), JSON.stringify(challenges));
-
-  trial.status = 'recovery';
-  trial.currentChallengeId = undefined;
-  saveActiveTrialV2(trial);
-
-  appendHealthEvent({
-    profileId: trial.profileId,
-    trialId,
-    type: 'challenge_completed',
-    occurredAt: challenge.endedAt,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-    source: 'trial',
-    payload: { challengeId, outcome },
   });
 
   if (typeof window !== 'undefined') {
@@ -471,7 +498,9 @@ export function toggleChecklistTask(trialId: string, paramA: string, paramB: str
   });
 
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('hc_checklist_updated', { detail: { trialId, dateKey, tasks: updated } }));
+    window.dispatchEvent(
+      new CustomEvent('hc_checklist_updated', { detail: { trialId, dateKey, tasks: updated } })
+    );
   }
 
   return updated;
@@ -486,7 +515,13 @@ export function findTrialById(trialId: string, profileId?: string): TrialV2 | nu
 
 export function pauseTrialV2(trialId: string, profileId?: string): TrialV2 | null {
   const trial = findTrialById(trialId, profileId);
-  if (!trial || trial.status === 'completed' || trial.status === 'stopped' || trial.status === 'paused') return null;
+  if (
+    !trial ||
+    trial.status === 'completed' ||
+    trial.status === 'stopped' ||
+    trial.status === 'paused'
+  )
+    return null;
 
   (trial as TrialV2 & { statusBeforePause?: TrialStatus }).statusBeforePause = trial.status;
   trial.status = 'paused';
@@ -509,7 +544,8 @@ export function resumeTrialV2(trialId: string, profileId?: string): TrialV2 | nu
   const trial = findTrialById(trialId, profileId);
   if (!trial || trial.status !== 'paused') return null;
 
-  trial.status = (trial as TrialV2 & { statusBeforePause?: TrialStatus }).statusBeforePause || 'baseline';
+  trial.status =
+    (trial as TrialV2 & { statusBeforePause?: TrialStatus }).statusBeforePause || 'baseline';
   saveActiveTrialV2(trial);
 
   appendHealthEvent({
@@ -525,7 +561,11 @@ export function resumeTrialV2(trialId: string, profileId?: string): TrialV2 | nu
   return trial;
 }
 
-export function stopTrialV2(trialId: string, reason: TrialV2['stoppedReason'] = 'other', profileId?: string): TrialV2 | null {
+export function stopTrialV2(
+  trialId: string,
+  reason: TrialV2['stoppedReason'] = 'other',
+  profileId?: string
+): TrialV2 | null {
   const trial = findTrialById(trialId, profileId);
   if (!trial || trial.status === 'completed' || trial.status === 'stopped') return null;
 
@@ -543,69 +583,6 @@ export function stopTrialV2(trialId: string, reason: TrialV2['stoppedReason'] = 
     source: 'trial',
     payload: { reason },
   });
-
-  return trial;
-}
-
-export function completeTrialWithVerdict(
-  trialId: string,
-  verdict: ClinicalVerdictData,
-  profileId?: string
-): TrialV2 | null {
-  const trial = findTrialById(trialId, profileId);
-  if (!trial || trial.status === 'stopped' || trial.status === 'paused' || trial.status === 'completed') return null;
-
-  const now = new Date().toISOString();
-  const dated = getHealthEvents({ profileId: trial.profileId, trialId: trial.id, type: 'daily_checkin' })
-    .filter((event) => Number.isFinite(event.payload?.severityScore) && event.payload?.date);
-  dated.sort((a, b) => String(a.payload.date).localeCompare(String(b.payload.date)));
-  const latest = dated.length ? Number(dated[dated.length - 1].payload.severityScore) : null;
-  const baseline = trial.baseline.baselineSeverity;
-  const reportedItems = [...(verdict.confirmedTriggers || []), ...(verdict.clearedFoods || []), ...(verdict.inconclusiveFoods || [])];
-  const safeVerdict: ClinicalVerdictData = {
-    graduatedAt: now,
-    initialBaselineSeverity: baseline,
-    finalSeverity: latest,
-    symptomReductionPercentage: baseline !== null && baseline > 0 && latest !== null
-      ? Math.round(((baseline - latest) / baseline) * 100) : null,
-    confirmedTriggers: [],
-    clearedFoods: [],
-    inconclusiveFoods: reportedItems.map((item) => ({ ...item, classification: 'inconclusive', notes: item.notes || 'Reported observation; clinical status not established.' })),
-    clinicianDossierSummary: `Recorded trial observations. Baseline: ${baseline === null ? 'not recorded' : `${baseline}/10`}; latest recorded check-in: ${latest === null ? 'not recorded' : `${latest}/10`}. Food responses require interpretation; this report does not confirm a trigger or safety.`,
-    maintenanceDietRecommendations: ['Review observations and any dietary changes with a qualified clinician or dietitian.'],
-  };
-  trial.status = 'completed';
-  trial.completedAt = now;
-  trial.verdict = safeVerdict;
-  trial.stoppedReason = 'completed';
-  saveActiveTrialV2(trial);
-
-  // Archive legacy trial if active
-  try {
-    stopActiveTrial();
-  } catch {}
-
-  appendHealthEvent({
-    profileId: trial.profileId,
-    trialId: trial.id,
-    type: 'trial_completed',
-    occurredAt: now,
-    timezone: trial.timezone,
-    source: 'trial',
-    payload: {
-      verdictSummary: safeVerdict.clinicianDossierSummary,
-      symptomReductionPercentage: safeVerdict.symptomReductionPercentage,
-      confirmedTriggersCount: 0,
-      clearedFoodsCount: 0,
-      inconclusiveFoodsCount: safeVerdict.inconclusiveFoods.length,
-    },
-  });
-
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('hc_trial_graduated', { detail: { trial, verdict: safeVerdict } }));
-    window.dispatchEvent(new CustomEvent('hc_trial_v2_updated', { detail: trial }));
-    window.dispatchEvent(new Event('hc_trial_updated'));
-  }
 
   return trial;
 }
@@ -665,17 +642,3 @@ export function startNewTrialV2(options: {
 
   return trial;
 }
-
-export function resetActiveTrialV2(profileId?: string): void {
-  const pid = profileId || getActiveProfileId();
-  try {
-    const key = trialV2StorageKey(pid);
-    localStorage.removeItem(key);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('hc_trial_v2_updated'));
-    }
-  } catch (e) {
-    console.warn('Failed to reset TrialV2:', e);
-  }
-}
-

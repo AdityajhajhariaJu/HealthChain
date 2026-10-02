@@ -1,15 +1,16 @@
-import { modelRequestKey, ModelResultCache } from './modelCache';
-import { CLINICAL_SAFETY_RULES } from './clinicalSafety';
-import { fetchWithTimeout } from './transport';
-import { API_URL } from './transport';
-import { parseModelJson } from '../modelJson';
 import type { AppointmentBrief } from '../CaseEngine';
-import { sha256Hash } from './transport';
-import { buildReviewEvidence } from '../clinicalReview';
-import { buildClinicalReviewPrompt, type ClinicalReviewFocus } from '../clinicalReview';
-import { normalizeClinicalReview } from '../clinicalReview';
+import {
+  buildClinicalReviewPrompt,
+  buildReviewEvidence,
+  normalizeClinicalReview,
+  type ClinicalReviewFocus,
+} from '../clinicalReview';
 import { evaluateClinicalUrgency } from '../clinicalTriageEngine';
+import { parseModelJson } from '../modelJson';
+import { CLINICAL_SAFETY_RULES } from './clinicalSafety';
 import type { Message } from './gut';
+import { modelRequestKey, ModelResultCache } from './modelCache';
+import { API_URL, fetchWithTimeout, sha256Hash } from './transport';
 
 export async function suggestSpecialists(
   profileData: any,
@@ -322,13 +323,17 @@ ${CLINICAL_SAFETY_RULES}`;
   }
 }
 
+const pathwayCache = new ModelResultCache();
+
 export async function simulatePathway(actionItem: any, profile: any): Promise<any> {
+  const cacheKey = modelRequestKey([actionItem, profile]);
+  if (pathwayCache.has(cacheKey)) return pathwayCache.get(cacheKey);
   const profileContext = profile
-    ? `Patient Context: Age ${profile.personal?.age || 'unknown'}, Gender: ${profile.personal?.gender || 'unknown'}. Existing conditions: ${(profile.health?.conditions || []).join(', ') || 'None'}.`
-    : '';
+    ? `Patient Context: Age ${profile.demographics?.age || profile.personal?.age || 'unknown'}, Gender: ${profile.demographics?.gender || profile.personal?.gender || 'unknown'}. Recorded conditions: ${JSON.stringify(profile.conditions || profile.health?.conditions || [])}. Recorded medicines: ${JSON.stringify(profile.medications || [])}. Recorded allergies: ${JSON.stringify(profile.allergies || [])}. Empty lists mean no supplied entries, not a verified absence.`
+    : 'Patient context was not supplied.';
 
   const prompt = `You are an AI appointment-preparation assistant.
-The patient is considering this clinician-discussion item: "${actionItem.step}"
+The patient is considering this clinician-discussion item: "${actionItem.step || actionItem.title || 'Unspecified discussion topic'}"
 ${profileContext}
 
 Describe questions, risks, and possible follow-up topics to discuss with a qualified clinician. Do not predict outcomes, cost, recovery, or success rates. Return your findings strictly as JSON matching this exact structure:
@@ -360,7 +365,9 @@ Describe questions, risks, and possible follow-up topics to discuss with a quali
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      return parseModelJson(text);
+      const result = parseModelJson(text);
+      if (result) pathwayCache.set(cacheKey, result);
+      return result;
     }
   } catch (err) {
     console.error('Simulation error:', err);

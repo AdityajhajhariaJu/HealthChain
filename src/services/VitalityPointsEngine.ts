@@ -15,7 +15,18 @@ export interface PointsTransaction {
   id: string;
   amount: number;
   reason: string;
-  category: 'welcome' | 'signup' | 'streak' | 'consult' | 'checkin' | 'lifestyle' | 'research' | 'milestone' | 'mindful' | 'trivia' | 'mystery';
+  category:
+    | 'welcome'
+    | 'signup'
+    | 'streak'
+    | 'consult'
+    | 'checkin'
+    | 'lifestyle'
+    | 'research'
+    | 'milestone'
+    | 'mindful'
+    | 'trivia'
+    | 'mystery';
   date: string;
   icon?: string;
 }
@@ -50,10 +61,46 @@ export interface VitalityState {
 }
 
 export const TIERS: VitalityTier[] = [
-  { level: 1, name: 'Record Starter', min: 0, max: 25, badge: '🥉', color: '#059669', bg: '#ECFDF5', perk: 'Celebrate beginning a useful, reusable health record' },
-  { level: 2, name: 'Routine Builder', min: 26, max: 75, badge: '🥈', color: '#2563EB', bg: '#EFF6FF', perk: 'Celebrate consistent check-ins and observation logging' },
-  { level: 3, name: 'Prepared Advocate', min: 76, max: 150, badge: '🥇', color: '#7C3AED', bg: '#F5F3FF', perk: 'Celebrate preparing records and questions for appointments' },
-  { level: 4, name: 'Connected Historian', min: 151, max: 9999, badge: '💎', color: '#D97706', bg: '#FFFBEB', perk: 'Celebrate maintaining a connected longitudinal history' },
+  {
+    level: 1,
+    name: 'Record Starter',
+    min: 0,
+    max: 25,
+    badge: '🥉',
+    color: '#059669',
+    bg: '#ECFDF5',
+    perk: 'Celebrate beginning a useful, reusable health record',
+  },
+  {
+    level: 2,
+    name: 'Routine Builder',
+    min: 26,
+    max: 75,
+    badge: '🥈',
+    color: '#2563EB',
+    bg: '#EFF6FF',
+    perk: 'Celebrate consistent check-ins and observation logging',
+  },
+  {
+    level: 3,
+    name: 'Prepared Advocate',
+    min: 76,
+    max: 150,
+    badge: '🥇',
+    color: '#7C3AED',
+    bg: '#F5F3FF',
+    perk: 'Celebrate preparing records and questions for appointments',
+  },
+  {
+    level: 4,
+    name: 'Connected Historian',
+    min: 151,
+    max: 9999,
+    badge: '💎',
+    color: '#D97706',
+    bg: '#FFFBEB',
+    perk: 'Celebrate maintaining a connected longitudinal history',
+  },
 ];
 
 const generateId = () => {
@@ -74,8 +121,9 @@ export function getVitalityState(): VitalityState {
   const profile = getProfile();
   const points = typeof profile?.points === 'number' ? profile.points : 5;
   const history: PointsTransaction[] = profile?.pointsHistory || [];
-  
-  const lifetimeEarned = history.reduce((acc, h) => acc + (h.amount > 0 ? h.amount : 0), 0) || points;
+
+  const lifetimeEarned =
+    history.reduce((acc, h) => acc + (h.amount > 0 ? h.amount : 0), 0) || points;
 
   let currentTier: VitalityTier = TIERS[0];
   for (let i = TIERS.length - 1; i >= 0; i--) {
@@ -87,16 +135,24 @@ export function getVitalityState(): VitalityState {
 
   const tierSpan = currentTier.max - currentTier.min;
   const progressInTier = Math.max(0, points - currentTier.min);
-  const tierProgress = currentTier.level === 4 ? 100 : Math.min(100, Math.round((progressInTier / (tierSpan + 1)) * 100));
+  const tierProgress =
+    currentTier.level === 4
+      ? 100
+      : Math.min(100, Math.round((progressInTier / (tierSpan + 1)) * 100));
   const pointsToNextTier = currentTier.level === 4 ? 0 : Math.max(0, currentTier.max + 1 - points);
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayTransactions = history.filter(h => h.date && h.date.startsWith(todayStr));
+  const todayTransactions = history.filter((h) => h.date && h.date.startsWith(todayStr));
 
-  const hasDailyCheckin = (profile?.dailyCheckins || []).some((c: any) => c.date && c.date.startsWith(todayStr));
-  const hasLifestyleLog = (profile?.dailyCheckins || []).some((c: any) => c.date && c.date.startsWith(todayStr) && c.lifestyle && Object.keys(c.lifestyle).length > 0);
-  const hasResearchSearch = todayTransactions.some(t => t.category === 'research');
-  const hasClinicalConsult = todayTransactions.some(t => t.category === 'consult');
+  const hasDailyCheckin = (profile?.dailyCheckins || []).some(
+    (c: any) => c.date && c.date.startsWith(todayStr)
+  );
+  const hasLifestyleLog = (profile?.dailyCheckins || []).some(
+    (c: any) =>
+      c.date && c.date.startsWith(todayStr) && c.lifestyle && Object.keys(c.lifestyle).length > 0
+  );
+  const hasResearchSearch = todayTransactions.some((t) => t.category === 'research');
+  const hasClinicalConsult = todayTransactions.some((t) => t.category === 'consult');
 
   return {
     points,
@@ -113,11 +169,16 @@ export function getVitalityState(): VitalityState {
       lifestyleLog: hasLifestyleLog,
       researchSearch: hasResearchSearch,
       clinicalConsult: hasClinicalConsult,
-    }
+    },
   };
 }
 
-export function awardPoints(amount: number, reason: string, category: PointsTransaction['category'] = 'checkin', dedupeKey?: string): boolean {
+export function awardPoints(
+  amount: number,
+  reason: string,
+  category: PointsTransaction['category'] = 'checkin',
+  dedupeKey?: string
+): boolean {
   if (amount <= 0) return false;
 
   const profile = getProfile();
@@ -126,7 +187,11 @@ export function awardPoints(amount: number, reason: string, category: PointsTran
   }
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const normalizedReason = reason.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 80);
+  const normalizedReason = reason
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 80);
   const effectiveDedupeKey = dedupeKey || `daily_${category}_${normalizedReason}_${todayStr}`;
 
   if (effectiveDedupeKey) {
@@ -159,9 +224,11 @@ export function awardPoints(amount: number, reason: string, category: PointsTran
   } catch {}
 
   window.dispatchEvent(new Event('hc_points_updated'));
-  window.dispatchEvent(new CustomEvent('hc_points_awarded', {
-    detail: { amount, reason, newTotal: newPoints, category }
-  }));
+  window.dispatchEvent(
+    new CustomEvent('hc_points_awarded', {
+      detail: { amount, reason, newTotal: newPoints, category },
+    })
+  );
 
   return true;
 }
@@ -194,39 +261,9 @@ export function awardSignupBonus(): void {
   awardPoints(5, 'Account Created Bonus', 'signup', 'bonus_account_signup');
 }
 
-export function awardMindfulPoints(): boolean {
-  const todayStr = new Date().toISOString().split('T')[0];
-  return awardPoints(3, '🧘 60s Mindful HRV Reset', 'mindful', `mindful_${todayStr}`);
-}
-
-export function awardTriviaPoints(): boolean {
-  const todayStr = new Date().toISOString().split('T')[0];
-  return awardPoints(2, '🧠 Longevity Brain Byte Solved', 'trivia', `trivia_${todayStr}`);
-}
-
-export function awardMysteryDrop(amount: number = 3): boolean {
-  const todayStr = getLocalDateString();
-  return awardPoints(amount, `✨ Daily Mystery Drop (+${amount} PTS)`, 'mystery', `mystery_${todayStr}`);
-}
-
-export function awardGardenBloom(amount: number = 3): boolean {
-  const todayStr = getLocalDateString();
-  return awardPoints(amount, '🌸 Daily Garden Bloom', 'mindful', `garden_bloom_${todayStr}`);
-}
-
-export function awardMythBusterPoints(): boolean {
-  const todayStr = new Date().toISOString().split('T')[0];
-  return awardPoints(2, '🔮 Clinical MythBuster Solved', 'trivia', `mythbuster_${todayStr}`);
-}
-
 export function awardPhytoPoints(): boolean {
   const todayStr = new Date().toISOString().split('T')[0];
   return awardPoints(2, '🌈 Phytonutrient Rainbow Shield', 'lifestyle', `phyto_${todayStr}`);
-}
-
-export function awardHydrationPoints(): boolean {
-  const todayStr = new Date().toISOString().split('T')[0];
-  return awardPoints(2, '💧 Optimal Cellular Osmosis Goal', 'lifestyle', `hydration_${todayStr}`);
 }
 
 export function awardMicroMovementPoints(): boolean {
@@ -254,12 +291,20 @@ export function getDailyStreak(): DailyStreakInfo {
   const garden = getGardenState();
 
   const checkDayActive = (dateStr: string): boolean => {
-    const hasCheckin = (profile?.dailyCheckins || []).some((c: any) => c?.date && c.date.startsWith(dateStr));
+    const hasCheckin = (profile?.dailyCheckins || []).some(
+      (c: any) => c?.date && c.date.startsWith(dateStr)
+    );
     if (hasCheckin) return true;
 
-    const hasPoints = (profile?.pointsHistory || []).some((h: any) => 
-      h?.date && h.date.startsWith(dateStr) && 
-      (h.category === 'checkin' || h.category === 'lifestyle' || h.category === 'mindful' || h.category === 'streak' || h.category === 'mystery')
+    const hasPoints = (profile?.pointsHistory || []).some(
+      (h: any) =>
+        h?.date &&
+        h.date.startsWith(dateStr) &&
+        (h.category === 'checkin' ||
+          h.category === 'lifestyle' ||
+          h.category === 'mindful' ||
+          h.category === 'streak' ||
+          h.category === 'mystery')
     );
     if (hasPoints) return true;
 
@@ -278,7 +323,8 @@ export function getDailyStreak(): DailyStreakInfo {
 
   const todayCompleted = checkDayActive(todayStr);
   const isDailyRewardClaimedToday = (profile?.pointsHistory || []).some(
-    (h: any) => h?.dedupeKey === `mystery_${todayStr}` || h?.dedupeKey === `garden_bloom_${todayStr}`,
+    (h: any) =>
+      h?.dedupeKey === `mystery_${todayStr}` || h?.dedupeKey === `garden_bloom_${todayStr}`
   );
 
   let streak = 0;
@@ -319,4 +365,3 @@ export function getDailyStreak(): DailyStreakInfo {
     weekActivity,
   };
 }
-

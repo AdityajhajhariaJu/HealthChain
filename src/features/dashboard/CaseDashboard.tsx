@@ -4,7 +4,6 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FeatureLoading } from '../../components/ui/FeatureLoading';
 
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { useDeferredFeature } from '../../hooks/useDeferredFeature';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessContent } from '../../services/FitnessService';
@@ -25,14 +24,15 @@ import {
   markAllVitaminsTaken,
   VitaminItem,
 } from '../../services/VitaminScheduleService';
+import { FeatureProfileDataBanner } from '../profile/components/FeatureProfileDataBanner';
 const MeditationPlayer = React.lazy(() =>
-  import('../../components/ui/MeditationPlayer').then((m) => ({ default: m.MeditationPlayer }))
+  import('../calm/MeditationPlayer').then((m) => ({ default: m.MeditationPlayer }))
 );
 const ARGroceryLens = React.lazy(() =>
   import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))
 );
 const CompleteProfileModal = React.lazy(() =>
-  import('../../components/ui/CompleteProfileModal').then((m) => ({
+  import('../profile/components/CompleteProfileModal').then((m) => ({
     default: m.CompleteProfileModal,
   }))
 );

@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const manifest = JSON.parse(await readFile(join(root, 'dist/.vite/manifest.json'), 'utf8'));
 const deferredFeatures =
-  /html2pdf|pdf-tools|SpatialGalleryCanvas|AreaChart|AccountLifecycle|CaseEngine|ProfileEngine|HealthMemory|geminiService|clinicalReasoningEngine/;
+  /html2pdf|pdf-tools|SpatialGalleryCanvas|AreaChart|AccountLifecycle|CaseEngine|ProfileEngine|HealthMemory|geminiService|clinicalReasoningEngine|supabaseClient|landingMotionFeatures/;
 
 async function checkGraph(label, keys, rawLimit, gzipLimit) {
   const visited = new Set();
@@ -36,10 +36,10 @@ async function checkGraph(label, keys, rawLimit, gzipLimit) {
   );
 }
 
-// October 2 cleanup: 662,225 raw / 196,256 gzip startup bytes. Leave room for
-// routine additions while rejecting a return to the 854,127-byte entry bundle.
-await checkGraph('Startup', ['index.html'], 750_000, 225_000);
+// Whole-app cleanup: 301,976 raw / 97,493 gzip startup bytes. Auth and feature
+// engines load after the first render; prevent eager imports from undoing this.
+await checkGraph('Startup', ['index.html'], 350_000, 110_000);
 // The landing route is lazy, so checking index.html alone misses its imports.
 const landing = Object.keys(manifest).find((key) => manifest[key].name === 'Landing');
 if (!landing) throw new Error('Missing public Landing manifest entry');
-await checkGraph('Public landing', ['index.html', landing], 850_000, 255_000);
+await checkGraph('Public landing', ['index.html', landing], 450_000, 149_000);

@@ -48,14 +48,12 @@ export interface SmartInsightItem {
 interface SmartCorrelationInsightsViewProps {
   onBack?: () => void;
   onOpenElimination?: () => void;
-  onOpenTimeline?: () => void;
   onOpenHeatmap?: () => void;
 }
 
 export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsViewProps> = ({
   onBack,
   onOpenElimination,
-  onOpenTimeline,
   onOpenHeatmap,
 }) => {
   const { diary, observations, error } = useDietReviewData();

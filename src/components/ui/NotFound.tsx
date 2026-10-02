@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { AlertCircle, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,19 +12,18 @@ export default function NotFound() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px'
+        padding: '24px',
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+      <div
+        className="hc-page-enter"
         style={{
           backgroundColor: 'var(--surface)',
           borderRadius: '24px',
           padding: '24px',
           textAlign: 'center',
           maxWidth: '500px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
         }}
       >
         <div
@@ -38,18 +36,21 @@ export default function NotFound() {
             borderRadius: '50%',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             color: '#ef4444',
-            marginBottom: '24px'
+            marginBottom: '24px',
           }}
         >
           <AlertCircle size={40} />
         </div>
-        
-        <h1 style={{ fontSize: '32px', color: 'var(--text-main)', marginBottom: '16px', margin: 0 }}>
+
+        <h1
+          style={{ fontSize: '32px', color: 'var(--text-main)', marginBottom: '16px', margin: 0 }}
+        >
           Page Not Found
         </h1>
-        
+
         <p style={{ color: 'var(--text-muted)', marginBottom: '32px', lineHeight: '1.6' }}>
-          We couldn't find the page you were looking for. It might have been moved, deleted, or never existed in the first place.
+          We couldn't find the page you were looking for. It might have been moved, deleted, or
+          never existed in the first place.
         </p>
 
         <button
@@ -71,7 +72,7 @@ export default function NotFound() {
             fontSize: '16px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'opacity 0.2s'
+            transition: 'opacity 0.2s',
           }}
           onMouseOver={(e) => (e.currentTarget.style.opacity = '0.9')}
           onMouseOut={(e) => (e.currentTarget.style.opacity = '1')}
@@ -79,7 +80,7 @@ export default function NotFound() {
           <Home size={20} />
           Return to Dashboard
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 }

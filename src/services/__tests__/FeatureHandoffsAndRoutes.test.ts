@@ -6,12 +6,12 @@ import {
   getActiveCaseId,
   setActiveCase,
 } from '../CaseEngine';
+import { getUnifiedCaseScope, validateCaseIdentifier } from '../caseWorkspace';
 import {
   FeatureId,
   getAllFeatureContracts,
   getDownstreamHandoffs,
-} from '../FeatureArchitectureContract';
-import { getUnifiedCaseScope, validateCaseIdentifier } from '../caseWorkspace';
+} from '../testFixtures/FeatureArchitectureContract';
 
 describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
   beforeEach(() => {

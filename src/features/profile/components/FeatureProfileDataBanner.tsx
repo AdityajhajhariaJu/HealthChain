@@ -11,25 +11,28 @@ import {
   X,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   getProfile,
   removeAllergy,
   removeCondition,
   removeMedication,
   saveProfile,
-} from '../../services/ProfileEngine';
+} from '../../../services/ProfileEngine';
 import {
   triggerHapticLight,
   triggerHapticSelection,
   triggerHapticSuccess,
-} from '../../services/haptics';
-import { getActiveProfileScope } from '../../services/profileScope';
+} from '../../../services/haptics';
+import { getActiveProfileScope } from '../../../services/profileScope';
 
 export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 export type AllergySeverity = 'mild' | 'moderate' | 'severe';
 
-const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+const CIRCADIAN_SLOT_META: Record<
+  CircadianSlot,
+  { label: string; icon: string; color: string; bg: string }
+> = {
   morning: { label: 'Morning', icon: '🌅', color: '#0F766E', bg: '#CCFBF1' },
   midday: { label: 'Midday', icon: '☀️', color: '#0D9488', bg: '#ECFDF5' },
   evening: { label: 'Evening', icon: '🌇', color: '#D97706', bg: '#FEF3C7' },
@@ -37,15 +40,15 @@ const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; 
 };
 
 const COMMON_CONDITIONS_META: Record<string, { icon: string; category: string }> = {
-  'Hypertension': { icon: '🩺', category: 'Cardiovascular' },
+  Hypertension: { icon: '🩺', category: 'Cardiovascular' },
   'Type 2 Diabetes': { icon: '🩸', category: 'Metabolic' },
   'GERD / Reflux': { icon: '🔥', category: 'Gastrointestinal' },
-  'Hypothyroidism': { icon: '🦋', category: 'Endocrine' },
+  Hypothyroidism: { icon: '🦋', category: 'Endocrine' },
   'PCOS / Hormonal': { icon: '🌸', category: 'Endocrine' },
   'Dysautonomia / POTS': { icon: '🫀', category: 'Autonomic' },
   'High Cholesterol': { icon: '🧬', category: 'Cardiovascular' },
   'Migraine / Cephalgia': { icon: '⚡', category: 'Neurological' },
-  'Asthma': { icon: '🫁', category: 'Respiratory' },
+  Asthma: { icon: '🫁', category: 'Respiratory' },
   'Fatty Liver': { icon: '🥩', category: 'Hepatic' },
   'Celiac Disease': { icon: '🌾', category: 'Immune' },
   'Lower Back Strain': { icon: '🦴', category: 'Kinetic' },
@@ -105,34 +108,44 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
     };
     window.addEventListener('hc_profile_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
-    return () => { window.removeEventListener('hc_profile_updated', handleUpdate); window.removeEventListener('storage', handleUpdate); };
+    return () => {
+      window.removeEventListener('hc_profile_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const demographics = profile?.demographics || {};
   const conditions = useMemo(() => {
-    return (profile?.conditions || []).map((c: any) => (typeof c === 'string' ? c : c?.name || '')).filter(Boolean);
+    return (profile?.conditions || [])
+      .map((c: any) => (typeof c === 'string' ? c : c?.name || ''))
+      .filter(Boolean);
   }, [profile?.conditions]);
 
   const medications = useMemo(() => {
-    return (profile?.medications || []).map((m: any) => {
-      if (typeof m === 'string') return { name: m, circadianSlot: 'morning' as CircadianSlot, dosage: '' };
-      return {
-        ...m,
-        name: m.name || '',
-        dosage: m.dosage || '',
-        circadianSlot: (m.circadianSlot || 'morning') as CircadianSlot
-      };
-    }).filter((m: any) => Boolean(m.name));
+    return (profile?.medications || [])
+      .map((m: any) => {
+        if (typeof m === 'string')
+          return { name: m, circadianSlot: 'morning' as CircadianSlot, dosage: '' };
+        return {
+          ...m,
+          name: m.name || '',
+          dosage: m.dosage || '',
+          circadianSlot: (m.circadianSlot || 'morning') as CircadianSlot,
+        };
+      })
+      .filter((m: any) => Boolean(m.name));
   }, [profile?.medications]);
 
   const allergies = useMemo(() => {
-    return (profile?.allergies || []).map((a: any) => {
-      if (typeof a === 'string') return { name: a, severity: 'moderate' as AllergySeverity };
-      return {
-        name: a.name || '',
-        severity: (a.severity || 'moderate') as AllergySeverity
-      };
-    }).filter((a: any) => Boolean(a.name));
+    return (profile?.allergies || [])
+      .map((a: any) => {
+        if (typeof a === 'string') return { name: a, severity: 'moderate' as AllergySeverity };
+        return {
+          name: a.name || '',
+          severity: (a.severity || 'moderate') as AllergySeverity,
+        };
+      })
+      .filter((a: any) => Boolean(a.name));
   }, [profile?.allergies]);
 
   // Quick remove handlers
@@ -155,19 +168,35 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
   };
 
   const hasData = Boolean(
-    demographics.age || demographics.height || demographics.weight ||
-    conditions.length > 0 || medications.length > 0 || allergies.length > 0
+    demographics.age ||
+    demographics.height ||
+    demographics.weight ||
+    conditions.length > 0 ||
+    medications.length > 0 ||
+    allergies.length > 0
   );
 
   // Edit Modal Form State
-  const [editAge, setEditAge] = useState<number | ''>(demographics.age ? Number(demographics.age) : '');
-  const [editGender, setEditGender] = useState<'' | 'Male' | 'Female' | 'Other'>(demographics.gender || '');
-  const [editHeight, setEditHeight] = useState<number | ''>(demographics.height ? Number(demographics.height) : '');
-  const [editWeight, setEditWeight] = useState<number | ''>(demographics.weight ? Number(demographics.weight) : '');
+  const [editAge, setEditAge] = useState<number | ''>(
+    demographics.age ? Number(demographics.age) : ''
+  );
+  const [editGender, setEditGender] = useState<'' | 'Male' | 'Female' | 'Other'>(
+    demographics.gender || ''
+  );
+  const [editHeight, setEditHeight] = useState<number | ''>(
+    demographics.height ? Number(demographics.height) : ''
+  );
+  const [editWeight, setEditWeight] = useState<number | ''>(
+    demographics.weight ? Number(demographics.weight) : ''
+  );
   const [editConditions, setEditConditions] = useState<string[]>([]);
   const [editCustomCond, setEditCustomCond] = useState<string>('');
-  const [editMeds, setEditMeds] = useState<{ id?: string; name: string; slot: CircadianSlot; dosage?: string }[]>([]);
-  const [editAllergies, setEditAllergies] = useState<{ name: string; severity: AllergySeverity }[]>([]);
+  const [editMeds, setEditMeds] = useState<
+    { id?: string; name: string; slot: CircadianSlot; dosage?: string }[]
+  >([]);
+  const [editAllergies, setEditAllergies] = useState<{ name: string; severity: AllergySeverity }[]>(
+    []
+  );
 
   const openModal = () => {
     triggerHapticSelection();
@@ -180,27 +209,57 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
     setEditGender(latestDemographics.gender || '');
     setEditHeight(latestDemographics.height ? Number(latestDemographics.height) : '');
     setEditWeight(latestDemographics.weight ? Number(latestDemographics.weight) : '');
-    setEditConditions((latest.conditions || []).map((item: any) => typeof item === 'string' ? item : item?.name || '').filter(Boolean));
-    setEditMeds((latest.medications || []).map((item: any) => typeof item === 'string'
-      ? { name: item, slot: 'morning' as CircadianSlot, dosage: '' }
-      : { id: item.id, name: item.name, slot: (item.circadianSlot || 'morning') as CircadianSlot, dosage: item.dosage || '' }).filter((item: any) => Boolean(item.name)));
-    setEditAllergies((latest.allergies || []).map((item: any) => typeof item === 'string'
-      ? { name: item, severity: 'moderate' as AllergySeverity }
-      : { name: item.name, severity: (item.severity || 'moderate') as AllergySeverity }).filter((item: any) => Boolean(item.name)));
+    setEditConditions(
+      (latest.conditions || [])
+        .map((item: any) => (typeof item === 'string' ? item : item?.name || ''))
+        .filter(Boolean)
+    );
+    setEditMeds(
+      (latest.medications || [])
+        .map((item: any) =>
+          typeof item === 'string'
+            ? { name: item, slot: 'morning' as CircadianSlot, dosage: '' }
+            : {
+                id: item.id,
+                name: item.name,
+                slot: (item.circadianSlot || 'morning') as CircadianSlot,
+                dosage: item.dosage || '',
+              }
+        )
+        .filter((item: any) => Boolean(item.name))
+    );
+    setEditAllergies(
+      (latest.allergies || [])
+        .map((item: any) =>
+          typeof item === 'string'
+            ? { name: item, severity: 'moderate' as AllergySeverity }
+            : { name: item.name, severity: (item.severity || 'moderate') as AllergySeverity }
+        )
+        .filter((item: any) => Boolean(item.name))
+    );
     setIsEditModalOpen(true);
   };
 
   const handleSaveModal = async () => {
-    if (editScope.current !== getActiveProfileScope()) { setIsEditModalOpen(false); return; }
-    if ([editAge, editHeight, editWeight].some(value => value !== '' && (!Number.isFinite(value) || Number(value) <= 0))) {
-      setEditError('Enter positive values or leave unknown measurements blank.'); return;
+    if (editScope.current !== getActiveProfileScope()) {
+      setIsEditModalOpen(false);
+      return;
+    }
+    if (
+      [editAge, editHeight, editWeight].some(
+        (value) => value !== '' && (!Number.isFinite(value) || Number(value) <= 0)
+      )
+    ) {
+      setEditError('Enter positive values or leave unknown measurements blank.');
+      return;
     }
     triggerHapticSuccess();
     const updated = { ...getProfile() };
-    
+
     // Compute BMI
     const hM = Number(editHeight) / 100;
-    const computedBmi = editHeight && editWeight ? Math.round((Number(editWeight) / (hM * hM)) * 10) / 10 : null;
+    const computedBmi =
+      editHeight && editWeight ? Math.round((Number(editWeight) / (hM * hM)) * 10) / 10 : null;
     let bmiCategory = '';
     if (computedBmi === null) bmiCategory = '';
     else if (computedBmi < 18.5) bmiCategory = 'Underweight';
@@ -215,18 +274,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
       height: String(editHeight),
       weight: String(editWeight),
       bmi: computedBmi,
-      bmiCategory
+      bmiCategory,
     };
 
     updated.conditions = editConditions;
-    updated.medications = editMeds.map(m => ({
-      ...(updated.medications || []).find((original: any) => m.id ? original.id === m.id : original.name === m.name),
+    updated.medications = editMeds.map((m) => ({
+      ...(updated.medications || []).find((original: any) =>
+        m.id ? original.id === m.id : original.name === m.name
+      ),
       name: m.name,
       dosage: m.dosage || '',
       circadianSlot: m.slot,
     }));
-    updated.allergies = editAllergies.map(a => ({
-      ...(updated.allergies || []).find((original: any) => original?.name === a.name), ...a,
+    updated.allergies = editAllergies.map((a) => ({
+      ...(updated.allergies || []).find((original: any) => original?.name === a.name),
+      ...a,
     }));
 
     await saveProfile(updated);
@@ -238,7 +300,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
       <div
         className={`feature-profile-data-banner ${className}`}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(240, 253, 250, 0.9) 100%)',
+          background:
+            'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(240, 253, 250, 0.9) 100%)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '18px',
@@ -250,11 +313,19 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           flexDirection: 'column',
           gap: '10px',
           position: 'relative',
-          ...style
+          ...style,
         }}
       >
         {/* Header Row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
@@ -265,17 +336,34 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: accentColor
+                color: accentColor,
               }}
             >
               <ShieldCheck size={16} />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#047857',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Saved Health Profile • {featureName}
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px', background: '#DCFCE7', color: '#15803D' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '999px',
+                    background: '#DCFCE7',
+                    color: '#15803D',
+                  }}
+                >
                   Active
                 </span>
               </div>
@@ -307,7 +395,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
               minHeight: 'unset',
               height: 'auto',
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              transition: 'all 0.15s ease'
+              transition: 'all 0.15s ease',
             }}
           >
             <Edit3 size={12} /> Edit Baseline
@@ -316,11 +404,22 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
         {/* Organized Health Profile Sections (Categorized & Compact) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
-          
           {/* 1. Biometrics & Demographics */}
           {(demographics.age || demographics.height || demographics.weight) && (
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px' }}>
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  minWidth: '78px',
+                }}
+              >
                 <Activity size={12} strokeWidth={2.4} /> Vitals
               </span>
               <span
@@ -335,7 +434,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                   fontSize: '11px',
                   fontWeight: 700,
                   color: '#1E293B',
-                  lineHeight: 1.2
+                  lineHeight: 1.2,
                 }}
               >
                 <span>
@@ -351,13 +450,39 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
           {/* 2. Diagnosed Conditions */}
           {conditions.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}
+            >
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#047857',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  minWidth: '78px',
+                  paddingTop: '3px',
+                }}
+              >
                 <Stethoscope size={12} strokeWidth={2.4} /> Conditions
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '5px',
+                  flex: 1,
+                }}
+              >
                 {conditions.map((cName) => {
-                  const meta = COMMON_CONDITIONS_META[cName] || { icon: '🩺', category: 'Clinical' };
+                  const meta = COMMON_CONDITIONS_META[cName] || {
+                    icon: '🩺',
+                    category: 'Clinical',
+                  };
                   return (
                     <span
                       key={cName}
@@ -373,7 +498,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         fontWeight: 700,
                         color: '#047857',
                         lineHeight: 1.2,
-                        boxShadow: '0 1px 2px rgba(5, 150, 105, 0.05)'
+                        boxShadow: '0 1px 2px rgba(5, 150, 105, 0.05)',
                       }}
                     >
                       <span style={{ fontSize: '11.5px' }}>{meta.icon}</span>
@@ -399,7 +524,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                           width: '13px',
                           height: '13px',
                           borderRadius: '50%',
-                          opacity: 0.75
+                          opacity: 0.75,
                         }}
                       >
                         <X size={10} />
@@ -413,13 +538,37 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
           {/* 3. Chrono-Medications & Supplements */}
           {medications.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}
+            >
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#0F766E',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  minWidth: '78px',
+                  paddingTop: '3px',
+                }}
+              >
                 <Pill size={12} strokeWidth={2.4} /> Meds / Vit
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '5px',
+                  flex: 1,
+                }}
+              >
                 {medications.map((m) => {
-                  const slotMeta = CIRCADIAN_SLOT_META[m.circadianSlot] || CIRCADIAN_SLOT_META.morning;
+                  const slotMeta =
+                    CIRCADIAN_SLOT_META[m.circadianSlot] || CIRCADIAN_SLOT_META.morning;
                   return (
                     <span
                       key={m.id || m.name}
@@ -435,13 +584,19 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         fontWeight: 700,
                         color: slotMeta.color,
                         lineHeight: 1.2,
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                       }}
                     >
                       <span style={{ fontSize: '11px' }}>{slotMeta.icon}</span>
                       <span>{m.name}</span>
-                      <span style={{ fontSize: '9.5px', opacity: 0.8, textTransform: 'capitalize' }}>• {slotMeta.label}</span>
-                      {m.dosage && <span style={{ fontSize: '9.5px', opacity: 0.7 }}>({m.dosage})</span>}
+                      <span
+                        style={{ fontSize: '9.5px', opacity: 0.8, textTransform: 'capitalize' }}
+                      >
+                        • {slotMeta.label}
+                      </span>
+                      {m.dosage && (
+                        <span style={{ fontSize: '9.5px', opacity: 0.7 }}>({m.dosage})</span>
+                      )}
                       <button
                         type="button"
                         data-compact="true"
@@ -463,7 +618,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                           width: '13px',
                           height: '13px',
                           borderRadius: '50%',
-                          opacity: 0.75
+                          opacity: 0.75,
                         }}
                       >
                         <X size={10} />
@@ -477,11 +632,34 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
           {/* 4. Allergies & Sensitivities */}
           {allergies.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: '78px', paddingTop: '3px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}
+            >
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#BE123C',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  minWidth: '78px',
+                  paddingTop: '3px',
+                }}
+              >
                 <Shield size={12} strokeWidth={2.4} /> Allergies
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '5px',
+                  flex: 1,
+                }}
+              >
                 {allergies.map((a) => (
                   <span
                     key={a.name}
@@ -497,7 +675,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       fontWeight: 700,
                       color: '#BE123C',
                       lineHeight: 1.2,
-                      boxShadow: '0 1px 2px rgba(190, 18, 60, 0.04)'
+                      boxShadow: '0 1px 2px rgba(190, 18, 60, 0.04)',
                     }}
                   >
                     <span style={{ fontSize: '11px' }}>💉</span>
@@ -524,7 +702,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         width: '13px',
                         height: '13px',
                         borderRadius: '50%',
-                        opacity: 0.75
+                        opacity: 0.75,
                       }}
                     >
                       <X size={10} />
@@ -539,7 +717,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {!hasData && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic' }}>
-                No saved profile context yet. Choose “Edit profile” to add optional biometrics and conditions.
+                No saved profile context yet. Choose “Edit profile” to add optional biometrics and
+                conditions.
               </span>
             </div>
           )}
@@ -565,13 +744,12 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 cursor: 'pointer',
                 minWidth: 'unset',
                 minHeight: 'unset',
-                height: 'auto'
+                height: 'auto',
               }}
             >
               <Plus size={11} /> Add Condition, Med or Allergy
             </button>
           </div>
-
         </div>
       </div>
 
@@ -654,30 +832,72 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
               </div>
 
               {/* Modal Body */}
-              <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div
+                style={{
+                  padding: '20px 22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px',
+                }}
+              >
                 {editError && <p role="alert">{editError}</p>}
                 {/* 1. Biometrics */}
                 <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 10px 0',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.4px',
+                    }}
+                  >
                     1. Biometrics & Demographics
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
+                      gap: '10px',
+                    }}
+                  >
                     <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Age</label>
+                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                        Age
+                      </label>
                       <input
                         type="number"
                         aria-label="Age"
                         value={editAge}
-                        onChange={(e) => setEditAge(e.target.value === '' ? '' : Number(e.target.value))}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
+                        onChange={(e) =>
+                          setEditAge(e.target.value === '' ? '' : Number(e.target.value))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                        }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Sex</label>
+                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                        Sex
+                      </label>
                       <select
                         value={editGender}
                         onChange={(e) => setEditGender(e.target.value as any)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                        }}
                       >
                         <option value="">Not entered</option>
                         <option value="Male">Male</option>
@@ -686,23 +906,45 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Height (cm)</label>
+                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                        Height (cm)
+                      </label>
                       <input
                         type="number"
                         aria-label="Height"
                         value={editHeight}
-                        onChange={(e) => setEditHeight(e.target.value === '' ? '' : Number(e.target.value))}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
+                        onChange={(e) =>
+                          setEditHeight(e.target.value === '' ? '' : Number(e.target.value))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                        }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Weight (kg)</label>
+                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                        Weight (kg)
+                      </label>
                       <input
                         type="number"
                         aria-label="Weight"
                         value={editWeight}
-                        onChange={(e) => setEditWeight(e.target.value === '' ? '' : Number(e.target.value))}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700 }}
+                        onChange={(e) =>
+                          setEditWeight(e.target.value === '' ? '' : Number(e.target.value))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                        }}
                       />
                     </div>
                   </div>
@@ -710,10 +952,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
                 {/* 2. Conditions */}
                 <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 10px 0',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.4px',
+                    }}
+                  >
                     2. Diagnosed Conditions ({editConditions.length})
                   </h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                  <div
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}
+                  >
                     {Object.entries(COMMON_CONDITIONS_META).map(([name, meta]) => {
                       const isSelected = editConditions.includes(name);
                       return (
@@ -724,8 +977,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                           className="btn-compact"
                           onClick={() => {
                             triggerHapticSelection();
-                            setEditConditions(prev => 
-                              prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
+                            setEditConditions((prev) =>
+                              prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
                             );
                           }}
                           style={{
@@ -741,7 +994,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             minHeight: 'unset',
                             height: 'auto',
                             border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)' : '#F8FAFC',
+                            background: isSelected
+                              ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
+                              : '#F8FAFC',
                             color: isSelected ? '#0F766E' : '#475569',
                             boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                           }}
@@ -762,25 +1017,49 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
-                          if (editCustomCond.trim() && !editConditions.includes(editCustomCond.trim())) {
-                            setEditConditions(prev => [...prev, editCustomCond.trim()]);
+                          if (
+                            editCustomCond.trim() &&
+                            !editConditions.includes(editCustomCond.trim())
+                          ) {
+                            setEditConditions((prev) => [...prev, editCustomCond.trim()]);
                             setEditCustomCond('');
                           }
                         }
                       }}
-                      style={{ flex: 1, padding: '7px 12px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '12.5px' }}
+                      style={{
+                        flex: 1,
+                        padding: '7px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '12.5px',
+                      }}
                     />
                     <button
                       type="button"
                       data-compact="true"
                       className="btn-compact"
                       onClick={() => {
-                        if (editCustomCond.trim() && !editConditions.includes(editCustomCond.trim())) {
-                          setEditConditions(prev => [...prev, editCustomCond.trim()]);
+                        if (
+                          editCustomCond.trim() &&
+                          !editConditions.includes(editCustomCond.trim())
+                        ) {
+                          setEditConditions((prev) => [...prev, editCustomCond.trim()]);
                           setEditCustomCond('');
                         }
                       }}
-                      style={{ background: '#0F766E', color: '#FFF', border: 'none', borderRadius: '10px', padding: '0 12px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', minWidth: 'unset', minHeight: 'unset', height: '36px' }}
+                      style={{
+                        background: '#0F766E',
+                        color: '#FFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0 12px',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        height: '36px',
+                      }}
                     >
                       Add
                     </button>
@@ -789,25 +1068,40 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
                 {/* 3. Chrono-Medications */}
                 <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 10px 0',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.4px',
+                    }}
+                  >
                     3. Regular Medications ({editMeds.length})
                   </h4>
-                  <p style={{ fontSize: '12px', color: '#64748B' }}>This list is shared with Daily Meds &amp; Vitamins. Enter exact reminder times there; a time of day here does not schedule a dose.</p>
+                  <p style={{ fontSize: '12px', color: '#64748B' }}>
+                    This list is shared with Daily Meds &amp; Vitamins. Enter exact reminder times
+                    there; a time of day here does not schedule a dose.
+                  </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {PRESET_MEDS_LIST.map((m) => {
-                      const active = editMeds.find(item => item.name === m.name);
+                      const active = editMeds.find((item) => item.name === m.name);
                       const isSelected = Boolean(active);
                       return (
-                        <div key={m.name} style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}>
+                        <div
+                          key={m.name}
+                          style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}
+                        >
                           <button
                             type="button"
                             data-compact="true"
                             className="btn-compact"
                             onClick={() => {
                               triggerHapticSelection();
-                              setEditMeds(prev => {
-                                const exists = prev.find(item => item.name === m.name);
-                                if (exists) return prev.filter(item => item.name !== m.name);
+                              setEditMeds((prev) => {
+                                const exists = prev.find((item) => item.name === m.name);
+                                if (exists) return prev.filter((item) => item.name !== m.name);
                                 return [...prev, { name: m.name, slot: m.slot, dosage: '' }];
                               });
                             }}
@@ -824,7 +1118,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                               minHeight: 'unset',
                               height: 'auto',
                               border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)' : '#F8FAFC',
+                              background: isSelected
+                                ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
+                                : '#F8FAFC',
                               color: isSelected ? '#0F766E' : '#475569',
                               boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                             }}
@@ -832,41 +1128,51 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             <Pill size={11} /> {m.name}
                             {isSelected && <Check size={11} color="#0D9488" strokeWidth={2.8} />}
                           </button>
-                          {isSelected && active && !medications.some(med => med.name === m.name && med.time) && (
-                            <div style={{ display: 'flex', gap: 2 }}>
-                              {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
-                                const isCurrent = active.slot === slot;
-                                const meta = CIRCADIAN_SLOT_META[slot];
-                                return (
-                                  <button
-                                    key={slot}
-                                    type="button"
-                                    data-compact="true"
-                                    className="btn-compact"
-                                    onClick={() => {
-                                      triggerHapticLight();
-                                      setEditMeds(prev => prev.map(item => item.name === m.name ? { ...item, slot } : item));
-                                    }}
-                                    style={{
-                                      fontSize: '9.5px',
-                                      padding: '2px 5px',
-                                      borderRadius: '4px',
-                                      border: isCurrent ? `1px solid ${meta.color}` : '1px solid #E2E8F0',
-                                      background: isCurrent ? meta.bg : '#FFF',
-                                      color: isCurrent ? meta.color : '#64748B',
-                                      fontWeight: isCurrent ? 800 : 500,
-                                      cursor: 'pointer',
-                                      minWidth: 'unset',
-                                      minHeight: 'unset',
-                                      height: 'auto'
-                                    }}
-                                  >
-                                    {meta.icon}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
+                          {isSelected &&
+                            active &&
+                            !medications.some((med) => med.name === m.name && med.time) && (
+                              <div style={{ display: 'flex', gap: 2 }}>
+                                {(
+                                  ['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]
+                                ).map((slot) => {
+                                  const isCurrent = active.slot === slot;
+                                  const meta = CIRCADIAN_SLOT_META[slot];
+                                  return (
+                                    <button
+                                      key={slot}
+                                      type="button"
+                                      data-compact="true"
+                                      className="btn-compact"
+                                      onClick={() => {
+                                        triggerHapticLight();
+                                        setEditMeds((prev) =>
+                                          prev.map((item) =>
+                                            item.name === m.name ? { ...item, slot } : item
+                                          )
+                                        );
+                                      }}
+                                      style={{
+                                        fontSize: '9.5px',
+                                        padding: '2px 5px',
+                                        borderRadius: '4px',
+                                        border: isCurrent
+                                          ? `1px solid ${meta.color}`
+                                          : '1px solid #E2E8F0',
+                                        background: isCurrent ? meta.bg : '#FFF',
+                                        color: isCurrent ? meta.color : '#64748B',
+                                        fontWeight: isCurrent ? 800 : 500,
+                                        cursor: 'pointer',
+                                        minWidth: 'unset',
+                                        minHeight: 'unset',
+                                        height: 'auto',
+                                      }}
+                                    >
+                                      {meta.icon}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                         </div>
                       );
                     })}
@@ -875,12 +1181,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
                 {/* 4. Allergies */}
                 <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 10px 0',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.4px',
+                    }}
+                  >
                     4. Known Allergies ({editAllergies.length})
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {PRESET_ALLERGIES_LIST.map((a) => {
-                      const isSelected = editAllergies.some(item => item.name === a.name);
+                      const isSelected = editAllergies.some((item) => item.name === a.name);
                       return (
                         <button
                           key={a.name}
@@ -889,9 +1204,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                           className="btn-compact"
                           onClick={() => {
                             triggerHapticSelection();
-                            setEditAllergies(prev => {
-                              const exists = prev.find(item => item.name === a.name);
-                              if (exists) return prev.filter(item => item.name !== a.name);
+                            setEditAllergies((prev) => {
+                              const exists = prev.find((item) => item.name === a.name);
+                              if (exists) return prev.filter((item) => item.name !== a.name);
                               return [...prev, { name: a.name, severity: a.defaultSeverity }];
                             });
                           }}
@@ -908,7 +1223,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             minHeight: 'unset',
                             height: 'auto',
                             border: isSelected ? '1.5px solid #F43F5E' : '1px solid #E2E8F0',
-                            background: isSelected ? 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)' : '#F8FAFC',
+                            background: isSelected
+                              ? 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)'
+                              : '#F8FAFC',
                             color: isSelected ? '#BE123C' : '#475569',
                             boxShadow: isSelected ? '0 2px 8px rgba(244, 63, 94, 0.15)' : 'none',
                           }}
@@ -933,7 +1250,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                   gap: '10px',
                   background: '#F8FAFC',
                   borderBottomLeftRadius: '24px',
-                  borderBottomRightRadius: '24px'
+                  borderBottomRightRadius: '24px',
                 }}
               >
                 <button
@@ -951,7 +1268,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     fontWeight: 700,
                     cursor: 'pointer',
                     minWidth: 'unset',
-                    minHeight: 'unset'
+                    minHeight: 'unset',
                   }}
                 >
                   Cancel
@@ -972,7 +1289,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     cursor: 'pointer',
                     minWidth: 'unset',
                     minHeight: 'unset',
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)'
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
                   }}
                 >
                   Save Baseline & Sync Across Features

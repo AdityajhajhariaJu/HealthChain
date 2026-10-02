@@ -46,7 +46,13 @@ test('a draft remains visible and connects My Cases, Ava, and the engine', async
   await page.goto(`/app/consult?caseId=${caseId}&review=new`, { waitUntil: 'domcontentloaded' });
   await advanceToClinicalStep(page, 6);
   await expect(page.getByLabel('Where should this review be saved?')).toHaveValue(caseId!);
-  await expect(page.getByText(/Clinical Timeline.*12 words/)).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Review input summary' })
+      .getByText('My energy changes after lunch. I want to prepare for my appointment.', {
+        exact: true,
+      })
+  ).toBeVisible();
   await expect(page.getByText('Uses this case’s saved context.')).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-engine-desktop.png', fullPage: true });
 });
@@ -135,13 +141,11 @@ test('the engine rejects unsupported documents and preserves written notes', asy
   const notes = page.getByRole('textbox', { name: 'Clinical timeline and symptom notes' });
   await notes.fill('My own timeline, with no invented measurements.');
   await page.getByRole('button', { name: 'Next: Add Evidence (Step 5)' }).click();
-  await page
-    .getByLabel('Upload medical records, lab reports, or health documents')
-    .setInputFiles({
-      name: 'not-a-report.txt',
-      mimeType: 'text/plain',
-      buffer: Buffer.from('text'),
-    });
+  await page.getByLabel('Upload medical records, lab reports, or health documents').setInputFiles({
+    name: 'not-a-report.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('text'),
+  });
   await expect(page.getByText('Unsupported document', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '← Back to Story' }).click();
   await expect(notes).toHaveValue('My own timeline, with no invented measurements.');
@@ -197,5 +201,8 @@ test('Ava retries a failed reply without duplicating the question or spending tr
   expect(
     requests[requests.length - 1].avaRequest.messages.filter((entry: any) => entry.role === 'user')
   ).toHaveLength(1);
-  expect(await page.evaluate(() => localStorage.getItem('hc_trial_ava_count'))).toBe('1');
+  // Rendering the reply precedes its durable save and successful-use marker.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('hc_trial_ava_count')))
+    .toBe('1');
 });

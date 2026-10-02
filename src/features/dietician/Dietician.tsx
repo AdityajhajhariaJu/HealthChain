@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { planningConstraintSnapshot } from '../../../shared/health-source-freshness';
 import { FeatureLoading } from '../../components/ui/FeatureLoading';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
+import { useMountedRef } from '../../hooks/useMountedRef';
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 const ARGroceryLens = React.lazy(() =>
   import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))
@@ -135,14 +136,14 @@ import { GroceryControls } from './GroceryControls';
 import { MealDetailsFields, emptyMealDetails, mealDetailsEntry } from './MealDetailsFields';
 
 import {
-  calculateTargets,
-  withFoodLocation,
-  getInitialDietProfile,
-  resolveTabKey,
-  formatLocalDate,
-  parseLocalDate,
-  QUICK_PRESETS,
   PANTRY_STAPLES,
+  QUICK_PRESETS,
+  calculateTargets,
+  formatLocalDate,
+  getInitialDietProfile,
+  parseLocalDate,
+  resolveTabKey,
+  withFoodLocation,
   type DietTab,
 } from './dietWorkspace';
 
@@ -575,13 +576,7 @@ export default function Dietician() {
   }, [profile, foodLogs, hydration, mealPlan, currentDate]);
 
   const adviceFetched = useRef(false);
-  const isMounted = useRef(true);
-
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  const isMounted = useMountedRef();
 
   // Keyboard dismissals for all interactive modals
   useEffect(() => {
@@ -729,8 +724,6 @@ export default function Dietician() {
   if (!profile) {
     return <OnboardingWizard onComplete={handleSaveProfile} />;
   }
-
-  const waterGlasses = hydration[currentDate] || 0;
 
   const handleAddFood = async (estimate = false) => {
     if (isAnalyzingFood || !foodInput.trim()) return;
@@ -2202,7 +2195,6 @@ export default function Dietician() {
               profile={profile}
               foodLogs={foodLogs}
               currentDate={currentDate}
-              waterGlasses={waterGlasses}
               onLogMeal={(mealName: string) => {
                 setSelectedMealType(mealName);
                 setIsLoggingFood(true);
@@ -2210,7 +2202,6 @@ export default function Dietician() {
               onDeleteMeal={handleDeleteFood}
               onEditMeal={handleStartDiaryCorrection}
               onUpdateHydration={handleUpdateHydration}
-              onSnap={() => setShowARLens(true)}
               onOpenSettings={() => {
                 triggerHapticLight();
                 setIsEditingProfile(true);
@@ -2359,7 +2350,6 @@ export default function Dietician() {
                 triggerHapticSelection();
                 openEliminationSuiteModal();
               }}
-              onOpenTimeline={() => setActiveTab('sensitivities')}
               onOpenHeatmap={() => setActiveTab('calendar')}
             />
           </motion.div>
