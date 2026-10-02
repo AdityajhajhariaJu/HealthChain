@@ -8,6 +8,7 @@ import {
 } from './HealthObservationService';
 import { getProfile, getProfileEngineState, getProfileKey, saveProfile } from './ProfileEngine';
 import { getAccountScope } from './RunContext';
+import { completeActivity } from './GamificationHub';
 
 export type GutIntent = 'understand' | 'decide' | 'now' | 'care';
 export type GutSymptom =
@@ -527,7 +528,13 @@ export async function createGutThread(input: {
     createdAt: now,
     updatedAt: now,
   };
-  return (await writeThreads([thread, ...listGutThreads()])) ? thread : null;
+  if (!(await writeThreads([thread, ...listGutThreads()]))) return null;
+  try {
+    completeActivity('reflection.saved', thread.id, `${current.ownerKey}:${current.profileId}`);
+  } catch {
+    /* A reward error never discards a saved question. */
+  }
+  return thread;
 }
 
 export async function updateGutThread(
@@ -676,9 +683,31 @@ export async function updateGutThread(
       title: updated.reflection || 'Follow-up cleared',
     });
   updated.activity = activity.slice(-120);
-  return (await writeThreads(threads.map((item) => (item.id === threadId ? updated : item))))
-    ? updated
-    : null;
+  if (!(await writeThreads(threads.map((item) => (item.id === threadId ? updated : item)))))
+    return null;
+  try {
+    const expectedScope = `${original.ownerKey}:${original.profileId}`;
+    if (updated.reviewedResearch?.sources.length && patch.reviewedResearch)
+      completeActivity(
+        'research.saved',
+        `${threadId}:${updated.reviewedResearch.sources
+          .map((source) => source.id)
+          .sort()
+          .join(',')}`,
+        expectedScope
+      );
+    if (patch.reflection && updated.reflection !== original.reflection)
+      completeActivity(
+        'reflection.saved',
+        `${threadId}:reflection:${updated.updatedAt}`,
+        expectedScope
+      );
+    if (patch.selectedStep && updated.selectedStep !== original.selectedStep)
+      completeActivity('preparation.saved', `${threadId}:step:${updated.updatedAt}`, expectedScope);
+  } catch {
+    /* The saved thread remains independent of reward storage. */
+  }
+  return updated;
 }
 
 /** Record a real follow-up even when the user leaves the optional note blank. */

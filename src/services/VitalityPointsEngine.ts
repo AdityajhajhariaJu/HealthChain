@@ -1,15 +1,7 @@
 import { triggerHapticSuccess } from './haptics';
-import { getProfile, saveProfile } from './ProfileEngine';
-import { getHabitStorageKey } from './profileScope';
-import { getItemSync } from './storage';
-import { getGardenState } from './WellnessGardenService';
-
-function getLocalDateString(date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { getProfile } from './ProfileEngine';
+import { getGamificationHub, reportLegacyActivity } from './GamificationHub';
+import { activityDay } from './gamification/model';
 
 export interface PointsTransaction {
   id: string;
@@ -103,27 +95,24 @@ export const TIERS: VitalityTier[] = [
   },
 ];
 
-const generateId = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return 'pts_' + crypto.randomUUID().replace(/-/g, '').substring(0, 9);
-  }
-  return 'pts_' + Math.random().toString(36).substr(2, 9);
-};
-
 export function getVitalityPoints(): number {
-  ensureWelcomeGrant();
-  const profile = getProfile();
-  return typeof profile?.points === 'number' ? profile.points : 5;
+  return getGamificationHub().points;
 }
 
 export function getVitalityState(): VitalityState {
-  ensureWelcomeGrant();
-  const profile = getProfile();
-  const points = typeof profile?.points === 'number' ? profile.points : 5;
-  const history: PointsTransaction[] = profile?.pointsHistory || [];
-
-  const lifetimeEarned =
-    history.reduce((acc, h) => acc + (h.amount > 0 ? h.amount : 0), 0) || points;
+  const hub = getGamificationHub();
+  const points = hub.points;
+  const history: PointsTransaction[] = hub.history
+    .filter((item) => item.points > 0)
+    .slice(0, 120)
+    .map((item) => ({
+      id: item.id,
+      amount: item.points,
+      reason: item.title,
+      category: item.category,
+      date: item.at,
+    }));
+  const lifetimeEarned = hub.lifetimeEarned;
 
   let currentTier: VitalityTier = TIERS[0];
   for (let i = TIERS.length - 1; i >= 0; i--) {
@@ -141,18 +130,11 @@ export function getVitalityState(): VitalityState {
       : Math.min(100, Math.round((progressInTier / (tierSpan + 1)) * 100));
   const pointsToNextTier = currentTier.level === 4 ? 0 : Math.max(0, currentTier.max + 1 - points);
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayTransactions = history.filter((h) => h.date && h.date.startsWith(todayStr));
-
-  const hasDailyCheckin = (profile?.dailyCheckins || []).some(
-    (c: any) => c.date && c.date.startsWith(todayStr)
-  );
-  const hasLifestyleLog = (profile?.dailyCheckins || []).some(
-    (c: any) =>
-      c.date && c.date.startsWith(todayStr) && c.lifestyle && Object.keys(c.lifestyle).length > 0
-  );
-  const hasResearchSearch = todayTransactions.some((t) => t.category === 'research');
-  const hasClinicalConsult = todayTransactions.some((t) => t.category === 'consult');
+  const today = hub.history.filter((item) => item.day === hub.today);
+  const hasDailyCheckin = today.some((item) => item.type === 'record.saved');
+  const hasLifestyleLog = hasDailyCheckin;
+  const hasResearchSearch = today.some((item) => item.type === 'research.saved');
+  const hasClinicalConsult = today.some((item) => item.type === 'preparation.saved');
 
   return {
     points,
@@ -173,88 +155,24 @@ export function getVitalityState(): VitalityState {
   };
 }
 
+/** Existing feature APIs delegate all eligibility and amounts to the shared hub. */
 export function awardPoints(
   amount: number,
   reason: string,
   category: PointsTransaction['category'] = 'checkin',
   dedupeKey?: string
 ): boolean {
-  if (amount <= 0) return false;
-
-  const profile = getProfile();
-  if (!profile.pointsHistory) {
-    profile.pointsHistory = [];
-  }
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const normalizedReason = reason
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 80);
-  const effectiveDedupeKey = dedupeKey || `daily_${category}_${normalizedReason}_${todayStr}`;
-
-  if (effectiveDedupeKey) {
-    const exists = profile.pointsHistory.some((h: any) => h.dedupeKey === effectiveDedupeKey);
-    if (exists) return false;
-  }
-
-  const currentPoints = typeof profile.points === 'number' ? profile.points : 5;
-  const newPoints = currentPoints + amount;
-  profile.points = newPoints;
-
-  const transaction: PointsTransaction & { dedupeKey?: string } = {
-    id: generateId(),
-    amount,
-    reason,
-    category,
-    date: new Date().toISOString(),
-    dedupeKey: effectiveDedupeKey,
-  };
-
-  profile.pointsHistory.unshift(transaction);
-  if (profile.pointsHistory.length > 100) {
-    profile.pointsHistory = profile.pointsHistory.slice(0, 100);
-  }
-
-  saveProfile(profile);
-
+  if (!Number.isFinite(amount) || amount <= 0) return false;
   try {
-    triggerHapticSuccess();
-  } catch {}
-
-  window.dispatchEvent(new Event('hc_points_updated'));
-  window.dispatchEvent(
-    new CustomEvent('hc_points_awarded', {
-      detail: { amount, reason, newTotal: newPoints, category },
-    })
-  );
-
-  return true;
+    const result = reportLegacyActivity(reason, category, dedupeKey);
+    if (result.points) triggerHapticSuccess();
+    return result.saved && result.points > 0;
+  } catch {
+    return false;
+  }
 }
-
 export function ensureWelcomeGrant(): void {
-  try {
-    const profile = getProfile();
-    if (typeof profile.points !== 'number' || profile.points < 5) {
-      profile.points = 5;
-      if (!profile.pointsHistory) profile.pointsHistory = [];
-      const hasWelcome = profile.pointsHistory.some((h: any) => h.category === 'welcome');
-      if (!hasWelcome) {
-        profile.pointsHistory.unshift({
-          id: generateId(),
-          amount: 5,
-          reason: 'Welcome Health Grant',
-          category: 'welcome',
-          date: new Date().toISOString(),
-        });
-      }
-      saveProfile(profile);
-      window.dispatchEvent(new Event('hc_points_updated'));
-    }
-  } catch (e) {
-    console.error('Failed to ensure welcome grant', e);
-  }
+  getGamificationHub();
 }
 
 export function awardSignupBonus(): void {
@@ -284,48 +202,16 @@ export interface DailyStreakInfo {
 }
 
 export function getDailyStreak(): DailyStreakInfo {
-  ensureWelcomeGrant();
+  const hub = getGamificationHub();
   const profile = getProfile();
   const now = new Date();
-  const todayStr = getLocalDateString(now);
-  const garden = getGardenState();
-
-  const checkDayActive = (dateStr: string): boolean => {
-    const hasCheckin = (profile?.dailyCheckins || []).some(
-      (c: any) => c?.date && c.date.startsWith(dateStr)
-    );
-    if (hasCheckin) return true;
-
-    const hasPoints = (profile?.pointsHistory || []).some(
-      (h: any) =>
-        h?.date &&
-        h.date.startsWith(dateStr) &&
-        (h.category === 'checkin' ||
-          h.category === 'lifestyle' ||
-          h.category === 'mindful' ||
-          h.category === 'streak' ||
-          h.category === 'mystery')
-    );
-    if (hasPoints) return true;
-
-    if (garden.lastWateredDate === dateStr) return true;
-
-    try {
-      const stored = getItemSync(getHabitStorageKey(dateStr));
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Object.values(parsed).some(Boolean)) return true;
-      }
-    } catch {}
-
-    return false;
-  };
-
+  const todayStr = hub.today;
+  const activeDates = new Set(hub.history.map((item) => item.day));
+  for (const item of profile?.dailyCheckins || [])
+    if (typeof item?.date === 'string') activeDates.add(item.date.slice(0, 10));
+  const checkDayActive = (date: string) => activeDates.has(date);
   const todayCompleted = checkDayActive(todayStr);
-  const isDailyRewardClaimedToday = (profile?.pointsHistory || []).some(
-    (h: any) =>
-      h?.dedupeKey === `mystery_${todayStr}` || h?.dedupeKey === `garden_bloom_${todayStr}`
-  );
+  const isDailyRewardClaimedToday = hub.tendedToday;
 
   let streak = 0;
   const startOffset = todayCompleted ? 0 : 1;
@@ -333,7 +219,7 @@ export function getDailyStreak(): DailyStreakInfo {
   for (let i = startOffset; i < 60; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const dateStr = getLocalDateString(d);
+    const dateStr = activityDay(d, hub.timezone);
     if (checkDayActive(dateStr)) {
       streak++;
     } else {
@@ -347,7 +233,7 @@ export function getDailyStreak(): DailyStreakInfo {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const dateStr = getLocalDateString(d);
+    const dateStr = activityDay(d, hub.timezone);
     const isToday = i === 0;
     const isCompleted = checkDayActive(dateStr);
     weekActivity.push({

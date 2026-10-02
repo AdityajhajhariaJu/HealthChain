@@ -27,6 +27,7 @@ import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { triggerHapticLight } from '../../services/haptics';
 import { getProfile } from '../../services/ProfileEngine';
+import { observeActivity } from '../../services/gamification/telemetry';
 
 import { trackPageView } from '../../services/analytics';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
@@ -71,6 +72,16 @@ const mobileTabs = [
 export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  useEffect(() => {
+    const feature = location.pathname.split('/')[2] || 'today';
+    observeActivity(`screen:${feature}`, 'completed');
+    const interact = (event: MouseEvent) => {
+      if ((event.target as HTMLElement)?.closest?.('button, a, [role="button"], input, select'))
+        observeActivity(`interaction:${feature}`, 'completed');
+    };
+    window.addEventListener('click', interact);
+    return () => window.removeEventListener('click', interact);
+  }, [location.pathname]);
   useEffect(() => {
     try {
       if (localStorage.getItem('hc_onboarded') !== 'true') {

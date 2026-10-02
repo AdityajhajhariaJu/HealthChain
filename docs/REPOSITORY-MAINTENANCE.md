@@ -209,3 +209,22 @@ An offscreen CSS rendering experiment following [Chrome's content-visibility gui
 - Final assets copy successfully to Android and iOS. Layout checks at 320, 390 and 1280 pixels report no horizontal overflow or uncaught page errors, and both dialog views fit their width.
 
 The external re-audit report retains logs, measurements, moved-file inventory and screenshots. Signed devices, real providers/payments, multi-device convergence and qualified clinical/nutrition review keep their existing acceptance gates. Browser fixtures verify application behavior with controlled responses; they do not establish universal medical correctness.
+
+## Cozy island and unified rewards — 3 October 2026
+
+Zen Garden now uses a procedural floating island, with a live SVG dashboard preview and a deferred 3D scene. Meadow, Blossom and Golden dusk are persisted across both views. Flower beds, pond/bridge/bench, pavilion/greenhouse/lanterns and orchard/windmill unlock across participation days. The [island architecture and policy](GAMIFICATION-ISLAND.md) describe the modules, migration, tracking coverage and pacing examples.
+
+The authoritative `profile.gamification` receipt ledger supplies points, trophies and growth. The first three distinct categories give 3/2/1 growth and 5 points each: at most 6 growth and 15 points/day. Raw frontend API traffic is tracked as bounded operational metadata and earns nothing. Canonical record saves, Gut actions and explicit Ava saves connect to the hub. Legacy reward amounts no longer control awards; outdated point promises are removed. Existing balances, legitimate stages and imported trophies migrate without converting points into garden growth. Game writes retain demographic timestamps and avoid clinical-memory/undo entries; undoing a profile edit keeps earned progress.
+
+Unchanged projections and trophies are cached until the ledger or calendar day changes. Reward receipts merge by immutable IDs before daily caps are calculated; generic clinical-field merging excludes that specialized ledger. Named timezone/DST, simultaneous/offline events, storage failure, owner switches, older-source duplicate replay and midnight refresh have focused regressions.
+
+Final release verification:
+
+- **902 unit tests passed**, two existing opt-in live-model tests skipped, across 149 files.
+- **44 built-asset browser journeys passed** across Chromium and WebKit without retries. These include 12 island checks for lazy loading, theme/receipt persistence, connected points/trophies, 320px controls/focus, WebGL fallback, API traffic and real water → Gut question → tending progression. The existing six-screen Clinical, Gut reasoning, consent/auth and case/Ava production flows also pass.
+- **44 affected source browser journeys passed** across Chromium and WebKit without retries: Ava transcripts/reviewed saves, Gut linked records, profile conflict handling and daily tracker/reminder/account/midnight behavior. Together with the built suite, 88 browser checks pass on the final application source.
+- TypeScript/build, ESLint, repository hygiene, recursive JavaScript syntax and all 42 migration files/27 schema checks pass. No database schema or dependency change is required. The final generated assets copy to Android and iOS.
+- Startup JavaScript is **305,120 raw / 98,780 gzip bytes**; the public landing is **369,661 / 120,768** across seven assets. The telemetry module adds approximately 3.4 KB raw/1.3 KB gzip to the prior public graph. Budget guards pass; the 3D renderer is absent before the garden is opened. Existing large deferred Three.js/PDF chunk warnings remain.
+- Visual inspection covers starter/pond/haven stages at 1280 and 390 pixels; the 320px browser journey checks overflow and keyboard behavior. No uncaught page errors or garden overflow appear in the visual captures. Instrumented WebGL captures for all three stages report zero draw calls during one-second reduced-motion and offscreen windows; this is a rendering-behavior check, not a universal device FPS benchmark.
+
+The external report retains release logs and preview/full-garden images. Actual account synchronization on two signed devices, native GPU/battery behavior and longer-term user pacing remain acceptance work. Controlled browser fixtures do not establish clinical correctness or actual live-provider behavior.

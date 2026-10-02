@@ -13,6 +13,7 @@ import {
 import { isOwnerErased } from './DurableHealthStorage';
 import { setOwned as set } from './OwnedIdb';
 import { getProfileEngineState } from './ProfileEngine';
+import { completeActivity } from './GamificationHub';
 import { supabase } from './supabaseClient';
 import {
   enqueueSync,
@@ -301,6 +302,7 @@ export async function loadObservationsFromCloud(): Promise<ObservationCloudLoad>
 }
 
 export async function createObservation(draft: ObservationDraft, deterministicLegacyId?: string): Promise<ObservationCommandResult> {
+  const rewardScope = `hc_unified_profile_${draft.ownerId}:${draft.profileId}`;
   const account = captureHealthMemoryScope();
   draft = JSON.parse(JSON.stringify(draft));
   const validated = validateObservationDraft(draft);
@@ -327,6 +329,17 @@ export async function createObservation(draft: ObservationDraft, deterministicLe
     const observation: Observation = { ...draft, id: deterministicLegacyId || newId(), schemaVersion: 1, recordedAt: now, revision: 1, createdAt: now, updatedAt: now, deletedAt: null };
     if (!isHealthMemoryScopeCurrent(account) || !await sameScope(draft)) return { ok: false, error: 'scope_changed' } as const;
     if (!await writeLocal(draft, [...records, observation])) return { ok: false, error: 'storage_failure' } as const;
+    // Rewards follow a committed record and never turn a successful health write into an error.
+    try {
+      if (
+        isHealthMemoryScopeCurrent(account) &&
+        !deterministicLegacyId &&
+        draft.source !== 'import'
+      )
+        completeActivity('record.saved', observation.id, rewardScope);
+    } catch {
+      /* Reward storage can retry independently. */
+    }
     const sync = await queueRemote(observation, 0);
     if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('hc_observations_updated', { detail: { id: observation.id } }));
     return { ok: true, observation, sync } as const;

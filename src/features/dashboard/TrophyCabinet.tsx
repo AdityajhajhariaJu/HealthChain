@@ -9,75 +9,12 @@ import { captureAccountScope, isAccountScopeCurrent } from '../../services/Accou
 import { FitnessService } from '../../services/FitnessService';
 import { triggerHapticLight } from '../../services/haptics';
 import { supabase } from '../../services/supabaseClient';
+import { getGamificationHub, importEarnedTrophies } from '../../services/GamificationHub';
+import { getActiveProfileScope } from '../../services/profileScope';
+import { TROPHIES } from '../../services/gamification/trophies';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
 
-// Static Badge Dictionary for rich metadata
-const BADGE_DICTIONARY = [
-  {
-    slug: 'first_checkin',
-    title: 'First Health Check-in',
-    desc: 'First health check-in recorded.',
-    icon: '📝',
-    color: '#D97706',
-    category: 'Check-in',
-  },
-  {
-    slug: '3_day_streak',
-    title: 'Three Check-ins Recorded',
-    desc: 'Recorded check-ins on three consecutive days. Missing a day never erases history.',
-    icon: '📅',
-    color: '#DF7045',
-    category: 'Continuity',
-  },
-  {
-    slug: 'clinical_scholar',
-    title: 'Research Reviewed',
-    desc: 'Opened clinical research and explored its relevance.',
-    icon: '🧬',
-    color: '#059669',
-    category: 'Research',
-  },
-  {
-    slug: 'mindful_master',
-    title: 'Calm Session Recorded',
-    desc: 'Completed five minutes of a calming exercise.',
-    icon: '🧘',
-    color: '#7C3AED',
-    category: 'Zen Mode',
-  },
-  {
-    slug: 'early_bird',
-    title: 'Morning Vitals Recorded',
-    desc: 'Added a morning vital reading before 9 AM.',
-    icon: '🌅',
-    color: '#2563EB',
-    category: 'Record',
-  },
-  {
-    slug: 'night_owl',
-    title: 'Evening Reflection Recorded',
-    desc: 'Added a health note after 8 PM.',
-    icon: '🌙',
-    color: '#6366F1',
-    category: 'Reflection',
-  },
-  {
-    slug: 'iron_lungs',
-    title: 'Breathing Session Recorded',
-    desc: 'Completed a guided breathing reset.',
-    icon: '💨',
-    color: '#0891B2',
-    category: 'Zen Mode',
-  },
-  {
-    slug: 'profile_complete',
-    title: 'Health Profile Organized',
-    desc: 'Completed the core health profile fields used for case context.',
-    icon: '🛡️',
-    color: '#BE123C',
-    category: 'Profile',
-  },
-];
+const BADGE_DICTIONARY = TROPHIES;
 
 export const TrophyCabinet: React.FC = () => {
   const isMobile = useIsMobile();
@@ -109,7 +46,10 @@ export const TrophyCabinet: React.FC = () => {
       const scope = captureAccountScope();
       if (badgeScope.current !== `${scope.key}:${scope.epoch}`) refresh();
     };
-    const refreshPoints = () => setPointsRevision((value) => value + 1);
+    const refreshPoints = () => {
+      setPointsRevision((value) => value + 1);
+      setEarnedSlugs(new Set(getGamificationHub().trophies));
+    };
     refresh();
     window.addEventListener('hc_profile_updated', refreshOwner);
     window.addEventListener('hc_points_updated', refreshPoints);
@@ -126,14 +66,16 @@ export const TrophyCabinet: React.FC = () => {
 
   const loadBadges = async () => {
     const scope = captureAccountScope();
+    const rewardScope = getActiveProfileScope();
     const request = ++badgeRequest.current;
     badgeScope.current = `${scope.key}:${scope.epoch}`;
     const current = () => request === badgeRequest.current && isAccountScopeCurrent(scope);
     try {
       setLoading(true);
-      setEarnedSlugs(new Set());
+      setEarnedSlugs(new Set(getGamificationHub().trophies));
       setSelectedBadge(null);
       setBadgeError('');
+      if (scope.accountId === 'guest') return;
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -142,11 +84,14 @@ export const TrophyCabinet: React.FC = () => {
       if (session?.user?.id === scope.accountId) {
         const badges = await FitnessService.getUserBadges(session.user.id);
         if (!current()) return;
-        const slugs = new Set(badges.map((b) => b.badge_slug));
-        setEarnedSlugs(slugs);
+        importEarnedTrophies(
+          badges.map((b) => b.badge_slug),
+          rewardScope
+        );
+        setEarnedSlugs(new Set(getGamificationHub().trophies));
       } else {
-        // Guest user starts with zero unlocked badges until earned
-        setEarnedSlugs(new Set());
+        // Local achievements remain available when the account session is unavailable.
+        setEarnedSlugs(new Set(getGamificationHub().trophies));
       }
     } catch (err) {
       console.error(err);
@@ -176,7 +121,7 @@ export const TrophyCabinet: React.FC = () => {
     );
   }
 
-  const earnedCount = earnedSlugs.size;
+  const earnedCount = BADGE_DICTIONARY.filter((badge) => earnedSlugs.has(badge.slug)).length;
   const totalCount = BADGE_DICTIONARY.length;
   const vitalityState = getVitalityState();
 

@@ -491,8 +491,7 @@ export default function LongevityBioStackCard() {
                     Rainbow Diet
                   </h4>
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94A3B8' }}>
-                    Tap each food color eaten today. Log 3+ for{' '}
-                    <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                    Record the food colors you ate today.
                   </p>
                 </div>
 
@@ -632,9 +631,7 @@ export default function LongevityBioStackCard() {
                 <Info size={15} color="#38BDF8" />
                 <span style={{ color: '#E2E8F0' }}>
                   {selectedColors.length >= 3 ? (
-                    <strong style={{ color: '#34D399' }}>
-                      ✓ Rainbow diet logged! +2 Vitality PTS Claimed Today.
-                    </strong>
+                    <strong style={{ color: '#34D399' }}>✓ Food colors recorded for today.</strong>
                   ) : (
                     <span>Record the plant-food colors you ate today to track variety.</span>
                   )}
@@ -824,12 +821,11 @@ export default function LongevityBioStackCard() {
               }}
             >
               <span>
-                💡 <strong style={{ color: '#E2E8F0' }}>Hydration Tip:</strong> A pinch of salt or
-                squeeze of lemon can support electrolyte balance. Reaching 2000 ml awards{' '}
-                <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                Hydration entries record what you drank. Garden growth does not depend on volume or
+                reaching a target.
               </span>
               {waterMl >= 2000 && (
-                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Rewarded</span>
+                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Recorded</span>
               )}
             </div>
           </motion.div>
@@ -1008,12 +1004,9 @@ export default function LongevityBioStackCard() {
                 color: '#94A3B8',
               }}
             >
-              <span>
-                ⚡ Complete all 3 micro-drills (90 seconds total) to earn{' '}
-                <strong style={{ color: '#38BDF8' }}>+2 PTS</strong> daily.
-              </span>
+              <span>An optional 90-second movement break. Pause or skip whenever you need.</span>
               {movementDone && (
-                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ +2 PTS Claimed</span>
+                <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Break completed</span>
               )}
             </div>
           </motion.div>

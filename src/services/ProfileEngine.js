@@ -1,5 +1,6 @@
 import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
 import { mergeConnectedProfiles } from './ConnectedProfileMerge';
+import { mergeLedgers } from './gamification/model';
 import { recordHealthMemory } from './HealthMemory';
 import { mergeLegacyMedicationSchedule, normalizeMedications } from './MedicationScheduleModel';
 import {
@@ -67,8 +68,13 @@ export function undoProfileEdit() {
   ensureHistoryScope();
   if (historyIndex > 0) {
     historyIndex--;
-    const prevState = historyStack[historyIndex];
-    setItemSync(getProfileKey(), prevState);
+    const previous = JSON.parse(historyStack[historyIndex]);
+    const current = getProfileEngineState();
+    for (const [id, profile] of Object.entries(previous.profiles || {})) {
+      const ledger = mergeLedgers(profile.gamification, current.profiles?.[id]?.gamification);
+      if (ledger) profile.gamification = ledger;
+    }
+    setItemSync(getProfileKey(), JSON.stringify(previous));
     window.dispatchEvent(new Event('hc_profile_updated'));
   }
 }
@@ -319,7 +325,7 @@ export function getProfile() {
   }
 }
 
-export async function saveProfile(profile) {
+export async function saveProfile(profile, { gamificationOnly = false } = {}) {
   const accountScope = captureAccountScope();
   const profileKey = getProfileKey();
   try {
@@ -343,7 +349,7 @@ export async function saveProfile(profile) {
     if (!profile.demographics) {
       profile.demographics = {};
     }
-    profile.demographics.updatedAt = nowIso;
+    if (!gamificationOnly) profile.demographics.updatedAt = nowIso;
     profile.updatedAt = nowIso;
 
     profile.medications = normalizeMedications(profile.medications);
@@ -351,7 +357,7 @@ export async function saveProfile(profile) {
     state.profiles[state.activeId] = profile;
     const stateStr = JSON.stringify(state);
 
-    pushToHistory(stateStr);
+    if (!gamificationOnly) pushToHistory(stateStr);
 
     // Maintain rolling backup before overwrite
     try {
@@ -371,24 +377,25 @@ export async function saveProfile(profile) {
 
     // A compact, current snapshot makes every caregiver profile recoverable through Health Memory.
     // Timeline entries remain separate ledger records, avoiding duplication of every historical event.
-    recordHealthMemory({
-      kind: 'profile_event',
-      source: 'profile',
-      title: `Profile updated: ${profile.profileName || 'Health profile'}`,
-      occurredAt: profile.demographics?.updatedAt || new Date().toISOString(),
-      payload: {
-        profileName: profile.profileName,
-        demographics: profile.demographics,
-        conditions: profile.conditions,
-        medications: profile.medications,
-        allergies: profile.allergies,
-        familyHistory: profile.familyHistory,
-        vitals: profile.vitals,
-        nutrition: profile.nutrition,
-        healthFocus: profile.healthFocus,
-      },
-      dedupeKey: `profile-snapshot:${profile.id || state.activeId}`,
-    });
+    if (!gamificationOnly)
+      recordHealthMemory({
+        kind: 'profile_event',
+        source: 'profile',
+        title: `Profile updated: ${profile.profileName || 'Health profile'}`,
+        occurredAt: profile.demographics?.updatedAt || new Date().toISOString(),
+        payload: {
+          profileName: profile.profileName,
+          demographics: profile.demographics,
+          conditions: profile.conditions,
+          medications: profile.medications,
+          allergies: profile.allergies,
+          familyHistory: profile.familyHistory,
+          vitals: profile.vitals,
+          nutrition: profile.nutrition,
+          healthFocus: profile.healthFocus,
+        },
+        dedupeKey: `profile-snapshot:${profile.id || state.activeId}`,
+      });
 
     // Queue the primary profile for durable cloud sync. This preserves the
     // local-first UX while preventing a dropped tab/network transition from

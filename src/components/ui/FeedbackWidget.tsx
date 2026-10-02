@@ -56,7 +56,7 @@ export default function FeedbackWidget() {
     setIsOpen(false);
     awardPoints(5, 'Shared Platform Feedback', 'research');
     triggerHapticSuccess();
-    success('Feedback Sent (+5 PTS)', 'Thank you for contributing to HealthChain research & development!');
+    success('Feedback Sent', 'Thank you for contributing to HealthChain research & development!');
 
     try {
       const { supabase } = await import('../../services/supabaseClient');

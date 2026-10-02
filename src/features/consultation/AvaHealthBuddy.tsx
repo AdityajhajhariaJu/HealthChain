@@ -64,6 +64,7 @@ import { compilePatientContext } from '../../services/MemoryService';
 import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
 import { canUseTrial, openTrialModal, recordTrialUsage } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { completeActivity } from '../../services/GamificationHub';
 import { AvaActivityBrowser } from './components/AvaActivityBrowser';
 import { AvaDayCheckin } from './components/AvaDayCheckin';
 import { AvaDisclosure } from './components/AvaDisclosure';
@@ -1746,6 +1747,14 @@ export default function AvaHealthBuddy() {
       );
       await persistAvaMessages(next);
       if (owner !== getAvaVaultKey() || originCase !== selectedCaseIdRef.current) return;
+      try {
+        completeActivity(
+          action.type === 'observation' ? 'record.saved' : 'preparation.saved',
+          recordId
+        );
+      } catch {
+        /* A saved clinical action remains saved if optional rewards are unavailable. */
+      }
       setMessages(next);
       setSavedUpdate({ caseId: targetCaseId, title: target.title });
       setSaveModalState(null);

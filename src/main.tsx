@@ -7,6 +7,9 @@ import FallbackError from './components/ui/FallbackError';
 import { ToastProvider } from './components/ui/ToastProvider';
 import './index.css';
 import { syncStorageFromPreferences } from './services/storage';
+import { installActivityTelemetry } from './services/gamification/telemetry';
+
+installActivityTelemetry();
 
 // Initialize Capacitor storage sync before rendering
 syncStorageFromPreferences()

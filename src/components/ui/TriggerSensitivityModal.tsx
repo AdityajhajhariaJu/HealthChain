@@ -101,7 +101,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
 
   return (
     <AnimatePresence>
-      <FocusTrap isActive={isOpen}>
+      <FocusTrap isActive={isOpen} onEscape={onClose}>
         <div
           role="dialog"
           aria-modal="true"
@@ -687,6 +687,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               {/* TAB 5: ZEN GARDEN */}
               {activeTab === 'garden' && (
                 <WellnessZenGardenView
+                  onClose={onClose}
                   onOpenMindfulness={() => {
                     onClose();
                     if (onOpenMindfulness) onOpenMindfulness();

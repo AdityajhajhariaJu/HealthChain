@@ -20,12 +20,14 @@ src/
     consultation/components/ Ava memory, check-in and conversation tools
     dashboard/components/  Case forms, evidence picker, investigation and archive canvas
     calm/                  Meditation player and atmosphere rendering
+    zen-garden/            Live island preview, deferred 3D and garden controls
     profile/components/    Profile completion, editing and device connections
     jarvis/                Clinical intake, symptom catalog and badges
   components/layout/       Protected shell and navigation
   components/ui/           UI shared across feature domains
   domain/                  Observation and clinical domain types/contracts
   services/                Scoped repositories, commands, sync and integrations
+    gamification/          Reward policy, immutable receipts, trophies and telemetry
     ai/                    Model transport, safety contracts and operation modules
     testFixtures/          Test-only examples and feature contract expectations
   stores/                  Zustand stores, including the action island
@@ -55,6 +57,8 @@ Simple shell notifications, consent controls and public landing decoration use C
 Public catalog reads share in-flight requests, have independent five-minute expiration and bounded cache keys. A cancelled view does not cancel another consumer's public request. Failed requests can retry; confirmed content mutations invalidate the cache. Account health records do not use this public cache.
 
 ## Data ownership and synchronization
+
+The [gamification island](docs/GAMIFICATION-ISLAND.md) uses one owner/profile ledger for points, trophies and garden growth. Its pure projection enforces daily category caps and participation-day gates, including merged offline devices. Completed user actions write receipts; frontend API and interaction telemetry stays bounded in session storage and cannot earn rewards. Game-only profile snapshots sync through the existing outbox without clinical-memory writes or clinical demographic timestamps. Profile undo retains independent earned progress. The dashboard preview uses inline SVG; the full island defers Three.js until opened and pauses ambient animation when hidden or reduced motion is requested.
 
 The active account/profile scopes repositories and storage. Local events, source records, AI interpretations, reviewed memory and plans retain separate meaning. Commands write the canonical owner-scoped records; cross-feature views use their shared projections and explicit links.
 

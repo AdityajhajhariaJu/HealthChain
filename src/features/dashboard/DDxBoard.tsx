@@ -75,7 +75,7 @@ export default function DDxBoard({ item }: { item: CaseItem }) {
         awardPoints(15, 'Generated Case Connection Map', 'consult', 'ddx_map_' + item.id);
         triggerHapticSuccess();
         toast.success(
-          'Connections Mapped (+15 pts)',
+          'Connections Mapped',
           'Multi-component case connection map generated.'
         );
       } else {

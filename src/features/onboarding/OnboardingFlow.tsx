@@ -2339,7 +2339,7 @@ export default function OnboardingFlow() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={18} /> Save &amp; Launch {selectedGoal.title} (+50 PTS){' '}
+                      <Sparkles size={18} /> Save &amp; Launch {selectedGoal.title}{' '}
                       <ChevronRight size={18} />
                     </>
                   )}

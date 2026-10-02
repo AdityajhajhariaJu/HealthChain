@@ -1054,7 +1054,7 @@ export default function ClinicalTrialsMatcher() {
       `trial_save_${item.id}`
     );
     toast.success(
-      'Saved to this case (+10 pts)',
+      'Saved to this case',
       `Added to “${activeCase.title || 'Active case'}” as research evidence.`
     );
   };
@@ -2133,7 +2133,7 @@ export default function ClinicalTrialsMatcher() {
                           )}
                           {savedItems[savedItemKey(selectedItem.id)]
                             ? 'Saved to this case'
-                            : 'Save to case (+10 pts)'}
+                            : 'Save to case'}
                         </button>
                         <button
                           type="button"

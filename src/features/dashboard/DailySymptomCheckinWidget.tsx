@@ -237,7 +237,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
               Daily Check-in
             </span>
             <span style={{ fontSize: '10px', fontWeight: 700, color: '#7C3AED', background: '#F5F3FF', border: '1px solid #DDD6FE', padding: '1px 6px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              +2 PTS
+              Daily care
             </span>
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
             </span>
             {justSaved && (
               <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', background: '#DCFCE7', padding: '1px 5px', borderRadius: '4px' }}>
-                +2 PTS!
+                Saved
               </span>
             )}
           </div>

@@ -1,9 +1,12 @@
 import { preserveDietPlanState } from './DietProfileMerge';
 import { mergeGutThreads } from './GutThreadMerge';
+import { mergeLedgers } from './gamification/model';
 import { mergeProfileFields } from './ProfileFieldMerge';
 const aliases = [['dietProfile','profile'], ['dietMealPlan','mealPlan'], ['dietArchivedPlans','archivedPlans'], ['dietGrocery','groceryList'], ['dietGuardrails','guardrails']];
 function canonical(profile: any) {
   const result = { ...(profile || {}), ...(profile?.dietician ? { dietician: { ...profile.dietician } } : {}) };
+  // Receipts have their own union policy; avoid generic traversal/conflicts for that history.
+  delete result.gamification;
   for (const [key, alias] of aliases) {
     if (!Object.prototype.hasOwnProperty.call(result, key) && Object.prototype.hasOwnProperty.call(result.dietician || {}, alias)) result[key] = result.dietician[alias];
     if (result.dietician) delete result.dietician[alias];
@@ -31,7 +34,8 @@ export function mergeConnectedProfiles(base: any, local: any, remote: any, owner
   }
   for (const [key, alias] of aliases) if (Object.prototype.hasOwnProperty.call(resolved, key)) resolved.dietician = { ...(resolved.dietician || {}), [alias]: resolved[key] };
   if (local?.gutResolutionThreads || remote?.gutResolutionThreads) resolved.gutResolutionThreads = mergeGutThreads(local?.gutResolutionThreads, remote?.gutResolutionThreads, `hc_unified_profile_${owner}`, profile);
-  const special = new Set(['gutResolutionThreads', 'dietMealPlan', 'dietArchivedPlans', 'dietResetAt']);
+  if (local?.gamification || remote?.gamification) resolved.gamification = mergeLedgers(local?.gamification, remote?.gamification);
+  const special = new Set(['gamification', 'gutResolutionThreads', 'dietMealPlan', 'dietArchivedPlans', 'dietResetAt']);
   return { merged: resolved, conflicts: result.conflicts.filter(field => !special.has(field.path[0]) &&
     !(field.path[0] === 'dietEveryday' && ['favorites','pantry'].includes(field.path[1])) &&
     !resetFields.has(field.path[0])) };

@@ -289,7 +289,7 @@ export default function MedicalProfile() {
         try { sessionStorage.setItem(synthesisKey, JSON.stringify(result)); } catch(e) {}
         awardPoints(15, 'Generated AI Clinical Health Synthesis', 'research', 'profile_synth_' + Date.now());
         triggerHapticSuccess();
-        toast.success('Clinical Synthesis Complete', 'AI synthesized multi-system health insights (+15 pts).');
+        toast.success('Clinical Synthesis Complete', 'AI synthesized multi-system health insights.');
       }
     } catch (error) {
       console.error('Profile synthesis failed:', error);

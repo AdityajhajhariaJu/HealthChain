@@ -3321,8 +3321,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
                       '0 8px 24px rgba(13, 148, 136, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                   }}
                 >
-                  <Sparkles size={16} />{' '}
-                  {isSaving ? 'Saving Profile...' : 'Save & Activate (+50 PTS)'}
+                  <Sparkles size={16} /> {isSaving ? 'Saving Profile...' : 'Save & Activate'}
                 </button>
               )}
             </div>
