@@ -32,29 +32,10 @@ vi.mock('../../components/ui/ToastProvider', () => ({ useToast: () => ({ error: 
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
-  vi.stubGlobal(
-    'IntersectionObserver',
-    class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    }
-  );
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn(() => ({
-      matches: true,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }))
-  );
 });
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
-  vi.unstubAllGlobals();
 });
 
 for (const signedIn of [true, false]) {

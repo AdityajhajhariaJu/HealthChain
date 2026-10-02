@@ -12,16 +12,16 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   triggerHapticLight,
   triggerHapticMedium,
   triggerHapticSuccess,
-} from '../../services/haptics';
-import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
-import { getScopedStorageKey } from '../../services/profileScope';
-import { getItemSync, setItemSync } from '../../services/storage';
-import { awardMicroMovementPoints, awardPhytoPoints } from '../../services/VitalityPointsEngine';
+} from '../../../services/haptics';
+import { adjustWaterAmount, getHydrationData } from '../../../services/HydrationService';
+import { getScopedStorageKey } from '../../../services/profileScope';
+import { getItemSync, setItemSync } from '../../../services/storage';
+import { awardMicroMovementPoints, awardPhytoPoints } from '../../../services/VitalityPointsEngine';
 
 interface PhytoColor {
   id: string;

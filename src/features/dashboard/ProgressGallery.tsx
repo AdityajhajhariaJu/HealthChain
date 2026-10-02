@@ -26,7 +26,9 @@ import { getActiveProfileScope, getScopedStorageKey } from '../../services/profi
 import { getItemSync, setItemSync } from '../../services/storage';
 import { supabase } from '../../services/supabaseClient';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-const SpatialGalleryCanvas = React.lazy(() => import('../../components/ui/SpatialGalleryCanvas').then(m => ({ default: m.SpatialGalleryCanvas })));
+const SpatialGalleryCanvas = React.lazy(() =>
+  import('./components/SpatialGalleryCanvas').then((m) => ({ default: m.SpatialGalleryCanvas }))
+);
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -40,7 +42,9 @@ export const ProgressGallery: React.FC = () => {
   const [historyError, setHistoryError] = useState('');
   const [mealDiary, setMealDiary] = useState<MealDiary>({});
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
-  const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync(getScopedStorageKey('hc_progress_photo')));
+  const [userPhoto, setUserPhoto] = useState<string | null>(() =>
+    getItemSync(getScopedStorageKey('hc_progress_photo'))
+  );
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,15 +67,23 @@ export const ProgressGallery: React.FC = () => {
         setUserPhoto(dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
-        toast.success('Private photo saved', 'Visual note added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
+        toast.success(
+          'Private photo saved',
+          'Visual note added (+10 activity points). HealthChain does not interpret appearance as a clinical result.'
+        );
       }
     };
-    reader.onerror = () => { if (isAccountScopeCurrent(scope)) toast.error('Photo not saved', 'This image could not be read. Choose another image.'); };
+    reader.onerror = () => {
+      if (isAccountScopeCurrent(scope))
+        toast.error('Photo not saved', 'This image could not be read. Choose another image.');
+    };
     reader.readAsDataURL(file);
   };
 
   useEffect(() => {
-    const refresh = () => { void loadData(); };
+    const refresh = () => {
+      void loadData();
+    };
     const refreshOwner = () => {
       const scope = captureAccountScope();
       if (historyScope.current !== `${scope.key}:${scope.epoch}`) refresh();
@@ -97,8 +109,13 @@ export const ProgressGallery: React.FC = () => {
       setMealDiary({});
       setUserPhoto(getItemSync(getScopedStorageKey('hc_progress_photo')));
       const current = () => active && request === sequence && isAccountScopeCurrent(scope);
-      void listMealDiary().then((diary) => { if (current()) setMealDiary(diary); })
-        .catch(() => { if (current()) setMealDiary({}); });
+      void listMealDiary()
+        .then((diary) => {
+          if (current()) setMealDiary(diary);
+        })
+        .catch(() => {
+          if (current()) setMealDiary({});
+        });
     };
     refreshMeals();
     window.addEventListener('hc_observations_updated', refreshMeals);
@@ -123,7 +140,9 @@ export const ProgressGallery: React.FC = () => {
       setLoading(true);
       setHistory([]);
       setHistoryError('');
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!current()) return;
       if (session?.user?.id === scope.accountId) {
         const rawHistory = await FitnessService.getUserFitnessHistory(session.user.id);
@@ -132,23 +151,29 @@ export const ProgressGallery: React.FC = () => {
       } else setHistory([]);
     } catch (e) {
       console.error(e);
-      if (current()) setHistoryError('Activity history could not be loaded. Retry to check your saved sessions.');
+      if (current())
+        setHistoryError(
+          'Activity history could not be loaded. Retry to check your saved sessions.'
+        );
     } finally {
       if (current()) setLoading(false);
     }
   };
 
   // 1. Process data for 7-day Trend Lines
-  const localDay = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+  const localDay = (value: Date) =>
+    `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     return localDay(d);
   });
 
-  const trendsData = last7Days.map(dateStr => {
+  const trendsData = last7Days.map((dateStr) => {
     // find all history for this day
-    const dayRecords = history.filter(h => h.completed_at && localDay(new Date(h.completed_at)) === dateStr);
+    const dayRecords = history.filter(
+      (h) => h.completed_at && localDay(new Date(h.completed_at)) === dateStr
+    );
     const cals = dayRecords.reduce((sum, r) => sum + (r.calories_burned || 0), 0);
     const mins = dayRecords.reduce((sum, r) => sum + Math.round((r.duration_seconds || 0) / 60), 0);
     const dObj = new Date(dateStr + 'T12:00:00');
@@ -156,7 +181,7 @@ export const ProgressGallery: React.FC = () => {
       date: dateStr,
       displayDate: dObj.toLocaleDateString('en-US', { weekday: 'short' }),
       calories: cals,
-      minutes: mins
+      minutes: mins,
     };
   });
 
@@ -165,13 +190,20 @@ export const ProgressGallery: React.FC = () => {
     const profile = getProfile();
     const cases = getCases();
 
-    const daysLogged = Object.values(mealDiary).filter((day) => Array.isArray(day) && day.length > 0).length;
+    const daysLogged = Object.values(mealDiary).filter(
+      (day) => Array.isArray(day) && day.length > 0
+    ).length;
 
     // Mindfulness & Autonomic Calm (from logged sessions)
     let mindfulnessMinutes = 0;
-    history.forEach(h => {
+    history.forEach((h) => {
       const type = h.fitness_content?.type || h.content_type || 'unknown';
-      if (type === 'meditation' || type === 'soundscape' || type === 'sleep_story' || type === 'breathwork') {
+      if (
+        type === 'meditation' ||
+        type === 'soundscape' ||
+        type === 'sleep_story' ||
+        type === 'breathwork'
+      ) {
         mindfulnessMinutes += Math.round((h.duration_seconds || 0) / 60);
       }
     });
@@ -183,7 +215,9 @@ export const ProgressGallery: React.FC = () => {
     const habitKeys = (() => {
       try {
         const scopeSuffix = `:${getActiveProfileScope()}`;
-        return Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_') && k.endsWith(scopeSuffix));
+        return Object.keys(localStorage).filter(
+          (k) => k.startsWith('healthchain_habits_') && k.endsWith(scopeSuffix)
+        );
       } catch {
         return [];
       }
@@ -205,46 +239,111 @@ export const ProgressGallery: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#FBF9F6',
-        padding: isMobile ? '16px' : '32px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-      }}>
-        <div style={{ width: '180px', height: '32px', background: '#E2E8F0', borderRadius: '8px', marginBottom: '4px' }} />
-        <div style={{ width: '280px', height: '18px', background: '#E2E8F0', borderRadius: '6px', marginBottom: '16px' }} />
-        <div style={{
-          height: isMobile ? '280px' : '360px',
-          background: '#FFFFFF',
-          borderRadius: '24px',
-          border: '1px solid #E2E8F0',
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#FBF9F6',
+          padding: isMobile ? '16px' : '32px',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{ width: '180px', height: '180px', borderRadius: '50%', border: '3px dashed #CBD5E1', opacity: 0.6 }} />
+          flexDirection: 'column',
+          gap: '16px',
+        }}
+      >
+        <div
+          style={{
+            width: '180px',
+            height: '32px',
+            background: '#E2E8F0',
+            borderRadius: '8px',
+            marginBottom: '4px',
+          }}
+        />
+        <div
+          style={{
+            width: '280px',
+            height: '18px',
+            background: '#E2E8F0',
+            borderRadius: '6px',
+            marginBottom: '16px',
+          }}
+        />
+        <div
+          style={{
+            height: isMobile ? '280px' : '360px',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '180px',
+              height: '180px',
+              borderRadius: '50%',
+              border: '3px dashed #CBD5E1',
+              opacity: 0.6,
+            }}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#FBF9F6',
-      display: 'flex',
-      flexDirection: 'column',
-      paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
-    }}>
-      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><VitalityNav /></div>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#FBF9F6',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
+      }}
+    >
+      <div style={{ paddingTop: isMobile ? '12px' : '24px' }}>
+        <VitalityNav />
+      </div>
 
       <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
-        {historyError && <div role="alert" style={{ padding: 12, marginBottom: 16, color: '#92400E', background: '#FFFBEB', borderRadius: 12 }}>{historyError} <button type="button" onClick={() => void loadData()}>Retry history</button></div>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+        {historyError && (
+          <div
+            role="alert"
+            style={{
+              padding: 12,
+              marginBottom: 16,
+              color: '#92400E',
+              background: '#FFFBEB',
+              borderRadius: 12,
+            }}
+          >
+            {historyError}{' '}
+            <button type="button" onClick={() => void loadData()}>
+              Retry history
+            </button>
+          </div>
+        )}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: '16px',
+            marginBottom: '24px',
+          }}
+        >
           <div>
-            <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px 0' }}>
+            <h1
+              style={{
+                fontSize: isMobile ? '28px' : '36px',
+                fontWeight: 800,
+                color: '#0F172A',
+                letterSpacing: '-0.5px',
+                margin: '0 0 8px 0',
+              }}
+            >
               Recorded activity
             </h1>
             <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
@@ -259,8 +358,8 @@ export const ProgressGallery: React.FC = () => {
               const totalRest = trendsData.reduce((s, d) => s + d.minutes, 0);
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `Can you summarize what I actually logged in the last 7 days? I recorded ${totalEnergy} kcal of activity estimates and ${totalRest} activity minutes. Please separate the recorded facts from assumptions, identify gaps, and suggest what may be useful to discuss with my clinician.`
-                }
+                  initialPrompt: `Can you summarize what I actually logged in the last 7 days? I recorded ${totalEnergy} kcal of activity estimates and ${totalRest} activity minutes. Please separate the recorded facts from assumptions, identify gaps, and suggest what may be useful to discuss with my clinician.`,
+                },
               });
             }}
             style={{
@@ -276,7 +375,7 @@ export const ProgressGallery: React.FC = () => {
               border: 'none',
               cursor: 'pointer',
               boxShadow: '0 4px 14px rgba(15, 23, 42, 0.15)',
-              transition: 'transform 0.15s ease'
+              transition: 'transform 0.15s ease',
             }}
           >
             <MessageSquare size={16} color="#C4B5FD" /> Review logs with Ava
@@ -284,18 +383,33 @@ export const ProgressGallery: React.FC = () => {
         </div>
 
         {/* Custom Tab Switcher */}
-        <div role="tablist" aria-label="Recorded activity sections" style={{ display: 'flex', background: '#F4E5DC', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
+        <div
+          role="tablist"
+          aria-label="Recorded activity sections"
+          style={{
+            display: 'flex',
+            background: '#F4E5DC',
+            padding: '4px',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            overflowX: 'auto',
+            gap: 4,
+          }}
+        >
           {[
             { id: 'trends', label: 'Trends' },
             { id: 'balance', label: 'Log coverage' },
             { id: 'photos', label: 'Private photos' },
-            { id: 'vault', label: 'Record timeline' }
+            { id: 'vault', label: 'Record timeline' },
           ].map((tab) => (
             <button
               key={tab.id}
               role="tab"
               aria-selected={activeTab === tab.id}
-              onClick={() => { triggerHapticLight(); setActiveTab(tab.id as any); }}
+              onClick={() => {
+                triggerHapticLight();
+                setActiveTab(tab.id as any);
+              }}
               style={{
                 flex: 1,
                 padding: '8px 12px',
@@ -308,7 +422,7 @@ export const ProgressGallery: React.FC = () => {
                 boxShadow: activeTab === tab.id ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               {tab.label}
@@ -320,12 +434,35 @@ export const ProgressGallery: React.FC = () => {
         {activeTab === 'trends' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {/* Calories Area Chart */}
-            <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '10px', color: '#EF4444' }}><Flame size={20} /></div>
+            <div
+              style={{
+                background: '#FFF',
+                padding: '24px',
+                borderRadius: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}
+              >
+                <div
+                  style={{
+                    background: '#FEF2F2',
+                    padding: '8px',
+                    borderRadius: '10px',
+                    color: '#EF4444',
+                  }}
+                >
+                  <Flame size={20} />
+                </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active energy</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 days · kcal</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                    Active energy
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
+                    Last 7 days · kcal
+                  </p>
                 </div>
               </div>
               <div style={{ height: '220px', width: '100%' }}>
@@ -333,44 +470,105 @@ export const ProgressGallery: React.FC = () => {
                   <AreaChart data={trendsData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorCalories" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="displayDate" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    <XAxis
+                      dataKey="displayDate"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#94A3B8' }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#94A3B8' }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                      }}
                       labelStyle={{ color: '#64748B', fontWeight: 600, marginBottom: '4px' }}
                       itemStyle={{ color: '#EF4444', fontWeight: 700 }}
                     />
-                    <Area type="monotone" dataKey="calories" stroke="#EF4444" strokeWidth={3} fillOpacity={1} fill="url(#colorCalories)" activeDot={{ r: 6, strokeWidth: 0, fill: '#EF4444' }} />
+                    <Area
+                      type="monotone"
+                      dataKey="calories"
+                      stroke="#EF4444"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorCalories)"
+                      activeDot={{ r: 6, strokeWidth: 0, fill: '#EF4444' }}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Duration Area Chart */}
-            <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                <div style={{ background: '#ECFEFF', padding: '8px', borderRadius: '10px', color: '#06B6D4' }}><Clock size={20} /></div>
+            <div
+              style={{
+                background: '#FFF',
+                padding: '24px',
+                borderRadius: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}
+              >
+                <div
+                  style={{
+                    background: '#ECFEFF',
+                    padding: '8px',
+                    borderRadius: '10px',
+                    color: '#06B6D4',
+                  }}
+                >
+                  <Clock size={20} />
+                </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Calm minutes</h3>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                    Calm minutes
+                  </h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 days</p>
                 </div>
               </div>
               <div style={{ height: '220px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trendsData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="displayDate" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
-                    <Tooltip 
+                    <XAxis
+                      dataKey="displayDate"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#94A3B8' }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#94A3B8' }}
+                    />
+                    <Tooltip
                       cursor={{ fill: '#F1F5F9' }}
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                      }}
                       labelStyle={{ color: '#64748B', fontWeight: 600, marginBottom: '4px' }}
                       itemStyle={{ color: '#06B6D4', fontWeight: 700 }}
                     />
-                    <Bar dataKey="minutes" fill="#06B6D4" radius={[6, 6, 0, 0]} barSize={isMobile ? 24 : 32} />
+                    <Bar
+                      dataKey="minutes"
+                      fill="#06B6D4"
+                      radius={[6, 6, 0, 0]}
+                      barSize={isMobile ? 24 : 32}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -381,30 +579,104 @@ export const ProgressGallery: React.FC = () => {
         {/* Tab 2: Exact log coverage */}
         {activeTab === 'balance' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#10B981', filter: 'blur(80px)', opacity: 0.2, borderRadius: '50%' }} />
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
-                <div style={{ background: '#FFF1E8', padding: '8px', borderRadius: '10px', color: '#C2410C' }}><ListChecks size={20} /></div>
+            <div
+              style={{
+                background: '#FFFFFF',
+                padding: '24px',
+                borderRadius: '24px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-50px',
+                  right: '-50px',
+                  width: '150px',
+                  height: '150px',
+                  background: '#10B981',
+                  filter: 'blur(80px)',
+                  opacity: 0.2,
+                  borderRadius: '50%',
+                }}
+              />
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '8px',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              >
+                <div
+                  style={{
+                    background: '#FFF1E8',
+                    padding: '8px',
+                    borderRadius: '10px',
+                    color: '#C2410C',
+                  }}
+                >
+                  <ListChecks size={20} />
+                </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>What you have recorded</h3>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
+                    What you have recorded
+                  </h3>
                 </div>
               </div>
-              <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+              <p
+                style={{
+                  color: '#64748B',
+                  fontSize: '13px',
+                  marginBottom: '24px',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              >
                 A lower count means less information was logged.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={activityData} layout="vertical" margin={{ top: 4, right: 20, left: isMobile ? 18 : 54, bottom: 4 }}>
-                    <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 11 }} />
-                    <YAxis type="category" dataKey="subject" width={isMobile ? 96 : 120} axisLine={false} tickLine={false} tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }} />
-                    <Tooltip cursor={{ fill: '#FFF1E8' }} contentStyle={{ borderRadius: 12, border: '1px solid #F8D8C6' }} />
-                    <Bar dataKey="value" name="Recorded" fill="#DF7045" radius={[0, 8, 8, 0]} barSize={22} />
+                  <BarChart
+                    data={activityData}
+                    layout="vertical"
+                    margin={{ top: 4, right: 20, left: isMobile ? 18 : 54, bottom: 4 }}
+                  >
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#64748B', fontSize: 11 }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="subject"
+                      width={isMobile ? 96 : 120}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#FFF1E8' }}
+                      contentStyle={{ borderRadius: 12, border: '1px solid #F8D8C6' }}
+                    />
+                    <Bar
+                      dataKey="value"
+                      name="Recorded"
+                      fill="#DF7045"
+                      radius={[0, 8, 8, 0]}
+                      barSize={22}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              
             </div>
           </motion.div>
         )}
@@ -412,50 +684,174 @@ export const ProgressGallery: React.FC = () => {
         {/* Tab 3: Photos */}
         {activeTab === 'photos' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-             <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div
+              style={{
+                background: '#FFF',
+                padding: '24px',
+                borderRadius: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                }}
+              >
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Private visual notes</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Date-stamped photos for personal reference; no clinical inference</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                    Private visual notes
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
+                    Date-stamped photos for personal reference; no clinical inference
+                  </p>
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
-                <button 
-                  onClick={() => { triggerHapticLight(); fileInputRef.current?.click(); }}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoUpload}
+                />
+                <button
+                  onClick={() => {
+                    triggerHapticLight();
+                    fileInputRef.current?.click();
+                  }}
                   title="Snap or upload progress photo"
                   aria-label="Snap or upload progress photo"
-                  style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: '#F1F5F9',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0F172A',
+                    cursor: 'pointer',
+                    minWidth: '40px',
+                    minHeight: '40px',
+                    flexShrink: 0,
+                  }}
                 >
                   <Camera size={18} />
                 </button>
               </div>
 
               {userPhoto ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
-                  <div style={{ position: 'relative', zIndex: 3, background: 'white', padding: '12px 12px 50px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
-                    <div style={{ width: '180px', height: '210px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-                      <img 
-                        src={userPhoto} 
-                        alt="Latest Progress" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    padding: '20px 0 40px',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'relative',
+                      zIndex: 3,
+                      background: 'white',
+                      padding: '12px 12px 50px',
+                      borderRadius: '14px',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                      border: '1px solid #E2E8F0',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '180px',
+                        height: '210px',
+                        background: '#e2e8f0',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <img
+                        src={userPhoto}
+                        alt="Latest Progress"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </div>
-                    <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>Current Benchmark</div>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '15px',
+                        width: '100%',
+                        textAlign: 'center',
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        fontSize: '15px',
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        letterSpacing: '0.3px',
+                      }}
+                    >
+                      Current Benchmark
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '40px 20px', textAlign: 'center', background: '#F8FAFC', borderRadius: '20px', border: '1.5px dashed #CBD5E1', margin: '16px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    background: '#F8FAFC',
+                    borderRadius: '20px',
+                    border: '1.5px dashed #CBD5E1',
+                    margin: '16px 0 24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '50%',
+                      background: '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#64748B',
+                      marginBottom: '16px',
+                    }}
+                  >
                     <Camera size={26} />
                   </div>
-                  <h4 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700, color: '#1E293B' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 6px',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: '#1E293B',
+                    }}
+                  >
                     No private photos yet
                   </h4>
-                  <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748B', maxWidth: '340px', lineHeight: 1.5 }}>
-                    Add a date-stamped photo if it helps you remember a visible change. HealthChain does not diagnose or score appearance.
+                  <p
+                    style={{
+                      margin: '0 0 20px',
+                      fontSize: '13px',
+                      color: '#64748B',
+                      maxWidth: '340px',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Add a date-stamped photo if it helps you remember a visible change. HealthChain
+                    does not diagnose or score appearance.
                   </p>
                   <button
                     type="button"
-                    onClick={() => { triggerHapticLight(); fileInputRef.current?.click(); }}
+                    onClick={() => {
+                      triggerHapticLight();
+                      fileInputRef.current?.click();
+                    }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -481,20 +877,31 @@ export const ProgressGallery: React.FC = () => {
         {/* Tab 4: 3D Spatial Health Records Vault */}
         {activeTab === 'vault' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ background: '#FFF', padding: isMobile ? '16px' : '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+            <div
+              style={{
+                background: '#FFF',
+                padding: isMobile ? '16px' : '24px',
+                borderRadius: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+                <h3
+                  style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: '#0F172A' }}
+                >
                   Records Archive
                 </h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
-                  Explore saved laboratory records, imaging, and case snapshots by date. Items shown here remain source records, not diagnoses.
+                  Explore saved laboratory records, imaging, and case snapshots by date. Items shown
+                  here remain source records, not diagnoses.
                 </p>
               </div>
-              <Suspense fallback={<FeatureLoading label="Loading records…" />}><SpatialGalleryCanvas /></Suspense>
+              <Suspense fallback={<FeatureLoading label="Loading records…" />}>
+                <SpatialGalleryCanvas />
+              </Suspense>
             </div>
           </motion.div>
         )}
-        
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import adminContentHandler from './api/admin-content.js';
 import foodProductHandler from './api/food-product.js';
+import { publicStaticBoundaries } from './scripts/lib/public-static-boundaries.mjs';
 
 // These small icons are shared by public screens and lazy workspaces. Keep
 // them in one request instead of a dozen tiny shared chunks on a cold visit.
@@ -91,6 +92,7 @@ const adminContentPlugin = () => ({
 export default defineConfig({
   plugins: [
     react(),
+    publicStaticBoundaries(),
     foodProductPlugin(),
     adminContentPlugin(),
     ...(process.env.ANALYZE === 'true'

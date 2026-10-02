@@ -20,7 +20,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import FocusTrap from '../../components/ui/FocusTrap';
-import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
 import { useToast } from '../../components/ui/ToastProvider';
 import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -58,6 +57,7 @@ import { getActiveSession } from '../../services/authSession';
 import { triggerHapticLight } from '../../services/haptics';
 import { getItemSync, removeItemSync, setItemSync } from '../../services/storage';
 import { supabase } from '../../services/supabaseClient';
+import { HealthDeviceIntegrations } from './components/HealthDeviceIntegrations';
 
 import { apiEndpoint } from '../../services/ApiEndpoint';
 

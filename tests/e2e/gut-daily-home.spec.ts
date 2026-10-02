@@ -70,6 +70,9 @@ test('a new kind of log opens its own question instead of an unrelated active on
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Bloating' }).click();
   await gut.getByRole('button', { name: 'Save & see my understanding' }).click();
+  await expect(gut.getByRole('heading', { name: 'Your understanding' })).toBeVisible({
+    timeout: 15000,
+  });
   await gut.getByRole('button', { name: 'Log', exact: true }).click();
   await gut.getByRole('tab', { name: 'Meal' }).click();
   await gut.getByRole('textbox', { name: 'Describe a meal or how you felt' }).fill('Rice');

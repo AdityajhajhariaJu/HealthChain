@@ -1,6 +1,6 @@
 # HealthChain architecture
 
-This guide describes the active source tree as of 2 October 2026. The [functional audit](docs/WHOLE-APP-FUNCTIONAL-AUDIT.md) records provider/device boundaries and known remaining work.
+This guide describes the active source tree as of 3 October 2026. The [functional audit](docs/WHOLE-APP-FUNCTIONAL-AUDIT.md) records provider/device boundaries and known remaining work.
 
 ## Directory responsibilities
 
@@ -15,8 +15,12 @@ src/
                            profiles, case preparation, tools and legal pages
     gut-health/components/ Gut views and their scoped styles
     account/               Deferred account bootstrap, recovery and conflicts
+      components/          Account recovery, conflict review and product tour
+    auth/components/       Landing sections, media and workflow examples
+    consultation/components/ Ava memory, check-in and conversation tools
+    dashboard/components/  Case forms, evidence picker, investigation and archive canvas
     calm/                  Meditation player and atmosphere rendering
-    profile/components/    Profile completion and feature profile editing
+    profile/components/    Profile completion, editing and device connections
     jarvis/                Clinical intake, symptom catalog and badges
   components/layout/       Protected shell and navigation
   components/ui/           UI shared across feature domains
@@ -28,7 +32,7 @@ src/
   hooks/                   Reusable React hooks
   data/                    Maintained local catalogs and reference definitions
 scripts/                   Build/schema guards and operational evaluations
-  lib/                     Maintainer-only legacy migration preview
+  lib/                     Static import guards and legacy migration preview
 tests/e2e/                 Browser user journeys and failure-path fixtures
 supabase/
   migrations/              Append-only schema/policy history
@@ -46,7 +50,7 @@ Routes load their own screen modules. The dashboard defers Gut Health, medicatio
 
 Vite chooses shared chunks automatically, with the small public-screen icons grouped into one request. On an anonymous landing visit, the screen owns session detection once its content mounts; the root does not fetch auth ahead of the landing chunks. Other public pages retain root session detection. `AccountRuntime` loads `features/account/AccountLifecycle` when account, guest or erasure recovery is needed. The Supabase client stays outside the public static import graph; its initial-session event still restores durable accounts. Public launches resolve the session before setting guest mode, so an early click cannot move a restored account into guest storage. Public visitors load the landing scenario catalog as pure data. Creating a case or inspecting a workflow loads the corresponding case/reasoning implementation. Ava owns its React Query provider. `scripts/check-build-budget.mjs` checks both the startup graph and landing's static imports, rejecting the auth client, clinical repositories, account workers, charts, 3D and PDF code in those graphs. Bundle analysis is optional and stays outside public production assets.
 
-Simple shell notifications and consent controls use CSS animations with reduced-motion support. The public landing uses Motion's slim elements with `LazyMotion` and loads its animation renderer asynchronously. Content starts visible and native controls remain usable if optional animation features cannot load; the build guard keeps that renderer outside the public static graph. Feature animations remain owned by their lazy screens. `useMountedRef` resets on effect setup, so Strict Mode replay cannot permanently suppress completed feature requests. Model caches include the full input and account/profile generation; the appointment discussion guide does not use an unscoped session-storage cache.
+Simple shell notifications, consent controls and public landing decoration use CSS with reduced-motion support. Public rendering has no JavaScript animation-runtime dependency; the Rollup module-graph guard in `scripts/lib/public-static-boundaries.mjs` checks the actual static imports. The landing controller owns session and workspace launch, while its sections own presentation and local input/disclosure state. Workflow overview cards appear once in a stable responsive grid using normal page scrolling. Example reasoning opens a deferred, named dialog with focus containment, Escape/return focus and mobile evidence columns. Opening an illustrative case closes the dialog first so workspace loading and failures stay visible. Feature animations remain owned by their lazy screens/dialogs. `useMountedRef` resets on effect setup, so Strict Mode replay cannot permanently suppress completed feature requests. Model caches include the full input and account/profile generation; the appointment discussion guide does not use an unscoped session-storage cache.
 
 Public catalog reads share in-flight requests, have independent five-minute expiration and bounded cache keys. A cancelled view does not cancel another consumer's public request. Failed requests can retry; confirmed content mutations invalidate the cache. Account health records do not use this public cache.
 

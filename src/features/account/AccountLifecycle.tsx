@@ -1,10 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/ui/ToastProvider';
-import DeviceErasureRecovery from '../../components/ui/DeviceErasureRecovery';
-import ObservationConflictReview from '../../components/ui/ObservationConflictReview';
-import ProfileConflictReview from '../../components/ui/ProfileConflictReview';
-import ProductTour from '../../components/ui/ProductTour';
+import { requestAccountRecovery } from '../../services/AccountRecovery';
 import {
   captureAccountScope,
   invalidateAccountScope,
@@ -35,12 +32,15 @@ import {
   setupPushListeners,
   unregisterPushDevice,
 } from '../../services/PushService';
+import { SessionBootstrapGate } from '../../services/SessionBootstrapGate';
 import { getItemSync, removeItemSync, setItemSync } from '../../services/storage';
 import { supabase } from '../../services/supabaseClient';
-import { requestAccountRecovery } from '../../services/AccountRecovery';
-import { SessionBootstrapGate } from '../../services/SessionBootstrapGate';
 import { ensureWelcomeGrant } from '../../services/VitalityPointsEngine';
 import { clearPersistedMDTSession } from '../../stores/useMDTStore';
+import DeviceErasureRecovery from './components/DeviceErasureRecovery';
+import ObservationConflictReview from './components/ObservationConflictReview';
+import ProductTour from './components/ProductTour';
+import ProfileConflictReview from './components/ProfileConflictReview';
 
 /** Account recovery is loaded only when an account, guest workspace or erasure receipt needs it. */
 export default function AccountLifecycle() {

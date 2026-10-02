@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { planningConstraintSnapshot } from '../../../shared/health-source-freshness';
 import { FeatureLoading } from '../../components/ui/FeatureLoading';
-import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 import { useMountedRef } from '../../hooks/useMountedRef';
+import LongevityBioStackCard from './components/LongevityBioStackCard';
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 const ARGroceryLens = React.lazy(() =>
   import('../../components/ui/ARGroceryLens').then((m) => ({ default: m.ARGroceryLens }))

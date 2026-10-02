@@ -18,14 +18,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { sourceFreshness } from '../../../shared/health-source-freshness';
-import { AvaActivityBrowser } from '../../components/ui/AvaActivityBrowser';
-import { AvaDayCheckin } from '../../components/ui/AvaDayCheckin';
-import { AvaDisclosure } from '../../components/ui/AvaDisclosure';
-import { AvaMemoryPanel } from '../../components/ui/AvaMemoryPanel';
 import '../../components/ui/caseWorkspace.css';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
-import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
-import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { GuidedBreathingSession } from '../../components/ui/GuidedBreathingSession';
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
@@ -34,7 +28,6 @@ import {
   TriggerSensitivityModal,
   WholeHealthTab,
 } from '../../components/ui/TriggerSensitivityModal';
-import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import type { Observation } from '../../domain/observations/types';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -71,6 +64,13 @@ import { compilePatientContext } from '../../services/MemoryService';
 import { getProfile, getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
 import { canUseTrial, openTrialModal, recordTrialUsage } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { AvaActivityBrowser } from './components/AvaActivityBrowser';
+import { AvaDayCheckin } from './components/AvaDayCheckin';
+import { AvaDisclosure } from './components/AvaDisclosure';
+import { AvaMemoryPanel } from './components/AvaMemoryPanel';
+import { DiaryTimelineCard } from './components/DiaryTimelineCard';
+import { EmergencyTriageModal } from './components/EmergencyTriageModal';
+import { WholeHealthRiverModal } from './components/WholeHealthRiverModal';
 import { TypewriterText } from './TypewriterText';
 
 const QUICK_ACTION_PILLS = [

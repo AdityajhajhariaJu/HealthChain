@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const manifest = JSON.parse(await readFile(join(root, 'dist/.vite/manifest.json'), 'utf8'));
 const deferredFeatures =
-  /html2pdf|pdf-tools|SpatialGalleryCanvas|AreaChart|AccountLifecycle|CaseEngine|ProfileEngine|HealthMemory|geminiService|clinicalReasoningEngine|supabaseClient|landingMotionFeatures/;
+  /html2pdf|pdf-tools|SpatialGalleryCanvas|AreaChart|AccountLifecycle|CaseEngine|ProfileEngine|HealthMemory|geminiService|clinicalReasoningEngine|supabaseClient/;
 
 async function checkGraph(label, keys, rawLimit, gzipLimit) {
   const visited = new Set();
@@ -36,10 +36,10 @@ async function checkGraph(label, keys, rawLimit, gzipLimit) {
   );
 }
 
-// Whole-app cleanup: 301,976 raw / 97,493 gzip startup bytes. Auth and feature
-// engines load after the first render; prevent eager imports from undoing this.
+// Auth and feature engines load after the first render. The Rollup module
+// boundary also prevents animation runtimes entering the public render graph.
 await checkGraph('Startup', ['index.html'], 350_000, 110_000);
 // The landing route is lazy, so checking index.html alone misses its imports.
 const landing = Object.keys(manifest).find((key) => manifest[key].name === 'Landing');
 if (!landing) throw new Error('Missing public Landing manifest entry');
-await checkGraph('Public landing', ['index.html', landing], 450_000, 149_000);
+await checkGraph('Public landing', ['index.html', landing], 390_000, 129_000);

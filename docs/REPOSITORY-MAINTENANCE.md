@@ -4,18 +4,18 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 
 ## Implementation sequence
 
-| Ticket | Work | Verification |
-|---|---|---|
-| CLEAN-01 | Inventory tracked files, module reachability, duplicate assets, package use and deployed content references. Record a production build baseline. | Saved inventory and build measurements outside the repository. |
-| CLEAN-02 | Remove obsolete patch scripts, scratch files, generated reports/build output and unreachable retired components. Keep migration history, native project sources and working product flows. Organize feature documentation. | Reference scan, TypeScript/build, unit and browser gates. |
-| PERF-01 | Split initial routes and defer heavy modal, chart, 3D and export code until used. Keep error and loading recovery. | Compare initial static JavaScript closure and route bundle sizes; production browser journeys. |
-| PERF-02 | Deduplicate public catalog reads with independent cache expiration and explicit invalidation; prevent stale cache extension and repeated requests. | Controlled concurrency, expiration, failure and cancellation cases. |
-| PERF-03 | Bound native storage startup, preserve write ordering and avoid late reads overwriting newer edits. Reduce unnecessary resize work. | Native-bridge stall and concurrent-write regression cases; normal UI tests. |
-| CLEAN-03 | Validate public assets against source and live public-content URLs, deduplicate unused variants, optimize source images once and stop repeated build-time recompression. | Asset reference checks, size/build comparisons and real production headers/rendering. |
-| PERF-04 | Review live query/index and RLS cost; add changes only where actual tables/queries support them. Keep owner authorization and records intact. | Database metadata, migration contract, rolled-back checks and advisers. |
-| CLEAN-04 | Add repository/build guards, update developer docs and release evidence, then commit/push/deploy. | Full quality gates on the exact release SHA and production smoke. |
-| CLEAN-05 | Remove unused local declarations, redundant calculations, obsolete handlers and unused subscriptions; format touched source consistently. | Enforce `noUnusedLocals` in the production TypeScript build; full unit/browser gates. |
-| PERF-05 | Keep initial landing text visible, remove unused recurring updates, improve mobile readability/zoom and defer optional tracking until consent. | Mobile Chromium/WebKit checks, consent regressions and compressed-build Lighthouse measurement. |
+| Ticket   | Work                                                                                                                                                                                                                       | Verification                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| CLEAN-01 | Inventory tracked files, module reachability, duplicate assets, package use and deployed content references. Record a production build baseline.                                                                           | Saved inventory and build measurements outside the repository.                                  |
+| CLEAN-02 | Remove obsolete patch scripts, scratch files, generated reports/build output and unreachable retired components. Keep migration history, native project sources and working product flows. Organize feature documentation. | Reference scan, TypeScript/build, unit and browser gates.                                       |
+| PERF-01  | Split initial routes and defer heavy modal, chart, 3D and export code until used. Keep error and loading recovery.                                                                                                         | Compare initial static JavaScript closure and route bundle sizes; production browser journeys.  |
+| PERF-02  | Deduplicate public catalog reads with independent cache expiration and explicit invalidation; prevent stale cache extension and repeated requests.                                                                         | Controlled concurrency, expiration, failure and cancellation cases.                             |
+| PERF-03  | Bound native storage startup, preserve write ordering and avoid late reads overwriting newer edits. Reduce unnecessary resize work.                                                                                        | Native-bridge stall and concurrent-write regression cases; normal UI tests.                     |
+| CLEAN-03 | Validate public assets against source and live public-content URLs, deduplicate unused variants, optimize source images once and stop repeated build-time recompression.                                                   | Asset reference checks, size/build comparisons and real production headers/rendering.           |
+| PERF-04  | Review live query/index and RLS cost; add changes only where actual tables/queries support them. Keep owner authorization and records intact.                                                                              | Database metadata, migration contract, rolled-back checks and advisers.                         |
+| CLEAN-04 | Add repository/build guards, update developer docs and release evidence, then commit/push/deploy.                                                                                                                          | Full quality gates on the exact release SHA and production smoke.                               |
+| CLEAN-05 | Remove unused local declarations, redundant calculations, obsolete handlers and unused subscriptions; format touched source consistently.                                                                                  | Enforce `noUnusedLocals` in the production TypeScript build; full unit/browser gates.           |
+| PERF-05  | Keep initial landing text visible, remove unused recurring updates, improve mobile readability/zoom and defer optional tracking until consent.                                                                             | Mobile Chromium/WebKit checks, consent regressions and compressed-build Lighthouse measurement. |
 
 ## Safety and measurement
 
@@ -49,13 +49,13 @@ Started: 1 October 2026, from `fe67f827` on `master`.
 
 ## Measured results
 
-| Measurement | Before | After |
-|---|---:|---:|
-| Initial static JavaScript | 2,173,698 bytes | 854,127 bytes |
-| Initial static JavaScript, gzip comparison | 628,631 bytes | 253,708 bytes |
-| Dashboard screen JavaScript chunk | 500,023 bytes | 92,939 bytes |
-| Built deployment files | 273,725,683 bytes | 252,905,607 bytes |
-| Repository working files | 1,565 | 767 |
+| Measurement                                |            Before |             After |
+| ------------------------------------------ | ----------------: | ----------------: |
+| Initial static JavaScript                  |   2,173,698 bytes |     854,127 bytes |
+| Initial static JavaScript, gzip comparison |     628,631 bytes |     253,708 bytes |
+| Dashboard screen JavaScript chunk          |     500,023 bytes |      92,939 bytes |
+| Built deployment files                     | 273,725,683 bytes | 252,905,607 bytes |
+| Repository working files                   |             1,565 |               767 |
 
 The initial JavaScript graph is **60.7% smaller** (59.6% for the gzip comparison). The dashboard chunk is **81.4% smaller**. These measure emitted bytes; route-specific requests, network/device conditions and provider response time also affect what users experience. The used audio library remains the largest part of the deployed/native asset footprint and was retained.
 
@@ -105,11 +105,11 @@ This pass starts from commit `3e6b84f5`, after the earlier cleanup above. Its me
 
 ### Measurements for this pass
 
-| Measurement | Start of this pass | After |
-|---|---:|---:|
-| Startup JavaScript | 854,127 bytes | 662,225 bytes |
-| Startup JavaScript, gzip | 253,708 bytes | 196,256 bytes |
-| Public landing including shared startup, gzip | — | 222,110 bytes |
+| Measurement                                   | Start of this pass |         After |
+| --------------------------------------------- | -----------------: | ------------: |
+| Startup JavaScript                            |      854,127 bytes | 662,225 bytes |
+| Startup JavaScript, gzip                      |      253,708 bytes | 196,256 bytes |
+| Public landing including shared startup, gzip |                  — | 222,110 bytes |
 
 Startup JavaScript fell by **22.5%**, or **22.6%** using gzip. Landing's complete static graph is 734,689 raw bytes across 16 assets; account workers, clinical repositories, charts, 3D and PDF code remain deferred. Budget limits leave modest room for routine additions and reject their return to public startup.
 
@@ -147,12 +147,12 @@ This pass starts from `fa3c77a5`, after the six-screen Clinical intake and visib
 
 ### Emitted JavaScript measurements
 
-| Static import graph | Before | After | Reduction |
-|---|---:|---:|---:|
-| Startup, raw | 662,322 bytes | 301,976 bytes | 54.4% |
-| Startup, gzip | 196,294 bytes | 97,493 bytes | 50.3% |
-| Public landing including startup, raw | 734,786 bytes | 415,794 bytes | 43.4% |
-| Public landing including startup, gzip | 222,147 bytes | 137,117 bytes | 38.3% |
+| Static import graph                    |        Before |         After | Reduction |
+| -------------------------------------- | ------------: | ------------: | --------: |
+| Startup, raw                           | 662,322 bytes | 301,976 bytes |     54.4% |
+| Startup, gzip                          | 196,294 bytes |  97,493 bytes |     50.3% |
+| Public landing including startup, raw  | 734,786 bytes | 415,794 bytes |     43.4% |
+| Public landing including startup, gzip | 222,147 bytes | 137,117 bytes |     38.3% |
 
 Startup uses three assets and the complete static public graph nine, down from sixteen for the public graph before icon grouping. These are emitted JavaScript bytes, not all eventual downloads: session detection still loads auth after mount and optional animation features load separately. Budget gates cap startup at 350,000 raw/110,000 gzip and the public graph at 450,000 raw/149,000 gzip bytes, and reject an eager auth client, animation renderer or feature engine.
 
@@ -169,3 +169,43 @@ Runtime import resolution reports no missing local imports. Seven modules outsid
 The same compressed-build Lighthouse 11.4 harness scores **57 performance, 100 accessibility, 100 best practices and 100 SEO**, compared with 53 performance at the start of this pass. Simulated mobile FCP changes from 7.73 to 6.84 seconds, LCP from 10.06 to **9.01 seconds**, and total blocking time from 206.5 to **26.5 ms**; cumulative layout shift is zero. The headline remains the largest contentful paint element. These local measurements show smaller downloads and less blocking, while mobile paint still falls short of the performance target. Large deferred PDF/3D chunks still produce the existing build warnings.
 
 Signed phones, real payment/provider flows, multi-device convergence and qualified clinical/nutrition validation retain their separate acceptance gates in the functional audit; source cleanup cannot establish universal correctness or universally satisfactory clinical answers.
+
+## Re-audit and feature ownership — 2–3 October 2026
+
+This pass starts from `cdeea99d`, after the whole-app source cleanup above. These figures describe this additional pass only.
+
+### Source organization and user-facing corrections
+
+- Moved 21 feature components and one test from shared UI to their owners under account, auth, consultation, dashboard, Clinical, diet and profile. Updated imports, dynamic loads, mocks and browser module paths. The 21 moved files other than the intentionally revised example dialog, plus nine existing pages/tests with updated imports, retain equivalent emitted program structure after normalizing imports, parentheses and adjacent JSX text: 30 checked, 30 equivalent.
+- Split the roughly 1,500-line landing page into a 244-line controller, focused sections, pure content and callback types. The controller retains session restoration, owner/guest launch checks, duplicate-launch protection and load failures; sections own input/disclosure state. Changed source is formatted and its imports organized.
+- Removed public JavaScript animation wrappers and the obsolete optional renderer loader. Public rendering uses CSS; an actual Rollup static-module graph guard rejects animation runtimes. Feature/dialog animation code remains deferred.
+- The six overview cards render once in a responsive grid with normal page scrolling. Images have dimensions, deferred decoding/loading and bounded fallback. The FAQ has connected accessible names and state. Mobile title/body text is readable without horizontal overflow.
+- The example dialog has a name, focus containment, Escape, return focus, a named 44-pixel close button and responsive evidence columns. Launching an illustrative case closes the dialog so the loading indicator and failures stay visible. Example cases remain explicitly labelled. Evidence, uncertainty, visit-question and launch wording now describes the action/data more directly, and an unmeasured completion-time claim is removed.
+- Demo media uses native playback controls and a retryable error state. Removed the timer and unused input ref. The landing CSS audit checks all nine consumers and finds 172 referenced classes with zero unreachable rules.
+- The full browser sweep exposes a Gut save/navigation race. Capture controls and page/history navigation now stay disabled until saving settles, with a visible saving status. Failed writes preserve entry text and reenable controls. Shared focus handling skips controls disabled by a fieldset; save/failure and keyboard regressions cover these boundaries. The scanner fixture preserves its incomplete-output rejection and waits up to 15 seconds for asynchronous analysis. Formatting the Gut stylesheet preserves all 171 original rules/declarations and adds two busy-control rules.
+
+### Measurements
+
+| Static import graph                    |        Before |   Final build |
+| -------------------------------------- | ------------: | ------------: |
+| Startup, raw                           | 301,976 bytes | 301,757 bytes |
+| Startup, gzip                          |  97,493 bytes |  97,451 bytes |
+| Public landing including startup, raw  | 415,794 bytes | 366,298 bytes |
+| Public landing including startup, gzip | 137,117 bytes | 119,442 bytes |
+
+Public JavaScript decreases **11.9% raw / 12.9% gzip** and uses seven static assets instead of nine. Startup is essentially unchanged. The public budget is tightened to 390,000 raw/129,000 gzip bytes; startup retains its 350,000/110,000 limits. Auth detection and feature loads still occur after public rendering.
+
+The last landing audit on the compressed server with Lighthouse 11.4 scores **55 performance, 100 accessibility, 100 best practices and 100 SEO**, versus 60 performance in the baseline sample. FCP is 5.95 seconds versus 5.50, LCP 8.14 seconds versus 9.07, blocking time 244 ms versus 6, and layout shift zero. Earlier post-restructuring samples score 58 and 57, with LCP 7.87–8.00 seconds and blocking 211–232 ms. The download reduction is established; a uniform speed improvement is not. Mobile rendering/blocking performance remains below target and the final performance score regresses. Existing deferred PDF/3D warnings remain.
+
+An offscreen CSS rendering experiment following [Chrome's content-visibility guidance](https://web.dev/articles/content-visibility) reduces blocking to 140.5 ms but exposes three WebKit deep-scroll/example-navigation failures. It is removed before the final build; its retained measurements are not delivered-source results. Correct navigation takes precedence over the isolated lab gain.
+
+### Verification and limits
+
+- Complete final unit suite: **880 passed**, with two existing opt-in live-model tests skipped, across 145 files. All **19 affected landing/media/workflow tests pass** after the final dialog change, and the new save/focus regressions pass.
+- Final built-asset Chromium/WebKit journeys: **32 passed without retries**. They cover the six-screen Clinical draft/original attachment/reload, complete Gut answers and offline recovery, consent, protected routes, guest scope, dialog keyboard operation and visible launch feedback, case saving and Ava reply/reload.
+- Complete source browser sweep: **212 of 214 passed**. The corrected Gut save transition passes in the affected follow-up, which finishes **57 of 58**; the remaining WebKit scanner test still fails its 15-second completion deadline in that long run. Subsequent scanner diagnostics pass three times, the original incomplete-output test passes five consecutive times, and the complete scanner suite passes **20 of 20** across Chromium/WebKit without retries. No scanner runtime change is made: the cause of the intermittent long-run failure is not established. The original failure evidence is retained. These results are a broad sweep plus affected follow-ups, not one all-green 214-check run.
+- TypeScript/build, tightened budgets, static animation boundary, ESLint, repository hygiene and recursive syntax checks pass. Syntax covers 39 API/server/shared/operational files. Runtime import resolution reports 329 implementation candidates, 321 browser-reachable modules and no missing local imports; eight type/test/server contract modules are deliberately retained.
+- All 42 migration files/27 schema checks pass. This pass changes no database schema or health records. The fresh application/development dependency audit reports **zero vulnerabilities** after a transient registry DNS failure is retried successfully.
+- Final assets copy successfully to Android and iOS. Layout checks at 320, 390 and 1280 pixels report no horizontal overflow or uncaught page errors, and both dialog views fit their width.
+
+The external re-audit report retains logs, measurements, moved-file inventory and screenshots. Signed devices, real providers/payments, multi-device convergence and qualified clinical/nutrition review keep their existing acceptance gates. Browser fixtures verify application behavior with controlled responses; they do not establish universal medical correctness.

@@ -1,16 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getActiveSession } from '../../services/authSession';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { getItemSync, setItemSync } from '../../services/storage';
-import { awardPoints } from '../../services/VitalityPointsEngine';
-import FocusTrap from './FocusTrap';
+import FocusTrap from '../../../components/ui/FocusTrap';
+import { getActiveSession } from '../../../services/authSession';
+import { triggerHapticLight, triggerHapticSuccess } from '../../../services/haptics';
+import { getItemSync, setItemSync } from '../../../services/storage';
+import { awardPoints } from '../../../services/VitalityPointsEngine';
 
 const TOUR_STEPS = [
   {
     title: 'Welcome to HealthChain',
-    content: 'Let\'s take a quick tour to show you how we listen, understand, and help you find answers.',
+    content:
+      "Let's take a quick tour to show you how we listen, understand, and help you find answers.",
   },
   {
     title: 'Health Dashboard',
@@ -18,16 +19,18 @@ const TOUR_STEPS = [
   },
   {
     title: 'Clinical Review',
-    content: 'Bring records, symptoms, dates, and open questions together while keeping facts separate from AI-generated possibilities.',
+    content:
+      'Bring records, symptoms, dates, and open questions together while keeping facts separate from AI-generated possibilities.',
   },
   {
     title: 'Physician Action Briefs',
-    content: 'Generate doctor-ready SBAR briefs and confirmatory lab test requisitions with a single click.',
+    content:
+      'Generate doctor-ready SBAR briefs and confirmatory lab test requisitions with a single click.',
   },
   {
     title: 'Privacy First',
     content: 'Data is securely stored on-device and encrypted. Health data is never sold.',
-  }
+  },
 ];
 
 export default function ProductTour() {
@@ -42,7 +45,10 @@ export default function ProductTour() {
       if (cancelled || hasSeenTour || !session) return;
       timer = setTimeout(() => setIsVisible(true), 2000);
     });
-    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const dismiss = () => {
@@ -65,7 +71,7 @@ export default function ProductTour() {
   const nextStep = () => {
     triggerHapticLight();
     if (currentStep < TOUR_STEPS.length - 1) {
-      setCurrentStep(c => c + 1);
+      setCurrentStep((c) => c + 1);
     } else {
       awardPoints(10, 'Completed Product Onboarding Tour', 'research');
       triggerHapticSuccess();
@@ -76,7 +82,7 @@ export default function ProductTour() {
   const prevStep = () => {
     triggerHapticLight();
     if (currentStep > 0) {
-      setCurrentStep(c => c - 1);
+      setCurrentStep((c) => c - 1);
     }
   };
 
@@ -96,7 +102,7 @@ export default function ProductTour() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px'
+            padding: '24px',
           }}
         >
           <FocusTrap isActive={isVisible}>
@@ -114,7 +120,7 @@ export default function ProductTour() {
                 width: '100%',
                 maxWidth: '400px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                position: 'relative'
+                position: 'relative',
               }}
             >
               <button
@@ -131,14 +137,16 @@ export default function ProductTour() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--text-muted)'
+                  color: 'var(--text-muted)',
                 }}
                 aria-label="Skip Tour"
               >
                 <X size={20} />
               </button>
 
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', paddingRight: '32px' }}>
+              <div
+                style={{ display: 'flex', gap: '4px', marginBottom: '24px', paddingRight: '32px' }}
+              >
                 {TOUR_STEPS.map((_, idx) => (
                   <div
                     key={idx}
@@ -147,20 +155,37 @@ export default function ProductTour() {
                       flex: 1,
                       backgroundColor: idx <= currentStep ? 'var(--teal)' : 'var(--border)',
                       borderRadius: '2px',
-                      transition: 'background-color 0.3s'
+                      transition: 'background-color 0.3s',
                     }}
                   />
                 ))}
               </div>
 
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-main)', margin: '0 0 12px 0' }}>
+              <h3
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                  margin: '0 0 12px 0',
+                }}
+              >
                 {TOUR_STEPS[currentStep].title}
               </h3>
-              <p style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: '1.5', margin: '0 0 32px 0', minHeight: '66px' }}>
+              <p
+                style={{
+                  fontSize: '15px',
+                  color: 'var(--text-muted)',
+                  lineHeight: '1.5',
+                  margin: '0 0 32px 0',
+                  minHeight: '66px',
+                }}
+              >
                 {TOUR_STEPS[currentStep].content}
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 0}
@@ -173,7 +198,7 @@ export default function ProductTour() {
                     alignItems: 'center',
                     gap: '4px',
                     fontSize: '14px',
-                    fontWeight: 500
+                    fontWeight: 500,
                   }}
                 >
                   <ChevronLeft size={16} /> Back
@@ -191,13 +216,17 @@ export default function ProductTour() {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
                   }}
                 >
                   {currentStep === TOUR_STEPS.length - 1 ? (
-                    <>Get Started <Check size={16} /></>
+                    <>
+                      Get Started <Check size={16} />
+                    </>
                   ) : (
-                    <>Next <ChevronRight size={16} /></>
+                    <>
+                      Next <ChevronRight size={16} />
+                    </>
                   )}
                 </button>
               </div>

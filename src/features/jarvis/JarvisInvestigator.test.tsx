@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import JarvisInvestigator from './JarvisInvestigator';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { normalizeClinicalReview } from '../../services/clinicalReview';
 import { clinicalSourceFingerprint } from '../../services/clinicalReviewSourceState';
+import JarvisInvestigator from './JarvisInvestigator';
 
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
@@ -57,7 +57,7 @@ vi.mock('../../services/haptics', () => ({
 vi.mock('../../components/ui/ToastProvider', () => ({
   useToast: () => ({ error: mocks.error, success: vi.fn(), info: vi.fn() }),
 }));
-vi.mock('../../components/ui/CompilingAnimation', () => ({
+vi.mock('./components/CompilingAnimation', () => ({
   CompilingAnimation: () => <p>Review in progress</p>,
 }));
 

@@ -1,15 +1,15 @@
 import { Activity, RefreshCw, Smartphone } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
+import { LivingHeartIcon } from '../../../components/ui/LivingHeartIcon';
+import { useToast } from '../../../components/ui/ToastProvider';
+import { triggerHapticLight, triggerHapticMedium } from '../../../services/haptics';
 import {
   checkHealthPermissions,
   isHealthSupported,
   requestHealthPermissions,
   syncHealthData,
-} from '../../services/HealthTrackingService';
-import { getItemSync, setItemSync } from '../../services/storage';
-import { LivingHeartIcon } from './LivingHeartIcon';
-import { useToast } from './ToastProvider';
+} from '../../../services/HealthTrackingService';
+import { getItemSync, setItemSync } from '../../../services/storage';
 
 export function HealthDeviceIntegrations() {
   const [isConnected, setIsConnected] = useState(false);

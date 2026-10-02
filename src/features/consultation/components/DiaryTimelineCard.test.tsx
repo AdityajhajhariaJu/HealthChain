@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { DiaryTimelineCard } from '../DiaryTimelineCard';
+import { DiaryTimelineCard } from './DiaryTimelineCard';
 
 const writes = vi.hoisted(() => ({ meal: vi.fn(), checkin: vi.fn() }));
 vi.mock('../../../services/ProfileEngine', () => ({

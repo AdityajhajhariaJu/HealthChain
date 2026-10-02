@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, CheckCircle2, Edit3, Waves } from 'lucide-react';
 import React from 'react';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight } from '../../../services/haptics';
 
 export interface DiaryEntry {
   time: string;

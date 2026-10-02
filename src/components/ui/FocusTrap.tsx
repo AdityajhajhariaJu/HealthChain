@@ -43,6 +43,8 @@ export default function FocusTrap({
         'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
       return Array.from(nodes).filter((el) => {
+        // A fieldset can disable a control without changing its disabled attribute.
+        if (el.matches(':disabled')) return false;
         if (el.getAttribute('aria-hidden') === 'true') return false;
         // In real browser, check dimensions; in jsdom/test env allow visible focusable elements
         return (

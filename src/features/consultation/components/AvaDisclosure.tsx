@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { captureAccountScope } from '../../services/AccountScope';
+import { captureAccountScope } from '../../../services/AccountScope';
 
 /** A card's expansion belongs to its original message and account. */
 export function AvaDisclosure({

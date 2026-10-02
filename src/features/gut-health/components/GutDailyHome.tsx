@@ -250,7 +250,7 @@ export const GutDailyHome: React.FC<Props> = ({
   const saveLog = async () => {
     if (!preview || saving) return;
     setSaving(true);
-    setStatus('');
+    setStatus('Saving your entry…');
     let observationSaved = false;
     try {
       const scope = await captureObservationScope();
@@ -508,12 +508,23 @@ export const GutDailyHome: React.FC<Props> = ({
                     ? '04 / WEEKLY REVIEW'
                     : 'YOUR INSIGHT / ONE STEP AT A TIME'}
           </div>
-          <button type="button" onClick={() => onOpenRecords()} className="gdh-history">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => onOpenRecords()}
+            className="gdh-history"
+          >
             <History size={15} /> History
           </button>
         </div>
         {page === 'log' && (
-          <section className="gdh-page">
+          <fieldset
+            className="gdh-page"
+            aria-label="Gut entry"
+            aria-busy={saving}
+            disabled={saving}
+            style={{ minWidth: 0, marginInline: 0 }}
+          >
             <div className="gdh-brand">
               <span>
                 <Activity size={18} />
@@ -890,7 +901,7 @@ export const GutDailyHome: React.FC<Props> = ({
                 </button>
               </>
             )}
-          </section>
+          </fieldset>
         )}
         {page === 'understanding' && (!activeThread || showQuestion) && (
           <section className="gdh-page">
@@ -1526,6 +1537,7 @@ export const GutDailyHome: React.FC<Props> = ({
           <button
             type="button"
             className={page === 'log' ? 'active' : ''}
+            disabled={saving}
             onClick={() => jump('log')}
           >
             <Plus size={18} /> Log
@@ -1535,6 +1547,7 @@ export const GutDailyHome: React.FC<Props> = ({
             className={
               page === 'research' || page === 'understanding' || page === 'journey' ? 'active' : ''
             }
+            disabled={saving}
             onClick={() => jump('research')}
           >
             <Search size={17} /> My research
@@ -1542,6 +1555,7 @@ export const GutDailyHome: React.FC<Props> = ({
           <button
             type="button"
             className={page === 'week' ? 'active' : ''}
+            disabled={saving}
             onClick={() => jump('week')}
           >
             <CalendarDays size={17} /> This week

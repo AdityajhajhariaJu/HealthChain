@@ -38,10 +38,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import '../../components/ui/caseWorkspace.css';
-import { ClinicalClarificationForm } from '../../components/ui/ClinicalClarificationForm';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
 import { ClinicalUrgencyNotice } from '../../components/ui/ClinicalUrgencyNotice';
-import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import {
   SourcePassageModal,
@@ -92,6 +90,8 @@ import { getProfile, getProfileEngineState, getProfileKey } from '../../services
 import { buildClinicalOutcome } from '../../services/StructuredAnswerEngine';
 import { openTrialModal } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { ClinicalClarificationForm } from './components/ClinicalClarificationForm';
+import { CompilingAnimation } from './components/CompilingAnimation';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
 const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;

@@ -57,33 +57,34 @@ test('landing text is visible immediately, zoom is available, and declining cons
   await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(0);
   expect(tracking).toEqual([]);
   await page.screenshot({ path: `test-results/landing-mobile-top-${testInfo.project.name}.png` });
-  const showcase = page.locator('[class*="bentoScrollWindow"]');
-  await showcase.scrollIntoViewIfNeeded();
+  const showcase = page.getByRole('region', { name: 'Connected case workflow examples' });
+  const cards = showcase.getByRole('article');
+  await expect(cards).toHaveCount(6);
+  await cards.first().scrollIntoViewIfNeeded();
   await expect(
     page.getByRole('heading', {
       name: 'What is HealthChain and How Can It Improve Doctor Visits?',
       exact: true,
     })
   ).toBeInViewport();
-  expect(
-    await showcase
-      .locator('[class*="bentoColumnTrackLeft"]')
-      .evaluate((track) => getComputedStyle(track).animationName)
-  ).toBe('none');
-  await expect(showcase).toHaveAttribute('tabindex', '0');
-  expect(await showcase.evaluate((element) => getComputedStyle(element).overflowY)).toBe('auto');
-  await showcase.evaluate((window) => {
-    window.scrollTop = window.scrollHeight;
+  const lastReport = page.getByRole('heading', {
+    name: 'When a Report Is Hard to Interpret, Keep the Source Visible',
+    exact: true,
   });
+  await lastReport.scrollIntoViewIfNeeded();
   await expect(
     page.getByRole('heading', {
       name: 'When a Report Is Hard to Interpret, Keep the Source Visible',
       exact: true,
     })
   ).toBeInViewport();
-  await showcase.evaluate((window) => {
-    window.scrollTop = 0;
-  });
+  for (const card of await cards.all()) {
+    const title = card.getByRole('heading');
+    await title.scrollIntoViewIfNeeded();
+    await expect(title).toBeInViewport();
+    expect(await card.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+  }
+  await cards.first().scrollIntoViewIfNeeded();
   await expect
     .poll(() =>
       showcase

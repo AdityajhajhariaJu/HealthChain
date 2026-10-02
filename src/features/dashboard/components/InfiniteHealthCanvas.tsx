@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, BrainCircuit, Briefcase, CheckCircle2, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CaseItem } from '../../services/CaseEngine';
-import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { CaseItem } from '../../../services/CaseEngine';
+import { triggerHapticLight, triggerHapticSelection } from '../../../services/haptics';
 
 interface InfiniteHealthCanvasProps {
   cases: CaseItem[];
@@ -15,15 +15,28 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
   // Sort cases oldest to newest for chronological timeline
-  const timelineCases = [...cases].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  const activeSelectedCase = timelineCases.find(c => c.id === selectedCaseId) || null;
+  const timelineCases = [...cases].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+  const activeSelectedCase = timelineCases.find((c) => c.id === selectedCaseId) || null;
 
   if (timelineCases.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '24px', border: '1px dashed #CBD5E1' }}>
+      <div
+        style={{
+          padding: '40px',
+          textAlign: 'center',
+          color: '#64748B',
+          background: '#F8FAFC',
+          borderRadius: '24px',
+          border: '1px dashed #CBD5E1',
+        }}
+      >
         <Activity size={32} color="#94A3B8" style={{ margin: '0 auto 10px' }} />
         <p style={{ margin: 0, fontWeight: 600 }}>No cases on the timeline yet.</p>
-        <span style={{ fontSize: '13px', color: '#94A3B8' }}>Start an investigation or import clinical records to map health events.</span>
+        <span style={{ fontSize: '13px', color: '#94A3B8' }}>
+          Start an investigation or import clinical records to map health events.
+        </span>
       </div>
     );
   }
@@ -76,7 +89,16 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
         }}
         whileTap={{ cursor: 'grabbing' }}
       >
-        <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        >
           <defs>
             <linearGradient id="timelineGrad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#0D9488" stopOpacity="0.2" />
@@ -96,7 +118,10 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
         </svg>
 
         {timelineCases.map((c, i) => {
-          const isJarvis = c.mode === 'jarvis' || c.title?.toLowerCase().includes('jarvis') || c.currentStage === 'jarvis_complete';
+          const isJarvis =
+            c.mode === 'jarvis' ||
+            c.title?.toLowerCase().includes('jarvis') ||
+            c.currentStage === 'jarvis_complete';
           const yOffset = i % 2 === 0 ? -90 : 90;
           const isSelected = c.id === selectedCaseId;
 
@@ -104,8 +129,14 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
           const recordsCount = (c.medicalRecords || []).length;
           const reviewsCount = (c.reviews || []).length;
           const questions = c.questions || [];
-          const openQuestions = questions.filter(q => q.status === 'open' || !q.status).length;
-          const outcomeCount = questions.filter(q => q.status === 'discussed' || q.status === 'deferred' || q.status === 'resolved' || q.status === 'addressed').length;
+          const openQuestions = questions.filter((q) => q.status === 'open' || !q.status).length;
+          const outcomeCount = questions.filter(
+            (q) =>
+              q.status === 'discussed' ||
+              q.status === 'deferred' ||
+              q.status === 'resolved' ||
+              q.status === 'addressed'
+          ).length;
           const brief = c.appointmentBriefs?.current;
 
           return (
@@ -116,7 +147,7 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
               aria-label={`View clinical case: ${c.title || 'Untitled Case'}`}
               initial={{ opacity: 0, y: yOffset + 20 }}
               animate={{ opacity: 1, y: yOffset }}
-              transition={{ delay: 0.15 + (i * 0.08) }}
+              transition={{ delay: 0.15 + i * 0.08 }}
               onClick={() => {
                 triggerHapticSelection();
                 setSelectedCaseId(c.id === selectedCaseId ? null : c.id);
@@ -130,7 +161,7 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
               }}
               style={{
                 position: 'absolute',
-                left: 200 + i * (itemWidth + gap) - (itemWidth / 2),
+                left: 200 + i * (itemWidth + gap) - itemWidth / 2,
                 width: itemWidth,
                 background: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.92)',
                 backdropFilter: 'blur(16px)',
@@ -149,9 +180,20 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
               whileHover={{ scale: 1.03, y: yOffset - 4 }}
             >
               {/* Header Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {isJarvis ? <BrainCircuit size={15} color="#EA580C" /> : <Activity size={15} color="#0D9488" />}
+                  {isJarvis ? (
+                    <BrainCircuit size={15} color="#EA580C" />
+                  ) : (
+                    <Activity size={15} color="#0D9488" />
+                  )}
                   <span
                     style={{
                       fontSize: '10px',
@@ -202,28 +244,95 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
               </h4>
 
               {/* Clinical Metrics Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '10px 0', fontSize: '11px', textAlign: 'center' }}>
-                <div style={{ background: '#F8FAFC', padding: '5px 4px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontWeight: 800, color: '#0F172A' }}>{recordsCount}</span>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '6px',
+                  margin: '10px 0',
+                  fontSize: '11px',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '5px 4px',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <span style={{ display: 'block', fontWeight: 800, color: '#0F172A' }}>
+                    {recordsCount}
+                  </span>
                   <span style={{ fontSize: '9.5px', color: '#64748B' }}>Records</span>
                 </div>
-                <div style={{ background: '#F8FAFC', padding: '5px 4px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontWeight: 800, color: '#0F172A' }}>{reviewsCount}</span>
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '5px 4px',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <span style={{ display: 'block', fontWeight: 800, color: '#0F172A' }}>
+                    {reviewsCount}
+                  </span>
                   <span style={{ fontSize: '9.5px', color: '#64748B' }}>Reviews</span>
                 </div>
-                <div style={{ background: openQuestions > 0 ? '#FEF3C7' : '#F8FAFC', padding: '5px 4px', borderRadius: '8px', border: openQuestions > 0 ? '1px solid #FDE68A' : '1px solid #E2E8F0' }}>
-                  <span style={{ display: 'block', fontWeight: 800, color: openQuestions > 0 ? '#B45309' : '#0F172A' }}>
+                <div
+                  style={{
+                    background: openQuestions > 0 ? '#FEF3C7' : '#F8FAFC',
+                    padding: '5px 4px',
+                    borderRadius: '8px',
+                    border: openQuestions > 0 ? '1px solid #FDE68A' : '1px solid #E2E8F0',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'block',
+                      fontWeight: 800,
+                      color: openQuestions > 0 ? '#B45309' : '#0F172A',
+                    }}
+                  >
                     {openQuestions}
                   </span>
-                  <span style={{ fontSize: '9.5px', color: openQuestions > 0 ? '#92400E' : '#64748B' }}>Open Qs</span>
+                  <span
+                    style={{ fontSize: '9.5px', color: openQuestions > 0 ? '#92400E' : '#64748B' }}
+                  >
+                    Open Qs
+                  </span>
                 </div>
               </div>
 
               {/* Outcomes and Status Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginTop: '8px' }}>
-                <span>{new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(c.createdAt))}</span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '11px',
+                  color: '#64748B',
+                  marginTop: '8px',
+                }}
+              >
+                <span>
+                  {new Intl.DateTimeFormat('en-IN', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  }).format(new Date(c.createdAt))}
+                </span>
                 {outcomeCount > 0 ? (
-                  <span style={{ color: '#059669', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  <span
+                    style={{
+                      color: '#059669',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                    }}
+                  >
                     <CheckCircle2 size={12} /> {outcomeCount} Outcomes
                   </span>
                 ) : (
@@ -236,7 +345,17 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
       </motion.div>
 
       {/* Constraints container for Framer Motion */}
-      <div ref={containerRef} style={{ position: 'absolute', top: 0, left: -(totalWidth - window.innerWidth + 400), right: 400, bottom: 0, pointerEvents: 'none' }} />
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: -(totalWidth - window.innerWidth + 400),
+          right: 400,
+          bottom: 0,
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* Interactive Case Inspector Panel for Selected Node */}
       <AnimatePresence>
@@ -266,25 +385,77 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', background: '#F0FDFA', padding: '2px 8px', borderRadius: '999px', border: '1px solid #CCFBF1' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#0D9488',
+                    textTransform: 'uppercase',
+                    background: '#F0FDFA',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    border: '1px solid #CCFBF1',
+                  }}
+                >
                   Selected Case
                 </span>
-                <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>{activeSelectedCase.title || 'Case'}</strong>
+                <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>
+                  {activeSelectedCase.title || 'Case'}
+                </strong>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedCaseId(null)}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                }}
                 aria-label="Close case drawer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12.5px', color: '#475569', flexWrap: 'wrap' }}>
-              <span>Records: <strong>{(activeSelectedCase.medicalRecords || []).length}</strong></span>
-              <span>Open Questions: <strong>{(activeSelectedCase.questions || []).filter(q => q.status === 'open' || !q.status).length}</strong></span>
-              <span>Discussed / Resolved: <strong>{(activeSelectedCase.questions || []).filter(q => q.status === 'discussed' || q.status === 'deferred' || q.status === 'resolved' || q.status === 'addressed').length}</strong></span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                fontSize: '12.5px',
+                color: '#475569',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span>
+                Records: <strong>{(activeSelectedCase.medicalRecords || []).length}</strong>
+              </span>
+              <span>
+                Open Questions:{' '}
+                <strong>
+                  {
+                    (activeSelectedCase.questions || []).filter(
+                      (q) => q.status === 'open' || !q.status
+                    ).length
+                  }
+                </strong>
+              </span>
+              <span>
+                Discussed / Resolved:{' '}
+                <strong>
+                  {
+                    (activeSelectedCase.questions || []).filter(
+                      (q) =>
+                        q.status === 'discussed' ||
+                        q.status === 'deferred' ||
+                        q.status === 'resolved' ||
+                        q.status === 'addressed'
+                    ).length
+                  }
+                </strong>
+              </span>
               {activeSelectedCase.appointmentBriefs?.current && (
                 <span style={{ color: '#047857', fontWeight: 700 }}>
                   Brief: v{activeSelectedCase.appointmentBriefs.current.version || 1}

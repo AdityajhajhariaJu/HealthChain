@@ -13,14 +13,14 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import ClinicalDailyEvidencePicker from '../../components/ui/ClinicalDailyEvidencePicker';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
-import InvestigationBoard from '../../components/ui/InvestigationBoard';
 import { useToast } from '../../components/ui/ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CaseItem, getActiveCaseId, getCase, setActiveCase } from '../../services/CaseEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
+import ClinicalDailyEvidencePicker from './components/ClinicalDailyEvidencePicker';
+import InvestigationBoard from './components/InvestigationBoard';
 import DDxBoard from './DDxBoard';
 import SnapshotViewer from './SnapshotViewer';
 

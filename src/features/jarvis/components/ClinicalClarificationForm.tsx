@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import './OutcomeLayout.css';
+import '../../../components/ui/OutcomeLayout.css';
 
 export function ClinicalClarificationForm({
   question,

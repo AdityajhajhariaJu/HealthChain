@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import FocusTrap from '../../../components/ui/FocusTrap';
 import {
   captureHealthMemoryScope,
   flushHealthMemory,
@@ -6,9 +7,8 @@ import {
   isHealthMemoryScopeCurrent,
   recordHealthMemory,
   reviseHealthMemory,
-} from '../../services/HealthMemory';
-import { extractClinicalMemory } from '../../services/geminiService';
-import FocusTrap from './FocusTrap';
+} from '../../../services/HealthMemory';
+import { extractClinicalMemory } from '../../../services/geminiService';
 
 export function AvaMemoryPanel({
   caseId,

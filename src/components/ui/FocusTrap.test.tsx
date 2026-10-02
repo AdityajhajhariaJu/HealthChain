@@ -75,3 +75,27 @@ it('does not steal early input focus and restores the original trigger on close'
   expect(document.activeElement).toBe(trigger);
   trigger.remove();
 });
+
+it('skips controls disabled by a fieldset during initial focus and keyboard wrapping', () => {
+  vi.useFakeTimers();
+  render(
+    <FocusTrap>
+      <fieldset disabled>
+        <input aria-label="Saving note" />
+      </fieldset>
+      <button type="button">Close save</button>
+      <button type="button">Cancel save</button>
+      <fieldset disabled>
+        <button type="button">Saving action</button>
+      </fieldset>
+    </FocusTrap>
+  );
+  act(() => vi.advanceTimersByTime(50));
+  const close = screen.getByRole('button', { name: 'Close save' });
+  const cancel = screen.getByRole('button', { name: 'Cancel save' });
+  expect(document.activeElement).toBe(close);
+  fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+  expect(document.activeElement).toBe(cancel);
+  fireEvent.keyDown(cancel, { key: 'Tab' });
+  expect(document.activeElement).toBe(close);
+});

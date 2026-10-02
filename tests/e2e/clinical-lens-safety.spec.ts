@@ -105,7 +105,8 @@ test('incomplete AI output cannot be logged', async ({ page }) => {
   await lens
     .locator('input[type=file]')
     .setInputFiles({ name: 'unknown.png', mimeType: 'image/png', buffer: whitePixel });
-  await expect(lens.getByText('Nutrition Not Clear')).toBeVisible();
+  // Wait for the asynchronous photo/model pipeline before checking its result.
+  await expect(lens.getByText('Nutrition Not Clear')).toBeVisible({ timeout: 15000 });
   await expect(lens.getByRole('button', { name: 'Log estimate' })).toHaveCount(0);
 });
 
@@ -120,13 +121,11 @@ test('invalid upload is rejected before the AI request and camera can retry', as
   const lens = page.getByRole('dialog', { name: 'Clinical AR Food & Nutrition Scanner' });
   await lens.getByRole('button', { name: 'Retry Camera' }).click();
   await expect(lens.getByText('Camera Not Available')).toBeVisible();
-  await lens
-    .locator('input[type=file]')
-    .setInputFiles({
-      name: 'not-image.txt',
-      mimeType: 'text/plain',
-      buffer: Buffer.from('not an image'),
-    });
+  await lens.locator('input[type=file]').setInputFiles({
+    name: 'not-image.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('not an image'),
+  });
   await expect(lens.getByText('Unsupported photo')).toBeVisible();
   expect(requests).toBe(0);
 });

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Activity, GitBranch } from 'lucide-react';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 export default function InvestigationBoard({ analysis }: { analysis: any }) {
   const isMobile = useIsMobile();
@@ -24,7 +24,8 @@ export default function InvestigationBoard({ analysis }: { analysis: any }) {
           {analysis.chain_name}
         </h1>
         <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-          A visual map of reported symptoms, possible connections, and evidence gaps to discuss with a qualified clinician.
+          A visual map of reported symptoms, possible connections, and evidence gaps to discuss with
+          a qualified clinician.
         </p>
       </div>
 
@@ -246,7 +247,12 @@ export default function InvestigationBoard({ analysis }: { analysis: any }) {
                     </div>
                     {sub && (
                       <div
-                        style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', opacity: 0.8 }}
+                        style={{
+                          fontSize: '12px',
+                          color: '#dc2626',
+                          marginTop: '4px',
+                          opacity: 0.8,
+                        }}
                       >
                         {sub}
                       </div>
