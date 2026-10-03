@@ -5,7 +5,10 @@
 .zen-preview-art {
   position: relative;
   border-radius: 20px;
-  background: #c3c9e8 url('./assets/cozy-sky.webp') center / cover no-repeat;
+  /* Cool the shared sky without tinting the island or adding a render filter. */
+  background:
+    linear-gradient(#b9d7fa4d, #b9d7fa4d),
+    #c3c9e8 url('./assets/cozy-sky.webp') center / cover no-repeat;
   overflow: hidden;
 }
 .zen-canvas {
