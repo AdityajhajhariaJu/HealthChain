@@ -19,6 +19,18 @@ export const ISLAND_SITES = {
   bed: [-2.45, 1.15],
   windmill: [-2.75, -0.05],
 } as const;
+// One small decorative tree beside the cottage; shared by 3D and thumbnail.
+export const ISLAND_SAKURA = {
+  x: 0.1,
+  z: -1.9,
+  scale: 0.62,
+  blossoms: [
+    { x: -0.27, y: 1.3, z: 0.02, radius: 0.38, color: '#dfa0b6' },
+    { x: 0.28, y: 1.34, z: -0.02, radius: 0.37, color: '#efb7cb' },
+    { x: 0, y: 1.57, z: -0.04, radius: 0.4, color: '#f7cddd' },
+    { x: 0, y: 1.29, z: 0.27, radius: 0.34, color: '#e8abc2' },
+  ],
+} as const;
 const flowerPatches = [
   [-3.3, -0.7],
   [-2.75, 1.95],

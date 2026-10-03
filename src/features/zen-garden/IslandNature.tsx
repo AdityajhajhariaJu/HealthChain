@@ -2,7 +2,70 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { Color, Group, InstancedMesh, Mesh, MeshBasicMaterial, Object3D } from 'three';
 import type { IslandTheme } from '../../services/gamification/policy';
-import { ISLAND_COLORS, ISLAND_SITES, ISLAND_TREES, islandFlowers } from './islandLayout';
+import {
+  ISLAND_COLORS,
+  ISLAND_SAKURA,
+  ISLAND_SITES,
+  ISLAND_TREES,
+  islandFlowers,
+} from './islandLayout';
+
+function IslandSakura() {
+  const trunk = useRef<InstancedMesh>(null),
+    crown = useRef<InstancedMesh>(null);
+  const { invalidate } = useThree();
+  useEffect(() => {
+    const item = new Object3D(),
+      color = new Color();
+    const branches = [
+      { x: 0, y: 0.6, rotation: 0, width: 1, height: 1 },
+      { x: -0.13, y: 1.06, rotation: 0.55, width: 0.65, height: 0.42 },
+      { x: 0.13, y: 1.08, rotation: -0.55, width: 0.65, height: 0.42 },
+    ];
+    branches.forEach((branch, index) => {
+      item.position.set(branch.x, branch.y, 0);
+      item.rotation.set(0, 0, branch.rotation);
+      item.scale.set(branch.width, branch.height, branch.width);
+      item.updateMatrix();
+      trunk.current?.setMatrixAt(index, item.matrix);
+    });
+    ISLAND_SAKURA.blossoms.forEach((blossom, index) => {
+      item.position.set(blossom.x, blossom.y, blossom.z);
+      item.rotation.set(0, 0, 0);
+      item.scale.set(blossom.radius, blossom.radius * 0.86, blossom.radius);
+      item.updateMatrix();
+      crown.current?.setMatrixAt(index, item.matrix);
+      crown.current?.setColorAt(index, color.set(blossom.color));
+    });
+    for (const mesh of [trunk.current, crown.current]) {
+      if (!mesh) continue;
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    }
+    invalidate();
+  }, [invalidate]);
+  return (
+    <group
+      name="small-sakura-tree"
+      position={[ISLAND_SAKURA.x, 0.34, ISLAND_SAKURA.z]}
+      scale={ISLAND_SAKURA.scale}
+    >
+      <instancedMesh ref={trunk} args={[undefined, undefined, 3]} castShadow>
+        <cylinderGeometry args={[0.045, 0.065, 1.2, 6]} />
+        <meshStandardMaterial color="#956b68" roughness={1} />
+      </instancedMesh>
+      <instancedMesh
+        ref={crown}
+        args={[undefined, undefined, ISLAND_SAKURA.blossoms.length]}
+        castShadow
+      >
+        <sphereGeometry args={[1, 12, 8]} />
+        <meshStandardMaterial roughness={1} />
+      </instancedMesh>
+    </group>
+  );
+}
 
 export function IslandTrees({ theme }: { theme: IslandTheme }) {
   const colors = ISLAND_COLORS[theme];
@@ -37,6 +100,7 @@ export function IslandTrees({ theme }: { theme: IslandTheme }) {
           </mesh>
         </group>
       ))}
+      <IslandSakura />
     </>
   );
 }

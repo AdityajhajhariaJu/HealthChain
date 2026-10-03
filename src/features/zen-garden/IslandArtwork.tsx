@@ -1,6 +1,12 @@
 import { useId } from 'react';
 import type { IslandTheme } from '../../services/gamification/policy';
-import { ISLAND_COLORS, ISLAND_SITES, ISLAND_TREES, islandFlowers } from './islandLayout';
+import {
+  ISLAND_COLORS,
+  ISLAND_SAKURA,
+  ISLAND_SITES,
+  ISLAND_TREES,
+  islandFlowers,
+} from './islandLayout';
 const project = (x: number, z: number) => ({ x: 400 + (x - z) * 36, y: 234 + (x + z) * 18 });
 export function IslandArtwork({
   level,
@@ -20,7 +26,8 @@ export function IslandArtwork({
     greenhouse = project(...ISLAND_SITES.greenhouse),
     pavilion = project(...ISLAND_SITES.pavilion),
     bed = project(...ISLAND_SITES.bed),
-    windmill = project(...ISLAND_SITES.windmill);
+    windmill = project(...ISLAND_SITES.windmill),
+    sakura = project(ISLAND_SAKURA.x, ISLAND_SAKURA.z);
   return (
     <svg
       className="island-artwork"
@@ -130,6 +137,29 @@ export function IslandArtwork({
             </g>
           );
         })}
+        <g
+          className="island-sakura"
+          transform={`translate(${sakura.x} ${sakura.y}) scale(${ISLAND_SAKURA.scale})`}
+        >
+          <ellipse cy="4" rx="25" ry="8" fill="#647a54" opacity=".12" />
+          <path
+            d="M0 0 Q-3-23 0-52 M0-31 Q-7-36-12-45 M0-33 Q7-37 12-46"
+            fill="none"
+            stroke="#956b68"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {ISLAND_SAKURA.blossoms.map((blossom, index) => (
+            <ellipse
+              key={index}
+              cx={(blossom.x - blossom.z) * 36}
+              cy={(blossom.x + blossom.z) * 18 - blossom.y * 44}
+              rx={blossom.radius * 36}
+              ry={blossom.radius * 36 * 0.86}
+              fill={blossom.color}
+            />
+          ))}
+        </g>
         <g transform={`translate(${cottage.x} ${cottage.y})`}>
           <ellipse cy="21" rx="58" ry="20" fill="#657953" opacity=".13" />
           <path d="M-40-12 L5 12 L5 55 L-40 31Z" fill="#eadfc8" />
