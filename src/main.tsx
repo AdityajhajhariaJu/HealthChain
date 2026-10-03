@@ -6,6 +6,7 @@ import App from './App';
 import FallbackError from './components/ui/FallbackError';
 import { ToastProvider } from './components/ui/ToastProvider';
 import './index.css';
+import './styles/overlay-layout.css';
 import { syncStorageFromPreferences } from './services/storage';
 import { installActivityTelemetry } from './services/gamification/telemetry';
 

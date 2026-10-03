@@ -77,12 +77,12 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
     <AnimatePresence>
       <FocusTrap isActive={isOpen}>
         <div
+          data-overlay-viewport="sheet"
           role="dialog"
           aria-modal="true"
           aria-label="Clinical Connections"
           style={{
             position: 'fixed',
-            inset: 0,
             zIndex: 99999,
             display: 'flex',
             alignItems: isMobile ? 'flex-end' : 'center',
@@ -90,11 +90,11 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             background: 'rgba(15, 23, 42, 0.45)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            padding: isMobile ? '0' : '20px',
           }}
           onClick={onClose}
         >
           <motion.div
+            data-overlay-panel=""
             id="connection-detective-modal-sheet"
             tabIndex={-1}
             initial={{ y: '100%' }}
@@ -106,7 +106,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               width: '100%',
               maxWidth: isMobile ? '100%' : '680px',
               height: 'auto',
-              maxHeight: isMobile ? '88vh' : '82vh',
+              maxHeight: 'var(--overlay-available-height)',
               background: '#FFFFFF',
               borderTopLeftRadius: '28px',
               borderTopRightRadius: '28px',
@@ -139,7 +139,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             </div>
 
             {/* Header */}
-            <div
+            <div data-overlay-header=""
               style={{
                 padding: '12px 16px 10px 16px',
                 display: 'flex',
@@ -253,12 +253,13 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
 
             {/* Scrollable Content */}
             <div
+              data-overlay-scroll=""
               style={{
                 flex: '0 1 auto',
                 overflowY: 'auto',
-                maxHeight: isMobile ? 'calc(88vh - 75px)' : 'calc(82vh - 75px)',
+                maxHeight: 'calc(var(--overlay-available-height) - 75px)',
                 padding: isMobile
-                  ? '8px 14px calc(20px + env(safe-area-inset-bottom, 0px)) 14px'
+                  ? '8px 14px calc(20px + var(--safe-area-bottom, 0px)) 14px'
                   : '10px 18px 24px 18px',
               }}
             >

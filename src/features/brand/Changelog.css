@@ -1,0 +1,57 @@
+.changelog-release {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  min-width: 0;
+}
+.changelog-release__date {
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.changelog-release__copy {
+  flex: 1;
+  min-width: 0;
+  padding-left: 32px;
+}
+.changelog-release__line {
+  position: absolute;
+  left: 132px;
+  top: 24px;
+  bottom: -40px;
+  width: 2px;
+  background: var(--border);
+}
+.changelog-release__dot {
+  position: absolute;
+  left: 127px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--teal);
+  border: 2px solid white;
+}
+@media (max-width: 600px) {
+  .changelog-release {
+    flex-direction: column;
+    padding-left: 24px;
+  }
+  .changelog-release__date {
+    width: auto;
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+  }
+  .changelog-release__copy {
+    padding-left: 0;
+  }
+  .changelog-release__line {
+    left: 5px;
+  }
+  .changelog-release__dot {
+    left: 0;
+  }
+}

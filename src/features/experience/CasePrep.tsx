@@ -1263,9 +1263,11 @@ export default function CasePrep() {
               role="dialog"
               aria-modal="true"
               aria-label="Supporting detail"
-              style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
+              className="hc-detail-drawer"
+              style={{ position: 'fixed', top: 'calc(var(--app-viewport-top, 0px) + var(--safe-area-top, 0px))', right: 'var(--safe-area-right, 0px)', height: 'calc(var(--app-viewport-height) - var(--safe-area-top, 0px))', width: 'calc(100% - var(--safe-area-left, 0px) - var(--safe-area-right, 0px))', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ padding: '24px', borderBottom: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                data-overlay-header="" style={{ padding: '24px', borderBottom: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}><Info size={20} color="#0d9488" /> Supporting detail</h3>
                 <button 
                   type="button"
@@ -1276,7 +1278,8 @@ export default function CasePrep() {
                   &times;
                 </button>
               </div>
-              <div style={{ padding: '24px 24px calc(24px + env(safe-area-inset-bottom)) 24px', overflowY: 'auto', flex: 1 }}>
+              <div
+                data-overlay-scroll="" style={{ padding: '24px 24px calc(24px + var(--safe-area-bottom, 0px)) 24px', overflowY: 'auto', flex: 1 }}>
                 <p style={{ fontSize: 14, color: '#475569', marginBottom: 24, lineHeight: 1.5 }}>
                   This brief was deterministically generated without inventing new facts. Here are the perspectives mapped into the brief:
                 </p>

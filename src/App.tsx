@@ -1,3 +1,4 @@
+import { useViewportLayout } from './hooks/useViewportLayout';
 import { Loader2 } from 'lucide-react';
 import React, { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -126,6 +127,7 @@ async function sha256Hex(str: string): Promise<string> {
 }
 
 export default function App() {
+  useViewportLayout();
   // Global User Activity Tracker (Clicks & Inputs)
   useEffect(() => {
     // 1. Track Clicks

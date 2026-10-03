@@ -66,14 +66,13 @@ export default function ProfileConflictReview() {
       </button>
       {open && (
         <div
+          data-overlay-viewport="center"
           style={{
             position: 'fixed',
-            inset: 0,
             zIndex: 11001,
             background: '#0f172a88',
             display: 'grid',
             placeItems: 'center',
-            padding: 16,
           }}
         >
           <FocusTrap
@@ -82,12 +81,13 @@ export default function ProfileConflictReview() {
             }}
           >
             <section
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label="Review profile changes"
               style={{
                 maxWidth: 760,
-                maxHeight: '85vh',
+                maxHeight: 'var(--overlay-available-height)',
                 overflowY: 'auto',
                 padding: 24,
                 borderRadius: 20,

@@ -23,8 +23,10 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
   if (unresolvedConflicts.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-        <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+      <div
+        data-overlay-viewport="center" role="dialog" aria-modal="true" aria-label="Resolve simultaneous edits" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div
+          data-overlay-panel="" className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
           <div className="w-12 h-12 rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center mx-auto mb-4 border border-teal-500/20">
             <Check size={24} />
           </div>
@@ -136,10 +138,11 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
+    <div data-overlay-viewport="center" role="dialog" aria-modal="true" aria-label="Resolve simultaneous edits" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+      <div data-overlay-panel="" className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div
+          data-overlay-header="" className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center border border-purple-500/30">
               <AlertOctagon size={20} />
@@ -164,7 +167,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         </div>
 
         {/* Content */}
-        <div className="my-5 overflow-y-auto space-y-4">
+        <div
+          data-overlay-scroll="" className="my-5 overflow-y-auto space-y-4">
           <p className="text-sm text-slate-300">
             This item was modified on two devices before syncing. Choose how you want to record it
             in your unified timeline:
@@ -211,7 +215,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
           </div>
 
           {/* Merge Both Option */}
-          <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/30 flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/30 flex flex-wrap gap-3 items-center justify-between">
             <span className="text-xs text-slate-400">Want to retain notes from both devices?</span>
             <button
               onClick={() => handleResolve('merge')}
@@ -223,7 +227,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         </div>
 
         {/* Footer */}
-        <div className="pt-3 border-t border-slate-800 flex justify-end">
+        <div
+          data-overlay-footer="" className="pt-3 border-t border-slate-800 flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-all"

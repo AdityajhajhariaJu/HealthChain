@@ -700,7 +700,8 @@ export default function MedicalProfile() {
       </div>
       <div
         ref={profileRef}
-        style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: '20px' }}
+        className="medical-profile-grid"
+        style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) 340px', gap: '20px' }}
       >
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', gridColumn: '1 / -1' }}>
@@ -723,7 +724,7 @@ export default function MedicalProfile() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="card" 
-        style={{ 
+        style={{
           display: isMobile ? 'flex' : 'grid', 
           flexDirection: isMobile ? 'column' : 'unset',
           gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
@@ -749,9 +750,9 @@ export default function MedicalProfile() {
               <button 
                 onClick={() => navigate('/pricing')}
                 className="btn btn-primary btn-sm"
-                style={{ 
+                style={{
                   background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
-                  border: 'none', 
+                  border: 'none',
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '6px',
@@ -878,7 +879,7 @@ export default function MedicalProfile() {
             </div>
             
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.5px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              <h2 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.5px', overflowWrap: 'anywhere' }}>
                 {profile.demographics.name || 'Set Patient Name'}
               </h2>
               <div
@@ -939,7 +940,7 @@ export default function MedicalProfile() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))',
                   gap: '16px',
                   background: 'var(--surface)',
                   padding: '24px',
@@ -1438,7 +1439,7 @@ export default function MedicalProfile() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                   gap: '16px',
                 }}
               >
@@ -1985,23 +1986,20 @@ export default function MedicalProfile() {
       <AnimatePresence>
         {showClearConfirm && (
           <div
+            data-overlay-viewport="center"
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
               background: 'rgba(15, 23, 42, 0.65)',
               backdropFilter: 'blur(6px)',
               zIndex: 99999,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '20px'
             }}
             onClick={() => setShowClearConfirm(false)}
           >
             <motion.div
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label="Reset Medical Profile"
@@ -2016,7 +2014,9 @@ export default function MedicalProfile() {
                 maxWidth: '440px',
                 width: '100%',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                border: '1px solid #F1E5E7'
+                border: '1px solid #F1E5E7',
+                minHeight: 0,
+                overflowY: 'auto',
               }}
             >
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>

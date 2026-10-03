@@ -117,14 +117,13 @@ export default function ObservationConflictReview() {
       </button>
       {open && (
         <div
+          data-overlay-viewport="center"
           style={{
             position: 'fixed',
-            inset: 0,
             background: '#0f172a88',
             zIndex: 11000,
             display: 'grid',
             placeItems: 'center',
-            padding: 16,
           }}
         >
           <FocusTrap
@@ -133,12 +132,13 @@ export default function ObservationConflictReview() {
             }}
           >
             <section
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label="Review conflicting health record"
               style={{
                 maxWidth: 720,
-                maxHeight: '85vh',
+                maxHeight: 'var(--overlay-available-height)',
                 overflowY: 'auto',
                 padding: 24,
                 borderRadius: 20,

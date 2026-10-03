@@ -4092,17 +4092,13 @@ export default function Dietician() {
         <AnimatePresence>
           {isLoggingFood && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
             >
               <FocusTrap isActive={isLoggingFood}>
@@ -4123,6 +4119,7 @@ export default function Dietician() {
                 />
 
                 <motion.div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Log Meal"
@@ -4138,32 +4135,14 @@ export default function Dietician() {
                     position: 'relative',
                     zIndex: 1001,
                     boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
-                    maxHeight: 'calc(100vh - 140px)',
+                    maxHeight: 'var(--overlay-available-height)',
                     overflowY: 'auto',
                   }}
                 >
-                  <button
-                    onClick={() => setIsLoggingFood(false)}
-                    style={{
-                      position: 'absolute',
-                      top: '20px',
-                      right: '20px',
-                      background: '#F1F5F9',
-                      border: 'none',
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#64748B',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <X size={16} />
-                  </button>
+
 
                   <div
+                    data-overlay-header=""
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -4171,30 +4150,49 @@ export default function Dietician() {
                       marginBottom: '8px',
                     }}
                   >
-                    <div
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '10px',
+                          background: '#DCFCE7',
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Utensils size={20} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                          Log Meal / Nutrition
+                        </h3>
+                        <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+                          Save a name now; estimate nutrition only if you want
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Close meal logger"
+                      onClick={() => setIsLoggingFood(false)}
                       style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '10px',
-                        background: '#DCFCE7',
-                        color: '#059669',
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        color: '#64748B',
+                        cursor: 'pointer',
                       }}
                     >
-                      <Utensils size={20} />
-                    </div>
-                    <div>
-                      <h3
-                        style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}
-                      >
-                        Log Meal / Nutrition
-                      </h3>
-                      <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                        Save a name now; estimate nutrition only if you want
-                      </span>
-                    </div>
+                      <X size={16} />
+                    </button>
                   </div>
 
                   {/* Meal type selection */}
@@ -4477,23 +4475,20 @@ export default function Dietician() {
         <AnimatePresence>
           {showResetDietConfirm && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 background: 'rgba(15, 23, 42, 0.65)',
                 backdropFilter: 'blur(6px)',
                 zIndex: 99999,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
               onClick={() => setShowResetDietConfirm(false)}
             >
               <motion.div
+                data-overlay-panel=""
                 role="dialog"
                 aria-modal="true"
                 aria-label="Reset Diet Profile"
@@ -4509,6 +4504,8 @@ export default function Dietician() {
                   width: '100%',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
                   border: '1px solid #F1F5F9',
+                  minHeight: 0,
+                  overflowY: 'auto',
                 }}
               >
                 <div
@@ -4663,24 +4660,24 @@ export default function Dietician() {
         <AnimatePresence>
           {isEditingProfile && (
             <div
+              data-overlay-viewport="center"
               role="dialog"
               aria-modal="true"
               aria-label="Edit Diet Profile"
               style={{
                 position: 'fixed',
-                inset: 0,
                 zIndex: 1100,
                 background: 'rgba(15, 23, 42, 0.75)',
                 backdropFilter: 'blur(8px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
                 overflowY: 'auto',
               }}
             >
               <div
-                style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}
+                data-overlay-panel=""
+                style={{ width: '100%', maxWidth: '850px', maxHeight: 'var(--overlay-available-height)', overflowY: 'auto' }}
               >
                 <OnboardingWizard
                   initialData={profile}
@@ -4697,26 +4694,26 @@ export default function Dietician() {
         {showSavedMealsModal &&
           createPortal(
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                inset: 0,
                 zIndex: 11000,
                 background: 'rgba(15,23,42,.6)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 12,
               }}
               onClick={() => setShowSavedMealsModal(false)}
             >
               <FocusTrap isActive={true} style={{ width: 'min(860px, 94vw)', height: 'auto' }}>
                 <div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Everyday food tools"
                   style={{
                     width: 'min(860px, 94vw)',
-                    maxHeight: '90vh',
+                    maxHeight: 'var(--overlay-available-height)',
                     overflowY: 'auto',
                     borderRadius: 20,
                     background: '#fff',
@@ -4748,17 +4745,13 @@ export default function Dietician() {
         <AnimatePresence>
           {showStopPlanModal && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
             >
               <FocusTrap isActive={showStopPlanModal}>
@@ -4778,6 +4771,7 @@ export default function Dietician() {
                   onClick={() => setShowStopPlanModal(false)}
                 />
                 <motion.div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Stop Meal Blueprint"
@@ -4798,7 +4792,7 @@ export default function Dietician() {
                     gap: '16px',
                   }}
                 >
-                  <div
+                  <div data-overlay-header=""
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -4980,17 +4974,13 @@ export default function Dietician() {
         <AnimatePresence>
           {editingMeal && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
             >
               <FocusTrap isActive={!!editingMeal}>
@@ -5010,6 +5000,7 @@ export default function Dietician() {
                   onClick={() => setEditingMeal(null)}
                 />
                 <motion.div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Edit Meal"
@@ -5030,7 +5021,7 @@ export default function Dietician() {
                     gap: '14px',
                   }}
                 >
-                  <div
+                  <div data-overlay-header=""
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -5351,17 +5342,13 @@ export default function Dietician() {
         <AnimatePresence>
           {swappingMeal && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
             >
               <FocusTrap isActive={!!swappingMeal}>
@@ -5381,6 +5368,7 @@ export default function Dietician() {
                   onClick={() => setSwappingMeal(null)}
                 />
                 <motion.div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Edit meal replacement"
@@ -5399,11 +5387,11 @@ export default function Dietician() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '14px',
-                    maxHeight: 'calc(100vh - 120px)',
+                    maxHeight: 'var(--overlay-available-height)',
                     overflowY: 'auto',
                   }}
                 >
-                  <div
+                  <div data-overlay-header=""
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -5523,17 +5511,13 @@ export default function Dietician() {
         <AnimatePresence>
           {showArchivedPlansModal && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
             >
               <FocusTrap isActive={showArchivedPlansModal}>
@@ -5553,6 +5537,7 @@ export default function Dietician() {
                   onClick={() => setShowArchivedPlansModal(false)}
                 />
                 <motion.div
+                  data-overlay-panel=""
                   role="dialog"
                   aria-modal="true"
                   aria-label="Past Nutritional Blueprints"
@@ -5571,11 +5556,11 @@ export default function Dietician() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '14px',
-                    maxHeight: 'calc(100vh - 120px)',
+                    maxHeight: 'var(--overlay-available-height)',
                     overflowY: 'auto',
                   }}
                 >
-                  <div
+                  <div data-overlay-header=""
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -5742,25 +5727,25 @@ export default function Dietician() {
         )}
         {editingDiaryMeal && (
           <div
+            data-overlay-viewport="center"
             style={{
               position: 'fixed',
-              inset: 0,
               zIndex: 1200,
               background: 'rgba(15,23,42,.55)',
               display: 'grid',
               placeItems: 'center',
-              padding: '16px',
             }}
           >
             <FocusTrap isActive>
               <div
+                data-overlay-panel=""
                 role="dialog"
                 aria-modal="true"
                 aria-label="Correct meal"
                 style={{
                   width: '100%',
                   maxWidth: '440px',
-                  maxHeight: '90vh',
+                  maxHeight: 'var(--overlay-available-height)',
                   overflowY: 'auto',
                   background: '#FFFFFF',
                   borderRadius: '18px',

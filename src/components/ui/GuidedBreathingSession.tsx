@@ -74,20 +74,20 @@ export function GuidedBreathingSession({
   return (
     <FocusTrap onEscape={onClose}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Comfortable breathing guide"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 10000,
           background: 'rgba(15,23,42,.65)',
           display: 'grid',
           placeItems: 'center',
-          padding: 20,
         }}
       >
         <section
+          data-overlay-panel=""
           style={{
             background: '#F0FDFA',
             borderRadius: 24,
@@ -95,6 +95,8 @@ export function GuidedBreathingSession({
             maxWidth: 440,
             width: '100%',
             color: '#115E59',
+            minHeight: 0,
+            overflowY: 'auto',
           }}
         >
           <button

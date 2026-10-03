@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ShieldAlert, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FocusTrap from './FocusTrap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export function AuthModal() {
@@ -43,7 +44,7 @@ export function AuthModal() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <FocusTrap isActive={isOpen} onEscape={handleClose} style={{ height: 0 }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -61,18 +62,26 @@ export function AuthModal() {
             }}
           />
           <motion.div
+            className="hc-auth-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={modalContent.title}
             initial={{ opacity: 0, y: '-40%', x: '-50%', scale: 0.95 }}
             animate={{ opacity: 1, y: '-50%', x: '-50%', scale: 1 }}
             exit={{ opacity: 0, y: '-45%', x: '-50%', scale: 0.95 }}
             style={{
               position: 'fixed',
-              top: '50%',
+              top: 'calc(var(--app-viewport-top, 0px) + max(12px, var(--safe-area-top, 0px)) + (var(--app-viewport-height) - max(12px, var(--safe-area-top, 0px)) - max(12px, var(--safe-area-bottom, 0px))) / 2)',
               left: '50%',
               backgroundColor: '#FFFFFF',
               borderRadius: '20px',
               padding: isMobile ? '24px' : '32px',
               width: '90%',
               maxWidth: '420px',
+              maxHeight:
+                'calc(var(--app-viewport-height) - max(12px, var(--safe-area-top, 0px)) - max(12px, var(--safe-area-bottom, 0px)))',
+              overflowY: 'auto',
+              flexShrink: 0,
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               zIndex: 100000,
               display: 'flex',
@@ -82,6 +91,7 @@ export function AuthModal() {
             }}
           >
             <button
+              aria-label="Close authentication dialog"
               onClick={handleClose}
               style={{
                 position: 'absolute',
@@ -112,6 +122,7 @@ export function AuthModal() {
 
             <div
               style={{
+                flexShrink: 0,
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
@@ -126,10 +137,14 @@ export function AuthModal() {
               <ShieldAlert size={32} strokeWidth={1.5} />
             </div>
 
-            <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#0F172A', margin: '0 0 12px 0' }}>
+            <h3
+              style={{ fontSize: '20px', fontWeight: 600, color: '#0F172A', margin: '0 0 12px 0' }}
+            >
               {modalContent.title}
             </h3>
-            <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.5, margin: '0 0 32px 0' }}>
+            <p
+              style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.5, margin: '0 0 32px 0' }}
+            >
               {modalContent.message}
             </p>
 
@@ -175,7 +190,7 @@ export function AuthModal() {
               </button>
             </div>
           </motion.div>
-        </>
+        </FocusTrap>
       )}
     </AnimatePresence>
   );

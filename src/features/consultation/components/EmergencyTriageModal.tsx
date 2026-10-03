@@ -43,14 +43,13 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
     <AnimatePresence>
       <FocusTrap onEscape={onClose}>
         <div
+          data-overlay-viewport="center"
           style={{
             position: 'fixed',
-            inset: 0,
             zIndex: 99999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '16px',
             background: 'rgba(15, 23, 42, 0.82)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
@@ -61,6 +60,7 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
           aria-describedby="emergency-desc"
         >
           <motion.div
+            data-overlay-panel=""
             initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
@@ -74,6 +74,8 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
               boxShadow: '0 25px 60px rgba(239, 68, 68, 0.25), 0 10px 25px rgba(0, 0, 0, 0.1)',
               overflow: 'hidden',
               position: 'relative',
+              minHeight: 0,
+              overflowY: 'auto',
             }}
           >
             {/* Header Banner */}

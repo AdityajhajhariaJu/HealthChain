@@ -13,7 +13,7 @@ const FEEDBACK_TOPICS = [
   '🩺 Medical Accuracy',
   '💊 Medication Alarms',
   '💡 New Feature Idea',
-  '🐛 Bug Report'
+  '🐛 Bug Report',
 ];
 
 export default function FeedbackWidget() {
@@ -39,8 +39,8 @@ export default function FeedbackWidget() {
   if (
     location.pathname === '/app' ||
     location.pathname.startsWith('/app/today') ||
-    location.pathname.startsWith('/app/ava') || 
-    location.pathname.startsWith('/app/war-room') || 
+    location.pathname.startsWith('/app/ava') ||
+    location.pathname.startsWith('/app/war-room') ||
     location.pathname.startsWith('/app/onboarding') ||
     location.pathname.startsWith('/app/consult')
   ) {
@@ -50,7 +50,7 @@ export default function FeedbackWidget() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedback.trim()) return;
-    
+
     const msg = feedback.trim();
     setFeedback('');
     setIsOpen(false);
@@ -60,7 +60,9 @@ export default function FeedbackWidget() {
 
     try {
       const { supabase } = await import('../../services/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       await supabase.from('user_feedback').insert({
         user_id: session?.user?.id || null,
         user_email: session?.user?.email || 'Anonymous Guest',
@@ -71,8 +73,8 @@ export default function FeedbackWidget() {
         metadata: {
           submittedAt: new Date().toISOString(),
           userAgent: navigator.userAgent,
-          appVersion: '10.0.0'
-        }
+          appVersion: '10.0.0',
+        },
       });
     } catch (err) {
       console.warn('Feedback logging encountered an error:', err);
@@ -86,7 +88,7 @@ export default function FeedbackWidget() {
         style={{
           position: 'fixed',
           bottom: isMobile ? 110 : 32, // Above mobile nav if mobile
-          right: isMobile ? 16 : 32,
+          right: 'max(16px, var(--safe-area-right, 0px))',
           width: 48,
           height: 48,
           borderRadius: '24px',
@@ -102,8 +104,8 @@ export default function FeedbackWidget() {
           transition: 'transform 0.2s',
         }}
         aria-label="Send Feedback"
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       >
         <MessageSquare size={20} />
       </button>
@@ -111,6 +113,7 @@ export default function FeedbackWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            className="hc-feedback-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Send Feedback"
@@ -119,11 +122,18 @@ export default function FeedbackWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             style={{
               position: 'fixed',
-              top: isMobile ? '15vh' : 'auto',
-              bottom: isMobile ? 'auto' : 96,
-              right: isMobile ? 16 : 32,
-              left: isMobile ? 16 : 'auto',
-              width: isMobile ? 'calc(100vw - 32px)' : 340,
+              top: isMobile
+                ? 'calc(var(--app-viewport-top, 0px) + max(16px, var(--safe-area-top, 0px)))'
+                : 'auto',
+              bottom: isMobile
+                ? 'auto'
+                : 'calc(100% - var(--app-viewport-top, 0px) - var(--app-viewport-height) + 96px)',
+              right: 'max(16px, var(--safe-area-right, 0px))',
+              left: isMobile ? 'max(16px, var(--safe-area-left, 0px))' : 'auto',
+              width: isMobile ? 'auto' : 340,
+              maxHeight:
+                'calc(var(--app-viewport-height) - max(16px, var(--safe-area-top, 0px)) - max(16px, var(--safe-area-bottom, 0px)))',
+              overflowY: 'auto',
               backgroundColor: 'var(--surface)',
               borderRadius: '16px',
               border: '1px solid var(--border)',
@@ -132,22 +142,59 @@ export default function FeedbackWidget() {
               zIndex: 9001,
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>Send Feedback</h3>
-              <button 
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <h3
+                style={{
+                  minWidth: 0,
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                }}
+              >
+                Send Feedback
+              </h3>
+              <button
                 type="button"
                 aria-label="Close feedback popover"
-                onClick={() => setIsOpen(false)} 
-                style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                onClick={() => setIsOpen(false)}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                }}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
               {/* 1-Tap Feedback Topic Chips */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.4px',
+                  }}
+                >
                   Quick Topic (1-Tap)
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -157,7 +204,7 @@ export default function FeedbackWidget() {
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
-                        setFeedback(prev => {
+                        setFeedback((prev) => {
                           const prefix = `[${topic}] `;
                           if (prev.startsWith('[')) {
                             return prev.replace(/^\[[^\]]+\]\s*/, prefix);
@@ -174,7 +221,7 @@ export default function FeedbackWidget() {
                         fontWeight: 600,
                         color: 'var(--text-main)',
                         cursor: 'pointer',
-                        transition: 'all 0.15s ease'
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       {topic}
@@ -198,22 +245,24 @@ export default function FeedbackWidget() {
                   fontSize: '14px',
                   resize: 'none',
                   outline: 'none',
-                  color: 'var(--text-main)'
+                  color: 'var(--text-main)',
                 }}
                 autoFocus
               />
-              <button 
-                type="submit" 
-                className="btn btn-primary" 
+              <button
+                type="submit"
+                className="btn btn-primary"
                 aria-label="Submit feedback to HealthChain"
                 style={{
                   width: '100%',
                   display: 'flex',
                   justifyContent: 'center',
                   gap: '8px',
-                  background: feedback.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : undefined,
+                  background: feedback.trim()
+                    ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
+                    : undefined,
                   borderColor: feedback.trim() ? '#0D9488' : undefined,
-                  boxShadow: feedback.trim() ? '0 4px 14px rgba(13, 148, 136, 0.25)' : undefined
+                  boxShadow: feedback.trim() ? '0 4px 14px rgba(13, 148, 136, 0.25)' : undefined,
                 }}
                 disabled={!feedback.trim()}
               >

@@ -130,7 +130,7 @@ const AudioTrackCard: React.FC<{
       }}
     >
       {/* Thumbnail + Title */}
-      <div
+      <div className="audio-track-content"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -168,7 +168,9 @@ const AudioTrackCard: React.FC<{
             fontWeight: 700,
             color: '#0F172A',
             lineHeight: 1.25,
-            whiteSpace: 'nowrap',
+            whiteSpace: 'normal',
+            minWidth: 0,
+            overflowWrap: 'anywhere',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             letterSpacing: '-0.3px',
@@ -1157,9 +1159,9 @@ export default function CaseDashboard() {
                       color: hasConfiguredMeds && isRxDone ? '#CD3153' : '#64748B',
                       margin: '2px 0 6px',
                       lineHeight: 1.25,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      whiteSpace: 'normal',
+                      overflowWrap: 'anywhere',
+                      overflow: 'visible',
                     }}
                   >
                     {hasConfiguredMeds ? (

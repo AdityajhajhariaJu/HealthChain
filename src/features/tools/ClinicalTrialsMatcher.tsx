@@ -1852,16 +1852,15 @@ export default function ClinicalTrialsMatcher() {
         <AnimatePresence>
           {selectedItem && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                inset: 0,
                 background: 'rgba(15, 23, 42, 0.55)',
                 backdropFilter: 'blur(6px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 1000,
-                padding: isMobile ? '12px' : '20px',
               }}
               onClick={() => handleSelectItem(null)}
               role="dialog"
@@ -1873,6 +1872,7 @@ export default function ClinicalTrialsMatcher() {
               }}
             >
               <motion.div
+                data-overlay-panel=""
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -1881,7 +1881,7 @@ export default function ClinicalTrialsMatcher() {
                   borderRadius: '24px',
                   width: '100%',
                   maxWidth: '640px',
-                  maxHeight: 'calc(100vh - 48px)',
+                  maxHeight: 'var(--overlay-available-height)',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
@@ -1940,6 +1940,7 @@ export default function ClinicalTrialsMatcher() {
                         </span>
                       </div>
                       <div
+                        data-overlay-scroll=""
                         style={{
                           padding: isMobile ? '16px' : '24px',
                           overflowY: 'auto',
@@ -2044,6 +2045,7 @@ export default function ClinicalTrialsMatcher() {
                             </div>
                             {selectedItem.eligibility?.eligibilityCriteria ? (
                               <div
+                                data-overlay-scroll=""
                                 style={{
                                   maxHeight: '160px',
                                   overflowY: 'auto',

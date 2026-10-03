@@ -215,6 +215,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   if (!inline && !isOpen) return null;
   const body = (
     <div
+      data-overlay-panel={inline ? undefined : ''}
       style={{
         width: '100%',
         maxWidth: 780,
@@ -223,7 +224,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
         color: '#42332F',
         borderRadius: inline ? 20 : 26,
         overflow: 'hidden',
-        maxHeight: inline ? undefined : '94vh',
+        maxHeight: inline ? undefined : 'var(--overlay-available-height)',
         display: 'flex',
         flexDirection: 'column',
         border: '1px solid #E9D6CD',
@@ -231,6 +232,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
       }}
     >
       <header
+        data-overlay-header=""
         style={{
           padding: '17px 20px',
           display: 'flex',
@@ -264,7 +266,8 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
           </button>
         )}
       </header>
-      <div style={{ overflowY: 'auto', padding: '18px clamp(14px,3vw,25px)', flex: 1 }}>
+      <div
+        data-overlay-scroll="" style={{ overflowY: 'auto', padding: '18px clamp(14px,3vw,25px)', flex: 1 }}>
         {!trial && !legacy ? (
           <EliminationOnboardingWizard
             onComplete={() => undefined}
@@ -605,16 +608,15 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   return createPortal(
     <FocusTrap isActive={isOpen}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Food trial records"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 99999,
           display: 'grid',
           placeItems: 'center',
-          padding: 10,
           background: 'rgba(48,34,32,.58)',
         }}
         onMouseDown={(event) => {

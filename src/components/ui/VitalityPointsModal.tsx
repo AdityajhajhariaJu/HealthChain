@@ -62,24 +62,75 @@ export default function VitalityPointsModal() {
 
   const currentTierObj = TIERS.find((t) => t.name === state.tier) || TIERS[0];
 
+  const strategyButton = (
+    <button
+      type="button"
+      onClick={() => {
+        triggerHapticLight();
+        handleClose();
+        navigate('/app/ava', {
+          state: {
+            initialPrompt: `Help me create a gentle 7-day routine for keeping my health notes current. Include short check-ins, a rest day, and one appointment-preparation step. Do not infer medical goals from my Vitality Points.`,
+          },
+        });
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '7px 14px',
+        borderRadius: '999px',
+        background: 'rgba(255, 255, 255, 0.18)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        color: '#FFFFFF',
+        fontSize: '12px',
+        fontWeight: 700,
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        backdropFilter: 'blur(8px)',
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)')}
+      onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)')}
+    >
+      <Sparkles size={14} color="#A7F3D0" />
+      <span>Plan a gentle routine with Ava</span>
+      <ChevronRight size={13} />
+    </button>
+  );
+  const pointsExplanation = (
+    <div
+      style={{
+        padding: '10px 20px',
+        background: '#F0FDFA',
+        borderBottom: '1px solid #CCFBF1',
+        color: '#0F766E',
+        fontSize: '12px',
+        lineHeight: 1.45,
+      }}
+    >
+      Vitality Points reflect actions recorded in HealthChain—not health, fitness, adherence, or
+      medical progress. They never determine access to care features.
+    </div>
+  );
+
   return (
     <AnimatePresence>
       <FocusTrap isActive={isOpen} onEscape={handleClose}>
         <div
+          data-overlay-viewport="center"
           style={{
             position: 'fixed',
-            inset: 0,
             background: 'rgba(15, 23, 42, 0.55)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100000,
-            padding: isMobile ? '12px' : '24px',
           }}
           onClick={handleClose}
         >
           <motion.div
+            data-overlay-panel=""
             role="dialog"
             aria-modal="true"
             aria-label="Vitality Points & Rewards"
@@ -92,7 +143,7 @@ export default function VitalityPointsModal() {
               borderRadius: '24px',
               width: '100%',
               maxWidth: '560px',
-              maxHeight: '90vh',
+              maxHeight: 'var(--overlay-available-height)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
@@ -103,6 +154,7 @@ export default function VitalityPointsModal() {
           >
             {/* Top Header Card */}
             <div
+              className="vitality-header"
               style={{
                 background: 'linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%)',
                 padding: isMobile ? '20px 20px 16px' : '26px 28px 20px',
@@ -135,7 +187,12 @@ export default function VitalityPointsModal() {
               </button>
 
               <div
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '8px',
+                }}
               >
                 <span
                   style={{
@@ -162,7 +219,13 @@ export default function VitalityPointsModal() {
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: '8px',
+                    }}
+                  >
                     <span
                       data-testid="vitality-total"
                       style={{
@@ -174,7 +237,15 @@ export default function VitalityPointsModal() {
                     >
                       {state.points}
                     </span>
-                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#A7F3D0' }}>PTS</span>
+                    <span
+                      style={{
+                        fontSize: '18px',
+                        fontWeight: 700,
+                        color: '#A7F3D0',
+                      }}
+                    >
+                      PTS
+                    </span>
                   </div>
                   <div
                     style={{
@@ -194,7 +265,13 @@ export default function VitalityPointsModal() {
 
                 {state.tierLevel < 4 && (
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '11.5px', color: '#A7F3D0', fontWeight: 600 }}>
+                    <span
+                      style={{
+                        fontSize: '11.5px',
+                        color: '#A7F3D0',
+                        fontWeight: 600,
+                      }}
+                    >
                       {state.pointsToNextTier} PTS to {TIERS[state.tierLevel]?.name || 'Next Tier'}
                     </span>
                     <div
@@ -222,63 +299,23 @@ export default function VitalityPointsModal() {
               </div>
 
               {/* Ava Tier Strategy Concierge Bridge */}
-              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    handleClose();
-                    navigate('/app/ava', {
-                      state: {
-                        initialPrompt: `Help me create a gentle 7-day routine for keeping my health notes current. Include short check-ins, a rest day, and one appointment-preparation step. Do not infer medical goals from my Vitality Points.`,
-                      },
-                    });
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '7px 14px',
-                    borderRadius: '999px',
-                    background: 'rgba(255, 255, 255, 0.18)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    backdropFilter: 'blur(8px)',
-                  }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)')
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)')
-                  }
-                >
-                  <Sparkles size={14} color="#A7F3D0" />
-                  <span>Plan a gentle routine with Ava</span>
-                  <ChevronRight size={13} />
-                </button>
+              <div
+                className="vitality-strategy"
+                style={{
+                  marginTop: '16px',
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                }}
+              >
+                {strategyButton}
               </div>
             </div>
 
-            <div
-              style={{
-                padding: '10px 20px',
-                background: '#F0FDFA',
-                borderBottom: '1px solid #CCFBF1',
-                color: '#0F766E',
-                fontSize: '12px',
-                lineHeight: 1.45,
-              }}
-            >
-              Vitality Points reflect actions recorded in HealthChain—not health, fitness,
-              adherence, or medical progress. They never determine access to care features.
-            </div>
+            <div className="vitality-description-normal">{pointsExplanation}</div>
 
             {/* Navigation Tabs */}
             <div
+              className="vitality-tabs"
               style={{
                 display: 'flex',
                 borderBottom: '1px solid #F1F5F9',
@@ -317,9 +354,25 @@ export default function VitalityPointsModal() {
             </div>
 
             {/* Tab Contents */}
-            <div style={{ padding: isMobile ? '16px' : '20px', overflowY: 'auto', flex: 1 }}>
+            <div
+              className="vitality-scroll"
+              data-overlay-scroll=""
+              style={{
+                padding: isMobile ? '16px' : '20px',
+                overflowY: 'auto',
+                flex: 1,
+              }}
+            >
+              <div className="vitality-description-short">{pointsExplanation}</div>
+              <div className="vitality-strategy-short">{strategyButton}</div>
               {activeTab === 'quests' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
                   <div
                     style={{
                       fontSize: '12px',
@@ -345,7 +398,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -361,7 +420,13 @@ export default function VitalityPointsModal() {
                         <HeartPulse size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           10-Sec Daily Symptom Pulse
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -405,7 +470,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -421,7 +492,13 @@ export default function VitalityPointsModal() {
                         <Droplets size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           Log Hydration, Sleep or Energy
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -465,7 +542,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -481,7 +564,13 @@ export default function VitalityPointsModal() {
                         <Sparkles size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           Explore Clinical Trials & Research
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -525,7 +614,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -541,7 +636,13 @@ export default function VitalityPointsModal() {
                         <Brain size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           Longevity Brain Byte Quiz
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -570,7 +671,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -586,7 +693,13 @@ export default function VitalityPointsModal() {
                         <Heart size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           60-Sec Mindful HRV Reset
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -615,7 +728,13 @@ export default function VitalityPointsModal() {
                       borderRadius: '16px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
                       <div
                         style={{
                           width: '36px',
@@ -631,7 +750,13 @@ export default function VitalityPointsModal() {
                         <Zap size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: '#0F172A',
+                          }}
+                        >
                           Start a Specialist Consult
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B' }}>
@@ -651,7 +776,13 @@ export default function VitalityPointsModal() {
               )}
 
               {activeTab === 'tiers' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
                   {TIERS.map((tier) => {
                     const isCurrent = tier.name === state.tier;
                     const isUnlocked = state.points >= tier.min;
@@ -675,9 +806,21 @@ export default function VitalityPointsModal() {
                             alignItems: 'center',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
                             <span style={{ fontSize: '20px' }}>{tier.badge}</span>
-                            <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A' }}>
+                            <span
+                              style={{
+                                fontSize: '14.5px',
+                                fontWeight: 800,
+                                color: '#0F172A',
+                              }}
+                            >
                               {tier.name}
                             </span>
                             {isCurrent && (
@@ -726,7 +869,11 @@ export default function VitalityPointsModal() {
               {activeTab === 'history' && (
                 <div
                   data-testid="points-history"
-                  style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
                 >
                   {state.history.length > 0 ? (
                     state.history.map((item) => (
@@ -743,7 +890,13 @@ export default function VitalityPointsModal() {
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              color: '#0F172A',
+                            }}
+                          >
                             {item.reason}
                           </div>
                           <div style={{ fontSize: '11px', color: '#94A3B8' }}>
@@ -755,7 +908,13 @@ export default function VitalityPointsModal() {
                             })}
                           </div>
                         </div>
-                        <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#059669' }}>
+                        <span
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 800,
+                            color: '#059669',
+                          }}
+                        >
                           +{item.amount} PTS
                         </span>
                       </div>

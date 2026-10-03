@@ -302,33 +302,6 @@ export default function AppShell() {
     };
   }, []);
 
-  // Enforce a minimum safe area for Capacitor/WKWebView bugs
-  useEffect(() => {
-    const enforceSafeArea = () => {
-      const div = document.createElement('div');
-      div.style.paddingTop = 'env(safe-area-inset-top)';
-      document.body.appendChild(div);
-      const computedTop = parseInt(getComputedStyle(div).paddingTop, 10) || 0;
-      document.body.removeChild(div);
-
-      let finalTop = computedTop;
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-
-      // If on a real mobile device and env() returns 0 (e.g. Android WebView / PWA),
-      // we must fallback to 44px to prevent the OS status bar from overlapping the UI.
-      // This will not trigger on Desktop browsers resized to mobile width.
-      if (isMobileDevice && computedTop === 0) {
-        finalTop = 44;
-      }
-
-      document.documentElement.style.setProperty('--safe-area-top', `${finalTop}px`);
-    };
-    enforceSafeArea();
-    setTimeout(enforceSafeArea, 150);
-  }, []);
-
   const isWarmPorcelainRoute = [
     '/app/today',
     '/app/dietician',
@@ -695,6 +668,7 @@ export default function AppShell() {
                       {showProfileMenu && (
                         <motion.div
                           key="profile-menu"
+                          className="mobile-profile-menu"
                           role="menu"
                           aria-label="User Profile Menu"
                           initial={{ opacity: 0, y: 6, scale: 0.95 }}
@@ -730,9 +704,8 @@ export default function AppShell() {
                                 fontSize: '13px',
                                 fontWeight: 700,
                                 color: '#0F172A',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                whiteSpace: 'normal',
+                                overflowWrap: 'anywhere',
                               }}
                             >
                               {profile?.demographics?.name || 'My Health'}

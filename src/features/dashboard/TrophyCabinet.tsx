@@ -146,7 +146,7 @@ export const TrophyCabinet: React.FC = () => {
         <h1
           style={{
             margin: 0,
-            fontSize: isMobile ? '32px' : '42px',
+            fontSize: isMobile ? 'clamp(26px, 7vw, 32px)' : '42px',
             fontWeight: 800,
             color: '#0F172A',
             display: 'flex',
@@ -186,7 +186,7 @@ export const TrophyCabinet: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gap: '12px',
             backgroundColor: 'rgba(0,0,0,0.02)',
             padding: '20px',
@@ -229,10 +229,11 @@ export const TrophyCabinet: React.FC = () => {
           >
             <div
               style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 800,
                 color: '#8B5CF6',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 maxWidth: '100%',
@@ -390,6 +391,7 @@ export const TrophyCabinet: React.FC = () => {
       <AnimatePresence>
         {selectedBadge && (
           <motion.div
+            data-overlay-viewport="center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -398,18 +400,17 @@ export const TrophyCabinet: React.FC = () => {
             aria-label={selectedBadge.title}
             style={{
               position: 'fixed',
-              inset: 0,
               zIndex: 1000,
               backgroundColor: 'rgba(0,0,0,0.8)',
               backdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '24px',
             }}
             onClick={() => setSelectedBadge(null)}
           >
             <motion.div
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label={`Achievement: ${selectedBadge.title}`}
@@ -420,7 +421,7 @@ export const TrophyCabinet: React.FC = () => {
               style={{
                 width: '100%',
                 maxWidth: '360px',
-                maxHeight: 'min(90vh, 580px)',
+                maxHeight: 'var(--overlay-available-height)',
                 overflowY: 'auto',
                 background: `linear-gradient(135deg, #FFFFFF 0%, #FBF9F6 100%)`,
                 borderRadius: '32px',

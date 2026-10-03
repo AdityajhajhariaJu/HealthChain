@@ -215,14 +215,19 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   if (!isOpen) return null;
 
   if (simple) return <FocusTrap isActive={isOpen}>
-    <div className="gr-meal-backdrop" role="dialog" aria-modal="true" aria-label="Record a meal" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="gr-meal-sheet">
-        <div className="gr-meal-head"><span className="gr-meal-icon"><Utensils size={21} /></span><div><small>MY RECORDS</small><h2>Record a meal</h2></div><button type="button" aria-label="Close meal entry" onClick={onClose}><X size={18} /></button></div>
-        <div className="gr-meal-body"><p>Save what you remember. You can connect it to a question later.</p><label htmlFor="gr-meal-name">What did you eat or drink?</label><input id="gr-meal-name" type="text" value={mealText} maxLength={180} onChange={(event) => setMealText(event.target.value)} placeholder="e.g. chai and toast" />
+    <div
+      data-overlay-viewport="center" className="gr-meal-backdrop" role="dialog" aria-modal="true" aria-label="Record a meal" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div
+        data-overlay-panel="" className="gr-meal-sheet">
+        <div
+          data-overlay-header="" className="gr-meal-head"><span className="gr-meal-icon"><Utensils size={21} /></span><div><small>MY RECORDS</small><h2>Record a meal</h2></div><button type="button" aria-label="Close meal entry" onClick={onClose}><X size={18} /></button></div>
+        <div
+          data-overlay-scroll="" className="gr-meal-body"><p>Save what you remember. You can connect it to a question later.</p><label htmlFor="gr-meal-name">What did you eat or drink?</label><input id="gr-meal-name" type="text" value={mealText} maxLength={180} onChange={(event) => setMealText(event.target.value)} placeholder="e.g. chai and toast" />
           <details className="gr-meal-time"><summary><Clock3 size={16} /> When was it? <span>Optional</span></summary><div role="group" aria-label="Approximate time eaten">{([['now','Now'],['30m','About 30 minutes ago'],['1h','About an hour ago'],['2h','About two hours ago']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={timingOffset === value} onClick={() => setTimingOffset(value)}>{label}</button>)}</div><small>Saved as an approximate time, using your device clock.</small></details>
           <p className="gr-meal-note">A meal entry does not say whether a symptom happened or what caused it.</p>
         </div>
-        <div className="gr-meal-footer"><button type="button" disabled={!mealText.trim()} onClick={handleSaveMeal}>Save meal <ArrowRight size={17} /></button></div>
+        <div
+          data-overlay-footer="" className="gr-meal-footer"><button type="button" disabled={!mealText.trim()} onClick={handleSaveMeal}>Save meal <ArrowRight size={17} /></button></div>
       </div>
     </div>
   </FocusTrap>;
@@ -231,15 +236,12 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
     <AnimatePresence>
       <FocusTrap isActive={isOpen}>
         <div
+          data-overlay-viewport="sheet"
           role="dialog"
           aria-modal="true"
           aria-label="Quick meal entry"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
             zIndex: 11000,
             display: 'flex',
             justifyContent: 'center',
@@ -251,6 +253,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
           onClick={onClose}
         >
           <motion.div
+            data-overlay-panel=""
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -259,7 +262,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
             style={{
               width: '100%',
               maxWidth: '540px',
-              maxHeight: '90vh',
+              maxHeight: 'var(--overlay-available-height)',
               background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 45%, #FFF7F8 100%)',
               borderTopLeftRadius: '28px',
               borderTopRightRadius: '28px',
@@ -276,7 +279,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
             </div>
 
             {/* Header */}
-            <div
+            <div data-overlay-header=""
               style={{
                 padding: '14px 20px 10px 20px',
                 display: 'flex',
@@ -347,6 +350,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
 
             {/* Scrollable Content Body */}
             <div
+              data-overlay-scroll=""
               style={{
                 flex: 1,
                 overflowY: 'auto',
@@ -494,6 +498,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                   <span style={{ fontSize: '11px', color: '#CD3153', fontWeight: 700 }}>Multi-select</span>
                 </div>
                 <div
+                  data-overlay-scroll=""
                   style={{
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -603,9 +608,9 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
             </div>
 
             {/* Bottom Sticky Action Button */}
-            <div
+            <div data-overlay-footer=""
               style={{
-                padding: '14px 20px 20px 20px',
+                padding: '14px 20px calc(20px + var(--safe-area-bottom, 0px))',
                 borderTop: '1px solid #F1E5E7',
                 background: '#FFFFFF',
               }}

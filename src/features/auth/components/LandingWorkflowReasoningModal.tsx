@@ -33,12 +33,9 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
   return (
     <AnimatePresence>
       <div
+        data-overlay-viewport="center"
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
           background: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
@@ -46,7 +43,6 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '16px',
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -57,6 +53,7 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
       >
         <FocusTrap onEscape={onClose} style={{ maxWidth: 820, height: 'auto' }}>
           <motion.div
+            data-overlay-panel=""
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
@@ -71,7 +68,7 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
               boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.25)',
               width: '100%',
               maxWidth: '820px',
-              maxHeight: '90vh',
+              maxHeight: 'var(--overlay-available-height)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -229,6 +226,7 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
 
             {/* Body Content */}
             <div
+              data-overlay-scroll=""
               role="region"
               aria-label="Workflow example details"
               style={{

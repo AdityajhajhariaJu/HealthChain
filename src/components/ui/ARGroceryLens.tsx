@@ -545,7 +545,7 @@ export const ARGroceryLens = ({
         right: 0,
         bottom: 0,
         width: '100vw',
-        height: '100dvh',
+        height: 'var(--app-viewport-height)',
         background: '#000000',
         zIndex: 999999,
         display: 'flex',
@@ -615,9 +615,9 @@ export const ARGroceryLens = ({
             top: 0,
             left: 0,
             right: 0,
-            paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
-            paddingLeft: '20px',
-            paddingRight: '20px',
+            paddingTop: 'max(16px, var(--safe-area-top, 0px))',
+            paddingLeft: 'max(20px, var(--safe-area-left, 0px))',
+            paddingRight: 'max(20px, var(--safe-area-right, 0px))',
             paddingBottom: '16px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -677,7 +677,7 @@ export const ARGroceryLens = ({
         <div
           style={{
             position: 'absolute',
-            top: 'max(68px, calc(env(safe-area-inset-top, 16px) + 52px))',
+            top: 'max(68px, calc(var(--safe-area-top, 0px) + 52px))',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10,
@@ -863,7 +863,7 @@ export const ARGroceryLens = ({
             <header
               style={{
                 flexShrink: 0,
-                paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
+                paddingTop: 'max(14px, var(--safe-area-top, 0px))',
                 paddingBottom: '12px',
                 paddingLeft: '20px',
                 paddingRight: '20px',
@@ -1218,7 +1218,7 @@ export const ARGroceryLens = ({
                 WebkitBackdropFilter: 'blur(12px)',
                 borderTop: '1px solid #F1E5E7',
                 paddingTop: '10px',
-                paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+                paddingBottom: 'max(12px, var(--safe-area-bottom, 0px))',
                 paddingLeft: '16px',
                 paddingRight: '16px',
                 zIndex: 20,
@@ -1536,7 +1536,7 @@ export const ARGroceryLens = ({
         <div
           style={{
             position: 'absolute',
-            bottom: 'max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+            bottom: 'max(28px, calc(var(--safe-area-bottom, 0px) + 20px))',
             left: 0,
             right: 0,
             display: 'flex',

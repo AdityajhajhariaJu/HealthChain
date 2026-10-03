@@ -1110,7 +1110,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           <span style={{ 
             fontSize: '10.5px', 
             color: isScheduled ? (isWarmAmber ? '#B45309' : pill.color1) : '#78716C', 
-            fontWeight: isScheduled ? 700 : 500 
+            fontWeight: isScheduled ? 700 : 500
           }}>
             {pill.benefit}
           </span>
@@ -1139,9 +1139,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   return createPortal(
       <div
+        data-overlay-viewport="sheet"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
@@ -1154,13 +1154,14 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
         onClick={handleDismiss}
       >
         <div
+          data-overlay-panel=""
           role="dialog"
           aria-modal="true"
           aria-label="Medication & Chrono-Schedule"
           style={{
             width: '100%',
             maxWidth: '520px',
-            maxHeight: 'calc(100vh - max(36px, env(safe-area-inset-top, 36px)))',
+            maxHeight: 'var(--overlay-available-height)',
             background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
@@ -1176,7 +1177,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           <div 
             style={{ 
               width: '100%', 
-              height: '18px', 
+              height: '18px',
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
@@ -1189,7 +1190,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           </div>
 
           {/* Cinematic Header (Classy Seal Badge & Clear Typography) */}
-          <div style={{
+          <div
+            data-overlay-header="" style={{
             padding: '4px 20px 14px',
             display: 'flex',
             alignItems: 'center',
@@ -1248,7 +1250,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           </div>
 
           {/* Scrollable Body */}
-          <div style={{
+          <div
+            data-overlay-scroll="" style={{
             padding: '16px 20px',
             overflowY: 'auto',
             display: 'flex',
@@ -1481,7 +1484,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       <span style={{ 
                         fontSize: '10px', 
                         opacity: isActive ? 0.95 : 0.6,
-                        fontWeight: 700 
+                        fontWeight: 700
                       }}>
                         ({count})
                       </span>
@@ -1904,8 +1907,9 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
           </div>
 
           {/* Reference Execution Button: Harmonized to Clinical Vibrant Rose */}
-          <div style={{
-            padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
+          <div
+            data-overlay-footer="" style={{
+            padding: '12px 20px calc(14px + var(--safe-area-bottom, 0px))',
             borderTop: '1px solid #E2E8F0',
             background: '#FFFFFF'
           }}>

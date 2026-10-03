@@ -771,7 +771,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
           exit={{ opacity: 0 }}
           style={{
             position: 'fixed',
-            inset: 0,
+            top: 'var(--app-viewport-top, 0px)',
+            left: 0,
+            right: 0,
+            height: 'var(--app-viewport-height)',
             zIndex: 9999,
             backgroundColor: '#050811',
             display: 'flex',
@@ -799,7 +802,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               role="alert"
               style={{
                 position: 'absolute',
-                top: 20,
+                top: 'calc(20px + var(--safe-area-top, 0px))',
                 left: 20,
                 right: 20,
                 zIndex: 20,
@@ -825,7 +828,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                 transition={{ duration: 0.25 }}
                 style={{
                   position: 'absolute',
-                  top: 'calc(env(safe-area-inset-top, 24px) + 24px)',
+                  top: 'calc(var(--safe-area-top, 0px) + 24px)',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   zIndex: 100,
@@ -1037,7 +1040,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       top: 0,
                       left: 0,
                       right: 0,
-                      padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 20px 16px',
+                      padding: 'calc(var(--safe-area-top, 0px) + 16px) 20px 16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -1437,7 +1440,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     onClick={(e) => e.stopPropagation()}
                     style={{
                       position: 'absolute',
-                      bottom: 'calc(env(safe-area-inset-bottom, 24px) + 12px)',
+                      bottom: 'calc(var(--safe-area-bottom, 0px) + 12px)',
                       left: '16px',
                       right: '16px',
                       zIndex: 30,
@@ -2205,7 +2208,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                         borderTopLeftRadius: '28px',
                         borderTopRightRadius: '28px',
-                        padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
+                        padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
                         zIndex: 50,
                       }}
                     >
@@ -2353,7 +2356,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                         borderTopLeftRadius: '28px',
                         borderTopRightRadius: '28px',
-                        padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
+                        padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
                         zIndex: 50,
                       }}
                     >
@@ -2536,6 +2539,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       position: 'absolute',
                       inset: 0,
                       zIndex: 60,
+                      overflowY: 'auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2574,6 +2578,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         padding: '32px 24px',
                         textAlign: 'center',
                         position: 'relative',
+                        maxHeight: 'calc(var(--app-viewport-height) - max(24px, var(--safe-area-top, 0px)) - max(24px, var(--safe-area-bottom, 0px)))',
+                        overflowY: 'auto',
+                        flexShrink: 0,
                       }}
                     >
                       {/* Trophy Glow */}

@@ -230,20 +230,16 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
   return createPortal(
     <AnimatePresence>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Source Evidence Passage Inspector"
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
           zIndex: 9999999,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '16px',
           background: 'rgba(15, 23, 42, 0.65)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
@@ -251,6 +247,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
         onClick={onClose}
       >
         <motion.div
+          data-overlay-panel=""
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -259,7 +256,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
           style={{
             width: '100%',
             maxWidth: '600px',
-            maxHeight: '92vh',
+            maxHeight: 'var(--overlay-available-height)',
             background: '#FFFFFF',
             borderRadius: '24px',
             border: '1.5px solid rgba(186, 230, 253, 0.85)',
@@ -367,6 +364,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
 
             {/* Scrollable Content */}
             <div
+              data-overlay-scroll=""
               style={{
                 padding: '20px',
                 overflowY: 'auto',
@@ -1008,6 +1006,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
                     Full Medical Record Findings Context:
                   </span>
                   <div
+                    data-overlay-scroll=""
                     style={{
                       background: '#F8FAFC',
                       borderRadius: '12px',

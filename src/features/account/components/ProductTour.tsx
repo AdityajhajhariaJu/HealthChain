@@ -90,23 +90,23 @@ export default function ProductTour() {
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          data-overlay-viewport="center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           style={{
             position: 'fixed',
-            inset: 0,
             backgroundColor: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(2px)',
             zIndex: 99990,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px',
           }}
         >
           <FocusTrap isActive={isVisible}>
             <motion.div
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label="Welcome Tour"
@@ -121,6 +121,8 @@ export default function ProductTour() {
                 maxWidth: '400px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
                 position: 'relative',
+                minHeight: 0,
+                overflowY: 'auto',
               }}
             >
               <button

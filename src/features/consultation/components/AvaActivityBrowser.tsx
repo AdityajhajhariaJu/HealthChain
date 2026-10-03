@@ -99,27 +99,27 @@ export function AvaActivityBrowser({ onClose }: { onClose: () => void }) {
   return (
     <FocusTrap onEscape={onClose}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Movement activities"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 10000,
           background: 'rgba(15,23,42,.6)',
           display: 'grid',
           placeItems: 'center',
-          padding: 20,
         }}
       >
         <section
+          data-overlay-panel=""
           style={{
             background: 'white',
             borderRadius: 24,
             padding: 24,
             maxWidth: 580,
             width: '100%',
-            maxHeight: '88vh',
+            maxHeight: 'var(--overlay-available-height)',
             overflowY: 'auto',
           }}
         >

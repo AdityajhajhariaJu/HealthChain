@@ -14,25 +14,25 @@
 
 @media(max-width:600px){
   .gr-modal-backdrop{padding:0 !important;display:flex !important;align-items:stretch !important;}
-  .gr-modal-dialog{width:100% !important;height:100% !important;height:100dvh !important;max-height:100dvh !important;border-radius:0 !important;border:0 !important;box-shadow:none !important;}
+  .gr-modal-dialog{width:100% !important;height:100% !important;height:var(--app-viewport-height) !important;max-height:var(--app-viewport-height) !important;border-radius:0 !important;border:0 !important;box-shadow:none !important;}
   .gr-modal-header, .gr-modal-dialog .gr-modal-header{
-    padding-top:max(52px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
-    padding-left:max(16px, env(safe-area-inset-left, 16px)) !important;
-    padding-right:max(16px, env(safe-area-inset-right, 16px)) !important;
+    padding-top:max(16px, calc(var(--safe-area-top, 0px) + 12px)) !important;
+    padding-left:max(16px, var(--safe-area-left, 0px)) !important;
+    padding-right:max(16px, var(--safe-area-right, 0px)) !important;
     padding-bottom:12px !important;
-    min-height:max(96px, calc(52px + env(safe-area-inset-top, 44px))) !important;
+    min-height:max(96px, calc(52px + var(--safe-area-top, 0px))) !important;
     gap:12px !important;
   }
   .gr-modal-header > span:first-child{width:36px !important;height:36px !important;border-radius:11px !important;flex-shrink:0 !important;}
   .gr-modal-header h1{font-size:20px !important;line-height:1.2 !important;}
-  .gr-modal-header button[aria-label="Close Gut Health"]{width:38px !important;height:38px !important;min-height:38px !important;border-radius:50% !important;flex-shrink:0 !important;}
+  .gr-modal-header button[aria-label="Close Gut Health"]{width:44px !important;height:44px !important;min-height:44px !important;border-radius:50% !important;flex-shrink:0 !important;}
   .gr-modal-dialog > main{
     padding-top:12px !important;
-    padding-left:max(16px, env(safe-area-inset-left, 16px)) !important;
-    padding-right:max(16px, env(safe-area-inset-right, 16px)) !important;
-    padding-bottom:max(24px, env(safe-area-inset-bottom, 24px)) !important;
-    scroll-padding-top:max(16px, env(safe-area-inset-top, 24px));
-    scroll-padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom, 24px)));
+    padding-left:max(16px, var(--safe-area-left, 0px)) !important;
+    padding-right:max(16px, var(--safe-area-right, 0px)) !important;
+    padding-bottom:max(24px, var(--safe-area-bottom, 0px)) !important;
+    scroll-padding-top:max(16px, var(--safe-area-top, 0px));
+    scroll-padding-bottom:max(80px, calc(60px + var(--safe-area-bottom, 0px)));
   }
   .gr-modal-footer{display:none !important;}
   .gr-visit-primary{width:100%;}
@@ -43,3 +43,17 @@
 .gr-support-page summary { color: #15375c; }
 
 
+
+.gr-modal-header { flex-shrink: 0; flex-wrap: wrap; }
+.gr-modal-header > div { min-width: 0; }
+.gr-modal-header > button { flex-shrink: 0; }
+.gr-modal-dialog > main { min-height: 0; }
+
+@media(max-width:600px) {
+  .gr-modal-dialog .gr-modal-header { display:grid !important; grid-template-columns:36px minmax(0,1fr) 44px; align-items:center; }
+  .gr-modal-header > span:first-child { grid-column:1; grid-row:1; }
+  .gr-modal-header > div { grid-column:2; grid-row:1; }
+  .gr-modal-header h1 { white-space:normal !important; }
+  .gr-modal-header > button[aria-label="Close Gut Health"] { grid-column:3; grid-row:1; }
+  .gr-modal-header > button:not([aria-label="Close Gut Health"]) { grid-column:2 / 4; grid-row:2; justify-self:start; }
+}

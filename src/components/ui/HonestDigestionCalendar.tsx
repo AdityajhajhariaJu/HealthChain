@@ -550,18 +550,17 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({
       )}
       {selected && (
         <div
+          data-overlay-viewport="center"
           role="dialog"
           aria-modal="true"
           aria-label={`Digestion observation for ${selected}`}
           style={{
             position: 'fixed',
-            inset: 0,
             zIndex: 1000,
             background: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(6px)',
             display: 'grid',
             placeItems: 'center',
-            padding: 12,
           }}
         >
           <div
@@ -632,7 +631,11 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({
               </label>
               {hideHeader ? (
                 <details
-                  style={{ border: '1px solid #eedfe4', borderRadius: 12, background: '#fff' }}
+                  data-overlay-panel=""
+                  style={{ border: '1px solid #eedfe4', borderRadius: 12, background: '#fff',
+              minHeight: 0,
+              overflowY: 'auto',
+            }}
                 >
                   <summary
                     style={{

@@ -649,9 +649,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
   return createPortal(
     <AnimatePresence>
       <div
+        data-overlay-viewport="sheet"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
@@ -664,6 +664,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
         onClick={onClose}
       >
         <motion.div
+          data-overlay-panel=""
           role="dialog"
           aria-modal="true"
           aria-label="Complete Health Profile"
@@ -674,7 +675,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
           style={{
             width: '100%',
             maxWidth: '520px',
-            maxHeight: 'calc(100vh - max(36px, env(safe-area-inset-top, 36px)))',
+            maxHeight: 'var(--overlay-available-height)',
             background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 45%, #F0FDFA 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
@@ -712,6 +713,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
 
           {/* Modal Header (Zero Status Bar Clipping) */}
           <div
+            data-overlay-header=""
             style={{
               padding: '4px 20px 12px',
               display: 'flex',
@@ -792,7 +794,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                 gap: '6px',
                 background: '#F1F5F9',
                 borderRadius: '16px',
@@ -811,6 +813,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
                 return (
                   <button
                     key={s.id}
+                    aria-label={s.label}
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
@@ -834,7 +837,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
                       gap: '4px',
                       cursor: 'pointer',
                       boxShadow: isCurrent ? '0 4px 14px rgba(13, 148, 136, 0.25)' : 'none',
-                      whiteSpace: 'nowrap',
+                      flexWrap: 'wrap',
+                      minWidth: 0,
                       transition: 'all 0.18s ease',
                     }}
                   >
@@ -852,6 +856,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
 
           {/* Scrollable Form Body with Generous Bottom Clearance */}
           <div
+            data-overlay-scroll=""
             style={{
               padding: '16px 20px 100px 20px',
               overflowY: 'auto',
@@ -3206,8 +3211,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
 
           {/* Fixed Footer Actions (Zero Clipping with Bottom Tab Bar) */}
           <div
+            data-overlay-footer=""
             style={{
-              padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
+              padding: '12px 20px calc(14px + var(--safe-area-bottom, 0px))',
               borderTop: '1px solid #E2E8F0',
               background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #F8FAFC 100%)',
               backdropFilter: 'blur(16px)',

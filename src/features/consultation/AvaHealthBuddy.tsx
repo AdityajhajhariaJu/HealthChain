@@ -678,15 +678,12 @@ export const CaseSelectorModal = ({
   return (
     <FocusTrap onEscape={onClose} style={{ height: 0 }}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Select Case Workspace"
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
           background: 'rgba(15, 23, 42, 0.45)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
@@ -694,11 +691,11 @@ export const CaseSelectorModal = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '16px',
         }}
         onClick={onClose}
       >
         <div
+          data-overlay-panel=""
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'rgba(255, 255, 255, 0.98)',
@@ -708,7 +705,7 @@ export const CaseSelectorModal = ({
             boxShadow: '0 24px 48px rgba(13, 148, 136, 0.18)',
             width: '100%',
             maxWidth: '480px',
-            maxHeight: '80vh',
+            maxHeight: 'var(--overlay-available-height)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -751,6 +748,7 @@ export const CaseSelectorModal = ({
           </div>
 
           <div
+            data-overlay-scroll=""
             style={{
               padding: '16px',
               overflowY: 'auto',
@@ -969,6 +967,7 @@ export const SaveTaskModal = ({
   return (
     <FocusTrap onEscape={onClose} style={{ height: 0 }}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label={
@@ -976,10 +975,6 @@ export const SaveTaskModal = ({
         }
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
           background: 'rgba(15, 23, 42, 0.45)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
@@ -987,11 +982,11 @@ export const SaveTaskModal = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '16px',
         }}
         onClick={onClose}
       >
         <div
+          data-overlay-panel=""
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'rgba(255, 255, 255, 0.98)',
@@ -1001,7 +996,7 @@ export const SaveTaskModal = ({
             boxShadow: '0 24px 48px rgba(13, 148, 136, 0.18)',
             width: '100%',
             maxWidth: '520px',
-            maxHeight: '85vh',
+            maxHeight: 'var(--overlay-available-height)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -1060,6 +1055,7 @@ export const SaveTaskModal = ({
           </div>
 
           <div
+            data-overlay-scroll=""
             style={{
               padding: '20px 22px',
               overflowY: 'auto',
@@ -3545,8 +3541,14 @@ export default function AvaHealthBuddy() {
               width: '100%',
               maxWidth: '720px',
               position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
+              display: 'grid',
+              gridTemplateColumns: '44px minmax(0, 1fr) auto',
+              gap: '6px',
+              alignItems: 'end',
+              padding: '4px',
+              border: '1.5px solid #CCFBF1',
+              borderRadius: '28px',
+              background: 'rgba(255, 255, 255, 0.95)',
             }}
           >
             <input
@@ -3562,11 +3564,10 @@ export default function AvaHealthBuddy() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               style={{
-                position: 'absolute',
-                left: isMobile ? '7px' : '9px',
-                bottom: isMobile ? '6px' : '8px',
-                width: isMobile ? '32px' : '34px',
-                height: isMobile ? '32px' : '34px',
+                position: 'relative',
+                flexShrink: 0,
+                width: '44px',
+                height: '44px',
                 minHeight: '44px',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.9)',
@@ -3601,13 +3602,14 @@ export default function AvaHealthBuddy() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               aria-label="Ask Ava Health Buddy a question"
-              placeholder={isMobile ? 'Check in with Ava...' : 'Just check in about your day...'}
+              placeholder={isMobile ? 'Ask Ava' : 'Just check in about your day...'}
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: isMobile ? '11px 74px 11px 44px' : '13px 88px 13px 48px',
+                padding: '10px 4px',
+                minWidth: 0,
                 borderRadius: '24px',
-                border: '1.5px solid #CCFBF1',
+                border: 'none',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
@@ -3638,9 +3640,8 @@ export default function AvaHealthBuddy() {
 
             <div
               style={{
-                position: 'absolute',
-                right: isMobile ? '6px' : '8px',
-                bottom: isMobile ? '5px' : '7px',
+                position: 'relative',
+                flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
                 gap: isMobile ? '4px' : '6px',
@@ -3682,8 +3683,8 @@ export default function AvaHealthBuddy() {
                   isProcessingAttachment
                 }
                 style={{
-                  width: isMobile ? '34px' : '36px',
-                  height: isMobile ? '34px' : '36px',
+                  width: '44px',
+                  height: '44px',
                   minHeight: '44px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
@@ -3966,12 +3967,12 @@ export default function AvaHealthBuddy() {
         {showContextModal && (
           <FocusTrap onEscape={() => setShowContextModal(false)}>
             <div
+              data-overlay-viewport="center"
               role="dialog"
               aria-modal="true"
               aria-label="Conversation context"
               style={{
                 position: 'fixed',
-                inset: 0,
                 zIndex: 99999,
                 display: 'flex',
                 alignItems: 'center',
@@ -3979,11 +3980,11 @@ export default function AvaHealthBuddy() {
                 background: 'rgba(15, 23, 42, 0.45)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                padding: '16px',
               }}
               onClick={() => setShowContextModal(false)}
             >
               <motion.div
+                data-overlay-panel=""
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -4068,6 +4069,7 @@ export default function AvaHealthBuddy() {
                     Included ({memoryContext.includedItems.length})
                   </div>
                   <div
+                    data-overlay-scroll=""
                     style={{
                       display: 'flex',
                       flexDirection: 'column',

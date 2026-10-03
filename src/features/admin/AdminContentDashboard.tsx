@@ -510,23 +510,23 @@ export const AdminContentDashboard: React.FC = () => {
         {/* Deactivation Confirmation Modal */}
         {contentToDelete && (
           <div
+            data-overlay-viewport="center"
             role="dialog"
             aria-modal="true"
             aria-label="Deactivate Content Confirmation"
             style={{
               position: 'fixed',
-              inset: 0,
               background: 'rgba(15, 23, 42, 0.6)',
               backdropFilter: 'blur(4px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 99999,
-              padding: '20px'
             }}
             onClick={() => setContentToDelete(null)}
           >
             <div
+              data-overlay-panel=""
               role="dialog"
               aria-modal="true"
               aria-label="Deactivate Content"
@@ -537,7 +537,9 @@ export const AdminContentDashboard: React.FC = () => {
                 maxWidth: '420px',
                 width: '100%',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                border: '1px solid #E2E8F0'
+                border: '1px solid #E2E8F0',
+                minHeight: 0,
+                overflowY: 'auto',
               }}
               onClick={(e) => e.stopPropagation()}
             >

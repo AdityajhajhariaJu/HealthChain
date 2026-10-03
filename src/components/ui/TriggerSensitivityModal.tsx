@@ -114,16 +114,17 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
     <AnimatePresence>
       <FocusTrap isActive={isOpen} onEscape={onClose}>
         <div
+          data-overlay-viewport={activeTab === 'garden' ? undefined : 'sheet'}
           role="dialog"
           className={activeTab === 'garden' ? 'zen-modal-backdrop' : undefined}
           aria-modal="true"
           aria-label={standaloneTab && activeTab === 'garden' ? 'Zen Garden' : 'Whole Health Picture and Food Sensitivities'}
           style={{
             position: 'fixed',
-            top: 0,
+            top: 'var(--app-viewport-top, 0px)',
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: 'auto',
             zIndex: 10000,
             display: 'flex',
             justifyContent: 'center',
@@ -135,6 +136,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
           onClick={onClose}
         >
           <motion.div
+            data-overlay-panel={activeTab === 'garden' ? undefined : ''}
             className={activeTab === 'garden' ? 'zen-modal-sheet' : undefined}
             initial={activeTab === 'garden' ? false : { y: '100%' }}
             animate={{ y: 0 }}
@@ -144,7 +146,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             style={{
               width: '100%',
               maxWidth: '580px',
-              maxHeight: activeTab === 'garden' ? undefined : '92vh',
+              maxHeight: activeTab === 'garden' ? undefined : 'var(--overlay-available-height)',
               background: activeTab === 'garden'
                 ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)'
                 : 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
@@ -280,7 +282,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                 flex: 1,
                 minHeight: 0,
                 overflowY: 'auto',
-                padding: activeTab === 'garden' ? undefined : '0 20px 32px 20px',
+                padding: activeTab === 'garden' ? undefined : '0 20px calc(32px + var(--safe-area-bottom, 0px)) 20px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',

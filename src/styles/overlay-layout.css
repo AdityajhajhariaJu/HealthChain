@@ -1,0 +1,294 @@
+/* One viewport contract for dialogs: device insets and the visible keyboard area. */
+:root {
+  --app-viewport-height: 100vh;
+  --app-viewport-height: 100dvh;
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+:root [data-overlay-viewport] {
+  --overlay-edge: 16px;
+  --overlay-top: max(var(--overlay-edge), var(--safe-area-top, 0px));
+  --overlay-bottom: max(var(--overlay-edge), var(--safe-area-bottom, 0px));
+  --overlay-left: max(var(--overlay-edge), var(--safe-area-left, 0px));
+  --overlay-right: max(var(--overlay-edge), var(--safe-area-right, 0px));
+  --overlay-available-height: min(
+    92dvh,
+    calc(var(--app-viewport-height) - var(--overlay-top) - var(--overlay-bottom))
+  );
+  position: fixed;
+  inset: var(--app-viewport-top, 0px) 0 auto;
+  box-sizing: border-box;
+  height: var(--app-viewport-height);
+  width: 100%;
+  min-height: 0;
+  padding: var(--overlay-top) var(--overlay-right) var(--overlay-bottom) var(--overlay-left);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+:root [data-overlay-viewport='sheet'] {
+  --overlay-left: var(--safe-area-left, 0px);
+  --overlay-right: var(--safe-area-right, 0px);
+  --overlay-bottom: 0px;
+  --overlay-available-height: calc(var(--app-viewport-height) - var(--overlay-top));
+}
+/* Focus-trap wrappers must fit the same safe area as their panels. */
+:root [data-overlay-viewport] > :not([data-overlay-panel]) {
+  min-width: 0;
+  max-width: 100%;
+  max-height: var(--overlay-available-height);
+}
+:root [data-overlay-viewport='center'] > :not([data-overlay-panel]):has(> [data-overlay-panel]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+:root [data-overlay-panel] {
+  max-height: var(--overlay-available-height);
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+}
+:root [data-overlay-panel] > * {
+  min-width: 0;
+}
+:root [data-overlay-panel] svg {
+  flex-shrink: 0;
+}
+:root [data-overlay-scroll] {
+  min-height: 0;
+  min-width: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+:root [data-overlay-header],
+:root [data-overlay-footer] {
+  flex-shrink: 0;
+}
+:root [data-overlay-header] {
+  gap: 12px;
+}
+:root [data-overlay-header] > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+:root [data-overlay-header] > div:first-child > div:last-child {
+  min-width: 0;
+}
+:root [data-overlay-header] > div:first-child > div:first-child {
+  flex-shrink: 0;
+}
+:root [data-overlay-header] > button,
+:root [data-overlay-header] > div:last-child:not(:first-child) {
+  flex-shrink: 0;
+}
+:root [data-overlay-header] h1,
+:root [data-overlay-header] h2,
+:root [data-overlay-header] h3 {
+  overflow-wrap: anywhere;
+}
+.notification-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start !important;
+}
+.notification-header-title {
+  flex-wrap: wrap;
+}
+.notification-header-title > span {
+  flex-shrink: 0;
+}
+.notification-header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.vitality-header {
+  flex-shrink: 0;
+}
+.vitality-header > div:first-of-type {
+  padding-right: 44px;
+  min-height: 28px;
+}
+.vitality-tabs {
+  flex-shrink: 0;
+}
+.vitality-scroll {
+  min-height: 0;
+}
+@media (max-width: 768px) {
+  :root [data-overlay-viewport] {
+    --overlay-edge: 12px;
+  }
+  :root [data-overlay-header] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+@media (max-height: 600px) {
+  .vitality-header {
+    padding: 12px 16px !important;
+  }
+  .vitality-header .vitality-strategy {
+    display: none;
+  }
+  .vitality-scroll .vitality-strategy-short {
+    display: block;
+  }
+}
+.vitality-strategy-short {
+  display: none;
+}
+
+:root [data-overlay-footer] {
+  gap: 12px;
+}
+:root [data-overlay-footer] > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+:root [data-overlay-footer] > button {
+  flex-shrink: 0;
+}
+:root .notification-header-title h3 {
+  flex: 1;
+  min-width: 0;
+}
+.vitality-description-short {
+  display: none;
+  margin-bottom: 12px;
+}
+.vitality-strategy-short {
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #065f46;
+}
+@media (max-height: 600px) {
+  .vitality-description-normal {
+    display: none;
+  }
+  .vitality-description-short {
+    display: block;
+  }
+}
+@media (max-width: 480px) {
+  .notification-header-actions {
+    display: contents !important;
+  }
+  .notification-header-actions > button[aria-label='Close notifications'] {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .notification-header-actions > button[aria-label='Mark all notifications as read'] {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    min-height: 44px;
+  }
+}
+
+/* Short visual viewports include an open software keyboard even when CSS vh has not changed. */
+:root[data-viewport-compact='true'] .vitality-header {
+  padding: 12px 16px !important;
+}
+:root[data-viewport-compact='true'] .vitality-header .vitality-strategy,
+:root[data-viewport-compact='true'] .vitality-description-normal {
+  display: none;
+}
+:root[data-viewport-compact='true'] .vitality-scroll .vitality-strategy-short,
+:root[data-viewport-compact='true'] .vitality-description-short {
+  display: block;
+}
+.hc-bottom-sheet svg {
+  flex-shrink: 0;
+}
+.mobile-top-bar {
+  padding-left: max(16px, var(--safe-area-left, 0px));
+  padding-right: max(16px, var(--safe-area-right, 0px));
+}
+.mobile-top-bar__search {
+  min-width: 0;
+}
+.mobile-top-bar > button,
+.mobile-top-bar svg {
+  flex-shrink: 0;
+}
+.mobile-more-menu {
+  max-height: calc(var(--app-viewport-height) - max(12px, var(--safe-area-top, 0px)));
+  overflow-y: auto;
+  left: var(--safe-area-left, 0px);
+  right: var(--safe-area-right, 0px);
+  bottom: calc(100% - var(--app-viewport-top, 0px) - var(--app-viewport-height));
+}
+
+.hc-auth-dialog > * {
+  flex-shrink: 0;
+}
+.hc-feedback-dialog h3 {
+  margin: 0;
+}
+:root[data-viewport-compact='true'] .hc-feedback-dialog {
+  top: calc(var(--app-viewport-top, 0px) + max(16px, var(--safe-area-top, 0px))) !important;
+  bottom: auto !important;
+}
+.mobile-more-menu__header {
+  flex-shrink: 0;
+}
+.mobile-more-menu__grid {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 360px) {
+  .hydration-target-control {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+:root [data-overlay-header] button,
+.vitality-header button {
+  min-height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+:root [data-overlay-header] button {
+  min-height: 44px !important;
+}
+@media (max-width: 360px) {
+  .audio-track-content {
+    flex-direction: column;
+    gap: 8px !important;
+    text-align: center;
+  }
+}
+
+.active-case-bar__copy strong,
+.active-case-bar--empty strong {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+.active-case-bar--empty > div {
+  min-width: 0;
+}
+.mobile-profile-menu {
+  width: min(
+    280px,
+    calc(100vw - max(16px, var(--safe-area-left, 0px)) - max(16px, var(--safe-area-right, 0px)))
+  );
+  max-height: calc(
+    var(--app-viewport-height) - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px) - 80px
+  );
+  overflow-y: auto;
+}
+
+:root .app-shell,
+:root .sidebar {
+  height: var(--app-viewport-height);
+}
+
+.medical-profile-grid > * {
+  min-width: 0;
+}

@@ -190,26 +190,24 @@ export const GutHealthModal: React.FC<Props> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Gut Health"
-          className="gr-modal-backdrop"
+          data-overlay-viewport="center" className="gr-modal-backdrop"
           style={{
             position: 'fixed',
-            inset: 0,
             zIndex: 10000,
             background: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(6px)',
             display: 'grid',
             placeItems: 'center',
-            padding: 'clamp(0px, 1vw, 10px)',
           }}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) onClose();
           }}
         >
           <div
-            className="gr-modal-dialog"
+            data-overlay-panel="" className="gr-modal-dialog"
             style={{
               width: 'min(100%,1160px)',
-              height: 'min(94vh,980px)',
+              height: 'min(var(--overlay-available-height), 980px)',
               background: '#fffefa',
               borderRadius: 24,
               border: '1.5px solid #17375a',
@@ -221,7 +219,7 @@ export const GutHealthModal: React.FC<Props> = ({
             }}
           >
             <header
-              className="gr-modal-header"
+              data-overlay-header="" className="gr-modal-header"
               style={{
                 display: 'flex',
                 alignItems: 'center',

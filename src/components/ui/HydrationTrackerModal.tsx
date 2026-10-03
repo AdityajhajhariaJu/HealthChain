@@ -148,9 +148,9 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   return createPortal(
     <AnimatePresence>
       <div
+        data-overlay-viewport="sheet"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
@@ -163,6 +163,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
         onClick={onClose}
       >
         <motion.div
+          data-overlay-panel=""
           role="dialog"
           aria-modal="true"
           aria-label="Hydration Tracker"
@@ -173,7 +174,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           style={{
             width: '100%',
             maxWidth: '500px',
-            maxHeight: 'calc(100vh - max(40px, env(safe-area-inset-top, 40px)))',
+            maxHeight: 'var(--overlay-available-height)',
             background: 'linear-gradient(180deg, #FFFFFF 0%, #F0F9FF 45%, #E0F2FE 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
@@ -189,7 +190,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           <div 
             style={{ 
               width: '100%', 
-              height: '20px', 
+              height: '20px',
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
@@ -202,7 +203,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           </div>
 
           {/* Modal Header */}
-          <div style={{
+          <div
+            data-overlay-header="" style={{
             padding: '4px 20px 14px',
             display: 'flex',
             alignItems: 'center',
@@ -258,7 +260,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           </div>
 
           {/* Scrollable Body */}
-          <div style={{
+          <div
+            data-overlay-scroll="" style={{
             padding: '16px 20px',
             overflowY: 'auto',
             display: 'flex',
@@ -545,7 +548,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
               gap: '14px'
             }}>
               {/* iOS-Style Segmented Control for Target */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="hydration-target-control" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
                     Daily Hydration Goal
@@ -571,6 +574,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                         onClick={() => handleTargetChange(t.value)}
                         style={{
                           padding: '5px 12px',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
                           borderRadius: '9px',
                           border: 'none',
                           background: isSelected ? '#FFFFFF' : 'transparent',
@@ -691,7 +696,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   No drinks logged yet today. Tap +250ml above to start!
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '130px', overflowY: 'auto' }}>
+                <div
+                  data-overlay-scroll="" style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '130px', overflowY: 'auto' }}>
                   {data.logs.map((log) => (
                     <div
                       key={log.id}
@@ -749,8 +755,9 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           </div>
 
           {/* Reference-Styled Rose-Coral Bottom Action Button */}
-          <div style={{
-            padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
+          <div
+            data-overlay-footer="" style={{
+            padding: '12px 20px calc(14px + var(--safe-area-bottom, 0px))',
             borderTop: '1px solid rgba(243, 232, 225, 0.85)',
             background: '#FFFFFF'
           }}>

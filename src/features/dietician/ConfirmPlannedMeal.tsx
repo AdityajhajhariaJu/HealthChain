@@ -23,23 +23,23 @@ export function ConfirmPlannedMeal({
   const dismiss = useCallback(() => { if (!busy) onClose(); }, [busy, onClose]);
   return createPortal(
     <div
+      data-overlay-viewport="center"
       style={{
         position: 'fixed',
-        inset: 0,
         zIndex: 11010,
         background: 'rgba(15,23,42,.55)',
         display: 'grid',
         placeItems: 'center',
-        padding: 16,
       }}
     >
       <FocusTrap isActive onEscape={dismiss} style={{ width: 'min(480px,90vw)', height: 'auto' }}>
         <div
+          data-overlay-panel=""
           className="diet-everyday diet-tools"
           role="dialog"
           aria-modal="true"
           aria-label="Confirm planned meal eaten"
-          style={{ width: 'min(480px,90vw)', maxHeight: '85vh', overflowY: 'auto' }}
+          style={{ width: 'min(480px,90vw)', maxHeight: 'var(--overlay-available-height)', overflowY: 'auto' }}
         >
           <h3>What did you actually eat?</h3>
           <h4>{meal.name}</h4>

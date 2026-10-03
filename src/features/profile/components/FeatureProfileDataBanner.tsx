@@ -757,12 +757,12 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
       <AnimatePresence>
         {isEditModalOpen && (
           <div
+            data-overlay-viewport="center"
             role="dialog"
             aria-modal="true"
             aria-label="Edit saved health profile"
             style={{
               position: 'fixed',
-              inset: 0,
               zIndex: 10000,
               background: 'rgba(15, 23, 42, 0.65)',
               backdropFilter: 'blur(8px)',
@@ -770,10 +770,10 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '16px',
             }}
           >
             <motion.div
+              data-overlay-panel=""
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -782,7 +782,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 borderRadius: '24px',
                 maxWidth: '560px',
                 width: '100%',
-                maxHeight: '90vh',
+                maxHeight: 'var(--overlay-available-height)',
                 overflowY: 'auto',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
                 border: '1px solid #E2E8F0',

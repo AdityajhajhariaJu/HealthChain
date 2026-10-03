@@ -75,22 +75,22 @@ export function TrialFeaturesModal({
   return (
     <AnimatePresence>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '16px',
           background: 'rgba(15, 23, 42, 0.65)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
         }}
       >
         <motion.div
+          data-overlay-panel=""
           initial={{ opacity: 0, scale: 0.94, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 16 }}
@@ -99,7 +99,7 @@ export function TrialFeaturesModal({
             position: 'relative',
             width: '100%',
             maxWidth: '680px',
-            maxHeight: '90vh',
+            maxHeight: 'var(--overlay-available-height)',
             overflowY: 'auto',
             background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
             borderRadius: '24px',

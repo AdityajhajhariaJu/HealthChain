@@ -425,9 +425,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   return (
     <AnimatePresence>
       <div
+        data-overlay-viewport="sheet"
         style={{
           position: 'fixed',
-          inset: 0,
           background: 'rgba(15, 23, 42, 0.45)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
@@ -439,6 +439,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
         onClick={onClose}
       >
         <motion.div
+          data-overlay-panel=""
           role="dialog"
           aria-modal="true"
           aria-label="Daily Notifications and Care Reminders"
@@ -449,7 +450,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           style={{
             background: 'rgba(255, 255, 255, 0.98)',
             width: isMobile ? '100%' : '440px',
-            maxHeight: isMobile ? '90vh' : '100vh',
+            maxHeight: 'var(--overlay-available-height)',
             height: isMobile ? 'auto' : '100%',
             borderRadius: isMobile ? '24px 24px 0 0' : '0',
             boxShadow: '-10px 0 35px rgba(0, 0, 0, 0.15)',
@@ -466,6 +467,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           >
             {/* Header */}
             <div
+              data-overlay-header="" className="notification-header"
               style={{
                 padding: '18px 22px 14px',
                 borderBottom: '1px solid #F1F5F9',
@@ -491,7 +493,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                   <Bell size={20} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div className="notification-header-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <h3
                       style={{
                         margin: 0,
@@ -525,7 +527,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="notification-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
@@ -617,6 +619,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
 
             {/* Scrollable Body */}
             <div
+              data-overlay-scroll=""
               style={{
                 flex: 1,
                 overflowY: 'auto',
@@ -1475,8 +1478,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
 
             {/* Footer */}
             <div
+              data-overlay-footer=""
               style={{
-                padding: '14px 20px',
+                padding: '14px 20px calc(14px + var(--safe-area-bottom, 0px))',
                 borderTop: '1px solid #F1F5F9',
                 background: '#F8FAFC',
                 display: 'flex',

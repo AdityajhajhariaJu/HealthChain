@@ -76,15 +76,12 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
             {isOpen && (
               <FocusTrap isActive={isOpen} onEscape={() => setIsOpen(false)}>
                 <div
+                  data-overlay-viewport="center"
                   role="dialog"
                   aria-modal="true"
                   aria-label={`Clinical Information Category: ${spec.name}`}
                   style={{
                     position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
                     zIndex: 11000,
                     display: 'flex',
                     alignItems: 'center',
@@ -92,11 +89,11 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
                     background: 'rgba(15, 23, 42, 0.55)',
                     backdropFilter: 'blur(6px)',
                     WebkitBackdropFilter: 'blur(6px)',
-                    padding: '16px',
                   }}
                   onClick={() => setIsOpen(false)}
                 >
                   <motion.div
+                    data-overlay-panel=""
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -110,6 +107,8 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
                       boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)',
                       border: '1.5px solid #E2E8F0',
                       overflow: 'hidden',
+                      minHeight: 0,
+                      overflowY: 'auto',
                     }}
                   >
                     {/* Header with Category Accent */}

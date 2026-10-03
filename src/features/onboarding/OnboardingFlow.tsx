@@ -394,13 +394,12 @@ export default function OnboardingFlow() {
       aria-label="HealthChain Onboarding Experience"
       style={{
         position: 'fixed',
-        top: 0,
+        top: 'var(--app-viewport-top, 0px)',
         left: 0,
         right: 0,
-        bottom: 0,
         width: '100%',
-        height: '100%',
-        minHeight: '100dvh',
+        height: 'var(--app-viewport-height)',
+        minHeight: 0,
         background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
         zIndex: 9999,
         display: 'flex',
@@ -427,10 +426,10 @@ export default function OnboardingFlow() {
           display: 'flex',
           flexDirection: 'column',
           overflowY: 'auto',
-          paddingTop: 'max(76px, calc(env(safe-area-inset-top, 0px) + 38px))',
-          paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
-          paddingLeft: isMobile ? '16px' : '32px',
-          paddingRight: isMobile ? '16px' : '32px',
+          paddingTop: 'max(76px, calc(var(--safe-area-top, 0px) + 38px))',
+          paddingBottom: 'max(36px, calc(var(--safe-area-bottom, 0px) + 24px))',
+          paddingLeft: 'max(16px, var(--safe-area-left, 0px))',
+          paddingRight: 'max(16px, var(--safe-area-right, 0px))',
         }}
       >
         <AnimatePresence mode="wait">
@@ -1487,7 +1486,7 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+                  paddingBottom: 'max(36px, calc(var(--safe-area-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button
@@ -1812,7 +1811,7 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+                  paddingBottom: 'max(36px, calc(var(--safe-area-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button
@@ -2306,7 +2305,7 @@ export default function OnboardingFlow() {
                   gap: '8px',
                   alignItems: 'center',
                   marginTop: '14px',
-                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))',
+                  paddingBottom: 'max(36px, calc(var(--safe-area-bottom, 0px) + 20px))',
                 }}
               >
                 <motion.button

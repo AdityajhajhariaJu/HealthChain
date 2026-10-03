@@ -1367,18 +1367,14 @@ export default function Settings() {
         {showDeleteModal &&
           createPortal(
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 background: 'rgba(0,0,0,0.5)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 9999,
-                padding: '20px',
               }}
             >
               <FocusTrap
@@ -1391,6 +1387,7 @@ export default function Settings() {
                 }}
               >
                 <div
+                  data-overlay-panel=""
                   className="card"
                   role="dialog"
                   aria-modal="true"
@@ -1402,6 +1399,8 @@ export default function Settings() {
                     position: 'relative',
                     background: '#FFFFFF',
                     border: '1px solid #F1E5E7',
+                    minHeight: 0,
+                    overflowY: 'auto',
                   }}
                 >
                   <button
@@ -1528,14 +1527,13 @@ export default function Settings() {
         {/* Offline Unsynced Changes Logout Confirmation Modal */}
         {archivePreview && (
           <div
+            data-overlay-viewport="center"
             style={{
               position: 'fixed',
-              inset: 0,
               zIndex: 10000,
               background: 'rgba(15,23,42,.55)',
               display: 'grid',
               placeItems: 'center',
-              padding: 16,
             }}
           >
             <FocusTrap
@@ -1544,6 +1542,7 @@ export default function Settings() {
               }}
             >
               <div
+                data-overlay-panel=""
                 role="dialog"
                 aria-modal="true"
                 aria-label="Review backup restore"
@@ -1553,6 +1552,8 @@ export default function Settings() {
                   borderRadius: 24,
                   padding: 24,
                   maxWidth: 480,
+                  minHeight: 0,
+                  overflowY: 'auto',
                 }}
               >
                 <h3>Review backup restore</h3>
@@ -1612,24 +1613,21 @@ export default function Settings() {
         )}
         {showLogoutConfirm && (
           <div
+            data-overlay-viewport="center"
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
               background: 'rgba(15, 23, 42, 0.65)',
               backdropFilter: 'blur(6px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 99999,
-              padding: '20px',
             }}
             onClick={() => setShowLogoutConfirm(false)}
           >
             <FocusTrap>
               <div
+                data-overlay-panel=""
                 className="card"
                 role="dialog"
                 aria-modal="true"
@@ -1642,6 +1640,8 @@ export default function Settings() {
                   borderRadius: '24px',
                   padding: '28px',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                  minHeight: 0,
+                  overflowY: 'auto',
                 }}
                 onClick={(e) => e.stopPropagation()}
               >

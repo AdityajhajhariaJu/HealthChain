@@ -1,5 +1,6 @@
 import { ArrowLeft, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import './Changelog.css';
 import { triggerHapticLight } from '../../services/haptics';
 import { safeNavigateBack } from '../../services/navigation';
 
@@ -8,12 +9,27 @@ const log = [
     version: 'v10.0.0',
     date: 'August 25, 2026',
     changes: [
-      { type: 'feature', text: 'Diagnostic reasoning with Gemini 2.5 Flash and sub-clinical biomarker tracking' },
-      { type: 'feature', text: 'Case Component Connections: Interactive SVG map visualizing symptom-condition causal links' },
-      { type: 'improvement', text: 'Resilient Offline Sync Outbox with automatic background retries and IndexedDB backup' },
-      { type: 'improvement', text: 'Timezone-aware symptom check-in streaks and clinician appointment dossier exporter' },
-      { type: 'fix', text: 'Hardened floating feedback persistence, push notification permissions, and macro calculators' }
-    ]
+      {
+        type: 'feature',
+        text: 'Diagnostic reasoning with Gemini 2.5 Flash and sub-clinical biomarker tracking',
+      },
+      {
+        type: 'feature',
+        text: 'Case Component Connections: Interactive SVG map visualizing symptom-condition causal links',
+      },
+      {
+        type: 'improvement',
+        text: 'Resilient Offline Sync Outbox with automatic background retries and IndexedDB backup',
+      },
+      {
+        type: 'improvement',
+        text: 'Timezone-aware symptom check-in streaks and clinician appointment dossier exporter',
+      },
+      {
+        type: 'fix',
+        text: 'Hardened floating feedback persistence, push notification permissions, and macro calculators',
+      },
+    ],
   },
   {
     version: 'v2.1.0',
@@ -21,36 +37,59 @@ const log = [
     changes: [
       { type: 'feature', text: 'Added Deep Collaborative Specialists for cross-specialty reviews' },
       { type: 'feature', text: 'New Data Portability (Export/Import JSON) in Settings' },
-      { type: 'improvement', text: 'Added Skeleton Loaders across the app for better perceived performance' },
-      { type: 'fix', text: 'Fixed mobile view for Medical Profile timeline' }
-    ]
+      {
+        type: 'improvement',
+        text: 'Added Skeleton Loaders across the app for better perceived performance',
+      },
+      { type: 'fix', text: 'Fixed mobile view for Medical Profile timeline' },
+    ],
   },
   {
     version: 'v2.0.0',
     date: 'August 1, 2026',
     changes: [
-      { type: 'feature', text: 'Launch of HealthChain 2.0 with advanced AI reasoning capabilities' },
+      {
+        type: 'feature',
+        text: 'Launch of HealthChain 2.0 with advanced AI reasoning capabilities',
+      },
       { type: 'feature', text: 'Ava Health Buddy voice-first consultation interface' },
-      { type: 'feature', text: 'Comprehensive Dietician integration' }
-    ]
-  }
+      { type: 'feature', text: 'Comprehensive Dietician integration' },
+    ],
+  },
 ];
 
 export default function Changelog() {
   const navigate = useNavigate();
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
-      <button 
+      <button
         onClick={() => {
           triggerHapticLight();
           safeNavigateBack(navigate, '/app/today');
-        }} 
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '20px' }}
+        }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'transparent',
+          border: 'none',
+          color: 'var(--text-muted)',
+          cursor: 'pointer',
+          marginBottom: '20px',
+        }}
       >
         <ArrowLeft size={16} /> Back
       </button>
 
-      <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-1px' }}>
+      <h1
+        style={{
+          fontSize: '36px',
+          fontWeight: 800,
+          color: 'var(--text-main)',
+          marginBottom: '8px',
+          letterSpacing: '-1px',
+        }}
+      >
         What's New
       </h1>
       <p style={{ fontSize: '18px', color: 'var(--text-muted)', marginBottom: '24px' }}>
@@ -59,26 +98,40 @@ export default function Changelog() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
         {log.map((release) => (
-          <div key={release.version} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
-            <div style={{ width: '120px', flexShrink: 0, textAlign: 'right' }}>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>{release.version}</div>
+          <div key={release.version} className="changelog-release">
+            <div className="changelog-release__date">
+              <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>
+                {release.version}
+              </div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{release.date}</div>
             </div>
-            
+
             {/* Timeline line */}
-            <div style={{ position: 'absolute', left: '132px', top: '24px', bottom: '-40px', width: '2px', background: 'var(--border)' }} />
-            <div style={{ position: 'absolute', left: '127px', top: '6px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid white' }} />
-            
-            <div style={{ flex: 1, paddingLeft: '32px' }}>
+            <div className="changelog-release__line" aria-hidden="true" />
+            <div className="changelog-release__dot" aria-hidden="true" />
+
+            <div className="changelog-release__copy">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {release.changes.map((change, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{ marginTop: '2px' }}>
-                      {change.type === 'feature' ? <Sparkles size={16} color="#8B5CF6" /> : 
-                       change.type === 'improvement' ? <Zap size={16} color="#F59E0B" /> : 
-                       <ShieldCheck size={16} color="#10B981" />}
+                    <div style={{ marginTop: '2px', flexShrink: 0 }}>
+                      {change.type === 'feature' ? (
+                        <Sparkles size={16} color="#8B5CF6" />
+                      ) : change.type === 'improvement' ? (
+                        <Zap size={16} color="#F59E0B" />
+                      ) : (
+                        <ShieldCheck size={16} color="#10B981" />
+                      )}
                     </div>
-                    <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '1.5' }}>
+                    <div
+                      style={{
+                        fontSize: '15px',
+                        color: 'var(--text-main)',
+                        lineHeight: '1.5',
+                        minWidth: 0,
+                        overflowWrap: 'anywhere',
+                      }}
+                    >
                       {change.text}
                     </div>
                   </div>

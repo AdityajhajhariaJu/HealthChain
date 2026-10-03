@@ -61,26 +61,28 @@ export function AvaDayCheckin({ onClose }: { onClose: () => void }) {
   return (
     <FocusTrap onEscape={onClose}>
       <div
+        data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
         aria-label="Log your day"
         style={{
           position: 'fixed',
-          inset: 0,
           zIndex: 10000,
           background: 'rgba(15,23,42,.6)',
           display: 'grid',
           placeItems: 'center',
-          padding: 20,
         }}
       >
         <section
+          data-overlay-panel=""
           style={{
             background: 'white',
             borderRadius: 24,
             padding: 24,
             maxWidth: 480,
             width: '100%',
+            minHeight: 0,
+            overflowY: 'auto',
           }}
         >
           <button

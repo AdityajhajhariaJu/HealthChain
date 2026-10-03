@@ -74,26 +74,23 @@ export default function PathwaySimulator({
 
   return (
     <div
+      data-overlay-viewport="center"
       role="dialog"
       aria-modal="true"
       aria-label="Doctor Discussion Guide Simulator"
       onClick={onClose}
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
         background: 'rgba(15,23,42,0.8)',
         backdropFilter: 'blur(8px)',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
       }}
     >
       <motion.div
+        data-overlay-panel=""
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -102,7 +99,7 @@ export default function PathwaySimulator({
           borderRadius: 24,
           width: '100%',
           maxWidth: 700,
-          maxHeight: '90vh',
+          maxHeight: 'var(--overlay-available-height)',
           overflowY: 'auto',
           boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
           display: 'flex',

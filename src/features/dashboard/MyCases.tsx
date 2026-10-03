@@ -574,23 +574,20 @@ export default function MyCases() {
         <AnimatePresence>
           {caseToDelete && (
             <div
+              data-overlay-viewport="center"
               style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
                 background: 'rgba(15, 23, 42, 0.65)',
                 backdropFilter: 'blur(6px)',
                 zIndex: 99999,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px',
               }}
               onClick={() => setCaseToDelete(null)}
             >
               <motion.div
+                data-overlay-panel=""
                 role="dialog"
                 aria-modal="true"
                 aria-label="Delete Clinical Case"
@@ -606,6 +603,8 @@ export default function MyCases() {
                   width: '100%',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
                   border: '1px solid #F1E5E7',
+                  minHeight: 0,
+                  overflowY: 'auto',
                 }}
               >
                 <div
