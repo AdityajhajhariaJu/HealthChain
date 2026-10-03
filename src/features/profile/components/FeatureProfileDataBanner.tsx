@@ -11,6 +11,8 @@ import {
   X,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import FocusTrap from '../../../components/ui/FocusTrap';
 import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   getProfile,
@@ -99,6 +101,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
 
   const editScope = useRef(getActiveProfileScope());
   const [editError, setEditError] = useState('');
+
+  useEffect(() => {
+    if (!isEditModalOpen) return;
+    const targets = [document.body, document.getElementById('main-content')].filter(
+      (target): target is HTMLElement => !!target
+    );
+    const previous = targets.map((target) => target.style.overflow);
+    targets.forEach((target) => {
+      target.style.overflow = 'hidden';
+    });
+    return () =>
+      targets.forEach((target, index) => {
+        target.style.overflow = previous[index];
+      });
+  }, [isEditModalOpen]);
 
   // Sync profile reactively
   useEffect(() => {
@@ -198,7 +215,9 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
     []
   );
 
-  const openModal = () => {
+  const openModal = (event: React.MouseEvent<HTMLButtonElement>) => {
+    // Safari does not focus pointer-clicked buttons; remember the opener for return focus.
+    event.currentTarget.focus({ preventScroll: true });
     triggerHapticSelection();
     editScope.current = getActiveProfileScope();
     // Profile events can precede React's render; edit the latest saved snapshot.
@@ -753,552 +772,591 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
         </div>
       </div>
 
-      {/* In-Place Baseline Editing Modal */}
-      <AnimatePresence>
-        {isEditModalOpen && (
-          <div
-            data-overlay-viewport="center"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Edit saved health profile"
-            style={{
-              position: 'fixed',
-              zIndex: 10000,
-              background: 'rgba(15, 23, 42, 0.65)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <motion.div
-              data-overlay-panel=""
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+      {/* Keep the editor outside the page's scrolling and animation layers. */}
+      {createPortal(
+        <AnimatePresence>
+          {isEditModalOpen && (
+            <div
+              data-overlay-viewport="center"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Edit saved health profile"
               style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                maxWidth: '560px',
-                width: '100%',
-                maxHeight: 'var(--overlay-available-height)',
-                overflowY: 'auto',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
-                border: '1px solid #E2E8F0',
+                position: 'fixed',
+                zIndex: 10000,
+                background: 'rgba(15, 23, 42, 0.65)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {/* Modal Header */}
-              <div
+              <FocusTrap
+                isActive={isEditModalOpen}
+                onEscape={() => setIsEditModalOpen(false)}
                 style={{
-                  padding: '18px 22px',
-                  borderBottom: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck size={20} color="#0D9488" />
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
-                    Edit Saved Health Profile
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  data-compact="true"
-                  className="btn-compact"
-                  onClick={() => setIsEditModalOpen(false)}
-                  style={{
-                    background: '#F1F5F9',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '32px',
-                    height: '32px',
-                    minWidth: 'unset',
-                    minHeight: 'unset',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#64748B',
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div
-                style={{
-                  padding: '20px 22px',
+                  height: 'auto',
+                  maxWidth: '560px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '20px',
                 }}
               >
-                {editError && <p role="alert">{editError}</p>}
-                {/* 1. Biometrics */}
-                <div>
-                  <h4
-                    style={{
-                      margin: '0 0 10px 0',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: '#0F766E',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.4px',
-                    }}
-                  >
-                    1. Biometrics & Demographics
-                  </h4>
+                <motion.div
+                  data-overlay-panel=""
+                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    maxWidth: '560px',
+                    width: '100%',
+                    maxHeight: 'var(--overlay-available-height)',
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {/* Modal Header */}
                   <div
+                    data-overlay-header=""
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
-                      gap: '10px',
+                      padding: '18px 22px',
+                      borderBottom: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)',
                     }}
                   >
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                        Age
-                      </label>
-                      <input
-                        type="number"
-                        aria-label="Age"
-                        value={editAge}
-                        onChange={(e) =>
-                          setEditAge(e.target.value === '' ? '' : Number(e.target.value))
-                        }
-                        style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '10px',
-                          border: '1px solid #CBD5E1',
-                          fontSize: '13px',
-                          fontWeight: 700,
-                        }}
-                      />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <ShieldCheck size={20} color="#0D9488" />
+                      <h3
+                        style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}
+                      >
+                        Edit Saved Health Profile
+                      </h3>
                     </div>
+                    <button
+                      type="button"
+                      aria-label="Close health profile editor"
+                      onClick={() => setIsEditModalOpen(false)}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        minWidth: '44px',
+                        minHeight: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {/* Modal Body */}
+                  <div
+                    data-overlay-scroll=""
+                    style={{
+                      padding: '20px 22px',
+                      flex: 1,
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '20px',
+                    }}
+                  >
+                    {editError && <p role="alert">{editError}</p>}
+                    {/* 1. Biometrics */}
                     <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                        Sex
-                      </label>
-                      <select
-                        value={editGender}
-                        onChange={(e) => setEditGender(e.target.value as any)}
+                      <h4
                         style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '10px',
-                          border: '1px solid #CBD5E1',
+                          margin: '0 0 10px 0',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.4px',
                         }}
                       >
-                        <option value="">Not entered</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                        Height (cm)
-                      </label>
-                      <input
-                        type="number"
-                        aria-label="Height"
-                        value={editHeight}
-                        onChange={(e) =>
-                          setEditHeight(e.target.value === '' ? '' : Number(e.target.value))
-                        }
+                        1. Biometrics & Demographics
+                      </h4>
+                      <div
                         style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '10px',
-                          border: '1px solid #CBD5E1',
-                          fontSize: '13px',
-                          fontWeight: 700,
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
+                          gap: '10px',
                         }}
-                      />
+                      >
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                            Age
+                          </label>
+                          <input
+                            type="number"
+                            aria-label="Age"
+                            value={editAge}
+                            onChange={(e) =>
+                              setEditAge(e.target.value === '' ? '' : Number(e.target.value))
+                            }
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                            Sex
+                          </label>
+                          <select
+                            value={editGender}
+                            onChange={(e) => setEditGender(e.target.value as any)}
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            <option value="">Not entered</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                            Height (cm)
+                          </label>
+                          <input
+                            type="number"
+                            aria-label="Height"
+                            value={editHeight}
+                            onChange={(e) =>
+                              setEditHeight(e.target.value === '' ? '' : Number(e.target.value))
+                            }
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                            Weight (kg)
+                          </label>
+                          <input
+                            type="number"
+                            aria-label="Weight"
+                            value={editWeight}
+                            onChange={(e) =>
+                              setEditWeight(e.target.value === '' ? '' : Number(e.target.value))
+                            }
+                            style={{
+                              width: '100%',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                        Weight (kg)
-                      </label>
-                      <input
-                        type="number"
-                        aria-label="Weight"
-                        value={editWeight}
-                        onChange={(e) =>
-                          setEditWeight(e.target.value === '' ? '' : Number(e.target.value))
-                        }
-                        style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '10px',
-                          border: '1px solid #CBD5E1',
-                          fontSize: '13px',
-                          fontWeight: 700,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                {/* 2. Conditions */}
-                <div>
-                  <h4
-                    style={{
-                      margin: '0 0 10px 0',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: '#0F766E',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.4px',
-                    }}
-                  >
-                    2. Diagnosed Conditions ({editConditions.length})
-                  </h4>
-                  <div
-                    style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}
-                  >
-                    {Object.entries(COMMON_CONDITIONS_META).map(([name, meta]) => {
-                      const isSelected = editConditions.includes(name);
-                      return (
+                    {/* 2. Conditions */}
+                    <div>
+                      <h4
+                        style={{
+                          margin: '0 0 10px 0',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.4px',
+                        }}
+                      >
+                        2. Diagnosed Conditions ({editConditions.length})
+                      </h4>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        {Object.entries(COMMON_CONDITIONS_META).map(([name, meta]) => {
+                          const isSelected = editConditions.includes(name);
+                          return (
+                            <button
+                              key={name}
+                              type="button"
+                              data-compact="true"
+                              className="btn-compact"
+                              onClick={() => {
+                                triggerHapticSelection();
+                                setEditConditions((prev) =>
+                                  prev.includes(name)
+                                    ? prev.filter((c) => c !== name)
+                                    : [...prev, name]
+                                );
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 9px',
+                                borderRadius: '999px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                minWidth: 'unset',
+                                minHeight: 'unset',
+                                height: 'auto',
+                                border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                                background: isSelected
+                                  ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
+                                  : '#F8FAFC',
+                                color: isSelected ? '#0F766E' : '#475569',
+                                boxShadow: isSelected
+                                  ? '0 2px 8px rgba(13, 148, 136, 0.15)'
+                                  : 'none',
+                              }}
+                            >
+                              <span>{meta.icon}</span> {name}
+                              {isSelected && <Check size={12} color="#0D9488" strokeWidth={2.8} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {/* Custom Adder */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="text"
+                          placeholder="Add custom condition..."
+                          value={editCustomCond}
+                          onChange={(e) => setEditCustomCond(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (
+                                editCustomCond.trim() &&
+                                !editConditions.includes(editCustomCond.trim())
+                              ) {
+                                setEditConditions((prev) => [...prev, editCustomCond.trim()]);
+                                setEditCustomCond('');
+                              }
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '7px 12px',
+                            borderRadius: '10px',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '12.5px',
+                          }}
+                        />
                         <button
-                          key={name}
                           type="button"
                           data-compact="true"
                           className="btn-compact"
                           onClick={() => {
-                            triggerHapticSelection();
-                            setEditConditions((prev) =>
-                              prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
-                            );
+                            if (
+                              editCustomCond.trim() &&
+                              !editConditions.includes(editCustomCond.trim())
+                            ) {
+                              setEditConditions((prev) => [...prev, editCustomCond.trim()]);
+                              setEditCustomCond('');
+                            }
                           }}
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 9px',
-                            borderRadius: '999px',
-                            fontSize: '11px',
+                            background: '#0F766E',
+                            color: '#FFF',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '0 12px',
                             fontWeight: 700,
+                            fontSize: '12px',
                             cursor: 'pointer',
                             minWidth: 'unset',
                             minHeight: 'unset',
-                            height: 'auto',
-                            border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected
-                              ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
-                              : '#F8FAFC',
-                            color: isSelected ? '#0F766E' : '#475569',
-                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
+                            height: '36px',
                           }}
                         >
-                          <span>{meta.icon}</span> {name}
-                          {isSelected && <Check size={12} color="#0D9488" strokeWidth={2.8} />}
+                          Add
                         </button>
-                      );
-                    })}
+                      </div>
+                    </div>
+
+                    {/* 3. Chrono-Medications */}
+                    <div>
+                      <h4
+                        style={{
+                          margin: '0 0 10px 0',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.4px',
+                        }}
+                      >
+                        3. Regular Medications ({editMeds.length})
+                      </h4>
+                      <p style={{ fontSize: '12px', color: '#64748B' }}>
+                        This list is shared with Daily Meds &amp; Vitamins. Enter exact reminder
+                        times there; a time of day here does not schedule a dose.
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {PRESET_MEDS_LIST.map((m) => {
+                          const active = editMeds.find((item) => item.name === m.name);
+                          const isSelected = Boolean(active);
+                          return (
+                            <div
+                              key={m.name}
+                              style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}
+                            >
+                              <button
+                                type="button"
+                                data-compact="true"
+                                className="btn-compact"
+                                onClick={() => {
+                                  triggerHapticSelection();
+                                  setEditMeds((prev) => {
+                                    const exists = prev.find((item) => item.name === m.name);
+                                    if (exists) return prev.filter((item) => item.name !== m.name);
+                                    return [...prev, { name: m.name, slot: m.slot, dosage: '' }];
+                                  });
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 9px',
+                                  borderRadius: '999px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  minWidth: 'unset',
+                                  minHeight: 'unset',
+                                  height: 'auto',
+                                  border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                                  background: isSelected
+                                    ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
+                                    : '#F8FAFC',
+                                  color: isSelected ? '#0F766E' : '#475569',
+                                  boxShadow: isSelected
+                                    ? '0 2px 8px rgba(13, 148, 136, 0.15)'
+                                    : 'none',
+                                }}
+                              >
+                                <Pill size={11} /> {m.name}
+                                {isSelected && (
+                                  <Check size={11} color="#0D9488" strokeWidth={2.8} />
+                                )}
+                              </button>
+                              {isSelected &&
+                                active &&
+                                !medications.some((med) => med.name === m.name && med.time) && (
+                                  <div style={{ display: 'flex', gap: 2 }}>
+                                    {(
+                                      ['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]
+                                    ).map((slot) => {
+                                      const isCurrent = active.slot === slot;
+                                      const meta = CIRCADIAN_SLOT_META[slot];
+                                      return (
+                                        <button
+                                          key={slot}
+                                          type="button"
+                                          data-compact="true"
+                                          className="btn-compact"
+                                          onClick={() => {
+                                            triggerHapticLight();
+                                            setEditMeds((prev) =>
+                                              prev.map((item) =>
+                                                item.name === m.name ? { ...item, slot } : item
+                                              )
+                                            );
+                                          }}
+                                          style={{
+                                            fontSize: '9.5px',
+                                            padding: '2px 5px',
+                                            borderRadius: '4px',
+                                            border: isCurrent
+                                              ? `1px solid ${meta.color}`
+                                              : '1px solid #E2E8F0',
+                                            background: isCurrent ? meta.bg : '#FFF',
+                                            color: isCurrent ? meta.color : '#64748B',
+                                            fontWeight: isCurrent ? 800 : 500,
+                                            cursor: 'pointer',
+                                            minWidth: 'unset',
+                                            minHeight: 'unset',
+                                            height: 'auto',
+                                          }}
+                                        >
+                                          {meta.icon}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 4. Allergies */}
+                    <div>
+                      <h4
+                        style={{
+                          margin: '0 0 10px 0',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.4px',
+                        }}
+                      >
+                        4. Known Allergies ({editAllergies.length})
+                      </h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {PRESET_ALLERGIES_LIST.map((a) => {
+                          const isSelected = editAllergies.some((item) => item.name === a.name);
+                          return (
+                            <button
+                              key={a.name}
+                              type="button"
+                              data-compact="true"
+                              className="btn-compact"
+                              onClick={() => {
+                                triggerHapticSelection();
+                                setEditAllergies((prev) => {
+                                  const exists = prev.find((item) => item.name === a.name);
+                                  if (exists) return prev.filter((item) => item.name !== a.name);
+                                  return [...prev, { name: a.name, severity: a.defaultSeverity }];
+                                });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 9px',
+                                borderRadius: '999px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                minWidth: 'unset',
+                                minHeight: 'unset',
+                                height: 'auto',
+                                border: isSelected ? '1.5px solid #F43F5E' : '1px solid #E2E8F0',
+                                background: isSelected
+                                  ? 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)'
+                                  : '#F8FAFC',
+                                color: isSelected ? '#BE123C' : '#475569',
+                                boxShadow: isSelected
+                                  ? '0 2px 8px rgba(244, 63, 94, 0.15)'
+                                  : 'none',
+                              }}
+                            >
+                              <span>{a.icon}</span> {a.name}
+                              {isSelected && <Check size={11} color="#E11D48" strokeWidth={2.8} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  {/* Custom Adder */}
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <input
-                      type="text"
-                      placeholder="Add custom condition..."
-                      value={editCustomCond}
-                      onChange={(e) => setEditCustomCond(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (
-                            editCustomCond.trim() &&
-                            !editConditions.includes(editCustomCond.trim())
-                          ) {
-                            setEditConditions((prev) => [...prev, editCustomCond.trim()]);
-                            setEditCustomCond('');
-                          }
-                        }
-                      }}
-                      style={{
-                        flex: 1,
-                        padding: '7px 12px',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '12.5px',
-                      }}
-                    />
+
+                  {/* Modal Footer */}
+                  <div
+                    data-overlay-footer=""
+                    style={{
+                      padding: isMobile ? '12px 16px' : '16px 22px',
+                      borderTop: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'stretch',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      background: '#F8FAFC',
+                      borderBottomLeftRadius: '24px',
+                      borderBottomRightRadius: '24px',
+                    }}
+                  >
                     <button
                       type="button"
                       data-compact="true"
                       className="btn-compact"
-                      onClick={() => {
-                        if (
-                          editCustomCond.trim() &&
-                          !editConditions.includes(editCustomCond.trim())
-                        ) {
-                          setEditConditions((prev) => [...prev, editCustomCond.trim()]);
-                          setEditCustomCond('');
-                        }
-                      }}
+                      onClick={() => setIsEditModalOpen(false)}
                       style={{
-                        background: '#0F766E',
-                        color: '#FFF',
-                        border: 'none',
+                        flex: isMobile ? 1 : undefined,
+                        padding: '8px 16px',
                         borderRadius: '10px',
-                        padding: '0 12px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFFFFF',
+                        color: '#475569',
+                        fontSize: '13px',
                         fontWeight: 700,
-                        fontSize: '12px',
                         cursor: 'pointer',
                         minWidth: 'unset',
-                        minHeight: 'unset',
-                        height: '36px',
+                        minHeight: '44px',
                       }}
                     >
-                      Add
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      data-compact="true"
+                      className="btn-compact"
+                      onClick={handleSaveModal}
+                      style={{
+                        flex: isMobile ? 1 : undefined,
+                        padding: '8px 20px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: '44px',
+                        whiteSpace: 'normal',
+                        lineHeight: 1.4,
+                        boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+                      }}
+                    >
+                      Save profile
                     </button>
                   </div>
-                </div>
-
-                {/* 3. Chrono-Medications */}
-                <div>
-                  <h4
-                    style={{
-                      margin: '0 0 10px 0',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: '#0F766E',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.4px',
-                    }}
-                  >
-                    3. Regular Medications ({editMeds.length})
-                  </h4>
-                  <p style={{ fontSize: '12px', color: '#64748B' }}>
-                    This list is shared with Daily Meds &amp; Vitamins. Enter exact reminder times
-                    there; a time of day here does not schedule a dose.
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {PRESET_MEDS_LIST.map((m) => {
-                      const active = editMeds.find((item) => item.name === m.name);
-                      const isSelected = Boolean(active);
-                      return (
-                        <div
-                          key={m.name}
-                          style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}
-                        >
-                          <button
-                            type="button"
-                            data-compact="true"
-                            className="btn-compact"
-                            onClick={() => {
-                              triggerHapticSelection();
-                              setEditMeds((prev) => {
-                                const exists = prev.find((item) => item.name === m.name);
-                                if (exists) return prev.filter((item) => item.name !== m.name);
-                                return [...prev, { name: m.name, slot: m.slot, dosage: '' }];
-                              });
-                            }}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '4px 9px',
-                              borderRadius: '999px',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              minWidth: 'unset',
-                              minHeight: 'unset',
-                              height: 'auto',
-                              border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                              background: isSelected
-                                ? 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)'
-                                : '#F8FAFC',
-                              color: isSelected ? '#0F766E' : '#475569',
-                              boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
-                            }}
-                          >
-                            <Pill size={11} /> {m.name}
-                            {isSelected && <Check size={11} color="#0D9488" strokeWidth={2.8} />}
-                          </button>
-                          {isSelected &&
-                            active &&
-                            !medications.some((med) => med.name === m.name && med.time) && (
-                              <div style={{ display: 'flex', gap: 2 }}>
-                                {(
-                                  ['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]
-                                ).map((slot) => {
-                                  const isCurrent = active.slot === slot;
-                                  const meta = CIRCADIAN_SLOT_META[slot];
-                                  return (
-                                    <button
-                                      key={slot}
-                                      type="button"
-                                      data-compact="true"
-                                      className="btn-compact"
-                                      onClick={() => {
-                                        triggerHapticLight();
-                                        setEditMeds((prev) =>
-                                          prev.map((item) =>
-                                            item.name === m.name ? { ...item, slot } : item
-                                          )
-                                        );
-                                      }}
-                                      style={{
-                                        fontSize: '9.5px',
-                                        padding: '2px 5px',
-                                        borderRadius: '4px',
-                                        border: isCurrent
-                                          ? `1px solid ${meta.color}`
-                                          : '1px solid #E2E8F0',
-                                        background: isCurrent ? meta.bg : '#FFF',
-                                        color: isCurrent ? meta.color : '#64748B',
-                                        fontWeight: isCurrent ? 800 : 500,
-                                        cursor: 'pointer',
-                                        minWidth: 'unset',
-                                        minHeight: 'unset',
-                                        height: 'auto',
-                                      }}
-                                    >
-                                      {meta.icon}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4. Allergies */}
-                <div>
-                  <h4
-                    style={{
-                      margin: '0 0 10px 0',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: '#0F766E',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.4px',
-                    }}
-                  >
-                    4. Known Allergies ({editAllergies.length})
-                  </h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {PRESET_ALLERGIES_LIST.map((a) => {
-                      const isSelected = editAllergies.some((item) => item.name === a.name);
-                      return (
-                        <button
-                          key={a.name}
-                          type="button"
-                          data-compact="true"
-                          className="btn-compact"
-                          onClick={() => {
-                            triggerHapticSelection();
-                            setEditAllergies((prev) => {
-                              const exists = prev.find((item) => item.name === a.name);
-                              if (exists) return prev.filter((item) => item.name !== a.name);
-                              return [...prev, { name: a.name, severity: a.defaultSeverity }];
-                            });
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 9px',
-                            borderRadius: '999px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            minWidth: 'unset',
-                            minHeight: 'unset',
-                            height: 'auto',
-                            border: isSelected ? '1.5px solid #F43F5E' : '1px solid #E2E8F0',
-                            background: isSelected
-                              ? 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 100%)'
-                              : '#F8FAFC',
-                            color: isSelected ? '#BE123C' : '#475569',
-                            boxShadow: isSelected ? '0 2px 8px rgba(244, 63, 94, 0.15)' : 'none',
-                          }}
-                        >
-                          <span>{a.icon}</span> {a.name}
-                          {isSelected && <Check size={11} color="#E11D48" strokeWidth={2.8} />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div
-                style={{
-                  padding: '16px 22px',
-                  borderTop: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  gap: '10px',
-                  background: '#F8FAFC',
-                  borderBottomLeftRadius: '24px',
-                  borderBottomRightRadius: '24px',
-                }}
-              >
-                <button
-                  type="button"
-                  data-compact="true"
-                  className="btn-compact"
-                  onClick={() => setIsEditModalOpen(false)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '10px',
-                    border: '1px solid #CBD5E1',
-                    background: '#FFFFFF',
-                    color: '#475569',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    minWidth: 'unset',
-                    minHeight: 'unset',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  data-compact="true"
-                  className="btn-compact"
-                  onClick={handleSaveModal}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
-                    color: '#FFFFFF',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    minWidth: 'unset',
-                    minHeight: 'unset',
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
-                  }}
-                >
-                  Save Baseline & Sync Across Features
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                </motion.div>
+              </FocusTrap>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };

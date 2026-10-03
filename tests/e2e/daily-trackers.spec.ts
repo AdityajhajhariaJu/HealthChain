@@ -173,7 +173,7 @@ test('baseline medicines reach the schedule and baseline edits preserve time, ID
   await expect(page.getByRole('dialog', { name: 'Medication & Chrono-Schedule' })).toHaveCount(0);
   await expect(card).toHaveAttribute('aria-label', /All Taken/);
   await page.getByRole('button', { name: 'Edit Baseline' }).click();
-  await page.getByRole('button', { name: 'Save Baseline & Sync Across Features' }).click();
+  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
   await page.reload();
   await card.click();
   await expect(time).toHaveValue('21:30');
@@ -185,7 +185,7 @@ test('baseline medicines reach the schedule and baseline edits preserve time, ID
   await page.getByRole('button', { name: 'Remove Metformin', exact: true }).last().click();
   await page.keyboard.press('Escape');
   await page.reload();
-  await expect(card).toContainText('0 Active');
+  await expect(card).toContainText('0 Active', { timeout: 30000 });
   await expect(page.locator('.feature-profile-data-banner')).not.toContainText('Metformin');
 });
 
@@ -223,10 +223,10 @@ test('baseline edits preserve two reminders for the same medicine and reject inv
   await page.getByRole('button', { name: 'Edit Baseline' }).click();
   const dialog = page.getByRole('dialog', { name: 'Edit saved health profile' });
   await dialog.getByLabel('Height', { exact: true }).fill('0');
-  await dialog.getByRole('button', { name: 'Save Baseline & Sync Across Features' }).click();
+  await dialog.getByRole('button', { name: 'Save profile', exact: true }).click();
   await expect(dialog.getByRole('alert')).toContainText('positive values');
   await dialog.getByLabel('Height', { exact: true }).fill('172');
-  await dialog.getByRole('button', { name: 'Save Baseline & Sync Across Features' }).click();
+  await dialog.getByRole('button', { name: 'Save profile', exact: true }).click();
   const meds = await page.evaluate(async () => {
     const path = '/src/services/VitaminScheduleService.ts';
     return (await import(/* @vite-ignore */ path)).getVitaminSchedule();

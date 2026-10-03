@@ -2,51 +2,151 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 
 test.use({ reducedMotion: 'reduce' });
 
-async function setup(page: Page, foodPlannerReady = false) {
-  await page.addInitScript((foodPlannerReady) => {
-    localStorage.setItem('hc_guest_mode', 'true');
-    localStorage.setItem('hc_onboarded', 'true');
-    localStorage.setItem('hc_cookies_accepted', 'declined');
-    localStorage.setItem(
-      'hc_unified_profile_guest',
-      JSON.stringify({
-        activeId: 'profile_1',
-        profiles: {
-          profile_1: {
-            id: 'profile_1',
-            profileName: 'Synthetic layout audit',
-            demographics: {
-              name: 'A deliberately long synthetic profile name',
-              age: 35,
-              gender: 'female',
-              height: 165,
-              weight: 65,
+async function setup(page: Page, foodPlannerReady = false, completedProfile = false) {
+  await page.addInitScript(
+    ({ foodPlannerReady, completedProfile }) => {
+      localStorage.setItem('hc_guest_mode', 'true');
+      localStorage.setItem('hc_onboarded', 'true');
+      localStorage.setItem('hc_cookies_accepted', 'declined');
+      localStorage.setItem(
+        'hc_unified_profile_guest',
+        JSON.stringify({
+          activeId: 'profile_1',
+          profiles: {
+            profile_1: {
+              id: 'profile_1',
+              profileName: 'Synthetic layout audit',
+              onboardingCompletedAt: completedProfile ? '2026-10-01T10:00:00Z' : undefined,
+              demographics: {
+                name: 'A deliberately long synthetic profile name',
+                age: 35,
+                gender: 'female',
+                height: 165,
+                weight: 65,
+              },
+              conditions: [],
+              medications: [],
+              allergies: [],
+              dietProfile: foodPlannerReady
+                ? {
+                    age: '35',
+                    gender: 'female',
+                    height: '165',
+                    weight: '65',
+                    weightUnit: 'kg',
+                    heightUnit: 'cm',
+                    goal: 'Maintain',
+                    activityLevel: 'sedentary',
+                    cuisine: 'Local',
+                    mealSchedule: '3 Meals',
+                    medicalConditions: [],
+                    restrictions: [],
+                  }
+                : undefined,
             },
-            conditions: [],
-            medications: [],
-            allergies: [],
-            dietProfile: foodPlannerReady
-              ? {
-                  age: '35',
-                  gender: 'female',
-                  height: '165',
-                  weight: '65',
-                  weightUnit: 'kg',
-                  heightUnit: 'cm',
-                  goal: 'Maintain',
-                  activityLevel: 'sedentary',
-                  cuisine: 'Local',
-                  mealSchedule: '3 Meals',
-                  medicalConditions: [],
-                  restrictions: [],
-                }
-              : undefined,
           },
-        },
-      })
-    );
-  }, foodPlannerReady);
+        })
+      );
+    },
+    { foodPlannerReady, completedProfile }
+  );
   await page.route(/https:\/\//, (route) => route.abort());
+}
+
+for (const viewport of [
+  { width: 320, height: 760 },
+  { width: 390, height: 844 },
+  { width: 390, height: 460 },
+  { width: 844, height: 390 },
+  { width: 1440, height: 900 },
+]) {
+  test(`saved-profile editor keeps its controls above navigation at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
+    await page.setViewportSize(viewport);
+    await setup(page, false, true);
+    await page.goto('/app/today');
+    const trigger = page.getByRole('button', { name: 'Edit Baseline', exact: true });
+    await expect(trigger).toBeVisible({ timeout: 30000 });
+    const landscape = viewport.width > viewport.height && viewport.height < 600;
+    await simulateInsets(page, landscape);
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'Edit saved health profile', exact: true });
+    const panel = dialog.locator('[data-overlay-panel]');
+    await expectFits(panel, page, landscape ? 12 : 59, landscape ? 44 : 12, landscape ? 21 : 34);
+    expect(await dialog.evaluate((el) => el.closest('#main-content') === null)).toBe(true);
+    await expectHeaderControlsSeparate(dialog, page);
+    const header = dialog.locator('[data-overlay-header]');
+    const footer = dialog.locator('[data-overlay-footer]');
+    const body = dialog.locator('[data-overlay-scroll]');
+    const save = dialog.getByRole('button', {
+      name: 'Save profile',
+      exact: true,
+    });
+    const close = dialog.getByRole('button', { name: 'Close health profile editor', exact: true });
+    await expect(save).toBeInViewport();
+    await expect(close).toBeInViewport();
+    const h = await header.boundingBox(),
+      b = await body.boundingBox(),
+      f = await footer.boundingBox();
+    expect(h!.y + h!.height).toBeLessThanOrEqual(b!.y + 1);
+    expect(b!.y + b!.height).toBeLessThanOrEqual(f!.y + 1);
+    expect(
+      await page.locator('#main-content').evaluate((el) => getComputedStyle(el).overflowY)
+    ).toBe('hidden');
+
+    // Page animations must not turn the dialog into a child of the scrolling page.
+    await page.locator('#main-content').evaluate((el) => {
+      el.style.transform = 'translateZ(0)';
+    });
+    await expectFits(panel, page, landscape ? 12 : 59, landscape ? 44 : 12, landscape ? 21 : 34);
+    await dialog.getByRole('spinbutton', { name: 'Age', exact: true }).fill('36');
+    if (viewport.width === 390 && viewport.height === 844) {
+      await page.addStyleTag({ content: ':root { --app-viewport-height:440px!important; }' });
+      await expect
+        .poll(async () => {
+          const box = await panel.boundingBox();
+          return !!box && box.y >= 59 && box.y + box.height <= 406;
+        })
+        .toBe(true);
+    }
+    await body.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    const allergies = dialog.getByRole('heading', { name: /^4\. Known Allergies/ });
+    await allergies.scrollIntoViewIfNeeded();
+    await expect(allergies).toBeInViewport();
+    await body.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(dialog.getByRole('button', { name: /Latex/ })).toBeInViewport();
+    await expect(header).toBeInViewport();
+    await expect(save).toBeInViewport();
+    expect(
+      await save.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+      })
+    ).toBe(true);
+    await save.click();
+    await expect(dialog).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem('hc_unified_profile_guest')!).profiles.profile_1
+            .demographics.age
+      )
+    ).toBe(36);
+    expect(
+      await page.locator('#main-content').evaluate((el) => getComputedStyle(el).overflowY)
+    ).toBe('auto');
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
 }
 
 async function simulateInsets(page: Page, landscape = false) {
@@ -305,7 +405,7 @@ test('Ava composer gives the editor, attachment, camera and send button separate
 test('main routes have no clipped readable text after scrolling at 320px', async ({ page }) => {
   test.setTimeout(120000);
   await page.setViewportSize({ width: 320, height: 760 });
-  await setup(page);
+  await setup(page, false, true);
   for (const route of [
     '/app/today',
     '/app/profile',
