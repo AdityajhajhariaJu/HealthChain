@@ -93,6 +93,8 @@
   grid-row: span 2;
   width: 100%;
   min-width: 0;
+  aspect-ratio: 1 / 1.08;
+  align-self: stretch;
   min-height: 260px;
   padding: 20px 14px;
   background: radial-gradient(ellipse at top, #ffffff, #fff7f8);
@@ -136,7 +138,7 @@
 }
 .zen-preview-art .island-snapshot {
   /* Keep the gentle float animation independent of the thumbnail zoom. */
-  scale: 1.08;
+  scale: 1.4;
 }
 :is(.zen-preview, .zen-scene)[data-animate='true'] .island-snapshot {
   animation: zen-float 7s ease-in-out infinite;
