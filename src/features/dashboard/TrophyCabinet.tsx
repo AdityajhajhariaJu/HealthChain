@@ -11,10 +11,11 @@ import { triggerHapticLight } from '../../services/haptics';
 import { supabase } from '../../services/supabaseClient';
 import { getGamificationHub, importEarnedTrophies } from '../../services/GamificationHub';
 import { getActiveProfileScope } from '../../services/profileScope';
+
 import { TROPHIES } from '../../services/gamification/trophies';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
 
-const BADGE_DICTIONARY = TROPHIES;
+const BADGE_DICTIONARY = TROPHIES.filter((badge) => !badge.slug.startsWith('garden_'));
 
 export const TrophyCabinet: React.FC = () => {
   const isMobile = useIsMobile();

@@ -21,6 +21,12 @@ export interface GamificationLedger {
   legacyLifetime: number;
   legacyGardenLevel: number;
   legacyLastTended: string;
+  legacyGarden?: {
+    vitalityScore: number;
+    streakDays: number;
+    bloomCount: number;
+    waterCount: number;
+  };
   legacySourceKeys: string[];
   receipts: Record<string, ActivityReceipt>;
   importedBadges: string[];
@@ -28,6 +34,26 @@ export interface GamificationLedger {
 }
 const number = (value: unknown) =>
   typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
+const gardenBaseline = (value: any = {}) => ({
+  vitalityScore: Math.min(100, number(value?.vitalityScore)),
+  streakDays: Math.floor(number(value?.streakDays)),
+  bloomCount: Math.floor(number(value?.bloomCount)),
+  waterCount: Math.floor(number(value?.waterCount)),
+});
+export function shiftActivityDay(day: string, offset: number): string {
+  const date = new Date(`${day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+export function activityStreak(days: Set<string>, today: string): number {
+  let day = days.has(today) ? today : shiftActivityDay(today, -1),
+    count = 0;
+  while (days.has(day)) {
+    count++;
+    day = shiftActivityDay(day, -1);
+  }
+  return count;
+}
 const dayFormatters = new Map<string, Intl.DateTimeFormat>();
 export function activityDay(date: Date, timezone: string): string {
   let formatter = dayFormatters.get(timezone);
@@ -66,6 +92,7 @@ export function createLedger(profile: any = {}, garden: any = {}): GamificationL
       !seeded && /^\d{4}-\d{2}-\d{2}$/.test(garden.lastWateredDate || '')
         ? garden.lastWateredDate
         : '',
+    legacyGarden: gardenBaseline(seeded ? {} : garden),
     legacySourceKeys: (Array.isArray(profile.pointsHistory) ? profile.pointsHistory : [])
       .map((item: any) => item.dedupeKey)
       .filter((key: any) => typeof key === 'string' && key.length <= 256),
@@ -102,6 +129,7 @@ export function normalizeLedger(value: any): GamificationLedger | undefined {
     legacyLifetime: number(value.legacyLifetime),
     legacyGardenLevel: Math.min(5, Math.max(1, number(value.legacyGardenLevel))),
     legacyLastTended: typeof value.legacyLastTended === 'string' ? value.legacyLastTended : '',
+    legacyGarden: gardenBaseline(value.legacyGarden),
     receipts,
     legacySourceKeys: Array.isArray(value.legacySourceKeys)
       ? value.legacySourceKeys.filter((key: any) => typeof key === 'string' && key.length <= 256)
@@ -161,6 +189,25 @@ export function projectLedger(ledger: GamificationLedger, now = new Date()) {
   const todayGrowth = history
     .filter((item) => item.day === today)
     .reduce((sum, item) => sum + item.growth, 0);
+  const baseline = gardenBaseline(ledger.legacyGarden);
+  const wateredDays = new Set(
+    receipts.filter((item) => item.type === 'garden.tended').map((item) => item.day)
+  );
+  const calmDays = new Set(
+    receipts.filter((item) => item.type === 'calm.completed').map((item) => item.day)
+  );
+  const gardenDays = new Set(wateredDays);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(ledger.legacyLastTended)) gardenDays.add(ledger.legacyLastTended);
+  let streakDay = gardenDays.has(today) ? today : shiftActivityDay(today, -1),
+    gardenStreak = 0;
+  while (gardenDays.has(streakDay)) {
+    gardenStreak++;
+    if (streakDay === ledger.legacyLastTended) {
+      gardenStreak += Math.max(0, baseline.streakDays - 1);
+      break;
+    }
+    streakDay = shiftActivityDay(streakDay, -1);
+  }
   return {
     growth,
     participationDays: days.size,
@@ -178,6 +225,16 @@ export function projectLedger(ledger: GamificationLedger, now = new Date()) {
       ledger.legacyLastTended === today ||
       receipts.some((item) => item.type === 'garden.tended' && item.day === today),
     theme: ledger.theme.value,
+    garden: {
+      vitalityScore: Math.min(
+        100,
+        baseline.vitalityScore + wateredDays.size * 4 + calmDays.size * 6
+      ),
+      bloomCount: baseline.bloomCount + wateredDays.size + calmDays.size * 2,
+      waterCount: baseline.waterCount + wateredDays.size,
+      streakDays: gardenStreak,
+      lastWateredDate: [...gardenDays].sort().pop() || '',
+    },
   };
 }
 /** At most one receipt per action type/day; only the first in a family earns growth. */
@@ -231,6 +288,15 @@ export function mergeLedgers(local: any, remote: any): GamificationLedger | unde
     legacyLifetime: Math.max(l.legacyLifetime, r.legacyLifetime),
     legacyGardenLevel: Math.max(l.legacyGardenLevel, r.legacyGardenLevel),
     legacyLastTended: [l.legacyLastTended, r.legacyLastTended].sort()[1] || '',
+    legacyGarden: {
+      vitalityScore: Math.max(l.legacyGarden!.vitalityScore, r.legacyGarden!.vitalityScore),
+      streakDays:
+        l.legacyLastTended === r.legacyLastTended
+          ? Math.max(l.legacyGarden!.streakDays, r.legacyGarden!.streakDays)
+          : (l.legacyLastTended > r.legacyLastTended ? l : r).legacyGarden!.streakDays,
+      bloomCount: Math.max(l.legacyGarden!.bloomCount, r.legacyGarden!.bloomCount),
+      waterCount: Math.max(l.legacyGarden!.waterCount, r.legacyGarden!.waterCount),
+    },
     legacySourceKeys: [...new Set([...l.legacySourceKeys, ...r.legacySourceKeys])].sort(),
     importedBadges: [...new Set([...l.importedBadges, ...r.importedBadges])].sort(),
     theme:

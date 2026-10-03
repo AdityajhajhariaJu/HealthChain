@@ -79,7 +79,50 @@ describe('balanced island policy', () => {
       stage: { level: 2 },
       todayGrowth: 0,
     });
-    expect(earnedTrophies(ledger)).toContain('3_day_streak');
+    expect(earnedTrophies(ledger)).not.toContain('3_day_streak');
+  });
+  it('retains the original consecutive-record milestone after a break', () => {
+    const ledger = participate(3, true);
+    expect(earnedTrophies(ledger, projectLedger(ledger, date(300)))).toContain('3_day_streak');
+  });
+  it('preserves the original garden metrics and counts one bloom per daily watering', () => {
+    let ledger = createLedger(
+      {},
+      {
+        level: 2,
+        vitalityScore: 48,
+        bloomCount: 12,
+        waterCount: 9,
+        streakDays: 7,
+        lastWateredDate: '2026-01-01',
+      }
+    );
+    ledger.timezone = 'UTC';
+    expect(projectLedger(ledger, date(1)).garden).toMatchObject({
+      vitalityScore: 48,
+      bloomCount: 12,
+      waterCount: 9,
+      streakDays: 7,
+    });
+    ledger = recordActivity(ledger, 'garden.tended', 'day2', date(2)).ledger;
+    expect(projectLedger(ledger, date(2)).garden).toMatchObject({
+      vitalityScore: 52,
+      bloomCount: 13,
+      waterCount: 10,
+      streakDays: 8,
+    });
+    expect(recordActivity(ledger, 'garden.tended', 'repeat', date(2)).added).toBe(false);
+    expect(projectLedger(ledger, date(5)).garden).toMatchObject({
+      bloomCount: 13,
+      waterCount: 10,
+      streakDays: 0,
+    });
+    ledger = recordActivity(ledger, 'garden.tended', 'return', date(5)).ledger;
+    expect(projectLedger(ledger, date(5)).garden).toMatchObject({
+      bloomCount: 14,
+      waterCount: 11,
+      streakDays: 1,
+    });
   });
   it('keeps source deduplication beyond the visible recent-history window', () => {
     const ledger = participate(180, true);
@@ -123,6 +166,19 @@ describe('balanced island policy', () => {
   });
 });
 describe('offline reward convergence', () => {
+  it('does not double garden metrics for two devices watering on the same day', () => {
+    const base = fresh();
+    const a = recordActivity(base, 'garden.tended', 'device-a', date(1)).ledger;
+    const b = recordActivity(base, 'garden.tended', 'device-b', date(1)).ledger;
+    const merged = mergeLedgers(a, b)!;
+    expect(projectLedger(merged, date(1)).garden).toMatchObject({
+      waterCount: 1,
+      bloomCount: 1,
+      vitalityScore: 4,
+      streakDays: 1,
+    });
+    expect(mergeLedgers(a, b)).toEqual(mergeLedgers(b, a));
+  });
   it('merges simultaneous devices without doubling a daily category or its points', () => {
     const base = fresh();
     let a = recordActivity(base, 'record.saved', 'a', date(1)).ledger;

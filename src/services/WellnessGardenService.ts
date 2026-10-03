@@ -16,15 +16,13 @@ export function getGardenState(): GardenState {
   const state = getGamificationHub();
   return {
     level: state.stage.level,
-    vitalityScore: state.next
-      ? Math.min(100, Math.round((state.growth / state.next.growth) * 100))
-      : 100,
-    streakDays: state.participationDays,
-    bloomCount: state.growth,
-    waterCount: state.history.filter((item) => item.type === 'garden.tended').length,
+    vitalityScore: state.garden.vitalityScore,
+    streakDays: state.garden.streakDays,
+    bloomCount: state.garden.bloomCount,
+    waterCount: state.garden.waterCount,
     breathworkMinutes: 0,
     cleanMealsCount: 0,
-    lastWateredDate: state.history.find((item) => item.type === 'garden.tended')?.day || '',
+    lastWateredDate: state.garden.lastWateredDate,
     gardenStage: (['sprout', 'sprout', 'blooming', 'lush', 'zen_master'] as const)[
       state.stage.level - 1
     ],

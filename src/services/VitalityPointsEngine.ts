@@ -1,7 +1,9 @@
 import { triggerHapticSuccess } from './haptics';
 import { getProfile } from './ProfileEngine';
 import { getGamificationHub, reportLegacyActivity } from './GamificationHub';
-import { activityDay } from './gamification/model';
+import { activityStreak, shiftActivityDay } from './gamification/model';
+import { getItemSync } from './storage';
+import { getHabitStorageKey } from './profileScope';
 
 export interface PointsTransaction {
   id: string;
@@ -102,9 +104,8 @@ export function getVitalityPoints(): number {
 export function getVitalityState(): VitalityState {
   const hub = getGamificationHub();
   const points = hub.points;
-  const history: PointsTransaction[] = hub.history
+  const earnedHistory: PointsTransaction[] = hub.history
     .filter((item) => item.points > 0)
-    .slice(0, 120)
     .map((item) => ({
       id: item.id,
       amount: item.points,
@@ -112,6 +113,19 @@ export function getVitalityState(): VitalityState {
       category: item.category,
       date: item.at,
     }));
+  const legacyHistory = (getProfile()?.pointsHistory || []).filter(
+    (item: any) =>
+      typeof item?.id === 'string' &&
+      typeof item.reason === 'string' &&
+      Number.isFinite(item.amount) &&
+      item.amount > 0 &&
+      Number.isFinite(Date.parse(item.date))
+  ) as PointsTransaction[];
+  const history = [
+    ...new Map([...legacyHistory, ...earnedHistory].map((item) => [item.id, item])).values(),
+  ]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 120);
   const lifetimeEarned = hub.lifetimeEarned;
 
   let currentTier: VitalityTier = TIERS[0];
@@ -204,40 +218,43 @@ export interface DailyStreakInfo {
 export function getDailyStreak(): DailyStreakInfo {
   const hub = getGamificationHub();
   const profile = getProfile();
-  const now = new Date();
   const todayStr = hub.today;
   const activeDates = new Set(hub.history.map((item) => item.day));
+  if (hub.garden.lastWateredDate) activeDates.add(hub.garden.lastWateredDate);
   for (const item of profile?.dailyCheckins || [])
     if (typeof item?.date === 'string') activeDates.add(item.date.slice(0, 10));
+  for (const item of profile?.pointsHistory || [])
+    if (
+      typeof item?.date === 'string' &&
+      ['checkin', 'lifestyle', 'mindful', 'streak', 'mystery'].includes(item.category)
+    )
+      activeDates.add(item.date.slice(0, 10));
+  // Retain the earlier habit/check-in streak evidence without granting rewards.
+  for (let offset = 0; offset < 60; offset++) {
+    const day = shiftActivityDay(todayStr, -offset);
+    try {
+      const habits = JSON.parse(getItemSync(getHabitStorageKey(day)) || '{}');
+      if (Object.values(habits).some(Boolean)) activeDates.add(day);
+    } catch {
+      /* A malformed habit cannot manufacture an active day. */
+    }
+  }
   const checkDayActive = (date: string) => activeDates.has(date);
   const todayCompleted = checkDayActive(todayStr);
   const isDailyRewardClaimedToday = hub.tendedToday;
 
-  let streak = 0;
-  const startOffset = todayCompleted ? 0 : 1;
-
-  for (let i = startOffset; i < 60; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const dateStr = activityDay(d, hub.timezone);
-    if (checkDayActive(dateStr)) {
-      streak++;
-    } else {
-      break;
-    }
-  }
+  const streak = activityStreak(activeDates, todayStr);
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const weekActivity: DailyStreakInfo['weekActivity'] = [];
 
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const dateStr = activityDay(d, hub.timezone);
+    const dateStr = shiftActivityDay(todayStr, -i);
+    const d = new Date(`${dateStr}T12:00:00Z`);
     const isToday = i === 0;
     const isCompleted = checkDayActive(dateStr);
     weekActivity.push({
-      dayLabel: dayNames[d.getDay()],
+      dayLabel: dayNames[d.getUTCDay()],
       dateStr,
       isCompleted,
       isToday,

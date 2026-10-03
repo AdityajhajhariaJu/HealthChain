@@ -123,10 +123,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
           onClick={onClose}
         >
           <motion.div
-            initial={{ y: '100%' }}
+            initial={activeTab === 'garden' ? false : { y: '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            exit={activeTab === 'garden' ? undefined : { y: '100%' }}
+            transition={activeTab === 'garden' ? { duration: 0 } : { type: 'spring', damping: 28, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',

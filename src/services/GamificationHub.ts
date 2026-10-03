@@ -43,23 +43,29 @@ function persist(ledger: GamificationLedger): boolean {
 export function getGamificationLedger(): GamificationLedger {
   const scope = getActiveProfileScope(),
     profile = getProfile(),
-    gardenRaw = profile.gamification ? '' : getItemSync(`hc_wellness_zen_garden:${scope}`),
+    gardenRaw = profile.gamification?.legacyGarden
+      ? ''
+      : getItemSync(`hc_wellness_zen_garden:${scope}`),
     raw = profile.gamification
-      ? JSON.stringify(profile.gamification)
+      ? JSON.stringify(profile.gamification) + (gardenRaw || '')
       : JSON.stringify([profile.points, profile.pointsHistory, gardenRaw]);
   if (scope === cachedScope && raw === cachedRaw && cachedLedger) return cachedLedger;
+  let garden: any = {};
+  try {
+    garden = JSON.parse(gardenRaw || '{}') || {};
+  } catch {
+    /* Invalid legacy data cannot seed rewards. */
+  }
   const existing = normalizeLedger(profile.gamification);
   if (existing) {
+    // Repair ledgers created by the first island release, which retained the
+    // old stage but omitted the existing visible garden counters.
+    if (!profile.gamification.legacyGarden)
+      existing.legacyGarden = createLedger({}, garden).legacyGarden;
     cachedScope = scope;
     cachedRaw = raw;
     cachedLedger = existing;
     return existing;
-  }
-  let garden: any = {};
-  try {
-    garden = JSON.parse(gardenRaw || '{}');
-  } catch {
-    /* Invalid legacy data cannot seed rewards. */
   }
   const ledger = createLedger(profile, garden);
   // Reads stay pure: migration is committed with the first explicit command.

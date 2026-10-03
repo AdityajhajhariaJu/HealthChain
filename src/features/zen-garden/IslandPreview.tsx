@@ -1,27 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { IslandArtwork } from './IslandArtwork';
 import { useGarden } from './useGarden';
 import { observeActivity } from '../../services/gamification/telemetry';
+import { useIslandMotion } from './useIslandMotion';
 import './ZenGarden.css';
 export function IslandPreview({ onOpen, paused }: { onOpen: () => void; paused: boolean }) {
   const garden = useGarden(),
     ref = useRef<HTMLButtonElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [awake, setAwake] = useState(!document.hidden);
-  useEffect(() => {
-    const update = () => setAwake(!document.hidden);
-    document.addEventListener('visibilitychange', update);
-    return () => document.removeEventListener('visibilitychange', update);
-  }, []);
-  useEffect(() => {
-    if (!ref.current || typeof IntersectionObserver === 'undefined') {
-      setVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+  const moving = useIslandMotion(ref, paused);
   return (
     <button
       ref={ref}
@@ -33,13 +19,9 @@ export function IslandPreview({ onOpen, paused }: { onOpen: () => void; paused: 
         observeActivity('screen:zen-garden', 'completed');
         onOpen();
       }}
-      data-animate={visible && awake && !paused}
+      data-animate={moving}
       data-level={garden.stage.level}
     >
-      <span className="zen-preview-heading">
-        <span>YOUR LITTLE SANCTUARY</span>
-        <strong>Zen Garden</strong>
-      </span>
       <IslandArtwork
         compact
         level={garden.stage.level}
@@ -47,11 +29,10 @@ export function IslandPreview({ onOpen, paused }: { onOpen: () => void; paused: 
         theme={garden.theme}
       />
       <span className="zen-preview-footer">
-        <strong>{garden.stage.name}</strong>
-        <span>
-          {garden.todayGrowth ? `${garden.todayGrowth}/6 growth today` : 'A quiet place to begin'}{' '}
-          <span aria-hidden="true">↗</span>
+        <span className="zen-preview-pill">
+          <span aria-hidden="true">🌸</span> Zen Sanctuary
         </span>
+        <span className="zen-preview-subtitle">Grow your own garden</span>
       </span>
     </button>
   );

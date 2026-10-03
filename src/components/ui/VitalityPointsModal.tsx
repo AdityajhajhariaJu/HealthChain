@@ -1,224 +1,783 @@
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import {
+  Brain,
+  CheckCircle2,
+  ChevronRight,
+  Droplets,
+  Heart,
+  HeartPulse,
+  Sparkles,
+  X,
+  Zap,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Sprout, Trophy, X } from 'lucide-react';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { getVitalityState, TIERS, VitalityState } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight } from '../../services/haptics';
 import FocusTrap from './FocusTrap';
-import { getGamificationHub } from '../../services/GamificationHub';
-import { TIERS } from '../../services/VitalityPointsEngine';
-import './VitalityPointsModal.css';
-const activities = [
-  {
-    family: 'record',
-    title: 'Save a useful record',
-    detail: 'A check-in, meal or other personal observation',
-    route: '/app/today',
-    icon: '📝',
-  },
-  {
-    family: 'reflect',
-    title: 'Keep a reflection',
-    detail: 'A Gut question, reflection or progress snapshot',
-    route: '/app/today',
-    icon: '🌱',
-  },
-  {
-    family: 'calm',
-    title: 'Take a gentle moment',
-    detail: 'Tend your garden or complete a calming session',
-    route: '/app/today',
-    icon: '🪷',
-  },
-  {
-    family: 'learn',
-    title: 'Save a research source',
-    detail: 'Keep a source that matters to you',
-    route: '/app/trials',
-    icon: '📖',
-  },
-  {
-    family: 'prepare',
-    title: 'Prepare for a conversation',
-    detail: 'Save care questions or organize your profile',
-    route: '/app/case-prep',
-    icon: '💬',
-  },
-] as const;
+
 export default function VitalityPointsModal() {
-  const [open, setOpen] = useState(false),
-    [tab, setTab] = useState('activities'),
-    [hub, setHub] = useState(getGamificationHub);
+  const [isOpen, setIsOpen] = useState(false);
+  const [state, setState] = useState<VitalityState>(getVitalityState());
+  const [activeTab, setActiveTab] = useState<'quests' | 'tiers' | 'history'>('quests');
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
-    const refresh = () => setHub(getGamificationHub()),
-      show = () => {
-        refresh();
-        setOpen(true);
-      },
-      close = () => setOpen(false);
-    window.addEventListener('hc_open_points_modal', show);
-    window.addEventListener('hc_points_updated', refresh);
-    window.addEventListener('hc_profile_updated', refresh);
-    window.addEventListener('hc_logout', close);
+    const handleOpen = () => {
+      setState(getVitalityState());
+      setIsOpen(true);
+    };
+    const handleUpdate = () => {
+      setState(getVitalityState());
+    };
+
+    window.addEventListener('hc_open_points_modal', handleOpen);
+    window.addEventListener('hc_points_updated', handleUpdate);
+    window.addEventListener('hc_profile_updated', handleUpdate);
+    const closeForLogout = () => setIsOpen(false);
+    window.addEventListener('hc_logout', closeForLogout);
     return () => {
-      window.removeEventListener('hc_open_points_modal', show);
-      window.removeEventListener('hc_points_updated', refresh);
-      window.removeEventListener('hc_profile_updated', refresh);
-      window.removeEventListener('hc_logout', close);
+      window.removeEventListener('hc_open_points_modal', handleOpen);
+      window.removeEventListener('hc_points_updated', handleUpdate);
+      window.removeEventListener('hc_profile_updated', handleUpdate);
+      window.removeEventListener('hc_logout', closeForLogout);
     };
   }, []);
-  if (!open) return null;
+
+  const handleClose = () => {
+    triggerHapticLight();
+    setIsOpen(false);
+  };
+
+  const handleQuestAction = (route: string) => {
+    triggerHapticLight();
+    setIsOpen(false);
+    navigate(route);
+  };
+
+  if (!isOpen) return null;
+
+  const currentTierObj = TIERS.find((t) => t.name === state.tier) || TIERS[0];
+
   return (
-    <div
-      className="points-backdrop"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) setOpen(false);
-      }}
-    >
-      <FocusTrap onEscape={() => setOpen(false)} style={{ maxWidth: 560, height: 'auto' }}>
-        <section
-          className="points-hub"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="points-hub-title"
+    <AnimatePresence>
+      <FocusTrap isActive={isOpen} onEscape={handleClose}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100000,
+            padding: isMobile ? '12px' : '24px',
+          }}
+          onClick={handleClose}
         >
-          <header>
-            <div>
-              <span>YOUR MOMENTS OF CARE</span>
-              <h2 id="points-hub-title">Vitality points</h2>
-            </div>
-            <button
-              type="button"
-              aria-label="Close points and activity"
-              onClick={() => setOpen(false)}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Vitality Points & Rewards"
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.18 }}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.3)',
+              border: '1px solid #E2E8F0',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Header Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%)',
+                padding: isMobile ? '20px 20px 16px' : '26px 28px 20px',
+                color: '#FFFFFF',
+                position: 'relative',
+              }}
             >
-              <X size={20} />
-            </button>
-          </header>
-          <div className="points-totals">
-            <div>
-              <strong>{hub.points}</strong>
-              <span>Points earned</span>
-            </div>
-            <div>
-              <strong>
-                {hub.todayGrowth}
-                <small>/6</small>
-              </strong>
-              <span>Garden growth today</span>
-            </div>
-            <div>
-              <strong>{hub.trophies.length}</strong>
-              <span>Milestones</span>
-            </div>
-          </div>
-          <div className="points-tabs" role="group" aria-label="Points views">
-            {['activities', 'progress', 'history'].map((view) => (
               <button
-                key={view}
                 type="button"
-                aria-pressed={tab === view}
-                onClick={() => setTab(view)}
+                aria-label="Close Vitality Points modal"
+                onClick={handleClose}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
               >
-                {view.charAt(0).toUpperCase() + view.slice(1)}
+                <X size={16} />
               </button>
-            ))}
-          </div>
-          <div className="points-content">
-            {tab === 'activities' && (
-              <>
-                <p className="points-note">
-                  Your first three different activity categories each day can earn 5 points each, up
-                  to 15. Garden growth follows 3, 2 and 1. Pick what is useful to you; rest never
-                  removes progress.
-                </p>
-                {activities.map((activity) => (
-                  <div className="points-activity" key={activity.family}>
-                    <span aria-hidden="true">{activity.icon}</span>
-                    <div>
-                      <strong>{activity.title}</strong>
-                      <small>{activity.detail}</small>
+
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}
+              >
+                <span
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    padding: '3px 8px',
+                    borderRadius: '999px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    letterSpacing: '0.6px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  HealthChain Vitality
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span
+                      data-testid="vitality-total"
+                      style={{
+                        fontSize: '38px',
+                        fontWeight: 900,
+                        letterSpacing: '-1px',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {state.points}
+                    </span>
+                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#A7F3D0' }}>PTS</span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: '#D1FAE5',
+                      marginTop: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span>
+                      {currentTierObj.badge} Level {state.tierLevel}: <strong>{state.tier}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {state.tierLevel < 4 && (
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '11.5px', color: '#A7F3D0', fontWeight: 600 }}>
+                      {state.pointsToNextTier} PTS to {TIERS[state.tierLevel]?.name || 'Next Tier'}
+                    </span>
+                    <div
+                      style={{
+                        width: '130px',
+                        height: '6px',
+                        background: 'rgba(255,255,255,0.2)',
+                        borderRadius: '999px',
+                        marginTop: '6px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${state.tierProgress}%`,
+                          height: '100%',
+                          background: '#34D399',
+                          borderRadius: '999px',
+                          transition: 'width 0.5s ease',
+                        }}
+                      />
                     </div>
-                    {hub.todayFamilies.includes(activity.family) ? (
-                      <span className="points-recorded">
-                        <Check size={15} /> Recorded
+                  </div>
+                )}
+              </div>
+
+              {/* Ava Tier Strategy Concierge Bridge */}
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    handleClose();
+                    navigate('/app/ava', {
+                      state: {
+                        initialPrompt: `Help me create a gentle 7-day routine for keeping my health notes current. Include short check-ins, a rest day, and one appointment-preparation step. Do not infer medical goals from my Vitality Points.`,
+                      },
+                    });
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 14px',
+                    borderRadius: '999px',
+                    background: 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)')
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)')
+                  }
+                >
+                  <Sparkles size={14} color="#A7F3D0" />
+                  <span>Plan a gentle routine with Ava</span>
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '10px 20px',
+                background: '#F0FDFA',
+                borderBottom: '1px solid #CCFBF1',
+                color: '#0F766E',
+                fontSize: '12px',
+                lineHeight: 1.45,
+              }}
+            >
+              Vitality Points reflect actions recorded in HealthChain—not health, fitness,
+              adherence, or medical progress. They never determine access to care features.
+            </div>
+
+            {/* Navigation Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                borderBottom: '1px solid #F1F5F9',
+                background: '#F8FAFC',
+                padding: '4px 12px',
+              }}
+            >
+              {[
+                { id: 'quests', label: "Today's Actions" },
+                { id: 'tiers', label: 'Milestones' },
+                { id: 'history', label: 'History' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveTab(tab.id as any);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 8px',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom:
+                      activeTab === tab.id ? '2.5px solid #059669' : '2.5px solid transparent',
+                    color: activeTab === tab.id ? '#065F46' : '#64748B',
+                    fontWeight: activeTab === tab.id ? 700 : 500,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Contents */}
+            <div style={{ padding: isMobile ? '16px' : '20px', overflowY: 'auto', flex: 1 }}>
+              {activeTab === 'quests' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#64748B',
+                      marginBottom: '2px',
+                    }}
+                  >
+                    Optional actions that help keep your record useful. Rest days never remove
+                    points or lock features. The first three different completed categories can earn
+                    5 points each, up to 15 per day.
+                  </div>
+
+                  {/* Quest 1: Daily Checkin */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: state.completedQuests.dailyCheckin ? '#F0FDF4' : '#FFFFFF',
+                      border: `1px solid ${state.completedQuests.dailyCheckin ? '#BBF7D0' : '#E2E8F0'}`,
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#ECFDF5',
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <HeartPulse size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          10-Sec Daily Symptom Pulse
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          Keep your baseline updated
+                        </div>
+                      </div>
+                    </div>
+                    {state.completedQuests.dailyCheckin ? (
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <CheckCircle2 size={15} /> Recorded
                       </span>
                     ) : (
                       <button
-                        type="button"
-                        onClick={() => {
-                          setOpen(false);
-                          navigate(activity.route);
-                        }}
+                        onClick={() => handleQuestAction('/app/today')}
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
                       >
-                        Explore
+                        Log
                       </button>
                     )}
                   </div>
-                ))}
-              </>
-            )}
-            {tab === 'progress' && (
-              <>
-                <p className="points-note">
-                  Points recognize participation, not your health status. Your island grows
-                  separately and cannot be rushed by repeated actions or AI calls.
-                </p>
-                {TIERS.map((tier) => (
-                  <div className="points-tier" key={tier.level}>
-                    <span aria-hidden="true">{tier.badge}</span>
-                    <div>
-                      <strong>{tier.name}</strong>
-                      <small>{tier.perk}</small>
-                    </div>
-                    <span>{hub.points >= tier.min ? 'Reached' : `${tier.min} points`}</span>
-                  </div>
-                ))}
-              </>
-            )}
-            {tab === 'history' && (
-              <>
-                <p className="points-note">
-                  Existing points are preserved. The history below explains new activity recorded by
-                  the shared rewards hub.
-                </p>
-                {hub.history.length ? (
-                  <ul className="points-history">
-                    {hub.history.slice(0, 120).map((item) => (
-                      <li key={item.id}>
-                        <Sprout size={16} />
-                        <div>
-                          <strong>{item.title}</strong>
-                          <small>{item.day}</small>
+
+                  {/* Quest 2: Lifestyle Vitals */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: state.completedQuests.lifestyleLog ? '#F0FDF4' : '#FFFFFF',
+                      border: `1px solid ${state.completedQuests.lifestyleLog ? '#BBF7D0' : '#E2E8F0'}`,
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#EFF6FF',
+                          color: '#2563EB',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Droplets size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          Log Hydration, Sleep or Energy
                         </div>
-                        <span>
-                          {item.points ? `+${item.points} points` : 'Recorded'}
-                          <small>
-                            {item.growth
-                              ? `+${item.growth} growth`
-                              : 'Daily category already counted'}
-                          </small>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          1-tap lifestyle micro-tags
+                        </div>
+                      </div>
+                    </div>
+                    {state.completedQuests.lifestyleLog ? (
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <CheckCircle2 size={15} /> Recorded
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleQuestAction('/app/today')}
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        Tag
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Quest 3: Research Hub */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: state.completedQuests.researchSearch ? '#F0FDF4' : '#FFFFFF',
+                      border: `1px solid ${state.completedQuests.researchSearch ? '#BBF7D0' : '#E2E8F0'}`,
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FDF4FF',
+                          color: '#C026D3',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Sparkles size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          Explore Clinical Trials & Research
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          Search global registries for any topic
+                        </div>
+                      </div>
+                    </div>
+                    {state.completedQuests.researchSearch ? (
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <CheckCircle2 size={15} /> Recorded
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleQuestAction('/app/trials')}
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        Search
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Learning activity */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#F0F9FF',
+                          color: '#0284C7',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Brain size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          Longevity Brain Byte Quiz
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          Daily evidence-based micro trivia
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleQuestAction('/app/today')}
+                      className="btn btn-outline btn-sm"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      Quiz
+                    </button>
+                  </div>
+
+                  {/* Quest 6: Mindful Breathwork */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FAF5FF',
+                          color: '#7E22CE',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Heart size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          60-Sec Mindful HRV Reset
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          4-4-4 Calming Breathing Rhythm
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleQuestAction('/app/today')}
+                      className="btn btn-outline btn-sm"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+
+                  {/* Quest 7: Clinical Consult */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: state.completedQuests.clinicalConsult ? '#F0FDF4' : '#FFFFFF',
+                      border: `1px solid ${state.completedQuests.clinicalConsult ? '#BBF7D0' : '#E2E8F0'}`,
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FEF3C7',
+                          color: '#D97706',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Zap size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                          Start a Specialist Consult
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          Quick consult or Clinical Review session
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleQuestAction('/app/consult')}
+                      className="btn btn-outline btn-sm"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      Start
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'tiers' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {TIERS.map((tier) => {
+                    const isCurrent = tier.name === state.tier;
+                    const isUnlocked = state.points >= tier.min;
+                    return (
+                      <div
+                        key={tier.level}
+                        style={{
+                          padding: '16px',
+                          borderRadius: '16px',
+                          background: isCurrent ? '#F0FDF4' : '#FFFFFF',
+                          border: isCurrent ? '2px solid #059669' : '1px solid #E2E8F0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '20px' }}>{tier.badge}</span>
+                            <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A' }}>
+                              {tier.name}
+                            </span>
+                            {isCurrent && (
+                              <span
+                                style={{
+                                  background: '#059669',
+                                  color: '#FFFFFF',
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  padding: '2px 8px',
+                                  borderRadius: '999px',
+                                  textTransform: 'uppercase',
+                                }}
+                              >
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              color: isUnlocked ? '#059669' : '#94A3B8',
+                            }}
+                          >
+                            {tier.min}
+                            {tier.max < 9000 ? ` - ${tier.max}` : '+'} PTS
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '12.5px',
+                            color: '#475569',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {tier.perk}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <div
+                  data-testid="points-history"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+                >
+                  {state.history.length > 0 ? (
+                    state.history.map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          background: '#F8FAFC',
+                          border: '1px solid #F1F5F9',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                            {item.reason}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                            {new Date(item.date).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#059669' }}>
+                          +{item.amount} PTS
                         </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="points-note">Your next saved activity will appear here.</p>
-                )}
-              </>
-            )}
-          </div>
-          <footer>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate('/app/trophies');
-              }}
-            >
-              <Trophy size={16} /> Open Trophy Cabinet
-            </button>
-          </footer>
-        </section>
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      style={{
+                        padding: '20px',
+                        textAlign: 'center',
+                        color: '#64748B',
+                        fontSize: '13px',
+                      }}
+                    >
+                      No points history recorded yet.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </FocusTrap>
-    </div>
+    </AnimatePresence>
   );
 }

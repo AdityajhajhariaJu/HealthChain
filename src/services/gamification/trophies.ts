@@ -1,70 +1,71 @@
 import type { GamificationLedger } from './model';
-import { projectLedger } from './model';
+import { projectLedger, shiftActivityDay } from './model';
 export const TROPHIES = [
   {
     slug: 'first_checkin',
-    title: 'First record',
-    desc: 'Saved a useful personal record.',
+    title: 'First Health Check-in',
+    desc: 'First health check-in recorded.',
     icon: '📝',
     color: '#D97706',
-    category: 'Records',
+    category: 'Check-in',
   },
   {
     slug: '3_day_streak',
-    title: 'Three days of care',
-    desc: 'Participated on three days. They do not need to be consecutive.',
-    icon: '🌱',
-    color: '#67957C',
+    title: 'Three Check-ins Recorded',
+    desc: 'Recorded check-ins on three consecutive days. Missing a day never erases history.',
+    icon: '📅',
+    color: '#DF7045',
     category: 'Continuity',
   },
   {
     slug: 'clinical_scholar',
-    title: 'A source worth keeping',
-    desc: 'Saved a research source for later reference.',
-    icon: '📖',
+    title: 'Research Reviewed',
+    desc: 'Opened clinical research and explored its relevance.',
+    icon: '🧬',
     color: '#059669',
-    category: 'Learning',
+    category: 'Research',
   },
   {
     slug: 'mindful_master',
-    title: 'A moment of calm',
-    desc: 'Completed a calming session.',
+    title: 'Calm Session Recorded',
+    desc: 'Completed five minutes of a calming exercise.',
     icon: '🧘',
     color: '#7C3AED',
-    category: 'Calm',
+    category: 'Zen Mode',
   },
   {
     slug: 'early_bird',
-    title: 'Morning record',
-    desc: 'A previously earned morning-record milestone.',
+    title: 'Morning Vitals Recorded',
+    desc: 'Added a morning vital reading before 9 AM.',
     icon: '🌅',
     color: '#2563EB',
     category: 'Record',
   },
   {
     slug: 'night_owl',
-    title: 'Evening reflection',
-    desc: 'A previously earned evening-reflection milestone.',
+    title: 'Evening Reflection Recorded',
+    desc: 'Added a health note after 8 PM.',
     icon: '🌙',
     color: '#6366F1',
     category: 'Reflection',
   },
   {
     slug: 'iron_lungs',
-    title: 'Breathing session',
-    desc: 'A previously earned guided-breathing milestone.',
+    title: 'Breathing Session Recorded',
+    desc: 'Completed a guided breathing reset.',
     icon: '💨',
     color: '#0891B2',
-    category: 'Calm',
+    category: 'Zen Mode',
   },
   {
     slug: 'profile_complete',
-    title: 'An organized profile',
-    desc: 'Completed your core profile.',
+    title: 'Health Profile Organized',
+    desc: 'Completed the core health profile fields used for case context.',
     icon: '🛡️',
     color: '#BE123C',
     category: 'Profile',
   },
+
   {
     slug: 'garden_bloom',
     title: 'First blossoms',
@@ -103,11 +104,19 @@ export function earnedTrophies(
   state = projectLedger(ledger)
 ): string[] {
   const types = new Set(Object.values(ledger.receipts).map((item) => item.type));
+  const recordDays = new Set(
+    Object.values(ledger.receipts)
+      .filter((item) => item.type === 'record.saved')
+      .map((item) => item.day)
+  );
+  const threeConsecutiveRecords = [...recordDays].some(
+    (day) => recordDays.has(shiftActivityDay(day, -1)) && recordDays.has(shiftActivityDay(day, -2))
+  );
   return [
     ...new Set([
       ...ledger.importedBadges,
       ...(types.has('record.saved') ? ['first_checkin'] : []),
-      ...(state.participationDays >= 3 ? ['3_day_streak'] : []),
+      ...(threeConsecutiveRecords ? ['3_day_streak'] : []),
       ...(types.has('research.saved') ? ['clinical_scholar'] : []),
       ...(types.has('calm.completed') ? ['mindful_master'] : []),
       ...(types.has('profile.completed') ? ['profile_complete'] : []),

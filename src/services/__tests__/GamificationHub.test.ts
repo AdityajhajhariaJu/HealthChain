@@ -10,6 +10,8 @@ import {
 } from '../GamificationHub';
 import { mergeConnectedProfiles } from '../ConnectedProfileMerge';
 import { createLedger, recordActivity } from '../gamification/model';
+import { getGardenState } from '../WellnessGardenService';
+import { getDailyStreak, getVitalityState } from '../VitalityPointsEngine';
 const state = vi.hoisted(() => ({
   owner: 'guest',
   profile: 'profile_1',
@@ -36,6 +38,59 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 describe('shared rewards hub', () => {
+  it('repairs omitted legacy garden counters without changing rewards or writing on read', () => {
+    const ledger = createLedger({}, { level: 2, lastWateredDate: '2025-12-31' });
+    delete ledger.legacyGarden;
+    ledger.timezone = 'UTC';
+    state.records[`${state.owner}:profile_1`] = { gamification: ledger };
+    localStorage.setItem(
+      `hc_wellness_zen_garden:hc_unified_profile_${state.owner}:profile_1`,
+      JSON.stringify({
+        level: 2,
+        waterCount: 8,
+        bloomCount: 11,
+        vitalityScore: 47,
+        streakDays: 6,
+        lastWateredDate: '2025-12-31',
+      })
+    );
+    expect(getGardenState()).toMatchObject({
+      waterCount: 8,
+      bloomCount: 11,
+      vitalityScore: 47,
+      streakDays: 6,
+    });
+    expect(state.records[`${state.owner}:profile_1`].gamification.legacyGarden).toBeUndefined();
+    expect(tendIsland()).toMatchObject({ saved: true, growth: 3, points: 5 });
+    expect(getGardenState()).toMatchObject({
+      waterCount: 9,
+      bloomCount: 12,
+      vitalityScore: 51,
+      streakDays: 7,
+    });
+    expect(state.records[`${state.owner}:profile_1`].gamification.legacyGarden.waterCount).toBe(8);
+  });
+  it('retains old points history and streak evidence alongside hub receipts', () => {
+    state.records[`${state.owner}:profile_1`] = {
+      points: 70,
+      pointsHistory: [
+        {
+          id: 'old-log',
+          amount: 2,
+          reason: 'Original check-in',
+          category: 'checkin',
+          date: '2025-12-31T12:00:00Z',
+        },
+      ],
+      dailyCheckins: [{ date: '2025-12-30' }],
+    };
+    expect(getDailyStreak().currentStreak).toBe(2);
+    tendIsland();
+    expect(getDailyStreak().currentStreak).toBe(3);
+    expect(getVitalityState().history.map((item) => item.id)).toContain('old-log');
+    expect(getVitalityState().history).toHaveLength(2);
+    expect(getGamificationHub().points).toBe(75);
+  });
   it('refreshes an open garden budget at midnight while retaining earned growth', () => {
     expect(tendIsland().growth).toBe(3);
     expect(getGamificationHub()).toMatchObject({

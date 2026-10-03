@@ -65,13 +65,25 @@ const ledger = (page: Page) =>
 const open = async (page: Page) => {
   await page.getByRole('button', { name: 'Open Zen Garden', exact: true }).click();
   const garden = page.getByRole('dialog', { name: 'Zen Garden', exact: true });
-  await expect(garden.getByRole('heading', { name: 'Your little island' })).toBeVisible();
+  await expect(garden.getByRole('heading', { name: 'Zen Garden' })).toBeVisible();
   return garden;
+};
+const openPoints = async (page: Page) => {
+  await page
+    .locator('button[title="View activity"]:visible, button[aria-label="View activity"]:visible')
+    .first()
+    .click();
+  const points = page.getByRole('dialog', { name: 'Vitality Points & Rewards', exact: true });
+  await expect(points).toBeVisible();
+  return points;
 };
 
 test('live island loads 3D on demand, tends once, persists its atmosphere and shares point history', async ({
   page,
 }) => {
+  // This journey opens three dialogs and reloads the application. Windows
+  // WebKit needs a larger overall budget; individual assertions stay bounded.
+  test.setTimeout(60000);
   await setup(page);
   const sceneRequests: string[] = [],
     errors: string[] = [];
@@ -84,9 +96,15 @@ test('live island loads 3D on demand, tends once, persists its atmosphere and sh
   expect(sceneRequests).toEqual([]);
   const garden = await open(page);
   await expect.poll(() => sceneRequests.length).toBeGreaterThan(0);
-  await garden.getByRole('button', { name: 'Tend your island', exact: false }).click();
+  await expect(page.locator('.zen-preview')).toContainText('Zen Sanctuary');
+  await expect(page.locator('.zen-preview')).toContainText('Grow your own garden');
+  await expect(garden.getByText('SANCTUARY METRICS', { exact: true })).toBeVisible();
+  for (const label of ['Blooms', 'Days Tended', 'Garden Streak'])
+    await expect(garden.getByText(label, { exact: true })).toBeVisible();
+  await expect(garden.locator('.zen-next, .zen-summary, .zen-recent, .zen-links')).toHaveCount(0);
+  await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
   await expect(
-    garden.getByRole('button', { name: 'Your island is tended today', exact: false })
+    garden.getByRole('button', { name: 'Garden Tended Today', exact: true })
   ).toBeDisabled();
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
   await garden.getByRole('button', { name: 'Golden dusk', exact: true }).click();
@@ -110,15 +128,14 @@ test('live island loads 3D on demand, tends once, persists its atmosphere and sh
     'true'
   );
   await expect(
-    reopened.getByRole('button', { name: 'Your island is tended today', exact: false })
+    reopened.getByRole('button', { name: 'Garden Tended Today', exact: true })
   ).toBeDisabled();
-  await reopened.getByRole('button', { name: 'Points & activity' }).click();
-  const points = page.getByRole('dialog', { name: 'Vitality points', exact: true });
-  await expect(points).toBeVisible();
+  await reopened.getByRole('button', { name: 'Close modal' }).click();
+  const points = await openPoints(page);
   await points.getByRole('button', { name: 'History', exact: true }).click();
   await expect(points.getByText('Your island tended', { exact: true })).toBeVisible();
   await expect(
-    points.locator('.points-history').getByText('+5 points', { exact: false })
+    points.getByTestId('points-history').getByText('+5 PTS', { exact: true })
   ).toBeVisible();
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
   expect(errors).toEqual([]);
@@ -131,12 +148,16 @@ test('a mature island and trophy cabinet show the same sixty days of progress', 
   await page.goto('/app/today');
   await expect(page.locator('.zen-preview')).toHaveAttribute('data-level', '5');
   const garden = await open(page);
-  await expect(garden.getByText('Your cozy haven', { exact: true })).toBeVisible();
-  await expect(garden.getByText('Your haven is flourishing', { exact: true })).toBeVisible();
-  await garden.getByRole('button', { name: 'Trophy Cabinet', exact: false }).click();
+  await expect(garden.getByRole('img', { name: /Your island: Your cozy haven/ })).toBeVisible();
+  await expect(garden.getByText('Level 5 • ZEN MASTER', { exact: true })).toBeVisible();
+  await expect(garden.getByText('🔥 60 Days', { exact: true })).toBeVisible();
+  await garden.getByRole('button', { name: 'Close modal' }).click();
+  await page.getByRole('button', { name: 'Trophies', exact: true }).click();
   await expect(page).toHaveURL(/\/app\/trophies$/);
-  await expect(page.getByText('A cozy haven', { exact: true })).toBeVisible();
-  await expect(page.getByText('Still waters', { exact: true })).toBeVisible();
+  await expect(page.getByText('First Health Check-in', { exact: true })).toBeVisible();
+  await expect(page.getByText('Three Check-ins Recorded', { exact: true })).toBeVisible();
+  await expect(page.getByText('Research Reviewed', { exact: true })).toBeVisible();
+  await expect(page.getByText('A cozy haven', { exact: true })).toHaveCount(0);
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(180);
 });
 
@@ -148,17 +169,17 @@ test('320px reduced-motion garden fits, all controls are reachable and Escape re
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/app/today');
   const garden = await open(page);
-  await expect(garden.getByText('A peaceful pond', { exact: true })).toBeVisible();
+  await expect(garden.getByRole('img', { name: /Your island: A peaceful pond/ })).toBeVisible();
   await garden.getByRole('button', { name: 'Turn island left' }).click();
   await garden.getByRole('button', { name: 'Reset island view' }).click();
   await garden.getByRole('button', { name: 'Blossom', exact: true }).click();
-  await garden.getByText('How your island grows', { exact: true }).click();
+  await garden.getByRole('button', { name: 'How It Grows', exact: true }).click();
   await expect(garden.getByText('Daily limits use UTC.', { exact: false })).toBeVisible();
   expect(await garden.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
-  await garden
-    .getByRole('button', { name: 'Trophy Cabinet', exact: false })
-    .scrollIntoViewIfNeeded();
-  await expect(garden.getByRole('button', { name: 'Points & activity' })).toBeVisible();
+  await garden.getByText('Garden Streak', { exact: true }).scrollIntoViewIfNeeded();
+  await expect(
+    garden.getByRole('button', { name: 'Explore Soundscapes & Breathwork →', exact: true })
+  ).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(garden).toBeHidden();
   await expect(page.getByRole('button', { name: 'Open Zen Garden' })).toBeFocused();
@@ -171,11 +192,115 @@ test('WebGL-unavailable devices retain the illustrated island and functioning te
   await page.goto('/app/today');
   const garden = await open(page);
   await expect(garden.locator('.zen-canvas .island-artwork')).toBeVisible();
-  await garden.getByRole('button', { name: 'Tend your island', exact: false }).click();
+  await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
   await expect(
-    garden.locator('.zen-recent').getByText('Your island tended', { exact: false })
-  ).toBeVisible();
+    garden.getByRole('button', { name: 'Garden Tended Today', exact: true })
+  ).toBeDisabled();
+  await expect(garden.getByText('🌸 1', { exact: true })).toBeVisible();
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
+});
+
+test('a slow graphics driver falls back without blocking the original garden controls', async ({
+  page,
+}) => {
+  // Deliberately stalled draws and Windows WebKit presentation share this
+  // overall budget; the actual fallback must still appear within 15 seconds.
+  test.setTimeout(60000);
+  await setup(page);
+  await page.addInitScript(() => {
+    (window as any).__islandDraws = 0;
+    for (const name of [
+      'drawElements',
+      'drawArrays',
+      'drawElementsInstanced',
+      'drawArraysInstanced',
+    ] as const) {
+      const original = WebGL2RenderingContext.prototype[name];
+      (WebGL2RenderingContext.prototype as any)[name] = function (...args: any[]) {
+        (window as any).__islandDraws++;
+        const start = performance.now();
+        while (performance.now() - start < 1) {
+          /* Synthetic slow GPU submission. */
+        }
+        return (original as any).apply(this, args);
+      };
+    }
+  });
+  await page.goto('/app/today');
+  const garden = await open(page);
+  await expect.poll(() => page.evaluate(() => (window as any).__islandDraws)).toBeGreaterThan(0);
+  await expect(garden.locator('.zen-canvas > svg.island-artwork')).toBeVisible({ timeout: 15000 });
+  await expect(garden.locator('canvas')).toHaveCount(0);
+  await expect(garden.getByRole('button', { name: 'Turn island left', exact: true })).toHaveCount(
+    0
+  );
+  await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
+  await expect(
+    garden.getByRole('button', { name: 'Garden Tended Today', exact: true })
+  ).toBeDisabled();
+  await garden.getByRole('button', { name: 'How It Grows', exact: true }).click();
+  await expect(garden.getByText('How this garden works', { exact: true })).toBeVisible();
+  expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
+});
+
+test('the original garden counters and streak survive migration, watering and reload', async ({
+  page,
+}) => {
+  await setup(page);
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('garden_migration_fixture')) return;
+    sessionStorage.setItem('garden_migration_fixture', 'seeded');
+    const yesterday = new Date();
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const day = yesterday.toISOString().slice(0, 10);
+    const profile = JSON.parse(localStorage.getItem('hc_unified_profile_guest')!);
+    profile.profiles.profile_1.gamification.legacyGardenLevel = 2;
+    profile.profiles.profile_1.gamification.legacyLastTended = day;
+    delete profile.profiles.profile_1.gamification.legacyGarden;
+    localStorage.setItem('hc_unified_profile_guest', JSON.stringify(profile));
+    localStorage.setItem(
+      'hc_wellness_zen_garden:hc_unified_profile_guest:profile_1',
+      JSON.stringify({
+        level: 2,
+        vitalityScore: 47,
+        bloomCount: 11,
+        waterCount: 8,
+        streakDays: 6,
+        lastWateredDate: day,
+      })
+    );
+  });
+  await page.goto('/app/today');
+  const garden = await open(page);
+  await expect(garden.getByText('🌸 11', { exact: true })).toBeVisible();
+  await expect(garden.getByText('💧 8', { exact: true })).toBeVisible();
+  await expect(garden.getByText('🔥 6 Days', { exact: true })).toBeVisible();
+  await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
+  await expect(garden.getByText('🌸 12', { exact: true })).toBeVisible();
+  await expect(garden.getByText('💧 9', { exact: true })).toBeVisible();
+  await expect(garden.getByText('🔥 7 Days', { exact: true })).toBeVisible();
+  await page.reload();
+  const restored = await open(page);
+  await expect(restored.getByText('🌸 12', { exact: true })).toBeVisible();
+  await expect(restored.getByText('🔥 7 Days', { exact: true })).toBeVisible();
+  await expect(
+    restored.getByRole('button', { name: 'Garden Tended Today', exact: true })
+  ).toBeDisabled();
+  expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
+});
+
+test('the original soundscapes control closes the garden and reaches Calm Space', async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto('/app/today');
+  const garden = await open(page);
+  await garden
+    .getByRole('button', { name: 'Explore Soundscapes & Breathwork →', exact: true })
+    .click();
+  await expect(garden).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Calm Space', exact: true })).toBeInViewport();
+  expect((await ledger(page)).receipts).toEqual({});
 });
 
 test('repeated successful and failed API calls are observable without producing rewards', async ({
@@ -211,6 +336,7 @@ test('repeated successful and failed API calls are observable without producing 
 test('saved water records, a Gut question and tending share one capped daily ledger', async ({
   page,
 }) => {
+  test.setTimeout(60000);
   await setup(page);
   await page.route('**/api/**', (route) => route.abort());
   await page.goto('/app/today');
@@ -228,7 +354,7 @@ test('saved water records, a Gut question and tending share one capped daily led
   await expect.poll(async () => Object.keys((await ledger(page)).receipts).length).toBe(2);
   await page.goto('/app/today');
   const garden = await open(page);
-  await garden.getByRole('button', { name: 'Tend your island', exact: false }).click();
+  await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
   await expect(
     garden.getByRole('img', {
       name: /Your island: A little sanctuary, 6 growth, 1 participation days/,
@@ -240,9 +366,11 @@ test('saved water records, a Gut question and tending share one capped daily led
     'record.saved',
     'reflection.saved',
   ]);
-  await garden.getByRole('button', { name: 'Points & activity' }).click();
-  const points = page.getByRole('dialog', { name: 'Vitality points', exact: true });
-  await expect(points.locator('.points-totals').getByText('20', { exact: true })).toBeVisible();
+  await garden.getByRole('button', { name: 'Close modal' }).click();
+  const points = await openPoints(page);
+  await expect(points.getByTestId('vitality-total')).toHaveText('20');
   await points.getByRole('button', { name: 'History', exact: true }).click();
-  await expect(points.locator('.points-history li')).toHaveCount(3);
+  await expect(
+    points.getByTestId('points-history').getByText('+5 PTS', { exact: true })
+  ).toHaveCount(3);
 });

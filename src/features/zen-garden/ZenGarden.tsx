@@ -1,12 +1,13 @@
-import { lazy, Suspense, useState } from 'react';
-import { ArrowRight, Flower2, RotateCcw, Sprout, Trophy, Wind } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useRef, useState } from 'react';
+import { RotateCcw } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { setIslandTheme, tendIsland } from '../../services/GamificationHub';
+import { setIslandTheme } from '../../services/GamificationHub';
 import { ISLAND_THEMES } from '../../services/gamification/policy';
 import { IslandArtwork } from './IslandArtwork';
 import { useGarden } from './useGarden';
+import { useIslandMotion } from './useIslandMotion';
 import './ZenGarden.css';
+
 const CozyIslandScene = lazy(() => import('./CozyIslandScene'));
 let available3D: boolean | undefined;
 function supportsIsland3D() {
@@ -20,95 +21,45 @@ function supportsIsland3D() {
   }
   return available3D;
 }
-export function ZenGarden({
-  onOpenMindfulness,
-  onClose,
-}: {
-  onOpenMindfulness?: () => void;
-  onClose?: () => void;
-}) {
-  const garden = useGarden(),
-    navigate = useNavigate();
+
+// Only the garden illustration lives here. The original garden view owns its
+// existing Water Garden, guide, soundscapes, vitality and streak presentation.
+export function ZenGarden() {
+  const garden = useGarden();
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const moving = useIslandMotion(sceneRef);
   const [angle, setAngle] = useState(0),
     [status, setStatus] = useState(''),
-    [tending, setTending] = useState(false),
     [render3D, setRender3D] = useState(supportsIsland3D);
-  const progress = garden.next
-    ? Math.round(
-        Math.min(
-          1,
-          garden.growth / garden.next.growth,
-          garden.participationDays / garden.next.days
-        ) * 100
-      )
-    : 100;
-  const handleTend = () => {
-    const result = tendIsland();
-    if (!result.saved) {
-      setStatus('Your tending could not be saved. Please try again.');
-      return;
-    }
-    setStatus(
-      result.growth
-        ? `A little care goes a long way. +${result.growth} garden growth${result.points ? ` and ${result.points} points` : ''}.`
-        : 'Your island is tended. Today’s calm activity is already recorded.'
-    );
-    setTending(true);
-  };
+  const useIllustration = useCallback(() => {
+    available3D = false;
+    setRender3D(false);
+  }, []);
+  const illustration = (
+    <IslandArtwork level={garden.stage.level} growth={garden.growth} theme={garden.theme} />
+  );
   return (
-    <section className="zen-garden" aria-label="Your cozy island">
-      <header className="zen-heading">
-        <span>
-          <Sprout size={16} /> A PLACE TO EXHALE
-        </span>
-        <h2>Your little island</h2>
-        <p>Small moments of care, slowly becoming something beautiful.</p>
-      </header>
-      <div
-        className="zen-scene"
-        data-theme={garden.theme}
-        data-tending={tending}
-        onAnimationEnd={() => setTending(false)}
-      >
-        <span className="zen-stage">{garden.stage.name}</span>
+    <div className="zen-island">
+      <div className="zen-scene" ref={sceneRef} data-theme={garden.theme} data-animate={moving}>
         <div
           className="zen-canvas"
           role="img"
           aria-label={`Your island: ${garden.stage.name}, ${garden.growth} growth, ${garden.participationDays} participation days`}
         >
-          <ErrorBoundary
-            onError={() => setRender3D(false)}
-            fallback={
-              <IslandArtwork
-                level={garden.stage.level}
-                growth={garden.growth}
-                theme={garden.theme}
-              />
-            }
-          >
+          <ErrorBoundary onError={useIllustration} fallback={illustration}>
             {render3D ? (
-              <Suspense
-                fallback={
-                  <IslandArtwork
-                    level={garden.stage.level}
-                    growth={garden.growth}
-                    theme={garden.theme}
-                  />
-                }
-              >
+              <Suspense fallback={illustration}>
                 <CozyIslandScene
                   level={garden.stage.level}
                   growth={garden.growth}
                   theme={garden.theme}
                   angle={angle}
+                  moving={moving}
+                  onSlowRender={useIllustration}
                 />
               </Suspense>
             ) : (
-              <IslandArtwork
-                level={garden.stage.level}
-                growth={garden.growth}
-                theme={garden.theme}
-              />
+              illustration
             )}
           </ErrorBoundary>
         </div>
@@ -141,8 +92,9 @@ export function ZenGarden({
             type="button"
             aria-pressed={garden.theme === theme.id}
             onClick={() => {
-              if (!setIslandTheme(theme.id))
-                setStatus('Your atmosphere could not be saved. Try again.');
+              setStatus(
+                setIslandTheme(theme.id) ? '' : 'Your atmosphere could not be saved. Try again.'
+              );
             }}
           >
             <span style={{ background: theme.sky }} />
@@ -150,114 +102,11 @@ export function ZenGarden({
           </button>
         ))}
       </div>
-      <div className="zen-summary">
-        <div>
-          <strong>
-            {garden.todayGrowth}
-            <small>/6</small>
-          </strong>
-          <span>Growth today</span>
-        </div>
-        <div>
-          <strong>{garden.participationDays}</strong>
-          <span>Days of care</span>
-        </div>
-        <div>
-          <strong>{garden.points}</strong>
-          <span>Vitality points</span>
-        </div>
-      </div>
-      <button type="button" className="zen-tend" onClick={handleTend} disabled={garden.tendedToday}>
-        <Flower2 size={19} />
-        {garden.tendedToday ? 'Your island is tended today' : 'Tend your island'}
-        <span>
-          {garden.tendedToday ? 'See you whenever you’re ready' : 'Take one gentle moment'}
-        </span>
-      </button>
-      <p className="zen-status" role="status">
-        {status}
-      </p>
-      <div className="zen-next">
-        <span>GROWING AT YOUR PACE</span>
-        <h3>{garden.next ? `Next: ${garden.next.name}` : 'Your haven is flourishing'}</h3>
-        <p>{garden.next ? garden.next.unlock : 'Enjoy your garden and make it your own.'}</p>
-        <div
-          role="progressbar"
-          aria-label="Next island transformation"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        {garden.next && (
-          <p className="zen-requirements">
-            {garden.nextGrowth} more growth · {garden.nextDays} more participation days
-          </p>
-        )}
-        <small>Days do not need to be consecutive. Rest never takes anything away.</small>
-      </div>
-      <details className="zen-explanation">
-        <summary>How your island grows</summary>
-        <p>
-          Your first three different activity categories each day add 3, 2 and 1 growth. Each can
-          also earn 5 points, up to 15 per day. Tending and calming sessions share one category.
-          Larger changes need growth and participation across several days.
+      {status && (
+        <p role="status" className="zen-island-status">
+          {status}
         </p>
-        <p>
-          Saved records, reflections, research sources and appointment preparation can contribute.
-          Repeated actions and API calls add no extra growth. Your symptoms and health results never
-          determine rewards.
-        </p>
-        <p>
-          Daily limits use {garden.timezone}. Existing points and earned garden stages are
-          preserved.
-        </p>
-      </details>
-      <div className="zen-recent">
-        <h3>Little moments that made a difference</h3>
-        {garden.history.length ? (
-          <ul>
-            {garden.history.slice(0, 3).map((item) => (
-              <li key={item.id}>
-                <Sprout size={15} />
-                <span>
-                  {item.title}
-                  <small>{item.day}</small>
-                </span>
-                <strong>{item.growth ? `+${item.growth} growth` : 'Recorded'}</strong>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Your first moment of care will appear here. You can begin by tending your island.</p>
-        )}
-      </div>
-      <div className="zen-links">
-        {onOpenMindfulness && (
-          <button type="button" onClick={onOpenMindfulness}>
-            <Wind size={17} /> Soundscapes & calm <ArrowRight size={16} />
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => {
-            onClose?.();
-            navigate('/app/trophies');
-          }}
-        >
-          <Trophy size={17} /> Trophy Cabinet <ArrowRight size={16} />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onClose?.();
-            window.dispatchEvent(new Event('hc_open_points_modal'));
-          }}
-        >
-          <Sprout size={17} /> Points & activity <ArrowRight size={16} />
-        </button>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }
