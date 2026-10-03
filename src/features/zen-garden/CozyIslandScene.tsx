@@ -2,7 +2,7 @@ import { addAfterEffect, Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Group, OrthographicCamera } from 'three';
 import type { IslandTheme } from '../../services/gamification/policy';
-import { IslandArtwork } from './IslandArtwork';
+import { IslandPoster } from './IslandPoster';
 import { IslandCottage, IslandStructures } from './IslandBuildings';
 import { IslandAmbience, IslandPlanting, IslandPond, IslandTrees } from './IslandNature';
 import { ISLAND_COLORS } from './islandLayout';
@@ -11,11 +11,11 @@ type SceneProps = {
   level: number;
   growth: number;
   theme: IslandTheme;
-  angle: number;
   moving: boolean;
   onSlowRender: () => void;
+  onSnapshot?: (image: string) => void;
 };
-function Landscape({ level, growth, theme, angle, moving, onSlowRender }: SceneProps) {
+function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
   const colors = ISLAND_COLORS[theme],
     island = useRef<Group>(null);
   const { invalidate, camera, size, gl } = useThree();
@@ -76,7 +76,7 @@ function Landscape({ level, growth, theme, angle, moving, onSlowRender }: SceneP
     gl.shadowMap.autoUpdate = false;
     gl.shadowMap.needsUpdate = true;
     invalidate();
-  }, [gl, angle, level, growth, theme, invalidate]);
+  }, [gl, level, growth, theme, invalidate]);
   useFrame(({ clock }) => {
     frame.current.start = performance.now();
     frame.current.latency =
@@ -102,7 +102,7 @@ function Landscape({ level, growth, theme, angle, moving, onSlowRender }: SceneP
         shadow-camera-far={24}
         shadow-normalBias={0.04}
       />
-      <group ref={island} rotation={[0, angle, 0]}>
+      <group ref={island}>
         <mesh position={[0, -1.42, 0]} rotation={[Math.PI, 0, 0]}>
           <coneGeometry args={[4.72, 3.1, 12]} />
           <meshStandardMaterial color={colors.rock} flatShading />
@@ -185,6 +185,30 @@ function Landscape({ level, growth, theme, angle, moving, onSlowRender }: SceneP
     </>
   );
 }
+function Snapshot({ onSnapshot }: { onSnapshot: (image: string) => void }) {
+  const { gl, invalidate } = useThree();
+  const rendered = useRef(false);
+  const frames = useRef(0);
+  useFrame(() => {
+    rendered.current = true;
+    if (frames.current === 0) invalidate();
+  });
+  useEffect(() => {
+    frames.current = 0;
+    const stop = addAfterEffect(() => {
+      if (!rendered.current) return;
+      rendered.current = false;
+      // Wait for camera sizing, planting matrices and cached shadows.
+      if (++frames.current < 2) return;
+      stop();
+      // Capture before the browser clears the WebGL drawing buffer.
+      onSnapshot(gl.domElement.toDataURL('image/png'));
+    });
+    invalidate();
+    return stop;
+  }, [gl, invalidate, onSnapshot]);
+  return null;
+}
 export default function CozyIslandScene(props: SceneProps) {
   return (
     <div>
@@ -194,11 +218,12 @@ export default function CozyIslandScene(props: SceneProps) {
         flat
         camera={{ position: [8, 7, 8], zoom: 38, near: 0.1, far: 100 }}
         frameloop="demand"
-        dpr={[1, 1.5]}
+        dpr={props.onSnapshot ? 1 : [1, 1.5]}
         gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
-        fallback={<IslandArtwork level={props.level} growth={props.growth} theme={props.theme} />}
+        fallback={<IslandPoster level={props.level} growth={props.growth} theme={props.theme} />}
       >
         <Landscape {...props} />
+        {props.onSnapshot && <Snapshot onSnapshot={props.onSnapshot} />}
       </Canvas>
     </div>
   );

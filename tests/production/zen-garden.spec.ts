@@ -170,28 +170,34 @@ test('320px reduced-motion garden fits, all controls are reachable and Escape re
   await page.goto('/app/today');
   const garden = await open(page);
   await expect(garden.getByRole('img', { name: /Your island: A peaceful pond/ })).toBeVisible();
-  await garden.getByRole('button', { name: 'Turn island left' }).click();
-  await garden.getByRole('button', { name: 'Reset island view' }).click();
+  await expect(garden.locator('.zen-camera')).toHaveCount(0);
   await garden.getByRole('button', { name: 'Blossom', exact: true }).click();
-  await garden.getByRole('button', { name: 'How It Grows', exact: true }).click();
+  const guide = garden.getByRole('button', { name: 'How it grows', exact: true });
+  await expect(guide).toHaveAttribute('aria-expanded', 'false');
+  const guideBox = await guide.boundingBox(),
+    sceneBox = await garden.locator('.zen-scene').boundingBox();
+  expect(guideBox!.y + guideBox!.height).toBeLessThanOrEqual(sceneBox!.y + 1);
+  expect(guideBox!.x).toBeGreaterThan(sceneBox!.x + sceneBox!.width / 2);
+  await guide.click();
+  await expect(guide).toHaveAttribute('aria-expanded', 'true');
   await expect(garden.getByText('Daily limits use UTC.', { exact: false })).toBeVisible();
   expect(await garden.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
   await garden.getByText('Garden Streak', { exact: true }).scrollIntoViewIfNeeded();
-  await expect(
-    garden.getByRole('button', { name: 'Explore Soundscapes & Breathwork →', exact: true })
-  ).toBeVisible();
+  await expect(garden.getByRole('button', { name: /Explore Soundscapes/ })).toHaveCount(0);
+  await guide.click();
+  await expect(garden.getByText('How this garden works', { exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(garden).toBeHidden();
   await expect(page.getByRole('button', { name: 'Open Zen Garden' })).toBeFocused();
 });
 
-test('WebGL-unavailable devices retain the illustrated island and functioning tending', async ({
+test('WebGL-unavailable devices retain the matching island and functioning tending', async ({
   page,
 }) => {
   await setup(page, 0, true);
   await page.goto('/app/today');
   const garden = await open(page);
-  await expect(garden.locator('.zen-canvas .island-artwork')).toBeVisible();
+  await expect(garden.locator('.zen-canvas > img.island-snapshot')).toBeVisible();
   await garden.getByRole('button', { name: 'Water Garden', exact: true }).click();
   await expect(
     garden.getByRole('button', { name: 'Garden Tended Today', exact: true })
@@ -229,7 +235,7 @@ test('a slow graphics driver falls back without blocking the original garden con
   await page.goto('/app/today');
   const garden = await open(page);
   await expect.poll(() => page.evaluate(() => (window as any).__islandDraws)).toBeGreaterThan(0);
-  await expect(garden.locator('.zen-canvas > svg.island-artwork')).toBeVisible({ timeout: 15000 });
+  await expect(garden.locator('.zen-canvas > img.island-snapshot')).toBeVisible({ timeout: 15000 });
   await expect(garden.locator('canvas')).toHaveCount(0);
   await expect(garden.getByRole('button', { name: 'Turn island left', exact: true })).toHaveCount(
     0
@@ -238,7 +244,7 @@ test('a slow graphics driver falls back without blocking the original garden con
   await expect(
     garden.getByRole('button', { name: 'Garden Tended Today', exact: true })
   ).toBeDisabled();
-  await garden.getByRole('button', { name: 'How It Grows', exact: true }).click();
+  await garden.getByRole('button', { name: 'How it grows', exact: true }).click();
   await expect(garden.getByText('How this garden works', { exact: true })).toBeVisible();
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
 });
@@ -289,18 +295,77 @@ test('the original garden counters and streak survive migration, watering and re
   expect(Object.keys((await ledger(page)).receipts)).toHaveLength(1);
 });
 
-test('the original soundscapes control closes the garden and reaches Calm Space', async ({
+test('the thumbnail uses pre-rendered scenery without WebGL and refreshes after theme and growth changes', async ({
   page,
 }) => {
+  test.setTimeout(60000);
   await setup(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    (window as any).__previewDraws = 0;
+    for (const name of [
+      'drawElements',
+      'drawArrays',
+      'drawElementsInstanced',
+      'drawArraysInstanced',
+    ] as const) {
+      const original = WebGL2RenderingContext.prototype[name];
+      (WebGL2RenderingContext.prototype as any)[name] = function (...args: any[]) {
+        (window as any).__previewDraws++;
+        return (original as any).apply(this, args);
+      };
+    }
+  });
   await page.goto('/app/today');
+  const preview = page.getByRole('button', { name: 'Open Zen Garden', exact: true });
+  await preview.scrollIntoViewIfNeeded();
+  const snapshot = preview.locator('.island-snapshot');
+  await expect(snapshot).toBeVisible({ timeout: 15000 });
+  await expect
+    .poll(() => snapshot.evaluate((node: HTMLImageElement) => node.naturalWidth))
+    .toBe(512);
+  await expect(preview.locator('canvas')).toHaveCount(0);
+  expect(await snapshot.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
+  const firstImage = await snapshot.getAttribute('src');
+  const draws = await page.evaluate(() => (window as any).__previewDraws);
+  expect(draws).toBe(0);
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => (window as any).__previewDraws)).toBe(draws);
   const garden = await open(page);
-  await garden
-    .getByRole('button', { name: 'Explore Soundscapes & Breathwork →', exact: true })
-    .click();
+  await garden.getByRole('button', { name: 'Golden dusk', exact: true }).click();
+  await garden.getByRole('button', { name: 'Close modal', exact: true }).click();
   await expect(garden).toBeHidden();
-  await expect(page.getByRole('heading', { name: 'Calm Space', exact: true })).toBeInViewport();
-  expect((await ledger(page)).receipts).toEqual({});
+  await expect(preview).toHaveAttribute('data-theme', 'dusk');
+  await expect(snapshot).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => snapshot.getAttribute('src')).not.toBe(firstImage);
+  const duskImage = await snapshot.getAttribute('src');
+  // Two different saved categories reach the next flower-count boundary.
+  await page.getByRole('button', { name: 'Quick log 250ml water', exact: true }).click();
+  const reopened = await open(page);
+  await reopened.getByRole('button', { name: 'Water Garden', exact: true }).click();
+  await reopened.getByRole('button', { name: 'Close modal', exact: true }).click();
+  await expect(snapshot).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => snapshot.getAttribute('src')).not.toBe(duskImage);
+  await expect(preview.locator('canvas')).toHaveCount(0);
+  expect(Object.keys((await ledger(page)).receipts)).toHaveLength(2);
+});
+
+test('thumbnail and garden share the exact same image when WebGL is unavailable', async ({
+  page,
+}) => {
+  await setup(page, 60, true);
+  await page.goto('/app/today');
+  const preview = page.getByRole('button', { name: 'Open Zen Garden', exact: true });
+  const garden = await open(page);
+  await expect(preview.locator('canvas')).toHaveCount(0);
+  await expect(garden.locator('.zen-canvas > img.island-snapshot')).toBeVisible();
+  await garden.getByRole('button', { name: 'Blossom', exact: true }).click();
+  const theme = await garden.locator('.zen-scene').getAttribute('data-theme');
+  await expect(preview).toHaveAttribute('data-theme', theme!);
+  expect(await preview.locator('.island-snapshot').getAttribute('src')).toBe(
+    await garden.locator('.zen-canvas > img.island-snapshot').getAttribute('src')
+  );
+  expect(Object.keys((await ledger(page)).receipts)).toHaveLength(180);
 });
 
 test('repeated successful and failed API calls are observable without producing rewards', async ({

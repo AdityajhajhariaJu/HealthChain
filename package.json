@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && node scripts/check-build-budget.mjs",
+    "build:island-thumbnails": "node scripts/render-island-thumbnails.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "e2e": "playwright test",

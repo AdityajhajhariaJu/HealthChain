@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { IslandArtwork } from './IslandArtwork';
+import { IslandPoster } from './IslandPoster';
 import { useGarden } from './useGarden';
 import { observeActivity } from '../../services/gamification/telemetry';
 import { useIslandMotion } from './useIslandMotion';
@@ -21,13 +21,11 @@ export function IslandPreview({ onOpen, paused }: { onOpen: () => void; paused: 
       }}
       data-animate={moving}
       data-level={garden.stage.level}
+      data-theme={garden.theme}
     >
-      <IslandArtwork
-        compact
-        level={garden.stage.level}
-        growth={garden.growth}
-        theme={garden.theme}
-      />
+      <span className="zen-preview-art" aria-hidden="true">
+        <IslandPoster level={garden.stage.level} growth={garden.growth} theme={garden.theme} />
+      </span>
       <span className="zen-preview-footer">
         <span className="zen-preview-pill">
           <span aria-hidden="true">🌸</span> Zen Sanctuary

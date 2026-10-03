@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+      #root {
+        width: 512px;
+        height: 340px;
+      }
+      #root > div {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import Scene from '/src/features/zen-garden/CozyIslandScene.tsx';
+      const root = createRoot(document.getElementById('root'));
+      window.captureIsland = (level, growth, theme) =>
+        new Promise((resolve, reject) => {
+          root.render(
+            React.createElement(Scene, {
+              level,
+              growth,
+              theme,
+              moving: false,
+              onSlowRender: () => reject(new Error('Unexpected animated rendering')),
+              onSnapshot: (png) => {
+                const image = new Image();
+                image.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = 512;
+                  canvas.height = 340;
+                  canvas.getContext('2d').drawImage(image, 0, 0);
+                  resolve(canvas.toDataURL('image/webp', 0.9));
+                };
+                image.onerror = reject;
+                image.src = png;
+              },
+            })
+          );
+        });
+    </script>
+  </body>
+</html>

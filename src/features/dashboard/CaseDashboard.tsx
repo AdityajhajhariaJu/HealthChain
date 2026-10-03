@@ -1823,12 +1823,6 @@ export default function CaseDashboard() {
             onClose={() => setShowZenGardenModal(false)}
             initialTab="garden"
             standaloneTab
-            onOpenMindfulness={() => {
-              setShowZenGardenModal(false);
-              window.setTimeout(() => {
-                calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 100);
-            }}
           />
         </Suspense>
       )}

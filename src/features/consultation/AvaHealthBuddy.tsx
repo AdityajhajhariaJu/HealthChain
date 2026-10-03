@@ -3916,7 +3916,6 @@ export default function AvaHealthBuddy() {
       <TriggerSensitivityModal
         isOpen={isWholeHealthOpen}
         onClose={() => setIsWholeHealthOpen(false)}
-        onOpenMindfulness={() => setActiveMeditation(true)}
         initialTab={wholeHealthTab}
       />
       {/* Whole Health River Daily Stream Modal */}

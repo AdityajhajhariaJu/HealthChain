@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Droplet, Info, Wind } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { Droplet, Info } from 'lucide-react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { triggerHapticLight } from '../../services/haptics';
 import { getGardenState } from '../../services/WellnessGardenService';
 import { tendIsland } from '../../services/GamificationHub';
@@ -8,14 +8,7 @@ import { ZenGarden } from '../../features/zen-garden/ZenGarden';
 import { useGarden } from '../../features/zen-garden/useGarden';
 import { getDailyStreak } from '../../services/VitalityPointsEngine';
 
-interface WellnessZenGardenViewProps {
-  onOpenMindfulness?: () => void;
-  onClose?: () => void;
-}
-
-export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({
-  onOpenMindfulness,
-}) => {
+export const WellnessZenGardenView: React.FC = () => {
   const island = useGarden();
   const garden = getGardenState(),
     dailyStreak = getDailyStreak();
@@ -23,6 +16,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({
   const [isWatering, setIsWatering] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [status, setStatus] = useState('');
+  const guideId = useId();
   const wateringTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const gardenTendedToday = island.tendedToday;
   const streakCount = Math.max(dailyStreak.currentStreak, garden.streakDays);
@@ -57,6 +51,17 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({
           minHeight: '260px',
         }}
       >
+        <div className="zen-garden-help">
+          <button
+            type="button"
+            className="zen-guide-toggle"
+            aria-expanded={showGuide}
+            aria-controls={guideId}
+            onClick={() => setShowGuide((value) => !value)}
+          >
+            <Info size={14} aria-hidden="true" /> How it grows
+          </button>
+        </div>
         <div style={{ position: 'relative', width: '100%' }}>
           <ZenGarden />
           <AnimatePresence>
@@ -82,48 +87,50 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({
           </AnimatePresence>
         </div>
 
-        {showGuide && (
-          <motion.div
-            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              marginTop: '16px',
-              background: '#FFFAFA',
-              borderRadius: '16px',
-              padding: '8px 18px',
-              border: '1px solid #F1E5E7',
-              textAlign: 'center',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
-            }}
-          >
-            <div
+        <div id={guideId} hidden={!showGuide}>
+          {showGuide && (
+            <motion.div
+              initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#CD3153',
-                textTransform: 'uppercase',
+                marginTop: '16px',
+                background: '#FFFAFA',
+                borderRadius: '16px',
+                padding: '8px 18px',
+                border: '1px solid #F1E5E7',
+                textAlign: 'center',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
               }}
             >
-              How this garden works
-            </div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>
-              One daily tending action grows one bloom. It does not judge symptoms, meals, or rest
-              days.
-            </div>
-            <p style={{ margin: '8px 0 0', fontSize: '12px', lineHeight: 1.5, color: '#64748B' }}>
-              The island grows slowly from saved records, reflections, calm, research and
-              preparation. The first three different categories add 3, 2 and 1 growth each day, with
-              up to 15 points. Tending and calm share one category. Rest never removes island
-              progress.
-            </p>
-            {island.next && (
-              <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#64748B' }}>
-                Next: {island.next.name} — {island.nextGrowth} more growth and {island.nextDays}{' '}
-                more participation days. Daily limits use {island.timezone}.
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#CD3153',
+                  textTransform: 'uppercase',
+                }}
+              >
+                How this garden works
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>
+                One daily tending action grows one bloom. It does not judge symptoms, meals, or rest
+                days.
+              </div>
+              <p style={{ margin: '8px 0 0', fontSize: '12px', lineHeight: 1.5, color: '#64748B' }}>
+                The island grows slowly from saved records, reflections, calm, research and
+                preparation. The first three different categories add 3, 2 and 1 growth each day,
+                with up to 15 points. Tending and calm share one category. Rest never removes island
+                progress.
               </p>
-            )}
-          </motion.div>
-        )}
+              {island.next && (
+                <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  Next: {island.next.name} — {island.nextGrowth} more growth and {island.nextDays}{' '}
+                  more participation days. Daily limits use {island.timezone}.
+                </p>
+              )}
+            </motion.div>
+          )}
+        </div>
 
         {status && (
           <p role="status" style={{ color: '#BE123C', fontSize: '12px', margin: '8px 0 0' }}>
@@ -168,55 +175,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({
               <Droplet size={16} fill="#0284C7" />{' '}
               {gardenTendedToday ? 'Garden Tended Today' : 'Water Garden'}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowGuide((value) => !value)}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                minHeight: '44px',
-                padding: '10px 14px',
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
-                color: '#FFFFFF',
-                border: 'none',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
-              }}
-            >
-              <Info size={16} /> {showGuide ? 'Hide Guide' : 'How It Grows'}
-            </button>
           </div>
-          {onOpenMindfulness && (
-            <button
-              type="button"
-              onClick={onOpenMindfulness}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                minHeight: '44px',
-                padding: '9px 14px',
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFAFA 100%)',
-                color: '#0F766E',
-                border: '1.5px solid #F1E5E7',
-                fontSize: '12.5px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-              }}
-            >
-              <Wind size={14} strokeWidth={2.4} /> Explore Soundscapes & Breathwork →
-            </button>
-          )}
         </div>
       </div>
 

@@ -27,7 +27,6 @@ export type WholeHealthTab = 'picture' | 'detective' | 'suspects' | 'trials' | '
 interface TriggerSensitivityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenMindfulness?: () => void;
   initialTab?: WholeHealthTab;
   standaloneTab?: boolean;
 }
@@ -35,7 +34,6 @@ interface TriggerSensitivityModalProps {
 export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = ({
   isOpen,
   onClose,
-  onOpenMindfulness,
   initialTab = 'picture',
   standaloneTab = false,
 }) => {
@@ -685,15 +683,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               {activeTab === 'trials' && <EliminationTrialsView initialProtocolId={selectedTrialProtocolId} />}
 
               {/* TAB 5: ZEN GARDEN */}
-              {activeTab === 'garden' && (
-                <WellnessZenGardenView
-                  onClose={onClose}
-                  onOpenMindfulness={() => {
-                    onClose();
-                    if (onOpenMindfulness) onOpenMindfulness();
-                  }}
-                />
-              )}
+              {activeTab === 'garden' && <WellnessZenGardenView />}
 
               {/* TAB 6: DOCTOR EXPORT */}
               {activeTab === 'doctor' && <DoctorSummaryView />}
