@@ -134,6 +134,10 @@
   display: block;
   object-fit: contain;
 }
+.zen-preview-art .island-snapshot {
+  /* Keep the gentle float animation independent of the thumbnail zoom. */
+  scale: 1.08;
+}
 :is(.zen-preview, .zen-scene)[data-animate='true'] .island-snapshot {
   animation: zen-float 7s ease-in-out infinite;
 }
