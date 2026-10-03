@@ -1,3 +1,5 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
+import FocusTrap from '../../components/ui/FocusTrap';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -12,6 +14,7 @@ import {
   RotateCcw,
   Search,
   ShieldCheck,
+  X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -1851,7 +1854,7 @@ export default function ClinicalTrialsMatcher() {
 
         <AnimatePresence>
           {selectedItem && (
-            <div
+            <OverlayPortal><FocusTrap onEscape={() => handleSelectItem(null)}><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -1867,9 +1870,6 @@ export default function ClinicalTrialsMatcher() {
               aria-modal="true"
               aria-label="Research Detail Modal"
               tabIndex={-1}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') handleSelectItem(null);
-              }}
             >
               <motion.div
                 data-overlay-panel=""
@@ -1912,17 +1912,18 @@ export default function ClinicalTrialsMatcher() {
                   return (
                     <>
                       <div
+                        data-overlay-header=""
                         style={{
                           padding: isMobile ? '16px' : '20px 24px',
                           borderBottom: '1px solid #F1E5E7',
                           display: 'flex',
-                          flexWrap: 'wrap',
                           gap: '12px',
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           flexShrink: 0,
                         }}
                       >
+                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
                         <h2
                           style={{
                             margin: 0,
@@ -1938,6 +1939,16 @@ export default function ClinicalTrialsMatcher() {
                         <span className="badge badge-teal">
                           Topic relevance: {selectedItem.matchScore}/100
                         </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          aria-label="Close research details"
+                          onClick={() => handleSelectItem(null)}
+                          style={{ width: 44, height: 44, padding: 0, flexShrink: 0, display: 'grid', placeItems: 'center' }}
+                        >
+                          <X size={18} />
+                        </button>
                       </div>
                       <div
                         data-overlay-scroll=""
@@ -2095,6 +2106,7 @@ export default function ClinicalTrialsMatcher() {
                         )}
                       </div>
                       <div
+                        data-overlay-footer="research"
                         style={{
                           padding: isMobile ? '12px 16px' : '16px 24px',
                           background: '#FFFAFA',
@@ -2106,9 +2118,6 @@ export default function ClinicalTrialsMatcher() {
                           borderTop: '1px solid #F1E5E7',
                         }}
                       >
-                        <button className="btn btn-outline" onClick={() => handleSelectItem(null)}>
-                          Close
-                        </button>
                         <button
                           type="button"
                           className="btn btn-outline"
@@ -2214,7 +2223,7 @@ export default function ClinicalTrialsMatcher() {
                   );
                 })()}
               </motion.div>
-            </div>
+            </div></FocusTrap></OverlayPortal>
           )}
         </AnimatePresence>
       </div>

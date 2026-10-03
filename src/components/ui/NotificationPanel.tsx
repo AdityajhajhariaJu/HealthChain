@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -424,7 +425,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
 
   return (
     <AnimatePresence>
-      <div
+      <OverlayPortal><div
         data-overlay-viewport="sheet"
         style={{
           position: 'fixed',
@@ -1516,7 +1517,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
             </div>
           </FocusTrap>
         </motion.div>
-      </div>
+      </div></OverlayPortal>
     </AnimatePresence>
   );
 }

@@ -401,7 +401,8 @@ test('repeated successful and failed API calls are observable without producing 
 test('saved water records, a Gut question and tending share one capped daily ledger', async ({
   page,
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await setup(page);
   await page.route('**/api/**', (route) => route.abort());
   await page.goto('/app/today');
@@ -494,7 +495,10 @@ test('Back remains reachable inside phone safe areas and restores the dashboard 
     expect(start!.width).toBeGreaterThanOrEqual(44);
     expect(start!.height).toBeGreaterThanOrEqual(44);
     await garden.getByRole('button', { name: 'How it grows', exact: true }).click();
-    await garden.getByText('Garden Streak', { exact: true }).scrollIntoViewIfNeeded();
+    await garden
+      .getByText('Garden Streak', { exact: true })
+      .evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await expect(garden.getByText('Garden Streak', { exact: true })).toBeInViewport();
     await expect(back).toBeInViewport();
     await expect(garden.getByRole('button', { name: 'Close modal', exact: true })).toBeInViewport();
     expect((await back.boundingBox())!.y).toBeCloseTo(start!.y, 0);

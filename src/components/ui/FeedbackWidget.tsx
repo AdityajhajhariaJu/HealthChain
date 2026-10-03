@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { MessageSquare, Send, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -86,9 +87,10 @@ export default function FeedbackWidget() {
       <button
         onClick={() => setIsOpen(true)}
         style={{
-          position: 'fixed',
-          bottom: isMobile ? 110 : 32, // Above mobile nav if mobile
-          right: 'max(16px, var(--safe-area-right, 0px))',
+          position: 'relative',
+          alignSelf: 'flex-end',
+          margin: '16px',
+          flexShrink: 0,
           width: 48,
           height: 48,
           borderRadius: '24px',
@@ -110,7 +112,7 @@ export default function FeedbackWidget() {
         <MessageSquare size={20} />
       </button>
 
-      <AnimatePresence>
+      {createPortal(<AnimatePresence>
         {isOpen && (
           <motion.div
             className="hc-feedback-dialog"
@@ -271,7 +273,7 @@ export default function FeedbackWidget() {
             </form>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </>
   );
 }

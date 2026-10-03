@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { Capacitor } from '@capacitor/core';
 import {
   AlertTriangle,
@@ -1526,7 +1527,7 @@ export default function Settings() {
 
         {/* Offline Unsynced Changes Logout Confirmation Modal */}
         {archivePreview && (
-          <div
+          <OverlayPortal><div
             data-overlay-viewport="center"
             style={{
               position: 'fixed',
@@ -1609,10 +1610,10 @@ export default function Settings() {
                 </button>
               </div>
             </FocusTrap>
-          </div>
+          </div></OverlayPortal>
         )}
         {showLogoutConfirm && (
-          <div
+          <OverlayPortal><div
             data-overlay-viewport="center"
             style={{
               position: 'fixed',
@@ -1715,7 +1716,7 @@ export default function Settings() {
                 </div>
               </div>
             </FocusTrap>
-          </div>
+          </div></OverlayPortal>
         )}
       </div>
     </div>

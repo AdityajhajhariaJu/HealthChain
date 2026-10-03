@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { useMutation } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -676,7 +677,7 @@ export const CaseSelectorModal = ({
   if (!isOpen) return null;
 
   return (
-    <FocusTrap onEscape={onClose} style={{ height: 0 }}>
+    <OverlayPortal><FocusTrap onEscape={onClose} style={{ height: 0 }}>
       <div
         data-overlay-viewport="center"
         role="dialog"
@@ -925,7 +926,7 @@ export const CaseSelectorModal = ({
           </div>
         </div>
       </div>
-    </FocusTrap>
+    </FocusTrap></OverlayPortal>
   );
 };
 
@@ -965,7 +966,7 @@ export const SaveTaskModal = ({
   const targetCase = availableCases.find((c) => c.id === targetCaseId);
 
   return (
-    <FocusTrap onEscape={onClose} style={{ height: 0 }}>
+    <OverlayPortal><FocusTrap onEscape={onClose} style={{ height: 0 }}>
       <div
         data-overlay-viewport="center"
         role="dialog"
@@ -1309,7 +1310,7 @@ export const SaveTaskModal = ({
           </div>
         </div>
       </div>
-    </FocusTrap>
+    </FocusTrap></OverlayPortal>
   );
 };
 
@@ -3965,7 +3966,7 @@ export default function AvaHealthBuddy() {
       {/* Context scope */}
       <AnimatePresence>
         {showContextModal && (
-          <FocusTrap onEscape={() => setShowContextModal(false)}>
+          <OverlayPortal><FocusTrap onEscape={() => setShowContextModal(false)}>
             <div
               data-overlay-viewport="center"
               role="dialog"
@@ -4164,7 +4165,7 @@ export default function AvaHealthBuddy() {
                 </div>
               </motion.div>
             </div>
-          </FocusTrap>
+          </FocusTrap></OverlayPortal>
         )}
       </AnimatePresence>
       <CaseSelectorModal

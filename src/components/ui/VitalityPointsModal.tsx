@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   Brain,
@@ -115,7 +116,7 @@ export default function VitalityPointsModal() {
 
   return (
     <AnimatePresence>
-      <FocusTrap isActive={isOpen} onEscape={handleClose}>
+      <OverlayPortal><FocusTrap isActive={isOpen} onEscape={handleClose}>
         <div
           data-overlay-viewport="center"
           style={{
@@ -936,7 +937,7 @@ export default function VitalityPointsModal() {
             </div>
           </motion.div>
         </div>
-      </FocusTrap>
+      </FocusTrap></OverlayPortal>
     </AnimatePresence>
   );
 }

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
+const activeTraps: HTMLElement[] = [];
+
 interface FocusTrapProps {
   children: React.ReactNode;
   isActive?: boolean;
@@ -36,6 +38,8 @@ export default function FocusTrap({
 
     const root = rootRef.current;
     if (!root) return;
+    activeTraps.push(root);
+    const isTopTrap = () => activeTraps[activeTraps.length - 1] === root;
 
     const getFocusable = (): HTMLElement[] => {
       if (!root) return [];
@@ -61,6 +65,7 @@ export default function FocusTrap({
 
     // Auto-focus initial element
     const timer = window.setTimeout(() => {
+      if (!isTopTrap()) return;
       // A person may already have focused an input while the dialog appeared.
       // Keep that focus, and do not restart initialization on every form render.
       if (root.contains(document.activeElement)) return;
@@ -75,6 +80,7 @@ export default function FocusTrap({
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isTopTrap()) return;
       if (e.key === 'Escape' && escapeRef.current) {
         e.preventDefault();
         e.stopPropagation();
@@ -111,6 +117,8 @@ export default function FocusTrap({
     return () => {
       window.clearTimeout(timer);
       document.removeEventListener('keydown', handleKeyDown);
+      const index = activeTraps.indexOf(root);
+      if (index !== -1) activeTraps.splice(index, 1);
       // Exit animations can finish after a person has already selected another
       // field. Restore the opener only while focus still belongs to this dialog.
       const focused = document.activeElement;

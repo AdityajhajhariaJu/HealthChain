@@ -3,6 +3,33 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import FocusTrap from './FocusTrap';
+import OverlayPortal from './OverlayPortal';
+
+it('lets the top dialog handle Escape without closing its parent', () => {
+  const parentClosed = vi.fn();
+  function Nested() {
+    const [child, setChild] = useState(false);
+    return (
+      <FocusTrap onEscape={parentClosed}>
+        <button onClick={() => setChild(true)}>Open nested dialog</button>
+        {child && (
+          <OverlayPortal>
+            <FocusTrap onEscape={() => setChild(false)}>
+              <button>Nested action</button>
+            </FocusTrap>
+          </OverlayPortal>
+        )}
+      </FocusTrap>
+    );
+  }
+  render(<Nested />);
+  fireEvent.click(screen.getByRole('button', { name: 'Open nested dialog' }));
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(screen.queryByRole('button', { name: 'Nested action' })).toBeNull();
+  expect(parentClosed).not.toHaveBeenCalled();
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(parentClosed).toHaveBeenCalledOnce();
+});
 
 it('does not steal focus from a composer chosen while a closing modal unmounts', async () => {
   const opener = document.createElement('button');

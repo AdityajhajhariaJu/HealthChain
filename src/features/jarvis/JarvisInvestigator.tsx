@@ -3702,15 +3702,15 @@ AI-generated preparation material. Verify against original records; this is not 
             aria-label="Action Navigation Dock"
             style={{
               position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 'calc(100% - var(--app-viewport-top, 0px) - var(--app-viewport-height))',
+              left: 'var(--safe-area-left, 0px)',
+              right: 'var(--safe-area-right, 0px)',
               zIndex: 9999,
               background: '#FFFFFF',
               borderTop: '1px solid rgba(226, 232, 240, 0.85)',
               boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.07), 0 -1px 3px rgba(0, 0, 0, 0.04)',
               padding: isMobile
-                ? '12px 16px calc(12px + env(safe-area-inset-bottom, 0px))'
+                ? '12px 16px calc(12px + var(--safe-area-bottom, 0px))'
                 : '14px 24px',
               display: 'flex',
               justifyContent: 'center',

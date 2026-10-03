@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Clock, GitMerge, Info, MessageCircle, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -73,7 +74,7 @@ export default function PathwaySimulator({
   }, [onClose]);
 
   return (
-    <div
+    <OverlayPortal><div
       data-overlay-viewport="center"
       role="dialog"
       aria-modal="true"
@@ -481,6 +482,6 @@ export default function PathwaySimulator({
           </AnimatePresence>
         </div>
       </motion.div>
-    </div>
+    </div></OverlayPortal>
   );
 }

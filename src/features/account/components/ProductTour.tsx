@@ -1,3 +1,4 @@
+import OverlayPortal from '../../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -89,7 +90,7 @@ export default function ProductTour() {
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
+        <OverlayPortal><motion.div
           data-overlay-viewport="center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -234,7 +235,7 @@ export default function ProductTour() {
               </div>
             </motion.div>
           </FocusTrap>
-        </motion.div>
+        </motion.div></OverlayPortal>
       )}
     </AnimatePresence>
   );

@@ -1,3 +1,5 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
+import FocusTrap from '../../components/ui/FocusTrap';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MessageSquare, Share, Star, Trophy, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -390,14 +392,11 @@ export const TrophyCabinet: React.FC = () => {
       {/* Share/Detail Modal */}
       <AnimatePresence>
         {selectedBadge && (
-          <motion.div
+          <OverlayPortal><FocusTrap onEscape={() => setSelectedBadge(null)}><motion.div
             data-overlay-viewport="center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={selectedBadge.title}
             style={{
               position: 'fixed',
               zIndex: 1000,
@@ -422,10 +421,10 @@ export const TrophyCabinet: React.FC = () => {
                 width: '100%',
                 maxWidth: '360px',
                 maxHeight: 'var(--overlay-available-height)',
-                overflowY: 'auto',
+                overflow: 'hidden',
                 background: `linear-gradient(135deg, #FFFFFF 0%, #FBF9F6 100%)`,
                 borderRadius: '32px',
-                padding: '32px 24px',
+                padding: 0,
                 boxShadow: `0 25px 50px -12px ${selectedBadge.color}60`,
                 border: `1px solid ${selectedBadge.color}80`,
                 display: 'flex',
@@ -435,14 +434,12 @@ export const TrophyCabinet: React.FC = () => {
                 position: 'relative',
               }}
             >
+              <div data-overlay-header="" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', flexShrink: 0, padding: '16px 16px 12px' }}>
               <button
                 type="button"
                 onClick={() => setSelectedBadge(null)}
                 aria-label="Close milestone dialog"
                 style={{
-                  position: 'absolute',
-                  top: '16px',
-                  right: '16px',
                   background: 'rgba(0,0,0,0.05)',
                   border: 'none',
                   borderRadius: '50%',
@@ -457,6 +454,7 @@ export const TrophyCabinet: React.FC = () => {
               >
                 <X size={16} />
               </button>
+              </div>
 
               {/* Decorative Background Glow */}
               <div
@@ -473,10 +471,11 @@ export const TrophyCabinet: React.FC = () => {
                   willChange: 'transform',
                   opacity: 0.3,
                   zIndex: 0,
+                  pointerEvents: 'none',
                 }}
               />
 
-              <div style={{ position: 'relative', zIndex: 1 }}>
+              <div data-overlay-scroll="" style={{ position: 'relative', zIndex: 1, overflowY: 'auto', minHeight: 0, width: '100%', padding: '0 24px 32px' }}>
                 <div
                   style={{
                     fontSize: '80px',
@@ -622,7 +621,7 @@ export const TrophyCabinet: React.FC = () => {
                 </button>
               </div>
             </motion.div>
-          </motion.div>
+          </motion.div></FocusTrap></OverlayPortal>
         )}
       </AnimatePresence>
     </div>

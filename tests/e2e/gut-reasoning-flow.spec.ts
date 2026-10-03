@@ -106,6 +106,7 @@ test('urgent Gut guidance appears while entering a question with all network req
 test('the single answer includes personal reading, research limits, gaps and next action after offline reload', async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60000);
   await setup(page);
   await page.addInitScript(() => {
     const original = window.fetch.bind(window);

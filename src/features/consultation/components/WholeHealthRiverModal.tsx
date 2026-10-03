@@ -1,4 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import OverlayPortal from '../../../components/ui/OverlayPortal';
+import FocusTrap from '../../../components/ui/FocusTrap';
 import { ChevronRight, GitMerge, Plus, Sparkles, Waves, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import type { Observation } from '../../../domain/observations/types';
@@ -239,618 +241,644 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9990,
-        background: 'rgba(15, 23, 42, 0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        style={{
-          width: '100%',
-          maxWidth: '560px',
-          maxHeight: '92vh',
-          background: '#FFFFFF',
-          borderTopLeftRadius: '28px',
-          borderTopRightRadius: '28px',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 -16px 40px rgba(0,0,0,0.15)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {saveError && (
-          <p role="alert" style={{ padding: 12 }}>
-            {saveError}
-          </p>
-        )}
-        {/* Top Handle & Header */}
+    <OverlayPortal>
+      <FocusTrap onEscape={onClose}>
         <div
+          data-overlay-viewport="sheet"
           style={{
-            padding: '16px 20px 14px 20px',
-            background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
-            color: '#FFFFFF',
+            position: 'fixed',
+            zIndex: 9990,
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
           }}
+          onClick={onClose}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <motion.div
+            data-overlay-panel=""
+            role="dialog"
+            aria-modal="true"
+            aria-label="Whole health timeline"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            style={{
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: 'var(--overlay-available-height)',
+              background: '#FFFFFF',
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 -16px 40px rgba(0,0,0,0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {saveError && (
+              <p role="alert" style={{ padding: 12 }}>
+                {saveError}
+              </p>
+            )}
+            {/* Top Handle & Header */}
             <div
+              data-overlay-header=""
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.2)',
+                padding: '16px 20px 14px 20px',
+                background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'space-between',
               }}
             >
-              <Waves size={20} color="#FFFFFF" />
-            </div>
-            <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  color: '#CCFBF1',
-                  display: 'block',
-                }}
-              >
-                TriggerBites Daily Stream
-              </span>
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: '#FFFFFF',
-                  letterSpacing: '-0.3px',
-                }}
-              >
-                Whole Health River
-              </h3>
-            </div>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Waves size={20} color="#FFFFFF" />
+                </div>
+                <div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#CCFBF1',
+                      display: 'block',
+                    }}
+                  >
+                    TriggerBites Daily Stream
+                  </span>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      color: '#FFFFFF',
+                      letterSpacing: '-0.3px',
+                    }}
+                  >
+                    Whole Health River
+                  </h3>
+                </div>
+              </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: 'none',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Filter Pills & Causality Banner */}
-        <div
-          style={{
-            padding: '12px 20px',
-            background: '#F0FDFA',
-            borderBottom: '1px solid #CCFBF1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {[
-              { key: 'all', label: 'All Moments' },
-              { key: 'causal', label: '🔗 Recorded links' },
-              { key: 'symptoms', label: '⚡ Symptoms Only' },
-            ].map((tab) => (
               <button
-                key={tab.key}
                 type="button"
-                onClick={() => {
-                  triggerHapticSelection();
-                  setActiveFilter(tab.key as any);
-                }}
+                aria-label="Close whole health timeline"
+                onClick={onClose}
                 style={{
-                  padding: '5px 11px',
-                  borderRadius: '999px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   border: 'none',
-                  fontSize: '11.5px',
-                  fontWeight: activeFilter === tab.key ? 800 : 600,
-                  background: activeFilter === tab.key ? '#0D9488' : '#FFFFFF',
-                  color: activeFilter === tab.key ? '#FFFFFF' : '#0F766E',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
                 }}
               >
-                {tab.label}
+                <X size={18} />
               </button>
-            ))}
-          </div>
+            </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              triggerHapticLight();
-              setShowAddSheet((prev) => !prev);
-            }}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '12px',
-              border: 'none',
-              background: '#0F766E',
-              color: '#FFFFFF',
-              fontSize: '11.5px',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            <Plus size={14} /> Add Moment
-          </button>
-        </div>
-
-        {/* Quick Add Sheet (Collapsible) */}
-        <AnimatePresence>
-          {showAddSheet && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+            {/* Filter Pills & Causality Banner */}
+            <div
               style={{
-                background: '#FFFFFF',
-                borderBottom: '1.5px solid #E2E8F0',
-                padding: '14px 20px',
+                padding: '12px 20px',
+                background: '#F0FDFA',
+                borderBottom: '1px solid #CCFBF1',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {(
-                  [
-                    'symptom',
-                    'posture',
-                    'nutrition',
-                    'vascular',
-                    'medication',
-                  ] as RiverMoment['type'][]
-                ).map((type) => (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minWidth: 0 }}>
+                {[
+                  { key: 'all', label: 'All Moments' },
+                  { key: 'causal', label: '🔗 Recorded links' },
+                  { key: 'symptoms', label: '⚡ Symptoms Only' },
+                ].map((tab) => (
                   <button
-                    key={type}
+                    key={tab.key}
                     type="button"
-                    onClick={() => setNewType(type)}
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setActiveFilter(tab.key as any);
+                    }}
                     style={{
-                      flex: 1,
-                      padding: '6px 4px',
-                      borderRadius: '10px',
-                      border: newType === type ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                      background: newType === type ? '#F0FDFA' : '#FFFFFF',
-                      color: newType === type ? '#0F766E' : '#64748B',
-                      fontSize: '11px',
-                      fontWeight: newType === type ? 800 : 600,
+                      padding: '5px 11px',
+                      borderRadius: '999px',
+                      border: 'none',
+                      fontSize: '11.5px',
+                      fontWeight: activeFilter === tab.key ? 800 : 600,
+                      background: activeFilter === tab.key ? '#0D9488' : '#FFFFFF',
+                      color: activeFilter === tab.key ? '#FFFFFF' : '#0F766E',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                       cursor: 'pointer',
-                      textTransform: 'capitalize',
                     }}
                   >
-                    {type}
+                    {tab.label}
                   </button>
                 ))}
               </div>
 
-              <input
-                type="text"
-                placeholder="Title (e.g. 4h Desk Slouch, Greek Yogurt)..."
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
-              />
-
-              <input
-                type="text"
-                placeholder="Items separated by commas (e.g. Lower Back Ache, Ocular Pain)..."
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
-              />
-
               <button
                 type="button"
-                onClick={handleAddMoment}
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowAddSheet((prev) => !prev);
+                }}
                 style={{
-                  padding: '10px',
+                  padding: '6px 12px',
                   borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  border: 'none',
+                  background: '#0F766E',
                   color: '#FFFFFF',
+                  fontSize: '11.5px',
                   fontWeight: 800,
-                  fontSize: '12.5px',
-                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
                   cursor: 'pointer',
                 }}
               >
-                Save to Today's River
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* The Vertical River Stream */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            position: 'relative',
-          }}
-        >
-          {/* Visual Vertical Thread Line */}
-          {filteredMoments.length > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '20px',
-                bottom: '20px',
-                left: '37px',
-                width: '2px',
-                background: 'linear-gradient(180deg, #CCFBF1 0%, #0D9488 50%, #99F6E4 100%)',
-                zIndex: 0,
-              }}
-            />
-          )}
-
-          {filteredMoments.length === 0 ? (
-            <div
-              style={{
-                padding: '48px 24px',
-                textAlign: 'center',
-                background: '#F8FAFC',
-                borderRadius: '20px',
-                border: '1.5px dashed #CBD5E1',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '14px',
-                margin: 'auto 0',
-              }}
-            >
-              <div
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  background: '#F0FDFA',
-                  border: '1px solid #CCFBF1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#0D9488',
-                }}
-              >
-                <Waves size={26} />
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    color: '#0F172A',
-                    marginBottom: '6px',
-                  }}
-                >
-                  No River Moments Logged Today
-                </div>
-                <p
-                  style={{
-                    fontSize: '0.82rem',
-                    color: '#64748B',
-                    maxWidth: '360px',
-                    margin: '0 auto',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  The Whole Health River chronologically maps nutrition, posture, physical stress,
-                  and symptoms to review recorded timing. Timing alone does not establish a cause.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAddSheet(true)}
-                style={{
-                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '10px 18px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  cursor: 'pointer',
-                  marginTop: '4px',
-                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
-                }}
-              >
-                <Plus size={15} />
-                <span>Add First Moment</span>
+                <Plus size={14} /> Add Moment
               </button>
             </div>
-          ) : (
-            filteredMoments.map((moment, _idx) => {
-              const style = getMomentStyle(moment.type);
-              const isHighlightedCausal = moment.isCausalTrigger || moment.isCausalReaction;
 
-              return (
-                <div
-                  key={moment.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '14px',
-                    position: 'relative',
-                    zIndex: 1,
-                  }}
-                >
-                  {/* Time Indicator Node */}
-                  <div
+            {/* The Vertical River Stream */}
+            <div
+              data-overlay-scroll=""
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                minHeight: 0,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                position: 'relative',
+              }}
+            >
+              {/* Quick Add Sheet (Collapsible) */}
+              <AnimatePresence>
+                {showAddSheet && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
                     style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: isHighlightedCausal ? '#0D9488' : '#FFFFFF',
-                      border: isHighlightedCausal ? '2.5px solid #CCFBF1' : '2px solid #E2E8F0',
-                      color: isHighlightedCausal ? '#FFFFFF' : '#0F766E',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      boxShadow: isHighlightedCausal ? '0 0 12px rgba(13, 148, 136, 0.4)' : 'none',
-                    }}
-                  >
-                    {style.icon}
-                  </div>
-
-                  {/* River Card Box */}
-                  <div
-                    style={{
-                      flex: 1,
-                      background: isHighlightedCausal ? '#F0FDFA' : '#FFFFFF',
-                      border: isHighlightedCausal ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
-                      borderRadius: '18px',
-                      padding: '14px',
-                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                      background: '#FFFFFF',
+                      borderBottom: '1.5px solid #E2E8F0',
+                      padding: '14px 20px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '6px',
+                      gap: '10px',
+                      overflow: 'hidden',
                     }}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
-                          {moment.time}
-                        </span>
-                        <span
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {(
+                        [
+                          'symptom',
+                          'posture',
+                          'nutrition',
+                          'vascular',
+                          'medication',
+                        ] as RiverMoment['type'][]
+                      ).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setNewType(type)}
                           style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            padding: '2px 7px',
-                            borderRadius: '6px',
-                            background: style.badgeBg,
-                            color: style.badgeColor,
-                          }}
-                        >
-                          {style.label}
-                        </span>
-                      </div>
-
-                      {isHighlightedCausal && (
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 800,
-                            color: '#0D9488',
-                            background: '#CCFBF1',
-                            padding: '2px 6px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                          }}
-                        >
-                          <GitMerge size={10} /> Causal Node
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
-                      {moment.title}
-                    </div>
-
-                    {/* Chips */}
-                    <div
-                      style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '2px' }}
-                    >
-                      {moment.items.map((item, i) => (
-                        <span
-                          key={i}
-                          style={{
+                            flex: '1 1 84px',
+                            padding: '6px 4px',
+                            borderRadius: '10px',
+                            border: newType === type ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            background: newType === type ? '#F0FDFA' : '#FFFFFF',
+                            color: newType === type ? '#0F766E' : '#64748B',
                             fontSize: '11px',
-                            padding: '3px 8px',
-                            borderRadius: '8px',
-                            background: isHighlightedCausal ? '#FFFFFF' : '#F1F5F9',
-                            color: '#334155',
-                            fontWeight: 600,
-                            border: isHighlightedCausal ? '1px solid #CCFBF1' : 'none',
+                            fontWeight: newType === type ? 800 : 600,
+                            cursor: 'pointer',
+                            textTransform: 'capitalize',
                           }}
                         >
-                          {item}
-                        </span>
+                          {type}
+                        </button>
                       ))}
                     </div>
 
-                    {moment.notes && (
+                    <input
+                      type="text"
+                      placeholder="Title (e.g. 4h Desk Slouch, Greek Yogurt)..."
+                      aria-label="Moment title"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid #E2E8F0',
+                        fontSize: '13px',
+                        outline: 'none',
+                      }}
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Items separated by commas (e.g. Lower Back Ache, Ocular Pain)..."
+                      aria-label="Moment items"
+                      value={newItemText}
+                      onChange={(e) => setNewItemText(e.target.value)}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid #E2E8F0',
+                        fontSize: '13px',
+                        outline: 'none',
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleAddMoment}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                        color: '#FFFFFF',
+                        fontWeight: 800,
+                        fontSize: '12.5px',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Save to Today's River
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Visual Vertical Thread Line */}
+              {filteredMoments.length > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '20px',
+                    bottom: '20px',
+                    left: '37px',
+                    width: '2px',
+                    background: 'linear-gradient(180deg, #CCFBF1 0%, #0D9488 50%, #99F6E4 100%)',
+                    zIndex: 0,
+                  }}
+                />
+              )}
+
+              {filteredMoments.length === 0 ? (
+                <div
+                  style={{
+                    padding: '48px 24px',
+                    textAlign: 'center',
+                    background: '#F8FAFC',
+                    borderRadius: '20px',
+                    border: '1.5px dashed #CBD5E1',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '14px',
+                    margin: 'auto 0',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '50%',
+                      background: '#F0FDFA',
+                      border: '1px solid #CCFBF1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0D9488',
+                    }}
+                  >
+                    <Waves size={26} />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: 800,
+                        color: '#0F172A',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      No River Moments Logged Today
+                    </div>
+                    <p
+                      style={{
+                        fontSize: '0.82rem',
+                        color: '#64748B',
+                        maxWidth: '360px',
+                        margin: '0 auto',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      The Whole Health River chronologically maps nutrition, posture, physical
+                      stress, and symptoms to review recorded timing. Timing alone does not
+                      establish a cause.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSheet(true)}
+                    style={{
+                      background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '10px 18px',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                      marginTop: '4px',
+                      boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+                    }}
+                  >
+                    <Plus size={15} />
+                    <span>Add First Moment</span>
+                  </button>
+                </div>
+              ) : (
+                filteredMoments.map((moment, _idx) => {
+                  const style = getMomentStyle(moment.type);
+                  const isHighlightedCausal = moment.isCausalTrigger || moment.isCausalReaction;
+
+                  return (
+                    <div
+                      key={moment.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '14px',
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    >
+                      {/* Time Indicator Node */}
                       <div
                         style={{
-                          fontSize: '11.5px',
-                          color: '#64748B',
-                          fontStyle: 'italic',
-                          marginTop: '2px',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: isHighlightedCausal ? '#0D9488' : '#FFFFFF',
+                          border: isHighlightedCausal ? '2.5px solid #CCFBF1' : '2px solid #E2E8F0',
+                          color: isHighlightedCausal ? '#FFFFFF' : '#0F766E',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          boxShadow: isHighlightedCausal
+                            ? '0 0 12px rgba(13, 148, 136, 0.4)'
+                            : 'none',
                         }}
                       >
-                        “{moment.notes}”
+                        {style.icon}
                       </div>
-                    )}
 
-                    {/* Special Link Prompt if Causal Reaction */}
-                    {moment.isCausalReaction &&
-                      (() => {
-                        const linkedTrigger = moments.find(
-                          (m) =>
-                            m.causalConnectionId === moment.causalConnectionId && m.isCausalTrigger
-                        );
-                        const triggerLabel = linkedTrigger
-                          ? `${linkedTrigger.time} ${linkedTrigger.title}`
-                          : 'Upstream trigger';
-                        const reactionLabel = `${moment.time} ${moment.title}`;
-                        return (
+                      {/* River Card Box */}
+                      <div
+                        style={{
+                          flex: 1,
+                          background: isHighlightedCausal ? '#F0FDFA' : '#FFFFFF',
+                          border: isHighlightedCausal ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
+                          borderRadius: '18px',
+                          padding: '14px',
+                          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                              {moment.time}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '6px',
+                                background: style.badgeBg,
+                                color: style.badgeColor,
+                              }}
+                            >
+                              {style.label}
+                            </span>
+                          </div>
+
+                          {isHighlightedCausal && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 800,
+                                color: '#0D9488',
+                                background: '#CCFBF1',
+                                padding: '2px 6px',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              <GitMerge size={10} /> Causal Node
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
+                          {moment.title}
+                        </div>
+
+                        {/* Chips */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '5px',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {moment.items.map((item, i) => (
+                            <span
+                              key={i}
+                              style={{
+                                fontSize: '11px',
+                                padding: '3px 8px',
+                                borderRadius: '8px',
+                                background: isHighlightedCausal ? '#FFFFFF' : '#F1F5F9',
+                                color: '#334155',
+                                fontWeight: 600,
+                                border: isHighlightedCausal ? '1px solid #CCFBF1' : 'none',
+                              }}
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+
+                        {moment.notes && (
                           <div
                             style={{
-                              marginTop: '6px',
-                              padding: '8px 10px',
-                              borderRadius: '12px',
-                              background: '#FFFFFF',
-                              border: '1px dashed #0D9488',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
+                              fontSize: '11.5px',
+                              color: '#64748B',
+                              fontStyle: 'italic',
+                              marginTop: '2px',
                             }}
                           >
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                color: '#0F766E',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                              }}
-                            >
-                              <Sparkles size={12} /> Causal link: {triggerLabel} ➔ {reactionLabel}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                triggerHapticLight();
-                                onClose();
-                                if (onAskAvaAboutConnection) {
-                                  onAskAvaAboutConnection(triggerLabel, reactionLabel);
-                                }
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#0D9488',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '2px',
-                              }}
-                            >
-                              Ask Ava <ChevronRight size={12} />
-                            </button>
+                            “{moment.notes}”
                           </div>
-                        );
-                      })()}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+                        )}
 
-        {/* Footer Summary */}
-        <div
-          style={{
-            padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
-            background: '#F8FAFC',
-            borderTop: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-            {filteredMoments.length} moment{filteredMoments.length === 1 ? '' : 's'} tracked today
-            {moments.some((m) => m.isCausalReaction) ? ' · recorded link' : ''}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              padding: '10px 18px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-              color: '#FFFFFF',
-              fontWeight: 800,
-              fontSize: '13px',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Done
-          </button>
+                        {/* Special Link Prompt if Causal Reaction */}
+                        {moment.isCausalReaction &&
+                          (() => {
+                            const linkedTrigger = moments.find(
+                              (m) =>
+                                m.causalConnectionId === moment.causalConnectionId &&
+                                m.isCausalTrigger
+                            );
+                            const triggerLabel = linkedTrigger
+                              ? `${linkedTrigger.time} ${linkedTrigger.title}`
+                              : 'Upstream trigger';
+                            const reactionLabel = `${moment.time} ${moment.title}`;
+                            return (
+                              <div
+                                style={{
+                                  marginTop: '6px',
+                                  padding: '8px 10px',
+                                  borderRadius: '12px',
+                                  background: '#FFFFFF',
+                                  border: '1px dashed #0D9488',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#0F766E',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <Sparkles size={12} /> Causal link: {triggerLabel} ➔{' '}
+                                  {reactionLabel}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHapticLight();
+                                    onClose();
+                                    if (onAskAvaAboutConnection) {
+                                      onAskAvaAboutConnection(triggerLabel, reactionLabel);
+                                    }
+                                  }}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: '#0D9488',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                  }}
+                                >
+                                  Ask Ava <ChevronRight size={12} />
+                                </button>
+                              </div>
+                            );
+                          })()}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer Summary */}
+            <div
+              data-overlay-footer=""
+              style={{
+                padding: '12px 20px calc(14px + var(--safe-area-bottom, 0px))',
+                background: '#F8FAFC',
+                borderTop: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                {filteredMoments.length} moment{filteredMoments.length === 1 ? '' : 's'} tracked
+                today
+                {moments.some((m) => m.isCausalReaction) ? ' · recorded link' : ''}
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
-    </div>
+      </FocusTrap>
+    </OverlayPortal>
   );
 };

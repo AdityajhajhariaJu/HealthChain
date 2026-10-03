@@ -1,3 +1,5 @@
+import OverlayPortal from './OverlayPortal';
+import FocusTrap from './FocusTrap';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Apple, ArrowRight, Brain, Heart, Lock, Sparkles, Stethoscope, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -74,10 +76,11 @@ export function TrialFeaturesModal({
 
   return (
     <AnimatePresence>
-      <div
+      <OverlayPortal><FocusTrap onEscape={handleClose}><div
         data-overlay-viewport="center"
         role="dialog"
         aria-modal="true"
+        aria-label="Starter workflows"
         style={{
           position: 'fixed',
           zIndex: 9999,
@@ -100,24 +103,24 @@ export function TrialFeaturesModal({
             width: '100%',
             maxWidth: '680px',
             maxHeight: 'var(--overlay-available-height)',
-            overflowY: 'auto',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
             borderRadius: '24px',
             boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.8)',
             border: '1px solid rgba(255, 255, 255, 0.8)',
-            padding: '28px 24px',
+            padding: 0,
           }}
         >
           {/* Close Button */}
+          <div data-overlay-header="" style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', flexShrink: 0 }}>
           <button
             onClick={handleClose}
             aria-label="Close modal"
             style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-              width: '36px',
-              height: '36px',
+              width: '44px',
+              height: '44px',
               borderRadius: '50%',
               border: '1px solid #E2E8F0',
               background: '#F8FAFC',
@@ -139,6 +142,8 @@ export function TrialFeaturesModal({
           >
             <X size={18} />
           </button>
+          </div>
+          <div data-overlay-scroll="" style={{ overflowY: 'auto', minHeight: 0, padding: '0 24px 28px' }}>
 
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '20px', paddingRight: '20px', paddingLeft: '20px' }}>
@@ -508,8 +513,9 @@ export function TrialFeaturesModal({
               <ArrowRight size={15} />
             </button>
           </div>
+          </div>
         </motion.div>
-      </div>
+      </div></FocusTrap></OverlayPortal>
     </AnimatePresence>
   );
 }

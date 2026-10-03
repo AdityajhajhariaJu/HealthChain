@@ -5,6 +5,35 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
+.hc-overlay-root {
+  position: relative;
+  z-index: 10000;
+}
+.hc-overlay-scroll-locked {
+  overflow: hidden !important;
+}
+@media (max-width: 768px) {
+  [data-overlay-footer='research'] button {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+    white-space: normal;
+  }
+  #jarvis-always-on-display-dock button {
+    min-width: 0;
+    min-height: 52px;
+    height: auto !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+    padding: 12px !important;
+  }
+  #jarvis-always-on-display-dock button span {
+    min-width: 0;
+  }
+  #jarvis-always-on-display-dock button svg {
+    flex-shrink: 0;
+  }
+}
 :root [data-overlay-viewport] {
   --overlay-edge: 16px;
   --overlay-top: max(var(--overlay-edge), var(--safe-area-top, 0px));
@@ -16,6 +45,7 @@
     calc(var(--app-viewport-height) - var(--overlay-top) - var(--overlay-bottom))
   );
   position: fixed;
+  z-index: 10000 !important;
   inset: var(--app-viewport-top, 0px) 0 auto;
   box-sizing: border-box;
   height: var(--app-viewport-height);

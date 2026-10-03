@@ -269,7 +269,8 @@ export const CalmApothecaryCapsule: React.FC<CalmApothecaryCapsuleProps> = ({
           : '0 2px 6px rgba(0, 0, 0, 0.03)',
         transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
         textAlign: 'left',
-        flexShrink: 0,
+        flexShrink: 1,
+        minWidth: 0,
         maxWidth: '100%',
         ...style,
       }}
@@ -285,7 +286,7 @@ export const CalmApothecaryCapsule: React.FC<CalmApothecaryCapsuleProps> = ({
         />
       )}
 
-      <div style={{ textAlign: 'left', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+      <div style={{ textAlign: 'left', lineHeight: 1.2, minWidth: 0, overflowWrap: 'anywhere' }}>
         <span
           style={{
             fontSize: isSmall ? '12px' : '13px',

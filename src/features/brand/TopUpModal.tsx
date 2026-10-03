@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { Loader2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -108,7 +109,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
   if (!plan) return null;
 
   return (
-    <div
+    <OverlayPortal><div
       data-overlay-viewport="center"
       style={{
         position: 'fixed',
@@ -243,6 +244,6 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
           </button>
         </div>
       </div>
-    </div>
+    </div></OverlayPortal>
   );
 }

@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { useEffect, useRef, useState } from 'react';
 import type { FitnessContent } from '../../services/FitnessService';
 import {
@@ -72,7 +73,7 @@ export function GuidedBreathingSession({
   };
   const phase = elapsed % 9 < 4 ? 'Breathe in gently' : 'Breathe out gently';
   return (
-    <FocusTrap onEscape={onClose}>
+    <OverlayPortal><FocusTrap onEscape={onClose}>
       <div
         data-overlay-viewport="center"
         role="dialog"
@@ -170,6 +171,6 @@ export function GuidedBreathingSession({
           {status && <p role="status">{status}</p>}
         </section>
       </div>
-    </FocusTrap>
+    </FocusTrap></OverlayPortal>
   );
 }

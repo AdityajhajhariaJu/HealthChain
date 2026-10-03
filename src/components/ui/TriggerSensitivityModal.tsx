@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -87,18 +88,6 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
     }
   }, [isOpen, onClose]);
 
-  React.useEffect(() => {
-    if (!isOpen || activeTab !== 'garden') return;
-    const targets = [document.body, document.getElementById('main-content')].filter(
-      (target): target is HTMLElement => !!target
-    );
-    const previous = targets.map((target) => target.style.overflow);
-    targets.forEach((target) => { target.style.overflow = 'hidden'; });
-    return () => targets.forEach((target, index) => {
-      if (target.style.overflow === 'hidden') target.style.overflow = previous[index];
-    });
-  }, [isOpen, activeTab]);
-
   if (!isOpen) return null;
 
   const tabs: { id: WholeHealthTab; label: string; icon: string }[] = [
@@ -112,7 +101,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
 
   return (
     <AnimatePresence>
-      <FocusTrap isActive={isOpen} onEscape={onClose}>
+      <OverlayPortal><FocusTrap isActive={isOpen} onEscape={onClose}>
         <div
           data-overlay-viewport={activeTab === 'garden' ? undefined : 'sheet'}
           role="dialog"
@@ -724,7 +713,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             </div>
           </motion.div>
         </div>
-      </FocusTrap>
+      </FocusTrap></OverlayPortal>
     </AnimatePresence>
   );
 };

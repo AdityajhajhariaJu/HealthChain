@@ -1,3 +1,4 @@
+import OverlayPortal from '../../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -32,7 +33,7 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
 
   return (
     <AnimatePresence>
-      <div
+      <OverlayPortal><div
         data-overlay-viewport="center"
         style={{
           position: 'fixed',
@@ -688,7 +689,7 @@ export const LandingWorkflowReasoningModal: React.FC<LandingWorkflowReasoningMod
             </div>
           </motion.div>
         </FocusTrap>
-      </div>
+      </div></OverlayPortal>
     </AnimatePresence>
   );
 };

@@ -338,6 +338,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
             marginBottom: 24,
           }}
         >
@@ -390,7 +392,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             style={{
               padding: isMobile ? '20px 18px 0' : '26px 36px 0',
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
               gap: 8,
             }}
           >
@@ -429,6 +431,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                     fontWeight: 800,
                     textAlign: 'center',
                     display: 'flex',
+                    minWidth: 0,
+                    flexDirection: isMobile ? 'column' : 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 6,
@@ -438,7 +442,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                 >
                   {isPast ? <Check size={14} /> : <Icon size={14} />}
                   <span
-                    style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    style={{ fontSize: isMobile ? 11 : 12 }}
                   >
                     {s.label}
                   </span>
@@ -1468,6 +1472,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
               style={{
                 marginTop: 28,
                 display: 'flex',
+                flexWrap: 'wrap',
                 justifyContent: 'space-between',
                 gap: 12,
                 alignItems: 'center',

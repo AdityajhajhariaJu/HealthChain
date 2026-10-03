@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Clock3, CloudOff, Mic, MicOff, Utensils, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -214,7 +215,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
 
   if (!isOpen) return null;
 
-  if (simple) return <FocusTrap isActive={isOpen}>
+  if (simple) return <OverlayPortal><FocusTrap isActive={isOpen}>
     <div
       data-overlay-viewport="center" className="gr-meal-backdrop" role="dialog" aria-modal="true" aria-label="Record a meal" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div
@@ -230,11 +231,11 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
           data-overlay-footer="" className="gr-meal-footer"><button type="button" disabled={!mealText.trim()} onClick={handleSaveMeal}>Save meal <ArrowRight size={17} /></button></div>
       </div>
     </div>
-  </FocusTrap>;
+  </FocusTrap></OverlayPortal>;
 
   return (
     <AnimatePresence>
-      <FocusTrap isActive={isOpen}>
+      <OverlayPortal><FocusTrap isActive={isOpen}>
         <div
           data-overlay-viewport="sheet"
           role="dialog"
@@ -649,7 +650,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
             </div>
           </motion.div>
         </div>
-      </FocusTrap>
+      </FocusTrap></OverlayPortal>
     </AnimatePresence>
   );
 };

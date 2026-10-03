@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -4091,7 +4092,7 @@ export default function Dietician() {
         {/* Floating Food Logger Modal */}
         <AnimatePresence>
           {isLoggingFood && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -4129,14 +4130,14 @@ export default function Dietician() {
                   style={{
                     background: '#FFFFFF',
                     borderRadius: '28px',
-                    padding: isMobile ? '24px 18px' : '28px',
+                    padding: 0,
                     width: '100%',
                     maxWidth: '560px',
                     position: 'relative',
                     zIndex: 1001,
                     boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
                     maxHeight: 'var(--overlay-available-height)',
-                    overflowY: 'auto',
+                    overflow: 'hidden', display: 'flex', flexDirection: 'column',
                   }}
                 >
 
@@ -4147,7 +4148,7 @@ export default function Dietician() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '12px',
-                      marginBottom: '8px',
+                      marginBottom: 0, padding: isMobile ? '24px 18px 8px' : '28px 28px 8px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
@@ -4194,6 +4195,7 @@ export default function Dietician() {
                       <X size={16} />
                     </button>
                   </div>
+                  <div data-overlay-scroll="" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: isMobile ? '0 18px 24px' : '0 28px 28px' }}>
 
                   {/* Meal type selection */}
                   <div
@@ -4465,16 +4467,17 @@ export default function Dietician() {
                       'Save meal name'
                     )}
                   </button>
+                </div>
                 </motion.div>
               </FocusTrap>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
         {/* Custom Reset Diet Profile Confirmation Modal */}
         <AnimatePresence>
           {showResetDietConfirm && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -4652,14 +4655,14 @@ export default function Dietician() {
                   </button>
                 </div>
               </motion.div>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
         {/* Onboarding Wizard Edit Overlay */}
         <AnimatePresence>
           {isEditingProfile && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               role="dialog"
               aria-modal="true"
@@ -4687,7 +4690,7 @@ export default function Dietician() {
                   }}
                 />
               </div>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
@@ -4744,7 +4747,7 @@ export default function Dietician() {
         {/* Package 7: Stop Plan Modal with Structured Reasons */}
         <AnimatePresence>
           {showStopPlanModal && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -4966,14 +4969,14 @@ export default function Dietician() {
                   </div>
                 </motion.div>
               </FocusTrap>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
         {/* Package 7: Edit Meal Modal */}
         <AnimatePresence>
           {editingMeal && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -5334,14 +5337,14 @@ export default function Dietician() {
                   </div>
                 </motion.div>
               </FocusTrap>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
         {/* Package 7: Edit Meal Replacements Modal */}
         <AnimatePresence>
           {swappingMeal && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -5503,14 +5506,14 @@ export default function Dietician() {
                   </div>
                 </motion.div>
               </FocusTrap>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
         {/* Package 7: Archived Past Plans Modal */}
         <AnimatePresence>
           {showArchivedPlansModal && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -5670,7 +5673,7 @@ export default function Dietician() {
                   </div>
                 </motion.div>
               </FocusTrap>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
 
@@ -5726,7 +5729,7 @@ export default function Dietician() {
           />
         )}
         {editingDiaryMeal && (
-          <div
+          <OverlayPortal><div
             data-overlay-viewport="center"
             style={{
               position: 'fixed',
@@ -5849,7 +5852,7 @@ export default function Dietician() {
                 </div>
               </div>
             </FocusTrap>
-          </div>
+          </div></OverlayPortal>
         )}
 
         <ClinicalEliminationModal

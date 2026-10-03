@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import {
   CheckCircle,
   Edit2,
@@ -509,7 +510,7 @@ export const AdminContentDashboard: React.FC = () => {
 
         {/* Deactivation Confirmation Modal */}
         {contentToDelete && (
-          <div
+          <OverlayPortal><div
             data-overlay-viewport="center"
             role="dialog"
             aria-modal="true"
@@ -595,7 +596,7 @@ export const AdminContentDashboard: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div></OverlayPortal>
         )}
       </div>
     );

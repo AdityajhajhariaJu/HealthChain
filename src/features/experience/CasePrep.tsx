@@ -1,4 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import OverlayPortal from '../../components/ui/OverlayPortal';
+import FocusTrap from '../../components/ui/FocusTrap';
 import {
   AlertCircle,
   ArrowLeft,
@@ -1251,7 +1253,7 @@ export default function CasePrep() {
       {/* Drawer */}
       <AnimatePresence>
         {showDrawer && (
-          <>
+          <OverlayPortal><FocusTrap onEscape={() => setShowDrawer(false)}>
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100000 }}
@@ -1264,7 +1266,7 @@ export default function CasePrep() {
               aria-modal="true"
               aria-label="Supporting detail"
               className="hc-detail-drawer"
-              style={{ position: 'fixed', top: 'calc(var(--app-viewport-top, 0px) + var(--safe-area-top, 0px))', right: 'var(--safe-area-right, 0px)', height: 'calc(var(--app-viewport-height) - var(--safe-area-top, 0px))', width: 'calc(100% - var(--safe-area-left, 0px) - var(--safe-area-right, 0px))', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
+              style={{ position: 'fixed', top: 'calc(var(--app-viewport-top, 0px) + var(--safe-area-top, 0px))', right: 'var(--safe-area-right, 0px)', height: 'calc(var(--app-viewport-height) - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px))', width: 'calc(100% - var(--safe-area-left, 0px) - var(--safe-area-right, 0px))', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
             >
               <div
                 data-overlay-header="" style={{ padding: '24px', borderBottom: '1px solid #F1E5E7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1294,7 +1296,7 @@ export default function CasePrep() {
                 </div>
               </div>
             </motion.div>
-          </>
+          </FocusTrap></OverlayPortal>
         )}
       </AnimatePresence>
 

@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -573,7 +574,7 @@ export default function MyCases() {
         {/* Custom Delete Confirmation Modal */}
         <AnimatePresence>
           {caseToDelete && (
-            <div
+            <OverlayPortal><div
               data-overlay-viewport="center"
               style={{
                 position: 'fixed',
@@ -669,7 +670,7 @@ export default function MyCases() {
                   </button>
                 </div>
               </motion.div>
-            </div>
+            </div></OverlayPortal>
           )}
         </AnimatePresence>
       </div>

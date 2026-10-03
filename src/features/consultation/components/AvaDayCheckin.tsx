@@ -1,3 +1,4 @@
+import OverlayPortal from '../../../components/ui/OverlayPortal';
 import { useRef, useState } from 'react';
 import FocusTrap from '../../../components/ui/FocusTrap';
 import {
@@ -59,7 +60,7 @@ export function AvaDayCheckin({ onClose }: { onClose: () => void }) {
     }
   };
   return (
-    <FocusTrap onEscape={onClose}>
+    <OverlayPortal><FocusTrap onEscape={onClose}>
       <div
         data-overlay-viewport="center"
         role="dialog"
@@ -139,6 +140,6 @@ export function AvaDayCheckin({ onClose }: { onClose: () => void }) {
           {status && <p role="status">{status}</p>}
         </section>
       </div>
-    </FocusTrap>
+    </FocusTrap></OverlayPortal>
   );
 }

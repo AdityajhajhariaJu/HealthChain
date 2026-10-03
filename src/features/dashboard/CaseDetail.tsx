@@ -198,6 +198,8 @@ export default function CaseDetail() {
     <div
       style={{
         maxWidth: 1180,
+        width: '100%',
+        minWidth: 0,
         margin: '0 auto',
         padding: isMobile ? '16px 12px 60px' : '24px 20px 60px',
         minHeight: '100vh',
@@ -251,7 +253,7 @@ export default function CaseDetail() {
             gap: 20,
           }}
         >
-          <div>
+          <div style={{ minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' }}>
             <div
               style={{
                 display: 'flex',
@@ -644,7 +646,7 @@ export default function CaseDetail() {
                       border: '1px solid #E2E8F0',
                     }}
                   >
-                    <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
                       <div
                         style={{
                           width: 40,
@@ -659,7 +661,7 @@ export default function CaseDetail() {
                       >
                         <FileText size={20} />
                       </div>
-                      <div>
+                      <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                         <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 15 }}>
                           {record.filename}
                         </div>

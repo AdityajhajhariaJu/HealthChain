@@ -574,9 +574,10 @@ export default function AppShell() {
             '/app/trophies',
             '/app/war-room',
           ].some((p) => location.pathname.startsWith(p)) && <ActiveCaseBar navigate={navigate} />}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%', minWidth: 0 }}>
             <Outlet />
           </div>
+          <FeedbackWidget />
         </div>
       </motion.main>
 
@@ -1131,7 +1132,6 @@ export default function AppShell() {
       <PointsAwardedToast />
       <PillNotificationBanner />
       <TrialFeaturesModal />
-      <FeedbackWidget />
       <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
       <ConflictResolutionModal
         isOpen={showConflictModal}

@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import {
   Activity,
   CalendarDays,
@@ -549,7 +550,7 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({
         </div>
       )}
       {selected && (
-        <div
+        <OverlayPortal><div
           data-overlay-viewport="center"
           role="dialog"
           aria-modal="true"
@@ -717,7 +718,7 @@ export const DigestionCalendarHeatmap: React.FC<Props> = ({
               {saving ? 'Saving…' : 'Save observation'}
             </button>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </section>
   );

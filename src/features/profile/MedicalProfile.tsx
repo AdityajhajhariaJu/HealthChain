@@ -1,3 +1,4 @@
+import OverlayPortal from '../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -552,9 +553,7 @@ export default function MedicalProfile() {
             <strong
               style={{
                 display: 'block',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                overflowWrap: 'anywhere',
                 marginTop: '4px',
               }}
             >
@@ -1628,7 +1627,7 @@ export default function MedicalProfile() {
                               flexWrap: 'wrap'
                             }}
                           >
-                            <span style={{ fontWeight: 800 }}>{mName}</span>
+                            <span style={{ fontWeight: 800, overflowWrap: 'anywhere' }}>{mName}</span>
                             {mDosage && <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>({mDosage})</span>}
                             {(mSlot || slotTime) && <span style={{
                               fontSize: '11px',
@@ -1985,7 +1984,7 @@ export default function MedicalProfile() {
         {/* Custom Clear Data Confirmation Modal */}
       <AnimatePresence>
         {showClearConfirm && (
-          <div
+          <OverlayPortal><div
             data-overlay-viewport="center"
             style={{
               position: 'fixed',
@@ -2053,7 +2052,7 @@ export default function MedicalProfile() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div></OverlayPortal>
         )}
       </AnimatePresence>
     </motion.div>

@@ -1,3 +1,4 @@
+import OverlayPortal from '../../../components/ui/OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, MapPin, ShieldAlert, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -41,7 +42,7 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
 
   return (
     <AnimatePresence>
-      <FocusTrap onEscape={onClose}>
+      <OverlayPortal><FocusTrap onEscape={onClose}>
         <div
           data-overlay-viewport="center"
           style={{
@@ -325,7 +326,7 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
             </div>
           </motion.div>
         </div>
-      </FocusTrap>
+      </FocusTrap></OverlayPortal>
     </AnimatePresence>
   );
 };

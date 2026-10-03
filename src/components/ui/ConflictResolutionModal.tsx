@@ -1,3 +1,4 @@
+import OverlayPortal from './OverlayPortal';
 import { AlertOctagon, Check, Cloud, HardDrive, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { CaseItem } from '../../services/CaseEngine';
@@ -23,7 +24,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
   if (unresolvedConflicts.length === 0) {
     return (
-      <div
+      <OverlayPortal><div
         data-overlay-viewport="center" role="dialog" aria-modal="true" aria-label="Resolve simultaneous edits" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
         <div
           data-overlay-panel="" className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
@@ -42,7 +43,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
             Done
           </button>
         </div>
-      </div>
+      </div></OverlayPortal>
     );
   }
 
@@ -138,7 +139,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
   };
 
   return (
-    <div data-overlay-viewport="center" role="dialog" aria-modal="true" aria-label="Resolve simultaneous edits" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <OverlayPortal><div data-overlay-viewport="center" role="dialog" aria-modal="true" aria-label="Resolve simultaneous edits" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
       <div data-overlay-panel="" className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col">
         {/* Header */}
         <div
@@ -237,6 +238,6 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
           </button>
         </div>
       </div>
-    </div>
+    </div></OverlayPortal>
   );
 };
