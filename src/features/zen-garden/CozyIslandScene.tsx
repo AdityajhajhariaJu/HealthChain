@@ -28,16 +28,6 @@ function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
     slow: number;
   }>({ latency: 0, warm: 0, slow: 0 });
   useEffect(() => {
-    if (camera instanceof OrthographicCamera) {
-      camera.zoom = Math.min(size.width / 11.3, size.height / 10.5);
-      // Preserve the viewing angle while framing both treetops and the rocky tip.
-      camera.position.set(8, 6.4, 8);
-      camera.lookAt(0, -0.6, 0);
-      camera.updateProjectionMatrix();
-      invalidate();
-    }
-  }, [camera, size.width, size.height, invalidate]);
-  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let presentationFrame: number | undefined;
     const request = () => {
@@ -82,6 +72,17 @@ function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
     invalidate();
   }, [gl, level, growth, theme, invalidate]);
   useFrame(({ clock }) => {
+    // Fit before the first draw, including reduced-motion and narrow screens.
+    // A passive effect can leave the initial frame at the default camera zoom.
+    if (camera instanceof OrthographicCamera) {
+      const zoom = Math.min(size.width / 11.3, size.height / 10.5);
+      if (camera.zoom !== zoom || camera.position.y !== 6.4) {
+        camera.zoom = zoom;
+        camera.position.set(8, 6.4, 8);
+        camera.lookAt(0, -0.6, 0);
+        camera.updateProjectionMatrix();
+      }
+    }
     frame.current.start = performance.now();
     frame.current.latency =
       frame.current.requested === undefined ? 0 : frame.current.start - frame.current.requested;

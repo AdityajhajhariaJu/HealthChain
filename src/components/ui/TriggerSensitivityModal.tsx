@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
+  ArrowLeft,
   ChevronRight,
   Flower2,
   Footprints,
@@ -86,6 +87,18 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
     }
   }, [isOpen, onClose]);
 
+  React.useEffect(() => {
+    if (!isOpen || activeTab !== 'garden') return;
+    const targets = [document.body, document.getElementById('main-content')].filter(
+      (target): target is HTMLElement => !!target
+    );
+    const previous = targets.map((target) => target.style.overflow);
+    targets.forEach((target) => { target.style.overflow = 'hidden'; });
+    return () => targets.forEach((target, index) => {
+      if (target.style.overflow === 'hidden') target.style.overflow = previous[index];
+    });
+  }, [isOpen, activeTab]);
+
   if (!isOpen) return null;
 
   const tabs: { id: WholeHealthTab; label: string; icon: string }[] = [
@@ -102,6 +115,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
       <FocusTrap isActive={isOpen} onEscape={onClose}>
         <div
           role="dialog"
+          className={activeTab === 'garden' ? 'zen-modal-backdrop' : undefined}
           aria-modal="true"
           aria-label={standaloneTab && activeTab === 'garden' ? 'Zen Garden' : 'Whole Health Picture and Food Sensitivities'}
           style={{
@@ -121,6 +135,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
           onClick={onClose}
         >
           <motion.div
+            className={activeTab === 'garden' ? 'zen-modal-sheet' : undefined}
             initial={activeTab === 'garden' ? false : { y: '100%' }}
             animate={{ y: 0 }}
             exit={activeTab === 'garden' ? undefined : { y: '100%' }}
@@ -129,12 +144,12 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             style={{
               width: '100%',
               maxWidth: '580px',
-              maxHeight: '92vh',
+              maxHeight: activeTab === 'garden' ? undefined : '92vh',
               background: activeTab === 'garden'
                 ? 'linear-gradient(180deg, #FFFFFF 0%, #FFFAFA 40%, #FFF7F8 100%)'
                 : 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
-              borderTopLeftRadius: '32px',
-              borderTopRightRadius: '32px',
+              borderTopLeftRadius: activeTab === 'garden' ? undefined : '32px',
+              borderTopRightRadius: activeTab === 'garden' ? undefined : '32px',
               border: activeTab === 'garden' ? '1.5px solid #F1E5E7' : '1.5px solid #CCFBF1',
               boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
@@ -143,20 +158,35 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             }}
           >
             {/* Grab Handle */}
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px', flexShrink: 0 }}>
               <div style={{ width: '40px', height: '4.5px', borderRadius: '999px', background: activeTab === 'garden' ? '#F1E5E7' : '#E2E8F0' }} />
             </div>
 
             {/* Header */}
             <div
+              className={activeTab === 'garden' ? 'zen-modal-header' : undefined}
               style={{
-                padding: '14px 20px 10px 20px',
+                padding: activeTab === 'garden' ? undefined : '14px 20px 10px 20px',
+                flexShrink: 0,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}
             >
-              <div>
+              {activeTab === 'garden' && (
+                <button
+                  type="button"
+                  className="zen-modal-back"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (standaloneTab) onClose();
+                    else setActiveTab('picture');
+                  }}
+                >
+                  <ArrowLeft size={18} aria-hidden="true" /> Back
+                </button>
+              )}
+              <div style={activeTab === 'garden' ? { minWidth: 0, flex: 1 } : undefined}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
                   {standaloneTab && activeTab === 'garden' ? 'WELLNESS GARDEN' : 'PRECISION METABOLIC INTELLIGENCE'}
                 </span>
@@ -245,10 +275,12 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
 
             {/* Scrollable Content Container */}
             <div
+              className={activeTab === 'garden' ? 'zen-modal-content' : undefined}
               style={{
                 flex: 1,
+                minHeight: 0,
                 overflowY: 'auto',
-                padding: '0 20px 32px 20px',
+                padding: activeTab === 'garden' ? undefined : '0 20px 32px 20px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',

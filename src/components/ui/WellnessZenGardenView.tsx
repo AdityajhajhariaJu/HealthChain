@@ -37,11 +37,10 @@ export const WellnessZenGardenView: React.FC = () => {
   return (
     <div className="zen-garden" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div
+        className="zen-garden-card"
         style={{
           position: 'relative',
           background: 'radial-gradient(ellipse at top, #FFFFFF 0%, #FFFAFA 45%, #FFF7F8 100%)',
-          borderRadius: '28px',
-          padding: '24px 20px',
           border: '1.5px solid #F1E5E7',
           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.04)',
           display: 'flex',
@@ -180,10 +179,9 @@ export const WellnessZenGardenView: React.FC = () => {
       </div>
 
       <div
+        className="zen-garden-metrics"
         style={{
           background: '#FFFFFF',
-          borderRadius: '22px',
-          padding: '18px 20px',
           border: '1.5px solid #F1E5E7',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)',
           display: 'flex',

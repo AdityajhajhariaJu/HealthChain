@@ -439,3 +439,114 @@ test('saved water records, a Gut question and tending share one capped daily led
     points.getByTestId('points-history').getByText('+5 PTS', { exact: true })
   ).toHaveCount(3);
 });
+
+test('Back remains reachable inside phone safe areas and restores the dashboard without changing rewards', async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  await setup(page, 10, true);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/app/today');
+  const trigger = page.getByRole('button', { name: 'Open Zen Garden', exact: true });
+  for (const device of [
+    { width: 320, height: 568, top: 0, bottom: 0, side: 0 },
+    { width: 390, height: 844, top: 44, bottom: 34, side: 0 },
+    { width: 844, height: 390, top: 0, bottom: 21, side: 44 },
+  ]) {
+    await page.setViewportSize({ width: device.width, height: device.height });
+    const insets = await page.addStyleTag({
+      content:
+        '.zen-modal-backdrop { --safe-area-top: ' +
+        device.top +
+        'px; --safe-area-bottom: ' +
+        device.bottom +
+        'px; --safe-area-left: ' +
+        device.side +
+        'px; --safe-area-right: ' +
+        device.side +
+        'px; }',
+    });
+    const garden = await open(page);
+    const sheet = garden.locator('.zen-modal-sheet');
+    const back = garden.getByRole('button', { name: 'Back', exact: true });
+    const bounds = await sheet.boundingBox();
+    expect(bounds!.x).toBeGreaterThanOrEqual(Math.max(8, device.side) - 1);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(
+      device.width - Math.max(8, device.side) + 1
+    );
+    expect(bounds!.y).toBeGreaterThanOrEqual(Math.max(12, device.top) - 1);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(
+      device.height - Math.max(8, device.bottom) + 1
+    );
+    expect(
+      await sheet.evaluate((node) => {
+        const style = getComputedStyle(node);
+        return [
+          style.borderTopLeftRadius,
+          style.borderTopRightRadius,
+          style.borderBottomLeftRadius,
+          style.borderBottomRightRadius,
+        ].every((radius) => parseFloat(radius) >= 16);
+      })
+    ).toBe(true);
+    expect(await garden.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+    const start = await back.boundingBox();
+    expect(start!.width).toBeGreaterThanOrEqual(44);
+    expect(start!.height).toBeGreaterThanOrEqual(44);
+    await garden.getByRole('button', { name: 'How it grows', exact: true }).click();
+    await garden.getByText('Garden Streak', { exact: true }).scrollIntoViewIfNeeded();
+    await expect(back).toBeInViewport();
+    await expect(garden.getByRole('button', { name: 'Close modal', exact: true })).toBeInViewport();
+    expect((await back.boundingBox())!.y).toBeCloseTo(start!.y, 0);
+    const content = await garden.locator('.zen-modal-content').boundingBox();
+    const metrics = await garden.locator('.zen-garden-metrics').boundingBox();
+    expect(metrics!.y + metrics!.height).toBeLessThanOrEqual(content!.y + content!.height + 1);
+    const background = page.locator('#main-content');
+    const scrollTop = await background.evaluate((node) => node.scrollTop);
+    await back.hover();
+    await page.mouse.wheel(0, 320);
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    );
+    expect(await background.evaluate((node) => node.scrollTop)).toBe(scrollTop);
+    const receipts = Object.keys((await ledger(page)).receipts).length;
+    await back.click();
+    await expect(garden).toBeHidden();
+    await expect(page).toHaveURL(/\/app\/today$/);
+    await expect(trigger).toBeFocused();
+    expect(Object.keys((await ledger(page)).receipts)).toHaveLength(receipts);
+    await insets.evaluate((node) => node.remove());
+  }
+});
+
+test('Back from the embedded garden returns to Whole Health without closing its dialog', async ({
+  page,
+}) => {
+  await setup(page, 3, true);
+  await page.goto('/app/ava');
+  const trigger = page.getByRole('button', { name: 'Whole Health', exact: true });
+  // WebKit does not focus buttons on pointer clicks; establish keyboard focus.
+  await trigger.focus();
+  await trigger.press('Enter');
+  const dialog = page.getByRole('dialog', {
+    name: 'Whole Health Picture and Food Sensitivities',
+    exact: true,
+  });
+  await dialog.getByRole('button', { name: 'Zen Garden', exact: true }).click();
+  const back = dialog.getByRole('button', { name: 'Back', exact: true });
+  await expect(back).toBeInViewport();
+  await expect(dialog.locator('.zen-garden')).toBeVisible();
+  const receipts = Object.keys((await ledger(page)).receipts).length;
+  await back.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('.zen-garden')).toHaveCount(0);
+  await expect(back).toHaveCount(0);
+  await expect(page).toHaveURL(/\/app\/ava$/);
+  expect(Object.keys((await ledger(page)).receipts)).toHaveLength(receipts);
+  await dialog.getByRole('button', { name: 'Close modal', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Whole Health', exact: true })).toBeFocused();
+});

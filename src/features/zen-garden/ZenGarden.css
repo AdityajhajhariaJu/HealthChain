@@ -222,3 +222,89 @@
     transform: none;
   }
 }
+
+/* Keep the garden sheet inside the visible viewport, including device cutouts.
+   Only its body scrolls; navigation remains available beside the title. */
+.zen-modal-backdrop {
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
+  padding: max(12px, var(--safe-area-top, 0px))
+    max(8px, var(--safe-area-right, env(safe-area-inset-right, 0px)))
+    max(8px, var(--safe-area-bottom, 0px))
+    max(8px, var(--safe-area-left, env(safe-area-inset-left, 0px)));
+  overscroll-behavior: none;
+}
+.zen-modal-sheet {
+  max-height: calc(
+    100vh - max(12px, var(--safe-area-top, 0px)) - max(8px, var(--safe-area-bottom, 0px))
+  );
+  max-height: min(
+    92dvh,
+    calc(100dvh - max(12px, var(--safe-area-top, 0px)) - max(8px, var(--safe-area-bottom, 0px)))
+  );
+  min-height: 0;
+  border-radius: 28px;
+}
+.zen-modal-header {
+  padding: 14px 20px 12px;
+  gap: 8px;
+}
+.zen-modal-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 68px;
+  min-height: 44px;
+  flex-shrink: 0;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1.5px solid #f1e5e7;
+  background: #fff;
+  color: #0f766e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.zen-modal-back:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 2px;
+}
+.zen-modal-content {
+  padding: 0 20px 24px;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.zen-garden-card {
+  border-radius: 28px;
+  padding: 24px 20px;
+}
+.zen-garden-metrics {
+  border-radius: 22px;
+  padding: 18px 20px;
+}
+@media (max-width: 480px) {
+  .zen-modal-sheet {
+    border-radius: 24px;
+  }
+  .zen-modal-header {
+    padding: 12px 12px 10px;
+  }
+  .zen-modal-content {
+    padding: 0 12px 20px;
+  }
+  .zen-garden-card {
+    border-radius: 22px;
+    padding: 16px 12px;
+  }
+  .zen-garden-metrics {
+    border-radius: 20px;
+    padding: 16px 12px;
+  }
+  .zen-scene {
+    border-radius: 16px;
+  }
+}

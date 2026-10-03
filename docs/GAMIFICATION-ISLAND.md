@@ -2,6 +2,8 @@
 
 Implemented 3 October 2026. The dashboard thumbnail and full Zen Garden share the same island stage and atmosphere. The main garden loads procedural low-poly 3D only when opened; a matching pre-rendered island appears immediately and remains usable without WebGL. The approved pastel sky is a bundled 20 KB WebP background shared by the main view and thumbnail; no remote assets or additional dependencies are required. The island replaces only the original garden illustration; the surrounding garden presentation remains the earlier HealthChain design.
 
+The garden sheet keeps a visible Back button and close control in a fixed header. Back closes a standalone garden or returns to the Whole Health overview when opened inside that flow. The body scrolls within rounded corners, respects viewport safe areas in portrait and landscape, and locks background scrolling while open. The 3D camera fits the island before its first draw, including on narrow screens.
+
 ## One authoritative ledger, separate views
 
 `profile.gamification` is the owner/profile-scoped source of truth. `services/gamification/model.ts` owns deterministic receipts, migration, projection and merging. `policy.ts` owns reward categories, daily budgets, stage thresholds and palettes. `trophies.ts` projects achievements. `GamificationHub.ts` is the facade for commands and snapshots. Points, Trophy Cabinet, Garden and its live preview consume this hub; the old points/garden APIs are compatibility adapters.
@@ -41,5 +43,7 @@ The 3D renderer uses an orthographic camera fitted to its container, low-poly me
 ## Verification and release boundary
 
 Pure policy tests cover flooding, casual/heavy pacing, long breaks, permanent duplicate prevention, migration, timezone/DST and simultaneous-device merging. Hub tests cover owner isolation, readback failure, sanitized explanations and profile merge. Telemetry tests verify bounds and fetch/body/error preservation. Built-browser tests cover lazy loading, single tending, atmosphere persistence, shared points/trophies, narrow screens, reduced motion, focus restoration, WebGL fallback and unrewarded API traffic.
+
+Mobile navigation verification (3 October 2026): the production build and changed-source ESLint checks passed. All 22 core garden/browser checks and both embedded Back/keyboard navigation checks passed across Chromium and WebKit. Touch-context screenshots at 320×568, 390×844, 430×932 and 844×390 verified rounded corners, simulated portrait/landscape safe areas, reachable metrics, fixed navigation, no horizontal overflow and no page errors. Android and iOS asset copies passed.
 
 See `REPOSITORY-MAINTENANCE.md` for the final executed results. Browser/provider responses are controlled fixtures. Signed Android/iOS device performance, actual account synchronization across two devices and long-term user pacing still require acceptance testing; these checks do not establish clinical correctness or universal device performance.
