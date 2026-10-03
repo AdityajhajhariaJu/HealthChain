@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Group, OrthographicCamera } from 'three';
 import type { IslandTheme } from '../../services/gamification/policy';
 import { IslandPoster } from './IslandPoster';
+import { IslandUnderside } from './IslandUnderside';
 import { IslandCottage, IslandStructures } from './IslandBuildings';
 import { IslandAmbience, IslandPlanting, IslandPond, IslandTrees } from './IslandNature';
 import { ISLAND_COLORS } from './islandLayout';
@@ -28,7 +29,10 @@ function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
   }>({ latency: 0, warm: 0, slow: 0 });
   useEffect(() => {
     if (camera instanceof OrthographicCamera) {
-      camera.zoom = Math.min(size.width / 11.3, size.height / 8.9);
+      camera.zoom = Math.min(size.width / 11.3, size.height / 10.5);
+      // Preserve the viewing angle while framing both treetops and the rocky tip.
+      camera.position.set(8, 6.4, 8);
+      camera.lookAt(0, -0.6, 0);
       camera.updateProjectionMatrix();
       invalidate();
     }
@@ -103,10 +107,7 @@ function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
         shadow-normalBias={0.04}
       />
       <group ref={island}>
-        <mesh position={[0, -1.42, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[4.72, 3.1, 12]} />
-          <meshStandardMaterial color={colors.rock} flatShading />
-        </mesh>
+        <IslandUnderside theme={theme} />
         <mesh position={[0, -0.04, 0]}>
           <cylinderGeometry args={[4.8, 4.62, 0.35, 48]} />
           <meshStandardMaterial color="#b89065" />
@@ -169,19 +170,11 @@ function Landscape({ level, growth, theme, moving, onSlowRender }: SceneProps) {
                 <icosahedronGeometry args={[1, 0]} />
                 <meshStandardMaterial color="#d9c9a7" flatShading />
               </mesh>
-              <mesh position={[0, -0.27, 0]} scale={[0.14, 0.45 + (i % 3) * 0.16, 0.12]}>
-                <icosahedronGeometry args={[1, 0]} />
-                <meshStandardMaterial color={colors.leaves[0]} flatShading />
-              </mesh>
             </group>
           );
         })}
         <IslandAmbience theme={theme} moving={moving} level={level} />
       </group>
-      <mesh position={[0, -3.08, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.6, 1]}>
-        <circleGeometry args={[2.5, 40]} />
-        <meshBasicMaterial color="#758879" transparent opacity={0.09} depthWrite={false} />
-      </mesh>
     </>
   );
 }

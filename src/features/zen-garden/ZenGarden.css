@@ -5,16 +5,8 @@
 .zen-preview-art {
   position: relative;
   border-radius: 20px;
-  background: linear-gradient(#a6dce7, #fff3d8);
+  background: #c3c9e8 url('./assets/cozy-sky.webp') center / cover no-repeat;
   overflow: hidden;
-}
-.zen-scene[data-theme='blossom'],
-.zen-preview[data-theme='blossom'] .zen-preview-art {
-  background: linear-gradient(#e8cde5, #fff0d9);
-}
-.zen-scene[data-theme='dusk'],
-.zen-preview[data-theme='dusk'] .zen-preview-art {
-  background: linear-gradient(#c3bbde, #ffe2b4);
 }
 .zen-canvas {
   height: 330px;
