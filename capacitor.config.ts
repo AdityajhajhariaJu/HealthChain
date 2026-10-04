@@ -4,7 +4,7 @@ import { KeyboardResize } from '@capacitor/keyboard';
 const config: CapacitorConfig = {
   appId: 'com.healthchain.app',
   appName: 'HealthChain',
-  webDir: 'dist',
+  webDir: 'dist-native',
   server: { androidScheme: 'https', iosScheme: 'capacitor' },
   plugins: {
     StatusBar: { style: 'dark', backgroundColor: '#0F172A' },

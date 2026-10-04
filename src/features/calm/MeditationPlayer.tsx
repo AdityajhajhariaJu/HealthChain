@@ -1,25 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Check,
-  Clock,
-  Flame,
-  Layers,
-  ListMusic,
-  Moon,
-  Pause,
-  Play,
-  SkipBack,
-  SkipForward,
-  Sparkles,
-  Trophy,
-  Volume2,
-  VolumeX,
-  Wind,
-  X,
-} from 'lucide-react';
+import { Check, Clock, Flame, Layers, Moon, Sparkles, Trophy, Wind, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import Confetti from 'react-confetti';
 import { createPortal } from 'react-dom';
+import FocusTrap from '../../components/ui/FocusTrap';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/ui/ToastProvider';
 import {
@@ -39,6 +23,9 @@ import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngi
 import { useActionIslandStore } from '../../stores/actionIslandStore';
 
 import { LivingAtmosphereCanvas, type AtmosphereTheme } from './LivingAtmosphereCanvas';
+import { useAudioDownloads, useAudioSource } from './useAudioLibrary';
+import { SoundPlayerControls } from './SoundPlayerControls';
+import { SoundLibrary } from './SoundLibrary';
 
 // Dual-Layer Ambient Soundscape Mixer
 export type AmbientLayerKey = 'off' | 'rain' | 'forest' | 'frequency';
@@ -79,6 +66,14 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
   const [isCompleted, setIsCompleted] = useState(false);
   const [mediaActive, setMediaActive] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const [audioError, setAudioError] = useState('');
+  const [retryRevision, setRetryRevision] = useState(0);
+  const [repeatMode, setRepeatMode] = useState<'all' | 'one' | 'off'>('all');
+  const [shuffle, setShuffle] = useState(false);
+  const shufflePlayed = useRef(new Set<number>([0]));
+  const library = useAudioDownloads();
+  const playAttempt = useRef(0);
   const [saveError, setSaveError] = useState('');
   const scopeRef = useRef(captureAccountScope());
   const sessionIdRef = useRef(crypto.randomUUID());
@@ -97,16 +92,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   >('off');
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
-  const isCrossfading = useRef(false);
-  const transitionTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
-  const cancelCrossfade = () => {
-    for (const timer of transitionTimers.current) {
-      clearInterval(timer);
-      clearTimeout(timer);
-    }
-    transitionTimers.current.clear();
-    isCrossfading.current = false;
+  const resetAudioVolume = () => {
     if (audioRef.current) audioRef.current.volume = 1;
   };
 
@@ -172,21 +158,32 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [ambientLayer, setAmbientLayer] = useState<AmbientLayerKey>('off');
   const [ambientVolume, setAmbientVolume] = useState<number>(0.26);
   const [showAmbientMixer, setShowAmbientMixer] = useState<boolean>(false);
+  const ambientSource = useAudioSource(
+    ambientLayer === 'off' ? undefined : AMBIENT_LAYERS[ambientLayer].url
+  );
 
   useEffect(() => {
-    if (ambientAudioRef.current) {
-      if (ambientLayer === 'off') {
-        ambientAudioRef.current.pause();
-      } else {
-        ambientAudioRef.current.volume = isMuted ? 0 : ambientVolume;
-        if (isPlaying) {
-          ambientAudioRef.current.play().catch(() => {});
-        } else {
-          ambientAudioRef.current.pause();
-        }
-      }
-    }
-  }, [isPlaying, ambientLayer, ambientVolume, isMuted]);
+    const audio = ambientAudioRef.current;
+    if (audio) audio.volume = isMuted ? 0 : ambientVolume;
+  }, [ambientVolume, isMuted, ambientSource.src]);
+
+  useEffect(() => {
+    const audio = ambientAudioRef.current;
+    let cancelled = false;
+    if (audio && ambientLayer !== 'off' && mediaActive) {
+      void audio.play().catch((error) => {
+        if (cancelled || audio !== ambientAudioRef.current || error?.name === 'AbortError') return;
+        setAmbientLayer('off');
+        toast.error(
+          'Ambient sound unavailable',
+          'Try selecting the layer again while your sound is playing.'
+        );
+      });
+    } else audio?.pause();
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaActive, ambientLayer, ambientSource.src]);
 
   // Point 3: Post-Session Mindful Summary & Streak Celebration
   const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -220,6 +217,16 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const currentTrack = isPlaylistMode
     ? currentPlaylist[activeTrackIndex % currentPlaylist.length]
     : null;
+
+  const source = useAudioSource(currentTrack?.audioUrl, retryRevision);
+
+  useEffect(() => {
+    if (source.error) {
+      setAudioError(source.error);
+      setIsPlaying(false);
+      setBuffering(false);
+    }
+  }, [source.error, retryRevision]);
 
   const atmosphereTheme: AtmosphereTheme =
     isSleep ||
@@ -299,54 +306,73 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     fill: 'rgba(56, 189, 248, 0.08)',
   };
 
-  // Point 6: Seamless Audio Crossfade Engine
-  const switchTrackSmoothly = (newIndex: number) => {
+  const selectTrack = (newIndex: number) => {
     triggerHapticLight();
-    if (!audioRef.current || isMuted || !isPlaying) {
-      cancelCrossfade();
-      setActiveTrackIndex(newIndex);
-      return;
+    playAttempt.current += 1;
+    audioRef.current?.pause();
+    resetAudioVolume();
+    setMediaActive(false);
+    setAudioError('');
+    setBuffering(true);
+    setCurrentTime(0);
+    setDuration(0);
+    const selected = (newIndex + currentPlaylist.length) % currentPlaylist.length;
+    shufflePlayed.current.add(selected);
+    setActiveTrackIndex(selected);
+    setIsPlaying(true);
+    // Selecting the current track is also an explicit replay/retry.
+    if (newIndex === activeTrackIndex) setRetryRevision((value) => value + 1);
+  };
+  const nextTrackIndex = () => {
+    if (!shuffle || currentPlaylist.length < 2)
+      return (activeTrackIndex + 1) % currentPlaylist.length;
+    let choices = currentPlaylist
+      .map((_, index) => index)
+      .filter((index) => !shufflePlayed.current.has(index));
+    if (!choices.length) {
+      shufflePlayed.current = new Set([activeTrackIndex]);
+      choices = currentPlaylist
+        .map((_, index) => index)
+        .filter((index) => index !== activeTrackIndex);
     }
-
-    if (isCrossfading.current) return;
-    isCrossfading.current = true;
-
-    let fadeOutStep = 0;
-    const fadeOutInterval = setInterval(() => {
-      fadeOutStep += 1;
-      if (audioRef.current) {
-        audioRef.current.volume = Math.max(0, 1 - fadeOutStep / 5);
-      }
-      if (fadeOutStep >= 5) {
-        clearInterval(fadeOutInterval);
-        transitionTimers.current.delete(fadeOutInterval);
-        setActiveTrackIndex(newIndex);
-
-        const fadeDelay = setTimeout(() => {
-          transitionTimers.current.delete(fadeDelay);
-          if (audioRef.current && !isMuted) {
-            audioRef.current.volume = 0;
-            let fadeInStep = 0;
-            const fadeInInterval = setInterval(() => {
-              fadeInStep += 1;
-              if (audioRef.current) {
-                audioRef.current.volume = Math.min(1, fadeInStep / 6);
-              }
-              if (fadeInStep >= 6) {
-                clearInterval(fadeInInterval);
-                transitionTimers.current.delete(fadeInInterval);
-                isCrossfading.current = false;
-              }
-            }, 100);
-            transitionTimers.current.add(fadeInInterval);
-          } else {
-            isCrossfading.current = false;
-          }
-        }, 150);
-        transitionTimers.current.add(fadeDelay);
-      }
-    }, 80);
-    transitionTimers.current.add(fadeOutInterval);
+    return choices[Math.floor(Math.random() * choices.length)];
+  };
+  const startPlayback = () => {
+    const audio = audioRef.current;
+    if (!audio || !source.src) return;
+    const attempt = ++playAttempt.current;
+    setAudioError('');
+    setBuffering(true);
+    void audio.play().catch((error) => {
+      if (attempt !== playAttempt.current || audioRef.current !== audio) return;
+      if (error?.name === 'AbortError') return;
+      setBuffering(false);
+      setMediaActive(false);
+      setIsPlaying(false);
+      setAudioError(
+        error?.name === 'NotAllowedError'
+          ? 'Tap Play to start listening.'
+          : 'This sound could not play. Check your connection and retry.'
+      );
+    });
+  };
+  const togglePlayback = () => {
+    triggerHapticLight();
+    if (isPlaying) {
+      playAttempt.current += 1;
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    } else {
+      setIsPlaying(true);
+      startPlayback();
+    }
+  };
+  const seekAudio = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    const target = Math.max(0, Math.min(seconds, audio.duration));
+    audio.currentTime = target;
+    setCurrentTime(target);
   };
 
   // Point 5: iOS Lock Screen & Dynamic Island MediaSession Integration
@@ -371,10 +397,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
         artwork: [{ src: absoluteCover, sizes: '512x512', type: 'image/jpeg' }],
       });
 
-      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      navigator.mediaSession.playbackState = mediaActive ? 'playing' : 'paused';
 
       navigator.mediaSession.setActionHandler('play', () => {
         setIsPlaying(true);
+        startPlayback();
         triggerHapticLight();
       });
 
@@ -385,15 +412,13 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         if (isPlaylistMode && currentPlaylist.length > 0) {
-          switchTrackSmoothly(
-            activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1
-          );
+          selectTrack(activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1);
         }
       });
 
       navigator.mediaSession.setActionHandler('nexttrack', () => {
         if (isPlaylistMode && currentPlaylist.length > 0) {
-          switchTrackSmoothly((activeTrackIndex + 1) % currentPlaylist.length);
+          selectTrack(nextTrackIndex());
         }
       });
 
@@ -420,6 +445,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     };
   }, [
     isPlaying,
+    mediaActive,
+    shuffle,
     activeTrackIndex,
     currentTrack,
     isPlaylistMode,
@@ -427,31 +454,82 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     content,
     currentPlaylist.length,
     isMuted,
+    source.src,
+    retryRevision,
   ]);
 
   useEffect(() => {
-    if (!isPlaying || isMuted) cancelCrossfade();
-    if (audioRef.current) {
-      audioRef.current.muted = isMuted;
-      if (isPlaying) {
-        audioRef.current.play().catch(() => {
-          setIsPlaying(false);
-        });
-      } else {
-        audioRef.current.pause();
-      }
+    if (audioRef.current) audioRef.current.muted = isMuted;
+  }, [isMuted, source.src]);
+
+  useEffect(() => {
+    if (isPlaying && source.src) startPlayback();
+    else {
+      playAttempt.current += 1;
+      audioRef.current?.pause();
+      setMediaActive(false);
+      setBuffering(false);
     }
-  }, [isPlaying, activeTrackIndex, content, isMuted]);
+    return () => {
+      playAttempt.current += 1;
+    };
+  }, [isPlaying, source.src, activeTrackIndex, retryRevision]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    return () => {
+      audio?.pause();
+    };
+  }, [source.src, activeTrackIndex, retryRevision]);
+
+  useEffect(() => {
+    const audio = ambientAudioRef.current;
+    return () => {
+      audio?.pause();
+    };
+  }, [ambientSource.src, ambientLayer]);
+
+  useEffect(() => {
+    if (!buffering || !isPlaying) return;
+    const timeout = setTimeout(() => {
+      setAudioError(
+        'Taking longer than expected. Check your connection or try a downloaded sound.'
+      );
+      setIsPlaying(false);
+      setBuffering(false);
+    }, 20_000);
+    return () => clearTimeout(timeout);
+  }, [buffering, isPlaying, source.src]);
+
+  useEffect(() => {
+    if (
+      !('mediaSession' in navigator) ||
+      !navigator.mediaSession.setPositionState ||
+      !Number.isFinite(duration) ||
+      duration <= 0
+    )
+      return;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration,
+        playbackRate: 1,
+        position: Math.min(currentTime, duration),
+      });
+    } catch {
+      /* Unsupported WebViews may omit position state. */
+    }
+  }, [currentTime, duration]);
 
   const totalDuration = (content?.duration_minutes || 5) * 60;
 
   useEffect(() => {
     if (content) {
-      cancelCrossfade();
+      resetAudioVolume();
       setTimeRemaining(totalDuration);
       setIsPlaying(true);
       setIsCompleted(false);
       setActiveTrackIndex(0);
+      shufflePlayed.current = new Set([0]);
       setMediaActive(false);
       setSaveError('');
       scopeRef.current = captureAccountScope();
@@ -486,38 +564,24 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      cancelCrossfade();
+      resetAudioVolume();
       if (audioRef.current) {
         audioRef.current.pause();
       }
       if (ambientAudioRef.current) {
         ambientAudioRef.current.pause();
       }
-      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
     };
   }, []);
 
-  // Auto-hide controls when playing
+  // Keep the transport available while listening; Zen mode hides it explicitly.
   const resetControlsTimeout = () => {
-    if (isZenMode) {
-      setShowControls(false);
-      return;
-    }
-    setShowControls(true);
-    if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-    if (isPlaying) {
-      hideControlsTimer.current = setTimeout(() => {
-        if (!showPlaylist && !showAmbientMixer) setShowControls(false);
-      }, 4500);
-    }
+    setShowControls(!isZenMode);
   };
 
   useEffect(() => {
     resetControlsTimeout();
-    return () => {
-      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-    };
-  }, [isPlaying, showPlaylist, showAmbientMixer]);
+  }, [isPlaying, mediaActive, audioError, showPlaylist, showAmbientMixer, showSleepTimerSheet]);
 
   // Point 4: Session Countdown Timer & 10s Exponential Volume Fade-Out
   useEffect(() => {
@@ -690,76 +754,27 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     playlistTitle,
   ]);
 
-  // Point 5: Haptic Precision Scrubber with Floating Time Bubble
-  const [isScrubbing, setIsScrubbing] = useState(false);
-  const [scrubValue, setScrubValue] = useState(0);
-  const scrubBarRef = useRef<HTMLDivElement | null>(null);
-  const lastHapticIntervalRef = useRef<number>(-1);
-
-  const calculateScrubTimeFromEvent = (clientX: number) => {
-    if (!scrubBarRef.current || duration <= 0) return 0;
-    const rect = scrubBarRef.current.getBoundingClientRect();
-    const clampedX = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    const ratio = clampedX / rect.width;
-    return ratio * duration;
-  };
-
-  const handleScrubStart = (clientX: number) => {
-    if (duration <= 0) return;
-    setIsScrubbing(true);
-    triggerHapticLight();
-    const newTime = calculateScrubTimeFromEvent(clientX);
-    setScrubValue(newTime);
-    lastHapticIntervalRef.current = Math.floor(newTime / 30);
-  };
-
-  const handleScrubMove = (clientX: number) => {
-    if (!isScrubbing || duration <= 0) return;
-    const newTime = calculateScrubTimeFromEvent(clientX);
-    setScrubValue(newTime);
-
-    // Haptic tick on 30s boundaries
-    const interval = Math.floor(newTime / 30);
-    if (interval !== lastHapticIntervalRef.current) {
-      lastHapticIntervalRef.current = interval;
-      triggerHapticLight();
-    }
-  };
-
-  const handleScrubEnd = () => {
-    if (!isScrubbing) return;
-    setIsScrubbing(false);
-    triggerHapticLight();
-    setCurrentTime(scrubValue);
-    if (audioRef.current) {
-      audioRef.current.currentTime = scrubValue;
-    }
-  };
-
-  useEffect(() => {
-    if (!isScrubbing) return;
-    const onPointerMove = (e: PointerEvent) => {
-      handleScrubMove(e.clientX);
-    };
-    const onPointerUp = () => {
-      handleScrubEnd();
-    };
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-    return () => {
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-    };
-  }, [isScrubbing, scrubValue, duration]);
-
   const handleTrackEnded = () => {
-    if (isPlaylistMode && currentPlaylist.length > 0) {
-      if (sleepTimerOption === 'end_of_track') {
-        handleComplete();
-      } else {
-        switchTrackSmoothly((activeTrackIndex + 1) % currentPlaylist.length);
-      }
+    setMediaActive(false);
+    if (sleepTimerOption === 'end_of_track') {
+      void handleComplete();
+      return;
     }
+    if (repeatMode === 'one') {
+      seekAudio(0);
+      startPlayback();
+      return;
+    }
+    if (
+      repeatMode === 'off' &&
+      (shuffle
+        ? shufflePlayed.current.size >= currentPlaylist.length
+        : activeTrackIndex === currentPlaylist.length - 1)
+    ) {
+      setIsPlaying(false);
+      return;
+    }
+    selectTrack(nextTrackIndex());
   };
 
   return createPortal(
@@ -783,6 +798,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             userSelect: 'none',
             WebkitUserSelect: 'none',
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Calm audio player"
           onDoubleClick={toggleZenMode}
           onClick={() => {
             if (isZenMode) {
@@ -793,1597 +811,548 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             }
             resetControlsTimeout();
             if (audioRef.current && isPlaying && audioRef.current.paused) {
-              audioRef.current.play().catch(() => {});
+              startPlayback();
             }
           }}
         >
-          {saveError && (
-            <div
-              role="alert"
-              style={{
-                position: 'absolute',
-                top: 'calc(20px + var(--safe-area-top, 0px))',
-                left: 20,
-                right: 20,
-                zIndex: 20,
-                background: '#fff',
-                color: '#0f172a',
-                padding: 16,
-                borderRadius: 16,
-              }}
-            >
-              {saveError}{' '}
-              <button type="button" style={{ minHeight: 44 }} onClick={() => void handleComplete()}>
-                Retry saving participation
-              </button>
-            </div>
-          )}
-          {/* Point 8: Zen Mode Floating Feedback Pill */}
-          <AnimatePresence>
-            {zenToastVisible && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
+          <FocusTrap>
+            {saveError && (
+              <div
+                role="alert"
                 style={{
                   position: 'absolute',
-                  top: 'calc(var(--safe-area-top, 0px) + 24px)',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 100,
-                  background: 'rgba(15, 23, 42, 0.82)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  borderRadius: '24px',
-                  padding: '8px 18px',
-                  color: 'rgba(255, 255, 255, 0.95)',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  pointerEvents: 'none',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                  top: 'calc(20px + var(--safe-area-top, 0px))',
+                  left: 20,
+                  right: 20,
+                  zIndex: 20,
+                  background: '#fff',
+                  color: '#0f172a',
+                  padding: 16,
+                  borderRadius: 16,
                 }}
               >
-                <Sparkles size={14} color="#38BDF8" />
-                <span>
-                  {isZenMode
-                    ? 'Zen Mode Active • Double-tap canvas to restore controls'
-                    : 'Controls Restored'}
-                </span>
-              </motion.div>
+                {saveError}{' '}
+                <button
+                  type="button"
+                  style={{ minHeight: 44 }}
+                  onClick={() => void handleComplete()}
+                >
+                  Retry saving participation
+                </button>
+              </div>
             )}
-          </AnimatePresence>
-
-          {isCompleted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              style={{
-                zIndex: 10,
-                textAlign: 'center',
-                color: 'white',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                padding: '24px',
-              }}
-            >
-              <Confetti
-                width={window.innerWidth}
-                height={window.innerHeight}
-                recycle={false}
-                colors={['#10B981', '#38BDF8', '#FFFFFF']}
-              />
-              <div
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background:
-                    'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%)',
-                  border: '1px solid rgba(16, 185, 129, 0.5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '24px',
-                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.25)',
-                }}
-              >
-                <Check size={40} color="#10B981" />
-              </div>
-              <h2
-                style={{
-                  fontSize: '32px',
-                  fontWeight: 800,
-                  margin: '0 0 8px',
-                  letterSpacing: '-0.5px',
-                }}
-              >
-                Mindful Session Complete
-              </h2>
-              <p
-                style={{ color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 32px', fontSize: '15px' }}
-              >
-                Your mindful state has been preserved and vitality logged.
-              </p>
-              <button
-                onClick={onClose}
-                style={{
-                  padding: '16px 40px',
-                  borderRadius: '30px',
-                  background: 'linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%)',
-                  color: '#0F172A',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-                }}
-              >
-                Return to Calm Space
-              </button>
-            </motion.div>
-          ) : (
-            <>
-              {/* Cinematic Ambient Background Layer */}
-              <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden' }}>
-                <motion.img
-                  key={isPlaylistMode && currentTrack ? currentTrack.id : content.id}
-                  initial={{ scale: 1, opacity: 0 }}
-                  animate={{
-                    scale: [1, 1.08, 1.02, 1],
-                    x: [0, -12, 8, 0],
-                    y: [0, 8, -6, 0],
-                    opacity: 0.88,
-                  }}
-                  transition={{
-                    scale: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-                    x: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-                    y: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-                    opacity: { duration: 0.8 },
-                  }}
-                  src={
-                    isPlaylistMode && currentTrack
-                      ? currentTrack.cover
-                      : content.id === 'mood-0'
-                        ? '/images/thumb_night_clouds_1788262545783.jpg'
-                        : content.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg'
-                  }
-                  alt="Atmosphere"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                {/* Multi-Stage Cinematic Vignette */}
-                <div
+            {/* Point 8: Zen Mode Floating Feedback Pill */}
+            <AnimatePresence>
+              {zenToastVisible && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
                   style={{
                     position: 'absolute',
-                    inset: 0,
-                    background:
-                      'radial-gradient(ellipse at center, rgba(5, 8, 17, 0.12) 0%, rgba(5, 8, 17, 0.52) 60%, rgba(5, 8, 17, 0.92) 100%)',
+                    top: 'calc(var(--safe-area-top, 0px) + 24px)',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 100,
+                    background: 'rgba(15, 23, 42, 0.82)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    borderRadius: '24px',
+                    padding: '8px 18px',
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    pointerEvents: 'none',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
                   }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background:
-                      'linear-gradient(to bottom, rgba(5, 8, 17, 0.6) 0%, transparent 25%, transparent 65%, rgba(5, 8, 17, 0.95) 100%)',
-                  }}
-                />
-                {/* 60fps Living Particle Atmosphere Engine */}
-                <LivingAtmosphereCanvas theme={atmosphereTheme} isPlaying={isPlaying} />
-              </div>
-
-              {/* Native Audio Element with Auto-Recovery */}
-              {isPlaylistMode && currentTrack && (
-                <audio
-                  ref={audioRef}
-                  src={encodeURI(currentTrack.audioUrl)}
-                  autoPlay={isPlaying}
-                  preload="auto"
-                  playsInline
-                  onPlaying={() => setMediaActive(true)}
-                  onPause={() => setMediaActive(false)}
-                  onWaiting={() => setMediaActive(false)}
-                  onError={() => {
-                    setMediaActive(false);
-                    console.warn('Track audio playback error, resetting playing state');
-                    setIsPlaying(false);
-                  }}
-                  onTimeUpdate={() => {
-                    if (audioRef.current) {
-                      setCurrentTime(audioRef.current.currentTime);
-                      if (!isNaN(audioRef.current.duration) && audioRef.current.duration > 0) {
-                        setDuration(audioRef.current.duration);
-                      }
-                    }
-                  }}
-                  onLoadedMetadata={() => {
-                    if (audioRef.current && !isNaN(audioRef.current.duration)) {
-                      setDuration(audioRef.current.duration);
-                    }
-                  }}
-                  onEnded={handleTrackEnded}
-                />
+                >
+                  <Sparkles size={14} color="#38BDF8" />
+                  <span>
+                    {isZenMode
+                      ? 'Zen Mode Active • Double-tap canvas to restore controls'
+                      : 'Controls Restored'}
+                  </span>
+                </motion.div>
               )}
+            </AnimatePresence>
 
-              {/* Point 2: Dual-Layer Ambient Soundscape Audio */}
-              {ambientLayer !== 'off' && AMBIENT_LAYERS[ambientLayer]?.url && (
-                <audio
-                  ref={ambientAudioRef}
-                  src={encodeURI(AMBIENT_LAYERS[ambientLayer].url)}
-                  loop
-                  autoPlay={isPlaying}
-                  preload="auto"
-                  playsInline
-                  onError={() => {
-                    console.warn('Ambient audio layer failed to load or stream interrupted');
-                  }}
-                />
-              )}
-
-              {/* Top Navigation Bar */}
-              <AnimatePresence>
-                {showControls && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.25 }}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      padding: 'calc(var(--safe-area-top, 0px) + 16px) 20px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      zIndex: 30,
-                    }}
-                  >
-                    {/* Frosted Close Pill */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClose();
-                      }}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background:
-                          'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                      }}
-                      aria-label="Close Player"
-                    >
-                      <X size={20} />
-                    </button>
-
-                    {/* Environment / Track Info Pill (Point 1: Single-Line Mobile Fit) */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 14px',
-                        borderRadius: '20px',
-                        background:
-                          'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.25)',
-                        color: 'white',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        letterSpacing: '-0.2px',
-                        whiteSpace: 'nowrap',
-                        minWidth: 0,
-                        flexShrink: 1,
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: vibrationThemeColors.ring,
-                          display: 'flex',
-                          alignItems: 'center',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <Wind size={13} style={{ marginRight: '4px', flexShrink: 0 }} />
-                        {playlistTitle}
-                      </span>
-                      {isPlaylistMode && currentPlaylist.length > 0 && (
-                        <span style={{ opacity: 0.65, whiteSpace: 'nowrap', fontSize: '12px' }}>
-                          • {activeTrackIndex + 1}/{currentPlaylist.length}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Point 4: Interactive Sleep Timer & Session Countdown Pill */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerHapticLight();
-                        setShowSleepTimerSheet(true);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        background:
-                          sleepTimerOption !== 'off'
-                            ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
-                            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border:
-                          sleepTimerOption !== 'off'
-                            ? `1px solid ${vibrationThemeColors.ring}`
-                            : '1px solid rgba(255, 255, 255, 0.25)',
-                        color: 'white',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        boxShadow:
-                          sleepTimerOption !== 'off'
-                            ? `0 0 16px ${vibrationThemeColors.glow}`
-                            : 'none',
-                      }}
-                      aria-label="Set Sleep Timer"
-                    >
-                      {sleepTimerOption !== 'off' ? (
-                        <Moon size={14} style={{ color: vibrationThemeColors.ring }} />
-                      ) : (
-                        <Clock size={14} style={{ opacity: 0.75 }} />
-                      )}
-                      <span>{formatTime(timeRemaining)}</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Centerpiece: Living Acoustic Resonance & Organic Vibration Engine */}
-              <div
+            {isCompleted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 style={{
-                  flex: 1,
-                  position: 'relative',
+                  zIndex: 10,
+                  textAlign: 'center',
+                  color: 'white',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  zIndex: 10,
-                  padding: '0 24px',
-                  width: '100%',
+                  height: '100%',
+                  padding: '24px',
                 }}
               >
-                {/* Center Living Acoustic Resonance & Organic Vibration Waves Engine */}
+                <Confetti
+                  width={window.innerWidth}
+                  height={window.innerHeight}
+                  recycle={false}
+                  colors={['#10B981', '#38BDF8', '#FFFFFF']}
+                />
                 <div
                   style={{
-                    position: 'relative',
-                    width: '280px',
-                    height: '280px',
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background:
+                      'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%)',
+                    border: '1px solid rgba(16, 185, 129, 0.5)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    marginBottom: '24px',
+                    boxShadow: '0 0 30px rgba(16, 185, 129, 0.25)',
                   }}
                 >
-                  {/* Deep Atmospheric Glow Aura */}
-                  <motion.div
-                    animate={{
-                      scale: isPlaying ? [1, 1.25, 1] : 1,
-                      opacity: isPlaying ? [0.35, 0.65, 0.35] : 0.2,
-                    }}
-                    transition={{
-                      duration: 7.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                    style={{
-                      position: 'absolute',
-                      width: '320px',
-                      height: '320px',
-                      borderRadius: '50%',
-                      background: `radial-gradient(circle, ${vibrationThemeColors.glow} 0%, rgba(0, 0, 0, 0) 72%)`,
-                      filter: 'blur(45px)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* 5 Expansive, Silky Natural Acoustic Vibration Waves (Ripples smoothly across the entire screen) */}
-                  {isPlaying &&
-                    [0, 1, 2, 3, 4].map((waveIndex) => (
-                      <motion.div
-                        key={`natural-acoustic-vibration-wave-${waveIndex}`}
-                        animate={{
-                          scale: [1, 2.2, 3.8, 5.5],
-                          opacity: [0, 0.55, 0.32, 0],
-                          borderWidth: ['1.5px', '1.2px', '1px', '0.75px'],
-                        }}
-                        transition={{
-                          duration: 8.5,
-                          repeat: Infinity,
-                          ease: [0.25, 0.1, 0.25, 1],
-                          delay: waveIndex * 1.7,
-                        }}
-                        style={{
-                          position: 'absolute',
-                          width: '136px',
-                          height: '136px',
-                          borderRadius: '50%',
-                          borderStyle: 'solid',
-                          borderColor: vibrationThemeColors.ring,
-                          boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 15px ${vibrationThemeColors.glow}`,
-                          filter: 'blur(0.5px)',
-                          pointerEvents: 'none',
-                        }}
-                      />
-                    ))}
-
-                  {/* Outer Harmonic Sheer Ring */}
-                  <motion.div
-                    animate={{
-                      scale: isPlaying ? [1, 1.08, 1] : 1,
-                      opacity: isPlaying ? [0.4, 0.7, 0.4] : 0.25,
-                    }}
-                    transition={{
-                      duration: 6.0,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                    style={{
-                      position: 'absolute',
-                      width: '210px',
-                      height: '210px',
-                      borderRadius: '50%',
-                      border: `1px solid rgba(255, 255, 255, 0.3)`,
-                      boxShadow: `0 0 28px ${vibrationThemeColors.glow}, inset 0 0 16px rgba(255, 255, 255, 0.1)`,
-                      pointerEvents: 'none',
-                    }}
-                  />
-
-                  {/* Center Acoustic Sanctuary Core (Tap to Play/Pause) */}
-                  <motion.div
-                    animate={{
-                      scale: isPlaying ? [1, 1.035, 1] : 1,
-                      boxShadow: isPlaying
-                        ? [
-                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 30px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.85)`,
-                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 48px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.95)`,
-                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 30px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.85)`,
-                          ]
-                        : '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
-                    }}
-                    transition={{
-                      scale: {
-                        duration: 5.5,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      },
-                      boxShadow: {
-                        duration: 3.5,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      },
-                    }}
-                    style={{
-                      width: '136px',
-                      height: '136px',
-                      borderRadius: '50%',
-                      background:
-                        'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.1) 100%)',
-                      backdropFilter: 'blur(32px)',
-                      WebkitBackdropFilter: 'blur(32px)',
-                      border: '1.5px solid rgba(255, 255, 255, 0.65)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      textAlign: 'center',
-                      zIndex: 2,
-                      cursor: 'pointer',
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={isPlaying ? 'Pause playback' : 'Resume playback'}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerHapticLight();
-                      setIsPlaying(!isPlaying);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        triggerHapticLight();
-                        setIsPlaying(!isPlaying);
-                      }
-                    }}
-                  >
-                    {isPlaying ? (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          height: '28px',
-                        }}
-                      >
-                        <motion.span
-                          animate={{ height: ['8px', '24px', '10px', '22px', '8px'] }}
-                          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-                          style={{
-                            width: '3.5px',
-                            background: '#FFFFFF',
-                            borderRadius: '3px',
-                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                          }}
-                        />
-                        <motion.span
-                          animate={{ height: ['16px', '8px', '28px', '12px', '16px'] }}
-                          transition={{
-                            duration: 1.2,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                            delay: 0.15,
-                          }}
-                          style={{
-                            width: '3.5px',
-                            background: vibrationThemeColors.ring,
-                            borderRadius: '3px',
-                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                          }}
-                        />
-                        <motion.span
-                          animate={{ height: ['10px', '26px', '14px', '20px', '10px'] }}
-                          transition={{
-                            duration: 1.6,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                            delay: 0.3,
-                          }}
-                          style={{
-                            width: '3.5px',
-                            background: '#FFFFFF',
-                            borderRadius: '3px',
-                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                          }}
-                        />
-                        <motion.span
-                          animate={{ height: ['22px', '10px', '18px', '8px', '22px'] }}
-                          transition={{
-                            duration: 1.3,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                            delay: 0.1,
-                          }}
-                          style={{
-                            width: '3.5px',
-                            background: vibrationThemeColors.ring,
-                            borderRadius: '3px',
-                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                          }}
-                        />
-                        <motion.span
-                          animate={{ height: ['12px', '20px', '8px', '16px', '12px'] }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                            delay: 0.25,
-                          }}
-                          style={{
-                            width: '3.5px',
-                            background: '#FFFFFF',
-                            borderRadius: '3px',
-                            boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <Play
-                        size={28}
-                        color="#FFFFFF"
-                        fill="#FFFFFF"
-                        style={{ marginLeft: '4px' }}
-                      />
-                    )}
-
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        letterSpacing: '1.4px',
-                        textTransform: 'uppercase',
-                        marginTop: '8px',
-                        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                      }}
-                    >
-                      {isPlaying
-                        ? isFrequency
-                          ? 'Resonance'
-                          : isSleep
-                            ? 'Delta Waves'
-                            : 'Flow'
-                        : 'Paused'}
-                    </span>
-                  </motion.div>
+                  <Check size={40} color="#10B981" />
                 </div>
-              </div>
-
-              {/* Bottom Ultra-Sheer Glass Control Island */}
-              <AnimatePresence>
-                {showControls && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 30 }}
-                    transition={{ duration: 0.25 }}
-                    onClick={(e) => e.stopPropagation()}
+                <h2
+                  style={{
+                    fontSize: '32px',
+                    fontWeight: 800,
+                    margin: '0 0 8px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  Mindful Session Complete
+                </h2>
+                <p
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.75)',
+                    margin: '0 0 32px',
+                    fontSize: '15px',
+                  }}
+                >
+                  Your mindful state has been preserved and vitality logged.
+                </p>
+                <button
+                  onClick={onClose}
+                  style={{
+                    padding: '16px 40px',
+                    borderRadius: '30px',
+                    background: 'linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%)',
+                    color: '#0F172A',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+                  }}
+                >
+                  Return to Calm Space
+                </button>
+              </motion.div>
+            ) : (
+              <>
+                {/* Cinematic Ambient Background Layer */}
+                <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden' }}>
+                  <motion.img
+                    key={isPlaylistMode && currentTrack ? currentTrack.id : content.id}
+                    initial={{ scale: 1, opacity: 0 }}
+                    animate={{
+                      scale: [1, 1.08, 1.02, 1],
+                      x: [0, -12, 8, 0],
+                      y: [0, 8, -6, 0],
+                      opacity: 0.88,
+                    }}
+                    transition={{
+                      scale: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
+                      x: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
+                      y: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
+                      opacity: { duration: 0.8 },
+                    }}
+                    src={
+                      isPlaylistMode && currentTrack
+                        ? currentTrack.cover
+                        : content.id === 'mood-0'
+                          ? '/images/thumb_night_clouds_1788262545783.jpg'
+                          : content.cover_image_url ||
+                            '/images/thumb_night_clouds_1788262545783.jpg'
+                    }
+                    alt="Atmosphere"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  {/* Multi-Stage Cinematic Vignette */}
+                  <div
                     style={{
                       position: 'absolute',
-                      bottom: 'calc(var(--safe-area-bottom, 0px) + 12px)',
-                      left: '16px',
-                      right: '16px',
-                      zIndex: 30,
+                      inset: 0,
                       background:
-                        'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                      backdropFilter: 'blur(32px)',
-                      WebkitBackdropFilter: 'blur(32px)',
-                      border: '1px solid rgba(255, 255, 255, 0.4)',
-                      boxShadow:
-                        '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1)',
-                      borderRadius: '28px',
-                      padding: '20px 20px 16px',
+                        'radial-gradient(ellipse at center, rgba(5, 8, 17, 0.12) 0%, rgba(5, 8, 17, 0.52) 60%, rgba(5, 8, 17, 0.92) 100%)',
                     }}
-                  >
-                    {/* Track Title & Artist Info */}
-                    <div
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background:
+                        'linear-gradient(to bottom, rgba(5, 8, 17, 0.6) 0%, transparent 25%, transparent 65%, rgba(5, 8, 17, 0.95) 100%)',
+                    }}
+                  />
+                  {/* 60fps Living Particle Atmosphere Engine */}
+                  <LivingAtmosphereCanvas theme={atmosphereTheme} isPlaying={isPlaying} />
+                </div>
+
+                {currentTrack && (
+                  <audio
+                    key={`${currentTrack.id}:${retryRevision}`}
+                    ref={audioRef}
+                    src={source.src || undefined}
+                    preload="metadata"
+                    playsInline
+                    onPlaying={(event) => {
+                      if (event.currentTarget !== audioRef.current) return;
+                      setMediaActive(true);
+                      setBuffering(false);
+                      setAudioError('');
+                    }}
+                    onPause={(event) => {
+                      if (event.currentTarget !== audioRef.current) return;
+                      setMediaActive(false);
+                      if (!event.currentTarget.ended) setIsPlaying(false);
+                    }}
+                    onWaiting={() => {
+                      setMediaActive(false);
+                      setBuffering(true);
+                    }}
+                    onError={() => {
+                      setMediaActive(false);
+                      setBuffering(false);
+                      setIsPlaying(false);
+                      setAudioError(
+                        navigator.onLine === false
+                          ? 'You are offline. Choose a downloaded sound from your library.'
+                          : 'This sound could not load. Check your connection and retry.'
+                      );
+                    }}
+                    onTimeUpdate={(event) => {
+                      if (event.currentTarget !== audioRef.current) return;
+                      setCurrentTime(event.currentTarget.currentTime);
+                    }}
+                    onLoadedMetadata={(event) => {
+                      if (Number.isFinite(event.currentTarget.duration))
+                        setDuration(event.currentTarget.duration);
+                    }}
+                    onEnded={handleTrackEnded}
+                  />
+                )}
+                {ambientSource.src && (
+                  <audio
+                    ref={ambientAudioRef}
+                    src={ambientSource.src}
+                    loop
+                    preload="metadata"
+                    playsInline
+                    onError={() => {
+                      setAmbientLayer('off');
+                      toast.error(
+                        'Ambient sound unavailable',
+                        'Check your connection or download the sound for offline listening.'
+                      );
+                    }}
+                  />
+                )}
+
+                {/* Top Navigation Bar */}
+                <AnimatePresence>
+                  {showControls && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.25 }}
                       style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        padding: 'calc(var(--safe-area-top, 0px) + 16px) 20px 16px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        marginBottom: '14px',
+                        zIndex: 30,
                       }}
                     >
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h3
-                            style={{
-                              margin: 0,
-                              fontSize: '17px',
-                              fontWeight: 700,
-                              color: '#FFFFFF',
-                              letterSpacing: '-0.3px',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {isPlaylistMode && currentTrack ? currentTrack.title : content.title}
-                          </h3>
-                          {isPlaying && (
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                flexShrink: 0,
-                                padding: '2px 4px',
-                              }}
-                            >
-                              <motion.span
-                                animate={{ height: ['4px', '16px', '6px', '14px', '4px'] }}
-                                transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }}
-                                style={{
-                                  width: '3px',
-                                  background: vibrationThemeColors.ring,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                              <motion.span
-                                animate={{ height: ['12px', '4px', '18px', '8px', '12px'] }}
-                                transition={{
-                                  duration: 0.75,
-                                  repeat: Infinity,
-                                  ease: 'easeInOut',
-                                  delay: 0.12,
-                                }}
-                                style={{
-                                  width: '3px',
-                                  background: vibrationThemeColors.ring,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                              <motion.span
-                                animate={{ height: ['6px', '18px', '9px', '16px', '6px'] }}
-                                transition={{
-                                  duration: 0.95,
-                                  repeat: Infinity,
-                                  ease: 'easeInOut',
-                                  delay: 0.24,
-                                }}
-                                style={{
-                                  width: '3px',
-                                  background: vibrationThemeColors.ring,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                              <motion.span
-                                animate={{ height: ['14px', '6px', '13px', '5px', '14px'] }}
-                                transition={{
-                                  duration: 0.8,
-                                  repeat: Infinity,
-                                  ease: 'easeInOut',
-                                  delay: 0.08,
-                                }}
-                                style={{
-                                  width: '3px',
-                                  background: vibrationThemeColors.ring,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                              <motion.span
-                                animate={{ height: ['8px', '16px', '5px', '12px', '8px'] }}
-                                transition={{
-                                  duration: 0.9,
-                                  repeat: Infinity,
-                                  ease: 'easeInOut',
-                                  delay: 0.2,
-                                }}
-                                style={{
-                                  width: '3px',
-                                  background: vibrationThemeColors.ring,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 8px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <p
-                          style={{
-                            margin: '2px 0 0',
-                            fontSize: '13px',
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {isPlaylistMode && currentTrack
-                            ? currentTrack.subtitle
-                            : content.description}
-                        </p>
-                      </div>
-
-                      {/* Mute Toggle */}
+                      {/* Frosted Close Pill */}
                       <button
-                        onClick={() => {
-                          setIsMuted(!isMuted);
-                          triggerHapticLight();
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClose();
                         }}
                         style={{
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          width: '42px',
+                          height: '42px',
                           borderRadius: '50%',
-                          width: '36px',
-                          height: '36px',
+                          background:
+                            'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          color: 'white',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'white',
                           cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                         }}
-                        aria-label={isMuted ? 'Unmute' : 'Mute'}
+                        aria-label="Close Player"
                       >
-                        {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                        <X size={20} />
                       </button>
-                    </div>
 
-                    {/* Point 5: Haptic Precision Scrubber with Floating Time Bubble */}
-                    {isPlaylistMode && duration > 0 && (
-                      <div style={{ marginBottom: '14px', position: 'relative' }}>
-                        {/* Floating Time Bubble */}
-                        <AnimatePresence>
-                          {isScrubbing && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 8, scale: 0.85 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 8, scale: 0.85 }}
-                              transition={{ duration: 0.15 }}
-                              style={{
-                                position: 'absolute',
-                                bottom: '26px',
-                                left: `${Math.min(94, Math.max(6, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
-                                transform: 'translateX(-50%)',
-                                background: 'rgba(15, 23, 42, 0.95)',
-                                backdropFilter: 'blur(16px)',
-                                WebkitBackdropFilter: 'blur(16px)',
-                                border: `1.5px solid ${vibrationThemeColors.ring}`,
-                                boxShadow: `0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px ${vibrationThemeColors.glow}`,
-                                borderRadius: '14px',
-                                padding: '5px 10px',
-                                color: 'white',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                                pointerEvents: 'none',
-                                whiteSpace: 'nowrap',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                zIndex: 30,
-                              }}
-                            >
-                              <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
-                              {/* Downward Arrow */}
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  bottom: '-5px',
-                                  width: 0,
-                                  height: 0,
-                                  borderLeft: '5px solid transparent',
-                                  borderRight: '5px solid transparent',
-                                  borderTop: `5px solid ${vibrationThemeColors.ring}`,
-                                }}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              minWidth: '34px',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {formatTime(isScrubbing ? scrubValue : currentTime)}
+                      {/* Environment / Track Info Pill (Point 1: Single-Line Mobile Fit) */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          background:
+                            'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.25)',
+                          color: 'white',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          letterSpacing: '-0.2px',
+                          whiteSpace: 'nowrap',
+                          minWidth: 0,
+                          flexShrink: 1,
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: vibrationThemeColors.ring,
+                            display: 'flex',
+                            alignItems: 'center',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <Wind size={13} style={{ marginRight: '4px', flexShrink: 0 }} />
+                          {playlistTitle}
+                        </span>
+                        {isPlaylistMode && currentPlaylist.length > 0 && (
+                          <span style={{ opacity: 0.65, whiteSpace: 'nowrap', fontSize: '12px' }}>
+                            • {activeTrackIndex + 1}/{currentPlaylist.length}
                           </span>
-
-                          {/* Custom Interactive Track */}
-                          <div
-                            ref={scrubBarRef}
-                            onPointerDown={(e) => {
-                              (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-                              handleScrubStart(e.clientX);
-                            }}
-                            style={{
-                              flex: 1,
-                              height: '24px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                              position: 'relative',
-                              touchAction: 'none',
-                            }}
-                          >
-                            {/* Track Rail */}
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '5px',
-                                borderRadius: '3px',
-                                background: 'rgba(255, 255, 255, 0.18)',
-                                position: 'relative',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {/* Filled Progress Bar */}
-                              <div
-                                style={{
-                                  width: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
-                                  height: '100%',
-                                  background: `linear-gradient(90deg, #38BDF8 0%, ${vibrationThemeColors.ring} 100%)`,
-                                  borderRadius: '3px',
-                                  boxShadow: `0 0 10px ${vibrationThemeColors.glow}`,
-                                }}
-                              />
-                            </div>
-
-                            {/* Active Glowing Thumb */}
-                            <motion.div
-                              animate={{
-                                scale: isScrubbing ? 1.45 : 1,
-                                boxShadow: isScrubbing
-                                  ? `0 0 16px ${vibrationThemeColors.ring}, 0 2px 8px rgba(0,0,0,0.5)`
-                                  : '0 2px 6px rgba(0, 0, 0, 0.4)',
-                              }}
-                              transition={{ duration: 0.12 }}
-                              style={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
-                                transform: 'translate(-50%, -50%)',
-                                width: '13px',
-                                height: '13px',
-                                borderRadius: '50%',
-                                background: '#FFFFFF',
-                                border: `2px solid ${vibrationThemeColors.ring}`,
-                                pointerEvents: 'none',
-                              }}
-                            />
-                          </div>
-
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              minWidth: '34px',
-                              textAlign: 'right',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {formatTime(duration)}
-                          </span>
-                        </div>
+                        )}
                       </div>
-                    )}
 
-                    {/* Primary Playback Bar */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
+                      {/* Point 4: Interactive Sleep Timer & Session Countdown Pill */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          triggerHapticLight();
+                          setShowSleepTimerSheet(true);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          background:
+                            sleepTimerOption !== 'off'
+                              ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
+                              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          border:
+                            sleepTimerOption !== 'off'
+                              ? `1px solid ${vibrationThemeColors.ring}`
+                              : '1px solid rgba(255, 255, 255, 0.25)',
+                          color: 'white',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          boxShadow:
+                            sleepTimerOption !== 'off'
+                              ? `0 0 16px ${vibrationThemeColors.glow}`
+                              : 'none',
+                        }}
+                        aria-label="Set Sleep Timer"
+                      >
+                        {sleepTimerOption !== 'off' ? (
+                          <Moon size={14} style={{ color: vibrationThemeColors.ring }} />
+                        ) : (
+                          <Clock size={14} style={{ opacity: 0.75 }} />
+                        )}
+                        <span>{formatTime(timeRemaining)}</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {!isZenMode && currentTrack && (
+                  <div className="hc-sound-stage">
+                    <img src={currentTrack.cover} alt="" />
+                    <p>A little space to breathe.</p>
+                  </div>
+                )}
+
+                {showControls && currentTrack && (
+                  <>
+                    <SoundPlayerControls
+                      track={currentTrack}
+                      collection={playlistTitle}
+                      playing={isPlaying}
+                      active={mediaActive}
+                      buffering={buffering || (isPlaying && !source.src)}
+                      error={audioError}
+                      offline={source.offline}
+                      currentTime={currentTime}
+                      duration={duration}
+                      muted={isMuted}
+                      repeat={repeatMode}
+                      shuffle={shuffle}
+                      downloads={library.downloads}
+                      pending={library.pending}
+                      canDownload={library.supported}
+                      onToggle={togglePlayback}
+                      onPrevious={() =>
+                        currentTime > 3 ? seekAudio(0) : selectTrack(activeTrackIndex - 1)
+                      }
+                      onNext={() => selectTrack(nextTrackIndex())}
+                      onSeek={seekAudio}
+                      onMute={() => setIsMuted((value) => !value)}
+                      onLibrary={() => setShowPlaylist(true)}
+                      onMixer={() => setShowAmbientMixer(true)}
+                      onRetry={() => {
+                        setRetryRevision((value) => value + 1);
+                        setAudioError('');
+                        setIsPlaying(true);
                       }}
-                    >
-                      {/* Tracks Drawer Trigger */}
-                      {isPlaylistMode && currentPlaylist.length > 0 ? (
+                      onRepeat={() =>
+                        setRepeatMode((value) =>
+                          value === 'all' ? 'one' : value === 'one' ? 'off' : 'all'
+                        )
+                      }
+                      onShuffle={() => {
+                        shufflePlayed.current = new Set([activeTrackIndex]);
+                        setShuffle((value) => !value);
+                      }}
+                      onDownload={() => void library.download(currentTrack.audioUrl)}
+                    />
+                    {library.error && (
+                      <div className="hc-sound-download-notice" role="alert">
+                        {library.error}
                         <button
-                          onClick={() => {
-                            triggerHapticLight();
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
                             setShowPlaylist(true);
                           }}
-                          style={{
-                            background:
-                              'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                            border: '1px solid rgba(255, 255, 255, 0.25)',
-                            borderRadius: '16px',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
                         >
-                          <ListMusic size={16} color="#38BDF8" />
-                          <span>Tracks ({currentPlaylist.length})</span>
-                        </button>
-                      ) : (
-                        <div style={{ width: '80px' }} />
-                      )}
-
-                      {/* Center Controls: Prev / Play / Next */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <button
-                          onClick={() => {
-                            if (isPlaylistMode && currentPlaylist.length > 0) {
-                              const newIdx =
-                                activeTrackIndex > 0
-                                  ? activeTrackIndex - 1
-                                  : currentPlaylist.length - 1;
-                              switchTrackSmoothly(newIdx);
-                            } else {
-                              triggerHapticLight();
-                              setTimeRemaining((prev) => Math.min(totalDuration, prev + 15));
-                            }
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '8px',
-                          }}
-                          aria-label="Previous Track"
-                        >
-                          <SkipBack size={24} />
-                        </button>
-
-                        {/* Luxury Glass Play Button */}
-                        <button
-                          onClick={() => {
-                            triggerHapticLight();
-                            setIsPlaying(!isPlaying);
-                          }}
-                          style={{
-                            width: '58px',
-                            height: '58px',
-                            borderRadius: '50%',
-                            background:
-                              'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.8) 100%)',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            boxShadow:
-                              '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-                          }}
-                          aria-label={isPlaying ? 'Pause' : 'Play'}
-                        >
-                          {isPlaying ? (
-                            <Pause size={24} color="#0F172A" fill="#0F172A" />
-                          ) : (
-                            <Play
-                              size={24}
-                              color="#0F172A"
-                              fill="#0F172A"
-                              style={{ marginLeft: '2px' }}
-                            />
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            if (isPlaylistMode && currentPlaylist.length > 0) {
-                              const newIdx =
-                                activeTrackIndex < currentPlaylist.length - 1
-                                  ? activeTrackIndex + 1
-                                  : 0;
-                              switchTrackSmoothly(newIdx);
-                            } else {
-                              triggerHapticLight();
-                              setTimeRemaining((prev) => Math.max(0, prev - 15));
-                            }
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '8px',
-                          }}
-                          aria-label="Next Track"
-                        >
-                          <SkipForward size={24} />
+                          Open library
                         </button>
                       </div>
-
-                      <div style={{ width: '88px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => {
-                            triggerHapticLight();
-                            setShowAmbientMixer(true);
-                          }}
-                          style={{
-                            background:
-                              ambientLayer !== 'off'
-                                ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
-                                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                            border:
-                              ambientLayer !== 'off'
-                                ? `1px solid ${vibrationThemeColors.ring}`
-                                : '1px solid rgba(255, 255, 255, 0.25)',
-                            borderRadius: '16px',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            boxShadow:
-                              ambientLayer !== 'off'
-                                ? `0 0 12px ${vibrationThemeColors.glow}`
-                                : 'none',
-                          }}
-                          aria-label="Ambient Layer Mixer"
-                        >
-                          <Layers
-                            size={15}
-                            color={ambientLayer !== 'off' ? vibrationThemeColors.ring : 'white'}
-                          />
-                          <span>
-                            {ambientLayer !== 'off' ? AMBIENT_LAYERS[ambientLayer].icon : 'Mixer'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
+                    )}
+                  </>
                 )}
-              </AnimatePresence>
 
-              {/* Slide-up Ultra-Sheer Glass Playlist Drawer */}
-              <AnimatePresence>
                 {showPlaylist && (
-                  <>
-                    {/* Backdrop */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowPlaylist(false)}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        zIndex: 40,
-                      }}
-                    />
+                  <SoundLibrary
+                    tracks={currentPlaylist}
+                    title={playlistTitle}
+                    active={activeTrackIndex}
+                    playing={mediaActive}
+                    library={library}
+                    onClose={() => setShowPlaylist(false)}
+                    onSelect={(index) => {
+                      selectTrack(index);
+                      setShowPlaylist(false);
+                    }}
+                  />
+                )}
 
-                    {/* Drawer Content */}
-                    <motion.div
-                      initial={{ y: '100%' }}
-                      animate={{ y: 0 }}
-                      exit={{ y: '100%' }}
-                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        maxHeight: '75vh',
-                        background:
-                          'linear-gradient(135deg, rgba(20, 27, 45, 0.85) 0%, rgba(10, 15, 30, 0.95) 100%)',
-                        backdropFilter: 'blur(32px)',
-                        WebkitBackdropFilter: 'blur(32px)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.25)',
-                        boxShadow:
-                          '0 -20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                        borderTopLeftRadius: '28px',
-                        borderTopRightRadius: '28px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        zIndex: 50,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {/* Pull Bar */}
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px' }}
+                {/* Point 4: Ultra-Sheer Glass Sleep Timer Bottom Sheet */}
+                <AnimatePresence>
+                  {showSleepTimerSheet && (
+                    <>
+                      {/* Backdrop */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowSleepTimerSheet(false)}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(0, 0, 0, 0.65)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)',
+                          zIndex: 45,
+                        }}
+                      />
+
+                      {/* Sheet Content */}
+                      <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background:
+                            'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(10, 15, 29, 0.98) 100%)',
+                          backdropFilter: 'blur(32px)',
+                          WebkitBackdropFilter: 'blur(32px)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                          boxShadow:
+                            '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                          borderTopLeftRadius: '28px',
+                          borderTopRightRadius: '28px',
+                          padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
+                          zIndex: 50,
+                        }}
                       >
                         <div
                           style={{
-                            width: '40px',
-                            height: '4px',
-                            borderRadius: '2px',
-                            background: 'rgba(255, 255, 255, 0.3)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Drawer Header */}
-                      <div
-                        style={{
-                          padding: '16px 20px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                        }}
-                      >
-                        <div>
-                          <h4
-                            style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: 'white' }}
-                          >
-                            {playlistTitle}
-                          </h4>
-                          <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
-                            {currentPlaylist.length} curated soundscapes
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => setShowPlaylist(false)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
-                            color: 'white',
                             display: 'flex',
-                            alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: 'pointer',
+                            marginBottom: '16px',
                           }}
                         >
-                          <X size={18} />
-                        </button>
-                      </div>
+                          <div
+                            style={{
+                              width: '40px',
+                              height: '4px',
+                              borderRadius: '2px',
+                              background: 'rgba(255, 255, 255, 0.3)',
+                            }}
+                          />
+                        </div>
 
-                      {/* Track List */}
-                      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 32px' }}>
-                        {currentPlaylist.map((track, idx) => {
-                          const isActive = activeTrackIndex === idx;
-                          return (
-                            <div
-                              key={track.id}
-                              role="button"
-                              tabIndex={0}
-                              aria-label={`Play ${track.title}`}
-                              aria-pressed={isActive}
-                              onClick={() => {
-                                switchTrackSmoothly(idx);
-                                setIsPlaying(true);
-                                setShowPlaylist(false);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  switchTrackSmoothly(idx);
-                                  setIsPlaying(true);
-                                  setShowPlaylist(false);
-                                }
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '14px',
-                                padding: '12px',
-                                borderRadius: '16px',
-                                background: isActive
-                                  ? `${vibrationThemeColors.glow}`
-                                  : 'transparent',
-                                border: isActive
-                                  ? `1px solid ${vibrationThemeColors.ring}`
-                                  : '1px solid transparent',
-                                cursor: 'pointer',
-                                marginBottom: '6px',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <img
-                                src={track.cover}
-                                alt={track.title}
-                                onError={(e) => {
-                                  e.currentTarget.src =
-                                    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80';
-                                }}
-                                style={{
-                                  width: '48px',
-                                  height: '48px',
-                                  borderRadius: '12px',
-                                  objectFit: 'cover',
-                                  flexShrink: 0,
-                                }}
-                              />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div
-                                  style={{
-                                    color: isActive ? vibrationThemeColors.ring : 'white',
-                                    fontSize: '15px',
-                                    fontWeight: 600,
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                  }}
-                                >
-                                  {track.title}
-                                </div>
-                                <div
-                                  style={{
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    fontSize: '12px',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    marginTop: '2px',
-                                  }}
-                                >
-                                  {track.subtitle}
-                                </div>
-                              </div>
-                              {isActive && (
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '3px',
-                                    paddingLeft: '8px',
-                                  }}
-                                >
-                                  <motion.span
-                                    animate={{ height: isPlaying ? ['4px', '16px', '4px'] : '6px' }}
-                                    transition={{
-                                      duration: 0.75,
-                                      repeat: Infinity,
-                                      ease: 'easeInOut',
-                                    }}
-                                    style={{
-                                      width: '3px',
-                                      background: vibrationThemeColors.ring,
-                                      borderRadius: '2px',
-                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
-                                    }}
-                                  />
-                                  <motion.span
-                                    animate={{
-                                      height: isPlaying ? ['14px', '4px', '14px'] : '12px',
-                                    }}
-                                    transition={{
-                                      duration: 0.75,
-                                      repeat: Infinity,
-                                      ease: 'easeInOut',
-                                      delay: 0.15,
-                                    }}
-                                    style={{
-                                      width: '3px',
-                                      background: vibrationThemeColors.ring,
-                                      borderRadius: '2px',
-                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
-                                    }}
-                                  />
-                                  <motion.span
-                                    animate={{ height: isPlaying ? ['6px', '18px', '6px'] : '8px' }}
-                                    transition={{
-                                      duration: 0.75,
-                                      repeat: Infinity,
-                                      ease: 'easeInOut',
-                                      delay: 0.3,
-                                    }}
-                                    style={{
-                                      width: '3px',
-                                      background: vibrationThemeColors.ring,
-                                      borderRadius: '2px',
-                                      boxShadow: `0 0 6px ${vibrationThemeColors.glow}`,
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-
-              {/* Point 4: Ultra-Sheer Glass Sleep Timer Bottom Sheet */}
-              <AnimatePresence>
-                {showSleepTimerSheet && (
-                  <>
-                    {/* Backdrop */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowSleepTimerSheet(false)}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0, 0, 0, 0.65)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
-                        zIndex: 45,
-                      }}
-                    />
-
-                    {/* Sheet Content */}
-                    <motion.div
-                      initial={{ y: '100%' }}
-                      animate={{ y: 0 }}
-                      exit={{ y: '100%' }}
-                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background:
-                          'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(10, 15, 29, 0.98) 100%)',
-                        backdropFilter: 'blur(32px)',
-                        WebkitBackdropFilter: 'blur(32px)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow:
-                          '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                        borderTopLeftRadius: '28px',
-                        borderTopRightRadius: '28px',
-                        padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
-                        zIndex: 50,
-                      }}
-                    >
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
-                      >
                         <div
                           style={{
-                            width: '40px',
-                            height: '4px',
-                            borderRadius: '2px',
-                            background: 'rgba(255, 255, 255, 0.3)',
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          marginBottom: '18px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Moon size={20} color={vibrationThemeColors.ring} />
-                          <h4
-                            style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}
-                          >
-                            Sleep Timer
-                          </h4>
-                        </div>
-                        <button
-                          onClick={() => setShowSleepTimerSheet(false)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
-                            color: 'white',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
+                            justifyContent: 'space-between',
+                            marginBottom: '18px',
                           }}
                         >
-                          <X size={18} />
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {[
-                          { label: 'Off', value: 'off', durationSec: totalDuration },
-                          { label: '15 Minutes', value: '15', durationSec: 15 * 60 },
-                          { label: '30 Minutes', value: '30', durationSec: 30 * 60 },
-                          { label: '45 Minutes', value: '45', durationSec: 45 * 60 },
-                          { label: '60 Minutes (1 Hour)', value: '60', durationSec: 60 * 60 },
-                          {
-                            label: 'End of Current Track',
-                            value: 'end_of_track',
-                            durationSec: Math.max(1, Math.floor(duration - currentTime)),
-                          },
-                        ].map((option) => {
-                          const isSelected = sleepTimerOption === option.value;
-                          return (
-                            <button
-                              key={option.value}
-                              onClick={() => {
-                                triggerHapticLight();
-                                setSleepTimerOption(option.value as any);
-                                setTimeRemaining(option.durationSec);
-                                if (audioRef.current && !isMuted) audioRef.current.volume = 1;
-                                setShowSleepTimerSheet(false);
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '14px 18px',
-                                borderRadius: '16px',
-                                background: isSelected
-                                  ? `${vibrationThemeColors.glow}`
-                                  : 'rgba(255, 255, 255, 0.06)',
-                                border: isSelected
-                                  ? `1.5px solid ${vibrationThemeColors.ring}`
-                                  : '1px solid rgba(255, 255, 255, 0.12)',
-                                color: 'white',
-                                fontSize: '15px',
-                                fontWeight: isSelected ? 700 : 500,
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                              }}
-                            >
-                              <span
-                                style={{ color: isSelected ? vibrationThemeColors.ring : 'white' }}
-                              >
-                                {option.label}
-                              </span>
-                              {isSelected && <Check size={18} color={vibrationThemeColors.ring} />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-
-              {/* Point 2: Dual-Layer Ambient Soundscape Mixer Sheet */}
-              <AnimatePresence>
-                {showAmbientMixer && (
-                  <>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowAmbientMixer(false)}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0, 0, 0, 0.65)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
-                        zIndex: 45,
-                      }}
-                    />
-                    <motion.div
-                      initial={{ y: '100%' }}
-                      animate={{ y: 0 }}
-                      exit={{ y: '100%' }}
-                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background:
-                          'linear-gradient(135deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 15, 29, 0.98) 100%)',
-                        backdropFilter: 'blur(32px)',
-                        WebkitBackdropFilter: 'blur(32px)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow:
-                          '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                        borderTopLeftRadius: '28px',
-                        borderTopRightRadius: '28px',
-                        padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
-                        zIndex: 50,
-                      }}
-                    >
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
-                      >
-                        <div
-                          style={{
-                            width: '40px',
-                            height: '4px',
-                            borderRadius: '2px',
-                            background: 'rgba(255, 255, 255, 0.3)',
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          marginBottom: '18px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Layers size={20} color={vibrationThemeColors.ring} />
-                          <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Moon size={20} color={vibrationThemeColors.ring} />
                             <h4
                               style={{
                                 margin: 0,
@@ -2392,386 +1361,552 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 color: 'white',
                               }}
                             >
-                              Ambient Texture Layer
+                              Sleep Timer
                             </h4>
-                            <p
-                              style={{
-                                margin: '2px 0 0',
-                                fontSize: '12px',
-                                color: 'rgba(255, 255, 255, 0.6)',
-                              }}
-                            >
-                              Blend subtle nature sounds under your meditation
-                            </p>
                           </div>
-                        </div>
-                        <button
-                          onClick={() => setShowAmbientMixer(false)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-
-                      {/* Ambient Layer Options */}
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '10px',
-                          marginBottom: '20px',
-                        }}
-                      >
-                        {(Object.keys(AMBIENT_LAYERS) as AmbientLayerKey[]).map((key) => {
-                          const layer = AMBIENT_LAYERS[key];
-                          const isSelected = ambientLayer === key;
-                          return (
-                            <button
-                              key={key}
-                              onClick={() => {
-                                triggerHapticLight();
-                                setAmbientLayer(key);
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '14px',
-                                borderRadius: '16px',
-                                background: isSelected
-                                  ? `${vibrationThemeColors.glow}`
-                                  : 'rgba(255, 255, 255, 0.06)',
-                                border: isSelected
-                                  ? `1.5px solid ${vibrationThemeColors.ring}`
-                                  : '1px solid rgba(255, 255, 255, 0.12)',
-                                color: 'white',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                fontSize: '14px',
-                                fontWeight: isSelected ? 700 : 500,
-                              }}
-                            >
-                              <span style={{ fontSize: '18px' }}>{layer.icon}</span>
-                              <span
-                                style={{
-                                  flex: 1,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  color: isSelected ? vibrationThemeColors.ring : 'white',
-                                }}
-                              >
-                                {layer.label}
-                              </span>
-                              {isSelected && <Check size={16} color={vibrationThemeColors.ring} />}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Volume Slider if ambient layer active */}
-                      {ambientLayer !== 'off' && (
-                        <div
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            borderRadius: '18px',
-                            padding: '16px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                          }}
-                        >
-                          <div
+                          <button
+                            onClick={() => setShowSleepTimerSheet(false)}
                             style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              marginBottom: '10px',
-                              fontSize: '13px',
-                            }}
-                          >
-                            <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}>
-                              Ambient Mix Level
-                            </span>
-                            <span style={{ color: vibrationThemeColors.ring, fontWeight: 700 }}>
-                              {Math.round(ambientVolume * 100)}%
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            aria-label="Ambient background sound volume"
-                            min={0}
-                            max={1}
-                            step={0.02}
-                            value={ambientVolume}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value);
-                              if (Number.isFinite(val))
-                                setAmbientVolume(Math.min(1, Math.max(0, val)));
-                            }}
-                            style={{
-                              width: '100%',
-                              accentColor: vibrationThemeColors.ring,
-                              height: '6px',
-                              cursor: 'pointer',
-                            }}
-                          />
-                        </div>
-                      )}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-
-              {/* Point 3: Post-Session Mindful Summary & Streak Celebration Modal */}
-              <AnimatePresence>
-                {showSummaryModal && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      zIndex: 60,
-                      overflowY: 'auto',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '24px',
-                      background: 'rgba(5, 8, 17, 0.85)',
-                      backdropFilter: 'blur(24px)',
-                      WebkitBackdropFilter: 'blur(24px)',
-                    }}
-                  >
-                    {showConfetti && (
-                      <Confetti
-                        width={typeof window !== 'undefined' ? window.innerWidth : 400}
-                        height={typeof window !== 'undefined' ? window.innerHeight : 800}
-                        recycle={false}
-                        numberOfPieces={300}
-                      />
-                    )}
-
-                    <motion.div
-                      role="dialog"
-                      aria-modal="true"
-                      aria-label="Session Completed"
-                      initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                      animate={{ scale: 1, opacity: 1, y: 0 }}
-                      exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                      style={{
-                        width: '100%',
-                        maxWidth: '380px',
-                        background:
-                          'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.25)',
-                        boxShadow:
-                          '0 25px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
-                        borderRadius: '32px',
-                        padding: '32px 24px',
-                        textAlign: 'center',
-                        position: 'relative',
-                        maxHeight: 'calc(var(--app-viewport-height) - max(24px, var(--safe-area-top, 0px)) - max(24px, var(--safe-area-bottom, 0px)))',
-                        overflowY: 'auto',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {/* Trophy Glow */}
-                      <div
-                        style={{
-                          width: '72px',
-                          height: '72px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
-                          boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          margin: '0 auto 20px',
-                        }}
-                      >
-                        <Trophy size={36} color="#0F172A" />
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: 'rgba(245, 158, 11, 0.18)',
-                          border: '1px solid rgba(245, 158, 11, 0.4)',
-                          padding: '4px 14px',
-                          borderRadius: '20px',
-                          marginBottom: '12px',
-                        }}
-                      >
-                        <Sparkles size={14} color="#F59E0B" />
-                        <span
-                          style={{
-                            color: '#FCD34D',
-                            fontSize: '12px',
-                            fontWeight: 800,
-                            letterSpacing: '0.5px',
-                          }}
-                        >
-                          {sessionStats.pointsAwarded > 0
-                            ? `+${sessionStats.pointsAwarded} VITALITY POINTS EARNED`
-                            : 'SESSION ALREADY RECORDED TODAY'}
-                        </span>
-                      </div>
-
-                      <h3
-                        style={{
-                          fontSize: '24px',
-                          fontWeight: 800,
-                          color: 'white',
-                          margin: '0 0 8px',
-                          letterSpacing: '-0.5px',
-                        }}
-                      >
-                        Session Completed
-                      </h3>
-                      <p
-                        style={{
-                          fontSize: '14px',
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          margin: '0 0 24px',
-                        }}
-                      >
-                        Session complete. Rest and recharge.
-                      </p>
-
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '10px',
-                          marginBottom: '24px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            borderRadius: '18px',
-                            padding: '14px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: '12px',
-                              color: 'rgba(255, 255, 255, 0.6)',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            Mindful Time
-                          </div>
-                          <div style={{ fontSize: '20px', fontWeight: 800, color: 'white' }}>
-                            {sessionStats.minutesLogged} mins
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            borderRadius: '18px',
-                            padding: '14px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: '12px',
-                              color: 'rgba(255, 255, 255, 0.6)',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            Calm Streak
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '20px',
-                              fontWeight: 800,
-                              color: '#F59E0B',
+                              background: 'rgba(255, 255, 255, 0.1)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '32px',
+                              height: '32px',
+                              color: 'white',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: '4px',
+                              cursor: 'pointer',
                             }}
                           >
-                            <Flame size={18} fill="#F59E0B" color="#F59E0B" />
-                            {sessionStats.mindfulStreak} Days
-                          </div>
+                            <X size={18} />
+                          </button>
                         </div>
-                      </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <button
-                          onClick={() => {
-                            triggerHapticLight();
-                            setShowSummaryModal(false);
-                            setShowConfetti(false);
-                            onClose();
-                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
-                            navigate('/app/ava', {
-                              state: { initialPrompt: calmPrompt, initialMessage: calmPrompt },
-                            });
-                          }}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {[
+                            { label: 'Off', value: 'off', durationSec: totalDuration },
+                            { label: '15 Minutes', value: '15', durationSec: 15 * 60 },
+                            { label: '30 Minutes', value: '30', durationSec: 30 * 60 },
+                            { label: '45 Minutes', value: '45', durationSec: 45 * 60 },
+                            { label: '60 Minutes (1 Hour)', value: '60', durationSec: 60 * 60 },
+                            {
+                              label: 'End of Current Track',
+                              value: 'end_of_track',
+                              durationSec: Math.max(1, Math.floor(duration - currentTime)),
+                            },
+                          ].map((option) => {
+                            const isSelected = sleepTimerOption === option.value;
+                            return (
+                              <button
+                                key={option.value}
+                                onClick={() => {
+                                  triggerHapticLight();
+                                  setSleepTimerOption(option.value as any);
+                                  setTimeRemaining(option.durationSec);
+                                  if (audioRef.current && !isMuted) audioRef.current.volume = 1;
+                                  setShowSleepTimerSheet(false);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '14px 18px',
+                                  borderRadius: '16px',
+                                  background: isSelected
+                                    ? `${vibrationThemeColors.glow}`
+                                    : 'rgba(255, 255, 255, 0.06)',
+                                  border: isSelected
+                                    ? `1.5px solid ${vibrationThemeColors.ring}`
+                                    : '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: 'white',
+                                  fontSize: '15px',
+                                  fontWeight: isSelected ? 700 : 500,
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    color: isSelected ? vibrationThemeColors.ring : 'white',
+                                  }}
+                                >
+                                  {option.label}
+                                </span>
+                                {isSelected && (
+                                  <Check size={18} color={vibrationThemeColors.ring} />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+
+                {/* Point 2: Dual-Layer Ambient Soundscape Mixer Sheet */}
+                <AnimatePresence>
+                  {showAmbientMixer && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowAmbientMixer(false)}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(0, 0, 0, 0.65)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)',
+                          zIndex: 45,
+                        }}
+                      />
+                      <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background:
+                            'linear-gradient(135deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 15, 29, 0.98) 100%)',
+                          backdropFilter: 'blur(32px)',
+                          WebkitBackdropFilter: 'blur(32px)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                          boxShadow:
+                            '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                          borderTopLeftRadius: '28px',
+                          borderTopRightRadius: '28px',
+                          padding: '16px 20px calc(var(--safe-area-bottom, 0px) + 20px)',
+                          zIndex: 50,
+                        }}
+                      >
+                        <div
                           style={{
-                            width: '100%',
-                            padding: '16px',
-                            borderRadius: '18px',
-                            background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
-                            border: 'none',
-                            color: 'white',
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            boxShadow: '0 8px 24px rgba(14, 165, 233, 0.4)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            marginBottom: '16px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '40px',
+                              height: '4px',
+                              borderRadius: '2px',
+                              background: 'rgba(255, 255, 255, 0.3)',
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '18px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Layers size={20} color={vibrationThemeColors.ring} />
+                            <div>
+                              <h4
+                                style={{
+                                  margin: 0,
+                                  fontSize: '18px',
+                                  fontWeight: 700,
+                                  color: 'white',
+                                }}
+                              >
+                                Ambient Texture Layer
+                              </h4>
+                              <p
+                                style={{
+                                  margin: '2px 0 0',
+                                  fontSize: '12px',
+                                  color: 'rgba(255, 255, 255, 0.6)',
+                                }}
+                              >
+                                Blend subtle nature sounds under your meditation
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowAmbientMixer(false)}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.1)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '32px',
+                              height: '32px',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+
+                        {/* Ambient Layer Options */}
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: '10px',
+                            marginBottom: '20px',
+                          }}
+                        >
+                          {(Object.keys(AMBIENT_LAYERS) as AmbientLayerKey[]).map((key) => {
+                            const layer = AMBIENT_LAYERS[key];
+                            const isSelected = ambientLayer === key;
+                            return (
+                              <button
+                                key={key}
+                                onClick={() => {
+                                  triggerHapticLight();
+                                  setAmbientLayer(key);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  padding: '14px',
+                                  borderRadius: '16px',
+                                  background: isSelected
+                                    ? `${vibrationThemeColors.glow}`
+                                    : 'rgba(255, 255, 255, 0.06)',
+                                  border: isSelected
+                                    ? `1.5px solid ${vibrationThemeColors.ring}`
+                                    : '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: 'white',
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  fontSize: '14px',
+                                  fontWeight: isSelected ? 700 : 500,
+                                }}
+                              >
+                                <span style={{ fontSize: '18px' }}>{layer.icon}</span>
+                                <span
+                                  style={{
+                                    flex: 1,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    color: isSelected ? vibrationThemeColors.ring : 'white',
+                                  }}
+                                >
+                                  {layer.label}
+                                </span>
+                                {isSelected && (
+                                  <Check size={16} color={vibrationThemeColors.ring} />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Volume Slider if ambient layer active */}
+                        {ambientLayer !== 'off' && (
+                          <div
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.06)',
+                              borderRadius: '18px',
+                              padding: '16px',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '10px',
+                                fontSize: '13px',
+                              }}
+                            >
+                              <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontWeight: 600 }}>
+                                Ambient Mix Level
+                              </span>
+                              <span style={{ color: vibrationThemeColors.ring, fontWeight: 700 }}>
+                                {Math.round(ambientVolume * 100)}%
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              aria-label="Ambient background sound volume"
+                              min={0}
+                              max={1}
+                              step={0.02}
+                              value={ambientVolume}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                if (Number.isFinite(val))
+                                  setAmbientVolume(Math.min(1, Math.max(0, val)));
+                              }}
+                              style={{
+                                width: '100%',
+                                accentColor: vibrationThemeColors.ring,
+                                height: '6px',
+                                cursor: 'pointer',
+                              }}
+                            />
+                          </div>
+                        )}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+
+                {/* Point 3: Post-Session Mindful Summary & Streak Celebration Modal */}
+                <AnimatePresence>
+                  {showSummaryModal && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 60,
+                        overflowY: 'auto',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '24px',
+                        background: 'rgba(5, 8, 17, 0.85)',
+                        backdropFilter: 'blur(24px)',
+                        WebkitBackdropFilter: 'blur(24px)',
+                      }}
+                    >
+                      {showConfetti && (
+                        <Confetti
+                          width={typeof window !== 'undefined' ? window.innerWidth : 400}
+                          height={typeof window !== 'undefined' ? window.innerHeight : 800}
+                          recycle={false}
+                          numberOfPieces={300}
+                        />
+                      )}
+
+                      <motion.div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Session Completed"
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        style={{
+                          width: '100%',
+                          maxWidth: '380px',
+                          background:
+                            'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)',
+                          border: '1px solid rgba(255, 255, 255, 0.25)',
+                          boxShadow:
+                            '0 25px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+                          borderRadius: '32px',
+                          padding: '32px 24px',
+                          textAlign: 'center',
+                          position: 'relative',
+                          maxHeight:
+                            'calc(var(--app-viewport-height) - max(24px, var(--safe-area-top, 0px)) - max(24px, var(--safe-area-bottom, 0px)))',
+                          overflowY: 'auto',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {/* Trophy Glow */}
+                        <div
+                          style={{
+                            width: '72px',
+                            height: '72px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+                            boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px',
+                            margin: '0 auto 20px',
                           }}
                         >
-                          💬 Discuss Autonomic Reset with Ava
-                        </button>
+                          <Trophy size={36} color="#0F172A" />
+                        </div>
 
-                        <button
-                          onClick={() => {
-                            triggerHapticLight();
-                            setShowSummaryModal(false);
-                            setShowConfetti(false);
-                            onClose();
-                          }}
+                        <div
                           style={{
-                            width: '100%',
-                            padding: '14px',
-                            borderRadius: '18px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 255, 255, 0.15)',
-                            color: 'white',
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'rgba(245, 158, 11, 0.18)',
+                            border: '1px solid rgba(245, 158, 11, 0.4)',
+                            padding: '4px 14px',
+                            borderRadius: '20px',
+                            marginBottom: '12px',
                           }}
                         >
-                          Done
-                        </button>
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
-              </AnimatePresence>
-            </>
-          )}
+                          <Sparkles size={14} color="#F59E0B" />
+                          <span
+                            style={{
+                              color: '#FCD34D',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              letterSpacing: '0.5px',
+                            }}
+                          >
+                            {sessionStats.pointsAwarded > 0
+                              ? `+${sessionStats.pointsAwarded} VITALITY POINTS EARNED`
+                              : 'SESSION ALREADY RECORDED TODAY'}
+                          </span>
+                        </div>
+
+                        <h3
+                          style={{
+                            fontSize: '24px',
+                            fontWeight: 800,
+                            color: 'white',
+                            margin: '0 0 8px',
+                            letterSpacing: '-0.5px',
+                          }}
+                        >
+                          Session Completed
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: '14px',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            margin: '0 0 24px',
+                          }}
+                        >
+                          Session complete. Rest and recharge.
+                        </p>
+
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: '10px',
+                            marginBottom: '24px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.06)',
+                              borderRadius: '18px',
+                              padding: '14px',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              Mindful Time
+                            </div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, color: 'white' }}>
+                              {sessionStats.minutesLogged} mins
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.06)',
+                              borderRadius: '18px',
+                              padding: '14px',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              Calm Streak
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '20px',
+                                fontWeight: 800,
+                                color: '#F59E0B',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <Flame size={18} fill="#F59E0B" color="#F59E0B" />
+                              {sessionStats.mindfulStreak} Days
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <button
+                            onClick={() => {
+                              triggerHapticLight();
+                              setShowSummaryModal(false);
+                              setShowConfetti(false);
+                              onClose();
+                              const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
+                              navigate('/app/ava', {
+                                state: { initialPrompt: calmPrompt, initialMessage: calmPrompt },
+                              });
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '16px',
+                              borderRadius: '18px',
+                              background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
+                              border: 'none',
+                              color: 'white',
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: '0 8px 24px rgba(14, 165, 233, 0.4)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            💬 Discuss Autonomic Reset with Ava
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              triggerHapticLight();
+                              setShowSummaryModal(false);
+                              setShowConfetti(false);
+                              onClose();
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '14px',
+                              borderRadius: '18px',
+                              background: 'rgba(255, 255, 255, 0.08)',
+                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                              color: 'white',
+                              fontSize: '15px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+          </FocusTrap>
         </motion.div>
       )}
     </AnimatePresence>,

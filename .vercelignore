@@ -1,6 +1,7 @@
 # Ignore native folders
 android/
 ios/
+dist-native/
 
 # Ignore test results
 tests/

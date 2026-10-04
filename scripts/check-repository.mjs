@@ -14,7 +14,9 @@ const scratch = rootFiles.filter(
 );
 const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString().split('\0');
 const generated = tracked.filter((name) =>
-  /^(dist|playwright-report|test-results|supabase\/\.temp|scripts\/archive)\//.test(name)
+  /^(dist|dist-native|playwright-report|test-results|supabase\/\.temp|scripts\/archive)\//.test(
+    name
+  )
 );
 if (scratch.length || generated.length)
   throw new Error(

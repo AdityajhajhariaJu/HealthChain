@@ -1,13 +1,22 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { expect, it } from 'vitest';
 import config from '../../../capacitor.config';
+
+it('keeps hosted audio out of both native packages', () => {
+  expect(existsSync('android/app/src/main/assets/public/index.html')).toBe(true);
+  expect(existsSync('ios/App/App/public/index.html')).toBe(true);
+  expect(existsSync('android/app/src/main/assets/public/audio')).toBe(false);
+  expect(existsSync('ios/App/App/public/audio')).toBe(false);
+});
 
 it.each(['android/app/src/main/assets/capacitor.config.json', 'ios/App/App/capacitor.config.json'])(
   'keeps generated native configuration aligned with the source: %s',
   (file) => {
     const native = JSON.parse(readFileSync(file, 'utf8'));
     expect(native.appId).toBe(config.appId);
+    expect(native.webDir).toBe('dist-native');
+    expect(native.webDir).toBe(config.webDir);
     expect(native.server).toEqual(config.server);
     expect(native.plugins).toEqual(config.plugins);
   }
