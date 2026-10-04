@@ -5,6 +5,7 @@ import {
 } from '../AccountScope';
 import { supabase } from '../supabaseClient';
 import { requestAIConsent, hasAIConsent } from '../AIConsent';
+import { trackEvent } from '../analytics';
 import { AI_CONSENT_HEADER, AI_CONSENT_VERSION } from '../../../shared/privacy-consent.js';
 
 // Vite proxies /api/gemini to the local backend in development. A same-origin default
@@ -176,5 +177,13 @@ export const fetchWithTimeout = async (
     }
   };
 
-  return executeFetch(0);
+  trackEvent('ai_request', { action: 'started' });
+  try {
+    const response = await executeFetch(0);
+    trackEvent('ai_request', { action: response.ok ? 'completed' : 'failed' });
+    return response;
+  } catch (error) {
+    trackEvent('ai_request', { action: 'failed' });
+    throw error;
+  }
 };

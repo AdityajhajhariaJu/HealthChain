@@ -4,7 +4,7 @@ import { HCLogo } from '../../components/ui/HCLogo';
 import { useToast } from '../../components/ui/ToastProvider';
 import type { LandingWorkflowScenario } from '../../data/LandingWorkflowScenarios';
 import { useMountedRef } from '../../hooks/useMountedRef';
-import { trackButtonClick, trackPageView } from '../../services/analytics';
+import { trackButtonClick } from '../../services/analytics';
 import { getActiveSession } from '../../services/authSession';
 import { triggerHapticLight } from '../../services/haptics';
 import LandingBenefits from './components/LandingBenefits';
@@ -33,10 +33,6 @@ export default function Landing() {
   const [hasSession, setHasSession] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
   const isLoggedOut = !hasSession;
-
-  useEffect(() => {
-    trackPageView('/');
-  }, []);
 
   // Redirect authenticated users away from landing page
   useEffect(() => {

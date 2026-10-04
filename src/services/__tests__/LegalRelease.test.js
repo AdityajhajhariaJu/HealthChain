@@ -3,13 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { getLegalDocument, legalIdentityComplete, POLICY_LINKS } from '../../../shared/legal-documents.js';
 const approved = { reviewStatus: 'approved', operatorName: 'Example operator', operatorCountry: 'Example country',
   operatorAddress: 'Example business address', privacyEmail: 'privacy@example.test', supportEmail: 'support@example.test',
+  supportPhone: '+1 202 555 0100',
   governingLaw: 'applicable operator law', minimumAge: 18, launchMarkets: ['Example market'], aiBillingVerified: true,
   retentionDetails: 'Confirmed retention details for active records, logs, backups and payment records.' };
 describe('policy publication and regional coverage', () => {
   it('cannot approve an incomplete operator identity or provider verification', () => {
     expect(legalIdentityComplete()).toBe(false);
     expect(legalIdentityComplete(approved)).toBe(true);
-    for (const field of ['operatorName', 'operatorAddress', 'operatorCountry', 'governingLaw', 'retentionDetails'])
+    for (const field of ['operatorName', 'operatorAddress', 'operatorCountry', 'supportPhone', 'governingLaw', 'retentionDetails'])
       expect(legalIdentityComplete({ ...approved, [field]: '' })).toBe(false);
     expect(legalIdentityComplete({ ...approved, aiBillingVerified: false })).toBe(false);
     expect(legalIdentityComplete({ ...approved, launchMarkets: [] })).toBe(false);

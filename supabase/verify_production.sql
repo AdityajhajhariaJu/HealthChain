@@ -281,6 +281,20 @@ begin
   end if;
 end $$;
 -- Legacy function search paths must be fixed even when the optional vector helpers exist.
+-- Product reports contain fixed daily totals and are available only through the service API.
+do $$ begin
+  if to_regclass('healthchain_private.product_metric_counts') is null then raise exception 'Missing product metric counts'; end if;
+  if has_table_privilege('anon','healthchain_private.product_metric_counts','select')
+    or has_table_privilege('authenticated','healthchain_private.product_metric_counts','select')
+    or has_table_privilege('anon','healthchain_private.product_metric_counts','insert')
+    or has_table_privilege('authenticated','healthchain_private.product_metric_counts','insert') then raise exception 'Product counts exposed to clients'; end if;
+  if has_function_privilege('anon','public.healthchain_count_product_metric(text,text,text)','execute')
+    or has_function_privilege('authenticated','public.healthchain_product_metric_report(integer)','execute') then raise exception 'Product RPC exposed to clients'; end if;
+  if exists(select 1 from pg_proc where oid in ('public.healthchain_count_product_metric(text,text,text)'::regprocedure,
+    'public.healthchain_product_metric_report(integer)'::regprocedure,'public.healthchain_prune_product_metrics()'::regprocedure) and prosecdef) then raise exception 'Product RPC must use service invoker'; end if;
+  if exists(select 1 from information_schema.columns where table_schema='healthchain_private' and table_name='product_metric_counts'
+    and column_name not in ('day','event','dimension','platform','hits')) then raise exception 'Unexpected product metric identifying columns'; end if;
+end $$;
 do $$ begin
   if to_regclass('healthchain_private.healthchain_rate_limits') is null then raise exception 'Missing shared rate limits'; end if;
   if has_table_privilege('anon','healthchain_private.healthchain_rate_limits','select')

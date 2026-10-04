@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import adminContentHandler from './api/admin-content.js';
+import productMetricsHandler from './api/product-metrics.js';
 import foodProductHandler from './api/food-product.js';
 import { publicStaticBoundaries } from './scripts/lib/public-static-boundaries.mjs';
 
@@ -61,8 +62,11 @@ const adminContentPlugin = () => ({
       if (taskEnv[key] && !process.env[key]) process.env[key] = taskEnv[key];
     }
     server.middlewares.use(async (req, res, next) => {
-      if (new URL(req.url || '/', 'http://localhost').pathname !== '/api/admin-content')
-        return next();
+      const parsed = new URL(req.url || '/', 'http://localhost');
+      const handler = parsed.pathname === '/api/admin-content' ? adminContentHandler
+        : parsed.pathname === '/api/product-metrics' ? productMetricsHandler : null;
+      if (!handler) return next();
+      req.query = Object.fromEntries(parsed.searchParams);
       res.status = (code) => {
         res.statusCode = code;
         return res;
@@ -77,7 +81,7 @@ const adminContentPlugin = () => ({
           let body = '';
           for await (const chunk of req) {
             body += chunk.toString();
-            if (Buffer.byteLength(body) > 3 * 1024 * 1024)
+            if (Buffer.byteLength(body) > (parsed.pathname === '/api/product-metrics' ? 512 : 3 * 1024 * 1024))
               return res.status(413).json({ error: 'payload_too_large' });
           }
           req.body = JSON.parse(body || '{}');
@@ -85,7 +89,7 @@ const adminContentPlugin = () => ({
           return res.status(400).json({ error: 'invalid_json' });
         }
       }
-      await adminContentHandler(req, res);
+      await handler(req, res);
     });
   },
 });

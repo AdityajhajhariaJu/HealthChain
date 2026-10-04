@@ -13,7 +13,7 @@ export const POLICY_LINKS = [
 ];
 export function legalIdentityComplete(settings = config) {
   return settings.reviewStatus === 'approved' &&
-    ['operatorName', 'operatorCountry', 'operatorAddress', 'privacyEmail', 'supportEmail', 'governingLaw']
+    ['operatorName', 'operatorCountry', 'operatorAddress', 'supportPhone', 'privacyEmail', 'supportEmail', 'governingLaw']
       .every(field => typeof settings[field] === 'string' && settings[field].trim()) &&
     Number.isInteger(settings.minimumAge) && settings.minimumAge >= 18 &&
     Array.isArray(settings.launchMarkets) && settings.launchMarkets.length > 0 &&
@@ -31,6 +31,7 @@ export function getLegalDocument(documentId = 'privacy', region = 'international
     OPERATOR_COUNTRY: settings.operatorCountry || '[Operator country awaiting confirmation]',
     OPERATOR_ADDRESS: settings.operatorAddress || '[Correspondence address awaiting confirmation]',
     PRIVACY_EMAIL: settings.privacyEmail, SUPPORT_EMAIL: settings.supportEmail,
+    SUPPORT_PHONE: settings.supportPhone || '[Support telephone awaiting confirmation]',
     RETENTION_DETAILS: settings.retentionDetails,
     ELIGIBILITY_DETAILS: settings.minimumAge
       ? 'The service is for adults aged ' + settings.minimumAge + ' and above.'

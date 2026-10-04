@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getItemSync } from '../../services/storage';
-import { ANALYTICS_CONSENT_KEY, setAnalyticsConsent } from '../../services/analytics';
+import { ANALYTICS_CONSENT_KEY, hasAnalyticsConsent, setAnalyticsConsent } from '../../services/analytics';
 
 export const OPEN_PRIVACY_PREFERENCES = 'hc_open_privacy_preferences';
 
@@ -12,7 +12,7 @@ export default function ConsentManager() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const value = getItemSync(ANALYTICS_CONSENT_KEY);
-    if (!['accepted', 'declined'].includes(value || '')) setOpen(true);
+    if (value !== 'declined' && !hasAnalyticsConsent()) setOpen(true);
     const show = () => setOpen(true);
     window.addEventListener(OPEN_PRIVACY_PREFERENCES, show);
     return () => window.removeEventListener(OPEN_PRIVACY_PREFERENCES, show);
@@ -39,8 +39,9 @@ export default function ConsentManager() {
         <h2 style={{ fontSize: 17, margin: '0 0 8px' }}>Your privacy choices</h2>
         <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>
           Necessary storage keeps sign-in and your workspace working. Optional measurement sends
-          limited product events to HealthChain's database. It excludes health details, messages,
-          document contents and advertising tracking. You can change this choice in Settings.
+          general visit, onboarding, audio, AI outcome and error counts to HealthChain's database.
+          Reports combine daily totals without account or device identifiers. Health details,
+          messages, document contents and advertising tracking are excluded. You can change this choice in Settings.
         </p>
         <p style={{ fontSize: 14, margin: '10px 0' }}>
           <Link to="/privacy">Privacy policy</Link> · <Link to="/terms">Terms</Link>

@@ -24,6 +24,8 @@ export default async function handler(req, res) {
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const { error: cleanupError } = await supabase.rpc('healthchain_prune_rate_limits');
     if (cleanupError) return res.status(503).json({ error: 'Rate-limit cleanup needs attention' });
+    const { error: metricsError } = await supabase.rpc('healthchain_prune_product_metrics');
+    if (metricsError) return res.status(503).json({ error: 'Product measurement cleanup needs attention' });
 
     const { data, error } = await supabase
       .from('profiles')

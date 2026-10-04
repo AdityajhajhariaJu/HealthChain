@@ -1,6 +1,7 @@
 import { RefreshCw, ShieldAlert } from 'lucide-react';
 import { useEffect } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { trackEvent } from '../../services/analytics';
 
 export default function FallbackError({ error, resetErrorBoundary }) {
   const isMobile = useIsMobile();
@@ -8,6 +9,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
     (error.message.includes('dynamically imported module') || error.message.includes('Importing a module script failed'));
   
   useEffect(() => {
+    trackEvent('app_error', { action: isChunkError ? 'asset_load' : 'screen' });
     if (isChunkError) {
       try {
         // A new deployment has different asset URLs. Permit one recovery for
@@ -62,7 +64,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
         application is still functioning.
       </p>
 
-      {error && (
+      {error && import.meta.env.DEV && (
         <pre
           style={{
             background: '#FFF',

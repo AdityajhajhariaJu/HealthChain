@@ -26,4 +26,6 @@ Prepare factual notifications describing the affected information, timing, prote
 
 Verify security advisors and owner policies after schema changes; review service-only grants; monitor scheduled cleanup failures; and confirm that the chosen paid AI/provider terms remain applicable. Reconcile SDK and store data declarations whenever a provider or collection purpose changes. A new purpose or health-sharing category needs the relevant notice and affirmative permission before use.
 
+For optional product measurement, periodically verify refusal/GPC and withdrawal behavior, server-controlled administrator access and the 90-day aggregate cleanup. Reports are event counts rather than unique users or verified revenue. Do not combine exports with identifiable health records or add health-specific categories without a separate purpose and legal review. See `MEASUREMENT.md` for the collected fields and legacy-deployment limits.
+
 Review the public legal identity/contact, policy version, support inbox, deletion instructions and store forms together. Keep the frozen backup checkpoint separate from ordinary active-repository releases.

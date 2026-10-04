@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, readdir, access } from 'node:fs/promises';
+import { readFile, readdir, access, stat } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,7 +12,10 @@ async function files(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) result.push(...(await files(path)));
-    else if (entry.isFile()) result.push(path);
+    // OneDrive placeholders can be reported as links even when stat/readFile
+    // resolve a regular file. Include them in the hash comparison as well.
+    else if ((await stat(path)).isFile()) result.push(path);
+    else throw new Error(`Unsupported native asset: ${path}`);
   }
   return result;
 }

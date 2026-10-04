@@ -6,6 +6,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import AccountRuntime from './components/layout/AccountRuntime';
 import ConsentManager from './components/ui/ConsentManager';
 import AIConsentDialog from './components/ui/AIConsentDialog';
+import ProductMeasurement from './components/ui/ProductMeasurement';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
 import OfflineBanner from './components/ui/OfflineBanner';
@@ -194,6 +195,7 @@ export default function App() {
     <SafeRoute>
       <OfflineBanner />
       <ConsentManager />
+      <ProductMeasurement />
       <AIConsentDialog />
       <AccountRuntime />
       <Routes>

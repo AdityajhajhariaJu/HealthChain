@@ -15,8 +15,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        excludeHealthStorageFromBackup()
         return true
+    }
+
+    private func excludeHealthStorageFromBackup() {
+        // Preferences and WKWebView records live under Library. Exclude Documents
+        // as well so future local record files do not enter an iCloud/device backup.
+        for directory in [FileManager.SearchPathDirectory.libraryDirectory, .documentDirectory] {
+            do {
+                var url = try FileManager.default.url(for: directory, in: .userDomainMask,
+                                                     appropriateFor: nil, create: true)
+                var values = URLResourceValues()
+                values.isExcludedFromBackup = true
+                try url.setResourceValues(values)
+            } catch {
+                NSLog("HealthChain: local backup exclusion requires attention.")
+            }
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -30,6 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
+        excludeHealthStorageFromBackup()
         // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
     }
 

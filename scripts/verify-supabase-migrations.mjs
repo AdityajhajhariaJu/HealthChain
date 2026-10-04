@@ -39,6 +39,7 @@ const requiredFiles = [
   '20261001151500_legacy_function_search_paths.sql',
   '20261001173602_app_query_efficiency.sql',
   '20261004095325_healthchain_launch_privacy_controls.sql',
+  '20261004140646_healthchain_aggregate_product_metrics.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -60,6 +61,8 @@ const requiredVerifierTokens = [
   'Application query efficiency',
   'healthchain_consume_rate_limit',
   'healthchain_private.healthchain_rate_limits',
+  'healthchain_private.product_metric_counts',
+  'healthchain_count_product_metric',
 ];
 
 const files = (await readdir(migrationsDir, { withFileTypes: true }))

@@ -23,8 +23,10 @@ export default function PrivacyPreferences() {
       Allow optional product measurement
     </label>
     <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>
-      Limited events go to HealthChain's database. Health details, messages, documents and
-      free-text button labels are excluded. Advertising pixels are not used.
+      General visit, onboarding, audio, AI outcome, checkout and error counts go to HealthChain's
+      database. Daily totals have no account or device identifiers and cover up to 90 days.
+      Health details, selected sounds, messages, documents, amounts and error text are excluded.
+      Advertising pixels are not used.
     </p>
     <p style={{ fontSize: 14 }}>AI processing permission: <strong>{ai ? 'Allowed' : 'Not allowed'}</strong></p>
     <button className="btn btn-outline" disabled={!ai} onClick={revokeAIConsent}>Withdraw AI permission</button>

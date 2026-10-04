@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { trackEvent } from '../../services/analytics';
 import {
   audioStreamUrl,
   cachedAudio,
@@ -105,7 +106,9 @@ export function useAudioDownloads() {
         if (mounted.current) setPending({ path, percent });
       });
       await refresh();
+      trackEvent('audio_action', { action: 'downloaded' });
     } catch (failure: any) {
+      if (!request.signal.aborted) trackEvent('audio_action', { action: 'download_failed' });
       if (mounted.current && !request.signal.aborted)
         setError(failure?.message || 'Download failed. Check your connection and retry.');
     } finally {

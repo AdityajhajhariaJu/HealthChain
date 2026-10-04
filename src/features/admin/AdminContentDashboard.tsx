@@ -1,4 +1,5 @@
 import OverlayPortal from '../../components/ui/OverlayPortal';
+import ProductMetricsPanel from './ProductMetricsPanel';
 import {
   CheckCircle,
   Edit2,
@@ -223,6 +224,7 @@ export const AdminContentDashboard: React.FC = () => {
           </button>
         </div>
   
+        <ProductMetricsPanel />
         {isEditing ? (
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(15,23,42,0.06)] border border-slate-100 p-8 transform transition-all">
             <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">

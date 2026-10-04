@@ -33,6 +33,7 @@ import {
 } from '../../services/haptics';
 import { completeProfileOnboarding, getProfile } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { trackEvent } from '../../services/analytics';
 
 interface GoalOption {
   title: string;
@@ -262,6 +263,7 @@ export default function OnboardingFlow() {
   }, [heightCm]);
 
   // Keyboard navigation
+  useEffect(() => { trackEvent('onboarding', { action: 'started' }); }, []);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && step > 0) {
@@ -287,6 +289,7 @@ export default function OnboardingFlow() {
     triggerHapticLight();
     try {
       localStorage.setItem('hc_onboarded', 'true');
+      trackEvent('onboarding', { action: 'completed' });
       if (selectedGoal?.title) {
         localStorage.setItem('hc_primary_focus', selectedGoal.title);
       }

@@ -20,6 +20,7 @@ import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { flushHealthMemory, recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
+import { trackEvent } from '../../services/analytics';
 import { useActionIslandStore } from '../../stores/actionIslandStore';
 
 import { LivingAtmosphereCanvas, type AtmosphereTheme } from './LivingAtmosphereCanvas';
@@ -60,6 +61,7 @@ interface MeditationPlayerProps {
 }
 
 export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onClose }) => {
+  const measuredAudio = useRef(new WeakSet<HTMLAudioElement>());
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(true);
   const toast = useToast();
@@ -1016,6 +1018,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     playsInline
                     onPlaying={(event) => {
                       if (event.currentTarget !== audioRef.current) return;
+                      if (!measuredAudio.current.has(event.currentTarget)) {
+                        measuredAudio.current.add(event.currentTarget);
+                        trackEvent('audio_action', { action: source.offline ? 'offline_playing' : 'playing' });
+                      }
                       setMediaActive(true);
                       setBuffering(false);
                       setAudioError('');
@@ -1030,6 +1036,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       setBuffering(true);
                     }}
                     onError={() => {
+                      trackEvent('audio_action', { action: 'playback_failed' });
                       setMediaActive(false);
                       setBuffering(false);
                       setIsPlaying(false);

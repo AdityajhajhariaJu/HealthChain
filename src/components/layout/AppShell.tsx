@@ -29,7 +29,6 @@ import { triggerHapticLight } from '../../services/haptics';
 import { getProfile } from '../../services/ProfileEngine';
 import { observeActivity } from '../../services/gamification/telemetry';
 
-import { trackPageView } from '../../services/analytics';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 import { initDietMealReminderService } from '../../services/DietMealReminderService';
 import { restoreHydrationNotifications } from '../../services/HydrationService';
@@ -277,7 +276,6 @@ export default function AppShell() {
 
     setShowMoreMenu(false);
     setShowProfileMenu(false);
-    trackPageView(location.pathname);
     const scrollContainer = document.querySelector('.app-shell__content');
     if (scrollContainer) {
       scrollContainer.scrollTo(0, 0);

@@ -22,11 +22,13 @@ HealthChain handles its app support at **[[SUPPORT_EMAIL]]**. Applicable non-exc
 The operator is responsible for its obligations concerning the app, including relevant product claims, legal compliance and intellectual-property claims; a store is not HealthChain's clinician or support provider.
 
 ## 6. Apple distribution provisions
-For an app obtained from Apple's App Store, this agreement is between you and the HealthChain operator, not Apple. Apple has no obligation to supply app maintenance or support. If the app fails to conform to an applicable warranty, you may notify Apple, and Apple may refund the purchase price where its rules require; other applicable claims remain with the operator to the extent required by law.
+For an app obtained from Apple's App Store, this agreement is between you and the HealthChain operator, not Apple. The operator is responsible for the app and its content. Apple has no obligation to supply app maintenance or support. If the app fails to conform to an applicable warranty, you may notify Apple and Apple will refund the app's purchase price. To the maximum extent permitted by law, Apple has no further app warranty obligation; the operator is responsible for other claims, losses, liabilities, damages, costs and expenses arising from that failure. Mandatory consumer rights remain available.
 
-Use on Apple devices is subject to the App Store usage rules, including applicable family-sharing rights. Apple and its subsidiaries are third-party beneficiaries of this licence and may enforce it against you where required by Apple's minimum terms. Apple is not responsible for addressing your or another party's claims about possession/use, legal compliance or third-party intellectual property to the extent specified by those minimum terms.
+The licence permits use on Apple-branded devices you own or control under the applicable Apple Media Services usage rules, including access by accounts associated with a purchaser through Family Sharing or volume purchasing where permitted. No licence rule overrides those usage rules. Apple and its subsidiaries are third-party beneficiaries of this licence and, on your acceptance, have the right to enforce it against you. The operator, rather than Apple, addresses product-liability claims, legal/regulatory compliance claims and consumer/privacy claims relating to the app or its use, including use of HealthKit. If a third party claims that the app or your possession/use infringes intellectual-property rights, the operator is responsible for investigating, defending, settling and discharging that claim. Liability is not restricted beyond what applicable law permits.
 
 You must comply with applicable trade/export restrictions and must not use the app where distribution or use is prohibited by law. Required statutory consumer protections take precedence over any conflicting licence restriction.
+
+For Apple distribution, you represent that you are not in a country subject to a United States government embargo or designated by that government as supporting terrorism, and that you are not on a United States government prohibited or restricted-party list. You must comply with applicable third-party agreements, including your network/data-service agreement, when using the app.
 
 ## 7. Google Play distribution and third-party terms
 For Google Play distribution, installation and purchases are also subject to the applicable Google Play terms. A store manages the transactions it sells. Nothing here bypasses required platform billing or removes statutory refund rights.
@@ -36,4 +38,4 @@ Health-platform, payment, sign-in and linked content services operate under thei
 ## 8. Termination and contact
 The licence ends when you stop using the app or when access is lawfully ended for a material violation, subject to required notices and consumer rights. Removing the app does not automatically delete a cloud account or cancel an independently billed subscription. Use the account-deletion and seller subscription controls.
 
-For a legal notice, support or accessible licence copy, contact **[[SUPPORT_EMAIL]]** or **[[OPERATOR_NAME]], [[OPERATOR_ADDRESS]]**.
+For a legal notice, support, complaint, app claim or accessible licence copy, contact **[[SUPPORT_EMAIL]]**, telephone **[[SUPPORT_PHONE]]**, or **[[OPERATOR_NAME]], [[OPERATOR_ADDRESS]]**.
