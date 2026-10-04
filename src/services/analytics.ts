@@ -1,144 +1,72 @@
 /**
- * Centralized Analytics Service
- * Handles dispatching events to Meta Pixel, AppsFlyer, and Supabase Analytics.
+ * Optional first-party measurement. No health text, advertising pixels or
+ * external analytics dispatch. Unknown events/parameters are discarded.
  */
 import { Capacitor } from '@capacitor/core';
+import { captureAccountScope, isAccountScopeCurrent } from './AccountScope';
+import { getItemSync, removeItemSync, setItemSync } from './storage';
 
 declare global {
-  interface Window {
-    fbq: any;
-    AF_init?: any;
-    gtag?: (...args: any[]) => void;
-  }
+  interface Window { fbq: any; AF_init?: any; gtag?: (...args: any[]) => void; }
 }
-
-let inMemoryAnonId: string | null = null;
-
-export const hasAnalyticsConsent = () => {
-  try {
-    return (
-      typeof window !== 'undefined' && localStorage.getItem('hc_cookies_accepted') === 'accepted'
-    );
-  } catch {
-    return false;
+export const ANALYTICS_CONSENT_KEY = 'hc_cookies_accepted';
+export const PRIVACY_PREFERENCES_EVENT = 'hc_privacy_preferences_changed';
+const globalPrivacyControl = () => typeof navigator !== 'undefined' &&
+  (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true;
+export const hasAnalyticsConsent = () => !globalPrivacyControl() && getItemSync(ANALYTICS_CONSENT_KEY) === 'accepted';
+export function setAnalyticsConsent(accepted: boolean) {
+  accepted = accepted && !globalPrivacyControl();
+  setItemSync(ANALYTICS_CONSENT_KEY, accepted ? 'accepted' : 'declined');
+  if (!accepted) removeItemSync('hc_anon_id');
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(PRIVACY_PREFERENCES_EVENT));
+}
+const SAFE_BUTTONS = new Set(['Get Started', 'feedback_submitted',
+  'clinical_parent_pillar_select', 'clinical_station_jump', 'clinical_parent_pillar_open']);
+const SAFE_FEATURES = new Set(['daily_checkin', 'today']);
+const SAFE_PUBLIC_PATHS = new Set(['/', '/pricing', '/privacy', '/terms', '/terms-policies',
+  '/privacy-security', '/delete-account', '/acceptable-use', '/app-license',
+  '/consumer-health-privacy', '/login', '/signup', '/help', '/review-demo']);
+export function safeAnalyticsPayload(eventName: string, payload: unknown): Record<string, string | number> | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+  const input = payload as Record<string, unknown>;
+  if (eventName === 'page_view' && typeof input.path === 'string') {
+    const path = input.path.split(/[?#]/, 1)[0];
+    if (SAFE_PUBLIC_PATHS.has(path)) return { page: path };
+    if (path === '/app' || path.startsWith('/app/')) return { page: 'workspace' };
+    return null;
   }
-};
-
-const getAnonymousId = () => {
-  if (typeof window === 'undefined') return 'unknown';
-  try {
-    let anonId = localStorage.getItem('hc_anon_id');
-    if (!anonId) {
-      anonId = inMemoryAnonId || `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      inMemoryAnonId = anonId;
-      try {
-        localStorage.setItem('hc_anon_id', anonId);
-      } catch {}
-    }
-    return anonId;
-  } catch {
-    if (!inMemoryAnonId) {
-      inMemoryAnonId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    }
-    return inMemoryAnonId;
-  }
-};
-
-export const trackEvent = (eventName: string, payload: any = {}) => {
-  // Optional analytics must remain completely dormant until the user opts in.
+  if (eventName === 'feature_used' && typeof input.feature === 'string' && SAFE_FEATURES.has(input.feature))
+    return { feature: input.feature };
+  if (eventName === 'button_click' && typeof input.button === 'string' && SAFE_BUTTONS.has(input.button))
+    return { button: input.button };
+  if (['begin_checkout', 'purchase'].includes(eventName) && typeof input.value === 'number' &&
+      Number.isFinite(input.value) && input.value >= 0 && input.value <= 1000000)
+    return { value: input.value, currency: 'INR' };
+  return null;
+}
+export const trackEvent = (eventName: string, payload: unknown = {}) => {
   if (!hasAnalyticsConsent()) return;
-  // 1. Google Ads & Google Tag (gtag.js)
-  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-    try {
-      window.gtag('event', eventName, payload);
-    } catch (e) {
-      console.warn('gtag dispatch error:', e);
-    }
-  }
-
-  // 2. Meta Pixel
-  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    try {
-      if (['Lead', 'Purchase', 'CompleteRegistration'].includes(eventName)) {
-        window.fbq('track', eventName, payload);
-      } else {
-        window.fbq('trackCustom', eventName, payload);
-      }
-    } catch (e) {
-      console.warn('fbq dispatch error:', e);
-    }
-  }
-
-  // 3. AppsFlyer (Web / App Wrapper)
-  if (import.meta.env.DEV) console.log(`[Analytics] ${eventName}`, payload);
-
-  // 4. Supabase Analytics
-  try {
-    let platform = 'web';
-    try {
-      platform = Capacitor.getPlatform();
-    } catch {
-      platform = 'web';
-    }
-
-    void import('./supabaseClient')
-      .then(async ({ supabase }) => {
-        if (!hasAnalyticsConsent()) return;
-        const { data } = await supabase.auth.getSession();
-        if (!hasAnalyticsConsent()) return;
-        return supabase.from('analytics_events').insert({
-          event_name: eventName,
-          event_params: { ...payload, anonymous_id: getAnonymousId() },
-          user_id: data?.session?.user?.id || null,
-          platform: platform,
-          created_at: new Date().toISOString(),
-        });
-      })
-      .then((res: any) => {
-        if (res?.error && import.meta.env.DEV) {
-          console.warn('Failed to log analytics event:', res.error);
-        }
-      })
-      .catch((err) => {
-        if (import.meta.env.DEV) {
-          console.warn('Analytics pipeline unreachable:', err);
-        }
-      });
-  } catch (e) {
-    if (import.meta.env.DEV) {
-      console.warn('Analytics dispatch error:', e);
-    }
-  }
-};
-
-// Common & Advanced Telemetry Events (100% GDPR/CCPA Privacy Compliant)
-export const trackPageView = (path: string) => trackEvent('page_view', { path });
-export const trackFeatureUsed = (featureName: string, metadata: any = {}) =>
-  trackEvent('feature_used', { feature: featureName, ...metadata });
-export const trackButtonClick = (buttonName: string, context: string = '') =>
-  trackEvent('button_click', { button: buttonName, context });
-export const trackCheckoutInitiated = (value: number, planId?: string) =>
-  trackEvent('begin_checkout', { value, currency: 'INR', planId });
-export const trackPurchase = (value: number, planId?: string) => {
-  if (!hasAnalyticsConsent()) return;
-  const txId = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  trackEvent('purchase', {
-    value,
-    currency: 'INR',
-    transaction_id: txId,
-    plan_id: planId,
+  const safePayload = safeAnalyticsPayload(eventName, payload);
+  if (!safePayload) return;
+  const scope = captureAccountScope();
+  void import('./supabaseClient').then(async ({ supabase }) => {
+    if (!hasAnalyticsConsent() || !isAccountScopeCurrent(scope)) return;
+    const { data } = await supabase.auth.getSession();
+    if (!hasAnalyticsConsent() || !isAccountScopeCurrent(scope)) return;
+    const userId = scope.accountId === 'guest' ? null : scope.accountId;
+    if (userId && data?.session?.user?.id !== userId) return;
+    return supabase.from('analytics_events').insert({
+      event_name: eventName, event_params: safePayload, user_id: userId,
+      platform: Capacitor.getPlatform(), created_at: new Date().toISOString(),
+    });
+  }).then((res: any) => {
+    if (res?.error && import.meta.env.DEV) console.warn('Product measurement unavailable.');
+  }).catch(() => {
+    if (import.meta.env.DEV) console.warn('Product measurement unavailable.');
   });
-
-  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-    try {
-      window.gtag('event', 'conversion', {
-        send_to: 'AW-18407555330/FYfpCI65uOccEIKCtMlE',
-        value: value,
-        currency: 'INR',
-        transaction_id: txId,
-      });
-    } catch (err) {
-      console.warn('Google Ads conversion tag error:', err);
-    }
-  }
 };
+export const trackPageView = (path: string) => trackEvent('page_view', { path });
+export const trackFeatureUsed = (feature: string, _metadata: unknown = {}) => trackEvent('feature_used', { feature });
+export const trackButtonClick = (button: string, _context = '') => trackEvent('button_click', { button });
+export const trackCheckoutInitiated = (value: number, _planId?: string) => trackEvent('begin_checkout', { value });
+export const trackPurchase = (value: number, _planId?: string) => trackEvent('purchase', { value });

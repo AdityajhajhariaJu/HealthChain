@@ -18,7 +18,7 @@ test('anonymous landing does not download account recovery or clinical workspace
     page.getByRole('heading', { name: 'Your Health Story. Finally Connected.' })
   ).toBeVisible();
   await page.getByRole('button', { name: 'Necessary only' }).click();
-  await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Privacy preferences' })).toHaveCount(0);
   expect(
     modules.filter((url) =>
       /AccountLifecycle|CaseEngine|HealthMemory|geminiService|clinicalReasoningEngine/.test(url)
@@ -54,7 +54,7 @@ test('landing text is visible immediately, zoom is available, and declining cons
     /user-scalable=no|maximum-scale=1/
   );
   await page.getByRole('button', { name: 'Necessary only' }).click();
-  await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Privacy preferences' })).toHaveCount(0);
   expect(tracking).toEqual([]);
   await page.screenshot({ path: `test-results/landing-mobile-top-${testInfo.project.name}.png` });
   const showcase = page.getByRole('region', { name: 'Connected case workflow examples' });
@@ -105,7 +105,7 @@ test('landing text is visible immediately, zoom is available, and declining cons
   expect(tracking).toEqual([]);
 });
 
-test('accepting consent loads one Google SDK and configures Analytics and Ads', async ({
+test('optional measurement consent never loads advertising or third-party analytics', async ({
   page,
 }) => {
   const tracking: string[] = [];
@@ -114,10 +114,9 @@ test('accepting consent loads one Google SDK and configures Analytics and Ads', 
     return route.fulfill({ contentType: 'application/javascript', body: '/* consent SDK stub */' });
   });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: 'I Accept', exact: true }).click();
-  await expect.poll(() => tracking.length).toBe(1);
-  const commands = await page.evaluate(() => (window as any).dataLayer);
-  expect(commands).toContainEqual(['config', 'G-0JPQJJHTB6', { anonymize_ip: true }]);
-  expect(commands).toContainEqual(['config', 'AW-18407555330']);
+  await page.getByRole('button', { name: 'Allow optional measurement', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Privacy preferences' })).toHaveCount(0);
+  expect(tracking).toEqual([]);
+  expect(await page.locator('script[src*="googletagmanager"]').count()).toBe(0);
   expect(await page.evaluate(() => localStorage.getItem('hc_cookies_accepted'))).toBe('accepted');
 });

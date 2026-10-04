@@ -38,6 +38,7 @@ const requiredFiles = [
   '20261001143200_atomic_subscription_recovery.sql',
   '20261001151500_legacy_function_search_paths.sql',
   '20261001173602_app_query_efficiency.sql',
+  '20261004095325_healthchain_launch_privacy_controls.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -57,6 +58,8 @@ const requiredVerifierTokens = [
   'recover_subscription_entitlement',
   'Legacy function search paths',
   'Application query efficiency',
+  'healthchain_consume_rate_limit',
+  'healthchain_private.healthchain_rate_limits',
 ];
 
 const files = (await readdir(migrationsDir, { withFileTypes: true }))

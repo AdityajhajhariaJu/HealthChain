@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
   // User-editable metadata and a hidden route never authorize privileged access.
   if (!hasContentAdminAccess(user)) return res.status(403).json({ error: 'content_admin_required' });
-  if (!checkRateLimit(req, 30, 60000, `content-admin:${user.id}`)) return res.status(429).json({ error: 'rate_limited' });
+  if (!(await checkRateLimit(req, 30, 60000, `content-admin:${user.id}`))) return res.status(429).json({ error: 'rate_limited' });
 
   try {
     if (req.method === 'GET') {

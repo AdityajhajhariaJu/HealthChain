@@ -16,3 +16,5 @@ playwright-report/
 coverage/
 supabase/.temp/
 *.tsbuildinfo
+# Private production security review evidence; retained in the local launch packet.
+docs/release/review/

@@ -48,6 +48,7 @@ const request = (id = 'ava-request') => ({
   method: 'POST',
   headers: {
     origin: 'http://localhost:3001',
+    'x-hc-ai-consent': '2026-10-04',
     authorization: 'Bearer synthetic',
     'x-hc-request-id': id,
     'x-hc-operation': 'ava_chat',

@@ -11,6 +11,8 @@ const guest = () => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
   localStorage.setItem('hc_cookies_accepted', 'declined');
+    // Existing affirmative AI permission for this feature-specific fixture.
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
 };
 
 test('new user sees honest empty states and research is always one tap away', async ({ page }) => {
@@ -105,6 +107,8 @@ test('a requested Gemini reading is saved and shown without invented personal re
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
+    // Existing affirmative AI permission for this feature-specific fixture.
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input, init) => {
       if (!String(input).includes('/api/gemini')) return originalFetch(input, init);

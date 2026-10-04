@@ -1,144 +1,55 @@
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { triggerHapticLight } from '../../services/haptics';
-import { getItemSync, setItemSync } from '../../services/storage';
+import { getItemSync } from '../../services/storage';
+import { ANALYTICS_CONSENT_KEY, setAnalyticsConsent } from '../../services/analytics';
 
-const GA_ID = 'G-0JPQJJHTB6';
-
-function enableAnalytics() {
-  if (typeof window === 'undefined' || (window as any).__hc_ga_loaded) return;
-  (window as any).dataLayer = (window as any).dataLayer || [];
-  (window as any).gtag = (...args: any[]) => (window as any).dataLayer.push(args);
-  (window as any).gtag('js', new Date());
-  (window as any).gtag('config', GA_ID, { anonymize_ip: true });
-  (window as any).gtag('config', 'AW-18407555330');
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-  document.head.appendChild(script);
-  (window as any).__hc_ga_loaded = true;
-}
+export const OPEN_PRIVACY_PREFERENCES = 'hc_open_privacy_preferences';
 
 export default function ConsentManager() {
   const isMobile = useIsMobile();
-  const [showCookies, setShowCookies] = useState(false);
-
+  const [open, setOpen] = useState(false);
   useEffect(() => {
-    const cookiesAccepted = getItemSync('hc_cookies_accepted');
-    if (!cookiesAccepted || cookiesAccepted === 'true') {
-      setShowCookies(true);
-    } else if (cookiesAccepted === 'accepted') {
-      enableAnalytics();
-    }
+    const value = getItemSync(ANALYTICS_CONSENT_KEY);
+    if (!['accepted', 'declined'].includes(value || '')) setOpen(true);
+    const show = () => setOpen(true);
+    window.addEventListener(OPEN_PRIVACY_PREFERENCES, show);
+    return () => window.removeEventListener(OPEN_PRIVACY_PREFERENCES, show);
   }, []);
-
+  const choose = (accepted: boolean) => {
+    setAnalyticsConsent(accepted);
+    setOpen(false);
+  };
   useEffect(() => {
-    if (!showCookies) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        declineOptionalCookies();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showCookies]);
-
-  const acceptCookies = () => {
-    triggerHapticLight();
-    setItemSync('hc_cookies_accepted', 'accepted');
-    enableAnalytics();
-    setShowCookies(false);
-  };
-
-  const declineOptionalCookies = () => {
-    triggerHapticLight();
-    setItemSync('hc_cookies_accepted', 'declined');
-    setShowCookies(false);
-  };
-
-  return (
-    <>
-      {/* Cookie & Terms Consent Banner */}
-      {showCookies && (
-        <div
-          className="hc-page-enter"
-          role="region"
-          aria-label="Privacy and Terms Preferences"
-          style={{
-            position: 'fixed',
-            bottom: isMobile ? 80 : 24,
-            left: isMobile ? 16 : 24,
-            right: isMobile ? 16 : 24,
-            backgroundColor: 'var(--surface)',
-            borderRadius: '16px',
-            padding: '24px',
-            border: '1px solid var(--border)',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-            zIndex: 9999,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            maxWidth: '800px',
-            margin: '0 auto',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ color: 'var(--teal)' }}>
-              <ShieldCheck size={24} />
-            </div>
-            <div>
-              <h4 style={{ color: 'var(--text-main)', margin: '0 0 8px 0', fontSize: '16px' }}>
-                Privacy & Terms
-              </h4>
-              <p
-                style={{
-                  color: 'var(--text-muted)',
-                  margin: 0,
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                HealthChain uses necessary storage for sign-in and app operation. Optional analytics
-                helps us understand product usage and is loaded only if you accept it. See our Terms
-                of Service and Privacy Policy.
-              </p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-            <button
-              onClick={declineOptionalCookies}
-              style={{
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                padding: '10px 18px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Necessary only
-            </button>
-            <button
-              onClick={acceptCookies}
-              style={{
-                backgroundColor: 'var(--teal)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 24px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              I Accept
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
+    if (!open) return;
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') choose(false); };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [open]);
+  if (!open) return null;
+  return <section role="region" aria-label="Privacy preferences" className="hc-page-enter"
+    style={{ position: 'fixed', bottom: isMobile ? 80 : 24, left: 16, right: 16,
+      background: 'var(--surface)', color: 'var(--text-main)', borderRadius: 16, padding: 20,
+      border: '1px solid var(--border)', boxShadow: '0 10px 40px rgba(0,0,0,.2)',
+      zIndex: 9999, maxWidth: 740, margin: '0 auto', maxHeight: '60dvh', overflowY: 'auto' }}>
+    <div style={{ display: 'flex', gap: 12 }}>
+      <ShieldCheck size={24} color="var(--teal)" style={{ flexShrink: 0 }} />
+      <div>
+        <h2 style={{ fontSize: 17, margin: '0 0 8px' }}>Your privacy choices</h2>
+        <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+          Necessary storage keeps sign-in and your workspace working. Optional measurement sends
+          limited product events to HealthChain's database. It excludes health details, messages,
+          document contents and advertising tracking. You can change this choice in Settings.
+        </p>
+        <p style={{ fontSize: 14, margin: '10px 0' }}>
+          <Link to="/privacy">Privacy policy</Link> · <Link to="/terms">Terms</Link>
+        </p>
+      </div>
+    </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
+      <button className="btn btn-outline" onClick={() => choose(false)}>Necessary only</button>
+      <button className="btn btn-primary" onClick={() => choose(true)}>Allow optional measurement</button>
+    </div>
+  </section>;
 }

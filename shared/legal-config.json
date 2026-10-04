@@ -1,0 +1,14 @@
+{
+  "brand": "HealthChain",
+  "operatorName": "",
+  "operatorCountry": "",
+  "operatorAddress": "",
+  "privacyEmail": "healthchain360@gmail.com",
+  "supportEmail": "healthchain360@gmail.com",
+  "minimumAge": null,
+  "launchMarkets": [],
+  "governingLaw": "",
+  "aiBillingVerified": false,
+  "retentionDetails": "Retention periods for provider logs/backups and legally required payment records must be confirmed by the operator before publication. Active user records are retained until deletion as described above.",
+  "reviewStatus": "draft"
+}

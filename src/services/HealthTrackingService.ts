@@ -9,7 +9,7 @@ export interface HealthSyncResult {
   failures: number;
   status: 'queued' | 'partial' | 'no_data';
 }
-const permissions = ['steps', 'sleep', 'heartRate', 'totalCalories', 'weight', 'height'] as const;
+const permissions = ['steps', 'sleep', 'heartRate', 'totalCalories'] as const;
 export async function isHealthSupported(): Promise<boolean> {
   try {
     return !!(await Health.isAvailable())?.available;

@@ -10,6 +10,8 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
+    // Existing affirmative AI permission for this feature-specific fixture.
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,
       value: { getUserMedia: () => Promise.reject(new Error('Camera denied in test')) },

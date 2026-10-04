@@ -1,6 +1,7 @@
 // @vitest-environment node
 import crypto from 'crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: async () => true }));
 
 // Mocks for createClient
 const mockRpc = vi.fn();

@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+// Consent behavior is covered separately; these cases isolate account/clinical boundaries.
+vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true, AI_CONSENT_VERSION: '2026-10-04' }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   session: vi.fn(),

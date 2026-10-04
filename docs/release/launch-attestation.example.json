@@ -1,0 +1,17 @@
+{
+  "nativeBilling": "unconfirmed",
+  "nativeBillingReviewReference": "",
+  "iosLoginResolved": false,
+  "sharedTableExposureResolved": false,
+  "providerContractsAndTransfersReviewed": false,
+  "sensitiveHealthConsentReviewed": false,
+  "providerLogAndBackupRetentionVerified": false,
+  "breachedPasswordProtectionResolved": false,
+  "storePrivacyFormsReviewed": false,
+  "androidSignedBundlePath": "",
+  "iosSignedArchivePath": "",
+  "androidRealDeviceReviewPassed": false,
+  "iosRealDeviceReviewPassed": false,
+  "storeAccountAndTestingRequirementsMet": false,
+  "reviewerAccessPrepared": false
+}

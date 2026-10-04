@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     if (error || !user) return res.status(401).json({ error: 'sign_in_required' });
     const active = await client.rpc('healthchain_current_account_active');
     if (active.error || !active.data) return res.status(403).json({ error: 'account_unavailable' });
-    if (!checkRateLimit(req, 3, 60000, `push-test:${user.id}`)) { res.setHeader('Retry-After', '60'); return res.status(429).json({ error: 'test_rate_limited' }); }
+    if (!(await checkRateLimit(req, 3, 60000, `push-test:${user.id}`))) { res.setHeader('Retry-After', '60'); return res.status(429).json({ error: 'test_rate_limited' }); }
     const device = await client.from('user_devices').select('platform').eq('user_id', user.id).eq('push_token', token).maybeSingle();
     if (device.error) return res.status(503).json({ error: 'notification_service_unavailable' });
     if (!device.data) return res.status(409).json({ error: 'device_not_registered' });

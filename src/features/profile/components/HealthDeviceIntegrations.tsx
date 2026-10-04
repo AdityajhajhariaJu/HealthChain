@@ -15,6 +15,7 @@ export function HealthDeviceIntegrations() {
   const [isConnected, setIsConnected] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [importAllowed, setImportAllowed] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(() => getItemSync('hc_last_health_sync'));
   const { success, error } = useToast();
 
@@ -45,18 +46,20 @@ export function HealthDeviceIntegrations() {
   if (!isSupported) return null;
 
   const handleConnect = async () => {
+    if (!importAllowed) return;
     triggerHapticMedium();
     const granted = await requestHealthPermissions();
     if (granted) {
       setIsConnected(true);
       success('Connected', 'HealthConnect / Apple Health authorized successfully.');
-      handleSync(); // Auto sync on connect
+      await handleSync();
     } else {
       error('Connection Failed', 'Could not access health data. Please check OS permissions.');
     }
   };
 
   const handleSync = async () => {
+    if (!importAllowed || isSyncing) return;
     triggerHapticLight();
     setIsSyncing(true);
     try {
@@ -131,6 +134,19 @@ export function HealthDeviceIntegrations() {
           gap: '16px',
         }}
       >
+        <p style={{ margin: 0, color: '#475569', fontSize: 14, lineHeight: 1.65 }}>
+          With your permission, HealthChain reads steps, sleep, heart rate and total calories
+          from Apple Health or Health Connect to show your activity history. Imported samples
+          are saved on this device and queued for your signed-in HealthChain account in Supabase.
+          You can choose individual types in the system permission screen and revoke access
+          in your device settings. Imports do not change your Apple Health or Health Connect records.
+          {' '}<a href="/consumer-health-privacy">Read the consumer health privacy notice</a>.
+        </p>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14 }}>
+          <input type="checkbox" checked={importAllowed}
+            onChange={event => setImportAllowed(event.target.checked)} />
+          I agree to import these health samples into my HealthChain account.
+        </label>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
@@ -150,13 +166,14 @@ export function HealthDeviceIntegrations() {
               <div style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
                 Activity Sync
               </div>
-              <div style={{ fontSize: '13px', color: '#64748B' }}>Steps, Heart Rate, Sleep</div>
+              <div style={{ fontSize: '13px', color: '#64748B' }}>Steps, Heart Rate, Sleep, Calories</div>
             </div>
           </div>
 
           {!isConnected ? (
             <button
               onClick={handleConnect}
+              disabled={!importAllowed || isSyncing}
               style={{
                 background: '#0F172A',
                 color: 'white',
@@ -199,7 +216,7 @@ export function HealthDeviceIntegrations() {
               </div>
               <button
                 onClick={handleSync}
-                disabled={isSyncing}
+                disabled={isSyncing || !importAllowed}
                 style={{
                   background: 'transparent',
                   border: '1px solid #E2E8F0',

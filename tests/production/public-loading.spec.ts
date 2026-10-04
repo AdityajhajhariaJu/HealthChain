@@ -36,7 +36,7 @@ test('built landing renders and accepts consent while the auth client is still l
     await expect.poll(auth.requested).toBe(true);
     await expect(page.getByRole('heading', { name: 'Frequently Asked Questions' })).toBeVisible();
     await page.getByRole('button', { name: 'Necessary only' }).click();
-    await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(
+    await expect(page.getByRole('region', { name: 'Privacy preferences' })).toHaveCount(
       0
     );
     expect(await page.evaluate(() => localStorage.getItem('hc_cookies_accepted'))).toBe('declined');
@@ -55,7 +55,7 @@ test('all workflow examples and FAQ remain readable while account loading is una
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Necessary only' }).click();
-    await expect(page.getByRole('region', { name: 'Privacy and Terms Preferences' })).toHaveCount(
+    await expect(page.getByRole('region', { name: 'Privacy preferences' })).toHaveCount(
       0
     );
     const overview = page.getByRole('region', { name: 'Connected case workflow examples' });

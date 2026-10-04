@@ -1,7 +1,8 @@
 import OverlayPortal from './OverlayPortal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Clock3, CloudOff, Mic, MicOff, Utensils, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 import { locationMealIdeas, normalizeDietPreferences } from '../../../shared/diet-preferences';
 import { addNutritionLog, getProfile, removeNutritionLog } from '../../services/ProfileEngine';
 import { effectiveFoodLocation } from '../../services/dietEveryday';
@@ -86,6 +87,14 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   const [portion, setPortion] = useState<'light' | 'standard' | 'heavy' | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [voiceAllowed, setVoiceAllowed] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  useEffect(() => {
+    const stop = () => { recognitionRef.current?.abort(); recognitionRef.current = null; setIsListening(false); };
+    if (!isOpen || !voiceAllowed) stop();
+    window.addEventListener('hc_logout', stop);
+    return () => { stop(); window.removeEventListener('hc_logout', stop); };
+  }, [isOpen, voiceAllowed]);
 
   useEffect(() => {
     const supported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
@@ -114,22 +123,26 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
   };
 
   const handleVoiceInput = () => {
+    if (recognitionRef.current) { recognitionRef.current.abort(); return; }
+    if (!voiceAllowed) return;
+    const scope = captureAccountScope();
     triggerHapticLight();
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     if (!SpeechRecognition) return;
 
     try {
       const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = normalizeDietPreferences(getProfile()?.dietProfile?.practical).voiceLocale || navigator.language || 'en-US';
 
       recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => { recognitionRef.current = null; setIsListening(false); };
+      recognition.onerror = () => { recognitionRef.current = null; setIsListening(false); };
       recognition.onresult = (e: any) => {
         const transcript = e.results[0][0].transcript;
-        if (transcript) {
+        if (transcript && recognitionRef.current === recognition && isAccountScopeCurrent(scope)) {
           triggerHapticSuccess();
           setMealText((prev) => (prev ? `${prev}, ${transcript}` : transcript));
         }
@@ -137,6 +150,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
 
       recognition.start();
     } catch {
+      recognitionRef.current = null;
       setIsListening(false);
     }
   };
@@ -462,7 +476,9 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     <button
                       type="button"
                       onClick={handleVoiceInput}
-                      aria-label="Dictate meal by voice"
+                      disabled={!voiceAllowed}
+                      aria-label={isListening ? 'Stop voice dictation' : 'Dictate meal by voice'}
+                      aria-pressed={isListening}
                       style={{
                         position: 'absolute',
                         right: '8px',
@@ -488,6 +504,11 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     </button>
                   )}
                 </div>
+                {speechSupported && <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, lineHeight: 1.5, color: '#475569' }}>
+                  <input type="checkbox" checked={voiceAllowed} onChange={event => setVoiceAllowed(event.target.checked)} />
+                  Allow voice dictation. Your browser or device speech service may send audio to
+                  its provider for transcription. You can type instead without microphone access.
+                </label>}
               </div>
 
               {/* 3. Quick Indian & Clinical Capsules */}

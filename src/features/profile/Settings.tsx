@@ -59,6 +59,7 @@ import { triggerHapticLight } from '../../services/haptics';
 import { getItemSync, removeItemSync, setItemSync } from '../../services/storage';
 import { supabase } from '../../services/supabaseClient';
 import { HealthDeviceIntegrations } from './components/HealthDeviceIntegrations';
+import PrivacyPreferences from './components/PrivacyPreferences';
 
 import { apiEndpoint } from '../../services/ApiEndpoint';
 
@@ -1069,6 +1070,7 @@ export default function Settings() {
           >
             Privacy
           </h2>
+          <PrivacyPreferences />
 
           <div
             style={{
@@ -1092,7 +1094,7 @@ export default function Settings() {
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
               Your health information is used to provide the features you choose, such as case
               organization and AI-assisted assessment. Guest-mode information remains in this
-              browser; signed-in information may sync with our service providers. We do not sell
+              browser unless you choose an online feature such as AI; signed-in information may sync with our service providers. We do not sell
               personal health information. HealthChain is not a covered healthcare provider, and
               this product is not presented as HIPAA-certified or GDPR-certified.
             </div>
@@ -1458,8 +1460,9 @@ export default function Settings() {
                       lineHeight: '1.5',
                     }}
                   >
-                    This action is permanent and irreversible. All your health profiles, cases, and
-                    associated data will be deleted immediately.
+                    This action permanently deletes your account and controlled active health records
+                    after the server confirms success. Provider backups, security logs and external
+                    payment records may have separate retention periods described in the privacy policy.
                   </p>
                   <p
                     style={{

@@ -8,6 +8,7 @@ export default defineConfig({
     // JSDOM per file, avoiding unnecessary browser emulation and open handles.
     environment: 'node',
     pool: 'forks',
+    maxWorkers: 3,
     globals: true,
     testTimeout: 15000,
     include: ['src/**/*.test.{js,jsx,ts,tsx}', 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'],

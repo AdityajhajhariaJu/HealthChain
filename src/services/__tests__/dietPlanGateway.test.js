@@ -41,7 +41,7 @@ import handler from '../../../api/gemini.js';
 const response = () => ({ statusCode: 200, body: null, setHeader() { return this; }, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; }, end() { return this; } });
 const request = () => ({
   method: 'POST',
-  headers: { origin: 'http://localhost:3001', authorization: 'Bearer signed-test-token', 'x-hc-operation': 'dietician_meal_plan', 'x-hc-request-id': `diet-plan-${Math.random().toString(36).slice(2, 12)}` },
+  headers: { origin: 'http://localhost:3001', 'x-hc-ai-consent': '2026-10-04', authorization: 'Bearer signed-test-token', 'x-hc-operation': 'dietician_meal_plan', 'x-hc-request-id': `diet-plan-${Math.random().toString(36).slice(2, 12)}` },
   body: { dietPlanRequest: { age: 30, gender: 'male', targetCalories: 2200, cuisine: 'North Indian', mealSchedule: '3 Meals', goal: 'Maintain' } },
   socket: { remoteAddress: '127.0.0.1' },
 });

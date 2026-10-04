@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
   const code = req.query?.code;
   if (!validProductBarcode(code)) return res.status(400).json({ error: 'invalid_barcode' });
-  if (!checkRateLimit(req, 30, 60000, 'food-product')) {
+  if (!(await checkRateLimit(req, 30, 60000, 'food-product'))) {
     res.setHeader('Retry-After', '60');
     return res.status(429).json({ error: 'lookup_rate_limited' });
   }

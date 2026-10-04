@@ -16,6 +16,8 @@ vi.mock('../supabaseClient', () => ({
   supabase: { auth: { getSession: state.getSession } },
 }));
 import { fetchWithTimeout } from '../ai/transport';
+// Permission is exercised separately; deadline tests isolate body cancellation.
+vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true }));
 
 beforeEach(() => {
   state.current = true;

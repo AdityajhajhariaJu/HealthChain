@@ -157,7 +157,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
     // Award Vitality Points
     const todayStr = new Date().toISOString().split('T')[0];
     awardPoints(2, `Daily Log: ${selectedSymptom}`, 'checkin', `checkin_${todayStr}`);
-    trackFeatureUsed('daily_checkin', { symptom: selectedSymptom, severity: option.label, score: option.score });
+    trackFeatureUsed('daily_checkin');
 
     if (streakDays + 1 === 3) {
       awardPoints(5, 'Three Check-ins Recorded', 'streak', `streak_3_${todayStr}`);

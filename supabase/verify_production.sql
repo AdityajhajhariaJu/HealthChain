@@ -282,6 +282,15 @@ begin
 end $$;
 -- Legacy function search paths must be fixed even when the optional vector helpers exist.
 do $$ begin
+  if to_regclass('healthchain_private.healthchain_rate_limits') is null then raise exception 'Missing shared rate limits'; end if;
+  if has_table_privilege('anon','healthchain_private.healthchain_rate_limits','select')
+    or has_table_privilege('authenticated','healthchain_private.healthchain_rate_limits','select') then raise exception 'Private rate limits exposed to clients'; end if;
+  if has_function_privilege('anon','public.healthchain_consume_rate_limit(text,integer,integer)','execute')
+    or has_function_privilege('authenticated','public.healthchain_consume_rate_limit(text,integer,integer)','execute') then raise exception 'Rate limit mutation exposed to clients'; end if;
+  if not has_function_privilege('service_role','public.healthchain_consume_rate_limit(text,integer,integer)','execute')
+    or not has_function_privilege('service_role','public.healthchain_prune_rate_limits()','execute') then raise exception 'Missing service rate limit privileges'; end if;
+end $$;
+do $$ begin
   if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname in ('update_updated_at_column','match_documents')
       and not exists(select 1 from unnest(p.proconfig) c where c like 'search_path=%')) then

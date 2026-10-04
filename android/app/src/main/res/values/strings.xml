@@ -4,4 +4,5 @@
     <string name="title_activity_main">HealthChain</string>
     <string name="package_name">com.healthchain.app</string>
     <string name="custom_url_scheme">com.healthchain.app</string>
+    <string name="health_connect_privacy_policy_url">https://healthchain360.com/privacypolicy.html</string>
 </resources>

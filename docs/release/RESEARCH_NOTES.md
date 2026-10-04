@@ -1,0 +1,37 @@
+# Research basis and limits — 4 October 2026
+
+## Competitor format compared with HealthChain
+
+The [OxeAI terms/policies hub](https://www.oxeai.com/terms-policies) provided a useful reference for separate documents and United States/International navigation. HealthChain uses that organizational idea with original language about its own application. A developer/API agreement would not accurately describe HealthChain's current consumer app merely because another provider publishes one. HealthChain instead adds an app licence, a separate consumer health notice and public deletion instructions; its existing pricing page is linked from the hub.
+
+[Ada's privacy notice](https://ada.com/privacy-policy/) separates processing purposes, legal bases, rights, retention and territorial conditions. Ada's stated medical-device context is specific to Ada. It is not a credential that HealthChain obtains by following the same document structure.
+
+[Flo's privacy notice](https://flo.health/privacy-Policy) is relevant to sensitive consumer health information and explanations of optional modes and providers. HealthChain's guest/device storage is not presented as Flo's Anonymous Mode or as guaranteed anonymity: a chosen online request still exposes connection information to service providers.
+
+[Headspace's privacy notice](https://www.headspace.com/privacy-policy) distinguishes service contexts and providers. HealthChain does not adopt a clinical-provider/HIPAA notice merely because a different service offers clinical products. HealthChain's record organization and AI limitations must match its actual service.
+
+A long notice is useful only when its statements are true. Competitor security claims, certifications, company addresses, data-protection representatives, medical-device registration, retention guarantees and billing/refund mechanics were not copied. The policy configuration explicitly blocks final publication while those HealthChain-specific facts are missing.
+
+## Primary requirements used
+
+Apple expects accessible privacy information, appropriately explained data uses and consent, and deletion where account creation is offered. Its review rules also address health claims, third-party AI data sharing, digital purchases and login alternatives. This preparation adds the relevant disclosures and controls while leaving the unresolved purchase/login choices for the operator. [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
+
+The app's privacy manifest is a resource in the Xcode target, contains approved UserDefaults reason CA92.1, and describes observed collection categories without advertising tracking. It must be checked alongside SDK manifests from the actual signed archive. This is separate from filling out App Store privacy labels. [Capacitor Preferences](https://capacitorjs.com/docs/apis/preferences), [Apple privacy manifest configuration](https://developer.apple.com/documentation/bundleresources/describing-data-use-in-privacy-manifests)
+
+Google requires health-related declarations and accurate public privacy/data-safety information. Public account deletion and actual in-app deletion are distinct requirements; this preparation provides public instructions linked to the existing authenticated deletion flow. Health access is narrowed to the data used by the code. [Health app categories](https://support.google.com/googleplay/android-developer/answer/13996367), [User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311), [Sensitive permissions](https://support.google.com/googleplay/android-developer/answer/9888170)
+
+Google Analytics restricts sensitive data, including health information. Merely asking a person to allow analytics does not resolve that restriction. Third-party analytics/advertising dispatch was removed, and the remaining optional first-party schema rejects unknown/free-text fields. [Google Analytics policy](https://support.google.com/analytics/answer/13297105)
+
+Gemini's paid and unpaid service conditions differ, including treatment of submitted information. The production key's existence is not proof of the applicable billing/processing arrangement. Sensitive production use needs confirmation before launch; no promise that all provider inputs are immediately erased or never reviewed was inserted into the HealthChain notice. [Gemini API additional terms](https://ai.google.dev/gemini-api/terms)
+
+Washington requires a distinct consumer health privacy policy where its law applies; publication as a paragraph in a general policy is insufficient for that requirement. HealthChain's separate notice describes categories, sources, purposes, recipients and rights. Its applicability and operating procedures still need review for the selected launch markets. [Washington law, RCW 19.373.020](https://app.leg.wa.gov/RCW/default.aspx?cite=19.373.020)
+
+Consumer health apps can have FTC health-breach notification obligations even when they are outside HIPAA. A medical disclaimer does not remove those duties. An operator incident-response process is included in the release packet. [FTC Health Breach Notification Rule guidance](https://www.ftc.gov/business-guidance/resources/complying-ftcs-health-breach-notification-rule-0)
+
+Where GDPR applies, sensitive health processing needs an applicable special-category condition in addition to a general lawful basis. The policy identifies consent and rights without assuming that contract performance alone authorizes all health processing. The operator must confirm the implemented consent scope, processors, transfers and any legally required representative. [GDPR official text](https://eur-lex.europa.eu/eli/reg/2016/679/oj)
+
+India's Digital Personal Data Protection framework has phased commencement provisions. The International supplement avoids claiming that every provision applies identically, immediately, or in every country. Review the commencement dates and operating requirements for the launch scope. [MeitY notified rules](https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf), [Government announcement](https://www.pib.gov.in/PressReleasePage.aspx?PRID=2190655)
+
+The live Supabase advisor and access metadata were checked in addition to repository code. Core health owner policies cannot cure unrestricted access on unrelated shared tables. The shared-table review SQL contains no patient/customer records and was not applied. Built-in leaked-password protection is a paid-plan feature; an equivalent control must be evaluated if the free plan is retained. [Supabase password security](https://supabase.com/docs/guides/auth/password-security), [Supabase security advisor](https://supabase.com/docs/guides/database/database-linter?lint=0024_permissive_rls_policy)
+
+This research is an implementation and publication basis. It does not establish that every country's law applies, that contractual safeguards have been executed, or that a regulator/store has approved HealthChain. The final notice and declarations must be reviewed against the selected markets and actual deployment.

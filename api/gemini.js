@@ -7,6 +7,7 @@ import {
 } from '../shared/ava-request.js';
 import { GUT_REASONING_SCHEMA, GUT_REASONING_INSTRUCTION } from '../server/gut-reasoning.js';
 import { checkRateLimit } from '../server/rate-limit.js';
+import { AI_CONSENT_VERSION } from '../shared/privacy-consent.js';
 import {
   validateGeneratedMealPlan,
   alignMealPlanPortions,
@@ -19,7 +20,7 @@ import {
 } from '../shared/diet-plan-request.js';
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
-import { allowedOrigin } from '../shared/http-origins.js';
+import { trustedOrigin } from '../shared/http-origins.js';
 import { inspectModelOutput } from '../shared/model-output-validation.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
@@ -93,7 +94,7 @@ HEALTHCHAIN SAFETY GATE:
 export default async function handler(req, res) {
   const requestStartedAt = Date.now();
   const origin = req.headers.origin;
-  const isAllowed = allowedOrigin(origin);
+  const isAllowed = trustedOrigin(origin);
   if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
@@ -101,7 +102,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-HC-Request-Id, X-HC-Operation'
+    'Content-Type, Authorization, X-HC-Request-Id, X-HC-Operation, X-HC-AI-Consent'
   );
   res.setHeader('Cache-Control', 'no-store');
 
@@ -112,6 +113,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (origin && !isAllowed) return res.status(403).json({ error: 'Origin is not allowed.' });
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const authHeader = req.headers.authorization;
@@ -140,21 +142,24 @@ export default async function handler(req, res) {
   if (authHeader && !userId)
     return res.status(401).json({ error: 'Session could not be verified. Sign in again.' });
 
+  if (req.headers['x-hc-ai-consent'] !== AI_CONSENT_VERSION)
+    return res.status(428).json({ error: 'AI processing permission is required.', code: 'AI_CONSENT_REQUIRED' });
+
   // Guest access is also bounded by the server rate limiter.
 
-  if (!checkRateLimit(req, 40, 60000)) return res.status(429).json({ error: 'Too many requests' });
+  if (!(await checkRateLimit(req, 40, 60000))) return res.status(429).json({ error: 'Too many requests' });
   if (
     !userId &&
-    !checkRateLimit(
+    !(await checkRateLimit(
       req,
       5,
       24 * 60 * 60 * 1000,
-      `guest:${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`
-    )
+      `guest:${req.headers['x-real-ip'] || String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || 'unknown'}`
+    ))
   ) {
     return res.status(429).json({ error: 'Guest AI limit reached. Sign in to continue securely.' });
   }
-  if (userId && !checkRateLimit(req, 15, 60000, userId)) {
+  if (userId && !(await checkRateLimit(req, 15, 60000, userId))) {
     return res
       .status(429)
       .json({ error: 'Too many AI requests for this account. Please try again shortly.' });
@@ -249,7 +254,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid Gut reasoning request' });
     }
     const gutRateKey = `gut:${userId || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`;
-    if (!checkRateLimit(req, userId ? 25 : 3, 24 * 60 * 60 * 1000, gutRateKey)) {
+    if (!(await checkRateLimit(req, userId ? 25 : 3, 24 * 60 * 60 * 1000, gutRateKey))) {
       return res.status(429).json({ error: 'Gut research brief limit reached for today' });
     }
     const passageIds = Array.isArray(bodyPayload.gutPayload.citationPassages)
@@ -284,7 +289,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid Gut question framing request' });
     }
     const gutRateKey = `gut-frame:${userId || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`;
-    if (!checkRateLimit(req, userId ? 40 : 3, 24 * 60 * 60 * 1000, gutRateKey)) {
+    if (!(await checkRateLimit(req, userId ? 40 : 3, 24 * 60 * 60 * 1000, gutRateKey))) {
       return res.status(429).json({ error: 'Gut question framing limit reached for today' });
     }
     bodyPayload = {

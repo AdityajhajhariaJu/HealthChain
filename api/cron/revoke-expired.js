@@ -22,6 +22,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Database configuration missing' });
     }
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const { error: cleanupError } = await supabase.rpc('healthchain_prune_rate_limits');
+    if (cleanupError) return res.status(503).json({ error: 'Rate-limit cleanup needs attention' });
 
     const { data, error } = await supabase
       .from('profiles')

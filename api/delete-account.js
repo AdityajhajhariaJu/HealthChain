@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   // Rate Limiting: Max 10 requests per minute per IP
-  if (!checkRateLimit(req, 10, 60000)) {
+  if (!(await checkRateLimit(req, 10, 60000))) {
     return res
       .status(429)
       .json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });

@@ -5,11 +5,11 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import AccountRuntime from './components/layout/AccountRuntime';
 import ConsentManager from './components/ui/ConsentManager';
+import AIConsentDialog from './components/ui/AIConsentDialog';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
 import OfflineBanner from './components/ui/OfflineBanner';
 import { useToast } from './components/ui/ToastProvider';
-import { trackButtonClick, trackEvent } from './services/analytics';
 import { initGlobalHaptics } from './services/haptics';
 import { installNativeAuthCallbacks } from './services/NativeAuth';
 
@@ -43,6 +43,7 @@ const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/Clinical
 const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
 const ReviewerDemo = React.lazy(() => import('./features/legal/ReviewerDemo'));
+const LegalPage = React.lazy(() => import('./features/legal/LegalPage'));
 const UpdatePassword = React.lazy(() => import('./features/auth/UpdatePassword'));
 
 const Changelog = React.lazy(() => import('./features/brand/Changelog'));
@@ -128,50 +129,6 @@ async function sha256Hex(str: string): Promise<string> {
 
 export default function App() {
   useViewportLayout();
-  // Global User Activity Tracker (Clicks & Inputs)
-  useEffect(() => {
-    // 1. Track Clicks
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const clickable = target.closest('button, a, [role="button"]') as HTMLElement;
-      if (clickable) {
-        let name: string | null = clickable.getAttribute('aria-label') || clickable.innerText;
-        if (!name && clickable.tagName === 'A') name = clickable.getAttribute('href') || '';
-        if (name && typeof name === 'string' && name.trim()) {
-          trackButtonClick(name.trim().substring(0, 60));
-        }
-      }
-    };
-
-    // 2. Track Searches and Chat Prompts (on Enter key)
-    const handleGlobalInput = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
-          if (target.type === 'password') return; // NEVER track passwords
-          const val = target.value.trim();
-          if (val.length > 0) {
-            const isSearch =
-              target.type === 'search' ||
-              (target.placeholder && target.placeholder.toLowerCase().includes('search'));
-            trackEvent(isSearch ? 'search_query' : 'chat_prompt', {
-              inputLength: val.length,
-              path: window.location.pathname,
-            });
-          }
-        }
-      }
-    };
-
-    document.addEventListener('click', handleGlobalClick, { capture: true, passive: true });
-    document.addEventListener('keydown', handleGlobalInput, { capture: true, passive: true });
-
-    return () => {
-      document.removeEventListener('click', handleGlobalClick, { capture: true });
-      document.removeEventListener('keydown', handleGlobalInput, { capture: true });
-    };
-  }, []);
-
   const navigate = useNavigate();
   const { info } = useToast();
   const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
@@ -237,8 +194,15 @@ export default function App() {
     <SafeRoute>
       <OfflineBanner />
       <ConsentManager />
+      <AIConsentDialog />
       <AccountRuntime />
       <Routes>
+        <Route path="/terms-policies" element={<SafeRoute><LegalPage hub /></SafeRoute>} />
+        <Route path="/acceptable-use" element={<SafeRoute><LegalPage document="acceptableUse" /></SafeRoute>} />
+        <Route path="/app-license" element={<SafeRoute><LegalPage document="appLicense" /></SafeRoute>} />
+        <Route path="/consumer-health-privacy" element={<SafeRoute><LegalPage document="consumerHealth" /></SafeRoute>} />
+        <Route path="/privacy-security" element={<SafeRoute><LegalPage document="security" /></SafeRoute>} />
+        <Route path="/delete-account" element={<SafeRoute><LegalPage document="deletion" /></SafeRoute>} />
         <Route
           path="/"
           element={

@@ -4,7 +4,7 @@ test('guest can enter the assessment workspace from the public page', async ({ p
   await page.goto('/');
   await expect(page).toHaveTitle(/HealthChain.*Appointment Preparation/i);
 
-  const consent = page.getByRole('button', { name: 'I Accept' });
+  const consent = page.getByRole('button', { name: 'Allow optional measurement' });
   if (await consent.isVisible().catch(() => false)) {
     // The banner animates in WebKit; wait for it to render, then use a forced
     // click so the test does not mistake its entrance animation for a broken

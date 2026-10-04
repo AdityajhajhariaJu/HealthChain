@@ -30,6 +30,7 @@ const request = (operation, body) => ({
   method: 'POST',
   headers: {
     origin: 'http://localhost:3001',
+    'x-hc-ai-consent': '2026-10-04',
     'x-hc-operation': operation,
     'x-hc-request-id': `gut-test-${operation}-1234`,
   },
@@ -45,6 +46,21 @@ describe('Gut Gemini gateway contract', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
+  });
+  it.each([undefined, 'old'])('rejects missing or outdated AI permission %s before contacting Google', async version => {
+    const provider = vi.fn(); vi.stubGlobal('fetch', provider);
+    const req = request('gemini', { contents: [{ parts: [{ text: 'Synthetic' }] }] });
+    req.headers['x-hc-ai-consent'] = version;
+    const res = response(); await handler(req, res);
+    expect(res.statusCode).toBe(428);
+    expect(provider).not.toHaveBeenCalled();
+  });
+  it('rejects an unrelated Vercel origin before provider use', async () => {
+    const provider = vi.fn(); vi.stubGlobal('fetch', provider);
+    const req = request('gemini', { contents: [{ parts: [{ text: 'Synthetic' }] }] });
+    req.headers.origin = 'https://unrelated-project.vercel.app';
+    const res = response(); await handler(req, res);
+    expect(res.statusCode).toBe(403); expect(provider).not.toHaveBeenCalled();
   });
 
   it('accepts a bounded Clinical attachment that exceeds the ordinary text request limit', async () => {

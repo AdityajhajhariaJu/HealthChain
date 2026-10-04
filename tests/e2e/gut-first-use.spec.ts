@@ -3,6 +3,8 @@ const guest = () => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
   localStorage.setItem('hc_cookies_accepted', 'declined');
+    // Existing affirmative AI permission for this feature-specific fixture.
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
 };
 
 // These multi-screen journeys should not wait on real fonts/analytics providers.

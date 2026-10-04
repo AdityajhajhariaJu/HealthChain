@@ -79,9 +79,11 @@
     <string>Use the camera to capture food, nutrition labels or documents you choose to add.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Choose food photos or documents to add to your private health workspace.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Use voice dictation when you choose to speak a meal description instead of typing it. Your browser or operating-system speech service may process the audio.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Convert a meal description you choose to dictate into text for your food log. Typing remains available.</string>
     <key>NSHealthShareUsageDescription</key>
-    <string>HealthChain needs to read your HealthKit data to provide AI-driven biometric insights and personalized health recommendations.</string>
-    <key>NSHealthUpdateUsageDescription</key>
-    <string>HealthChain needs to write health data to Apple Health.</string>
+    <string>Import the Apple Health samples you permit, such as steps, sleep, heart rate and calories, into your HealthChain account so you can view them with your saved health records. AI processing requires a separate choice in the app.</string>
   </dict>
 </plist>

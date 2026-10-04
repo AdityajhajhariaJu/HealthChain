@@ -4,6 +4,8 @@ import {
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
 } from '../AccountScope';
 import { supabase } from '../supabaseClient';
+import { requestAIConsent, hasAIConsent } from '../AIConsent';
+import { AI_CONSENT_HEADER, AI_CONSENT_VERSION } from '../../../shared/privacy-consent.js';
 
 // Vite proxies /api/gemini to the local backend in development. A same-origin default
 // also keeps the request inside the page's Content Security Policy.
@@ -42,6 +44,9 @@ export const fetchWithTimeout = async (
   }
 
   const avaScope = captureHealthMemoryScope();
+  // No request body leaves the device until affirmative, account-scoped permission.
+  await requestAIConsent(options.signal);
+  if (!isHealthMemoryScopeCurrent(avaScope)) throw new Error('Account changed. Please retry.');
   const explicitGuest =
     typeof localStorage !== 'undefined' && localStorage.getItem('hc_guest_mode') === 'true';
   const reviewedConversation = ['ava_chat', 'memory_extraction'].includes(
@@ -83,11 +88,13 @@ export const fetchWithTimeout = async (
       ...options.headers,
       'X-HC-Operation': options.headers?.['X-HC-Operation'] || 'gemini',
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
+      [AI_CONSENT_HEADER]: AI_CONSENT_VERSION,
     },
   };
   const executeFetch = async (retryCount = 0): Promise<Response> => {
     if (avaScope && !isHealthMemoryScopeCurrent(avaScope))
       throw new Error('Account changed. Please retry.');
+    if (!hasAIConsent(avaScope)) throw new Error('AI permission was withdrawn. No further AI requests can start.');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const externalSignal = options.signal as AbortSignal | undefined;

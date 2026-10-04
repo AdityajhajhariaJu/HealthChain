@@ -293,8 +293,12 @@ export default function MedicalProfile() {
         toast.success('Clinical Synthesis Complete', 'AI synthesized multi-system health insights.');
       }
     } catch (error) {
-      console.error('Profile synthesis failed:', error);
-      toast.error('Synthesis Failed', 'Could not complete clinical health synthesis. Please try again.');
+      if (error instanceof Error && error.message.startsWith('AI permission')) {
+        toast.info('AI processing skipped', 'You can continue using your records. Withdrawal prevents future AI requests.');
+      } else {
+        console.error('Profile synthesis failed:', error);
+        toast.error('Synthesis Failed', 'Could not complete clinical health synthesis. Please try again.');
+      }
     } finally {
       setIsGeneratingSynthesis(false);
     }
@@ -310,21 +314,12 @@ export default function MedicalProfile() {
   const prevHashRef = useRef(significantHash);
 
   useEffect(() => {
-    const hasSignificantData = profile.conditions?.length > 0 || profile.medications?.length > 0 || profile.allergies?.length > 0;
-    const isNewLoadWithoutSynthesis = hasSignificantData && !synthesisData && !isGeneratingSynthesis && !sessionStorage.getItem(synthesisKey);
-    
-    if (significantHash !== prevHashRef.current || isNewLoadWithoutSynthesis) {
+    // Changing records invalidates a summary. A new provider request always
+    // requires the user's explicit "Create AI profile summary" action.
+    if (significantHash !== prevHashRef.current) {
       prevHashRef.current = significantHash;
-      if (hasSignificantData) {
-        // Debounce to prevent multiple rapid triggers during load
-        const timeoutId = setTimeout(() => {
-          handleGenerateSynthesis();
-        }, 1000);
-        return () => clearTimeout(timeoutId);
-      } else {
-        setSynthesisData(null);
-        sessionStorage.removeItem(synthesisKey);
-      }
+      setSynthesisData(null);
+      sessionStorage.removeItem(synthesisKey);
     }
   }, [significantHash, synthesisKey]);
 
@@ -811,8 +806,10 @@ export default function MedicalProfile() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
               <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                {isGeneratingSynthesis ? 'Reviewing saved profile details...' : 'Add conditions, medicines, or allergies to create a summary.'}
+                {isGeneratingSynthesis ? 'Reviewing saved profile details...' : 'Choose to create an AI summary of your saved profile. You can continue using your records without it.'}
               </p>
+              <button type="button" className="btn btn-outline" onClick={handleGenerateSynthesis}
+                disabled={isGeneratingSynthesis}>Create AI profile summary</button>
             </div>
           )}
         </div>

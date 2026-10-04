@@ -41,6 +41,7 @@ test('built guest workspace saves a case and retains an Ava reply across reload'
   await expect(input).toBeVisible();
   await input.fill('A synthetic build check question.');
   await page.getByRole('button', { name: 'Send message', exact: true }).click();
+  await page.getByRole('button', { name: 'Allow AI processing', exact: true }).click();
   await expect(page.getByText('Synthetic audit reply.', { exact: false }).first()).toBeVisible();
   await page.reload();
   await expect(page.getByText('Synthetic audit reply.', { exact: false }).first()).toBeVisible();
