@@ -32,7 +32,7 @@ AI processing requires the separate permission shown in the app. Declining it le
 Ownership and protectability of AI outputs can vary by law; an output may resemble another user's output. HealthChain does not promise exclusive rights, clinical accuracy or freedom from third-party rights. You are responsible for reviewing an output before exporting or relying on it.
 
 ## 6. Software and content rights
-HealthChain and its licensors retain rights in the app, interfaces, trademarks, code and supplied articles, images, audio and other content. The App Licence grants the permissions needed for ordinary personal use. Do not redistribute the sound library, sell access, remove attribution, impersonate the operator or copy the service's protected assets without permission.
+HealthChain and its licensors retain the intellectual property rights they hold in the app, interfaces, trademarks, code and supplied articles, images, audio and other content. Some supplied audio was created using AI; copyright protection depends on applicable law. The App Licence grants the permissions needed for ordinary personal use and does not create exclusive copyright where the law does not recognize it. Do not redistribute the sound library, sell access, remove attribution, impersonate the operator or copy the service's protected assets without permission.
 
 The app does not acquire rights in a medical record merely because you upload it. Third-party articles, product data and research links retain their owners' terms. Applicable open-source notices and statutory rights are not displaced by these terms. Report suspected infringement with the material's location, your contact details and a description of the rights involved.
 

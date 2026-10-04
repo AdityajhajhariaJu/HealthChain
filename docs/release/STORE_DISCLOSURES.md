@@ -27,6 +27,8 @@ Planned public policy pages are `/terms-policies`, `/privacy`, `/terms`, `/accep
 
 Provide the reviewer with a dedicated synthetic test account, correct login instructions, working account entitlements, any required demo steps and a monitored support contact. Do not place credentials in this document or the repository. Include clear steps to test account deletion, AI refusal/permission, health imports with partial permissions, manual logging and hosted audio without downloading the whole library.
 
+The operator declares that the supplied music was self-created using AI. Keep generation/export records and applicable Flow Music commercial-use evidence for the reviewed tracks; see `AUDIO_RIGHTS.md`. This is separate from Audio Data collected from users, such as optional dictation. A creator declaration or Plus badge does not certify exclusive copyright. Provide private rights evidence securely if a store requests it.
+
 Suggested store description: “HealthChain helps you organize health records, symptoms and daily logs into a connected case and prepare questions for a qualified clinician. Optional AI features generate considerations from information you choose to provide. Optional device-health imports and sound playback support personal organization and wellbeing.”
 
 Suggested medical limitation: “HealthChain does not provide medical care, diagnosis, prescriptions or emergency services. AI can make mistakes. Seek advice from a qualified clinician and contact local emergency services for urgent medical concerns.” Do not describe this draft wording as regulatory classification or medical-device approval.
