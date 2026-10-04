@@ -1,0 +1,10 @@
+.hc-policy-shortcuts{padding:16px;margin-bottom:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--text-main)}
+.hc-policy-shortcuts h2{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:600;margin:0 0 8px}
+.hc-policy-shortcuts p{font-size:13px;line-height:1.6;margin:0 0 12px;color:var(--text-muted)}
+.hc-policy-shortcuts nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.hc-policy-shortcuts a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:10px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text-main);font-size:14px;line-height:1.4;text-decoration:none}
+.hc-policy-shortcuts a svg{flex-shrink:0}
+.hc-policy-shortcuts a:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.hc-policy-shortcuts a:hover{border-color:var(--teal)}
+.hc-policy-shortcuts .hc-policy-shortcuts-hub{grid-column:1/-1;color:var(--teal);font-weight:600}
+@media(max-width:360px){.hc-policy-shortcuts nav{grid-template-columns:1fr}}

@@ -60,6 +60,7 @@ import { getItemSync, removeItemSync, setItemSync } from '../../services/storage
 import { supabase } from '../../services/supabaseClient';
 import { HealthDeviceIntegrations } from './components/HealthDeviceIntegrations';
 import PrivacyPreferences from './components/PrivacyPreferences';
+import PolicyShortcuts from './components/PolicyShortcuts';
 
 import { apiEndpoint } from '../../services/ApiEndpoint';
 
@@ -368,6 +369,8 @@ export default function Settings() {
             </h1>
           </div>
         </div>
+
+        <PolicyShortcuts />
 
         <div
           className="card"

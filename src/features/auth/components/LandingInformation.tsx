@@ -161,6 +161,7 @@ export function LandingFooter() {
         </div>
         <div className={styles.footerLinks}>
           <h3>Company</h3>
+          <Link to="/terms-policies">All policies</Link>
           <Link to="/terms">Terms of Service</Link>
           <Link to="/privacy">Privacy Policy</Link>
           <a href="mailto:healthchain360@gmail.com">Contact Us</a>

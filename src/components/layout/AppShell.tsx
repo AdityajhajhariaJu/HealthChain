@@ -17,6 +17,7 @@ import {
   Home,
   LayoutDashboard,
   Settings,
+  ShieldCheck,
   Trophy,
   X,
 } from 'lucide-react';
@@ -442,6 +443,10 @@ export default function AppShell() {
             >
               <Settings size={18} />
               Settings
+            </NavLink>
+            <NavLink to="/terms-policies" className="sidebar__link">
+              <ShieldCheck size={18} aria-hidden="true" />
+              Terms and policies
             </NavLink>
           </nav>
 
@@ -1055,6 +1060,17 @@ export default function AppShell() {
                         <Settings size={22} />
                       </div>
                       <span>Settings</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        triggerHapticLight();
+                        setShowMoreMenu(false);
+                        navigate('/terms-policies');
+                      }}
+                      className="more-menu-item"
+                    >
+                      <div className="more-menu-icon"><ShieldCheck size={22} aria-hidden="true" /></div>
+                      <span>Terms and policies</span>
                     </button>
                     <button
                       onClick={() => {
