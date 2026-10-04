@@ -169,6 +169,7 @@ test('meal with unknown portion waits for an entered weight', async ({ page }) =
 });
 
 test('dietician entry point saves the same portion math', async ({ page }) => {
+  test.setTimeout(60000);
   await page.addInitScript(() =>
     localStorage.setItem(
       'hc_unified_profile_guest',
@@ -222,7 +223,8 @@ test('dietician entry point saves the same portion math', async ({ page }) => {
   await lens
     .locator('input[type=file]')
     .setInputFiles({ name: 'plate.png', mimeType: 'image/png', buffer: whitePixel });
-  await expect(lens.getByText('Lunch Plate')).toBeVisible();
+  // Wait for photo processing and the asynchronous model result before checking portion math.
+  await expect(lens.getByText('Lunch Plate')).toBeVisible({ timeout: 30000 });
   await expect(lens.getByText('MEAL ESTIMATE · 370 G PORTION')).toBeVisible();
   await expect(lens.getByText('511 kcal')).toBeVisible();
   await expect(lens.getByLabel('Amount you ate (grams)')).toHaveValue('370');

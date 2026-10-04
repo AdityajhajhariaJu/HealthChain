@@ -6,15 +6,15 @@
 
 | Check | Observed result | Scope and limits |
 |---|---|---|
-| Unit suite | 944 passed, 2 skipped; 153 files passed and 2 skipped | Full collected suite. Three subsequently added AI-consent dialog tests also passed, giving 947 unique passing tests. Skipped tests are not counted as passing. |
-| Focused consent/native/legal suite | 12 initially passed; final 25-test consent/native/legal/transport check passed | Three dialog tests are additional to the full collected suite. The final focused rerun verifies the withdrawal-message correction. |
+| Unit suite | Final Linux CI suite: 947 passed, 2 skipped; 154 files passed and 2 skipped | The earlier local full suite had 944 passing tests, with the three added consent-dialog cases verified separately. The final CI run collected all 947 together. Skipped tests are not counted as passing. |
+| Focused consent/native/legal suite | 12 initially passed; final 25-test consent/native/legal/transport check passed | The three dialog tests were additional to the earlier local suite and are included in the final CI count. The final focused rerun verifies the withdrawal-message correction. |
 | TypeScript | `npx tsc --noEmit` passed | Source type checking; also included in the successful build. |
 | ESLint | `npm run lint` passed | Final source lint check. |
 | Production build | `npm run build` passed | Generated policies, audio manifest, TypeScript, Vite, asset budgets and native asset preparation. |
 | Startup JavaScript budget | 312,925 raw / 101,415 gzip bytes across 3 assets | Initial JavaScript assets; not total app or page-download size. |
 | Public landing JavaScript budget | 377,384 raw / 123,358 gzip bytes across 7 assets | Landing assets include additional public-page code. |
 | Production browser journeys | 112 passed in Chromium/WebKit; 6 privacy journeys passed again after the final rebuild | Full production suite plus a focused recheck of the withdrawal-message correction. The six repeated cases are not counted as additional unique journeys. |
-| Development browser regressions | Running: all 116 Chromium tests passed; WebKit in progress | The full 232-test Chromium/WebKit suite checks existing feature and offline flows against the shared consent changes. The completed final result will replace this progress record. |
+| Development browser regressions | Full run: 230 passed, 1 failed, 1 skipped; all 10 scanner checks then passed in Chromium/WebKit; the affected WebKit case passed 3 further repetitions | The WebKit scanner assertion expired while the UI still displayed analysis in progress. Its unmodified isolated rerun passed. The test now waits up to 30 seconds for the result, matching the neighboring asynchronous scanner test; portion, calorie and saved-diary assertions remain intact. The focused reruns cover the failed case; they are not a second passing full-suite run. |
 | Production dependencies | `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities | Dependency advisories at the time of this run; not proof of absence of every security issue. |
 | All dependencies | 5 high findings remain | Development-only Tailwind 3 watcher/glob chain. The audit proposes a major Tailwind migration; owner decision is pending. Existing CI audits this chain and will fail until resolved. |
 | Server/shared JavaScript syntax | 48 files passed | API, server, shared and operational files, including nested endpoints. |
@@ -26,8 +26,13 @@
 | iOS source configuration | Privacy plist and Xcode resource registration verified | Eleven collection categories, tracking disabled, usage strings and UserDefaults reason checked. An Xcode archive/aggregate SDK privacy report is still required. |
 | Repository hygiene and whitespace | Passed | No tracked generated build/report/cache artifacts or root scratch scripts; `git diff --check` passed. |
 | Launch gate | Blocked, as expected | Missing facts, owner evidence and signed artifacts are not converted into fictional passing attestations. |
+| GitHub Quality Gates | Failed at the full dependency audit | [Run 37204709500](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37204709500) reproduced the same five high development-chain findings. Later steps in that workflow were skipped; they are not presented as CI passes. |
+| Independent Lighthouse workflow | Build, native copy and all 947 unit tests passed; workflow completed successfully | [Run 37204709587](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37204709587). The single performance sample scored 89 against a warning target of 90; a successful workflow is not a claim that every performance target was met. |
+| Vercel preview | Build/deployment status succeeded for the review branch | Preview only. This does not publish the draft as a finalized production notice or validate paid provider configuration. |
 
 The final browser journeys include explicit AI decline without a provider request, consent-before-AI behavior, regional policy navigation, script-free privacy/deletion pages, narrow layouts, keyboard/focus behavior, account boundaries, offline recovery and saved-data persistence. Browser AI replies are synthetic intercepts; these checks do not claim a paid Gemini account or exercise live personal-health processing.
+
+The one development browser skip is downloaded-track playback without network access in Windows WebKit. Its Media Foundation media loader does not support the Blob media URL used by this test. Chromium covers the flow; Safari acceptance on macOS or an iPhone remains required. A skipped Windows case is not presented as an iOS device pass.
 
 The five full-audit findings trace to the development dependency `braces` through Tailwind 3's watcher/glob packages. The [reviewed upstream advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) identifies deeply nested pattern recursion and currently lists no patched `braces` version. Registry checks found `braces` 3.0.3 and Tailwind 3.4.19 as the latest in those lines. npm proposes Tailwind 4.3.3, a major change requiring the pending migration decision and visual verification; no advisory was hidden or overridden to produce a clean report.
 
