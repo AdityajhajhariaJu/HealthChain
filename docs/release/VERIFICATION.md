@@ -6,7 +6,7 @@
 
 | Check | Observed result | Scope and limits |
 |---|---|---|
-| Unit suite | Updated local full suite: 968 passed, 2 skipped; 155 files passed and 2 skipped | Covers aggregate measurement, consent, instrumentation and existing application regressions. Four later-added cases passed separately: three administrator-panel cases and one report authentication rate-limit case. This is not a claim that all 972 ran together. Skipped tests are not counted as passing. |
+| Unit suite | Final Linux CI: 972 passed, 2 skipped; 156 files passed and 2 skipped | [Run 37210697635](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37210697635) collected all cases together on implementation commit `d6fc1848`. The local full run had 968 passing cases, with four later-added cases verified in the focused rerun. Skipped tests are not counted as passing. |
 | Focused follow-up suites | 37 consent/measurement/AI cases, 38 gateway/consent/legal/native cases and 22 administrator/gateway cases passed | These runs overlap the full suite. They are not added together as unique passing tests. The final 22-case rerun follows the test-source type correction. |
 | TypeScript | `npx tsc --noEmit` passed | Source type checking; also included in the successful build. |
 | ESLint | `npm run lint` passed | Final source lint check. |
@@ -32,6 +32,8 @@
 | Earlier GitHub Quality Gates | Failed at the full dependency audit | [Run 37204709500](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37204709500) reproduced the same five high development-chain findings. Later steps in that workflow were skipped. This is the earlier preparation commit, not a passing result for the aggregate follow-up. |
 | Earlier independent Lighthouse workflow | Build, native copy and all 947 then-existing unit tests passed; workflow completed successfully | [Run 37204709587](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37204709587). The single performance sample scored 89 against a warning target of 90. This earlier result is not a CI pass for the updated source or a claim that every performance target was met. |
 | Earlier Vercel preview | Build/deployment status succeeded for the preparation branch | Preview only. Updated aggregate collection still requires the updated application/server deployment and environment. This does not publish drafts as finalized notices or validate paid provider configuration. |
+| Final implementation Quality Gates | Failed at the full dependency audit; later local-equivalent checks skipped in this workflow | [Run 37210697658](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37210697658) on `d6fc1848` reproduced the same five high Tailwind development-chain findings. No audit was suppressed. |
+| Final implementation independent Lighthouse workflow | Build, native copy, all 972 unit tests and Lighthouse assertions passed | [Run 37210697635](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37210697635) on `d6fc1848` completed successfully. This is one Lighthouse sample, not a general performance guarantee or native device verification. |
 
 The final browser journeys include explicit AI decline without a provider request, consent-before-AI behavior, regional policy navigation, script-free privacy/deletion pages, narrow layouts, keyboard/focus behavior, account boundaries, offline recovery and saved-data persistence. Browser AI replies are synthetic intercepts; these checks do not claim a paid Gemini account or exercise live personal-health processing.
 
@@ -46,6 +48,8 @@ The dedicated HealthChain rate-limit migration and the two aggregate measurement
 The proposed containment of the shared application's tables has **not** been applied. The exact proposal, captured grants/policies and rollback are in `review/` in the private local launch packet. The evidence is excluded from this public Git repository. Those tables require an ownership/client migration decision before access is changed.
 
 This branch does not deploy the draft policies or change production native billing/login behavior. The original repository's `master` is the review base. The backup repository remains the frozen checkpoint with its disabled push target.
+
+Implementation and CI results above refer to `d6fc1848`. The subsequent verification-record commit changes this Markdown only; it does not change the validated application implementation.
 
 ## What still prevents submission
 
