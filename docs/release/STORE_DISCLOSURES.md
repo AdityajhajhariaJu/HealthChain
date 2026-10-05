@@ -2,6 +2,8 @@
 
 **Working mapping, not a submitted declaration.** Reconcile these rows with the final signed app, enabled providers, consent behavior and the store questionnaires before submission. Data sent through a processor can still count as collection. “Guest” does not automatically mean anonymous, and an account identifier links records to a person.
 
+This follow-up adds separate explicit permission before signed-in cloud health processing, a local-only choice and Settings withdrawal. AI separately identifies Google Gemini and requests permission. Provider/storage disclosures must describe the route actually enabled in the submitted binary: the current route is Vercel → paid Gemini, with Supabase cloud storage after permission; the alternative Supabase AI route remains inactive. A new web deployment does not update older installed binaries. Test both cloud and AI refusal/withdrawal in reviewer instructions.
+
 | Data | Actual feature/purpose | Recipient or storage | Declaration preparation |
 |---|---|---|---|
 | Name, email, account ID | Authentication, profile and support | Supabase; chosen Google/Apple sign-in provider | Contact info and identifiers; account-linked; app functionality. |

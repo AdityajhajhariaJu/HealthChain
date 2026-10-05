@@ -33,6 +33,7 @@ Verify finalized policy URLs after deployment. Existing policies remain drafts u
 Provide a dedicated account containing fictional records and full access to the submitted features, with a functioning backend. Put credentials only in private store review fields. The existing /review-demo is supplemental, read-only demonstration and does not replace authenticated access.
 
 1. Open the app, confirm 18+ eligibility and sign in using private reviewer credentials.
+   Review the separate cloud health choice. Choose local-only to confirm manual records remain; then enable cloud health processing for the fictional reviewer account. Withdraw in Settings to verify further cloud health requests pause. AI permission is separate.
 2. Open Settings → All policies to inspect Privacy, Terms and Account Deletion.
 3. Open Ava or a case review with fictional records. Decline AI processing, then allow it to inspect the actual flow. Permission is withdrawable in Settings.
 4. Open Settings → Help & Feedback Center → Harmful or offensive AI answer to inspect in-app reporting.

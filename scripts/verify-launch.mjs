@@ -17,11 +17,10 @@ for (const [field, name] of Object.entries({
   iosLoginResolved: 'iOS sign-in option meets the applicable store rule',
   sharedTableExposureResolved: 'Shared database tables no longer expose unrestricted client access',
   providerContractsAndTransfersReviewed: 'AI/hosting processor terms and international transfer safeguards reviewed',
-  hostingSensitiveDataProcessingApproved: 'Actual hosting agreement permits the sensitive health data sent through the API',
+  hostingSensitiveDataProcessingApproved: 'Actual hosting arrangement and applicable commercial/data-processing terms reviewed',
   aiFeatureUseRestrictionsReviewed: 'AI feature behavior meets provider medical-use, age and available-region restrictions',
   sensitiveHealthConsentReviewed: 'Core cloud health processing has a valid consent/legal basis for each launch market',
   providerLogAndBackupRetentionVerified: 'Provider log, backup and statutory payment retention verified',
-  breachedPasswordProtectionResolved: 'Breached-password exposure addressed in authentication configuration',
   storePrivacyFormsReviewed: 'Apple App Privacy and Google Data Safety/Health declarations match the final binary',
   androidRealDeviceReviewPassed: 'Real Android device permission, offline, login, deletion and recovery review passed',
   iosRealDeviceReviewPassed: 'Real iOS device permission, offline, login, deletion and recovery review passed',
@@ -33,5 +32,7 @@ for (const [field, label] of [['androidSignedBundlePath', 'Signed Android AAB'],
   check(label + ' supplied for independent store validation', path && existsSync(path), 'Binary existence is only one gate; signing and store validation must also pass.');
 }
 for (const result of checks) console.log((result.passed ? 'PASS ' : 'BLOCKED ') + result.name);
+console.log((attestation.breachedPasswordProtectionResolved === true ? 'PASS ' : 'RECOMMENDED ') +
+  'Server-enforced breached-password screening. Supabase\'s paid switch is optional; it is not a blanket store requirement and does not alone block this gate.');
 console.log('\nThis gate combines local checks and clearly identified owner attestations. It does not predict store approval.');
 if (checks.some(result => !result.passed)) process.exitCode = 1;

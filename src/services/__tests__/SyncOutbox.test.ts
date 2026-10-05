@@ -41,6 +41,23 @@ describe('SyncOutbox', () => {
     rpc.mockImplementation(async (_name, args) => ({ data: { success: true, data: args?.p_data }, error: null }));
   });
 
+  it('retains a paused health update without retry penalties and sends it after permission resumes', async () => {
+    signIn('user-paused');
+    const payload = { id: 'local-message', user_id: 'user-paused', profile_id: 'profile_1', content: 'Synthetic local record' };
+    const query = { upsert: vi.fn(async () => ({ error: { code: 'HC_HEALTH_CONSENT_REQUIRED', message: 'Cloud health processing is paused' } })) };
+    from.mockReturnValue(query);
+    await enqueueSync('ava_message_upsert', 'user-paused', payload);
+    await flushSyncOutbox('user-paused');
+    await flushSyncOutbox('user-paused');
+    expect(idbStore.get('hc_sync_outbox_user-paused')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ payload, attempts: 0, lastError: 'Cloud health processing is paused' }),
+    ]));
+    query.upsert.mockResolvedValue({ error: null } as any);
+    await flushSyncOutbox('user-paused');
+    expect(query.upsert).toHaveBeenLastCalledWith(payload, { onConflict: 'id' });
+    expect(await getPendingSyncCount('user-paused')).toBe(0);
+  });
+
   it('deduplicates pending updates for the same record', async () => {
     await enqueueSync('case_upsert', 'user-1', { id: 'case-1', data: { version: 1 } });
     await enqueueSync('case_upsert', 'user-1', { id: 'case-1', data: { version: 2 } });

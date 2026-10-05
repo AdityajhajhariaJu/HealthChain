@@ -4,6 +4,13 @@ import { trustedOrigin } from '../shared/http-origins.js';
 import { checkRateLimit } from './rate-limit.js';
 
 const supported = new Set(regions.countryCodes);
+/** Keep the existing Vercel route within Gemini's supported regions without new secrets. */
+export function currentAIRegionAllowed(req) {
+  // The direct adapter already validates its signed region proof before invoking the handler.
+  if (process.env.HEALTHCHAIN_RUNTIME === 'supabase') return true;
+  if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production') return true;
+  return process.env.VERCEL === '1' && supported.has(req.headers?.['x-vercel-ip-country']);
+}
 export const REGION_PROOF_HEADER = 'x-hc-region-proof';
 const validRequestId = (value) =>
   typeof value === 'string' && /^[a-zA-Z0-9._:-]{8,120}$/.test(value);

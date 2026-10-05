@@ -731,6 +731,8 @@ export async function flushSyncOutbox(userId?: string) {
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('hc_sync_auth_expired', { detail: error }));
           }
+        } else if (error?.code === 'HC_HEALTH_CONSENT_REQUIRED') {
+          remaining.push({ ...entry, lastError: 'Cloud health processing is paused' });
         } else if (isNetworkError) {
           remaining.push({ ...entry, lastError: error?.message || 'Network unavailable' });
         } else {

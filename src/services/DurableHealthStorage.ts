@@ -2,6 +2,7 @@
 const prefixes = [
   'hc_adult_eligibility_',
   'hc_ai_consent_',
+  'hc_health_data_consent_',
   'hc_unified_profile_',
   'hc_cases_',
   'hc_active_case_',

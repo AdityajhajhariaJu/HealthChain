@@ -7,6 +7,7 @@ import AccountRuntime from './components/layout/AccountRuntime';
 import ConsentManager from './components/ui/ConsentManager';
 import AIConsentDialog from './components/ui/AIConsentDialog';
 import AdultEligibilityGate from './components/ui/AdultEligibilityGate';
+import HealthDataConsentGate from './components/ui/HealthDataConsentGate';
 import ProductMeasurement from './components/ui/ProductMeasurement';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
@@ -141,16 +142,22 @@ export default function App() {
     let cleanup: (() => void) | undefined;
     let cleanupApple: (() => void) | undefined;
     // Keep native billing and its account services outside the web startup bundle.
-    void import('@capacitor/core').then(async ({ Capacitor }) => {
-      if (disposed || Capacitor.getPlatform() === 'web') return;
-      const store = await import('./services/StorePurchases');
-      if (!disposed) cleanup = store.installStorePurchaseRecovery();
-      if (!disposed && Capacitor.getPlatform() === 'ios') {
-        const apple = await import('./services/AppleSignIn');
-        if (!disposed) cleanupApple = apple.installAppleCredentialChecks();
-      }
-    }).catch(() => {});
-    return () => { disposed = true; cleanup?.(); cleanupApple?.(); };
+    void import('@capacitor/core')
+      .then(async ({ Capacitor }) => {
+        if (disposed || Capacitor.getPlatform() === 'web') return;
+        const store = await import('./services/StorePurchases');
+        if (!disposed) cleanup = store.installStorePurchaseRecovery();
+        if (!disposed && Capacitor.getPlatform() === 'ios') {
+          const apple = await import('./services/AppleSignIn');
+          if (!disposed) cleanupApple = apple.installAppleCredentialChecks();
+        }
+      })
+      .catch(() => {});
+    return () => {
+      disposed = true;
+      cleanup?.();
+      cleanupApple?.();
+    };
   }, []);
   useEffect(() => {
     initGlobalHaptics();
@@ -215,303 +222,352 @@ export default function App() {
       <ProductMeasurement />
       <AIConsentDialog />
       <AccountRuntime />
-      <AdultEligibilityGate><Routes>
-        <Route path="/terms-policies" element={<SafeRoute><LegalPage hub /></SafeRoute>} />
-        <Route path="/acceptable-use" element={<SafeRoute><LegalPage document="acceptableUse" /></SafeRoute>} />
-        <Route path="/app-license" element={<SafeRoute><LegalPage document="appLicense" /></SafeRoute>} />
-        <Route path="/consumer-health-privacy" element={<SafeRoute><LegalPage document="consumerHealth" /></SafeRoute>} />
-        <Route path="/privacy-security" element={<SafeRoute><LegalPage document="security" /></SafeRoute>} />
-        <Route path="/delete-account" element={<SafeRoute><LegalPage document="deletion" /></SafeRoute>} />
-        <Route
-          path="/"
-          element={
-            <SafeRoute>
-              <Landing />
-            </SafeRoute>
-          }
-        />
-        <Route
-          path="/auth/callback"
-          element={
-            <SafeRoute>
-              <AuthCallback />
-            </SafeRoute>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <SafeRoute>
-              <PageTransition>
-                <Auth />
-              </PageTransition>
-            </SafeRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <SafeRoute>
-              <PageTransition>
-                <Auth />
-              </PageTransition>
-            </SafeRoute>
-          }
-        />
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <SafeRoute>
+      <AdultEligibilityGate>
+        <HealthDataConsentGate>
+          <Routes>
+            <Route
+              path="/terms-policies"
+              element={
+                <SafeRoute>
+                  <LegalPage hub />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/acceptable-use"
+              element={
+                <SafeRoute>
+                  <LegalPage document="acceptableUse" />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/app-license"
+              element={
+                <SafeRoute>
+                  <LegalPage document="appLicense" />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/consumer-health-privacy"
+              element={
+                <SafeRoute>
+                  <LegalPage document="consumerHealth" />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/privacy-security"
+              element={
+                <SafeRoute>
+                  <LegalPage document="security" />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/delete-account"
+              element={
+                <SafeRoute>
+                  <LegalPage document="deletion" />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <SafeRoute>
+                  <Landing />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/auth/callback"
+              element={
+                <SafeRoute>
+                  <AuthCallback />
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <SafeRoute>
+                  <PageTransition>
+                    <Auth />
+                  </PageTransition>
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <SafeRoute>
+                  <PageTransition>
+                    <Auth />
+                  </PageTransition>
+                </SafeRoute>
+              }
+            />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <SafeRoute>
+                    <PageTransition>
+                      <ProfileOnboarding />
+                    </PageTransition>
+                  </SafeRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/update-password"
+              element={
                 <PageTransition>
-                  <ProfileOnboarding />
+                  <SafeRoute>
+                    <UpdatePassword />
+                  </SafeRoute>
                 </PageTransition>
-              </SafeRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/update-password"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <UpdatePassword />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <PrivacyPolicy />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/terms"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <TermsOfService />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/review-demo"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <ReviewerDemo />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/changelog"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <Changelog />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/help"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <HelpCenter />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/pricing"
-          element={
-            <PageTransition>
-              <SafeRoute>
-                <Pricing />
-              </SafeRoute>
-            </PageTransition>
-          }
-        />
-
-        <Route
-          element={
-            <ProtectedRoute>
-              <SafeRoute>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
                 <PageTransition>
-                  <AppShell />
+                  <SafeRoute>
+                    <PrivacyPolicy />
+                  </SafeRoute>
                 </PageTransition>
-              </SafeRoute>
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/app" element={<Navigate to="/app/today" replace />} />
-          <Route
-            path="/app/onboarding"
-            element={
-              <SafeRoute>
-                <OnboardingFlow />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/progress"
-            element={
-              <SafeRoute>
-                <ProgressGallery />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/trophies"
-            element={
-              <SafeRoute>
-                <TrophyCabinet />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/war-room" element={<WarRoomRedirect />} />
-          <Route
-            path="/app/today"
-            element={
-              <SafeRoute>
-                <CaseDashboard />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/cases/:id"
-            element={
-              <SafeRoute>
-                <CaseDetail />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/my-cases"
-            element={
-              <SafeRoute>
-                <MyCases />
-              </SafeRoute>
-            }
-          />
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <PageTransition>
+                  <SafeRoute>
+                    <TermsOfService />
+                  </SafeRoute>
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/review-demo"
+              element={
+                <PageTransition>
+                  <SafeRoute>
+                    <ReviewerDemo />
+                  </SafeRoute>
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/changelog"
+              element={
+                <PageTransition>
+                  <SafeRoute>
+                    <Changelog />
+                  </SafeRoute>
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/help"
+              element={
+                <PageTransition>
+                  <SafeRoute>
+                    <HelpCenter />
+                  </SafeRoute>
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/pricing"
+              element={
+                <PageTransition>
+                  <SafeRoute>
+                    <Pricing />
+                  </SafeRoute>
+                </PageTransition>
+              }
+            />
 
-          <Route
-            path="/app/profile"
-            element={
-              <SafeRoute>
-                <MedicalProfile />
-              </SafeRoute>
-            }
-          />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <SafeRoute>
+                    <PageTransition>
+                      <AppShell />
+                    </PageTransition>
+                  </SafeRoute>
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/app" element={<Navigate to="/app/today" replace />} />
+              <Route
+                path="/app/onboarding"
+                element={
+                  <SafeRoute>
+                    <OnboardingFlow />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/progress"
+                element={
+                  <SafeRoute>
+                    <ProgressGallery />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/trophies"
+                element={
+                  <SafeRoute>
+                    <TrophyCabinet />
+                  </SafeRoute>
+                }
+              />
+              <Route path="/app/war-room" element={<WarRoomRedirect />} />
+              <Route
+                path="/app/today"
+                element={
+                  <SafeRoute>
+                    <CaseDashboard />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/cases/:id"
+                element={
+                  <SafeRoute>
+                    <CaseDetail />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/my-cases"
+                element={
+                  <SafeRoute>
+                    <MyCases />
+                  </SafeRoute>
+                }
+              />
 
-          {/* Redirects for old routes preserving query parameters */}
-          <Route path="/app/cases" element={<WarRoomRedirect />} />
-          <Route path="/app/multi" element={<PreservedNavigate to="/app/consult" />} />
-          <Route path="/app/mdthub" element={<PreservedNavigate to="/app/consult" />} />
-          <Route path="/app/mdt" element={<PreservedNavigate to="/app/consult" />} />
+              <Route
+                path="/app/profile"
+                element={
+                  <SafeRoute>
+                    <MedicalProfile />
+                  </SafeRoute>
+                }
+              />
 
-          <Route
-            path="/app/consult"
-            element={
-              <SafeRoute>
-                <ConsultPage />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/collab" element={<PreservedNavigate to="/app/consult" />} />
-          <Route
-            path="/app/case-prep"
-            element={
-              <SafeRoute>
-                <CasePrep />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/health-memory"
-            element={
-              <SafeRoute>
-                <HealthMemory />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/deep-collab-beta" element={<PreservedNavigate to="/app/case-prep" />} />
-          <Route path="/app/medicine-lab" element={<RetiredMedicineLabRedirect />} />
-          <Route path="/app/pharmacy" element={<RetiredMedicineLabRedirect />} />
-          <Route path="/app/nutrition" element={<PreservedNavigate to="/app/dietician" />} />
-          <Route
-            path="/app/nutrition-log"
-            element={
-              <SafeRoute>
-                <NutritionInterceptor />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/dietician"
-            element={
-              <SafeRoute>
-                <Dietician />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/health-buddy" element={<PreservedNavigate to="/app/ava" />} />
-          <Route path="/chat" element={<PreservedNavigate to="/app/ava" />} />
-          <Route
-            path="/app/ava"
-            element={
-              <SafeRoute>
-                <AvaHealthBuddy />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/reports" element={<RetiredMedicineLabRedirect />} />
-          <Route
-            path="/app/trials"
-            element={
-              <SafeRoute>
-                <ClinicalTrialsMatcher />
-              </SafeRoute>
-            }
-          />
-          <Route
-            path="/app/settings"
-            element={
-              <SafeRoute>
-                <Settings />
-              </SafeRoute>
-            }
-          />
-          <Route path="/app/jarvis" element={<PreservedNavigate to="/app/consult" />} />
+              {/* Redirects for old routes preserving query parameters */}
+              <Route path="/app/cases" element={<WarRoomRedirect />} />
+              <Route path="/app/multi" element={<PreservedNavigate to="/app/consult" />} />
+              <Route path="/app/mdthub" element={<PreservedNavigate to="/app/consult" />} />
+              <Route path="/app/mdt" element={<PreservedNavigate to="/app/consult" />} />
 
-          <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
-          <Route
-            path="/app/admin/content"
-            element={
-              <SafeRoute>
-                <AdminContentDashboard />
-              </SafeRoute>
-            }
-          />
-        </Route>
-        <Route path="/index.html" element={<Navigate to="/" replace />} />
-        <Route
-          path="*"
-          element={
-            <SafeRoute>
-              <NotFound />
-            </SafeRoute>
-          }
-        />
-      </Routes></AdultEligibilityGate>
+              <Route
+                path="/app/consult"
+                element={
+                  <SafeRoute>
+                    <ConsultPage />
+                  </SafeRoute>
+                }
+              />
+              <Route path="/app/collab" element={<PreservedNavigate to="/app/consult" />} />
+              <Route
+                path="/app/case-prep"
+                element={
+                  <SafeRoute>
+                    <CasePrep />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/health-memory"
+                element={
+                  <SafeRoute>
+                    <HealthMemory />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/deep-collab-beta"
+                element={<PreservedNavigate to="/app/case-prep" />}
+              />
+              <Route path="/app/medicine-lab" element={<RetiredMedicineLabRedirect />} />
+              <Route path="/app/pharmacy" element={<RetiredMedicineLabRedirect />} />
+              <Route path="/app/nutrition" element={<PreservedNavigate to="/app/dietician" />} />
+              <Route
+                path="/app/nutrition-log"
+                element={
+                  <SafeRoute>
+                    <NutritionInterceptor />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/dietician"
+                element={
+                  <SafeRoute>
+                    <Dietician />
+                  </SafeRoute>
+                }
+              />
+              <Route path="/app/health-buddy" element={<PreservedNavigate to="/app/ava" />} />
+              <Route path="/chat" element={<PreservedNavigate to="/app/ava" />} />
+              <Route
+                path="/app/ava"
+                element={
+                  <SafeRoute>
+                    <AvaHealthBuddy />
+                  </SafeRoute>
+                }
+              />
+              <Route path="/app/reports" element={<RetiredMedicineLabRedirect />} />
+              <Route
+                path="/app/trials"
+                element={
+                  <SafeRoute>
+                    <ClinicalTrialsMatcher />
+                  </SafeRoute>
+                }
+              />
+              <Route
+                path="/app/settings"
+                element={
+                  <SafeRoute>
+                    <Settings />
+                  </SafeRoute>
+                }
+              />
+              <Route path="/app/jarvis" element={<PreservedNavigate to="/app/consult" />} />
+
+              <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
+              <Route
+                path="/app/admin/content"
+                element={
+                  <SafeRoute>
+                    <AdminContentDashboard />
+                  </SafeRoute>
+                }
+              />
+            </Route>
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
+            <Route
+              path="*"
+              element={
+                <SafeRoute>
+                  <NotFound />
+                </SafeRoute>
+              }
+            />
+          </Routes>
+        </HealthDataConsentGate>
+      </AdultEligibilityGate>
 
       {topUpFeature && (
         <TopUpModal

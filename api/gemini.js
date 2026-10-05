@@ -23,7 +23,7 @@ import { createHash } from 'node:crypto';
 import { trustedOrigin } from '../shared/http-origins.js';
 import { inspectModelOutput } from '../shared/model-output-validation.js';
 import { validGeminiInput } from '../server/gemini-input.js';
-import { regionProofHandler } from '../server/ai-region.js';
+import { regionProofHandler, currentAIRegionAllowed } from '../server/ai-region.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
@@ -120,6 +120,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   if (origin && !isAllowed) return res.status(403).json({ error: 'Origin is not allowed.' });
+  if (!currentAIRegionAllowed(req))
+    return res.status(403).json({ code: 'AI_REGION_UNAVAILABLE', error: 'AI is unavailable from this location. Saved records and manual tools remain available.' });
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const authHeader = req.headers.authorization;

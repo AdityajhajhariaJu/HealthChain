@@ -164,6 +164,7 @@ export function LandingFooter() {
           <Link to="/terms-policies">All policies</Link>
           <Link to="/terms">Terms of Service</Link>
           <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/consumer-health-privacy">Consumer Health Privacy</Link>
           <a href="mailto:healthchain360@gmail.com">Contact Us</a>
         </div>
       </div>

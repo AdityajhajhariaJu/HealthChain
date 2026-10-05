@@ -1,5 +1,7 @@
 # Health backend activation — 5 October 2026
 
+**Inactive alternative; not selected for launch.** The operator requests existing platforms and routing without purchases or migration. This runbook is retained as technical history, not an instruction to upgrade or activate anything. The current route remains Vercel → paid Gemini. Supabase Free can run Edge Functions within its limits; Pro is not a general prerequisite for the prepared function. The earlier combined paid-plan proposal is not a blanket legal/store requirement.
+
 This preparation preserves the app's existing explanations, source review, Gut reasoning, meal planning, record extraction, account deletion, quotas and purchase behavior. It reuses the reviewed gateway handlers on Supabase. It is not a declaration of worldwide legal compliance or provider certification.
 
 ## Proposed data path
@@ -10,14 +12,14 @@ The country check uses Vercel's injected country/address headers, not a browser-
 
 Supabase's standard DPA permits sensitive data under its stated conditions. An ordinary Vercel Pro upgrade does not grant permission for sensitive health inputs; this preparation removes their active API processing from Vercel. Do not enable a HIPAA-regulated PHI workflow based on this runbook. The frontend configuration remains opt-in until the account setup and live checks below pass.
 
-## Account approval required
+## Earlier paid options — not approved or required as a package
 
 | Account | Prepared action | Published baseline |
 |---|---|---|
 | Supabase organization `oiuqnkociaaflmucewvk` | Upgrade Free → Pro, retain the existing Mumbai project, enable leaked-password protection in Auth, and keep the normal spend cap. | $25/month includes one Micro project's compute credit; additional projects/compute/usage/taxes can increase the total. |
 | Vercel team `adityas-projects-6fa2e77d` | Upgrade Hobby → Pro for commercial website hosting; retain one deploying seat. Review a spend threshold and automatic pause action before activation. | $20/month includes one deploying seat and $20 usage credit; overages/additional seats/taxes are extra. |
 
-The combined baseline is $45/month, not a maximum invoice or a Gemini/store fee. No upgrade, contract acceptance or card submission is performed by preparing this code. Built-in leaked-password protection is a managed Auth setting, not a browser password checker. Verify the actual setting/advisor after enabling it; the current Free-plan warning stays pending until then.
+The earlier combined baseline was $45/month; neither service was approved for purchase. Supabase Pro is needed for its built-in leaked-password option, not automatically for the health backend. That option is a security recommendation, not a blanket store requirement. Vercel's commercial eligibility is an actual provider contract issue, and its public DPA's health-data exclusion applies within the stated Pro/Enterprise scope. It does not alone prove a Hobby-wide ban. Ordinary Pro alone would not settle sensitive-data permission. No upgrade, contract acceptance or card submission has occurred.
 
 ## Secret provisioning
 

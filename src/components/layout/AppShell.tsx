@@ -24,6 +24,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import ProductTour from '../../features/account/components/ProductTour';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { triggerHapticLight } from '../../services/haptics';
@@ -320,6 +321,7 @@ export default function AppShell() {
       }}
     >
       <MedicalActionIsland />
+      <ProductTour />
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
@@ -500,8 +502,9 @@ export default function AppShell() {
                 color: 'var(--text-muted)',
               }}
             >
-              <strong>Disclaimer:</strong> HealthChain360.ai is an AI Navigational and Researcher
-              tool, not a doctor. It is not a substitute for professional medical advice.
+              <strong>Medical reminder:</strong> HealthChain organizes information and prepares
+              clinician questions. It does not provide diagnosis or treatment. Consult a qualified
+              health professional before making medical decisions.
             </div>
           </div>
         </aside>
@@ -577,7 +580,15 @@ export default function AppShell() {
             '/app/trophies',
             '/app/war-room',
           ].some((p) => location.pathname.startsWith(p)) && <ActiveCaseBar navigate={navigate} />}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%', minWidth: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              width: '100%',
+              minWidth: 0,
+            }}
+          >
             <Outlet />
           </div>
           <FeedbackWidget />
@@ -1069,7 +1080,9 @@ export default function AppShell() {
                       }}
                       className="more-menu-item"
                     >
-                      <div className="more-menu-icon"><ShieldCheck size={22} aria-hidden="true" /></div>
+                      <div className="more-menu-icon">
+                        <ShieldCheck size={22} aria-hidden="true" />
+                      </div>
                       <span>Terms and policies</span>
                     </button>
                     <button

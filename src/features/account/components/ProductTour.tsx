@@ -24,13 +24,13 @@ const TOUR_STEPS = [
       'Bring records, symptoms, dates, and open questions together while keeping facts separate from AI-generated possibilities.',
   },
   {
-    title: 'Physician Action Briefs',
+    title: 'Clinician Visit Briefs',
     content:
-      'Generate doctor-ready SBAR briefs and confirmatory lab test requisitions with a single click.',
+      'Prepare a structured summary and questions about possible next steps to discuss with a qualified clinician. These are not prescriptions or test orders.',
   },
   {
     title: 'Privacy First',
-    content: 'Data is securely stored on-device and encrypted. Health data is never sold.',
+    content: 'Records can remain on this device or sync to your account after permission. AI processing has a separate choice. Connections use HTTPS; local records rely on device security. Health data is never sold.',
   },
 ];
 

@@ -35,11 +35,14 @@ import {
 import { SessionBootstrapGate } from '../../services/SessionBootstrapGate';
 import { getItemSync, removeItemSync, setItemSync } from '../../services/storage';
 import { supabase } from '../../services/supabaseClient';
+import {
+  hasHealthDataConsent,
+  HEALTH_DATA_CONSENT_CHANGED,
+} from '../../services/HealthDataConsent';
 import { ensureWelcomeGrant } from '../../services/VitalityPointsEngine';
 import { clearPersistedMDTSession } from '../../stores/useMDTStore';
 import DeviceErasureRecovery from './components/DeviceErasureRecovery';
 import ObservationConflictReview from './components/ObservationConflictReview';
-import ProductTour from './components/ProductTour';
 import ProfileConflictReview from './components/ProfileConflictReview';
 
 /** Account recovery is loaded only when an account, guest workspace or erasure receipt needs it. */
@@ -58,6 +61,20 @@ export default function AccountLifecycle() {
     };
     flush();
     window.addEventListener('online', flush);
+    const resumeCloud = async () => {
+      const scope = captureAccountScope();
+      if (!hasHealthDataConsent(scope)) return;
+      await syncProfileFromSupabase(scope.accountId);
+      if (!isAccountScopeCurrent(scope) || !hasHealthDataConsent(scope)) return;
+      await initCaseEngine();
+      if (!isAccountScopeCurrent(scope) || !hasHealthDataConsent(scope)) return;
+      await syncHealthMemoryFromSupabase();
+      if (isAccountScopeCurrent(scope) && hasHealthDataConsent(scope)) flush();
+    };
+    const onHealthChoice = () => {
+      void resumeCloud().catch(() => console.warn('Cloud recovery could not resume'));
+    };
+    window.addEventListener(HEALTH_DATA_CONSENT_CHANGED, onHealthChoice);
 
     const handleLogout = async (event: Event) => {
       if ((event as CustomEvent)?.detail?.accountDeleted) return;
@@ -123,6 +140,7 @@ export default function AccountLifecycle() {
       window.removeEventListener('hc_logout', handleLogout);
       window.removeEventListener('hc_profile_updated', handleProfileSwitch);
       window.removeEventListener('online', flush);
+      window.removeEventListener(HEALTH_DATA_CONSENT_CHANGED, onHealthChoice);
     };
   }, []);
 
@@ -159,6 +177,7 @@ export default function AccountLifecycle() {
           event === 'USER_UPDATED') &&
         session
       ) {
+        const previousAccountId = captureAccountScope().accountId;
         lastSignedInAt = Date.now();
         setItemSync('isAuthenticated', 'true');
 
@@ -223,6 +242,8 @@ export default function AccountLifecycle() {
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
         const bootstrapScope = captureAccountScope();
+        if (previousAccountId !== bootstrapScope.accountId)
+          window.dispatchEvent(new Event('hc_account_scope_changed'));
         if (!bootstrapGate.begin(bootstrapScope.key + ':' + bootstrapScope.epoch)) {
           if (event === 'USER_UPDATED') {
             if (profileUpdateTimer) clearTimeout(profileUpdateTimer);
@@ -351,7 +372,6 @@ export default function AccountLifecycle() {
       <ObservationConflictReview />
       <ProfileConflictReview />
       <DeviceErasureRecovery />
-      <ProductTour />
     </>
   );
 }

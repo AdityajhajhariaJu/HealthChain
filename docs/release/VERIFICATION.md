@@ -160,7 +160,7 @@ Completion checks passed: 40 focused tests (eligibility, AI permission, monthly 
 - Real legal operator/contact, governing law and remaining provider/retention facts are incomplete. Age and launch intent are confirmed. Fourteen policy editions remain clearly marked as drafts.
 - Paid Gemini billing is operator-confirmed. Processor/transfer and retention arrangements remain under review. Sensitive-health consent and permitted use for the complete selected-market flow still need review.
 - Native choices are resolved: automatically renewing subscriptions, Apple plus retained Google/email. Source flows and service-only purchase ledger are prepared; store products/credentials, signed native builds and actual lifecycle evidence remain outstanding. See `NATIVE_STORE_SETUP.md`.
-- Retired-table exposure is resolved. Auth breached-password protection remains disabled; enabling the built-in option needs a supported paid plan.
+- Retired-table exposure is resolved. Auth breached-password protection remains disabled; its paid built-in option is a recommendation, not an independent store/legal release blocker.
 - Android SDK/signing are unavailable here; Xcode/Apple signing require a Mac. Actual signed AAB/archive, SDK reports, capabilities and device tests remain outstanding.
 - Store privacy/health declarations, reviewer access, identity agreements and any applicable Play-account testing requirement require verified owner evidence. Music creator origin is operator-declared; retain and check the applicable generation/licence records for the release catalogue as described in `AUDIO_RIGHTS.md`.
 
@@ -182,4 +182,20 @@ The optional direct route preserves the reviewed Gemini/deletion/trials handlers
 | Staged Supabase function | `healthchain-health` version **4**, custom user validation retained (`verify_jwt=false` preserves bounded guests); five live CORS/method/proof/account-denial probes pass. Initial runtime failures were corrected by using `Deno.serve` and compiling non-secret runtime constants instead of mutating hosted environment variables. |
 | Current account activation | Frontend direct-routing flag absent; master/active website remain on their existing route. No Gemini/signing secrets or paid upgrades provisioned. Auth leaked-password protection remains disabled on Free. |
 
-Worldwide primary audiences are corrected in configuration and current release documents. `HEALTH_BACKEND_ACTIVATION.md` records the $45/month combined published plan baseline, server-secret setup, old-binary coordination and safe failure behavior. Paid account approval, actual configuration verification and the operator's native/store work remain required; release attestations were not fabricated.
+Worldwide primary audiences are corrected in configuration and current release documents. The earlier paid upgrade/direct-route proposal in `HEALTH_BACKEND_ACTIVATION.md` is inactive and not selected by the operator. No $45/month package is a blanket store/legal prerequisite. Existing account/transfer arrangements and the operator's native/store setup still need supported evidence; release attestations were not fabricated.
+
+## Cloud health consent and market follow-up — 5–6 October 2026
+
+Prepared on `codex/health-privacy-market-completion`; this section does not claim production publication. Existing Vercel/Supabase/Gemini platforms and routing remain. No paid plan, new server secret, customer-health export or live account deletion was performed.
+
+| Check | Result and limit |
+|---|---|
+| Full unit regression | **1,081 passed, two optional live-model tests skipped**, 168 passing files and two skipped files. Existing fork pool, one worker; no assertions/timeouts/retries weakened. This run began before the final region/queue/UI follow-ups; the final targeted checks below cover those changes. |
+| Final consent checks | **35 passed** in five files: unchecked choice, account scope/version, local refusal, withdrawal/cancellation/late replies, AI dependency, public-policy access and same-account refresh. |
+| Current-route regional/API checks | **42 passed** in four files, including all eight named primary markets, unsupported/unverified countries, spoofed country on an unverified host, and refusal before account/counter/provider work. No live paid model request. |
+| Production browser journeys | **20 passed** across Chromium and WebKit: signed-in consent/withdrawal/local case saving, existing guest AI flow, responsive policy discovery and script-free privacy/deletion pages. First run found the delayed welcome tour covering consent; moving the tour inside the gated workspace fixed it. Final run has no retries. These are browser checks, not phone tests. |
+| Queue preservation | **15 passed**, including retaining a health update across repeated paused flushes without retry penalties, then successfully sending the same payload after processing resumes. An initial new-test assertion omitted the existing upsert options; the exact assertion was corrected, with production behavior unchanged. |
+| Build and source checks | Production build, final TypeScript check, startup/landing budgets, generated policies/native web assets, full lint, JavaScript syntax and repository hygiene pass. Existing large-chunk warnings remain. These are not signed native binaries. |
+| Live security fact | Supabase's security advisor still reports leaked-password protection disabled on Free. This follow-up does not pretend it was enabled; the paid switch is now a recommendation rather than an independent store/legal gate. Other completed database fixes remain completed. |
+
+The notices and operational/risk assessments are prepared for EU/EEA (Germany/Italy included), UK, US, Australia, India, Switzerland and Brazil. Other countries are not falsely certified. Unknown operator identity/contact, actual provider/transfer arrangements and justified retention criteria remain explicitly unresolved; policy draft flags are preserved. See `WORLDWIDE_PRIVACY_REVIEW.md`, `PRIVACY_IMPACT_ASSESSMENT.md`, `MEDICAL_PURPOSE_REVIEW.md` and `PRIVACY_OPERATIONS.md`.
