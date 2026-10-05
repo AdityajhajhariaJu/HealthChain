@@ -133,8 +133,8 @@ export default async function handler(req, res) {
         if (!error && user) {
           userId = user.id;
         }
-      } catch (e) {
-        console.warn('Token validation error:', e);
+      } catch {
+        console.warn('Token validation error:');
       }
     }
   }
@@ -585,8 +585,7 @@ export default async function handler(req, res) {
         }
         if (featureQuotaError) {
           console.warn(
-            'Feature allowance service unavailable:',
-            featureQuotaError.message || featureQuotaError
+            'Feature allowance service unavailable.'
           );
           await adminClient
             .from('ai_requests')
@@ -620,8 +619,8 @@ export default async function handler(req, res) {
               reason: quotaResult?.reason || 'quota_exceeded',
             });
         }
-      } catch (error) {
-        console.error('Feature allowance service unavailable:', error);
+      } catch {
+        console.error('Feature allowance service unavailable:');
         await adminClient
           .from('ai_requests')
           .update({
@@ -649,8 +648,8 @@ export default async function handler(req, res) {
         p_request_id: String(requestId),
       });
       if (releaseError) throw releaseError;
-    } catch (releaseError) {
-      console.error('Feature quota release failed:', releaseError);
+    } catch {
+        console.error('Feature quota release failed:');
     }
   };
 
@@ -732,7 +731,7 @@ export default async function handler(req, res) {
         )
           throw fetchErr;
         if (attempts < maxAttempts) {
-          console.warn(`Gemini fetch error on attempt ${attempts}. Retrying...`, fetchErr);
+          console.warn(`Gemini request unavailable on attempt ${attempts}. Retrying...`);
           await new Promise((r) => setTimeout(r, attempts * 1000));
           continue;
         }
@@ -743,7 +742,6 @@ export default async function handler(req, res) {
     if (!response || !response.ok) {
       console.error('Gemini provider request failed', {
         status: response?.status,
-        requestId: String(requestId),
       });
       if (adminClient && userId) {
         await releaseReservedFeatureQuota();
@@ -845,9 +843,7 @@ export default async function handler(req, res) {
           candidate?.finishReason === 'MAX_TOKENS' ? 'meal_plan_truncated' : 'invalid_meal_plan';
         // Log structure diagnostics only; never log the user's profile or generated food records.
         console.warn('Meal plan rejected', {
-          requestId: String(requestId),
-          finishReason: candidate?.finishReason,
-          errors: validation.errors?.slice(0, 5),
+          code: errorCode,
         });
         if (adminClient && userId) {
           await releaseReservedFeatureQuota();
@@ -946,7 +942,7 @@ export default async function handler(req, res) {
           .eq('request_id', String(requestId))
       ).catch(() => {});
     }
-    console.error('Gemini API Proxy Error:', error);
+    console.error('Gemini API Proxy Error:');
     return res
       .status(500)
       .json({

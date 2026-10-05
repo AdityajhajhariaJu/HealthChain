@@ -29,3 +29,7 @@ Verify security advisors and owner policies after schema changes; review service
 For optional product measurement, periodically verify refusal/GPC and withdrawal behavior, server-controlled administrator access and the 90-day aggregate cleanup. Reports are event counts rather than unique users or verified revenue. Do not combine exports with identifiable health records or add health-specific categories without a separate purpose and legal review. See `MEASUREMENT.md` for the collected fields and legacy-deployment limits.
 
 Review the public legal identity/contact, policy version, support inbox, deletion instructions and store forms together. Keep the frozen backup checkpoint separate from ordinary active-repository releases.
+
+## Operator review
+
+The operator can complete the documented factual/contract review without hiring a lawyer. Record supported facts and unresolved obligations for the selected markets; the code does not require a paid certificate. See `PROVIDER_REVIEW.md`.

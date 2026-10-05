@@ -136,6 +136,22 @@ export default function App() {
 
   useEffect(() => installNativeAuthCallbacks(navigate), [navigate]);
   useEffect(() => {
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
+    let cleanupApple: (() => void) | undefined;
+    // Keep native billing and its account services outside the web startup bundle.
+    void import('@capacitor/core').then(async ({ Capacitor }) => {
+      if (disposed || Capacitor.getPlatform() === 'web') return;
+      const store = await import('./services/StorePurchases');
+      if (!disposed) cleanup = store.installStorePurchaseRecovery();
+      if (!disposed && Capacitor.getPlatform() === 'ios') {
+        const apple = await import('./services/AppleSignIn');
+        if (!disposed) cleanupApple = apple.installAppleCredentialChecks();
+      }
+    }).catch(() => {});
+    return () => { disposed = true; cleanup?.(); cleanupApple?.(); };
+  }, []);
+  useEffect(() => {
     initGlobalHaptics();
   }, []);
 

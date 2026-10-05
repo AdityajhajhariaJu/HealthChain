@@ -109,8 +109,8 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: 'Invalid action' });
-  } catch (error) {
-    console.error('Admin Content API Error:', error);
+  } catch {
+    console.error('Admin Content API Error:');
     return res.status(503).json({ error: 'content_service_unavailable' });
   }
 }

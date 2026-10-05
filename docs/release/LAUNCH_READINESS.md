@@ -1,4 +1,4 @@
-# HealthChain launch preparation — 4 October 2026
+# HealthChain launch preparation — 5 October 2026
 
 **Release status: preparation completed for review; store submission is blocked pending the decisions and external checks below.** A successful web build is not evidence of a signed Android/iOS release or a legal approval. No first-pass store approval or next-day publication is promised.
 
@@ -31,16 +31,16 @@ The operator confirmed that production HealthChain uses the ARIA Gemini project 
 | Decision | Concrete proposal or required facts | Why it matters |
 |---|---|---|
 | Legal operator | Supply legal person/company name, country, correspondence address, support telephone, privacy/support email, applicable governing law, launch countries and age scope. | The app cannot name a fictitious controller or claim coverage in every jurisdiction. Apple's minimum app licence terms include a developer telephone contact. |
-| Age and sensitive-health scope | Adults-only launch is proposed. Confirm how core cloud health processing obtains a valid basis/explicit consent for each selected market, and whether third-party/child records are permitted. | AI consent alone does not settle every health-data obligation. A declaration needs to match the onboarding and processing actually deployed. |
-| Google Gemini | Paid production billing is operator-confirmed. Complete review of processor terms, data retention, transfers and permitted health-related use. | Paid billing establishes the applicable service tier; it does not finish the contract, retention or selected-market health-use review. |
-| Native purchases | Recommended initial option: free native launch with native purchase/upgrade links disabled and web billing retained. Alternative: native store products with server receipt verification, restoration and refund handling. | A web Razorpay checkout cannot be assumed acceptable for digital features in all native storefronts. No billing mode has been changed without this decision. |
-| iOS login | Hide Google sign-in on iOS initially and retain email login, or configure and implement Apple sign-in. | The current Google login flow needs review under Apple's equivalent-login requirement. Existing Google users need a working access/recovery path if that button is hidden. |
+| Age and sensitive-health scope | Confirm 18+ eligibility required by the current Gemini API terms, the valid basis/explicit consent for each selected market and handling of third-party records. | AI consent alone does not settle age eligibility or every health-data obligation. The current provider forbids clients directed towards or likely accessed by under-18s. |
+| Google Gemini | Paid production billing is operator-confirmed. Complete review of processor terms, data retention, transfers and actual feature use. Gemini forbids clinical practice/medical advice; any necessary feature restriction/provider change needs a major product decision. | Paid billing or a disclaimer cannot authorize prohibited medical behavior. `aiFeatureUseRestrictionsReviewed` remains false. |
+| Native purchases | Operator selected automatically renewing store subscriptions. Source checkout, verification, restore/manage controls and service-only ledger are prepared. Supply store products/keys, notifications and signed sandbox evidence; checkout stays disabled. See `NATIVE_STORE_SETUP.md`. | Store account configuration and real lifecycle/refund events cannot be inferred from source tests. Separate native top-ups remain unavailable pending expiry redesign. |
+| iOS login | Operator selected Apple plus retained Google/email. Native AuthenticationServices/nonce/state/ID-token flow and entitlement are prepared. Enable the Apple capability/Supabase provider and test signed builds. | The login choice is resolved; activation and actual iOS validation remain. |
 | Shared database | Review the containment SQL and its rollback/snapshot in the private local launch packet. Confirm the other application's ownership and migrate its clients before applying containment. | The shared application's client-access configuration requires containment. Changing it can break that application's clients. Detailed production evidence is retained locally rather than committed to this public repository. No containment migration has been applied. |
 | Build toolchain | Decide whether to approve Tailwind 4 migration and visual regression testing. | The current development dependency audit reports five high findings through the Tailwind 3 watcher/glob chain. The production dependency audit is clean. Existing CI audits both and will fail until resolved. |
 | Authentication | Enable supported breached-password protection or implement/review an equivalent server-enforced control. | The live Supabase check is disabled; its built-in leaked-password option requires a paid plan. Client password rules are not an equivalent server control. |
 | Retention and contracts | Confirm provider security-log/back-up periods, deletion handling, payment retention, processor agreements and any required EU/UK representative/transfer mechanism. | The policy must describe records actually retained and rights that can actually be delivered. |
 
-Major decisions remain pending because the operator requested discussion before major changes. Continuing the preparation does not approve a particular billing, age, account, provider-cost or shared-database option.
+Native billing/login choices are now explicit. Business facts will be supplied later at the operator's request. Tailwind 4 migration remains unapproved: it changes the styling engine and requires visual review. Shared-database, paid-provider and market/age decisions remain open.
 
 ## Native and store checks still required
 
@@ -56,10 +56,14 @@ Store medical claims must describe organization and appointment preparation. The
 
 ## Publication workflow
 
-1. Resolve the decisions above and implement the selected native billing/login and market-consent behavior.
+1. Complete the selected native account configuration/lifecycle checks and the remaining market-consent/provider review. The source billing/login preparation does not establish a signed-device pass.
 2. Enter verified facts in `shared/legal-config.json`. Set `reviewStatus` to `approved` only after reviewing the actual deployed processing, retention and applicable legal obligations. Regenerate policies with `npm run build:policies`.
 3. Complete dependency, source, database, web and native checks. Populate a copy of `launch-attestation.example.json` with verified evidence. Do not simply change its booleans to make the gate green.
 4. Run `npm run verify:launch -- path/to/completed-attestation.json`. This combines local checks with clearly labelled owner attestations; it does not certify compliance or predict a store decision.
 5. Publish the finalized public policies/deletion page, verify them while signed out, validate both signed binaries, upload for testing, and submit the matching store declarations/reviewer instructions. Resolve any reviewer feedback before general release.
 
 The backup repository remains the frozen checkpoint and must not be pushed to or updated.
+
+## Operator review without a hired lawyer
+
+No hired lawyer or paid legal certificate is a release-gate requirement. Review the facts and provider agreements personally where you can resolve the obligations; use specialist advice for an unresolved selected-market/product question. `PROVIDER_REVIEW.md` separates verified controls from missing contract, retention and health-use evidence.

@@ -127,12 +127,12 @@ export default async function handler(req, res) {
         } else if (error.code === '23505') {
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
-          console.error('Webhook entitlement error:', error);
+          console.error('Webhook entitlement error:');
           const { error: statusError } = await supabase.from('payments').update({
             fulfillment_status: 'failed',
             fulfillment_error: error.message || 'Webhook subscription activation failed',
           }).eq('razorpay_payment_id', paymentId);
-          if (statusError) console.error('Unable to record fulfillment failure:', statusError);
+          if (statusError) console.error('Unable to record fulfillment failure:');
           return res.status(500).json({ error: 'Failed to activate entitlement' });
         }
       } else if (targetPlan.type === 'topup') {
@@ -158,12 +158,12 @@ export default async function handler(req, res) {
         } else if (topupError.code === '23505') {
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
-          console.error('Webhook topup error:', topupError);
+          console.error('Webhook topup error:');
           const { error: statusError } = await supabase.from('payments').update({
             fulfillment_status: 'failed',
             fulfillment_error: topupError.message || 'Webhook top-up activation failed',
           }).eq('razorpay_payment_id', paymentId);
-          if (statusError) console.error('Unable to record fulfillment failure:', statusError);
+          if (statusError) console.error('Unable to record fulfillment failure:');
           return res.status(500).json({ error: 'Failed to record topup' });
         }
       }
@@ -177,21 +177,20 @@ export default async function handler(req, res) {
         p_refund_amount: refund.amount,
       });
       if (refundError) {
-        console.error('Refund reconciliation failed:', refundError);
+        console.error('Refund reconciliation failed:');
         return res.status(500).json({ error: 'Refund reconciliation failed' });
       }
     } else if (event === 'payment.failed') {
       const payment = payload.payload.payment.entity;
       const userId = payment.notes?.user_id;
-      const paymentId = payment.id;
       if (userId) {
-        console.log(`Payment failed for user ${userId}, payment_id: ${paymentId}`);
+        console.log('Payment processor reported a failed payment.');
       }
     }
 
     return res.status(200).json({ status: 'ok' });
-  } catch (error) {
-    console.error('Webhook processing error:', error);
+  } catch {
+    console.error('Webhook processing error:');
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }

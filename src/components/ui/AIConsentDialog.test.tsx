@@ -29,7 +29,7 @@ it('sends the versioned consent header only after an affirmative choice', async 
   await screen.findByRole('dialog'); expect(fetch).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Allow AI processing' }));
   expect((await result).status).toBe(200);
-  expect(vi.mocked(fetch).mock.calls[0][1]?.headers).toMatchObject({ 'X-HC-AI-Consent': '2026-10-04' });
+  expect(vi.mocked(fetch).mock.calls[0][1]?.headers).toMatchObject({ 'X-HC-AI-Consent': '2026-10-05-provider-retention' });
 });
 it('does not authorize the new account from an old account dialog', async () => {
   localStorage.removeItem('hc_guest_mode'); localStorage.setItem('hc_account', JSON.stringify({ id: 'owner-a' }));

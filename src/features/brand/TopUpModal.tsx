@@ -9,6 +9,7 @@ import { trackPurchase } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
 import { initiateRazorpayCheckout, PaymentPlanId } from '../../services/razorpay';
 import { supabase } from '../../services/supabaseClient';
+import { Capacitor } from '@capacitor/core';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'lab_report';
@@ -40,6 +41,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
   const [isProcessing, setIsProcessing] = useState(false);
   const checkoutLock = useRef(false);
   const metadata = TOPUPS[feature];
+  const native = Capacitor.isNativePlatform();
   const product = metadata && PRODUCT_CATALOG[metadata.id as keyof typeof PRODUCT_CATALOG];
   const plan =
     metadata && product && 'quantity' in product
@@ -62,7 +64,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
   }, [onClose]);
 
   const handleCheckout = async () => {
-    if (!plan) return;
+    if (!plan || native) return;
     if (checkoutLock.current) return;
     checkoutLock.current = true;
     const scope = captureAccountScope();
@@ -175,7 +177,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
             color: 'var(--text-main)',
           }}
         >
-          Add {plan.name}
+          {native ? 'Included usage reached' : `Add ${plan.name}`}
         </h3>
         <p
           style={{
@@ -185,11 +187,13 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
             marginBottom: 24,
           }}
         >
-          Quota limit reached. Add a top-up for <strong>{plan.qty}</strong>. Expires with the active
-          subscription.
+          {native ? 'Separate top-ups are unavailable in the mobile app. Your included usage refreshes after a confirmed subscription renewal. Open your Pro plans to restore purchases or manage your subscription.' : <>
+            Quota limit reached. Add a top-up for <strong>{plan.qty}</strong>. Expires with the active
+            subscription.
+          </>}
         </p>
 
-        <div
+        {!native && <div
           style={{
             background: 'var(--surface)',
             padding: 16,
@@ -202,10 +206,10 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         >
           <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{plan.qty}</span>
           <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--teal)' }}>₹{plan.price}</span>
-        </div>
+        </div>}
 
         <button
-          onClick={handleCheckout}
+          onClick={native ? () => { onClose(); navigate('/pricing'); } : handleCheckout}
           disabled={isProcessing}
           className="btn btn-primary"
           style={{
@@ -218,7 +222,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
           }}
         >
           {isProcessing ? <Loader2 size={18} className="spin" /> : null}
-          {isProcessing ? 'Processing...' : 'Buy Now'}
+          {isProcessing ? 'Processing...' : native ? 'View Pro plans' : 'Buy Now'}
         </button>
 
         <div style={{ marginTop: '16px', textAlign: 'center' }}>

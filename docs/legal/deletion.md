@@ -17,6 +17,9 @@ Processor security logs, legally retained transaction records and protected prov
 
 Deleting an account does not itself cancel an independently managed store subscription. Cancel through its seller's subscription controls and use the seller's refund process where applicable.
 
+## Sign in with Apple
+For an Apple-linked account, the iOS app may ask you to confirm the same Apple identity so the server can revoke its sign-in access. This does not change which HealthChain account is deleted. If no usable Apple authorization is available, HealthChain deletion still proceeds and the completion notice directs you to remove Apple access manually: **iPhone Settings → your name → Sign in with Apple → HealthChain → Delete**. You can also manage these connections at **account.apple.com → Sign-In and Security → Sign in with Apple**. Follow [Apple's current instructions](https://support.apple.com/en-us/102571) if the labels differ on your device. Removing Apple sign-in access and cancelling an App Store subscription are separate actions.
+
 ## Guest/device-only data
 Guest use does not create an identified cloud account. Clear the relevant site/app data to remove guest records, and remove any exported files or downloaded audio separately. Export first if you need a copy. Clearing storage is irreversible and does not delete a separate signed-in cloud account.
 

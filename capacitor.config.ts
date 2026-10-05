@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appId: 'com.healthchain.app',
   appName: 'HealthChain',
   webDir: 'dist-native',
+  loggingBehavior: 'debug',
   server: { androidScheme: 'https', iosScheme: 'capacitor' },
   plugins: {
     StatusBar: { style: 'dark', backgroundColor: '#0F172A' },

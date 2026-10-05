@@ -44,8 +44,8 @@ export default async function handler(req, res) {
       else if (result.data?.recovered === true) recovered++;
     }
     return res.status(failed ? 503 : 200).json({ success: failed === 0, recovered, failed, message: failed ? 'Some entitlements need another recovery attempt.' : `Recovered ${recovered} lost entitlements.` });
-  } catch (error) {
-    console.error('Entitlement recovery failed:', error);
+  } catch {
+    console.error('Entitlement recovery failed:');
     return res.status(503).json({ error: 'recovery_unavailable' });
   }
 }

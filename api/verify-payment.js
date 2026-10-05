@@ -216,8 +216,8 @@ export default async function handler(req, res) {
               error: 'Payment identity mismatch. This order does not belong to your account.',
             });
         }
-      } catch (rzpErr) {
-        console.error('Razorpay verification failed:', rzpErr);
+      } catch {
+        console.error('Razorpay verification failed:');
         return res
           .status(502)
           .json({ error: 'Payment provider verification is temporarily unavailable.' });
@@ -262,7 +262,7 @@ export default async function handler(req, res) {
             fulfillment_error: rpcError.message || 'Subscription activation failed',
           })
           .eq('razorpay_payment_id', razorpay_payment_id);
-        if (statusError) console.error('Unable to record fulfillment failure:', statusError);
+        if (statusError) console.error('Unable to record fulfillment failure:');
       } else if (rpcResult?.expires_at) {
         finalExpiry = rpcResult.expires_at;
       }
@@ -286,12 +286,12 @@ export default async function handler(req, res) {
             fulfillment_error: rpcError.message || 'Top-up provisioning failed',
           })
           .eq('razorpay_payment_id', razorpay_payment_id);
-        if (statusError) console.error('Unable to record fulfillment failure:', statusError);
+        if (statusError) console.error('Unable to record fulfillment failure:');
       }
     }
 
     if (entitlementError) {
-      console.error('Payment entitlement transaction failed:', entitlementError);
+      console.error('Payment entitlement transaction failed:');
       return res
         .status(503)
         .json({
@@ -311,7 +311,7 @@ export default async function handler(req, res) {
       .eq('razorpay_payment_id', razorpay_payment_id)
       .eq('user_id', effectiveUserId);
     if (metadataError) {
-      console.error('Payment fulfilled but metadata recording failed:', metadataError);
+      console.error('Payment fulfilled but metadata recording failed:');
       return res
         .status(503)
         .json({
@@ -325,8 +325,8 @@ export default async function handler(req, res) {
       message: 'Payment verified and status updated',
       expires_at: finalExpiry,
     });
-  } catch (error) {
-    console.error('Error verifying payment:', error);
+  } catch {
+    console.error('Error verifying payment:');
     return res.status(500).json({ error: 'Payment verification could not be completed.' });
   }
 }

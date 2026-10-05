@@ -1,6 +1,7 @@
 import { setCors } from '../server/cors.js';
 import { checkRateLimit } from '../server/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
+import { revokeAppleAccess } from '../server/apple-revocation.js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -47,6 +48,7 @@ export default async function handler(req, res) {
     }
 
     const userId = user.id;
+    const appleRevocation = await revokeAppleAccess(user, req.body?.appleAuthorizationCode);
     const { error: signOutError } = await supabaseClient.auth.admin.signOut(token, 'global');
     // A retry may carry an unexpired JWT whose refresh session was already revoked.
     // getUser above still verifies the identity; a missing session is already signed out.
@@ -62,7 +64,7 @@ export default async function handler(req, res) {
       p_user_id: userId,
     });
     if (dataDeleteError) {
-      console.error('HealthChain data deletion transaction failed:', dataDeleteError);
+      console.error('HealthChain data deletion transaction failed:');
       return res
         .status(503)
         .json({ error: 'Account deletion is temporarily unavailable. Please contact support.' });
@@ -93,10 +95,11 @@ export default async function handler(req, res) {
       .status(200)
       .json({
         success: true,
+        appleRevocationRequired: appleRevocation.required && !appleRevocation.revoked,
         message: 'Account and user-owned HealthChain data permanently deleted.',
       });
-  } catch (error) {
-    console.error('Delete account error:', error);
+  } catch {
+    console.error('Delete account error:');
     return res
       .status(500)
       .json({ error: 'Account deletion could not be completed. Please contact support.' });

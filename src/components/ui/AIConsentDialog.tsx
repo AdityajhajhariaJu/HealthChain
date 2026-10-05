@@ -25,7 +25,12 @@ export default function AIConsentDialog() {
             information through its server to <strong>Google Gemini API</strong>. Depending on the
             feature, this may include your message, health profile, symptoms, saved case context,
             meal details, or a photo or document you choose to analyze.</p>
-          <p style={{ lineHeight: 1.65 }}>Google processes this information under its API terms.
+          <p style={{ lineHeight: 1.65 }}>Our paid Gemini API service does not use your prompts or
+            responses to improve Google’s products. Google’s standard abuse monitoring retains
+            prompts, context and responses for 55 days; authorized reviewers may inspect flagged
+            content. Processing may occur outside your country. See the privacy policy for provider
+            handling and exceptions.</p>
+          <p style={{ lineHeight: 1.65 }}>
             AI can make mistakes and does not replace a clinician or emergency care. Share only
             information you are authorized to provide.</p>
           <p style={{ lineHeight: 1.65 }}>You can decline and continue using manual organization,

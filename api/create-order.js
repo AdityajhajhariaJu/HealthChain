@@ -84,12 +84,12 @@ export default async function handler(req, res) {
       amount: order.amount,
       plan_id: resolvedPlanId,
     });
-  } catch (error) {
-    console.error('Error creating Razorpay order:', error);
+  } catch {
+    console.error('Error creating Razorpay order:');
     return res
       .status(502)
       .json({
-        error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error'),
+        error: 'Checkout is temporarily unavailable. Please try again.',
       });
   }
 }

@@ -7,6 +7,8 @@ import { HCLogo } from '../../components/ui/HCLogo';
 import { useToast } from '../../components/ui/ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { authRedirectUrl, openAuthProvider } from '../../services/NativeAuth';
+import { signInWithApple } from '../../services/AppleSignIn';
+import appleSignInButton from '../../assets/apple-sign-in-black.png';
 import { awardSignupBonus } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { supabase } from '../../services/supabaseClient';
@@ -36,7 +38,7 @@ export default function Auth() {
       if (oauthError) {
         sessionStorage.removeItem('hc_auth_error');
         setError(oauthError);
-        toastError('Google sign-in failed', oauthError);
+        toastError('Sign-in failed', oauthError);
       }
     } catch {
       // Session storage may be unavailable in private browsing.
@@ -58,6 +60,12 @@ export default function Auth() {
     try {
       setLoading(true);
       setError('');
+      if (provider === 'apple' && Capacitor.getPlatform() === 'ios') {
+        const result = await signInWithApple();
+        if (result === 'signed_in') navigate('/app', { replace: true });
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -67,11 +75,12 @@ export default function Auth() {
       });
       if (error) throw error;
       if (!data?.url)
-        throw new Error('The secure Google sign-in URL could not be created. Please try again.');
+        throw new Error('The secure sign-in URL could not be created. Please try again.');
       await openAuthProvider(data.url);
       if (Capacitor.getPlatform() !== 'web') setLoading(false);
     } catch (err: any) {
-      const message = err?.message || 'Google sign-in could not be started. Please try again.';
+      const message = provider === 'apple' ? 'Apple sign-in could not be completed. Please try again.'
+        : 'Google sign-in could not be started. Please try again.';
       setError(message);
       toastError('OAuth Error', message);
       setLoading(false);
@@ -668,7 +677,7 @@ export default function Auth() {
                     style={{
                       display: 'flex',
                       gap: '12px',
-                      flexDirection: isMobile ? 'column' : 'row',
+                      flexDirection: isMobile || Capacitor.getPlatform() === 'ios' ? 'column' : 'row',
                     }}
                   >
                     <motion.button
@@ -725,6 +734,15 @@ export default function Auth() {
                       </svg>
                       Google
                     </motion.button>
+                    {Capacitor.getPlatform() === 'ios' && <button type="button"
+                      aria-label="Sign in with Apple"
+                      disabled={loading} onClick={() => handleOAuth('apple')}
+                      style={{ flex: 1, minHeight: 44, padding: 0, borderRadius: 6,
+                        display: 'flex', justifyContent: 'center', alignItems: 'center',
+                        background: '#000', color: '#fff', border: '1px solid #000',
+                        opacity: loading ? 0.7 : 1 }}>
+                      <img src={appleSignInButton} alt="" width="290" height="44" style={{ maxWidth: '100%', height: 'auto' }} />
+                    </button>}
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       type="button"

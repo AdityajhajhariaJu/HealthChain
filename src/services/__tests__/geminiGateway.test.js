@@ -30,7 +30,7 @@ const request = (operation, body) => ({
   method: 'POST',
   headers: {
     origin: 'http://localhost:3001',
-    'x-hc-ai-consent': '2026-10-04',
+    'x-hc-ai-consent': '2026-10-05-provider-retention',
     'x-hc-operation': operation,
     'x-hc-request-id': `gut-test-${operation}-1234`,
   },

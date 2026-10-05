@@ -13,7 +13,8 @@
   ],
   "functions": {
     "api/*.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "server/certificates/*.cer"
     }
   },
   "headers": [

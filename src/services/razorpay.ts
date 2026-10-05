@@ -3,6 +3,7 @@
  * interrupted task resumption, and idempotent verification.
  */
 import { PRODUCT_CATALOG } from '../../shared/productCatalog.js';
+import { Capacitor } from '@capacitor/core';
 import { apiEndpoint } from './ApiEndpoint';
 import { verifyProStatus } from './ProfileEngine';
 
@@ -274,6 +275,8 @@ export async function recoverPendingPayment(userId: string, token: string): Prom
 type CheckoutOptions = { onPending?: (orderId: string) => void; planTitle?: string };
 const activeCheckouts = new Set<string>();
 export async function initiateRazorpayCheckout(planId: PaymentPlanId, user: { id: string; email?: string; name?: string; phone?: string }, token: string, options?: CheckoutOptions): Promise<CheckoutResult> {
+  if (Capacitor.getPlatform() !== 'web') return { success: false, reason: 'missing_configuration',
+    message: 'Use the mobile store checkout to purchase digital plans.' };
   if (activeCheckouts.has(user.id)) return { success: false, reason: 'network_error', message: 'A checkout is already in progress for this account.', pendingOrderId: getPendingPayment(user.id)?.orderId };
   activeCheckouts.add(user.id);
   try { return await performRazorpayCheckout(planId, user, token, options); }

@@ -10,7 +10,7 @@ const docs = Object.fromEntries(await Promise.all(names.map(async name =>
 const supplements = Object.fromEntries(await Promise.all(['us','international'].map(async region =>
   [region, (await readFile(root + 'docs/legal/privacy-' + region + '-supplement.md', 'utf8')).trim()])));
 const moduleText = '/* Generated from docs/legal/*.md by generate-legal-assets.mjs. */\n' +
-  "export const POLICY_DATE = '2026-10-04';\n" +
+  "export const POLICY_DATE = '2026-10-05';\n" +
   'export const LEGAL_DOCUMENTS = ' + JSON.stringify(docs, null, 2) + ';\n' +
   'export const PRIVACY_SUPPLEMENTS = ' + JSON.stringify(supplements, null, 2) + ';\n';
 await writeFile(root + 'shared/legal-content.js', moduleText);

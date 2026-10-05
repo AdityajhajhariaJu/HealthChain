@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       .select('id');
 
     if (error) {
-      console.error('Error revoking expired pro status:', error);
+      console.error('Error revoking expired pro status:');
       return res.status(500).json({ error: 'Failed to revoke expired profiles' });
     }
 
@@ -44,8 +44,8 @@ export default async function handler(req, res) {
     if(recoveryError || recovery?.failed)return res.status(500).json({error:'AI request recovery needs attention'});
     console.log(`Revoked pro status for ${data?.length || 0} profiles`);
     return res.status(200).json({ status: 'ok', revoked_count: data?.length || 0 });
-  } catch (error) {
-    console.error('Cron job error:', error);
+  } catch {
+    console.error('Cron job error:');
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }

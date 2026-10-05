@@ -247,6 +247,7 @@ export default function Settings() {
     setIsDeleting(true);
     const scope = captureAccountScope();
     let remoteDeleted = false;
+    let appleRevocationRequired = false;
     try {
       const {
         data: { session },
@@ -262,12 +263,16 @@ export default function Settings() {
       if (!isAccountScopeCurrent(scope))
         throw new Error('Account changed. Open deletion from the intended account.');
       if (session?.user?.id) {
+        const { requestAppleDeletionCode } = await import('../../services/AppleSignIn');
+        const appleAuthorizationCode = await requestAppleDeletionCode(session.user);
+        if (!isAccountScopeCurrent(scope)) throw new Error('Account changed. Open deletion from the intended account.');
         const deleteController = new AbortController();
-        const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
+        const deleteTimeout = setTimeout(() => deleteController.abort(), 30000);
 
         const response = await fetch(apiEndpoint('/api/delete-account'), {
           method: 'POST',
-          headers: { Authorization: `Bearer ${session?.access_token}` },
+          headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appleAuthorizationCode }),
           signal: deleteController.signal,
         }).finally(() => clearTimeout(deleteTimeout));
 
@@ -279,6 +284,7 @@ export default function Settings() {
           );
         }
         remoteDeleted = true;
+        appleRevocationRequired = Boolean(body.appleRevocationRequired);
         // Device alarms must be cancelled before invalidating the erased scope.
         if (isAccountScopeCurrent(scope)) {
           await cancelAccountNotifications().catch(() => {});
@@ -306,9 +312,10 @@ export default function Settings() {
       for (const key of ['hc_account', 'hc_guest_mode', 'hc_user_email']) removeItemSync(key);
       success(
         'Health data removed',
-        'Your HealthChain account and user-owned data have been permanently deleted.'
+        appleRevocationRequired ? 'Your HealthChain data is deleted. Also remove HealthChain under your Apple Account → Sign in with Apple. The deletion page explains the steps.'
+          : 'Your HealthChain account and user-owned data have been permanently deleted.'
       );
-      navigate('/');
+      navigate(appleRevocationRequired ? '/delete-account' : '/');
     } catch (err: any) {
       toastError('Error deleting account', err.message);
       if (remoteDeleted && captureAccountScope().accountId === scope.accountId) {
@@ -1466,6 +1473,8 @@ export default function Settings() {
                     This action permanently deletes your account and controlled active health records
                     after the server confirms success. Provider backups, security logs and external
                     payment records may have separate retention periods described in the privacy policy.
+                    Deleting your account does not cancel an App Store or Play Store subscription.
+                    Cancel it in the store’s subscription settings before deletion to stop future charges.
                   </p>
                   <p
                     style={{

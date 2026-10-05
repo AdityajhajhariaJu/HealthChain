@@ -22,6 +22,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
+import { isNativeStore } from '../../services/StorePurchases';
+import NativePricing from './NativePricing';
 import { useNavigate } from 'react-router-dom';
 import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
 import { PaymentRecoveryBanner } from '../../components/ui/PaymentRecoveryBanner';
@@ -55,7 +57,7 @@ const BASIC_FEATURES: FeatureItem[] = [
   { name: 'Ava Health Buddy (10 Replies)', desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Food & Symptom Tools (1 Plan Trial)', desc: 'Editable meal planning and observation logging', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Clinical Research (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
-  { name: 'Medical Profile & Vault', desc: 'Encrypted personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Medical Profile & Vault', desc: 'Private personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
@@ -184,6 +186,7 @@ export default function Pricing() {
     }
   };
 
+  if (isNativeStore()) return <NativePricing />;
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '20px 16px' : '40px 24px', paddingBottom: '80px' }}>
       <PaymentRecoveryBanner />

@@ -1,8 +1,33 @@
-# HealthChain verification record — 4 October 2026
+# HealthChain verification record — 5 October 2026
 
 **The reviewed preparation is not a store-ready release.** This record distinguishes completed technical checks from unresolved choices and checks requiring signed binaries, developer accounts and real devices.
 
-## Completed checks
+## Latest native subscription and provider review — 5 October 2026
+
+The operator selected automatically renewing monthly/three-month native subscriptions and Apple sign-in with retained Google/email. Business facts remain deferred; no legal-reviewer job title or hired-lawyer certificate is required. Tailwind 4 remains unapproved. Native checkout is disabled pending account configuration and signed sandbox evidence.
+
+| Check | Latest observed result | Scope and limits |
+|---|---|---|
+| Full local unit run | 994 passed, 2 skipped; 159 files passed, 2 skipped | This run preceded the last added API/UI/Apple-revocation cases and source follow-ups. It is not represented as a full rerun of the final files. |
+| Final focused suites | 52 passed across 8 files | Apple nonce/state/cancellation/name/credential revocation and account switching, same-identity deletion proof, real cryptographic revocation verification, store ownership/renewal/pending/cancellation/acknowledgement, checkout UI, deletion failures and legal generation. Includes overlap with the earlier full run; counts are not added together. Provider replies are synthetic, not actual developer-account transactions. |
+| TypeScript, build and lint | Passed; final lint has no errors or warnings | Includes the new native source service and tests. Swift/Gradle compilation is outside this check. |
+| Initial JavaScript budgets | Startup: 315272 raw / 102384 gzip bytes across 3 assets. Landing: 379749 raw / 124340 gzip bytes across 7 assets. | Native billing/recovery loads separately from the web startup bundle. Deferred-chunk warnings remain. |
+| Policy browser checks | 16 passed in Chromium/WebKit against the final emitted build | Settings/menu/footer discovery, regional navigation and script-free public privacy/deletion pages. No actual iOS native plugin is exercised. |
+| Native web asset copies | 532 files match by SHA-256 on both platforms; no bundled audio. | No hosted audio in either copy. Native plugin registration/configuration regenerated; this is not a signed AAB/archive size or device test. |
+| Runtime dependency audit | 0 vulnerabilities | Full audit still reports 5 high development-chain findings through Tailwind 3; no audit suppression/override was added. |
+| Repository, syntax, migration checks | Passed: 55 JavaScript files; 46 SQL migrations and 27 schema checks | Whitespace/hygiene and generated migration bundle checked. Public Apple root certificate is included for server verification; credentials/evidence remain outside Git. |
+| Live native ledger | Migration installed; anonymous/authenticated reads and RPC execution denied; service execution allowed | Synthetic first grant, duplicate, renewal, wrong account, expired restore, refund, duplicate refund, revoked restore and Auth-deletion cascade tests passed inside a transaction rolled back in full. No customer records were used. |
+| Post-DDL security advisor | No new WARN category/function exposure for the ledger | The RLS/no-client-policy INFO is expected for this service-only table. Existing public-extension, six reviewed definer-function and disabled breached-password warnings remain. Shared-application containment remains unapplied. |
+| Updated policies and consent | Fourteen script-free drafts regenerated; fresh provider-retention AI permission version | Explicit 55-day Gemini abuse monitoring, overseas processing, recurring native billing/calendar periods, quota carryover and Apple manual-revocation fallback. Paid billing remains operator-confirmed. Missing business/provider facts remain visibly unapproved. |
+| Release gate | Blocked as expected | Added explicit AI provider medical-use/age/region review; no owner attestations were set to true to bypass missing evidence. |
+
+Validation caught and corrected SQL syntax, test/service typing and an initial startup-budget regression. Only the corrected ledger migration was successfully installed. The pinned SDK's native logs are guarded in debug builds, including multiline Java calls; native logging behavior still needs inspection in a real release.
+
+Store notifications verify signatures/OIDC and current provider status before applying service-only entitlements. Google acknowledgement follows durable fulfillment and can complete a previously registered pending purchase without an open app. Unknown/unbound first-purchase notifications, plan changes, refund reversals and cross-channel overlaps remain explicit sandbox review limits in NATIVE_STORE_SETUP.md; checkout stays disabled.
+
+Apple revocation uses a fresh native authorization code, validated signature/bundle/account identity and a server-only short-lived client secret. Missing Apple authorization does not block HealthChain erasure: completion directs the user to manual Apple revocation. Local credential notifications/foreground checks only sign out the same current account on confirmed revocation; offline failure does not trigger a sign-out. Actual capability/provider/key setup and native device behavior are not established by these tests.
+
+## Earlier preparation checks
 
 | Check | Observed result | Scope and limits |
 |---|---|---|
@@ -61,7 +86,7 @@ The later audio-rights follow-up records the direct creator declaration and revi
 
 - Real legal operator, market/age scope, governing law and provider/retention facts remain unconfirmed. Fourteen policy editions are clearly marked as drafts.
 - Paid Gemini billing is operator-confirmed. Processor/transfer and retention arrangements remain under review. Sensitive-health consent and permitted use for the complete selected-market flow still need review.
-- Native billing and iOS equivalent-login choices are pending. Apple/store products, credentials and receipt flows cannot be invented.
+- Native choices are resolved: automatically renewing subscriptions, Apple plus retained Google/email. Source flows and service-only purchase ledger are prepared; store products/credentials, signed native builds and actual lifecycle evidence remain outstanding. See `NATIVE_STORE_SETUP.md`.
 - The separate shared-application access review remains unresolved; see the private containment packet. Auth breached-password protection remains disabled; enabling the built-in paid-plan feature is an owner decision.
 - Five development dependency audit findings remain. No audit check was suppressed.
 - Android SDK/signing are unavailable here; Xcode/Apple signing require a Mac. Actual signed AAB/archive, SDK reports, capabilities and device tests remain outstanding.
