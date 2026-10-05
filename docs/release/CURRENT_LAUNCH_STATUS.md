@@ -1,0 +1,47 @@
+# Current launch status — 5 October 2026
+
+This is the current status for the completion work. Earlier dated verification remains historical evidence. The main app features remain; the changes add adult confirmation, the selected native offer, accurate screen descriptions and security fixes.
+
+## Confirmed product decisions
+
+- Minimum user age: **18**. Workspace, onboarding and checkout wait for an explicit account-scoped adult confirmation. This is self-attestation, not identity or date-of-birth verification.
+- Launch intent: **worldwide**, with **India** as the primary audience. This does not certify compliance or store/AI availability in every territory. India, UK, Germany, Switzerland, Italy, Australia, USA and Brazil appear on Gemini's current available-region list.
+- Mobile apps: **one-month automatically renewing Pro subscription**, initiated by a deliberate store purchase. Offer `com.healthchain.app.pro30`; Google base plan `monthly` (`P1M`). Store-localized prices remain authoritative. Quarterly identifiers remain only for restoration/verification compatibility.
+- Website: existing Razorpay prepaid plans, with **no automatic renewal added**.
+- Signed builds and phone tests: **operator-owned**, as requested. This completion work does not claim they passed.
+
+## Completed work and verified account facts
+
+| Area | Current evidence |
+|---|---|
+| Retired public tables | Operator confirmed no other app uses the project. Applied `contain_retired_client_tables`: 18 tables, zero anonymous/authenticated table or column access, zero remaining policies, existing service access preserved for all 18. Rows were not deleted. No HealthChain source references those tables. |
+| Database RPCs | Reviewed the six intentionally authenticated SECURITY DEFINER functions. Hardened case deletion against missing/mismatched owner claims while keeping service deletion. A synthetic test revealed and fixed the existing text-versus-UUID case deletion error. Owner deletion, missing/cross-account rejection and service behavior pass in rolled-back SQL tests. |
+| Vector extension | Moved `vector` into `extensions` and updated the legacy matcher to use its relocated operator. Operator and zero-row matcher checks pass. |
+| Database baseline | No public application table lacks RLS. Advisor informational findings for service-only/no-client-policy tables are intentional; do not add permissive policies to hide them. Authenticated owner RPC warnings are reviewed, not automatically defects. |
+| Password protection | Live advisor and dashboard confirm breached-password protection disabled. Supabase organization is Free; the built-in feature requires Pro+. Do not claim browser password rules are an equivalent server control. |
+| Vercel | Logged-in team dashboard confirms **Hobby**, project data preferences disabled globally, and no log drains. Current published runtime-log retention for Hobby is **one hour**, which is not a promise about all security logs/backups. |
+| Gemini | ARIA paid Tier 1 remains operator-confirmed. Paid requests are excluded from product-improvement use; standard abuse monitoring retains inputs/context/outputs for **55 days** and allows review of flagged content. |
+| Supabase | Live project metadata confirms **Mumbai (`ap-south-1`)** and Free. Selected database region does not restrict every provider/support processing location. Internal copy/deletion exceptions and manual exports are not fully verified. |
+| Store access | The currently signed-in Google account opens Play Console account creation. It does not currently expose an app/product console. App Store Connect requests Apple sign-in. This does not establish that the operator has no other developer account. |
+| In-app reporting | Settings → Help & Feedback Center provides an explicit harmful/offensive AI-answer report category. Reports contain only user-selected text. Submission errors preserve the draft; reviewed feedback errors log a fixed category. Floating feedback now waits for a confirmed database write before showing success. |
+| Screen accuracy | Corrected unsupported wearable-score/biological-forecast claims and unknown-allergy/condition defaults. The timeline and activity indicator remain, with descriptions matching their actual inputs. |
+
+## Actual remaining account/release steps
+
+| Pending | Concrete completion step |
+|---|---|
+| Operator identity | Supply the real legal person/entity name, country, correspondence address, telephone and governing-law provision. Existing support/privacy email is recorded. Age and launch intent are already resolved. |
+| Hosting arrangement | Vercel Hobby is restricted to personal non-commercial use. Its standard DPA (stated Pro/Enterprise scope) prohibits sensitive/special-category Customer Data. An ordinary Pro upgrade alone does not establish permission for health inputs. Obtain a covered arrangement or move sensitive API processing to a suitable backend while retaining the UI. No paid upgrade or contract acceptance was performed. |
+| Password protection | If retaining Supabase's built-in breached-password control, upgrade to a supported plan and enable it; alternatively implement and verify an equivalent server-enforced solution. No upgrade charge was authorized. |
+| Native account setup | Access the publishing accounts; create the monthly products and actual prices, configure Apple capability/Supabase Apple provider, server-only verification keys and authenticated purchase notifications. Production enablement requires real configuration and the operator's lifecycle evidence. |
+| Store identity and forms | Google requires an organization account for health apps. Apple has a legal-entity requirement for apps collecting sensitive health information. Complete the applicable verified identity and publisher requirements; neither rule establishes that this app automatically needs a medical-practice licence. |
+| Privacy completion | Review accepted provider terms and transfer safeguards, confirm outstanding retention/deletion exceptions and payment retention, then finalize the truthful policies and store forms. No hired lawyer is a repository requirement. |
+| AI/provider availability | Review real reachable outputs against Gemini's permitted-use rules. Source and output tests cannot constitute Google's approval. Worldwide store intent cannot bypass unsupported Gemini regions. The named target countries are supported; full release availability still needs a maintained regional control/configuration. |
+| Store submission | Use `STORE_REVIEW_READINESS.md` and `STORE_DISCLOSURES.md`; enter matching declarations, screenshots and full reviewer login/access. `/review-demo` is supplemental fictional demonstration, not a substitute for access to the actual app. |
+| Release | Finalize policies, publish this reviewed source, verify public URLs/backend, then submit the matching operator-built mobile binaries and store metadata. The previous master website publication is historical; these new UI changes are not yet published. |
+
+## AI evidence from this completion run
+
+The live model evaluation ran 12 Gut and 10 clinical fictional scenarios through the current prompts/normalizers; urgent paths use local safety handling. Authentication, quota and persistence are excluded. All ten clinical scenarios returned results. Gut case `G4-disputed-occasion` was withheld by the grounding guard, and the evaluation therefore **failed its all-non-injection-cases-must-return assertion**. This is a recorded reliability gap; it is not a passed full evaluation or proof that unsafe content reached a user. The rejected answer was not relaxed merely to make the test green. Full local synthetic evidence stays outside the public repository.
+
+Sources checked 5 October 2026: [Gemini regions](https://ai.google.dev/gemini-api/docs/available-regions), [Gemini terms](https://ai.google.dev/gemini-api/terms), [Google abuse monitoring](https://ai.google.dev/gemini-api/docs/usage-policies), [Vercel Hobby](https://vercel.com/docs/plans/hobby), [Vercel DPA](https://vercel.com/legal/dpa), [Vercel runtime logs](https://vercel.com/docs/logs/runtime), [Supabase DPA](https://supabase.com/legal/customer-resources/data-processing-addendum), [Supabase password security](https://supabase.com/docs/guides/auth/password-security), [Google publisher accounts](https://support.google.com/googleplay/android-developer/answer/10788890?hl=en), [Apple review guidelines](https://developer.apple.com/app-store/review/guidelines/).

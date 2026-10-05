@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { setCors } from './cors.js';
 import { checkRateLimit } from './rate-limit.js';
-import { STORE_PRODUCTS } from '../shared/store-products.js';
+import { STORE_LAUNCH_PRODUCTS } from '../shared/store-products.js';
 import { storeEnabled, storeAccountToken, storeTransactionKey, verifyStorePurchase,
   verifyAppleNotification, verifyGoogleNotification, acknowledgeGooglePurchase } from './store-verification.js';
 
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       const { data: active, error: activeError } = await db.from('healthchain_store_purchases').select('transaction_key')
         .eq('user_id', user.id).eq('granted', true).eq('revoked', false).gt('expires_at', new Date().toISOString()).limit(1);
       if (activeError) throw activeError;
-      return res.status(200).json({ products: STORE_PRODUCTS, accountToken: storeAccountToken(user.id), activeSubscription: Boolean(active?.length) });
+      return res.status(200).json({ products: STORE_LAUNCH_PRODUCTS, accountToken: storeAccountToken(user.id), activeSubscription: Boolean(active?.length) });
     }
     const verified = await verifyStorePurchase(platform, req.body, user.id);
     const result = await apply(db, user.id, platform, verified);

@@ -7,6 +7,7 @@ export default defineConfig({
   testMatch: [
     'e2e/landing-loading.spec.ts',
     'e2e/journey.spec.ts',
+    'e2e/adult-eligibility.spec.ts',
     'e2e/gut-reasoning-flow.spec.ts',
     'production/*.spec.ts',
   ],

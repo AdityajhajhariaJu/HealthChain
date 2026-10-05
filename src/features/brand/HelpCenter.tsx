@@ -96,8 +96,8 @@ export default function HelpCenter() {
       awardPoints(5, 'Submitted Platform Feedback & Community Insights', 'research');
       triggerHapticSuccess();
       setIsSubmitted(true);
-    } catch (err) {
-      console.error('Error submitting feedback:', err);
+    } catch {
+      console.error('Feedback submission unavailable.');
       if (isAccountScopeCurrent(scope)) setFeedbackError('Your message was not saved. Your draft is still here. Retry or send it by email.');
     } finally {
       feedbackLock.current = false;
@@ -277,6 +277,7 @@ export default function HelpCenter() {
                   { id: 'feature', label: 'Feature Suggestion', icon: Lightbulb },
                   { id: 'bug', label: 'Bug Report', icon: Bug },
                   { id: 'clinical', label: 'Clinical Accuracy', icon: Stethoscope },
+                  { id: 'ai_safety', label: 'Harmful or offensive AI answer', icon: MessageCircle },
                   { id: 'general', label: 'General Query', icon: MessageSquare }
                 ].map(cat => {
                   const Icon = cat.icon;
@@ -307,6 +308,12 @@ export default function HelpCenter() {
                 })}
               </div>
             </div>
+
+            {category === 'ai_safety' && <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+              Describe the AI answer and where you saw it. You can paste the relevant excerpt.
+              Avoid including unnecessary names, medical records, or other private information.
+              HealthChain support receives only the details you choose to submit here.
+            </p>}
 
             <div>
               <label style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Overall Experience Rating</label>

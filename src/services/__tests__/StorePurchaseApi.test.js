@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-const m = vi.hoisted(() => ({ authenticated: true, enabled: true, verify: vi.fn(), rpc: vi.fn(), acknowledge: vi.fn() }));
+const m = vi.hoisted(() => ({ authenticated: true, enabled: true, active: false, verify: vi.fn(), rpc: vi.fn(), acknowledge: vi.fn(), from: vi.fn() }));
 vi.mock('../../../server/rate-limit.js', () => ({ checkRateLimit: () => true }));
 vi.mock('../../../server/store-verification.js', () => ({
   storeEnabled: () => m.enabled, storeAccountToken: () => 'synthetic-account-token', storeTransactionKey: () => 'synthetic-key',
@@ -7,22 +7,39 @@ vi.mock('../../../server/store-verification.js', () => ({
   acknowledgeGooglePurchase: m.acknowledge,
 }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({
-  auth: { getUser: async () => ({ data: { user: m.authenticated ? { id: 'authenticated-owner' } : null }, error: null }) }, rpc: m.rpc,
+  auth: { getUser: async () => ({ data: { user: m.authenticated ? { id: 'authenticated-owner' } : null }, error: null }) }, rpc: m.rpc, from: m.from,
 }) }));
 import handler from '../../../server/store-purchases.js';
 import paymentHandler from '../../../api/verify-payment.js';
 beforeEach(() => {
-  vi.resetAllMocks(); m.authenticated = true; m.enabled = true;
+  vi.resetAllMocks(); m.authenticated = true; m.enabled = true; m.active = false;
+  m.from.mockImplementation(() => {
+    const query = { select: () => query, eq: () => query, gt: () => query,
+      limit: async () => ({ data: m.active ? [{ transaction_key: 'synthetic-active-purchase' }] : [], error: null }) };
+    return query;
+  });
   m.verify.mockResolvedValue({ transactionKey: 'synthetic-key', groupKey: 'synthetic-group', productId: 'com.healthchain.app.pro30',
     planId: 'pro_30_days', purchasedAt: '2026-10-05T00:00:00Z', expiresAt: '2026-11-05T00:00:00Z', revoked: false });
   m.rpc.mockResolvedValue({ data: { success: true }, error: null });
 });
-async function call(platform = 'ios', endpoint = handler, query = undefined) {
+async function call(platform = 'ios', endpoint = handler, query = undefined, method = 'POST') {
   const result = {}; const res = { setHeader() {}, status(code) { result.code = code; return res; }, json(body) { result.body = body; return res; } };
-  await endpoint({ method: 'POST', query, headers: { authorization: 'Bearer synthetic-auth' }, body: {
+  await endpoint({ method, query, headers: { authorization: 'Bearer synthetic-auth' }, body: {
     platform, userId: 'attacker-selected-owner', transactionId: '123', purchaseToken: 'synthetic-token', amount: 1, expiresAt: '2099-01-01',
   } }, res); return result;
 }
+it('offers only the monthly launch product and reports existing subscriptions', async () => {
+  for (const active of [false, true]) {
+    m.active = active;
+    const result = await call('ios', handler, { platform: 'ios' }, 'GET');
+    expect(result).toMatchObject({ code: 200, body: {
+      products: { pro_30_days: 'com.healthchain.app.pro30' }, activeSubscription: active,
+    } });
+    expect(result.body.products).not.toHaveProperty('pro_90_days');
+  }
+  expect(m.verify).not.toHaveBeenCalled();
+  expect(m.rpc).not.toHaveBeenCalled();
+});
 it('derives owner from verified authentication and entitlements from store proof', async () => {
   expect(await call()).toMatchObject({ code: 200, body: { success: true } });
   expect(m.verify.mock.calls[0][2]).toBe('authenticated-owner');

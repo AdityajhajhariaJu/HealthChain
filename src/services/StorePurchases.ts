@@ -8,7 +8,7 @@ import { verifyProStatus } from './ProfileEngine';
 
 export type StorePlan = keyof typeof STORE_PRODUCTS;
 export const isNativeStore = () => ['ios', 'android'].includes(Capacitor.getPlatform());
-type StoreConfig = { products: typeof STORE_PRODUCTS; accountToken: string; activeSubscription?: boolean };
+type StoreConfig = { products: Partial<typeof STORE_PRODUCTS>; accountToken: string; activeSubscription?: boolean };
 export type StoreOutcome = { success: boolean; pending?: boolean; cancelled?: boolean; message: string };
 async function session() {
   const { data } = await supabase.auth.getSession();
@@ -26,7 +26,7 @@ async function config(owner?: Awaited<ReturnType<typeof session>>): Promise<Stor
 export async function loadStoreProducts(): Promise<{ products: Product[]; activeSubscription: boolean }> {
   if (!isNativeStore()) return { products: [], activeSubscription: false };
   const catalog = await config();
-  const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(catalog.products), productType: PURCHASE_TYPE.SUBS });
+  const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(catalog.products).filter((id): id is string => typeof id === 'string'), productType: PURCHASE_TYPE.SUBS });
   return { products, activeSubscription: Boolean(catalog.activeSubscription) };
 }
 export function productForPlan(products: Product[], plan: StorePlan): Product | undefined {

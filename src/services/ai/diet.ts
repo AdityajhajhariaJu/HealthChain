@@ -119,7 +119,8 @@ export async function generateNutritionalGuardrails(profile: any): Promise<any> 
         parts: [
           {
             text: `You are a food-planning assistant. Generate 4 cautious meal-planning considerations based on the user's saved profile.
-Medical Conditions: ${dietaryRelevantConditions.length > 0 ? dietaryRelevantConditions.join(', ') : 'Healthy, no specific conditions'}
+Medical Conditions: ${(profile?.medicalConditions || []).length > 0 ? profile.medicalConditions.join(', ') : 'No conditions recorded; health status is unknown'}
+Food-planning context keywords: ${dietaryRelevantConditions.length > 0 ? dietaryRelevantConditions.join(', ') : 'None identified; do not infer absence of illness'}
 Age: ${profile?.demographics?.age || 'Adult'}
 Gender: ${profile?.demographics?.gender || 'Unknown'}
 

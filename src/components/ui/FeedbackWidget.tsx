@@ -1,12 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { MessageSquare, Send, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useToast } from './ToastProvider';
+import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
 
 const FEEDBACK_TOPICS = [
   '⚡ App Speed',
@@ -21,8 +22,20 @@ export default function FeedbackWidget() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const { success } = useToast();
+  const [sending, setSending] = useState(false);
+  const lock = useRef(false);
+  const { success, error: showError } = useToast();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const clear = () => { setIsOpen(false); setFeedback(''); };
+    window.addEventListener('hc_logout', clear);
+    window.addEventListener('hc_account_scope_changed', clear);
+    return () => {
+      window.removeEventListener('hc_logout', clear);
+      window.removeEventListener('hc_account_scope_changed', clear);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,21 +63,20 @@ export default function FeedbackWidget() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feedback.trim()) return;
+    if (!feedback.trim() || lock.current) return;
 
     const msg = feedback.trim();
-    setFeedback('');
-    setIsOpen(false);
-    awardPoints(5, 'Shared Platform Feedback', 'research');
-    triggerHapticSuccess();
-    success('Feedback Sent', 'Thank you for contributing to HealthChain research & development!');
+    const scope = captureAccountScope();
+    lock.current = true;
+    setSending(true);
 
     try {
       const { supabase } = await import('../../services/supabaseClient');
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      await supabase.from('user_feedback').insert({
+      if (!isAccountScopeCurrent(scope)) return;
+      const { error } = await supabase.from('user_feedback').insert({
         user_id: session?.user?.id || null,
         user_email: session?.user?.email || 'Anonymous Guest',
         category: 'widget_feedback',
@@ -77,8 +89,19 @@ export default function FeedbackWidget() {
           appVersion: '10.0.0',
         },
       });
-    } catch (err) {
-      console.warn('Feedback logging encountered an error:', err);
+      if (!isAccountScopeCurrent(scope)) return;
+      if (error) throw error;
+      setFeedback('');
+      setIsOpen(false);
+      awardPoints(5, 'Shared Platform Feedback', 'research');
+      triggerHapticSuccess();
+      success('Feedback Sent', 'Your message was saved for HealthChain support.');
+    } catch {
+      console.warn('Feedback submission unavailable.');
+      if (isAccountScopeCurrent(scope)) showError('Feedback not sent', 'Your draft is still here. Please retry.');
+    } finally {
+      lock.current = false;
+      setSending(false);
     }
   };
 
@@ -266,9 +289,9 @@ export default function FeedbackWidget() {
                   borderColor: feedback.trim() ? '#0D9488' : undefined,
                   boxShadow: feedback.trim() ? '0 4px 14px rgba(13, 148, 136, 0.25)' : undefined,
                 }}
-                disabled={!feedback.trim()}
+                disabled={!feedback.trim() || sending}
               >
-                <Send size={16} /> Send to HealthChain
+                <Send size={16} /> {sending ? 'Sending…' : 'Send to HealthChain'}
               </button>
             </form>
           </motion.div>

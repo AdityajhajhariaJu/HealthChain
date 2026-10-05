@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_product_tour_seen', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
@@ -93,6 +95,7 @@ test('expired session cannot claim account deletion or clear any device record',
     });
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-expired' }));
+    localStorage.setItem('hc_adult_eligibility_' + 'synthetic-expired', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_case_prep_draft_synthetic-expired_profile_1', '{"preserve":true}');
   });
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
@@ -130,6 +133,7 @@ test('confirmed settings deletion erases only the requested owner in localStorag
     supabase.auth.signOut = async () => ({ error: null });
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-delete-A' }));
+    localStorage.setItem('hc_adult_eligibility_' + 'synthetic-delete-A', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_unified_profile_synthetic-delete-A', '{}');
     localStorage.setItem('hc_unified_profile_synthetic-delete-B', 'SYNTHETIC_KEEP');
     const idb = await import('/node_modules/.vite/deps/idb-keyval.js');

@@ -4,6 +4,8 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript((consentVersion: string) => {
     localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
@@ -71,6 +73,7 @@ test('actual logout retains unqueued owned records and daily logs, while another
   const guest = await page.evaluate(async () => {
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-owner-b' }));
+    localStorage.setItem('hc_adult_eligibility_' + 'synthetic-owner-b', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     const profile = await import('/src/services/ProfileEngine.js');
     const meals = await import('/src/services/MealCommandService.ts');
     const water = await import('/src/services/HydrationService.ts');
@@ -95,6 +98,7 @@ test('a delayed quick nutrition reply cannot create a meal in a newly selected a
   await page.evaluate(() => {
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-owner-b' }));
+    localStorage.setItem('hc_adult_eligibility_' + 'synthetic-owner-b', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
   });
   const response = page.waitForResponse('**/api/gemini');
   release();

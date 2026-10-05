@@ -7,6 +7,8 @@ test('a guest chooses a case before a Gut question enters appointment prep', asy
       sessionStorage.setItem('hc_e2e_handoff_init', '1');
       localStorage.clear();
       localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
       localStorage.setItem('hc_onboarded', 'true');
       localStorage.setItem('hc_cookies_accepted', 'declined');
       localStorage.setItem('hc_unified_profile_guest', JSON.stringify({

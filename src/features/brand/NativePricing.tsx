@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '@capgo/native-purchases';
-import { STORE_PRODUCTS } from '../../../shared/store-products.js';
+import { STORE_LAUNCH_PLANS } from '../../../shared/store-products.js';
 import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
 import { buyStorePlan, loadStoreProducts, restoreStorePurchases, manageStoreSubscription, productForPlan, type StorePlan } from '../../services/StorePurchases';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -51,7 +51,7 @@ export default function NativePricing() {
       the recurring price and confirms your purchase. Cancel before renewal to stop the next charge.</p>
     {status && <p role="status">{status}</p>}
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, margin: '24px 0' }}>
-      {(Object.keys(STORE_PRODUCTS) as StorePlan[]).map(plan => {
+      {STORE_LAUNCH_PLANS.map((plan: StorePlan) => {
         const product = productForPlan(products, plan);
         const details = PRODUCT_CATALOG[plan];
         return <section key={plan} style={{ padding: 24, border: '1px solid var(--border)', borderRadius: 20, background: 'var(--surface)' }}>

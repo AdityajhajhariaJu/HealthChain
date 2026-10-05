@@ -4,6 +4,8 @@ async function setup(page: Page, days = 0, noWebGL = false) {
   await page.addInitScript(
     ({ days, noWebGL }) => {
       localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
       localStorage.setItem('hc_onboarded', 'true');
       localStorage.setItem('hc_cookies_accepted', 'declined');
       if (!localStorage.getItem('hc_unified_profile_guest')) {

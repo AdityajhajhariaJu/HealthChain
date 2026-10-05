@@ -16,6 +16,8 @@ test('guest can enter the assessment workspace from the public page', async ({ p
   await page.getByRole('button', { name: 'Get Started' }).click();
 
   await expect(page).toHaveURL(/\/app\/consult\?new=true$/);
+  await page.getByRole('checkbox', { name: 'I confirm that I am 18 or older.' }).check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.locator('.app-shell')).toBeVisible();
   await expect(page.getByRole('link', { name: /Today/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Which symptoms bother you?' })).toBeVisible();
@@ -24,6 +26,8 @@ test('guest can enter the assessment workspace from the public page', async ({ p
 
 test('clean unauthenticated browsers cannot open account case routes', async ({ page }) => {
   await page.goto('/app/my-cases');
+  await page.getByRole('checkbox', { name: 'I confirm that I am 18 or older.' }).check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
 });
@@ -33,6 +37,8 @@ test('a forged browser auth flag cannot bypass the Supabase session boundary', a
     window.localStorage.setItem('isAuthenticated', 'true');
   });
   await page.goto('/app/my-cases');
+  await page.getByRole('checkbox', { name: 'I confirm that I am 18 or older.' }).check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
 });

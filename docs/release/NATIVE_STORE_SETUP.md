@@ -1,11 +1,12 @@
 # Native subscriptions and Apple login setup
 
-The operator selected **automatically renewing native subscriptions**, plus native Apple sign-in while retaining Google/email login. This branch prepares the code. Native checkout is disabled until account configuration and signed-device evidence exist. Web Razorpay plans remain prepaid.
+The operator selected **monthly automatically renewing subscriptions in the mobile apps only**, plus native Apple sign-in while retaining Google/email login. Minimum user age is 18. Launch intent is worldwide with India as the primary audience, subject to store/provider availability and applicable local requirements. This branch prepares the code. Native checkout is disabled until account configuration and signed-device evidence exist. Web Razorpay plans remain prepaid.
 
 | Plan | Both-store product ID | Apple period | Google auto-renewing base plan |
 |---|---|---|---|
 | pro_30_days | com.healthchain.app.pro30 | 1 month | monthly, P1M |
-| pro_90_days | com.healthchain.app.pro90 | 3 months | quarterly, P3M |
+
+The launch catalog and native screen offer only `pro_30_days`. The quarterly identifier is retained solely for verification/restoration compatibility; do not create or advertise it as a new launch offer.
 
 Register products, storefronts, tax settings and prices in App Store Connect/Play Console. Use one Apple subscription group with appropriate levels. Initially use standard offers without trials, promotions, installments, prepaid or special billing plans; those need matching disclosures. Native screens use localized store prices/calendar periods, explain renewal, and include Terms/Privacy, Restore purchases and Manage subscription. Active recorded subscriptions block another checkout. Razorpay refuses new native digital checkout, including older upgrade entry points. Separate native top-ups are unavailable because their expiring-credit model needs redesign.
 

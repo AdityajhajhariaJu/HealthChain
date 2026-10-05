@@ -6,10 +6,14 @@
   "supportPhone": "",
   "privacyEmail": "healthchain360@gmail.com",
   "supportEmail": "healthchain360@gmail.com",
-  "minimumAge": null,
-  "launchMarkets": [],
+  "minimumAge": 18,
+  "launchMarkets": ["Worldwide, subject to applicable law and store/provider availability"],
+  "primaryMarket": "India",
+  "mobileSubscriptionInterval": "monthly",
+  "mobileSubscriptionAutoRenew": true,
+  "webSubscriptionAutoRenew": false,
   "governingLaw": "",
   "aiBillingVerified": true,
-  "retentionDetails": "Retention periods for provider logs/backups and legally required payment records must be confirmed by the operator before publication. Active user records are retained until deletion as described above.",
+  "retentionDetails": "Active user records remain until deletion. Paid Gemini's standard abuse monitoring retains prompts, context and responses for 55 days. The current Vercel Hobby plan provides one hour of runtime-log retention; its team has no configured log drains. This is not a complete security-log or backup deletion guarantee. Supabase's internal log/backup exceptions, any manual exports, and legally required payment-record retention must be confirmed before final publication.",
   "reviewStatus": "draft"
 }

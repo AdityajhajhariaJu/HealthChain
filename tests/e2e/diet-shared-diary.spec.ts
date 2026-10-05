@@ -4,6 +4,8 @@ test('a planned meal becomes one shared eaten record and a retry does not duplic
   await page.addInitScript(() => {
     localStorage.clear();
     localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     const profile = { age: 30, gender: 'male', height: 175, weight: 70, goal: 'Maintain', activityLevel: 'moderate', restrictions: [], cuisine: 'Indian' };

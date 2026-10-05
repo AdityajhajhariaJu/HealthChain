@@ -7,6 +7,8 @@ test.beforeEach(async ({ page }) => {
   page.on('pageerror', (error) => console.error('Browser error:', error.message));
   await page.addInitScript(() => {
     localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
   });
@@ -262,6 +264,7 @@ test('dashboard refreshes when account scope changes and restores isolated value
     const engine = await import(/* @vite-ignore */ path);
     localStorage.setItem('hc_guest_mode', 'false');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'audit_other' }));
+    localStorage.setItem('hc_adult_eligibility_' + 'audit_other', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     window.dispatchEvent(new Event('hc_profile_updated'));
   });
   await expect(
@@ -274,6 +277,8 @@ test('dashboard refreshes when account scope changes and restores isolated value
     const path = '/src/services/ProfileEngine.js';
     const engine = await import(/* @vite-ignore */ path);
     localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     localStorage.removeItem('hc_account');
     window.dispatchEvent(new Event('hc_profile_updated'));
   });

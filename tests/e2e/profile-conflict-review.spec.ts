@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
 test('profile conflict review keeps the selected cloud value across the connected profile store', async ({ page }) => {
-  await page.addInitScript(() => { localStorage.setItem('hc_guest_mode', 'true'); localStorage.setItem('hc_onboarded', 'true'); localStorage.setItem('hc_product_tour_seen', 'true'); });
+  await page.addInitScript(() => { localStorage.setItem('hc_guest_mode', 'true');
+    // Synthetic adult fixture; fresh-entry tests confirm through the UI.
+    localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' })); localStorage.setItem('hc_onboarded', 'true'); localStorage.setItem('hc_product_tour_seen', 'true'); });
   await page.route(/https:\/\//, route => route.abort()); await page.goto('/app/today');
   await page.evaluate(async () => {
     const owner = 'profile-browser-owner'; const base = { id: 'profile_1', profileName: 'Synthetic profile', demographics: { weight: 70 }, medications: [], allergies: [] };
     localStorage.removeItem('hc_guest_mode'); localStorage.setItem('hc_account', JSON.stringify({ id: owner }));
+    localStorage.setItem('hc_adult_eligibility_' + owner, JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
     const local = { ...base, demographics: { weight: 73 } };
     localStorage.setItem(`hc_unified_profile_${owner}`, JSON.stringify({ activeId: 'profile_1', profiles: { profile_1: local } }));
     const { rememberProfileBaseline } = await import('/src/services/ProfileSyncBaseline.ts'); rememberProfileBaseline(owner, 'profile_1', base);

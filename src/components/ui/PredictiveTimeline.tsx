@@ -18,28 +18,28 @@ export const PredictiveTimeline = () => {
 
     return [
       {
-        time: latestLog ? (latestLog.slot || 'Earlier Intake') : 'Morning Horizon',
-        title: latestLog ? `Intake: ${latestLog.name || 'Meal'}` : 'Circadian Baseline',
+        time: latestLog ? (latestLog.slot || 'Saved meal') : 'Earlier',
+        title: latestLog ? `Intake: ${latestLog.name || 'Meal'}` : 'No meal recorded',
         type: 'past',
-        desc: latestLog ? `Digestive latency monitoring active for ${latestLog.name || 'meal'}.` : 'Metabolic baseline logged at circadian dawn.',
+        desc: latestLog ? `Your saved meal entry: ${latestLog.name || 'meal'}.` : 'Add a meal entry to see it here.',
         icon: Activity,
         color: '#F59E0B',
       },
       {
-        time: 'Right Now',
-        title: latestCheckin && latestCheckin.severity !== 'None' ? `Active: ${latestCheckin.symptom}` : 'Resting Baseline',
+        time: 'Latest check-in',
+        title: latestCheckin && latestCheckin.severity !== 'None' ? `Recorded: ${latestCheckin.symptom}` : 'Symptom check-in',
         type: 'now',
         desc: latestCheckin && latestCheckin.severity !== 'None'
-          ? `Monitoring ${latestCheckin.symptom} (${latestCheckin.severity}) across postprandial window.`
-          : 'Physiological equilibrium. No acute adverse flares recorded in today\'s log.',
+          ? `You recorded ${latestCheckin.symptom} (${latestCheckin.severity}). This entry does not show your current health status.`
+          : latestCheckin ? 'No symptoms were marked in this saved entry.' : 'No symptom check-in recorded yet.',
         icon: Activity,
         color: '#10B981',
       },
       {
-        time: 'Evening Horizon',
-        title: 'Circadian Alignment Window',
+        time: 'Next check-in',
+        title: 'Record how you feel',
         type: 'future',
-        desc: 'Predicted recovery phase. Prioritize digestive rest and restorative hydration.',
+        desc: 'Add another entry when useful. Future symptoms and recovery cannot be predicted from this timeline.',
         icon: Coffee,
         color: '#3B82F6',
       },
@@ -52,7 +52,7 @@ export const PredictiveTimeline = () => {
   return (
     <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  padding: '0 24px', marginBottom: '16px' }}>
       <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Predictive Timeline</h2>
+        <h2 style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Your Timeline</h2>
       </div>
 
       <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  background: '#FFF', borderRadius: '24px', padding: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9' }}>
@@ -83,10 +83,10 @@ export const PredictiveTimeline = () => {
               <Clock size={20} />
             </div>
             <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-              Predictive Timeline Inactive
+              Your Timeline
             </span>
             <span style={{ fontSize: '12.5px', color: '#64748B', maxWidth: '320px', lineHeight: 1.5 }}>
-              Log your daily nutrition or check-in to generate continuous circadian and metabolic alignment projections.
+              Log a meal or symptom check-in to see your saved entries here.
             </span>
           </div>
         ) : (

@@ -1,36 +1,22 @@
-# Provider feature decision — 5 October 2026
+# AI feature and hosting review — 5 October 2026
 
-**Feature/provider review proposal. No provider switch, paid upgrade or feature shutdown has been performed.** The operator subsequently authorized source publication: `74119209` was merged to `master` and the website policies deployed on 5 October 2026 with draft labels intact. This does not resolve the feature/provider decisions below or establish a store-ready release.
+The operator wants to preserve the main app. No blanket redesign or feature removal is required by this review. See CURRENT_LAUNCH_STATUS.md for the current facts.
 
-## Why a decision is needed
-
-[Gemini API terms](https://ai.google.dev/gemini-api/terms) prohibit clinical practice and providing medical advice, API clients directed toward or likely accessed by under-18s, and access outside the available regions. The terms also distinguish paid processing from zero retention. Permission from a user and a disclaimer do not change the provider's permitted use.
-
-Source review found remaining personalized medical interpretation alongside record-organization instructions:
-
-| Source | Actual requested behavior | Review finding |
+| Reachable flow | Current behavior | Boundary to verify |
 |---|---|---|
-| `src/services/ai/investigation.ts`, `checkDrugInteractions` | Compare the person's medicine regimen and assign interaction severity | Personalized medication-risk assessment; cannot mark provider permission established. |
-| `src/services/ai/consultation.ts`, `LAB_SYSTEM_PROMPT` | Former instructions mixed transcription with personal interpretation/lifestyle advice | Contradiction corrected to source-attributed transcription, term explanations and record-check questions. Actual output and the complete surrounding flow still need review. |
-| `src/services/ai/collaboration.ts`, parallel report | Former instructions mixed record organization with new diagnoses/mechanisms/action plans | Corrected to conditions explicitly supplied in original records, attributed facts and record-check questions. Other specialist/differential stages still request personal assessments; the entire flow is not cleared. |
-| `src/services/ai/investigation.ts`, differential flow | Generate possible conditions from personal symptoms and records | Calling these discussion pathways or setting confidence to zero does not establish that the behavior meets provider restrictions. |
-| Specialist selection, Gut reasoning and individualized diet flows | Triage/interpret a person's health facts or tailor nutrition | Review complete inputs, outputs and UI; do not classify as allowed merely from operation names or disclaimers. |
-| Profile summaries, document transcription and public education | Organize supplied facts or explain general concepts | Potentially narrower scope, but still requires verified handling of sensitive inputs, age/region controls and actual output review. |
+| Case review | Organizes source facts, possibilities, gaps and clinician questions; normalizers suppress ranked diagnoses, test orders and treatment/diet swaps. | Review actual generated explanations, rather than treating a prompt as a guarantee. |
+| Ava | Health explanations and user-selected record context. | Check fabricated facts, diagnosis assertions, medicine changes and treatment instructions. |
+| Gut reasoning | Source-linked reports, counterexamples, research context and recorded timing. | Associations must not become diagnoses or treatment. One live disputed-record example was safely withheld; reliability review remains. |
+| Meal planning | Preferences, ordinary planning and supplied constraints. | Unknown conditions/allergies must stay unknown; do not claim disease treatment or proven benefit. |
+| Lab/document extraction | Transcribes original values/ranges and explains terms. | Check fidelity; do not invent units, dates or optimal targets. |
+| Unused exports | No production UI caller was found for checkDrugInteractions, runDifferentialAnalysis, selectMDTSpecialists, chatWithMDTSpecialist, generateMDTReport or generateCasePrepAnalysis. | Definitions/allowlisted operation names are not proof of a current screen feature. Review before connecting them to released UI. |
 
-The [Vercel standard DPA](https://vercel.com/legal/dpa), Schedule 1 section 6, excludes sensitive/special-category customer data. Its scope and any separate agreement that covers HealthChain's health-data API traffic must be verified. [Vercel offers a paid self-service BAA to Pro teams](https://vercel.com/changelog/hipaa-baas-are-now-available-to-pro-teams) for eligible HIPAA workloads; this is not evidence that this account has one, nor that HIPAA applies to every consumer wellness app. No automatic purchase or agreement acceptance is proposed.
+Current corrections remove unsupported claims about wearable score weights, biological forecasting and missing allergy/condition information. Existing screens and core workflows remain.
 
-## Option A: prepare a restricted initial release
+[Gemini terms](https://ai.google.dev/gemini-api/terms) prohibit clinical practice/medical advice, under-18-directed/likely-under-18 clients and unsupported-region access. Adult self-attestation now precedes workspace, onboarding and checkout. India, UK, Germany, Switzerland, Italy, Australia, USA and Brazil are [supported regions](https://ai.google.dev/gemini-api/docs/available-regions). Worldwide intent does not establish provider access everywhere. Source/output tests are not Google's approval.
 
-Keep manual record organization, logging, sound playback and general education. Prepare explicit unavailable states and server enforcement for personalized medication-risk ratings, AI condition generation, lab advice, specialist triage and other unapproved personalized recommendations. Retain health records and account data; do not delete them. AI requests that remain available still need provider permission, age/region controls and a hosting arrangement covering their inputs. Restriction alone does not fix hosting contracts or cloud-health consent.
+## Hosting completion
 
-Produce the exact feature list, UI wording, server allowlist and regression evidence for review before activation. Do not silently replace clinical output with a fabricated safe result or continue charging quota for blocked processing.
+The logged-in Vercel team is Hobby. [Hobby](https://vercel.com/docs/plans/hobby) permits personal non-commercial use only. The [standard DPA](https://vercel.com/legal/dpa), in its stated Pro/Enterprise scope, prohibits sensitive/special-category Customer Data.
 
-## Option B: preserve the intended features and prepare a provider change
-
-Assess an AI API and backend arrangement whose actual agreements cover the intended feature behavior and data categories. Compare accepted terms, costs, data location, retention, deletion, available regions and necessary clinical safeguards. Keep the existing provider unchanged until the replacement and costs are approved. A different endpoint, BAA, enterprise plan or model name alone does not certify allowed medical use or regulatory status.
-
-Produce a concrete migration design, affected features, credentials/configuration requirements and test plan before switching or incurring charges. Do not treat privacy-policy wording as authorization to use a prohibited flow.
-
-## Independent work that can proceed now
-
-Verify current affirmative AI permission, account boundaries, cancellation/withdrawal, deletion and Storage byte removal; minimize inputs and diagnostic logging; record verified plan/region facts and provider retention exceptions; correct contradictory prompts; update notices and the release gate without inventing missing operator/market facts or marking unverified agreements as accepted.
+The completion paths preserve the UI: obtain an applicable covered hosting arrangement, or move sensitive API requests to a backend whose account terms permit them. A Pro upgrade alone does not establish health-data permission. A HIPAA BAA applies to a relevant HIPAA workload; this does not classify every consumer health app as HIPAA-regulated. No paid upgrade, provider switch, contract acceptance or feature shutdown was performed in this completion work.

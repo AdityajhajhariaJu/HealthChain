@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { isDurableHealthStorageKey, retainHealthStorage } from '../DurableHealthStorage';
+import { isDurableHealthStorageKey, isOwnerStorageKey, retainHealthStorage } from '../DurableHealthStorage';
 describe('logout preserves unsynced owned records', () => {
   it('retains local records even when no outbox copy was written, while dropping credentials', () => {
     localStorage.clear();
     const records = {
+      'hc_adult_eligibility_account-a': '{"minimumAge":18,"confirmed":true}',
       hc_unified_profile_account_a: '{"pendingProfile":true}',
       hc_cases_account_a_profile_1: '[{"unsyncedCase":true}]',
       'hc_observations_v1:account-a:profile_1': '[{"queueFailed":true}]',
@@ -37,5 +38,10 @@ describe('logout preserves unsynced owned records', () => {
         'hc_clinical_intake_draft:hc_unified_profile_account-a:profile_1:new'
       )
     ).toBe(true);
+  });
+  it('includes adult confirmation in erasure for its exact owner only', () => {
+    expect(isOwnerStorageKey('hc_adult_eligibility_account-a', 'account-a')).toBe(true);
+    expect(isOwnerStorageKey('hc_adult_eligibility_account-ab', 'account-a')).toBe(false);
+    expect(isOwnerStorageKey('hc_adult_eligibility_guest', 'account-a')).toBe(false);
   });
 });

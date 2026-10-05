@@ -465,7 +465,7 @@ export default function MedicalProfile() {
                 triggerHapticLight();
                 const conditions = (profile?.conditions || []).join(', ') || 'None recorded';
                 const meds = (profile?.medications || []).map((m: any) => typeof m === 'string' ? m : m.name || m.label).join(', ') || 'None recorded';
-                const allergies = (profile?.allergies || []).join(', ') || 'No known allergies';
+                const allergies = (profile?.allergies || []).join(', ') || 'Allergy information not recorded';
                 navigate('/app/ava', {
                   state: {
                     initialPrompt: `Hi Ava, please perform a clinical review of my unified medical profile.\n\nDemographics: Age ${profile?.demographics?.age || 'N/A'}, Gender ${profile?.demographics?.gender || 'N/A'}, Blood Group ${profile?.demographics?.bloodGroup || 'N/A'}\nActive Conditions: ${conditions}\nCurrent Medications: ${meds}\nAllergies: ${allergies}\n\nWhat preventive steps, interaction warnings, or lab panels should I discuss with my physician?`
@@ -1520,15 +1520,12 @@ export default function MedicalProfile() {
           className="card"
           style={{ padding: '24px' }}
         >
-          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>7-day activity</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Recent activity</h2>
           <VitalityRing progress={vitalityScore} />
           <SensualLineChart />
           
           <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
-            <strong style={{ color: '#0F172A' }}>How it's calculated:</strong> The Vitality Score aggregates your rolling 7-day momentum across three pillars:<br/>
-            &bull; <strong>Clinical Adherence (40%):</strong> Staying within your AI Dietician's medical guardrails (e.g., sodium/calorie targets).<br/>
-            &bull; <strong>Biometric Recovery (40%):</strong> Apple Health / Google Fit passive data (Resting HR, HRV, Sleep Duration).<br/>
-            &bull; <strong>App Engagement (20%):</strong> Consistency in logging meals, check-ins, and symptom tracking.
+            <strong style={{ color: '#0F172A' }}>How it's calculated:</strong> This activity indicator averages up to seven saved check-ins. A check-in score is multiplied by ten; entries without a score use the recorded severity (Severe: 35, Mild: 70, other: 90). If you have no check-ins, it shows app activity points, capped at 100. It is not a medical score or a wearable-based measure of recovery.
           </div>
         </motion.div>
 
@@ -1543,10 +1540,7 @@ export default function MedicalProfile() {
           <PredictiveTimeline />
           <div style={{ padding: '0 24px', marginTop: '8px' }}>
             <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
-              <strong style={{ color: '#0F172A' }}>How it works:</strong> The Predictive Timeline is a proactive biological forecast.<br/>
-              &bull; It pulls your passive biometric stream (Heart Rate, Glucose, Activity) from wearables.<br/>
-              &bull; It runs the data through the clinical engine to predict upcoming biological states (like a glucose crash or peak metabolic rate).<br/>
-              &bull; It allows you to anticipate your body's needs before you actually feel symptoms like fatigue or cravings.
+              <strong style={{ color: '#0F172A' }}>How it works:</strong> The timeline displays your saved meal and symptom entries. The next check-in is a reminder to record how you feel; the app does not predict glucose changes, recovery, or future symptoms.
             </div>
           </div>
         </motion.div>

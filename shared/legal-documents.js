@@ -34,7 +34,7 @@ export function getLegalDocument(documentId = 'privacy', region = 'international
     SUPPORT_PHONE: settings.supportPhone || '[Support telephone awaiting confirmation]',
     RETENTION_DETAILS: settings.retentionDetails,
     ELIGIBILITY_DETAILS: settings.minimumAge
-      ? 'The service is for adults aged ' + settings.minimumAge + ' and above.'
+      ? 'The service is for adults aged ' + settings.minimumAge + ' and above. Availability depends on applicable local law and the availability of our app stores and service providers. AI features are available only in regions supported by the AI provider.'
       : '[Launch eligibility must be confirmed by the operator before distribution.]',
     GOVERNING_LAW_DETAILS: settings.governingLaw
       ? 'Subject to mandatory local consumer protections, the agreement is governed by ' + settings.governingLaw + '.'

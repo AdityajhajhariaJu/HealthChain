@@ -3413,3 +3413,106 @@ end; $$;
 revoke all on function public.apply_healthchain_store_purchase(uuid,text,text,text,text,text,timestamptz,timestamptz,boolean) from public, anon, authenticated;
 grant execute on function public.apply_healthchain_store_purchase(uuid,text,text,text,text,text,timestamptz,timestamptz,boolean) to service_role;
 
+-- ===== 20261005131915_contain_retired_client_tables.sql =====
+-- Applied version matches the Supabase migration ledger.
+-- Operator confirmed no other application uses these retired tables.
+-- Remove exposed client access; preserve rows and existing service-role access.
+do $migration$
+declare
+  retired_table text;
+  column_list text;
+  policy_name text;
+begin
+  foreach retired_table in array array[
+    'action_logs','agent_runs','content_items','conversions',
+    'growth_assets','growth_auto_dm_rules','growth_backlinks','growth_brand_dna',
+    'growth_campaigns','growth_connected_accounts','growth_generated_assets',
+    'growth_leads','growth_niche_scans','growth_runs','growth_scheduled_posts',
+    'growth_trends','system_state','users'
+  ] loop
+    if to_regclass(format('public.%I', retired_table)) is null then continue; end if;
+    execute format('alter table public.%I enable row level security', retired_table);
+    execute format('revoke all privileges on table public.%I from public, anon, authenticated', retired_table);
+    select string_agg(quote_ident(attname), ', ' order by attnum) into column_list
+      from pg_attribute where attrelid = to_regclass(format('public.%I', retired_table))
+      and attnum > 0 and not attisdropped;
+    if column_list is not null then
+      execute format('revoke all privileges (%s) on table public.%I from public, anon, authenticated', column_list, retired_table);
+    end if;
+    for policy_name in select policyname from pg_policies
+      where schemaname = 'public' and tablename = retired_table
+    loop
+      execute format('drop policy %I on public.%I', policy_name, retired_table);
+    end loop;
+  end loop;
+end $migration$;
+
+-- ===== 20261005132512_harden_case_deletion_and_vector_schema.sql =====
+-- Applied version matches the Supabase migration ledger.
+-- Retain intentional owner-authorized RPCs and reject missing owner claims.
+create or replace function public.delete_case_with_tombstone(
+  p_user_id uuid, p_case_id text, p_profile_id text, p_deleted_at timestamptz
+)
+returns boolean language plpgsql security definer set search_path = '' as $body$
+begin
+  if auth.role() is distinct from 'service_role'
+    and (auth.uid() is null or auth.uid() is distinct from p_user_id) then
+    raise exception 'Unauthorized case deletion operation' using errcode = '42501';
+  end if;
+  insert into public.case_tombstones (id, user_id, profile_id, deleted_at, created_at)
+  values (p_case_id, p_user_id, coalesce(p_profile_id, 'profile_1'), coalesce(p_deleted_at, now()), now())
+  on conflict (user_id, profile_id, id) do update
+    set deleted_at = greatest(case_tombstones.deleted_at, excluded.deleted_at);
+  delete from public.cases where id = p_case_id and user_id = p_user_id;
+  return true;
+end $body$;
+revoke all on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) from public, anon;
+grant execute on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) to authenticated, service_role;
+
+-- Keep vector's types/operators out of the API schema; preserve the existing matcher.
+create schema if not exists extensions;
+do $migration$
+begin
+  if exists (select 1 from pg_extension e join pg_namespace n on n.oid=e.extnamespace
+    where e.extname='vector' and n.nspname='public') then
+    alter extension vector set schema extensions;
+  end if;
+  if to_regprocedure('public.match_documents(extensions.vector,double precision,integer)') is not null then
+    execute $definition$
+      create or replace function public.match_documents(query_embedding extensions.vector, match_threshold double precision, match_count integer)
+      returns table(id uuid, source_file text, chunk_content text, similarity double precision)
+      language plpgsql security invoker set search_path = '' as $matcher$
+      begin
+        return query select d.id, d.source_file, d.chunk_content,
+          1 - (d.embedding operator(extensions.<=>) query_embedding) as similarity
+        from public.document_embeddings d
+        where 1 - (d.embedding operator(extensions.<=>) query_embedding) > match_threshold
+        order by d.embedding operator(extensions.<=>) query_embedding limit match_count;
+      end $matcher$;
+    $definition$;
+  end if;
+end $migration$;
+
+-- ===== 20261005132826_fix_case_deletion_identifier.sql =====
+-- Applied version matches the Supabase migration ledger.
+-- Cast the API's text identifier to the cases table's UUID identifier.
+-- Retain intentional owner-authorized RPCs and reject missing owner claims.
+create or replace function public.delete_case_with_tombstone(
+  p_user_id uuid, p_case_id text, p_profile_id text, p_deleted_at timestamptz
+)
+returns boolean language plpgsql security definer set search_path = '' as $body$
+begin
+  if auth.role() is distinct from 'service_role'
+    and (auth.uid() is null or auth.uid() is distinct from p_user_id) then
+    raise exception 'Unauthorized case deletion operation' using errcode = '42501';
+  end if;
+  insert into public.case_tombstones (id, user_id, profile_id, deleted_at, created_at)
+  values (p_case_id, p_user_id, coalesce(p_profile_id, 'profile_1'), coalesce(p_deleted_at, now()), now())
+  on conflict (user_id, profile_id, id) do update
+    set deleted_at = greatest(case_tombstones.deleted_at, excluded.deleted_at);
+  delete from public.cases where id = p_case_id::uuid and user_id = p_user_id;
+  return true;
+end $body$;
+revoke all on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) from public, anon;
+grant execute on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) to authenticated, service_role;
+

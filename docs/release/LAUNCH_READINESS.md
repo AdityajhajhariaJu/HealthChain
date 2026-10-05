@@ -28,21 +28,29 @@ The Apple licence was rechecked against the ten minimum EULA terms and corrected
 
 The operator confirmed that production HealthChain uses the ARIA Gemini project on 4 October 2026. Supplied AI Studio screenshots show ARIA on paid Tier 1/postpay, and the local key ending matches the pictured ARIA key. The paid-billing item is therefore recorded as operator-confirmed and `aiBillingVerified` is true. This does not assert that the deployed secret was independently retrieved or that processor contracts, retention, transfer safeguards or the health-use review are complete. No billing account, API key or production environment was changed.
 
-## Decisions needed from the operator
+## Current completion status
+
+See `CURRENT_LAUNCH_STATUS.md` for the latest verified facts. The operator confirmed 18+ eligibility, worldwide launch intent with India primary, and monthly automatic renewal in mobile apps only. The app now requires adult self-attestation, and native pricing offers only the monthly plan. Website billing stays prepaid. Signed builds and phone testing belong to the operator.
+
+The operator confirmed there is no other app on the database. Eighteen retired tables are now inaccessible to anonymous/authenticated clients; stored records and service access remain. Case deletion owner checks and its UUID comparison are fixed and tested, and the vector extension warning is resolved. The remaining built-in breached-password feature requires a paid Supabase plan.
+
+The logged-in Vercel team is Hobby, with globally disabled project data preferences, no log drains and a published one-hour runtime-log retention period. Its commercial-use and sensitive-data hosting arrangement remains a concrete account/backend step. The current Google account opens Play Console enrollment; App Store Connect requires sign-in. Store copy/reviewer instructions are prepared in `STORE_REVIEW_READINESS.md`.
+
+## Remaining operator/account facts
 
 | Decision | Concrete proposal or required facts | Why it matters |
 |---|---|---|
-| Legal operator | Supply legal person/company name, country, correspondence address, support telephone, privacy/support email, applicable governing law, launch countries and age scope. | The app cannot name a fictitious controller or claim coverage in every jurisdiction. Apple's minimum app licence terms include a developer telephone contact. |
-| Age and sensitive-health scope | Confirm 18+ eligibility required by the current Gemini API terms, the valid basis/explicit consent for each selected market and handling of third-party records. | AI consent alone does not settle age eligibility or every health-data obligation. The current provider forbids clients directed towards or likely accessed by under-18s. |
+| Legal operator | Supply legal person/company name, country, correspondence address, support telephone and applicable governing law. Existing support/privacy email, 18+ eligibility and worldwide intent are recorded. | The app cannot name a fictitious controller or claim compliance in every jurisdiction. |
+| Sensitive-health scope | Age choice is resolved and adult confirmation is implemented. Verify the complete cloud health workflow's notice/consent basis and third-party-record handling for actual distribution. | Adult self-attestation and optional AI consent do not independently settle every cloud-health processing obligation. |
 | Google Gemini | Paid production billing is operator-confirmed. Complete review of processor terms, data retention, transfers and actual feature use. Gemini forbids clinical practice/medical advice; any necessary feature restriction/provider change needs a major product decision. | Paid billing or a disclaimer cannot authorize prohibited medical behavior. `aiFeatureUseRestrictionsReviewed` remains false. |
 | Health-data API hosting | Verify the actual agreement permits sensitive health inputs passing through Vercel. Its standard DPA excludes sensitive/special-category customer data; assess an appropriate covered arrangement before activation. | A functioning endpoint or paid plan alone is not evidence of permitted processing. `hostingSensitiveDataProcessingApproved` remains false. See `PROVIDER_FEATURE_DECISION.md`. |
 | Native purchases | Operator selected automatically renewing store subscriptions. Source checkout, verification, restore/manage controls and service-only ledger are prepared. Supply store products/keys, notifications and signed sandbox evidence; checkout stays disabled. See `NATIVE_STORE_SETUP.md`. | Store account configuration and real lifecycle/refund events cannot be inferred from source tests. Separate native top-ups remain unavailable pending expiry redesign. |
 | iOS login | Operator selected Apple plus retained Google/email. Native AuthenticationServices/nonce/state/ID-token flow and entitlement are prepared. Enable the Apple capability/Supabase provider and test signed builds. | The login choice is resolved; activation and actual iOS validation remain. |
-| Shared database | Review the containment SQL and its rollback/snapshot in the private local launch packet. Confirm the other application's ownership and migrate its clients before applying containment. | The shared application's client-access configuration requires containment. Changing it can break that application's clients. Detailed production evidence is retained locally rather than committed to this public repository. No containment migration has been applied. |
+| Retired database access | Resolved after operator confirmation: 18 tables contained, zero remaining client table/column access or policies, service access retained. | Do not reintroduce permissive policies to suppress intentional service-only advisor notices. |
 | Authentication | Enable supported breached-password protection or implement/review an equivalent server-enforced control. | The live Supabase check is disabled; its built-in leaked-password option requires a paid plan. Client password rules are not an equivalent server control. |
 | Retention and contracts | Confirm provider security-log/back-up periods, deletion handling, payment retention, processor agreements and any required EU/UK representative/transfer mechanism. | The policy must describe records actually retained and rights that can actually be delivered. |
 
-Native billing/login choices are now explicit. Business facts will be supplied later at the operator's request. The Tailwind dependency findings are resolved through the authorized cleanup, with local admin styling retained. Shared-database, paid-provider and market/age decisions remain open.
+Native billing/login, age and launch intent choices are explicit. Business identity remains pending. Tailwind findings and the retired database exposure are resolved. Hosting permission/commercial eligibility, breached-password account setup, provider/retention facts and final store setup remain.
 
 ## Native and store checks still required
 

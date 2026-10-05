@@ -1,5 +1,6 @@
 /** Durable, owner-scoped records survive logout; auth and transient caches do not. */
 const prefixes = [
+  'hc_adult_eligibility_',
   'hc_ai_consent_',
   'hc_unified_profile_',
   'hc_cases_',

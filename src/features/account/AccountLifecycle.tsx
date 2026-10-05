@@ -177,6 +177,8 @@ export default function AccountLifecycle() {
           try {
             Object.keys(localStorage).forEach((key) => {
               if (!key.startsWith('hc_') || !key.includes('_guest')) return;
+              // A signed-in account must make its own adult eligibility choice.
+              if (key === 'hc_adult_eligibility_guest') return;
               const value = getItemSync(key);
               if (!value) return;
               const targetKey = key.replace('_guest', `_${session.user.id}`);

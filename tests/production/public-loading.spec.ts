@@ -96,6 +96,8 @@ test('a built guest launch waits for auth restoration before choosing its storag
     expect(await page.evaluate(() => localStorage.getItem('hc_guest_mode'))).toBeNull();
     auth.release();
     await expect(page).toHaveURL(/\/app\/consult\?new=true$/);
+    await page.getByRole('checkbox', { name: 'I confirm that I am 18 or older.' }).check();
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Which symptoms bother you?' })).toBeVisible();
     expect(await page.evaluate(() => localStorage.getItem('hc_guest_mode'))).toBe('true');
   } finally {
@@ -168,6 +170,8 @@ test('opening an example closes its dialog and shows loading until account resto
     expect(await page.evaluate(() => localStorage.getItem('hc_guest_mode'))).toBeNull();
     auth.release();
     await expect(page).toHaveURL(/\/app\/cases\/[^/]+$/);
+    await page.getByRole('checkbox', { name: 'I confirm that I am 18 or older.' }).check();
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await expect(
       page.getByRole('heading', {
         name: '[Example] Fatigue, Iron Results & a Post-Viral Timeline',

@@ -6,6 +6,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import AccountRuntime from './components/layout/AccountRuntime';
 import ConsentManager from './components/ui/ConsentManager';
 import AIConsentDialog from './components/ui/AIConsentDialog';
+import AdultEligibilityGate from './components/ui/AdultEligibilityGate';
 import ProductMeasurement from './components/ui/ProductMeasurement';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
@@ -214,7 +215,7 @@ export default function App() {
       <ProductMeasurement />
       <AIConsentDialog />
       <AccountRuntime />
-      <Routes>
+      <AdultEligibilityGate><Routes>
         <Route path="/terms-policies" element={<SafeRoute><LegalPage hub /></SafeRoute>} />
         <Route path="/acceptable-use" element={<SafeRoute><LegalPage document="acceptableUse" /></SafeRoute>} />
         <Route path="/app-license" element={<SafeRoute><LegalPage document="appLicense" /></SafeRoute>} />
@@ -510,7 +511,7 @@ export default function App() {
             </SafeRoute>
           }
         />
-      </Routes>
+      </Routes></AdultEligibilityGate>
 
       {topUpFeature && (
         <TopUpModal

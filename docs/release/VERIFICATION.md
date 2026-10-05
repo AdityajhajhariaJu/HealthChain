@@ -132,12 +132,18 @@ The subsequent operator-confirmed billing update changes the legal configuration
 
 The later audio-rights follow-up records the direct creator declaration and reviewed Google commercial-use guidance, clarifies the held-rights/AI-audio wording in both regional Terms and preserves private evidence outside Git. All 94 hosted audio byte sizes and SHA-256 hashes match the manifest (235,500,188 bytes of hosted audio); this is file-identity verification rather than a licence audit. All four legal-release tests, the production build/budgets, refreshed 529-file native-copy verification and repository hygiene passed. Both public Terms editions contain the revised wording, remain drafts and have no scripts. Paid Gemini billing stays confirmed while the launch gate still reports the separate unresolved items. Earlier full unit/browser/CI results are not represented as a full rerun of this wording change.
 
+## Current completion follow-up
+
+The latest evidence and remaining items are recorded in `CURRENT_LAUNCH_STATUS.md`. Age 18+, worldwide intent (India primary) and mobile-only monthly renewal are resolved. Eighteen retired tables have zero anonymous/authenticated table/column access and no client policies; service access remains. The vector warning is resolved. Case deletion denies missing/cross-account owners and its text-to-UUID comparison is fixed; owner/service tests passed with every synthetic row rolled back. The live model review recorded one withheld Gut answer and therefore did not pass the complete model evaluation. Focused local checks are recorded separately from historical full-suite results.
+
+Completion checks passed: 40 focused tests (eligibility, AI permission, monthly native pricing, purchase API/client/verifier, legal rendering and feedback submission), TypeScript, lint, JavaScript syntax, repository hygiene and the 49-file migration contract. The three applied migration versions match the live ledger: 20261005131915, 20261005132512 and 20261005132826. The SQL security test left zero synthetic accounts. Final security advisors report 26 intentional service-only/no-policy INFO findings, six reviewed intentionally authenticated owner RPC WARN findings, and the disabled breached-password WARN; the public vector extension WARN is gone. These are not signed-device or complete live-model passes.
+
 ## What still prevents submission
 
-- Real legal operator, market/age scope, governing law and provider/retention facts remain unconfirmed. Fourteen policy editions are clearly marked as drafts.
+- Real legal operator/contact, governing law and remaining provider/retention facts are incomplete. Age and launch intent are confirmed. Fourteen policy editions remain clearly marked as drafts.
 - Paid Gemini billing is operator-confirmed. Processor/transfer and retention arrangements remain under review. Sensitive-health consent and permitted use for the complete selected-market flow still need review.
 - Native choices are resolved: automatically renewing subscriptions, Apple plus retained Google/email. Source flows and service-only purchase ledger are prepared; store products/credentials, signed native builds and actual lifecycle evidence remain outstanding. See `NATIVE_STORE_SETUP.md`.
-- The separate shared-application access review remains unresolved; see the private containment packet. Auth breached-password protection remains disabled; enabling the built-in paid-plan feature is an owner decision.
+- Retired-table exposure is resolved. Auth breached-password protection remains disabled; enabling the built-in option needs a supported paid plan.
 - Android SDK/signing are unavailable here; Xcode/Apple signing require a Mac. Actual signed AAB/archive, SDK reports, capabilities and device tests remain outstanding.
 - Store privacy/health declarations, reviewer access, identity agreements and any applicable Play-account testing requirement require verified owner evidence. Music creator origin is operator-declared; retain and check the applicable generation/licence records for the release catalogue as described in `AUDIO_RIGHTS.md`.
 

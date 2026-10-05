@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Brain,
-  CheckCircle2,
   Database,
   FileText,
   Fingerprint,
@@ -14,20 +13,20 @@ const STEPS = [
   {
     id: 'sync',
     icon: Network,
-    label: 'Synchronizing clinical perspectives',
-    desc: 'Aggregating AI specialist inputs',
+    label: 'Organizing your supplied information',
+    desc: 'Preparing a source-based case overview',
   },
   {
     id: 'correlate',
     icon: GitMerge,
-    label: 'Correlating symptom clusters',
-    desc: 'Mapping interactions across body systems',
+    label: 'Preparing symptom discussion topics',
+    desc: 'Keeping reported symptoms distinct from findings',
   },
   {
     id: 'evidence',
     icon: Database,
-    label: 'Querying medical literature',
-    desc: 'Cross-referencing global clinical trials',
+    label: 'Preparing the reference section',
+    desc: 'Keeping supplied sources visible for review',
   },
   {
     id: 'analyze',
@@ -44,20 +43,20 @@ const STEPS = [
   {
     id: 'compile',
     icon: FileText,
-    label: 'Compiling final medical brief',
+    label: 'Preparing your case summary',
     desc: 'Structuring data for clinician review',
   },
 ];
 
 const COMPUTATION_STRINGS = [
-  'Analyzing biomarker correlations...',
+  'Waiting for your case review...',
   'Organizing possible discussion pathways...',
-  'Checking for drug-symptom interactions...',
-  'Mapping systemic inflammatory pathways...',
+  'Preparing questions for your clinician...',
+  'Preparing the source-based summary...',
   'Checking context and uncertainty labels...',
   'Cross-referencing patient history...',
-  'Synthesizing multidisciplinary perspectives...',
-  'Formatting output for clinical interoperability...',
+  'Preparing discussion topics...',
+  'Preparing a readable case overview...',
 ];
 
 export function CompilingAnimation({
@@ -68,7 +67,6 @@ export function CompilingAnimation({
   isMobile?: boolean;
 }) {
   const [activeStep, setActiveStep] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [compText, setCompText] = useState(COMPUTATION_STRINGS[0]);
 
   useEffect(() => {
@@ -77,16 +75,6 @@ export function CompilingAnimation({
       setActiveStep((prev) => Math.min(prev + 1, STEPS.length - 1));
     }, 2500 / STEPS.length);
 
-    // Smooth progress bar over 2.5 seconds
-    const startTime = Date.now();
-    const duration = 2500;
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min((elapsed / duration) * 100, 100);
-      setProgress(pct);
-      if (pct >= 100) clearInterval(progressInterval);
-    }, 30);
-
     // Random terminal text
     const textInterval = setInterval(() => {
       setCompText(COMPUTATION_STRINGS[Math.floor(Math.random() * COMPUTATION_STRINGS.length)]);
@@ -94,7 +82,6 @@ export function CompilingAnimation({
 
     return () => {
       clearInterval(stepInterval);
-      clearInterval(progressInterval);
       clearInterval(textInterval);
     };
   }, []);
@@ -219,9 +206,9 @@ export function CompilingAnimation({
             background: 'linear-gradient(90deg, #6366F1, #A855F7)',
             borderRadius: '3px',
           }}
-          initial={{ width: '0%' }}
-          animate={{ scaleX: progress / 100 }}
-          transition={{ ease: 'linear' }}
+          initial={{ width: '40%', x: '-100%' }}
+          animate={{ x: ['-100%', '250%'] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
         />
       </div>
 
@@ -295,7 +282,7 @@ export function CompilingAnimation({
                   transition: 'all 0.3s',
                 }}
               >
-                {isPast ? <CheckCircle2 size={18} /> : <Icon size={18} />}
+                <Icon size={18} />
               </div>
 
               <div style={{ flex: 1 }}>
