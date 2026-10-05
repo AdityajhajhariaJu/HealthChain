@@ -141,7 +141,7 @@ export function validateNarrativeGrounding(
           continue;
         const rawEntity = (match[2] || match[1] || match[0]).trim().toLowerCase();
         const benignObservational =
-          /^(mild|intermittent|severe|knee|morning|joint|muscle)?\s*(discomfort|pain|fatigue|symptom|strain|evaluation|review)$/i;
+          /^(mild|intermittent|severe|knee|morning|joint|muscle)?\s*(discomfort|pain|fatigue|symptom|strain|evaluation|review|assessment)$/i;
         if (benignObservational.test(rawEntity)) {
           continue;
         }

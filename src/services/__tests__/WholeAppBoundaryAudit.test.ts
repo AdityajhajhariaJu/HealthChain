@@ -30,6 +30,22 @@ describe('actual API destinations', () => {
   it('keeps browser APIs on the page origin and honors configured HTTPS backends', () => { expect(apiEndpoint('/api/gemini')).toBe('/api/gemini'); expect(resolveBackendBase(' https://healthchain360.com/// ', true)).toBe('https://healthchain360.com'); });
   it('rejects unsafe paths, credentials and insecure mobile configuration', () => { expect(() => apiEndpoint('//attacker.test/api/gemini')).toThrow(); expect(() => resolveBackendBase('https://user:pass@example.test', false)).toThrow(); expect(() => resolveBackendBase('http://example.test', true)).toThrow(); });
   it('allows the native API destination in both shipped CSP definitions', () => { for (const path of ['index.html', 'vercel.json']) { const text = readFileSync(path, 'utf8'); expect(text).toContain("connect-src 'self' https://healthchain360.com https://www.healthchain360.com"); } });
+  it('routes health inputs directly to Supabase, including the actual trial query, on web and mobile', () => {
+    const base = 'https://cikikocfvfshloqwnyfe.supabase.co/functions/v1/healthchain-health';
+    vi.stubEnv('VITE_HEALTH_BACKEND_URL', base);
+    for (const platform of ['web', 'ios', 'android']) {
+      state.platform = platform;
+      for (const path of ['/api/gemini', '/api/delete-account', '/api/trials?condition=synthetic%20condition&pageSize=6']) expect(apiEndpoint(path)).toBe(base + path);
+      expect(apiEndpoint('/api/create-order')).toBe((platform === 'web' ? '' : 'https://healthchain360.com') + '/api/create-order');
+    }
+  });
+  it('fails closed on an invalid health destination and traversal paths', () => {
+    for (const base of ['https://attacker.example/functions/v1/healthchain-health', 'https://cikikocfvfshloqwnyfe.supabase.co:444/functions/v1/healthchain-health', 'https://cikikocfvfshloqwnyfe.supabase.co/functions/v1/other']) {
+      vi.stubEnv('VITE_HEALTH_BACKEND_URL', base);
+      expect(() => apiEndpoint('/api/gemini')).toThrow();
+    }
+    for (const path of ['/api/trials/../create-order', '/api/../gemini', '/api/gemini#fragment', '/api/gemini\\extra']) expect(() => apiEndpoint(path)).toThrow();
+  });
 });
 
 describe('privileged content access', () => {

@@ -23,6 +23,7 @@ import { createHash } from 'node:crypto';
 import { trustedOrigin } from '../shared/http-origins.js';
 import { inspectModelOutput } from '../shared/model-output-validation.js';
 import { validGeminiInput } from '../server/gemini-input.js';
+import { regionProofHandler } from '../server/ai-region.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
@@ -93,6 +94,7 @@ HEALTHCHAIN SAFETY GATE:
 `;
 
 export default async function handler(req, res) {
+  if (req.method === 'GET' && req.query?.region === '1') return regionProofHandler(req, res);
   const requestStartedAt = Date.now();
   const origin = req.headers.origin;
   const isAllowed = trustedOrigin(origin);
@@ -110,6 +112,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  if (process.env.HEALTHCHAIN_HEALTH_BACKEND === 'supabase' && process.env.HEALTHCHAIN_RUNTIME !== 'supabase')
+    return res.status(410).json({ code: 'HEALTH_BACKEND_MOVED', error: 'Update HealthChain to use its health-processing service.' });
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
