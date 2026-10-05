@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     return res
       .status(502)
       .json({
-        error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error'),
+        error: 'Payment gateway error',
       });
   }
 }
