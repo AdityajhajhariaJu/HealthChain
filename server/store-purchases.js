@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import { setCors } from '../server/cors.js';
-import { checkRateLimit } from '../server/rate-limit.js';
+import { setCors } from './cors.js';
+import { checkRateLimit } from './rate-limit.js';
 import { STORE_PRODUCTS } from '../shared/store-products.js';
 import { storeEnabled, storeAccountToken, storeTransactionKey, verifyStorePurchase,
-  verifyAppleNotification, verifyGoogleNotification, acknowledgeGooglePurchase } from '../server/store-verification.js';
+  verifyAppleNotification, verifyGoogleNotification, acknowledgeGooglePurchase } from './store-verification.js';
 
 export default async function handler(req, res) {
   setCors(req, res, { methods: 'GET, POST, OPTIONS' });

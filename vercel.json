@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/store-purchases",
+      "destination": "/api/verify-payment?checkout=store"
+    },
+    {
       "source": "/((?!api/|.*\\..*).*)",
       "destination": "/index.html"
     }

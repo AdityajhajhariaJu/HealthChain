@@ -6,6 +6,12 @@ import { createClient } from '@supabase/supabase-js';
 import { PRODUCT_CATALOG as ALLOWED_PLANS } from '../shared/productCatalog.js';
 
 export default async function handler(req, res) {
+  // Vercel rewrites the native endpoint here to stay within the 12-function
+  // deployment budget. Each provider handler retains its own authentication.
+  if (req.query?.checkout === 'store') {
+    const { default: storeHandler } = await import('../server/store-purchases.js');
+    return storeHandler(req, res);
+  }
   setCors(req, res);
 
   if (req.method === 'OPTIONS') {
