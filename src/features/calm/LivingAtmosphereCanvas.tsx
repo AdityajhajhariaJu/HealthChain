@@ -9,7 +9,9 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+// Optimize performance by memoizing the canvas component
+// This isolates the requestAnimationFrame loop from parent re-renders (like timer updates)
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -349,4 +351,4 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});

@@ -1,0 +1,3 @@
+## 2024-05-24 - Canvas Component Rendering Optimization
+**Learning:** HTML5 Canvas components that utilize continuous `requestAnimationFrame` loops for animation (like `LivingAtmosphereCanvas`) are highly susceptible to performance bottlenecks when their parent components (like `MeditationPlayer` with its frequent timer updates) trigger unnecessary re-renders.
+**Action:** Always wrap such Canvas components using `React.memo<Props>(...)` (in React 18+ with TypeScript) to effectively isolate the animation loop from frequent, unrelated parent state changes, thereby preventing redundant render cycles and reducing CPU overhead.
