@@ -1,3 +1,4 @@
+import { AI_CONSENT_VERSION } from '../../shared/privacy-consent.js';
 import { test, expect, type Page } from '@playwright/test';
 
 test.setTimeout(90000);
@@ -7,13 +8,13 @@ async function setup(
   reply = 'Review your records. You might ask your doctor: Could we discuss this symptom?'
 ) {
   const requests: any[] = [];
-  await page.addInitScript(() => {
+  await page.addInitScript((consentVersion: string) => {
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
-  });
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
+  }, AI_CONSENT_VERSION);
   await page.route(/https:\/\//, (route) => route.abort());
   await page.route('**/rest/v1/fitness_content*', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/gemini', (route) => {

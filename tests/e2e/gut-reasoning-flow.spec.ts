@@ -1,11 +1,12 @@
+import { AI_CONSENT_VERSION } from '../../shared/privacy-consent.js';
 import { test, expect } from '@playwright/test';
 const setup = async (page: import('@playwright/test').Page) => {
-  await page.addInitScript(() => {
+  await page.addInitScript((consentVersion: string) => {
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     // This journey starts with an existing affirmative, current-version AI choice.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
     const original = window.fetch.bind(window);
     window.fetch = async (input, init) => {
       if (!String(input).includes('/api/gemini')) return original(input, init);
@@ -51,7 +52,7 @@ const setup = async (page: import('@playwright/test').Page) => {
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     };
-  });
+  }, AI_CONSENT_VERSION);
   // This mocked AI/research-failure flow must not wait on analytics or font CDNs.
   await page.route(/https:\/\//, (route) => route.abort());
 };

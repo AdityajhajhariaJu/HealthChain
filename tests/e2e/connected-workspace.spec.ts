@@ -1,14 +1,15 @@
+import { AI_CONSENT_VERSION } from '../../shared/privacy-consent.js';
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
+  await page.addInitScript((consentVersion: string) => {
     localStorage.clear();
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
-  });
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
+  }, AI_CONSENT_VERSION);
   await page.route(/https:\/\//, (route) => route.abort());
 });
 

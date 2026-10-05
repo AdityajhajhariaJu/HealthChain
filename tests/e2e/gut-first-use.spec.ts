@@ -1,10 +1,11 @@
+import { AI_CONSENT_VERSION } from '../../shared/privacy-consent.js';
 import { test, expect } from '@playwright/test';
-const guest = () => {
+const guest = (consentVersion: string) => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
   localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
 };
 
 // These multi-screen journeys should not wait on real fonts/analytics providers.
@@ -16,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 test('guided start fits a narrow phone and map branches open real destinations', async ({
   page,
 }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/app/today?gut=1&view=deep');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
@@ -48,7 +49,7 @@ test('guided start fits a narrow phone and map branches open real destinations',
 });
 
 test('review edits can remove inferred details and survive reopening', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1&view=deep');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByLabel('Your question or situation').fill('Is chai linked to my bloating?');
@@ -71,7 +72,7 @@ test('review edits can remove inferred details and survive reopening', async ({ 
 });
 
 test('current concerns have focused care tools and a next step', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1&view=deep');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Understand a symptom/ }).click();
@@ -95,7 +96,7 @@ test('current concerns have focused care tools and a next step', async ({ page }
 test('desktop map preserves unknown records and reveals one research tool at a time', async ({
   page,
 }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/app/today?gut=1&view=deep');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
@@ -128,7 +129,7 @@ test('desktop map preserves unknown records and reveals one research tool at a t
 test('consented Gemini framing and brief use only server-owned operations and keep missing evidence open', async ({
   page,
 }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     const originalFetch = window.fetch.bind(window);
@@ -232,7 +233,7 @@ test('consented Gemini framing and brief use only server-owned operations and ke
 });
 
 test('decision exploration saves options without creating a meal report', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1&view=deep');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: /Compare my options/ }).click();

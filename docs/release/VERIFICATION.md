@@ -2,9 +2,27 @@
 
 **The reviewed preparation is not a store-ready release.** This record distinguishes completed technical checks from unresolved choices and checks requiring signed binaries, developer accounts and real devices.
 
-## Latest native subscription and provider review — 5 October 2026
+## Authorized Tailwind dependency cleanup — 5 October 2026
 
-The operator selected automatically renewing monthly/three-month native subscriptions and Apple sign-in with retained Google/email. Business facts remain deferred; no legal-reviewer job title or hired-lawyer certificate is required. Tailwind 4 remains unapproved. Native checkout is disabled pending account configuration and signed sandbox evidence.
+Tailwind generated utility styles for only `AdminContentDashboard`. The existing styles are now maintained in `src/admin.css` with the MIT licence notice, and the compiler/configuration are removed. Autoprefixer remains. No audit override or suppression was added. This resolves the findings while preserving the project's declared iOS 15 browser floor; [Tailwind 4 requires Safari 16.4+, Chrome 111+ and Firefox 128+](https://tailwindcss.com/docs/upgrade-guide#browser-requirements).
+
+| Check | Observed result | Scope and limits |
+|---|---|---|
+| Full and production dependency audits | Zero vulnerabilities in both | Five high development-chain findings resolved. 52 development packages removed: 555 to 503; production package count remains 304. Advisory reports are point-in-time checks. |
+| Full local unit suite | 1017 passed, 2 skipped; 162 files passed, 2 skipped | Complete run after dependency/CSS cleanup. Subsequent consent-fixture changes affect browser tests only. Skips are not counted as passes. |
+| Build, TypeScript and lint | Passed | Production build/budgets and final independent type check passed; seven updated browser fixtures also passed focused lint. |
+| CSS declaration comparison | All 324 admin declarations/selectors retained; 13 other CSS assets byte-identical | Quotes/whitespace/comments normalized in the admin AST comparison. Gut styles retain the same ordered declarations and media scope; removing the compiler only stops merging adjacent identical media queries (+125 raw bytes). |
+| Screen styling | Chromium/WebKit, 390px and 1440px | Settings, pricing, admin list/form compared before and after. All eight controlled admin/focused-input measurements match. Actual `/login` rendered with the Welcome back heading and Google button on all four browser/width combinations, with no page errors. An initial helper used nonexistent `/auth`; its not-found captures were excluded and replaced with correct-route checks. This is browser sampling, not a signed-device pass. |
+| CSS and startup size | Admin CSS: 16019 to 17097 raw bytes; 2964 to 3695 gzip | Licence preservation adds about 1 KB to this deferred admin stylesheet. Startup JS remains 315272 raw bytes across three assets (102367 gzip); landing JS remains 379749 raw bytes across seven assets (124315 gzip). No runtime-speed or install-size improvement is established by this cleanup. |
+| Production privacy/discovery journeys | 16 passed in Chromium/WebKit | Regional notices, Settings/menu/footer entry points, narrow layouts and script-free pages against the emitted build. |
+| Gut reasoning journeys | Five passed initially; the sixth passed on an unchanged isolated WebKit rerun | The initial WebKit refinement/persistence test exhausted its 30-second whole-test budget while the refined answer was present. No assertions or app behavior were weakened; the timeout is retained in the evidence rather than reported as a passing full run. |
+| Browser consent fixtures | Seven files / eight affirmative-consent initializers refreshed | Fixtures now receive the shared current AI consent version, instead of a stale literal. App consent/decline/withdrawal behavior remains unchanged. |
+| Native web assets and repository checks | 532 SHA-256-matching files on both platforms; no audio; syntax/hygiene passed | Web assets copied into Android/iOS; this does not compile/sign native code. 55 JavaScript files and the 12-function deployment budget passed. |
+| Updated GitHub/Vercel checks | Awaiting the cleanup branch push | Earlier CI passes below remain historical evidence, not a result for this cleanup. |
+
+## Earlier native subscription and provider review — 5 October 2026
+
+The operator selected automatically renewing monthly/three-month native subscriptions and Apple sign-in with retained Google/email. Business facts remain deferred; no legal-reviewer job title or hired-lawyer certificate is required. The later authorized dependency cleanup above resolves the Tailwind findings without requiring Tailwind 4. Native checkout is disabled pending account configuration and signed sandbox evidence.
 
 | Check | Latest observed result | Scope and limits |
 |---|---|---|
@@ -15,7 +33,7 @@ The operator selected automatically renewing monthly/three-month native subscrip
 | Initial JavaScript budgets | Startup: 315272 raw / 102384 gzip bytes across 3 assets. Landing: 379749 raw / 124340 gzip bytes across 7 assets. | Native billing/recovery loads separately from the web startup bundle. Deferred-chunk warnings remain. |
 | Policy browser checks | 16 passed in Chromium/WebKit against the final emitted build | Settings/menu/footer discovery, regional navigation and script-free public privacy/deletion pages. No actual iOS native plugin is exercised. |
 | Native web asset copies | 532 files match by SHA-256 on both platforms; no bundled audio. | No hosted audio in either copy. Native plugin registration/configuration regenerated; this is not a signed AAB/archive size or device test. |
-| Runtime dependency audit | 0 vulnerabilities | Full audit still reports 5 high development-chain findings through Tailwind 3; no audit suppression/override was added. |
+| Runtime dependency audit | 0 vulnerabilities | At this earlier stage the full audit reported five high development-chain findings; the authorized cleanup above resolves them without suppression/overrides. |
 | Repository, syntax, migration checks | Passed: 55 JavaScript files; 46 SQL migrations and 27 schema checks | Whitespace/hygiene and generated migration bundle checked. Public Apple root certificate is included for server verification; credentials/evidence remain outside Git. |
 | Live native ledger | Migration installed; anonymous/authenticated reads and RPC execution denied; service execution allowed | Synthetic first grant, duplicate, renewal, wrong account, expired restore, refund, duplicate refund, revoked restore and Auth-deletion cascade tests passed inside a transaction rolled back in full. No customer records were used. |
 | Post-DDL security advisor | No new WARN category/function exposure for the ledger | The RLS/no-client-policy INFO is expected for this service-only table. Existing public-extension, six reviewed definer-function and disabled breached-password warnings remain. Shared-application containment remains unapplied. |
@@ -45,7 +63,7 @@ Apple revocation uses a fresh native authorization code, validated signature/bun
 | Updated audio browser regressions | 17 passed, 1 skipped in Chromium/WebKit | Current player: actual playback, rapid selection, search, ambient pause/close, shuffle/repeat, download persistence/clearing, retry and narrow/landscape layouts. Chromium covers offline downloaded playback; the Windows WebKit case remains skipped. |
 | Earlier development browser baseline | Full run: 230 passed, 1 failed, 1 skipped; all 10 scanner checks then passed in Chromium/WebKit; the affected WebKit case passed 3 further repetitions | This predates the aggregate follow-up. The scanner assertion expired while the UI still displayed analysis in progress. Its unmodified isolated rerun passed. The test now waits up to 30 seconds for the result, matching the neighboring asynchronous scanner test; portion, calorie and saved-diary assertions remain intact. The focused reruns are not a second passing full-suite run. |
 | Production dependencies | `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities | Dependency advisories at the time of this run; not proof of absence of every security issue. |
-| All dependencies | 5 high findings remain | Development-only Tailwind 3 watcher/glob chain. The audit proposes a major Tailwind migration; owner decision is pending. Existing CI audits this chain and will fail until resolved. |
+| Earlier all-dependency audit | Five high findings at that stage | Development-only Tailwind 3 watcher/glob chain; resolved by the later authorized cleanup above. |
 | Server/shared JavaScript syntax | 50 files passed | API, server, shared and operational files, including nested endpoints. |
 | Migration contract | 45 SQL files / 27 schema checks passed | Generated migration bundle and source contracts, including aggregate measurement. |
 | Live production schema | Full `supabase/verify_production.sql` verification passed | Read-only metadata/DO verification. No customer or health rows were inspected. This does not negate the separately identified shared-table exposure. |
@@ -69,7 +87,7 @@ The final browser journeys include explicit AI decline without a provider reques
 
 The one development browser skip is downloaded-track playback without network access in Windows WebKit. Its Media Foundation media loader does not support the Blob media URL used by this test. Chromium covers the flow; Safari acceptance on macOS or an iPhone remains required. A skipped Windows case is not presented as an iOS device pass.
 
-The five full-audit findings trace to the development dependency `braces` through Tailwind 3's watcher/glob packages. The [reviewed upstream advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) identifies deeply nested pattern recursion and currently lists no patched `braces` version. Registry checks found `braces` 3.0.3 and Tailwind 3.4.19 as the latest in those lines. npm proposes Tailwind 4.3.3, a major change requiring the pending migration decision and visual verification; no advisory was hidden or overridden to produce a clean report.
+The earlier five full-audit findings traced to the development dependency `braces` through Tailwind 3's watcher/glob packages. The [reviewed upstream advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) identifies deeply nested pattern recursion and listed no patched `braces` version at review. Registry checks found `braces` 3.0.3 and Tailwind 3.4.19 as the latest in those lines. npm proposed Tailwind 4.3.3, a major change. The subsequent authorized cleanup above removes this compiler chain while retaining the admin styles and older-browser support; no advisory was hidden or overridden.
 
 ## Production actions and deployment boundary
 
@@ -91,7 +109,6 @@ The later audio-rights follow-up records the direct creator declaration and revi
 - Paid Gemini billing is operator-confirmed. Processor/transfer and retention arrangements remain under review. Sensitive-health consent and permitted use for the complete selected-market flow still need review.
 - Native choices are resolved: automatically renewing subscriptions, Apple plus retained Google/email. Source flows and service-only purchase ledger are prepared; store products/credentials, signed native builds and actual lifecycle evidence remain outstanding. See `NATIVE_STORE_SETUP.md`.
 - The separate shared-application access review remains unresolved; see the private containment packet. Auth breached-password protection remains disabled; enabling the built-in paid-plan feature is an owner decision.
-- Five development dependency audit findings remain. No audit check was suppressed.
 - Android SDK/signing are unavailable here; Xcode/Apple signing require a Mac. Actual signed AAB/archive, SDK reports, capabilities and device tests remain outstanding.
 - Store privacy/health declarations, reviewer access, identity agreements and any applicable Play-account testing requirement require verified owner evidence. Music creator origin is operator-declared; retain and check the applicable generation/licence records for the release catalogue as described in `AUDIO_RIGHTS.md`.
 

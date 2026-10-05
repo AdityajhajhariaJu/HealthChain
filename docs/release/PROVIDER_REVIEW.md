@@ -16,7 +16,7 @@ Business identity, public address/phone, countries and minimum age remain blank 
 
 **Feature-use decision remains open:** Gemini's current terms prohibit clinical practice/medical advice and API clients directed towards or likely accessed by under-18s. Audit actual prompts/results and onboarding against those restrictions. Clinical diagnosis/treatment behavior cannot be authorized by a disclaimer or a health-data checkbox. Any needed feature restriction or provider change is a major product decision for the operator; `aiFeatureUseRestrictionsReviewed` remains false. The current preparation is not permission to enable a prohibited flow.
 
-The separate shared-application containment SQL remains unapplied pending its ownership/client migration. Supabase breached-password protection remains disabled. Five development audit findings remain; neither has been marked complete.
+The separate shared-application containment SQL remains unapplied pending its ownership/client migration. Supabase breached-password protection remains disabled. The five development audit findings were resolved by removing the Tailwind build dependency while retaining the admin CSS; current full and production audits are clean. The database/password decisions remain open.
 
 For each provider, privately record project/account, accepted agreement/version, purpose, retention, location/transfer safeguards, deletion exceptions and date. Keep contracts and credentials out of this public repository. Confirm only supported facts.
 

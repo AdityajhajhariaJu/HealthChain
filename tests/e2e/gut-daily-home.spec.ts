@@ -1,3 +1,4 @@
+import { AI_CONSENT_VERSION } from '../../shared/privacy-consent.js';
 import { expect, test } from '@playwright/test';
 
 test.setTimeout(60000);
@@ -7,16 +8,16 @@ test.beforeEach(async ({ page }) => {
   await page.route(/https:\/\//, (route) => route.abort());
 });
 
-const guest = () => {
+const guest = (consentVersion: string) => {
   localStorage.setItem('hc_guest_mode', 'true');
   localStorage.setItem('hc_onboarded', 'true');
   localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
 };
 
 test('new user sees honest empty states and research is always one tap away', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
@@ -45,7 +46,7 @@ test('new user sees honest empty states and research is always one tap away', as
 });
 
 test('a real log appears in understanding and on its weekly date', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Bloating' }).click();
@@ -67,7 +68,7 @@ test('a real log appears in understanding and on its weekly date', async ({ page
 test('a new kind of log opens its own question instead of an unrelated active one', async ({
   page,
 }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Bloating' }).click();
@@ -84,7 +85,7 @@ test('a new kind of log opens its own question instead of an unrelated active on
 });
 
 test('a saved question becomes a resumable investigation', async ({ page }) => {
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Your understanding' }).click();
@@ -103,12 +104,12 @@ test('a saved question becomes a resumable investigation', async ({ page }) => {
 test('a requested Gemini reading is saved and shown without invented personal records', async ({
   page,
 }) => {
-  await page.addInitScript(() => {
+  await page.addInitScript((consentVersion: string) => {
     localStorage.setItem('hc_guest_mode', 'true');
     localStorage.setItem('hc_onboarded', 'true');
     localStorage.setItem('hc_cookies_accepted', 'declined');
     // Existing affirmative AI permission for this feature-specific fixture.
-    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: '2026-10-04', acceptedAt: '2026-10-04T00:00:00Z' }));
+    localStorage.setItem('hc_ai_consent_guest', JSON.stringify({ accepted: true, version: consentVersion, acceptedAt: '2026-10-05T00:00:00Z' }));
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input, init) => {
       if (!String(input).includes('/api/gemini')) return originalFetch(input, init);
@@ -129,7 +130,7 @@ test('a requested Gemini reading is saved and shown without invented personal re
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     };
-  });
+  }, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Your understanding' }).click();
@@ -152,7 +153,7 @@ test('optional details lead to a review and an editable original record', async 
   // This crosses capture, review, mobile/desktop layout and original-record
   // correction. Give Windows WebKit room for all actionability checks.
   test.setTimeout(90000);
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('tab', { name: 'Meal' }).click();
@@ -201,7 +202,7 @@ test('an insight can save a next step and log a later outcome without inventing 
   page,
 }) => {
   test.setTimeout(90000);
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('tab', { name: 'Meal' }).click();
@@ -263,7 +264,7 @@ test('research is searched for a chosen symptom and a source is saved only on re
       }),
     });
   });
-  await page.addInitScript(guest);
+  await page.addInitScript(guest, AI_CONSENT_VERSION);
   await page.goto('/app/today?gut=1');
   const gut = page.getByRole('dialog', { name: 'Gut Health' });
   await gut.getByRole('button', { name: 'Your understanding' }).click();
