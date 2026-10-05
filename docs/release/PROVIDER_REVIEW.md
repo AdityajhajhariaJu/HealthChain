@@ -16,7 +16,7 @@ Business identity, public address/phone, countries and minimum age remain blank 
 
 **Feature-use decision remains open:** Gemini's current terms prohibit clinical practice/medical advice and API clients directed towards or likely accessed by under-18s. Audit actual prompts/results and onboarding against those restrictions. Clinical diagnosis/treatment behavior cannot be authorized by a disclaimer or a health-data checkbox. Any needed feature restriction or provider change is a major product decision for the operator; `aiFeatureUseRestrictionsReviewed` remains false. The current preparation is not permission to enable a prohibited flow.
 
-See `PROVIDER_FEATURE_DECISION.md` for the affected functions and the two concrete preparation paths. The contradictory lab and parallel-report instructions were narrowed, but drug-interaction severity, differential generation and other personal assessment flows remain unresolved. No feature shutdown, provider switch, paid upgrade or production deployment occurred.
+See `PROVIDER_FEATURE_DECISION.md` for the affected functions and the two concrete preparation paths. The contradictory lab and parallel-report instructions were narrowed, but drug-interaction severity, differential generation and other personal assessment flows remain unresolved. No feature shutdown, provider switch or paid upgrade occurred. The operator subsequently authorized merging the prepared source to `master` and publishing the website on 5 October 2026, with policy draft labels intact; this does not establish provider permission or store readiness.
 
 ## Reviewed data paths and retention
 

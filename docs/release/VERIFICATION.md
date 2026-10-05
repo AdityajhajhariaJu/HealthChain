@@ -2,6 +2,16 @@
 
 **The reviewed preparation is not a store-ready release.** This record distinguishes completed technical checks from unresolved choices and checks requiring signed binaries, developer accounts and real devices.
 
+## Operator-authorized website publication — 5 October 2026
+
+The operator explicitly requested publishing the prepared policies into the main app. The local repository's clean `master` was fast-forwarded from `be4c741a` to the reviewed `74119209` and pushed to `origin/master`; GitHub reports PR #88 merged at that commit. The frozen backup push target was not used. Missing operator/provider facts remain visibly marked as drafts, and native checkout is still disabled pending setup.
+
+Before publication, both current [Quality Gates](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37302262852) and [Lighthouse CI](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37302262971) completed successfully. Quality passed its audit, lint, hygiene, syntax, migrations, build/native-copy, unit, production-journey and browser steps. Optional live Supabase smoke was skipped. The same tested source was published; a new signed-device/store pass is not claimed.
+
+Vercel reports deployment success. All fourteen live HTML policy editions on `healthchain360.com` return HTTP 200 and match the prepared content after CRLF/LF normalization; all are script-free and labelled drafts. Initial raw-byte comparisons differed because of line endings, not content. Live browser checks confirmed the policy hub, Privacy selection, United States supplement and website footer navigation to All policies. Read-only verification used no customer health records and made no AI request or purchase.
+
+The website and current web-app assets are published. Previously installed mobile binaries still need a new build. Provider/feature decisions, actual agreements/retention, core cloud-health consent, business identity, shared-database containment and store/native validation remain separate unresolved work.
+
 ## Privacy/provider hardening — 5 October 2026
 
 Withdrawal now aborts the client AI request and rejects a late reply. The gateway rejects unreviewed tools/grounding, caches, remote files, function calls, safety overrides and extra output modes before AI accounting writes. Existing inline photo/PDF formats remain supported. Raw errors were removed from the reviewed client AI logs, and contradictory lab/parallel-report instructions were corrected without claiming the complete medical feature set is allowed.

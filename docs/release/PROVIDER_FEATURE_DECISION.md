@@ -1,6 +1,6 @@
 # Provider feature decision — 5 October 2026
 
-**Review proposal. No provider switch, paid upgrade, feature shutdown or production deployment has been performed.** The existing preparation branch remains a draft.
+**Feature/provider review proposal. No provider switch, paid upgrade or feature shutdown has been performed.** The operator subsequently authorized source publication: `74119209` was merged to `master` and the website policies deployed on 5 October 2026 with draft labels intact. This does not resolve the feature/provider decisions below or establish a store-ready release.
 
 ## Why a decision is needed
 
