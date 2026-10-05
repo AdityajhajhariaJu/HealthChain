@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  if (process.env.HEALTHCHAIN_HEALTH_BACKEND === 'supabase' && process.env.HEALTHCHAIN_RUNTIME !== 'supabase')
+    return res.status(410).json({ error: 'Update HealthChain to use its health-processing service.', code: 'HEALTH_BACKEND_MOVED' });
+
   // Rate Limiting: Max 10 requests per minute per IP
   if (!(await checkRateLimit(req, 10, 60000))) {
     return res

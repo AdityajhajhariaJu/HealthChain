@@ -8,7 +8,17 @@
   "supportEmail": "healthchain360@gmail.com",
   "minimumAge": 18,
   "launchMarkets": ["Worldwide, subject to applicable law and store/provider availability"],
-  "primaryMarket": "India",
+  "primaryAudienceScope": "Worldwide",
+  "primaryMarkets": [
+    "India",
+    "United States",
+    "United Kingdom",
+    "Germany",
+    "Australia",
+    "Switzerland",
+    "Italy",
+    "Brazil"
+  ],
   "mobileSubscriptionInterval": "monthly",
   "mobileSubscriptionAutoRenew": true,
   "webSubscriptionAutoRenew": false,

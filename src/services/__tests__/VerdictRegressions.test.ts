@@ -46,6 +46,18 @@ const fact = (id: string, text: string, date?: string) => ({
 });
 
 describe('Clinical verdict regressions from real-example audit', () => {
+  it('accepts a future assessment without accepting a definitive medical conclusion', () => {
+    const evidence = buildReviewEvidence('The saved milk reports disagree about bloating.');
+    expect(validateNarrativeGrounding(
+      'Clarifying the actual outcome for the reported occasion would resolve the conflict and allow for a more definitive assessment.',
+      evidence
+    ).isSupported).toBe(true);
+    expect(validateNarrativeGrounding(
+      'The definitive assessment is that you have lactose intolerance.',
+      evidence
+    ).isSupported).toBe(false);
+    expect(validateNarrativeGrounding('Milk is the definitive cause of your bloating.', evidence).isSupported).toBe(false);
+  });
   it('requires the current verdict contract before reopening a saved interpretation', () => {
     expect(isCurrentClinicalReview({ groundingVersion: 1 })).toBe(false);
     expect(isCurrentClinicalReview(review('Review the reported concern.'))).toBe(true);

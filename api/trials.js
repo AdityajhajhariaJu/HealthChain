@@ -7,11 +7,14 @@ export default async function handler(req, res) {
     methods: 'GET, POST, OPTIONS',
     headers: 'Content-Type, Authorization, X-HC-Request-Id',
   });
-  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  if (process.env.HEALTHCHAIN_HEALTH_BACKEND === 'supabase' && process.env.HEALTHCHAIN_RUNTIME !== 'supabase')
+    return res.status(410).json({ error: 'Update HealthChain to use its health-processing service.', code: 'HEALTH_BACKEND_MOVED' });
 
   if (!['GET', 'POST'].includes(req.method)) {
     res.setHeader('Allow', 'GET, POST, OPTIONS');

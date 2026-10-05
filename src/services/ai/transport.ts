@@ -1,4 +1,4 @@
-import { apiEndpoint } from '../ApiEndpoint';
+import { apiEndpoint, aiRegionEndpoint } from '../ApiEndpoint';
 import {
   captureAccountScope as captureHealthMemoryScope,
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
@@ -95,7 +95,8 @@ export const fetchWithTimeout = async (
   const executeFetch = async (retryCount = 0): Promise<Response> => {
     if (avaScope && !isHealthMemoryScopeCurrent(avaScope))
       throw new Error('Account changed. Please retry.');
-    if (!hasAIConsent(avaScope)) throw new Error('AI permission was withdrawn. No further AI requests can start.');
+    if (!hasAIConsent(avaScope))
+      throw new Error('AI permission was withdrawn. No further AI requests can start.');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const externalSignal = options.signal as AbortSignal | undefined;
@@ -111,12 +112,32 @@ export const fetchWithTimeout = async (
     // may have yielded while the user withdrew permission.
     abortForWithdrawal();
     try {
+      if (import.meta.env.VITE_HEALTH_BACKEND_URL) {
+        const region = await fetch(aiRegionEndpoint(requestId), {
+          signal: controller.signal,
+          credentials: 'omit',
+          cache: 'no-store',
+        });
+        const confirmation = await region.json();
+        if (!region.ok || typeof confirmation?.proof !== 'string')
+          throw new Error(
+            confirmation?.code === 'AI_REGION_UNAVAILABLE'
+              ? 'AI_REGION_UNAVAILABLE: AI features are unavailable in your current region. Your saved records remain available.'
+              : 'AI_REGION_CHECK_UNAVAILABLE: AI region verification is temporarily unavailable. Please try again.'
+          );
+        if (!hasAIConsent(avaScope) || !isHealthMemoryScopeCurrent(avaScope))
+          throw new Error('AI permission or account changed. No AI request was sent.');
+        secureOptions.headers['X-HC-Region-Proof'] = confirmation.proof;
+      }
       const received = await fetch(url, { ...secureOptions, signal: controller.signal });
       // These operations return finite JSON/text, never a streaming chat. Keep
       // the deadline and caller cancellation active until all bytes arrive.
       const body = await received.arrayBuffer();
       if (!isHealthMemoryScopeCurrent(avaScope)) throw new Error('Account changed. Please retry.');
-      if (!hasAIConsent(avaScope)) throw new Error('AI permission was withdrawn. Please retry only if you choose to allow AI processing.');
+      if (!hasAIConsent(avaScope))
+        throw new Error(
+          'AI permission was withdrawn. Please retry only if you choose to allow AI processing.'
+        );
       const response = new Response([204, 205, 304].includes(received.status) ? null : body, {
         status: received.status,
         statusText: received.statusText,
@@ -173,6 +194,7 @@ export const fetchWithTimeout = async (
         err.name !== 'AbortError' &&
         err.message !== 'QUOTA_EXCEEDED' &&
         !err.message?.startsWith('RATE_LIMITED') &&
+        !err.message?.startsWith('AI_REGION_') &&
         isHealthMemoryScopeCurrent(avaScope) &&
         hasAIConsent(avaScope)
       ) {

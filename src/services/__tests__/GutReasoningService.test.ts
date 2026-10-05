@@ -92,6 +92,14 @@ describe('Gut reasoning provenance and interpretation', () => {
     );
     await expect(reasonOverGutEvidence(input)).rejects.toThrow('too certain');
   });
+  it('accepts a future record assessment without asserting a diagnosis', async () => {
+    fetchGutReasoning.mockResolvedValue(answer({
+      nextReason: 'Clarifying the actual outcome for the reported occasion would resolve the conflict and allow for a more definitive assessment.',
+    }));
+    const result = await reasonOverGutEvidence(input);
+    expect(result.nextReason).toContain('more definitive assessment');
+    expect(result.nextAction).toBe('leave_open');
+  });
   it('does not display invented research prose without research citations', async () => {
     fetchGutReasoning.mockResolvedValue(
       answer({

@@ -1,6 +1,6 @@
 # Native subscriptions and Apple login setup
 
-The operator selected **monthly automatically renewing subscriptions in the mobile apps only**, plus native Apple sign-in while retaining Google/email login. Minimum user age is 18. Launch intent is worldwide with India as the primary audience, subject to store/provider availability and applicable local requirements. This branch prepares the code. Native checkout is disabled until account configuration and signed-device evidence exist. Web Razorpay plans remain prepaid.
+The operator selected **monthly automatically renewing subscriptions in the mobile apps only**, plus native Apple sign-in while retaining Google/email login. Minimum user age is 18. Launch intent and primary audiences are worldwide, explicitly including India, USA, UK, Germany, Australia, Switzerland, Italy and Brazil, subject to store/provider availability and applicable local requirements. This branch prepares the code. Native checkout is disabled until account configuration and signed-device evidence exist. Web Razorpay plans remain prepaid. New binaries must use the activated direct health route described in `HEALTH_BACKEND_ACTIVATION.md`.
 
 | Plan | Both-store product ID | Apple period | Google auto-renewing base plan |
 |---|---|---|---|

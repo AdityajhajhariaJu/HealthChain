@@ -1,6 +1,6 @@
 # HealthChain store submission packet
 
-Current selection: adults 18+, worldwide launch intent (India primary), monthly automatic renewal in mobile apps only. See CURRENT_LAUNCH_STATUS.md for verified work and remaining account steps. Signed builds and phone tests belong to the operator.
+Current selection: adults 18+, worldwide launch intent and primary audiences including India, USA, UK, Germany, Australia, Switzerland, Italy and Brazil, monthly automatic renewal in mobile apps only. See CURRENT_LAUNCH_STATUS.md for verified work and remaining account steps. Signed builds and phone tests belong to the operator.
 
 ## Listing draft
 
@@ -46,7 +46,7 @@ Provide a dedicated account containing fictional records and full access to the 
 |---|---|
 | Developer identity | Enter the real operator's verified details. Current Google account opens account creation; Apple requests sign-in. Google requires organization registration for health apps; Apple's sensitive-health-data rule requires a legal entity. Complete applicable enrollment, identity and agreements in the owner's publishing account. Neither rule automatically imposes a medical-practice licence. |
 | Target audience | Google: 18 and over. Complete Apple's age questionnaire truthfully; app eligibility differs from the calculated store rating. |
-| Countries | Intended available storefronts worldwide; India primary. Review local restrictions and AI-provider availability before selecting distribution. |
+| Countries | Intended available storefronts and primary audiences worldwide, including India, USA, UK, Germany, Australia, Switzerland, Italy and Brazil. Review local restrictions and AI-provider availability before selecting distribution. |
 | Category | Draft Health & Fitness. Declare the actual health/AI/integration features regardless of category. |
 | Google Health Apps | Declare applicable health-information/management and read-only Health Connect uses. Public trial links alone do not establish human-subject research. Do not claim regulated-device status without evidence. |
 | App Privacy / Data Safety | Use STORE_DISCLOSURES.md and actual final SDK/build flows. Account, health, uploaded media/documents, AI inputs and relevant provider/device processing must be accurate. Each form's definitions of sharing and service-provider exceptions differ. |
