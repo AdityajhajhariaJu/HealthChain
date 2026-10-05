@@ -22,6 +22,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { trustedOrigin } from '../shared/http-origins.js';
 import { inspectModelOutput } from '../shared/model-output-validation.js';
+import { validGeminiInput } from '../server/gemini-input.js';
 
 const MAX_OUTPUT_TOKENS = 8192;
 const GUT_FRAME_SCHEMA = {
@@ -335,6 +336,10 @@ export default async function handler(req, res) {
     bodyPayload = buildAvaProviderPayload(bodyPayload.avaRequest);
   } else if (bodyPayload.avaRequest) {
     return res.status(400).json({ error: 'Ava requests require the Ava operation' });
+  }
+
+  if (!validGeminiInput(bodyPayload)) {
+    return res.status(400).json({ error: 'Unsupported AI request content or configuration' });
   }
 
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

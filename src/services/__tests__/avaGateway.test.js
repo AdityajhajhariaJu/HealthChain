@@ -113,6 +113,29 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('Ava server contract and recoverable accounting', () => {
+  it.each([
+    ['grounding tools', { tools: [{ googleSearch: {} }] }],
+    ['provider cache', { cachedContent: 'cachedContents/synthetic' }],
+    ['safety overrides', { safetySettings: [{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }] }],
+    ['remote file', { contents: [{ parts: [{ fileData: { mimeType: 'application/pdf', fileUri: 'https://example.test/private.pdf' } }] }] }],
+    ['remote file snake case', { contents: [{ parts: [{ file_data: { mime_type: 'application/pdf', file_uri: 'https://example.test/private.pdf' } }] }] }],
+    ['function call', { contents: [{ role: 'model', parts: [{ functionCall: { name: 'external', args: {} } }] }] }],
+    ['hidden mixed part', { contents: [{ parts: [{ text: 'Synthetic record', fileData: { fileUri: 'https://example.test/private.pdf' } }] }] }],
+    ['unreviewed output mode', { generationConfig: { responseModalities: ['AUDIO'] } }],
+    ['thought output', { generationConfig: { thinkingConfig: { thinkingBudget: 1024, includeThoughts: true } } }],
+  ])('rejects %s before recording or charging a request', async (_name, extra) => {
+    const req = request('unreviewed-input');
+    req.headers['x-hc-operation'] = 'quick_chat';
+    req.body = { contents: [{ role: 'user', parts: [{ text: 'Synthetic record' }] }], ...extra };
+    const res = response();
+    await handler(req, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ error: 'Unsupported AI request content or configuration' });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(state.ledger.size).toBe(0);
+    expect(state.rpc).not.toHaveBeenCalled();
+  });
+
   it('does not accept a generic browser prompt as an unmetered memory extractor', async () => {
     const bad = request('memory-bad');
     bad.headers['x-hc-operation'] = 'memory_extraction';

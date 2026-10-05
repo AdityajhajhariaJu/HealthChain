@@ -72,6 +72,10 @@ Use **Settings → Delete Account** to request permanent deletion of the signed-
 
 Provider backups and security logs may outlive the active record. External payment processors can retain transactions under their accounting, fraud-prevention and legal rules. Deleted content should not be reintroduced into an active workspace during a backup restore. Your downloaded exports, copies shared with other people, and information previously processed by external providers are outside the app's direct deletion transaction.
 
+To prevent delayed synchronization or restored backups from recreating a deleted account's records, HealthChain keeps a restricted deletion marker containing the former account identifier and deletion-request time, without the deleted health records. This marker is separate from the active account and has no automatic expiry in the current implementation. Its continued need and retention must be reviewed against the confirmed synchronization/backup recovery window and applicable law.
+
+Any backup restoration must preserve or reconcile these deletion markers before restored records become accessible; an older backup alone can omit a later deletion request.
+
 [[RETENTION_DETAILS]]
 
 The public [account deletion page](/delete-account) explains the request routes and exceptions. Account deletion does not by itself cancel an independently managed store subscription or automatically create a refund; manage any such subscription with its seller.

@@ -7,6 +7,8 @@
 <p>If remote deletion fails, the app reports an error rather than pretending the account is deleted. A partial failure may require a retry or support assistance. An account is not treated as permanently deleted merely because you signed out or removed the app.</p>
 <h2>Exceptions and copies</h2>
 <p>Processor security logs, legally retained transaction records and protected provider backups can have separate retention periods. Previously processed AI requests cannot be recalled from a provider by a device setting. Files you exported, copies you shared, records in your Apple Health/Health Connect account and third-party payment histories are outside the deletion transaction.</p>
+<p>A restricted marker containing the deleted account identifier and deletion-request time remains to prevent delayed synchronization or a restored backup from recreating the erased records. It contains no health-record payload and currently has no automatic expiry. The operator must review its retention against the confirmed recovery window and applicable law.</p>
+<p>Backup restoration must preserve or reconcile deletion markers before restored records become accessible; an older backup alone can omit a later deletion request.</p>
 <p>Retention periods for provider logs/backups and legally required payment records must be confirmed by the operator before publication. Active user records are retained until deletion as described above.</p>
 <p>Deleting an account does not itself cancel an independently managed store subscription. Cancel through its seller&#x27;s subscription controls and use the seller&#x27;s refund process where applicable.</p>
 <h2>Sign in with Apple</h2>

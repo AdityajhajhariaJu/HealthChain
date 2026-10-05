@@ -50,7 +50,7 @@ Rules:
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Food analysis error:', err);
+    console.error('Food analysis error:');
     return null;
   }
 }
@@ -86,7 +86,7 @@ Rules:
     const data = await res.json();
     if (data.candidates?.[0]) return data.candidates[0].content.parts[0].text;
   } catch (err) {
-    console.error('Dietician advice error:', err);
+    console.error('Dietician advice error:');
   }
   return 'Keep meals practical and varied using foods you already enjoy. Confirm condition-specific nutrition targets with a qualified dietitian or clinician.';
 }
@@ -160,7 +160,7 @@ Rules:
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Guardrails generation error:', err);
+    console.error('Guardrails generation error:');
     return null;
   }
 }
@@ -218,7 +218,7 @@ Rules:
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Grocery generation error:', err);
+    console.error('Grocery generation error:');
     return null;
   }
 }
@@ -338,7 +338,7 @@ export async function generateMealPlan(
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Meal plan generation error:', err);
+    console.error('Meal plan generation error:');
     if (err instanceof Error && err.message === 'QUOTA_EXCEEDED')
       throw new Error('diet_plan_quota_exceeded');
     if (err instanceof Error && err.message.startsWith('diet_plan_')) throw err;

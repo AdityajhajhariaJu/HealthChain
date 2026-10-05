@@ -4,7 +4,7 @@ import {
   isAccountScopeCurrent as isHealthMemoryScopeCurrent,
 } from '../AccountScope';
 import { supabase } from '../supabaseClient';
-import { requestAIConsent, hasAIConsent } from '../AIConsent';
+import { requestAIConsent, hasAIConsent, AI_CONSENT_CHANGED } from '../AIConsent';
 import { trackEvent } from '../analytics';
 import { AI_CONSENT_HEADER, AI_CONSENT_VERSION } from '../../../shared/privacy-consent.js';
 
@@ -100,14 +100,23 @@ export const fetchWithTimeout = async (
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     const externalSignal = options.signal as AbortSignal | undefined;
     const abortForCaller = () => controller.abort();
+    const abortForWithdrawal = () => {
+      if (!hasAIConsent(avaScope)) controller.abort();
+    };
     if (externalSignal?.aborted) controller.abort();
     else externalSignal?.addEventListener('abort', abortForCaller, { once: true });
+    if (typeof window !== 'undefined')
+      window.addEventListener(AI_CONSENT_CHANGED, abortForWithdrawal);
+    // Recheck after registering cancellation; an auth lookup or earlier attempt
+    // may have yielded while the user withdrew permission.
+    abortForWithdrawal();
     try {
       const received = await fetch(url, { ...secureOptions, signal: controller.signal });
       // These operations return finite JSON/text, never a streaming chat. Keep
       // the deadline and caller cancellation active until all bytes arrive.
       const body = await received.arrayBuffer();
       if (!isHealthMemoryScopeCurrent(avaScope)) throw new Error('Account changed. Please retry.');
+      if (!hasAIConsent(avaScope)) throw new Error('AI permission was withdrawn. Please retry only if you choose to allow AI processing.');
       const response = new Response([204, 205, 304].includes(received.status) ? null : body, {
         status: received.status,
         statusText: received.statusText,
@@ -164,7 +173,8 @@ export const fetchWithTimeout = async (
         err.name !== 'AbortError' &&
         err.message !== 'QUOTA_EXCEEDED' &&
         !err.message?.startsWith('RATE_LIMITED') &&
-        isHealthMemoryScopeCurrent(avaScope)
+        isHealthMemoryScopeCurrent(avaScope) &&
+        hasAIConsent(avaScope)
       ) {
         const delay = (retryCount + 1) * 800;
         await new Promise((res) => setTimeout(res, delay));
@@ -174,6 +184,8 @@ export const fetchWithTimeout = async (
     } finally {
       clearTimeout(timeout);
       externalSignal?.removeEventListener('abort', abortForCaller);
+      if (typeof window !== 'undefined')
+        window.removeEventListener(AI_CONSENT_CHANGED, abortForWithdrawal);
     }
   };
 

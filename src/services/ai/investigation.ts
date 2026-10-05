@@ -138,7 +138,7 @@ ${CLINICAL_SAFETY_RULES}`;
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Specialist suggestion error:', err);
+    console.error('Specialist suggestion error:');
     return null;
   }
 }
@@ -230,7 +230,7 @@ ${CLINICAL_SAFETY_RULES}`;
           : [];
       }
     } catch (err) {
-      console.error('DDx analysis error:', err);
+      console.error('DDx analysis error:');
       return null;
     }
   })();
@@ -275,7 +275,7 @@ ${CLINICAL_SAFETY_RULES}`;
       return synthesis ? { ...synthesis, radarData: [], overallScore: 0 } : null;
     }
   } catch (err) {
-    console.error('Synthesis error:', err);
+    console.error('Synthesis error:');
     return null;
   }
 }
@@ -318,7 +318,7 @@ ${CLINICAL_SAFETY_RULES}`;
       return parseModelJson<any>(text, null);
     }
   } catch (err) {
-    console.error('Interaction check error:', err);
+    console.error('Interaction check error:');
     return null;
   }
 }
@@ -370,7 +370,7 @@ Describe questions, risks, and possible follow-up topics to discuss with a quali
       return result;
     }
   } catch (err) {
-    console.error('Simulation error:', err);
+    console.error('Simulation error:');
     return null;
   }
 }
@@ -435,7 +435,7 @@ Return strictly as JSON matching this structure:
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     return parseModelJson<any>(text, null);
   } catch (err) {
-    console.error('Case prep analysis error:', err);
+    console.error('Case prep analysis error:');
     return null;
   }
 }
@@ -524,7 +524,7 @@ Return ONLY a valid JSON object matching this exact schema:
         return result;
       }
     } catch (err) {
-      console.error('Failed to generate connection map:', err);
+      console.error('Failed to generate connection map:');
       return null;
     }
   })();
@@ -568,7 +568,7 @@ Return strictly as a JSON array of strings.`;
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     return parseModelJson<string[]>(text, []) || [];
   } catch (err) {
-    console.error('generateAppointmentQuestions error:', err);
+    console.error('generateAppointmentQuestions error:');
     return [];
   }
 }
@@ -603,7 +603,7 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
     const data = await res.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   } catch (err) {
-    console.error('askAppointmentCoach error:', err);
+    console.error('askAppointmentCoach error:');
     return "I'm having trouble connecting right now. Please try asking again.";
   }
 }
@@ -638,7 +638,7 @@ ${JSON.stringify(brief, null, 2)}
     }
     return null;
   } catch (err) {
-    console.error('refineAppointmentBrief error:', err);
+    console.error('refineAppointmentBrief error:');
     return null;
   }
 }
@@ -719,7 +719,7 @@ export async function runJarvisInvestigation(
       return { ...review, reviewFocus };
     }
   } catch (err) {
-    console.error('Jarvis error:', err);
+    console.error('Jarvis error:');
     return null;
   }
 }
@@ -760,7 +760,7 @@ export async function extractClinicalMemory(messages: Message[]): Promise<any> {
           .slice(0, 10)
       : [];
   } catch (err) {
-    console.error('Memory extraction error:', err);
+    console.error('Memory extraction error:');
     return [];
   }
 }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true, AI_CONSENT_VERSION: '2026-10-05-provider-retention' }));
+vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true, AI_CONSENT_VERSION: '2026-10-05-provider-retention', AI_CONSENT_CHANGED: 'hc_ai_consent_changed' }));
 import { webcrypto } from 'node:crypto';
 
 vi.mock('../supabaseClient', () => ({ supabase: { auth: { getSession: vi.fn(async () => ({ data: { session: { access_token: 'test-token', user: { id: 'account-a' } } } })) } } }));

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({
   current: true,
+  consent: true,
   getSession: vi.fn(async (): Promise<any> => ({ data: { session: null } })),
 }));
 vi.mock('../AccountScope', () => ({
@@ -17,10 +18,15 @@ vi.mock('../supabaseClient', () => ({
 }));
 import { fetchWithTimeout } from '../ai/transport';
 // Permission is exercised separately; deadline tests isolate body cancellation.
-vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true }));
+vi.mock('../AIConsent', () => ({
+  AI_CONSENT_CHANGED: 'hc_ai_consent_changed',
+  requestAIConsent: async () => {},
+  hasAIConsent: () => state.consent,
+}));
 
 beforeEach(() => {
   state.current = true;
+  state.consent = true;
   state.getSession.mockReset().mockResolvedValue({ data: { session: null } });
   vi.useFakeTimers();
   vi.stubGlobal('navigator', { onLine: true });
@@ -72,6 +78,45 @@ it('honors caller cancellation while receiving the body', async () => {
   await vi.advanceTimersByTimeAsync(0);
   caller.abort();
   await rejected;
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it('withdrawal aborts an in-flight body, makes no retry and removes its listener', async () => {
+  const target = new EventTarget();
+  vi.stubGlobal('window', target);
+  const removed = vi.spyOn(target, 'removeEventListener');
+  let signal!: AbortSignal;
+  const fetcher = vi.fn(async (_url: string, options: any) => {
+    signal = options.signal;
+    return stalledResponse(signal);
+  });
+  vi.stubGlobal('fetch', fetcher);
+  const pending = fetchWithTimeout('/api/gemini', {}, 1000, 'synthetic-withdrawal');
+  const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+  await vi.advanceTimersByTimeAsync(0);
+  state.consent = false;
+  target.dispatchEvent(new Event('hc_ai_consent_changed'));
+  await rejected;
+  expect(signal.aborted).toBe(true);
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(removed).toHaveBeenCalledWith('hc_ai_consent_changed', expect.any(Function));
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it('does not return a completed reply if permission changed without an event', async () => {
+  let stream!: ReadableStreamDefaultController<Uint8Array>;
+  const fetcher = vi.fn(async () => new Response(new ReadableStream({
+    start(controller) { stream = controller; },
+  }), { status: 200 }));
+  vi.stubGlobal('fetch', fetcher);
+  const pending = fetchWithTimeout('/api/gemini', {}, 1000, 'synthetic-consent-race');
+  const rejected = expect(pending).rejects.toThrow('permission was withdrawn');
+  await vi.advanceTimersByTimeAsync(0);
+  state.consent = false;
+  stream.enqueue(new TextEncoder().encode('{"answer":"synthetic private answer"}'));
+  stream.close();
+  await rejected;
+  expect(fetcher).toHaveBeenCalledOnce();
   expect(vi.getTimerCount()).toBe(0);
 });
 

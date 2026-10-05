@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true, AI_CONSENT_VERSION: '2026-10-05-provider-retention' }));
+vi.mock('../AIConsent', () => ({ requestAIConsent: async () => {}, hasAIConsent: () => true, AI_CONSENT_VERSION: '2026-10-05-provider-retention', AI_CONSENT_CHANGED: 'hc_ai_consent_changed' }));
 import { analyzeFoodImage } from '../geminiService';
 import {
   normalizeNutritionTo100g,

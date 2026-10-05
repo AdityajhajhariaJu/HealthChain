@@ -17,6 +17,7 @@ for (const [field, name] of Object.entries({
   iosLoginResolved: 'iOS sign-in option meets the applicable store rule',
   sharedTableExposureResolved: 'Shared database tables no longer expose unrestricted client access',
   providerContractsAndTransfersReviewed: 'AI/hosting processor terms and international transfer safeguards reviewed',
+  hostingSensitiveDataProcessingApproved: 'Actual hosting agreement permits the sensitive health data sent through the API',
   aiFeatureUseRestrictionsReviewed: 'AI feature behavior meets provider medical-use, age and available-region restrictions',
   sensitiveHealthConsentReviewed: 'Core cloud health processing has a valid consent/legal basis for each launch market',
   providerLogAndBackupRetentionVerified: 'Provider log, backup and statutory payment retention verified',

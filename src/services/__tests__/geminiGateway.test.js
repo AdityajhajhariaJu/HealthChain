@@ -113,6 +113,23 @@ describe('Gut Gemini gateway contract', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it.each(['inlineData', 'inline_data'])('preserves the existing %s photo payload', async field => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({
+      candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"detected":false}' }] } }],
+    }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const attachment = { [field]: { [field === 'inlineData' ? 'mimeType' : 'mime_type']: 'image/jpeg', data: 'c3ludGhldGlj' } };
+    const res = response();
+    await handler(request('food_vision', {
+      contents: [{ parts: [{ text: 'Read this synthetic nutrition label.' }, attachment] }],
+      systemInstruction: { parts: [{ text: 'Transcribe the supplied label.' }] },
+      generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    }), res);
+    expect(res.statusCode).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).contents[0].parts[1]).toEqual(attachment);
+  });
+
   it('rejects a client-supplied instruction in a Gut framing operation', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

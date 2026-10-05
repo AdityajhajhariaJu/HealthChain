@@ -34,7 +34,7 @@ Example: ["neuro", "physio", "ortho"]${CLINICAL_SAFETY_RULES}`;
       return parseModelJson<string[]>(text, ['gp']) || ['gp'];
     }
   } catch (err) {
-    console.error('Triage error:', err);
+    console.error('Triage error:');
   }
   return ['gp'];
 }
@@ -199,7 +199,7 @@ Return your response STRICTLY as JSON matching this format:
     if (data.candidates?.[0]) return data.candidates[0].content.parts[0].text.trim();
     return '{"response": "Could you describe your main symptoms and when they began?", "internalThoughts": "Awaiting patient history", "currentHypotheses": []}';
   } catch (err) {
-    console.error('Gemini board specialist error:', err);
+    console.error('Gemini board specialist error:');
     throw err;
   }
 }
@@ -311,7 +311,7 @@ Return your analysis strictly in this JSON format:
         return result;
       }
     } catch (err) {
-      console.error('Orchestrator error:', err);
+      console.error('Orchestrator error:');
       return {
         corroborations: [],
         contentions: [],
@@ -546,7 +546,7 @@ Return strictly as JSON:
         return result;
       }
     } catch (err) {
-      console.error('Report error:', err);
+      console.error('Report error:');
       // Fallback data so it doesn't get stuck on loading
       return {
         executiveSummary:
@@ -695,18 +695,18 @@ export async function generateParallelMultiReport(
         ? `\n\n--- Patient Medical Records ---\n${medicalRecords.map((r) => `File: ${r.testName || r.filename}\nFindings: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n\n')}`
         : '';
 
-    const reportPrompt = `You are an AI assistant orchestrating parallel health-assessment perspectives.
+    const reportPrompt = `You are an AI assistant organizing supplied records and user-reported facts for a clinician appointment.
 The patient presented with: "${symptomInput}"
 
-Below are the independent interview transcripts from several specialists who questioned the patient simultaneously, along with any uploaded medical records:
+Below are AI-generated interview transcripts and any uploaded medical records. The transcripts are not independent clinician evaluations or evidence that a clinician reviewed this case:
 ${formattedTranscripts}${recordsText}
 
-Your task is to find the connections between these distinct evaluations, cross-correlate their findings with the medical records, and generate a unified case brief.
+Your task is to organize attributed source statements, discrepancies and missing record details into a unified case brief without generating a personal medical assessment.
 CRITICAL INSTRUCTIONS:
-1. SCIENTIST PATIENT PERSONA: The patient wants to understand the biological mechanisms behind their condition like a scientist. They want rigorous, data-driven explanations and clear clinical linkages between symptoms, lab results, and hypotheses. Provide deep, rich informational density.
-2. BEAUTIFUL EXPLANATIONS: Even though you are providing scientific density, you MUST explain the mechanisms and terminology in a simple, beautiful, easy-to-understand way. Do not use impenetrable medical jargon without clearly defining it.
-3. MERGE overlapping diagnoses: Do not list the same condition multiple times. Merge them into a single entry with combined evidence.
-4. CONDENSE the Action Plan: Limit the action plan to a maximum of 5 distinct, high-yield steps.
+1. Attribute every condition and clinical finding to the supplied original record or the user's report. AI interview hypotheses cannot establish a diagnosis or a personal biological mechanism. Explain only what the original source states and identify gaps without filling them by inference.
+2. Explain recorded terminology in plain language. General definitions must be labelled as general information, without claiming they explain this person's symptoms or medical suitability.
+3. Preserve conditions only when explicitly stated in the supplied original records or reported by the user. Do not convert an AI specialist's hypothesis into a documented diagnosis, generate new condition candidates, or rank likelihood. Deduplicate repeated source statements without claiming independent confirmation.
+4. Limit the action plan to at most 5 record-checking steps or questions for a qualified clinician. Do not give personalized medicine, lifestyle, testing or treatment recommendations.
 5. Do not claim certainty; distinguish evidence from gaps and direct clinical decisions to qualified professionals.
 6. Include citations only when a real source is supplied in the case; otherwise return an empty citations list.
 
@@ -715,18 +715,18 @@ Return strictly as JSON matching this exact structure:
   "executiveSummary": "1-2 paragraphs identifying connections, uncertainty and overlapping symptoms between the specialist perspectives.",
   "keyFindings": "Summarize the core clinical findings in a clear paragraph.",
   "interpretation": "Explain what these findings mean in plain English.",
-  "nextSteps": "Outline the actionable next steps for the patient.",
+  "nextSteps": "Summarize record corrections and questions to take to a qualified clinician, without making a medical recommendation.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
   "medicalTerms": [{"term": "Medical Term Used", "definition": "A 1-2 sentence, extremely clear and simple definition for the patient. STRICT RULE: DO NOT include meta-commentary like 'Definition tailored for...'."}],
   "debateSummary": "Describe agreements and unresolved conflicts without choosing a diagnosis.",
   "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
-  "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
-  "urgency": "Routine | Soon | Urgent",
+  "systemicCorrelations": ["Only connections explicitly described in supplied original records; do not infer a personal biological mechanism. Leave empty if none."],
+  "urgency": "Use only an explicitly supplied urgency assessment; otherwise say Not assessed. Do not produce an AI triage rating.",
   "topDiagnoses": [
     {
-      "condition": "Possible pathway",
+      "condition": "A condition explicitly written in an original record or reported by the user; leave the entire topDiagnoses list empty when none is supplied",
       "confidence": 0,
-      "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected, so the patient can easily understand it.",
+      "rationale": "Identify who reported this condition and any exact source statement; never explain why the AI suspects it.",
       "specialty": "Primary specialty to discuss it with",
       "evidenceFor": ["Specific supporting detail"],
       "evidenceGaps": ["What is unknown or needs checking"],
@@ -735,8 +735,8 @@ Return strictly as JSON matching this exact structure:
   ],
   "recommendedActionPlan": [
     {
-      "step": "Action",
-      "timeline": "Immediately / Next week",
+      "step": "Record correction or question for a qualified clinician",
+      "timeline": "Not medically assessed",
       "type": "Discussion | Record | Follow-up"
     }
   ],
@@ -776,7 +776,7 @@ Return strictly as JSON matching this exact structure:
         return result;
       }
     } catch (err) {
-      console.error('Parallel Report error:', err);
+      console.error('Parallel Report error:');
       return {
         executiveSummary:
           'Due to network instability, the multi-specialist synthesis could not be completed at this time.',

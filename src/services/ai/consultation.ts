@@ -60,7 +60,7 @@ export async function chatWithGemini(messages: Message[]): Promise<string> {
     if (data.candidates?.[0]) return data.candidates[0].content.parts[0].text;
     return 'Could you tell me a bit more about that?';
   } catch (err) {
-    console.error('Gemini error:', err);
+    console.error('Gemini error:');
     return 'Connection issue. Please try again.';
   }
 }
@@ -176,7 +176,7 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
     }
     throw new Error('No candidate returned');
   } catch (err) {
-    console.error('Pharmacy Gemini error:', err);
+    console.error('Pharmacy Gemini error:');
     return null;
   }
 }
@@ -246,9 +246,9 @@ Analyze the report thoroughly and return ONLY a valid JSON object (no markdown, 
   "testName": "Name of the test or report type (e.g., Complete Blood Count, MRI Lumbar Spine)",
   "date": "Date of the report if visible, otherwise 'Unknown'",
   "keyFindings": "A 2-3 sentence summary of the most important findings",
-  "abnormalities": ["List of any out-of-range values, abnormal findings, or concerning remarks. If none, say 'All within normal limits'"],
-  "interpretation": "A plain English explanation of what these results mean for the patient's health.",
-  "recommendations": "Suggested next steps or lifestyle advice based on the findings, including whether they should urgently see a doctor.",
+  "abnormalities": ["Only findings or out-of-range flags explicitly written in the report; leave empty when none are visible. Do not infer normality from missing flags or ranges."],
+  "interpretation": "Explain the report's written terminology and recorded findings without inferring a diagnosis, personal health consequence or medical suitability.",
+  "recommendations": "Only record-checking steps and questions for a qualified clinician. Do not suggest personalized lifestyle changes, tests or treatment. Quote any written clinician instruction as a source statement, never as your own recommendation.",
   "biomarkers": {
     "Biomarker Name": { "value": 12.5, "unit": "g/dL", "status": "NORMAL / HIGH / LOW", "date": "Date of report" }
   },
@@ -271,7 +271,7 @@ export async function analyzeLabReport(
       {
         role: 'user',
         parts: [
-          { text: 'Analyze this clinical report.' },
+          { text: 'Transcribe and organize the written findings in this report. Do not generate medical advice.' },
           { inlineData: { mimeType, data: base64Data } },
         ],
       },
@@ -303,7 +303,7 @@ export async function analyzeLabReport(
     }
     throw new Error('No candidate returned');
   } catch (err) {
-    console.error('Lab Gemini error:', err);
+    console.error('Lab Gemini error:');
     return null;
   }
 }

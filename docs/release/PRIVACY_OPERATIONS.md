@@ -12,6 +12,8 @@ For access/export, confirm the account scope, gather the supported account recor
 
 For deletion, use the supported authenticated server route or the operator's verified administrative process. Check database deletion, Storage API deletion, session revocation, Auth deletion and client owner erasure; preserve the erasure guard against stale queued restores. Retry a partial failure rather than reporting success. Notify applicable processors/recipients and handle backups where the relevant law requires it. Record the necessary completion metadata without retaining a replacement copy of the person's health file.
 
+The service-only erasure marker retains the former account ID and request time without an automatic expiry. Review its necessity and justified period against the actual recovery window. Before any restore exposes health records, reconcile markers for deletions occurring after the backup; restoring an old snapshot can otherwise lose those markers. Keep this procedure and any restricted marker export outside the public repository.
+
 For withdrawal, distinguish optional measurement, future AI requests, device access and core account health processing. Explain which features need the withdrawn processing and provide the supported deletion/guest alternatives. Withdrawal does not create consent for another purpose or automatically cancel an independently billed store subscription.
 
 ## Incident handling

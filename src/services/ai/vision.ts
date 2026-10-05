@@ -248,8 +248,7 @@ If no medicine or readable text is visible, return:
   });
 
   if (!response.ok) {
-    const err = await response.text();
-    console.error('Gemini Vision API Error:', err);
+    console.error('Gemini Vision API Error:');
     throw new Error('API Error');
   }
 

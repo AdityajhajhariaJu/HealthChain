@@ -4,6 +4,7 @@
   "iosLoginResolved": false,
   "sharedTableExposureResolved": false,
   "providerContractsAndTransfersReviewed": false,
+  "hostingSensitiveDataProcessingApproved": false,
   "aiFeatureUseRestrictionsReviewed": false,
   "sensitiveHealthConsentReviewed": false,
   "providerLogAndBackupRetentionVerified": false,
