@@ -40,7 +40,7 @@ for (const region of ['international','us']) {
       '<nav class="nav"><a href="/">HealthChain</a><a href="/terms-policies">All policies</a>' +
       '<a href="/' + files[link.id] + (region === 'us' ? '' : '-us') + '.html">' +
       (region === 'us' ? 'International' : 'United States') + '</a></nav>' +
-      (!legalIdentityComplete() ? '<p class="draft">Publication draft: operator details, eligibility, retention and launch markets await confirmation.</p>' : '') +
+      (!legalIdentityComplete() ? '<p class="draft">Publication draft: operator identity, provider arrangements and remaining retention details await confirmation.</p>' : '') +
       '<h1>' + safe(link.title) + '</h1><p>Updated ' + safe(POLICY_DATE) +
       ' · ' + (region === 'us' ? 'United States' : 'International') + '</p>' + body +
       '<footer><p><a href="mailto:' + safe(LEGAL_CONFIG.privacyEmail) + '">Privacy and support contact</a>' +

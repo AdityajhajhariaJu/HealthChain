@@ -2,6 +2,23 @@
 
 **The reviewed preparation is not a store-ready release.** This record distinguishes completed technical checks from unresolved choices and checks requiring signed binaries, developer accounts and real devices.
 
+## Latest completed review published to master
+
+The operator explicitly requested all completed review changes in master production. The local folder `C:\Users\adity\OneDrive\Desktop\HealthChain-Live` was used throughout. Clean `master` was fast-forwarded from `afdf3287` to `50869198` and pushed to the main GitHub remote. [PR #92](https://github.com/AdityajhajhariaJu/HealthChain/pull/92) reports merged at the identical tested commit; the earlier PR #88 review is an ancestor. The frozen backup remote was not pushed. No signing files, private contracts, credentials, customer records or test reports were committed.
+
+The follow-up includes account-scoped adult confirmation, monthly-only new native offers with legacy restoration, reporting/feedback correctness, accurate timeline/profile descriptions, the three already-applied security migrations and updated release/policy records. Adult confirmation survives logout, is erased only for its owner, and is not migrated from a guest to a signed-in account.
+
+| Check | Current result and limits |
+|---|---|
+| Full local unit suite | 1,038 passed, two skipped; 164 files passed, two skipped. Exact source hashes stayed stable during the final run. Earlier mixed-file attempts are not counted as passes. |
+| Full CI | [Quality Gates 37321430054](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37321430054) and [Lighthouse 37321429989](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37321429989) passed on `50869198`. Audit, lint, hygiene, syntax, migration contract, production build/native-copy and unit steps passed. All 240 browser cases passed. Production reported 133 passed and one flaky case that passed on retry: a WebKit 320px header-height measurement. Optional live Supabase smoke was skipped. |
+| Additional local browser evidence | Entry/auth checks: 20 passed in Chromium/WebKit. The full local development run was stopped after three Ava assertions timed out. Two six-case isolated development attempts also timed out at startup; a separate diagnostic saw Ava become ready after about 29–32 seconds with no browser errors, beyond the test's five-second assertion. No development-test timeout was relaxed. The additional full local production run reported 130 passed and four failures (one animated header-size measurement, three loading/whole-test timeouts); this is not represented as a passed local full suite. CI passed the equivalent flows. |
+| Local build/native assets | TypeScript and production build/budgets passed. Both native web copies match all 532 files by SHA-256 and contain no bundled audio. This is not a signed native compile/device test. |
+| Live database metadata | Three applied versions match the ledger. Eighteen retired tables: zero missing RLS, zero client table/column access, zero policies, service SELECT retained for all eighteen. Vector is in `extensions`; owner-null guard and case UUID cast confirmed. Read-only checks inspected metadata, not health rows. |
+| Production publication | [Vercel production](https://vercel.com/adityas-projects-6fa2e77d/health-chain/GyKopHK2YNxAg94D6MBzg5dMVWYZ) succeeded. Fourteen live policy HTML pages returned 200, matched prepared content after CRLF/LF normalization, remained script-free and retained truthful draft labels. Live UI confirmed the policy hub, United States Privacy supplement and unchecked adult entry gate with disabled Continue. No live age confirmation, AI request, purchase or health-record operation was submitted. |
+
+Final copy review aligns the Terms with the monthly-only new native offer, retains legacy restoration wording, and makes the draft banner identify the actual missing identity/provider/retention facts. Four legal-release cases, focused lint, the updated TypeScript/production build/budgets and 532-file native-copy verification pass. All 30 focused production browser cases pass in Chromium/WebKit, covering policy entry points/regions/script-free pages and the four earlier local failures (all profile viewports, optional-AI profile opening, the public FAQ and restored garden). Existing assertions and timeouts were retained; no retries were configured for this local recheck. These copy changes do not finalize missing facts or activate native checkout. Full CI counts above apply to `50869198`; the later wording/record commit has this focused validation rather than a claimed new full-suite run.
+
 ## Operator-authorized website publication — 5 October 2026
 
 The operator explicitly requested publishing the prepared policies into the main app. The local repository's clean `master` was fast-forwarded from `be4c741a` to the reviewed `74119209` and pushed to `origin/master`; GitHub reports PR #88 merged at that commit. The frozen backup push target was not used. Missing operator/provider facts remain visibly marked as drafts, and native checkout is still disabled pending setup.
@@ -10,7 +27,7 @@ Before publication, both current [Quality Gates](https://github.com/Adityajhajha
 
 Vercel reports deployment success. All fourteen live HTML policy editions on `healthchain360.com` return HTTP 200 and match the prepared content after CRLF/LF normalization; all are script-free and labelled drafts. Initial raw-byte comparisons differed because of line endings, not content. Live browser checks confirmed the policy hub, Privacy selection, United States supplement and website footer navigation to All policies. Read-only verification used no customer health records and made no AI request or purchase.
 
-The website and current web-app assets are published. Previously installed mobile binaries still need a new build. Provider/feature decisions, actual agreements/retention, core cloud-health consent, business identity, shared-database containment and store/native validation remain separate unresolved work.
+At that initial publication, the website and web-app assets were published while installed mobile binaries still needed a new build. Provider/feature decisions, agreements/retention, core cloud-health consent, business identity, database containment and store/native validation remained separate work. The latest section above records the later resolved database exposure and product choices.
 
 ## Privacy/provider hardening — 5 October 2026
 

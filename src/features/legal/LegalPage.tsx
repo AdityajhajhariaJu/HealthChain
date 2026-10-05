@@ -18,8 +18,8 @@ export default function LegalPage({ document: documentId = 'terms', hub = false 
         <Link to="/terms-policies"><ShieldCheck size={18} /> Policies and your choices</Link>
       </header>
       {!legalIdentityComplete() && <p className="hc-legal-draft" role="status">
-        Publication draft for operator review. Identity, eligibility, retention and launch markets
-        must be confirmed before this notice is published as final.
+        Publication draft for operator review. Operator identity, provider arrangements and remaining
+        retention details must be confirmed before this notice is published as final.
       </p>}
       <h1>{hub ? 'Terms and policies' : selected.title}</h1>
       <p className="hc-legal-date">Updated {POLICY_DATE} · Applies to web, Android and iOS</p>

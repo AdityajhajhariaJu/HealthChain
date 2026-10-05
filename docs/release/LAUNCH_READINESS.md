@@ -1,6 +1,6 @@
 # HealthChain launch preparation — 5 October 2026
 
-**Release status: preparation completed for review; store submission is blocked pending the decisions and external checks below.** A successful web build is not evidence of a signed Android/iOS release or a legal approval. No first-pass store approval or next-day publication is promised.
+**Release status: reviewed source is published to `master` and the live website; store submission remains blocked by the external checks below.** A successful web build is not evidence of a signed Android/iOS release or a legal approval. No first-pass store approval or next-day publication is promised.
 
 ## What this preparation adds
 
@@ -8,7 +8,7 @@ Seven original documents cover Terms of Service, Acceptable Use, App Licence, Pr
 
 These documents describe HealthChain's actual providers and controls. They do not copy a competitor's wording or claim that HealthChain shares a competitor's medical-device status, certifications, clinical operations or corporate identity. They remain visibly marked as drafts until the operator supplies and approves the missing facts.
 
-Policy entry points are visible near the top of app Settings, directly in the phone's More menu and desktop navigation, and through All policies/Terms of Service/Privacy Policy in the website footer. The hub is `/terms-policies`. The operator authorized publication on 5 October 2026: the reviewed source at `74119209` was merged and pushed to `master`, and the live website's fourteen public editions and policy hub were verified. These remain visibly labelled drafts where facts are missing. An already-installed native app requires an updated binary; website deployment does not replace it.
+Policy entry points are visible near the top of app Settings, directly in the phone's More menu and desktop navigation, and through All policies/Terms of Service/Privacy Policy in the website footer. The hub is `/terms-policies`. The operator authorized publication on 5 October 2026: the privacy review at `74119209`, then the adult/monthly-offer/security follow-up at `50869198`, were merged and pushed to `master`. The live website's fourteen public editions, policy hub and adult entry screen were verified. These remain visibly labelled drafts where facts are missing. An already-installed native app requires an updated binary; website deployment does not replace it. See `CURRENT_LAUNCH_STATUS.md` and `VERIFICATION.md` for current evidence.
 
 Privacy changes remove Google Analytics/Ads dispatch and global free-text click collection; retain only optional, bounded first-party events; exclude health details and respect Global Privacy Control. AI requests wait for an affirmative, versioned account-specific choice identifying Google Gemini. Declining sends no request body, and Settings provides withdrawal. Profile summarization requires an explicit action. Health imports and optional meal dictation explain their data flow before permission.
 

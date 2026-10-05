@@ -2,6 +2,14 @@
 
 This is the current status for the completion work. Earlier dated verification remains historical evidence. The main app features remain; the changes add adult confirmation, the selected native offer, accurate screen descriptions and security fixes.
 
+## Master publication
+
+The operator requested all completed review content in production. On 5 October 2026, the exact reviewed commit `50869198` was fast-forwarded into `master` and pushed to the main repository; [PR #92](https://github.com/AdityajhajhariaJu/HealthChain/pull/92) is merged. The earlier privacy review in PR #88 is included. The frozen backup repository was not pushed or changed.
+
+[Quality Gates](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37321430054) and [Lighthouse CI](https://github.com/AdityajhajhariaJu/HealthChain/actions/runs/37321429989) passed. Quality reports 1,038 unit cases passed and two skipped, all 240 browser cases passed, and 133 production journeys passed plus one successful retry. Optional live Supabase smoke was skipped. [Vercel production deployment](https://vercel.com/adityas-projects-6fa2e77d/health-chain/GyKopHK2YNxAg94D6MBzg5dMVWYZ) succeeded. All fourteen public policy editions returned HTTP 200 and matched the prepared content after line-ending normalization. Live UI checks confirmed the policy hub, US Privacy supplement and adult entry screen, without customer records, AI requests or purchases.
+
+Publication updates the website and web app. It does not replace an installed mobile binary or enable unfinished native checkout. Policies retain draft labels for the actual missing operator/provider/retention facts.
+
 ## Confirmed product decisions
 
 - Minimum user age: **18**. Workspace, onboarding and checkout wait for an explicit account-scoped adult confirmation. This is self-attestation, not identity or date-of-birth verification.
@@ -38,7 +46,7 @@ This is the current status for the completion work. Earlier dated verification r
 | Privacy completion | Review accepted provider terms and transfer safeguards, confirm outstanding retention/deletion exceptions and payment retention, then finalize the truthful policies and store forms. No hired lawyer is a repository requirement. |
 | AI/provider availability | Review real reachable outputs against Gemini's permitted-use rules. Source and output tests cannot constitute Google's approval. Worldwide store intent cannot bypass unsupported Gemini regions. The named target countries are supported; full release availability still needs a maintained regional control/configuration. |
 | Store submission | Use `STORE_REVIEW_READINESS.md` and `STORE_DISCLOSURES.md`; enter matching declarations, screenshots and full reviewer login/access. `/review-demo` is supplemental fictional demonstration, not a substitute for access to the actual app. |
-| Release | Finalize policies, publish this reviewed source, verify public URLs/backend, then submit the matching operator-built mobile binaries and store metadata. The previous master website publication is historical; these new UI changes are not yet published. |
+| Release | Reviewed source and web assets are published to `master` and the live website. Complete the remaining facts/account setup, then submit the matching operator-built mobile binaries and store metadata. Installed mobile apps still need a new binary. |
 
 ## AI evidence from this completion run
 
