@@ -134,6 +134,7 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <button
+          type="button"
           onClick={handleVerify}
           disabled={isRecovering}
           style={{
@@ -155,8 +156,10 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
         </button>
 
         <button
+          type="button"
           onClick={handleDismiss}
           title="Dismiss if not charged"
+          aria-label="Dismiss payment recovery banner"
           style={{
             background: 'transparent',
             border: 'none',
