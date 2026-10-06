@@ -1,6 +1,10 @@
-# Current launch status — 5 October 2026
+# Current launch status — 6 October 2026
 
 This is the current status for the completion work. Earlier dated verification remains historical evidence. The main app features remain; the changes add adult confirmation, the selected native offer, accurate screen descriptions and security fixes.
+
+Worldwide coverage update: `WORLDWIDE_MARKET_INVENTORY.csv` now records 251 country/territory provider entries and the UNCTAD 195-country legislation screen. `WORLDWIDE_COVERAGE_FINDINGS.md` records additional national health, representative, transfer/storage and commencement findings, including the distinction between reviewed requirements and inventory-only countries. All eight primary audiences have public Gemini/Apple/Google purchase listings. This is not final worldwide legal clearance or a change to app/store availability. Operator facts, applicable appointments/permissions, account transfer evidence and remaining national/territory analysis are explicitly open.
+
+PR #94 collects the follow-up. Its earlier CI had 30 failing AI gateway tests because production fixtures omitted trusted region inputs. The fixtures now explicitly model Vercel and supported India input; all 46 focused gateway/region checks pass, with production protections retained. Final clean-install CI is required before master publication. The 6 October follow-up also patches Capacitor 8.5.1 and source-map-js 1.2.2, including the iOS Swift package pin. No routing change, plan purchase or operator-owned phone pass is claimed.
 
 ## Master publication
 

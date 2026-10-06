@@ -68,3 +68,13 @@ Review the public legal identity/contact, policy version, support inbox, deletio
 ## Operator review
 
 The operator can complete the documented factual/contract review without hiring a lawyer. Record supported facts and unresolved obligations for the selected markets; the code does not require a paid certificate. See `PROVIDER_REVIEW.md`.
+
+## Worldwide contacts and country-specific operations — 6 October 2026
+
+Use `WORLDWIDE_COVERAGE_FINDINGS.md` and `WORLDWIDE_MARKET_INVENTORY.csv` to distinguish a named accountable contact, a DPO, a locally established representative and an authority permission. The general inbox does not appoint any of these. Resolve the actual operator/foreign scope first; record a supported exemption rather than treating missing evidence as an exemption.
+
+Maintain a restricted contact/permission register with: country; applicable law/trigger; operator and processing scope; named party and role; required establishment/contact channels; appointment or registration evidence; authority reference where needed; public notice location; request/incident routing; review date. A single appointment can cover multiple countries only where the applicable law permits. Do not invent names, mandates, local addresses, registrations or permissions in the public policy.
+
+Prioritize foreign EEA/UK representation, Thai representation/core-sensitive-data DPO scope, Rwanda representation/overseas permissions, and applicable health-processing permits or storage rules identified in the report. Own/internal privacy contacts are possible where the relevant law allows; independence and conflict rules still apply to statutory DPO roles. No representative service, permit fee or new plan has been purchased.
+
+For a request/incident from an additional market, determine its actual law, local deadline, language and competent authority before using another country's procedure. The worldwide inventory's legislation status is not a rights/incident deadline table. Escalate an unresolved applicable deadline promptly; do not invent a universal 30-day response or 72-hour notification rule.

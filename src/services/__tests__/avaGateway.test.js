@@ -48,6 +48,7 @@ const request = (id = 'ava-request') => ({
   method: 'POST',
   headers: {
     origin: 'http://localhost:3001',
+    'x-vercel-ip-country': 'IN',
     'x-hc-ai-consent': '2026-10-05-provider-retention',
     authorization: 'Bearer synthetic',
     'x-hc-request-id': id,
@@ -99,6 +100,8 @@ beforeEach(() => {
     error: null,
   }));
   vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('VERCEL', '1');
+  vi.stubEnv('HEALTHCHAIN_RUNTIME', '');
   vi.stubEnv('SUPABASE_URL', 'https://synthetic.supabase.co');
   vi.stubEnv('SUPABASE_ANON_KEY', 'anon');
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'service');

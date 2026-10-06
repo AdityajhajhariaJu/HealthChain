@@ -1,0 +1,88 @@
+{
+  "checkedOn": "2026-10-06",
+  "scope": "Public availability; UN country law-existence screen; additional national requirements detailed in linked report. Not a compliance attestation.",
+  "counts": {
+    "countryAndTerritoryEntries": 251,
+    "unctadCountries": 195,
+    "geminiListed": 230,
+    "appleAppStoreMarketHeadings": 175,
+    "googleExplicitCountries": 177,
+    "googleAdditionalFreeAppEntries": 48,
+    "googleExplicitPurchaseIcons": 172,
+    "googleExplicitNoPurchaseIcons": 5,
+    "primaryMarkets": 8
+  },
+  "unctadSnapshot": "2026-09-09",
+  "unctadPrivacyLawCounts": {
+    "Legislation": 155,
+    "Draft Legislation": 5,
+    "No Legislation": 33,
+    "No Data": 2
+  },
+  "googleTableVersion": "2026/01; published 2026-09-28",
+  "googleBelarusException": "Purchase icon conflicts with restrictive table footnote and billing guidance; not cleared for subscriptions.",
+  "extraction": "IANA ordinary current two-letter regions plus XK; public Gemini HTML list; Apple country headings containing App Store; Google live browser accessibility table and Rest of world entries; UNCTAD public CSV. Country-name aliases normalized and all country matches verified.",
+  "sourceEntries": [
+    {
+      "id": "region-inventory",
+      "url": "https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry",
+      "checkedOn": "2026-10-06",
+      "retrievedContentSha256": "93eb5a4e8b06d67144dd7b84e8e1636daf891bf0b0263f0e735b588f53f914d3"
+    },
+    {
+      "id": "gemini-end-user-regions",
+      "url": "https://ai.google.dev/gemini-api/docs/available-regions",
+      "checkedOn": "2026-10-06",
+      "retrievedContentSha256": "190e2a9e54cff458ef03b4940b0bab3ac36fedf6339300d120050307c7f01e8d"
+    },
+    {
+      "id": "apple-public-service-markets",
+      "url": "https://support.apple.com/en-us/118205",
+      "checkedOn": "2026-10-06",
+      "retrievedContentSha256": "5e436e0c42cc9315c185e04f1e241340fa1650d5fb2309d10ca9f4d8e918edf1"
+    },
+    {
+      "id": "google-play-locations",
+      "url": "https://play.google.com/supported-locations/?hl=en",
+      "checkedOn": "2026-10-06"
+    },
+    {
+      "id": "google-play-billing-restrictions",
+      "url": "https://support.google.com/googleplay/android-developer/answer/11950272?hl=en-en",
+      "checkedOn": "2026-10-06"
+    },
+    {
+      "id": "unctad-cyberlaw-tracker",
+      "url": "https://unctad.org/topic/ecommerce-and-digital-economy/ecommerce-law-reform/summary-adoption-e-commerce-legislation-worldwide",
+      "checkedOn": "2026-10-06"
+    },
+    {
+      "id": "unctad-public-data",
+      "url": "https://storage.unctad.org/2026-cyberlaw_tracker/assets/data/data.csv",
+      "checkedOn": "2026-10-06",
+      "retrievedContentSha256": "3c3397c19e0a93540117b66dc76d97cf7b2eb2f2e1ae55bad0d8820fc972f7f6"
+    }
+  ],
+  "nationalSources": "WORLDWIDE_COVERAGE_FINDINGS.md; WORLDWIDE_PRIVACY_REVIEW.md",
+  "nationalReviewCategories": {
+    "EEA-framework-reviewed-national-extras-open": 27,
+    "current-framework-change-identified-application-open": 1,
+    "current-law-change-identified-application-open": 3,
+    "current-law-change-identified-fulltext-review-open": 1,
+    "current-law-edition-check-open": 1,
+    "draft-law-status-reviewed-other-duties-open": 1,
+    "legislation-inventory-only": 117,
+    "national-commencement-reviewed-application-open": 1,
+    "national-requirements-reviewed-application-open": 32,
+    "national-requirements-reviewed-provider-unlisted": 2,
+    "national-requirements-reviewed-transition-open": 1,
+    "primary-EEA-framework-reviewed-national-extras-open": 1,
+    "primary-national-requirements-reviewed-application-open": 1,
+    "primary-requirements-reviewed-operator-facts-open": 6,
+    "provider-unlisted-national-law-review-open": 1,
+    "statutory-framework-identified-implementation-open": 1,
+    "territory-specific-law-review-open": 53,
+    "transfer-requirements-reviewed-national-scope-open": 1
+  },
+  "releaseApprovals": "not-attested for all rows; no store selections, permits, appointments or account processing arrangements changed"
+}
