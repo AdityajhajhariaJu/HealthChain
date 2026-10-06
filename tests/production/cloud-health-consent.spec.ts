@@ -99,6 +99,8 @@ test('built signed-in app requires cloud permission and keeps declined records l
   await expect(page.getByRole('region', { name: 'Privacy controls' })).toContainText(
     'Cloud health storage: Paused'
   );
+  await expect(page.getByLabel('Status: Saved on this device', { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel('Status: Synced', { exact: true })).toHaveCount(0);
   expect(healthRequests).toEqual([]);
 
   await page.getByRole('button', { name: 'Review cloud health permission' }).click();
@@ -110,6 +112,8 @@ test('built signed-in app requires cloud permission and keeps declined records l
   await expect(page.getByRole('region', { name: 'Privacy controls' })).toContainText(
     'Cloud health storage: Paused'
   );
+  await expect(page.getByLabel('Status: Saved on this device', { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel('Status: Synced', { exact: true })).toHaveCount(0);
   const afterWithdrawal = healthRequests.length;
   await page.goto('/app/my-cases?new=true');
   await page.getByLabel('Case title', { exact: true }).fill('Synthetic local consent record');

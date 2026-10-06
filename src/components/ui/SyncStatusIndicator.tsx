@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { captureAccountScope, isAccountScopeCurrent } from '../../services/AccountScope';
+import { hasHealthDataConsent, HEALTH_DATA_CONSENT_CHANGED } from '../../services/HealthDataConsent';
 import { flushSyncOutbox, getSyncStatus } from '../../services/SyncOutbox';
 import { SyncStatusState } from '../../services/SyncTypes';
 import { supabase } from '../../services/supabaseClient';
@@ -27,22 +28,34 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     let mounted = true;
     let syncRevision = 0;
 
+    function showLocalStatus() {
+      setStatus('saved_locally');
+      setPendingCount(0);
+      setIsSyncing(false);
+      setErrorMessage(null);
+    }
+
     async function checkInitialStatus() {
       const revision = syncRevision;
       const scope = captureAccountScope();
+      if (!hasHealthDataConsent(scope)) {
+        if (mounted) showLocalStatus();
+        return;
+      }
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted || revision !== syncRevision || !isAccountScopeCurrent(scope)) return;
         if (!session?.user || session.user.id !== scope.accountId) {
-          if (mounted) setStatus('saved_locally');
+          showLocalStatus();
           return;
         }
         const detail = await getSyncStatus(session.user.id);
-        if (mounted && revision === syncRevision && isAccountScopeCurrent(scope)) {
+        if (mounted && revision === syncRevision && isAccountScopeCurrent(scope) && hasHealthDataConsent(scope)) {
           setPendingCount(detail.pendingCount);
           setStatus(previous => detail.state === 'sync_pending' && (previous === 'sync_failed' || previous === 'conflict_needs_review') ? previous : detail.state);
         }
       } catch {
-        if (mounted) setStatus('saved_locally');
+        if (mounted && revision === syncRevision && isAccountScopeCurrent(scope)) showLocalStatus();
       }
     }
 
@@ -50,6 +63,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
 
     const onPending = (e: Event) => {
       syncRevision += 1;
+      if (!hasHealthDataConsent()) return showLocalStatus();
       const count = (e as CustomEvent)?.detail?.count || 1;
       setPendingCount(count);
       setStatus('sync_pending');
@@ -64,6 +78,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
 
     const onError = (e: Event) => {
       syncRevision += 1;
+      if (!hasHealthDataConsent()) return showLocalStatus();
       const err = (e as CustomEvent)?.detail;
       setErrorMessage(err?.message || 'Sync failed');
       setStatus('sync_failed');
@@ -72,14 +87,23 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
 
     const onConflict = () => {
       syncRevision += 1;
+      if (!hasHealthDataConsent()) return showLocalStatus();
       setStatus('conflict_needs_review');
       setIsSyncing(false);
     };
+
+    const onPrivacyOrAccountChange = () => {
+      ++syncRevision;
+      showLocalStatus();
+      void checkInitialStatus();
+    };
+    const privacyEvents = [HEALTH_DATA_CONSENT_CHANGED, 'hc_account_scope_changed', 'storage', 'hc_logout'];
 
     window.addEventListener('hc_sync_pending', onPending);
     window.addEventListener('hc_sync_complete', onComplete);
     window.addEventListener('hc_sync_error', onError);
     window.addEventListener('hc_sync_conflict', onConflict);
+    for (const event of privacyEvents) window.addEventListener(event, onPrivacyOrAccountChange);
 
     return () => {
       mounted = false;
@@ -87,17 +111,19 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
       window.removeEventListener('hc_sync_complete', onComplete);
       window.removeEventListener('hc_sync_error', onError);
       window.removeEventListener('hc_sync_conflict', onConflict);
+      for (const event of privacyEvents) window.removeEventListener(event, onPrivacyOrAccountChange);
     };
   }, []);
 
   const handleManualRetry = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isSyncing) return;
+    const scope = captureAccountScope();
+    if (isSyncing || !hasHealthDataConsent(scope)) return;
     setIsSyncing(true);
     try {
       await flushSyncOutbox();
     } catch {
-      setStatus('sync_failed');
+      if (isAccountScopeCurrent(scope) && hasHealthDataConsent(scope)) setStatus('sync_failed');
     } finally {
       setIsSyncing(false);
     }

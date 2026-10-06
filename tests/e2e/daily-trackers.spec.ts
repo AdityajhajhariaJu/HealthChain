@@ -259,9 +259,7 @@ test('dashboard refreshes when account scope changes and restores isolated value
 }) => {
   await seedProfile(page);
   await page.getByRole('button', { name: 'Quick log 250ml water' }).click();
-  await page.evaluate(async () => {
-    const path = '/src/services/ProfileEngine.js';
-    const engine = await import(/* @vite-ignore */ path);
+  await page.evaluate(() => {
     localStorage.setItem('hc_guest_mode', 'false');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'audit_other' }));
     localStorage.setItem('hc_adult_eligibility_' + 'audit_other', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
@@ -274,9 +272,7 @@ test('dashboard refreshes when account scope changes and restores isolated value
   await expect(page.getByRole('button', { name: /Daily Meds & Vitamins -/ })).toContainText(
     '0 Active'
   );
-  await page.evaluate(async () => {
-    const path = '/src/services/ProfileEngine.js';
-    const engine = await import(/* @vite-ignore */ path);
+  await page.evaluate(() => {
     localStorage.setItem('hc_guest_mode', 'true');
     // Synthetic adult fixture; fresh-entry tests confirm through the UI.
     localStorage.setItem('hc_adult_eligibility_guest', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
