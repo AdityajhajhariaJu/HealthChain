@@ -87,6 +87,7 @@ test('expired session cannot claim account deletion or clear any device record',
     return route.fulfill({ json: { success: true } });
   });
   await page.goto('/app/today');
+  await expect(page.getByRole('link', { name: 'Settings', exact: true })).toBeVisible();
   await page.evaluate(async () => {
     const { supabase } = await import('/src/services/supabaseClient.ts');
     supabase.auth.getSession = async () => ({
@@ -96,7 +97,9 @@ test('expired session cannot claim account deletion or clear any device record',
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-expired' }));
     localStorage.setItem('hc_adult_eligibility_' + 'synthetic-expired', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
+    localStorage.setItem('hc_health_data_consent_synthetic-expired', JSON.stringify({ version: '2026-10-05-cloud-health', accountId: 'synthetic-expired', accepted: false, recordedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_case_prep_draft_synthetic-expired_profile_1', '{"preserve":true}');
+    window.dispatchEvent(new Event('hc_account_scope_changed'));
   });
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Delete Account', exact: true })).toBeVisible();
@@ -124,6 +127,7 @@ test('confirmed settings deletion erases only the requested owner in localStorag
 }) => {
   await page.route('**/api/delete-account', (route) => route.fulfill({ json: { success: true } }));
   await page.goto('/app/today');
+  await expect(page.getByRole('link', { name: 'Settings', exact: true })).toBeVisible();
   await page.evaluate(async () => {
     const { supabase } = await import('/src/services/supabaseClient.ts');
     supabase.auth.getSession = async () => ({
@@ -134,11 +138,13 @@ test('confirmed settings deletion erases only the requested owner in localStorag
     localStorage.removeItem('hc_guest_mode');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'synthetic-delete-A' }));
     localStorage.setItem('hc_adult_eligibility_' + 'synthetic-delete-A', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
+    localStorage.setItem('hc_health_data_consent_synthetic-delete-A', JSON.stringify({ version: '2026-10-05-cloud-health', accountId: 'synthetic-delete-A', accepted: false, recordedAt: '2026-10-05T00:00:00Z' }));
     localStorage.setItem('hc_unified_profile_synthetic-delete-A', '{}');
     localStorage.setItem('hc_unified_profile_synthetic-delete-B', 'SYNTHETIC_KEEP');
     const idb = await import('/node_modules/.vite/deps/idb-keyval.js');
     await idb.set('hc_observations_v1:synthetic-delete-A:profile_1', ['ERASE']);
     await idb.set('hc_original_record:hc_unified_profile_synthetic-delete-B:profile_1:c:r', 'KEEP');
+    window.dispatchEvent(new Event('hc_account_scope_changed'));
   });
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Delete Account', exact: true }).click();

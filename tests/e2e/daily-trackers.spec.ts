@@ -265,6 +265,7 @@ test('dashboard refreshes when account scope changes and restores isolated value
     localStorage.setItem('hc_guest_mode', 'false');
     localStorage.setItem('hc_account', JSON.stringify({ id: 'audit_other' }));
     localStorage.setItem('hc_adult_eligibility_' + 'audit_other', JSON.stringify({ version: '2026-10-05-age-18', minimumAge: 18, confirmed: true, confirmedAt: '2026-10-05T00:00:00Z' }));
+    localStorage.setItem('hc_health_data_consent_audit_other', JSON.stringify({ version: '2026-10-05-cloud-health', accountId: 'audit_other', accepted: false, recordedAt: '2026-10-05T00:00:00Z' }));
     window.dispatchEvent(new Event('hc_profile_updated'));
   });
   await expect(
