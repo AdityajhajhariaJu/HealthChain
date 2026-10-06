@@ -95,12 +95,18 @@ test('built signed-in app requires cloud permission and keeps declined records l
   await page.screenshot({ path: testInfo.outputPath('cloud-health-choice-phone.png') });
   await page.getByRole('button', { name: 'Keep records on this device' }).click();
   const tour = page.getByRole('button', { name: 'Skip Tour', exact: true });
-  if (await tour.isVisible()) await tour.click();
+  // The fresh signed-in fixture always receives the delayed welcome tour.
+  await expect(tour).toBeVisible();
+  await tour.click();
+  await expect(tour).toBeHidden();
   await expect(page.getByRole('region', { name: 'Privacy controls' })).toContainText(
     'Cloud health storage: Paused'
   );
+  // This fixture has no active case; its status indicator is in the desktop sidebar.
+  await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.getByLabel('Status: Saved on this device', { exact: true }).first()).toBeVisible();
   await expect(page.getByLabel('Status: Synced', { exact: true })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
   expect(healthRequests).toEqual([]);
 
   await page.getByRole('button', { name: 'Review cloud health permission' }).click();
@@ -112,8 +118,10 @@ test('built signed-in app requires cloud permission and keeps declined records l
   await expect(page.getByRole('region', { name: 'Privacy controls' })).toContainText(
     'Cloud health storage: Paused'
   );
+  await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.getByLabel('Status: Saved on this device', { exact: true }).first()).toBeVisible();
   await expect(page.getByLabel('Status: Synced', { exact: true })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
   const afterWithdrawal = healthRequests.length;
   await page.goto('/app/my-cases?new=true');
   await page.getByLabel('Case title', { exact: true }).fill('Synthetic local consent record');
