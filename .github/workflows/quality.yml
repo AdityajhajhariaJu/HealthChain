@@ -67,6 +67,11 @@ jobs:
         run: npm run verify:migrations
 
       - name: Production build
+        # Public origin must match the app CSP. Browser fixtures intercept
+        # provider requests; this dummy key cannot access the live project.
+        env:
+          VITE_SUPABASE_URL: https://cikikocfvfshloqwnyfe.supabase.co
+          VITE_SUPABASE_ANON_KEY: healthchain-ci-placeholder
         run: npm run build
 
       - name: Generate native configuration and assets

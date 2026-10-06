@@ -22,6 +22,10 @@ jobs:
         run: npm ci
         
       - name: Build project
+        # Match the production CSP without providing live database credentials.
+        env:
+          VITE_SUPABASE_URL: https://cikikocfvfshloqwnyfe.supabase.co
+          VITE_SUPABASE_ANON_KEY: healthchain-ci-placeholder
         run: npm run build
 
       - name: Generate native configuration and assets

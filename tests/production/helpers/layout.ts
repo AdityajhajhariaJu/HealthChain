@@ -275,9 +275,16 @@ export async function expectDialogFits(dialog: Locator, page: Page, landscape = 
   const header = dialog.locator('[data-overlay-header]').first();
   const scroll = dialog.locator('[data-overlay-scroll]').first();
   if ((await header.count()) && (await scroll.count())) {
-    const h = await header.boundingBox(),
-      b = await scroll.boundingBox();
-    expect(b!.y).toBeGreaterThanOrEqual(h!.y + h!.height - 1);
+    // Read both rectangles in one frame, since opening transforms may be moving.
+    await expect
+      .poll(() =>
+        dialog.evaluate((el) => {
+          const h = el.querySelector('[data-overlay-header]')!.getBoundingClientRect();
+          const b = el.querySelector('[data-overlay-scroll]')!.getBoundingClientRect();
+          return b.y - (h.y + h.height);
+        })
+      )
+      .toBeGreaterThanOrEqual(-1);
   }
   await expectReadableWidth(page);
 }

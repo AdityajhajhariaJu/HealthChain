@@ -207,8 +207,12 @@ async function expectHeaderControlsSeparate(dialog: Locator, page: Page) {
   expect(overlaps).toEqual([]);
   for (const button of await header.getByRole('button').all()) {
     if (!(await button.isVisible())) continue;
+    // Dialog transforms can still be settling after visibility is satisfied.
+    // Keep the touch-target limit and measure once its rendered height reaches it.
+    await expect
+      .poll(() => button.evaluate((el) => el.getBoundingClientRect().height))
+      .toBeGreaterThanOrEqual(43);
     const b = await button.boundingBox();
-    expect(b!.height).toBeGreaterThanOrEqual(43);
     expect(b!.x + b!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   }
 }
