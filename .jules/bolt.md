@@ -1,0 +1,3 @@
+## 2024-11-20 - Timer-induced Canvas Re-renders
+**Learning:** Parent components with interval timers (e.g., updating a countdown every second) will trigger full re-renders of all child components. If a child component manages its own `requestAnimationFrame` loop (like `LivingAtmosphereCanvas`), these frequent re-renders cause unnecessary tearing down and setting up of the animation context, creating noticeable performance hitches.
+**Action:** Always wrap HTML5 Canvas components containing their own `requestAnimationFrame` render loops in `React.memo` (specifically using `const Component = React.memo<Props>(...)` in React 18+ TS) to isolate them from frequent parent state updates.
