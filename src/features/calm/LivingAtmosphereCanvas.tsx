@@ -9,7 +9,8 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+/* Performance Optimization: Wrap Canvas component in React.memo to prevent frequent prop-agnostic parent re-renders */
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -349,4 +350,4 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});
