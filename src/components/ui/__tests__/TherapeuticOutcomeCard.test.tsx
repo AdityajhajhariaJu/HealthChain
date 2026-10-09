@@ -38,7 +38,7 @@ describe('Gut plan card', () => {
     render(<TherapeuticOutcomeCard />);
     expect(screen.getByText(/0 recorded check-ins/i)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Check in' }));
-    fireEvent.click(screen.getByRole('button', { name: '5' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Score 5' }));
     const events = getHealthEvents({
       profileId: trial.profileId,
       trialId: trial.id,

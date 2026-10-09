@@ -110,7 +110,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, alignItems: 'center' }}>
         {active && !logging && <button type="button" style={action} onClick={() => setLogging(true)}><Activity size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{todayScore === null ? 'Check in' : 'Update check-in'}</button>}
-        {active && logging && <div aria-label="Choose symptom severity" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}><span style={{ fontSize: 12 }}>Symptom score:</span>{[0, 2, 5, 8, 10].map((score) => <button type="button" key={score} style={action} onClick={() => saveQuickScore(score)}>{score}</button>)}<button type="button" style={action} onClick={() => setLogging(false)}>Cancel</button></div>}
+        {active && logging && <div aria-label="Choose symptom severity" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}><span style={{ fontSize: 12 }}>Symptom score:</span>{[0, 2, 5, 8, 10].map((score) => <button type="button" key={score} aria-label={`Score ${score}`} style={action} onClick={() => saveQuickScore(score)}>{score}</button>)}<button type="button" style={action} onClick={() => setLogging(false)}>Cancel</button></div>}
         <button type="button" style={{ ...action, background: '#9B675B', color: 'white', borderColor: '#9B675B' }} onClick={() => setOpen(true)}>{trialV2 || trial ? 'Review records' : 'Find a starting point'} <ArrowRight size={13} style={{ verticalAlign: 'middle' }} /></button>
       </div>
       {message && <span role="status" style={{ fontSize: 12, color: '#765248' }}>{message}</span>}
