@@ -1,0 +1,3 @@
+## 2024-05-14 - Isolating Canvas Rendering Loops from Parent Timers
+**Learning:** `requestAnimationFrame` loops inside React components are highly sensitive to parent re-renders. `MeditationPlayer` was triggering a re-render every second due to its `timeRemaining` countdown state. Because `LivingAtmosphereCanvas` wasn't memoized, its entire component function re-executed, potentially disrupting the canvas animation loop and causing unnecessary React overhead.
+**Action:** Always wrap components containing heavy `<canvas>` rendering loops in `React.memo` when they are placed inside parent components that update frequently (like timers or audio players).
