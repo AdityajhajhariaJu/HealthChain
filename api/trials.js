@@ -13,8 +13,16 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (process.env.HEALTHCHAIN_HEALTH_BACKEND === 'supabase' && process.env.HEALTHCHAIN_RUNTIME !== 'supabase')
-    return res.status(410).json({ error: 'Update HealthChain to use its health-processing service.', code: 'HEALTH_BACKEND_MOVED' });
+  if (
+    process.env.HEALTHCHAIN_HEALTH_BACKEND === 'supabase' &&
+    process.env.HEALTHCHAIN_RUNTIME !== 'supabase'
+  )
+    return res
+      .status(410)
+      .json({
+        error: 'Update HealthChain to use its health-processing service.',
+        code: 'HEALTH_BACKEND_MOVED',
+      });
 
   if (!['GET', 'POST'].includes(req.method)) {
     res.setHeader('Allow', 'GET, POST, OPTIONS');
@@ -91,8 +99,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ studies, total: studies.length });
   } catch (err) {
-    console.error('Error in /api/trials backend handler:');
-    return res.status(500).json({ error: 'Failed to fetch clinical trials', details: err.message });
+    console.error('Error in /api/trials backend handler:', err);
+    return res.status(500).json({ error: 'Failed to fetch clinical trials' });
   } finally {
     clearTimeout(timeoutId);
   }
