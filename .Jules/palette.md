@@ -1,0 +1,3 @@
+## 2023-10-24 - PaymentRecoveryBanner Accessibility Improvement
+**Learning:** Dismiss buttons acting as "floating UI components" inside dynamic banners (like `PaymentRecoveryBanner`) often lack `type="button"` and `aria-label` attributes, which can cause form submission errors if placed inside forms and render them inaccessible to screen reader users.
+**Action:** When creating or modifying dynamic banners or action islands with dismiss/close buttons, always explicitly set `type="button"` to prevent unintended form submissions and include `aria-label="Dismiss [Banner Context]"` to ensure screen reader compatibility.
