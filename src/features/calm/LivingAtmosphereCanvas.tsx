@@ -9,7 +9,9 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+// Wrapped in React.memo to prevent expensive re-renders when parent (MeditationPlayer)
+// updates state every second for timeRemaining countdowns.
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -349,4 +351,4 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});
