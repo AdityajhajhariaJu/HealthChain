@@ -1,0 +1,3 @@
+## 2024-05-24 - Canvas Re-render Optimization
+**Learning:** React 19's `React.FC` typing combined with continuous re-renders from `setInterval` updates in parent components (like a countdown timer) causes expensive recreation of HTML5 Canvas DOM elements and animations if the canvas component isn't properly memoized.
+**Action:** When wrapping a canvas component containing a `requestAnimationFrame` loop with `React.memo` in React 18+ with TypeScript, avoid type compilation errors by using `const Component = React.memo<Props>((...)` instead of `const Component: React.FC<Props> = React.memo(...)`.
