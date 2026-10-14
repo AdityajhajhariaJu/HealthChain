@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing Accessibility Attributes on Floating UI Components
+**Learning:** Floating UI components (like Action Islands or Toasts) often contain icon-only dismiss buttons or primary actions that lack explicit `aria-label` or `type="button"` attributes. Because these elements exist outside the normal document flow and are typically dynamically rendered, missing these attributes can severely impact screen reader users (unannounced focus stops) and cause unintended form submissions if rendered near forms.
+**Action:** Always ensure that all interactive elements within floating UI components, especially icon-only buttons, have explicit `aria-label` and `type="button"` attributes to guarantee proper accessibility and prevent unintended side effects.
