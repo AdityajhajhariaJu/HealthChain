@@ -1,0 +1,3 @@
+## 2024-10-15 - React.memo for Canvas with requestAnimationFrame
+**Learning:** The MeditationPlayer component uses an internal setInterval to update a timeRemaining state every second, causing frequent app-wide re-renders. Unmemoized expensive child components (like canvas elements with continuous rendering loops via requestAnimationFrame) within its render tree create a severe performance bottleneck.
+**Action:** Always wrap HTML5 Canvas components containing requestAnimationFrame loops in React.memo (e.g., const Component = React.memo<Props>(...)) to isolate them from frequent parent component re-renders.
