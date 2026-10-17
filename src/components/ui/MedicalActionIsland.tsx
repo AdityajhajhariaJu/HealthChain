@@ -113,7 +113,7 @@ export const MedicalActionIsland = () => {
                 <span style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
                     {title}
                   </span>
-                  <button onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ background: 'transparent', border: 'none', color: '#94A3B8', padding: '4px', marginLeft: '2px', display: 'flex', cursor: 'pointer' }}><X size={14} /></button>
+                  <button aria-label="Dismiss action island" onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ background: 'transparent', border: 'none', color: '#94A3B8', padding: '4px', marginLeft: '2px', display: 'flex', cursor: 'pointer' }}><X size={14} /></button>
               </motion.div>
             )}
           </AnimatePresence>
