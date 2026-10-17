@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -12,8 +13,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const authHeader = req.headers.authorization;
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = req.headers.authorization || '';
+  const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
+
+  if (
+    !process.env.CRON_SECRET ||
+    Buffer.byteLength(authHeader) !== Buffer.byteLength(expectedAuth) ||
+    !crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expectedAuth))
+  ) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
