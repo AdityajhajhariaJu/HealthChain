@@ -9,7 +9,10 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+// ⚡ Bolt Optimization: Wrap canvas in React.memo to prevent unnecessary re-renders
+// Since the parent MeditationPlayer component updates timeRemaining every second,
+// this prevents the expensive canvas rendering loop from restarting constantly.
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -349,4 +352,4 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});
