@@ -9,7 +9,8 @@ interface LivingAtmosphereCanvasProps {
   isPlaying: boolean;
 }
 
-export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
+// ⚡ Bolt: Wrapped in React.memo to prevent unnecessary re-renders when parent timer updates, ensuring smooth 60fps canvas performance
+export const LivingAtmosphereCanvas = React.memo<LivingAtmosphereCanvasProps>(({
   theme,
   isPlaying,
 }) => {
@@ -349,4 +350,4 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       }}
     />
   );
-};
+});
