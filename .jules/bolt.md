@@ -1,0 +1,3 @@
+## 2024-10-18 - Prevent Canvas Re-renders from Parent Timers
+**Learning:** HTML5 Canvas components that contain their own `requestAnimationFrame` loops (like `LivingAtmosphereCanvas`) can cause severe performance bottlenecks if they are placed inside a parent component that re-renders frequently (like `MeditationPlayer` with a 1-second countdown timer). Unmemoized canvases will be recreated and potentially leak animation frames if not carefully managed.
+**Action:** Always wrap HTML5 Canvas components with `React.memo` (using `React.memo<Props>(...)` for TypeScript) when they are placed in a React render tree that updates frequently, isolating them from parent re-renders.
