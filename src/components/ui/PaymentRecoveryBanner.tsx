@@ -48,8 +48,14 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
 
     checkPending();
 
-    const handlePaymentCompleted = () => { void checkPending(); };
-    const clear = () => { setPending(null); setSession(null); setIsRecovering(false); };
+    const handlePaymentCompleted = () => {
+      void checkPending();
+    };
+    const clear = () => {
+      setPending(null);
+      setSession(null);
+      setIsRecovering(false);
+    };
 
     window.addEventListener('hc_payment_completed', handlePaymentCompleted);
     window.addEventListener('hc_payment_pending', handlePaymentCompleted);
@@ -76,8 +82,12 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
     try {
       const { data } = await supabase.auth.getSession();
       if (!isAccountScopeCurrent(scope) || data.session?.user?.id !== session.user.id) return;
-      if (!data.session?.access_token) throw new Error('Sign in again to verify this saved receipt.');
-      const recovered = await recoverPendingPayment(data.session.user.id, data.session.access_token);
+      if (!data.session?.access_token)
+        throw new Error('Sign in again to verify this saved receipt.');
+      const recovered = await recoverPendingPayment(
+        data.session.user.id,
+        data.session.access_token
+      );
       if (!isAccountScopeCurrent(scope)) return;
       if (recovered) {
         triggerHapticSuccess();
@@ -86,13 +96,17 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
         if (onSuccess) onSuccess();
 
         setTimeout(() => {
-          if (isAccountScopeCurrent(scope)) resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
+          if (isAccountScopeCurrent(scope))
+            resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
         }, 1200);
       } else {
-        setFeedback('Payment confirmation is still pending from the bank. Please try again shortly.');
+        setFeedback(
+          'Payment confirmation is still pending from the bank. Please try again shortly.'
+        );
       }
     } catch {
-      if (isAccountScopeCurrent(scope)) setFeedback('Unable to reach verification servers. Please check your network.');
+      if (isAccountScopeCurrent(scope))
+        setFeedback('Unable to reach verification servers. Please check your network.');
     } finally {
       if (isAccountScopeCurrent(scope)) setIsRecovering(false);
     }
@@ -150,13 +164,17 @@ export function PaymentRecoveryBanner({ onSuccess, style }: PaymentRecoveryBanne
             cursor: isRecovering ? 'wait' : 'pointer',
           }}
         >
-          <RefreshCw size={13} style={{ animation: isRecovering ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw
+            size={13}
+            style={{ animation: isRecovering ? 'spin 1s linear infinite' : 'none' }}
+          />
           <span>{isRecovering ? 'Checking...' : 'Verify & Restore'}</span>
         </button>
 
         <button
           onClick={handleDismiss}
           title="Dismiss if not charged"
+          aria-label="Dismiss if not charged"
           style={{
             background: 'transparent',
             border: 'none',
