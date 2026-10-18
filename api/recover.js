@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 import { PRODUCT_CATALOG } from '../shared/productCatalog.js';
 
 export function latestRecoverableEntitlements(payments, now = Date.now()) {
@@ -18,7 +19,16 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'method_not_allowed' });
-  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return res.status(401).json({ error: 'unauthorized' });
+
+  if (!process.env.CRON_SECRET) return res.status(401).json({ error: 'unauthorized' });
+
+  const expectedBuffer = Buffer.from(`Bearer ${process.env.CRON_SECRET}`, 'utf8');
+  const receivedBuffer = Buffer.from(req.headers.authorization || '', 'utf8');
+
+  if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+
   try {
     const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
