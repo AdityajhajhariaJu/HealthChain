@@ -1,0 +1,3 @@
+## 2024-05-14 - Icon-Only Button Accessibility Pattern
+**Learning:** Found that custom icon-only dismiss buttons in temporary overlay components (e.g., `PaymentRecoveryBanner.tsx`, `MedicalActionIsland.tsx`) frequently missed `aria-label` attributes and the `type="button"` specifier. Without `type="button"`, they risk triggering unintended form submissions, and missing `aria-label` stops screen readers from announcing their purpose.
+**Action:** Always ensure that `<button>` tags holding only an icon element (such as `<X />`) explicitly declare `type="button"` and `aria-label`. Include an automated or manual check for all new custom floating/overlay components that implement their own close handlers.
