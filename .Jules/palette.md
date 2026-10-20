@@ -1,0 +1,3 @@
+## 2024-05-18 - Added ARIA Label to Quick Severity Check-in Buttons
+**Learning:** React mapping over arrays (like `QUICK_SEVERITIES.map`) to create buttons with emojis or icons often miss explicit `aria-label`s, even if `title` is present, making the experience inaccessible for screen reader users since the title tooltip does not guarantee semantic announcement.
+**Action:** Always verify `.map()` implementations that generate interactive buttons, particularly those whose visible text content is just an emoji or icon, to ensure they include explicit `aria-label`s (e.g. `aria-label="Log symptom as {severity}"`) to describe the action.

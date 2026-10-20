@@ -1057,6 +1057,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                               key={sev.label}
                               onClick={() => handleQuickLog(sev)}
                               title={`Quick check-in as ${sev.label}`}
+                              aria-label={`Log symptom as ${sev.label}`}
                               style={{
                                 background: sev.bg,
                                 border: `1px solid ${sev.border}`,
